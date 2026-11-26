@@ -1,0 +1,1129 @@
+{
+  "courseId": "903744",
+  "lectureId": "17739742",
+  "title": "Cost Functions and Gradient Descent",
+  "section": 25,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "8e2fd58db78cd75e0eb38ba0d89ce5c26aed3acf4566d55c38792af1f6cc8e8c",
+  "cues": [
+    {
+      "start": 0.814,
+      "end": 3.314,
+      "en": "(light music)",
+      "zh": "（輕快音樂）"
+    },
+    {
+      "start": 5.25,
+      "end": 6.51,
+      "en": "Instructor: Welcome back everyone.",
+      "zh": "歡迎大家回來。"
+    },
+    {
+      "start": 6.51,
+      "end": 15.09,
+      "en": "In this lecture, we're gonna be talking about cost functions which is going to allow us to measure how far off we are in the output predictions of our neural network.",
+      "zh": "本堂成本函數，衡量網路預測輸出差多遠。"
+    },
+    {
+      "start": 15.09,
+      "end": 20.82,
+      "en": "And then we'll talk about gradient descent which is going to help us minimize that cost or minimize that error.",
+      "zh": "再談梯度下降，協助最小化成本或誤差。"
+    },
+    {
+      "start": 20.82,
+      "end": 24.99,
+      "en": "So often, cost functions you also hear them labeled as loss functions or error functions.",
+      "zh": "成本函數也叫損失、誤差函數。"
+    },
+    {
+      "start": 24.99,
+      "end": 26.083,
+      "en": "So we're gonna talk about all that.",
+      "zh": "都會談。"
+    },
+    {
+      "start": 26.083,
+      "end": 32.42,
+      "en": "A really interesting topic here, and it really fundamentally is gonna help us understand better how the neural network will actually learn.",
+      "zh": "很有意思，從根本幫助理解網路如何學習。"
+    },
+    {
+      "start": 33.75,
+      "end": 40.65,
+      "en": "So we already understand that neural networks, they take in inputs in that first layer, then they multiply them by weights and then add biases to them.",
+      "zh": "已知道第一層接輸入、乘權重、加偏差。"
+    },
+    {
+      "start": 40.65,
+      "end": 46.98,
+      "en": "And then maybe that gets passed on through an activation function like the sigmoid function or the rectified linear unit.",
+      "zh": "再通過 sigmoid 或 ReLU 等激活函數。"
+    },
+    {
+      "start": 46.98,
+      "end": 54.213,
+      "en": "And then that ends up going into another layer and then you add another set of weights and biases and then so on and so on all the way to that last output layer.",
+      "zh": "接下一層，再權重偏差，一直到最後輸出。"
+    },
+    {
+      "start": 55.65,
+      "end": 59.91,
+      "en": "So that last output layer we can maybe call that or refer to it as y-hat.",
+      "zh": "最後輸出可叫 ŷ。"
+    },
+    {
+      "start": 59.91,
+      "end": 63.93,
+      "en": "That's essentially the model's estimation of what it predicts the label to be.",
+      "zh": "基本上是模型估計的標籤。"
+    },
+    {
+      "start": 63.93,
+      "end": 65.34,
+      "en": "And so we have two main questions.",
+      "zh": "有兩個主要問題。"
+    },
+    {
+      "start": 65.34,
+      "end": 71.385,
+      "en": "After the network creates that prediction how do we actually evaluate it against the true label?",
+      "zh": "預測後如何與真實標籤比較？"
+    },
+    {
+      "start": 71.385,
+      "end": 76.35,
+      "en": "And then after the evaluation, how can we update the network's weights and biases?",
+      "zh": "評估後如何更新權重、偏差？"
+    },
+    {
+      "start": 76.35,
+      "end": 82.35,
+      "en": "So really what we're gonna focus on this lecture is how do we evaluate how far off our prediction is?",
+      "zh": "本堂專注預測偏離多遠。"
+    },
+    {
+      "start": 82.35,
+      "end": 88.8,
+      "en": "For updating the network's weights and biases, we'll have to learn about back propagation, which is coming up in a future lecture.",
+      "zh": "更新則需反向傳播，之後介紹。"
+    },
+    {
+      "start": 88.8,
+      "end": 91.25,
+      "en": "So right now, let's focus on that first question.",
+      "zh": "先第一題。"
+    },
+    {
+      "start": 92.55,
+      "end": 99.66,
+      "en": "So what we need to do is we need to take the estimated outputs of the network and then compare them to the real values of the label.",
+      "zh": "取網路估計輸出，比對標籤真實值。"
+    },
+    {
+      "start": 99.66,
+      "end": 107.46000000000001,
+      "en": "And keep in mind, what I'm referring to right now is happening during the training or fitting portion of the supervised learning process.",
+      "zh": "記得是在監督式訓練、擬合階段。"
+    },
+    {
+      "start": 107.46000000000001,
+      "end": 111.53999999999999,
+      "en": "So right now what we're doing is we're using just the training dataset.",
+      "zh": "現在只用訓練資料。"
+    },
+    {
+      "start": 111.53999999999999,
+      "end": 114.99000000000001,
+      "en": "That way we can go back and update our weights and biases.",
+      "zh": "才能回去更新權重偏差。"
+    },
+    {
+      "start": 114.99000000000001,
+      "end": 123.72,
+      "en": "During the test set, we're not really updating weights and biases, instead we're just, again, evaluating overall on the entire data set, how does our neural network perform?",
+      "zh": "測試集不更新，只整體評估網路表現。"
+    },
+    {
+      "start": 123.72,
+      "end": 131.19,
+      "en": "Right now, we're doing these small evaluations on these training batches in order to actually then go back and update weights and biases in our network.",
+      "zh": "現在對訓練批次做小評估，為了回頭更新。"
+    },
+    {
+      "start": 131.19,
+      "end": 132.363,
+      "en": "So keep that in mind.",
+      "zh": "記得。"
+    },
+    {
+      "start": 134.04,
+      "end": 143.07,
+      "en": "Okay, so in order to actually compare our neural network's output to the true value, we're gonna be using what's known as a cost function.",
+      "zh": "比較網路輸出與真值，用成本函數。"
+    },
+    {
+      "start": 143.07,
+      "end": 146.55,
+      "en": "And this is also often referred to as a loss function or error function.",
+      "zh": "也常稱損失或誤差函數。"
+    },
+    {
+      "start": 146.55,
+      "end": 152.52,
+      "en": "Essentially, it's just something that measures how far off you are from the true value based off your prediction.",
+      "zh": "只是衡量預測離真值多遠。"
+    },
+    {
+      "start": 152.52,
+      "end": 155.94,
+      "en": "And one important caveat is it should be an average.",
+      "zh": "重要條件是應取平均，"
+    },
+    {
+      "start": 155.94,
+      "end": 158.49,
+      "en": "That way it can output a single value.",
+      "zh": "才輸出單值。"
+    },
+    {
+      "start": 158.49,
+      "end": 163.5,
+      "en": "Then you can keep track of that loss or cost during training to monitor network performance.",
+      "zh": "訓練中追蹤成本、監控效能。"
+    },
+    {
+      "start": 163.5,
+      "end": 174.243,
+      "en": "So hopefully during each epoch of training, your loss or cost goes down, down, down until you kind of like converge to some a minimum cost value.",
+      "zh": "希望每個 epoch，損失不斷下降，收斂某個最小值。"
+    },
+    {
+      "start": 176.19,
+      "end": 179.609,
+      "en": "So what we're gonna do here is I wanna introduce a couple of variables.",
+      "zh": "介紹幾個變數。"
+    },
+    {
+      "start": 179.609,
+      "end": 187.23,
+      "en": "We're gonna be using y to represent the true value, and then we'll be using a to represent the neuron's prediction.",
+      "zh": "y 表真值，a 表神經元預測。"
+    },
+    {
+      "start": 187.23,
+      "end": 197.37,
+      "en": "So in terms of weights and biases what we have here is recall, we set z to be a representation of weights times x plus b, and then we pass that z",
+      "zh": "權重偏差方面，記得 z=wx+b，再把 z"
+    },
+    {
+      "start": 197.37,
+      "end": 200.46,
+      "en": "into an activation function such as a sigmoid function.",
+      "zh": "傳激活函數，例如 sigmoid。"
+    },
+    {
+      "start": 200.46,
+      "end": 203.49,
+      "en": "So that z passed into the sigmoid is then equal to a.",
+      "zh": "sigmoid(z)=a。"
+    },
+    {
+      "start": 203.49,
+      "end": 211.44,
+      "en": "So all I'm trying to say here is that a represents kind of that final output of a neuron which takes into account what the activation function was.",
+      "zh": "只想說，a 是最終神經元輸出，包含激活函數影響。"
+    },
+    {
+      "start": 211.44,
+      "end": 217.98,
+      "en": "And that also then takes into account z, which in turn takes into account w, which are the weights and the biases.",
+      "zh": "也考量 z，再考量 w 權重與偏差。"
+    },
+    {
+      "start": 217.98,
+      "end": 221.22,
+      "en": "So a, just keep that in mind, holds a lot of information.",
+      "zh": "所以 a 包很多資訊，"
+    },
+    {
+      "start": 221.22,
+      "end": 224.92000000000002,
+      "en": "It holds information about the activation function, the weights, and the biases.",
+      "zh": "激活函數、權重、偏差。"
+    },
+    {
+      "start": 226.11,
+      "end": 231.18,
+      "en": "So probably the most common cost function you'll see is known as the quadratic cost function.",
+      "zh": "最常見成本可能是二次成本。"
+    },
+    {
+      "start": 231.18,
+      "end": 238.5,
+      "en": "And if you've done any machine learning, this probably looks really familiar to you because it looks like root means squared error which is kind of essentially what it is.",
+      "zh": "做過機器學習應很熟，像均方根誤差，基本上相關。"
+    },
+    {
+      "start": 238.5,
+      "end": 242.253,
+      "en": "Here it's just notated for multidimensional data.",
+      "zh": "這裡表示多維資料。"
+    },
+    {
+      "start": 243.303,
+      "end": 250.56,
+      "en": "So all we're doing here is at the end of the day we're calculating the difference between the real values, here we label it y of x.",
+      "zh": "最後只是算真值 y(x) 與預測之差。"
+    },
+    {
+      "start": 250.56,
+      "end": 256.44,
+      "en": "So if you have some x input, we specify y is the true function so that would be the true value.",
+      "zh": "有輸入 x，指定 y 為真實函數，也就真值。"
+    },
+    {
+      "start": 256.44,
+      "end": 258.72,
+      "en": "And then we're subtracting our predicted values.",
+      "zh": "再減預測。"
+    },
+    {
+      "start": 258.72,
+      "end": 270.56,
+      "en": "So here we have a of L of x and keep in mind that a of L, that notation just signifies that that is the activation function output of the L layer",
+      "zh": "這裡 aᴸ(x)，aᴸ 表示第 L 層的激活輸出，"
+    },
+    {
+      "start": 271.41,
+      "end": 276.57,
+      "en": "where L is your last layer which means the layer before that in the network is L minus one.",
+      "zh": "L 是最後層，前一層 L-1。"
+    },
+    {
+      "start": 276.57,
+      "end": 279.9,
+      "en": "Then the layer before that is L minus two and so on.",
+      "zh": "再前 L-2，依此類推。"
+    },
+    {
+      "start": 279.9,
+      "end": 286.89,
+      "en": "Later on, we'll see why it's more convenient to kind of mark L as your last layer and then work backwards from there instead of starting from the beginning.",
+      "zh": "稍後會看到，為何標最後 L、倒過來，比從前面數方便。"
+    },
+    {
+      "start": 286.89,
+      "end": 291.37,
+      "en": "So again, a of L of x that's essentially your predicted output.",
+      "zh": "所以 aᴸ(x) 就預測輸出。"
+    },
+    {
+      "start": 293.49,
+      "end": 301.95,
+      "en": "So keep in mind the notation, again, shown here kind of corresponds to vector inputs and outputs since we're really dealing with a batch of training points and predictions as we go along.",
+      "zh": "記法對應向量輸入輸出，因為逐步處理批次訓練點與預測。"
+    },
+    {
+      "start": 301.95,
+      "end": 309.72,
+      "en": "But the main idea is you have C as the cost function, you're doing some sort of averaging, so that's why you have one over two times n.",
+      "zh": "主要 C 是成本，有某種平均，所以 1/(2n)。"
+    },
+    {
+      "start": 309.72,
+      "end": 311.76,
+      "en": "So n is the number of points there.",
+      "zh": "n 是點數。"
+    },
+    {
+      "start": 311.76,
+      "end": 315.789,
+      "en": "Then you're taking the sum of all those differences and squaring them.",
+      "zh": "把所有差異平方再加總。"
+    },
+    {
+      "start": 315.789,
+      "end": 318.96,
+      "en": "So a really common question is why are we actually squaring this?",
+      "zh": "常問為何平方？"
+    },
+    {
+      "start": 318.96,
+      "end": 320.64,
+      "en": "And there's two useful things for us.",
+      "zh": "兩個好處。"
+    },
+    {
+      "start": 320.64,
+      "end": 331.38,
+      "en": "One, it keeps everything positive because whether you have a positive error or a negative error, if you square it, it becomes positive, which is good because we want some sort of absolute measurement of error.",
+      "zh": "正負誤差平方都正，有誤差的絕對程度。"
+    },
+    {
+      "start": 331.38,
+      "end": 342.36,
+      "en": "If we weren't squaring this and we had stuff that was negative and positive, when you average it out, that could hover around zero which is actually not a true indication of the absolute value or absolute units",
+      "zh": "若不平方，正負平均可能接近零，不能真正反映偏離"
+    },
+    {
+      "start": 342.36,
+      "end": 343.83,
+      "en": "of how far off you are.",
+      "zh": "的絕對程度。"
+    },
+    {
+      "start": 343.83,
+      "end": 346.92,
+      "en": "So squaring it makes sure that everything's positive.",
+      "zh": "平方讓全部正值。"
+    },
+    {
+      "start": 346.92,
+      "end": 351.69,
+      "en": "The other and much more important thing it does is it's gonna punish really large errors.",
+      "zh": "更重要是懲罰大誤差。"
+    },
+    {
+      "start": 351.69,
+      "end": 362.73,
+      "en": "So sometimes you have some data points that you're gonna be really off on and if you actually square that error then it exponentially grows as terms of your cost.",
+      "zh": "有些點差很多，平方後成本大幅增長。"
+    },
+    {
+      "start": 362.73,
+      "end": 370.41,
+      "en": "So maybe you're off by $10 in whatever units you're trying to measure but your cost is gonna report that in units squared.",
+      "zh": "例如差 10 美元，但成本以單位平方回報，"
+    },
+    {
+      "start": 370.41,
+      "end": 373.98,
+      "en": "So it's gonna say you're off by 100 instead of just 10.",
+      "zh": "所以是 100 而非 10。"
+    },
+    {
+      "start": 373.98,
+      "end": 383.91,
+      "en": "So you're gonna really punish your network for being really off on certain points, which is good because you don't want your network to suddenly be able to not predict well",
+      "zh": "對某些點差很遠就重罰，這很好，不希望網路"
+    },
+    {
+      "start": 383.91,
+      "end": 387.3,
+      "en": "on even just a few points where it gives you a huge error.",
+      "zh": "即使只少數點，卻預測出巨大誤差。"
+    },
+    {
+      "start": 387.3,
+      "end": 393.27,
+      "en": "You'd rather suffer a little bit on all the other points and not be totally off on those few kind of edge cases.",
+      "zh": "寧可其他點差一點，不要少數邊界案例完全錯。"
+    },
+    {
+      "start": 393.27,
+      "end": 395.32,
+      "en": "So that really helps punish large errors.",
+      "zh": "很能懲罰大誤差。"
+    },
+    {
+      "start": 397.106,
+      "end": 401.433,
+      "en": "Now, in general, we can think of the cost function as a function of four main things.",
+      "zh": "一般成本可想成四個主要因素的函數。"
+    },
+    {
+      "start": 402.99,
+      "end": 408.27,
+      "en": "So the cost function is gonna be a function of W, which is our neural network's weights.",
+      "zh": "W，全部權重。"
+    },
+    {
+      "start": 408.27,
+      "end": 411.69,
+      "en": "B, which is all the biases in our neural network.",
+      "zh": "B，全部偏差。"
+    },
+    {
+      "start": 411.69,
+      "end": 418.14,
+      "en": "S or r which is the input of a single training sample, and E of r which is the desired output of that training sample.",
+      "zh": "Sʳ，單一訓練樣本輸入，Eʳ 是期望輸出。"
+    },
+    {
+      "start": 418.14,
+      "end": 423.24,
+      "en": "And that makes a lot of sense because the cost is dependent on what the current weights and biases are.",
+      "zh": "合理，成本取決目前權重偏差，"
+    },
+    {
+      "start": 423.24,
+      "end": 429.903,
+      "en": "It's also dependent on what you passed in as the actual training example, and then it's also dependent on what you're comparing it to, which is E of r.",
+      "zh": "也取決輸入樣本，以及比較對象 Eʳ。"
+    },
+    {
+      "start": 431.43,
+      "end": 436.44,
+      "en": "So notice how that information was actually all encoded in that simplified notation that we had.",
+      "zh": "注意都編在簡化記法裡。"
+    },
+    {
+      "start": 436.44,
+      "end": 444.18,
+      "en": "So I showed you this as the cost function and you may be wondering, didn't you just say that the cost function is a function of W and B?",
+      "zh": "展示成本，你可能問，不是說依 W、B？"
+    },
+    {
+      "start": 444.18,
+      "end": 447.12,
+      "en": "Where's W and B in the quadratic function here?",
+      "zh": "二次函數哪裡有？"
+    },
+    {
+      "start": 447.12,
+      "end": 457.83,
+      "en": "Well, it's actually encoded within a of x, because remember a of x holds information about weights and biases because a of x is z passed into the activation function",
+      "zh": "其實藏在 a(x)，因為 a 是 z 經激活，"
+    },
+    {
+      "start": 457.83,
+      "end": 461.073,
+      "en": "where z then contains information about W and B.",
+      "zh": "z 包含 W、B。"
+    },
+    {
+      "start": 463.14,
+      "end": 474.963,
+      "en": "Okay, so this means that if we have a huge network, we can expect the actual cost function to be really quite complex with a huge vector or tensor of weights and another huge tensor of biases.",
+      "zh": "大網路成本很複雜，有龐大權重向量或張量，以及偏差張量。"
+    },
+    {
+      "start": 476.49,
+      "end": 486,
+      "en": "So for example, if we were just to take a small network and start labeling every weight and every bias and every output as kind of the output of the activation function, which is a,",
+      "zh": "即使小網路，把每權重、偏差、激活輸出 a 標上，"
+    },
+    {
+      "start": 486,
+      "end": 488.07,
+      "en": "you can see all the parameters labeled here.",
+      "zh": "這裡所有參數，"
+    },
+    {
+      "start": 488.07,
+      "end": 490.17,
+      "en": "It can get really complicated really fast.",
+      "zh": "很快變複雜。"
+    },
+    {
+      "start": 490.17,
+      "end": 492.09,
+      "en": "And this is a really small network.",
+      "zh": "這還很小。"
+    },
+    {
+      "start": 492.09,
+      "end": 496.8,
+      "en": "There's only kind of four layers here, two hidden layers, and those hidden layers aren't even that big.",
+      "zh": "只有四層、兩個隱藏層，而且不大。"
+    },
+    {
+      "start": 496.8,
+      "end": 500.85,
+      "en": "But you can see here, if we start notating everything, it can become quite complex.",
+      "zh": "但全部標記很複雜，"
+    },
+    {
+      "start": 500.85,
+      "end": 504.633,
+      "en": "You already have quite large matrices of weights and biases.",
+      "zh": "權重偏差矩陣已很大。"
+    },
+    {
+      "start": 506.16,
+      "end": 508.56,
+      "en": "So how do we actually calculate this?",
+      "zh": "怎麼算？"
+    },
+    {
+      "start": 508.56,
+      "end": 512.763,
+      "en": "How do we calculate that cost function and then figure out how to minimize it?",
+      "zh": "如何算成本，再最小化？"
+    },
+    {
+      "start": 514.14,
+      "end": 519.15,
+      "en": "So in a real case, this means that we have some cost function C dependent on lots of weights.",
+      "zh": "真實情境，C 依很多權重。"
+    },
+    {
+      "start": 519.15,
+      "end": 525.87,
+      "en": "That cost function is gonna dependent on the weight of that first input, then weight of the second one, weight of the third one, all the way to w of n.",
+      "zh": "第一輸入權重、第二、第三，到 wₙ。"
+    },
+    {
+      "start": 525.87,
+      "end": 537.6,
+      "en": "And what we need do is we need to figure out which particular weights lead us to the lowest cost because we wanna go back here and figure out for all these weights, how do I change them to minimize my cost function",
+      "zh": "要找哪些權重讓成本最低，回去調各權重，最小化"
+    },
+    {
+      "start": 537.6,
+      "end": 538.593,
+      "en": "at the very end?",
+      "zh": "最後成本。"
+    },
+    {
+      "start": 540.93,
+      "end": 550.35,
+      "en": "So for simplicity, and in just thinking about this, let's imagine that we're dealing with a really simple network that only has a single weight, essentially just one year on.",
+      "zh": "簡單起見，想像網路只有一個權重，基本上一個神經元。"
+    },
+    {
+      "start": 550.35,
+      "end": 559.47,
+      "en": "So what we wanna do is we wanna minimize our loss or cost, essentially our overall error, which again, that means we need to figure out what value of w",
+      "zh": "想最小化損失、成本、整體誤差，要找用哪個 w，"
+    },
+    {
+      "start": 559.47,
+      "end": 563.793,
+      "en": "do we use that's gonna result in the minimum of C of w.",
+      "zh": "讓 C(w) 最小。"
+    },
+    {
+      "start": 565.56,
+      "end": 574.08,
+      "en": "So here is our plotted out, really simple cost function where it's a really simple network, it only contains one weight.",
+      "zh": "這是簡單成本圖，網路只有一權重。"
+    },
+    {
+      "start": 574.08,
+      "end": 580.472,
+      "en": "Well, what we wanna do is we wanna figure out what value of w minimizes this cost function.",
+      "zh": "想找哪個 w 最小化。"
+    },
+    {
+      "start": 580.472,
+      "end": 590.609,
+      "en": "And while this is a really simple example, you can probably just tell that in order to minimize the cost function here, you can see that the minimum probably falls somewhere where that arrow is.",
+      "zh": "例子很簡單，看得出最小值大概箭頭處。"
+    },
+    {
+      "start": 590.609,
+      "end": 601.56,
+      "en": "So that's the weight that is going to minimize that cost function which means that's probably the weight we want in the actual neuron or that input to the neuron",
+      "zh": "就是降低成本的權重，應該是神經元或輸入"
+    },
+    {
+      "start": 601.56,
+      "end": 605.504,
+      "en": "because that reduces the cost to its minimum.",
+      "zh": "想要的權重，成本最低。"
+    },
+    {
+      "start": 605.504,
+      "end": 612.257,
+      "en": "Now, students of calculus know what we could do is we could just take the derivative of this cost function and then solve for zero.",
+      "zh": "學過微積分知道，可以取導數、解等於零。"
+    },
+    {
+      "start": 612.257,
+      "end": 620.64,
+      "en": "But recall, our real cost function is gonna be super complex and it's not gonna be one-dimensional, two-dimensional, or even three-dimensional.",
+      "zh": "但真實成本超複雜，不是一、二、三維。"
+    },
+    {
+      "start": 620.64,
+      "end": 627.19,
+      "en": "If you take a look back at that network, it's gonna be as many dimensions as there are w, and that's not even something I can actually plot.",
+      "zh": "回看網路，有幾個 w 就幾維，無法畫。"
+    },
+    {
+      "start": 628.74,
+      "end": 637.92,
+      "en": "So again, it's gonna be n-dimensional which means taking that derivative and setting it equal to zero is actually not gonna be, you're not gonna be able to calculate that",
+      "zh": "n 維，所以取導數解零，很難"
+    },
+    {
+      "start": 637.92,
+      "end": 640.87,
+      "en": "without spending kind of 1,000 years of computational time.",
+      "zh": "不花上千年運算就算完。"
+    },
+    {
+      "start": 642.15,
+      "end": 649.86,
+      "en": "So our networks, especially when we build out really large networks, they're gonna have thousands of weights to them, hundreds of weights, we're not gonna be able to take that derivative.",
+      "zh": "大網路上百、上千權重，沒法這樣取導數求解。"
+    },
+    {
+      "start": 649.86,
+      "end": 653.34,
+      "en": "So instead, what we need to do is a stochastic process.",
+      "zh": "所以需要隨機過程。"
+    },
+    {
+      "start": 653.34,
+      "end": 657.513,
+      "en": "So what we can do is we can use gradient descent to solve this sort of problem.",
+      "zh": "用梯度下降解。"
+    },
+    {
+      "start": 657.513,
+      "end": 665.88,
+      "en": "So let's again go back to this kind of simplified version of our network where we just have one weight and see how gradient descent would work on this simple example.",
+      "zh": "回到單一權重的簡化網路，看做法。"
+    },
+    {
+      "start": 665.88,
+      "end": 669.363,
+      "en": "And then we can easily expand it to more complex examples.",
+      "zh": "再擴至複雜例子。"
+    },
+    {
+      "start": 670.68,
+      "end": 682.053,
+      "en": "So what we do is we just start off at one point on this cost function, and again, what we're searching for here is that w value that minimizes this cost function.",
+      "zh": "從成本函數一點開始，找最小化的 w。"
+    },
+    {
+      "start": 683.76,
+      "end": 690.88,
+      "en": "So what we do is we calculate the slope at one point and then we move in the downward direction of the slope.",
+      "zh": "算該點斜率，沿下降方向移動。"
+    },
+    {
+      "start": 692.37,
+      "end": 698.643,
+      "en": "And you keep repeating this process until eventually you're gonna converge to zero indicating a minimum.",
+      "zh": "重複，直到斜率收斂零，表示最小值。"
+    },
+    {
+      "start": 700.74,
+      "end": 705.58,
+      "en": "So what we could have done is keep in mind we could have changed our step size to find the next point.",
+      "zh": "也可改步長找下一點。"
+    },
+    {
+      "start": 706.71,
+      "end": 714.693,
+      "en": "So here we kind of took equal step sizes and if you take smaller step sizes it takes longer to find the minimum.",
+      "zh": "這裡步長相等，小步較久，"
+    },
+    {
+      "start": 716.25,
+      "end": 719.4,
+      "en": "If you take larger step sizes, you'll go faster.",
+      "zh": "大步較快，"
+    },
+    {
+      "start": 719.4,
+      "end": 722.37,
+      "en": "But what happens is you risk overshooting the minimum.",
+      "zh": "但可能跨過最低點。"
+    },
+    {
+      "start": 722.37,
+      "end": 732.22,
+      "en": "So if you go too large of a step size, you may actually miss that minimum weight or a minimum weight tensor and then kind of overshoot and you don't end up converging.",
+      "zh": "太大會錯過最小化的權重或張量，過頭、不收斂。"
+    },
+    {
+      "start": 733.11,
+      "end": 736.32,
+      "en": "So that step size is known as the learning rate.",
+      "zh": "步長叫學習率。"
+    },
+    {
+      "start": 736.32,
+      "end": 745.08,
+      "en": "So if you ever see in neural networks that they're editing the learning rate what they're really doing here is they're editing how fast they're gonna try to find that minimum weights value.",
+      "zh": "網路改 learning rate，就是改找最小權重值的速度。"
+    },
+    {
+      "start": 745.08,
+      "end": 746.58,
+      "en": "And it works the same for biases.",
+      "zh": "偏差也一樣。"
+    },
+    {
+      "start": 746.58,
+      "end": 753.24,
+      "en": "You're finding those minimum weights, really the values of the weights and biases that minimize that cost function.",
+      "zh": "找讓成本最小的權重與偏差值。"
+    },
+    {
+      "start": 753.24,
+      "end": 759.06,
+      "en": "Now, in those previous examples, something you should note is that the learning rate was constant.",
+      "zh": "前例學習率固定，"
+    },
+    {
+      "start": 759.06,
+      "end": 761.61,
+      "en": "That is to say each step size was equal.",
+      "zh": "每步相等。"
+    },
+    {
+      "start": 761.61,
+      "end": 770.823,
+      "en": "So regardless of which one we're actually looking at, such as the smaller step sizes or the larger step sizes the actual step is equal for all of these.",
+      "zh": "不管小步、大步，各自所有步相等。"
+    },
+    {
+      "start": 772.154,
+      "end": 778.374,
+      "en": "Now, we can be actually be a little clever and adapt our step size as we go along.",
+      "zh": "但可聰明地沿途調步長。"
+    },
+    {
+      "start": 778.374,
+      "end": 789.21,
+      "en": "You can imagine that since you're starting off kind of in a random position in this n-dimensional space of possible weights and biases if you start with larger steps",
+      "zh": "起點是 n 維權重偏差空間中的隨機處，先用大步，"
+    },
+    {
+      "start": 789.21,
+      "end": 800.49,
+      "en": "what you can do is you can then go smaller and smaller in your step size as that gradient or that slope gets closer to zero and this is known as adaptive gradient descent.",
+      "zh": "梯度斜率近零時越走越小，叫自適應梯度下降。"
+    },
+    {
+      "start": 800.49,
+      "end": 805.383,
+      "en": "Depending on that gradient you get back, you're gonna adapt your step size.",
+      "zh": "依梯度調步長。"
+    },
+    {
+      "start": 806.7,
+      "end": 813.42,
+      "en": "So in 2015, Kingma and Ba published their paper called \"Adam: A Method for Stochastic Optimization.\"",
+      "zh": "2015 年 Kingma、Ba 發表《Adam: A Method for Stochastic Optimization》。"
+    },
+    {
+      "start": 813.42,
+      "end": 817.56,
+      "en": "And Adam is a much more efficient way of searching for these minimums.",
+      "zh": "Adam 更有效找最小值。"
+    },
+    {
+      "start": 817.56,
+      "end": 823.08,
+      "en": "So you're gonna see us actually kind of sometimes state Adam as our optimizer during the code.",
+      "zh": "程式會指定 Adam 為 optimizer。"
+    },
+    {
+      "start": 823.08,
+      "end": 823.913,
+      "en": "So keep that in mind.",
+      "zh": "記得。"
+    },
+    {
+      "start": 823.913,
+      "end": 832.8,
+      "en": "If you ever see Adam, all we're really referring to is this optimized way of performing this gradient descent where we have kind of this adaptive step size.",
+      "zh": "看到 Adam，就是最佳化的梯度下降，自適應步長。"
+    },
+    {
+      "start": 832.8,
+      "end": 836.73,
+      "en": "So we kind of start off large, and then depending on where we are, we maybe go smaller and smaller.",
+      "zh": "先大，依位置再小。"
+    },
+    {
+      "start": 836.73,
+      "end": 838.83,
+      "en": "So you kind of get the best of both worlds.",
+      "zh": "兩者優點兼得，"
+    },
+    {
+      "start": 838.83,
+      "end": 843.48,
+      "en": "You get to use the larger step sizes and kinda speed up finding that minimum.",
+      "zh": "大步加速找最低，"
+    },
+    {
+      "start": 843.48,
+      "end": 848.2,
+      "en": "But then as you get closer and closer to it and you don't wanna overshoot, you can go with smaller step sizes.",
+      "zh": "接近時不想過頭，改小步。"
+    },
+    {
+      "start": 849.12,
+      "end": 853.23,
+      "en": "So you can actually then compare Adam versus other gradient descent algorithms.",
+      "zh": "可比較 Adam 與其他梯度下降。"
+    },
+    {
+      "start": 853.23,
+      "end": 858.69,
+      "en": "And here it's showing you the training cost versus iterations over the entire dataset.",
+      "zh": "這裡訓練成本對整份資料的迭代次數。"
+    },
+    {
+      "start": 858.69,
+      "end": 863.49,
+      "en": "And you can see Adam here is outperforming these other adaptive gradient descent algorithms.",
+      "zh": "Adam 勝過其他自適應梯度下降。"
+    },
+    {
+      "start": 863.49,
+      "end": 868.56,
+      "en": "So all the ones listed here that are not Adam, they're also actually adaptive gradient descents.",
+      "zh": "這裡非 Adam 的，也都自適應。"
+    },
+    {
+      "start": 868.56,
+      "end": 871.59,
+      "en": "However, Adam performs better than all of these.",
+      "zh": "但 Adam 更好。"
+    },
+    {
+      "start": 871.59,
+      "end": 876.21,
+      "en": "So what we're gonna be doing is we'll be using Adam since it's really quite common to use it for neural networks.",
+      "zh": "因為網路很常用，所以我們用 Adam。"
+    },
+    {
+      "start": 876.21,
+      "end": 881.29,
+      "en": "So if you ever see that all we're doing here is we're kind of saying, okay, optimize the way we find this minimum.",
+      "zh": "看見它，就是說最佳化找最小值的方法。"
+    },
+    {
+      "start": 882.9,
+      "end": 888.9,
+      "en": "Now, realistically, we were showing you that illustration of gradient descent on just a single w.",
+      "zh": "前面只畫單一 w 的梯度下降。"
+    },
+    {
+      "start": 888.9,
+      "end": 891.54,
+      "en": "So that was kind of one-dimensional w.",
+      "zh": "是一維 w。"
+    },
+    {
+      "start": 891.54,
+      "end": 896.79,
+      "en": "What we're really doing is we're calculating gradient descent in an n-dimensional space for all our weights.",
+      "zh": "實際為全部權重，在 n 維空間算。"
+    },
+    {
+      "start": 896.79,
+      "end": 903.63,
+      "en": "Here you can see calculating gradient descent in a two-dimensional plane including the weights and the bias.",
+      "zh": "這裡二維平面，包括權重偏差。"
+    },
+    {
+      "start": 903.63,
+      "end": 913.2,
+      "en": "Realistically, I'm not even gonna be able to illustrate the n-dimensional space because it's gonna be n dimensions of tens or hundreds of weights and biases.",
+      "zh": "真實有數十、數百個權重偏差，無法畫。"
+    },
+    {
+      "start": 913.2,
+      "end": 918.78,
+      "en": "So there's really no way we can illustrate that for you, which is why we simplify it down to kind of a single weight.",
+      "zh": "所以才簡化單一權重。"
+    },
+    {
+      "start": 918.78,
+      "end": 927.72,
+      "en": "You can understand what gradient descent is doing, and then what we're actually doing, or what the computer will be doing for us is doing the same sort of calculations, but on an n-dimensional space",
+      "zh": "理解後，電腦替我們在 n 維做相同計算，"
+    },
+    {
+      "start": 927.72,
+      "end": 930.42,
+      "en": "that we can't really realistically illustrate for you.",
+      "zh": "無法實際畫出。"
+    },
+    {
+      "start": 931.83,
+      "end": 938.37,
+      "en": "So when dealing with these n-dimensional vectors, otherwise known as tensors, the notation changes from derivative to gradient.",
+      "zh": "處理 n 維向量、或張量，記法從導數改成梯度。"
+    },
+    {
+      "start": 938.37,
+      "end": 942.72,
+      "en": "So that's why you've heard me say gradient a couple of times instead of the term derivative.",
+      "zh": "所以有時說 gradient，不是 derivative。"
+    },
+    {
+      "start": 942.72,
+      "end": 948.9,
+      "en": "So when we're dealing with n-dimensions, instead of saying the derivative, that actually the correct term becomes gradient.",
+      "zh": "n 維時，正確詞是梯度。"
+    },
+    {
+      "start": 948.9,
+      "end": 953.85,
+      "en": "And so that means we calculate the gradient of the cost function with respect to all these weights.",
+      "zh": "算成本對全部權重的梯度。"
+    },
+    {
+      "start": 953.85,
+      "end": 961.71,
+      "en": "So if you see that upside down triangle, that's essentially kind of the way you notate gradient instead of just saying derivative.",
+      "zh": "倒三角，就是梯度記號。"
+    },
+    {
+      "start": 961.71,
+      "end": 973.263,
+      "en": "Now, before we finish up and wrap up this lecture on loss or cost functions and gradient descent I wanna quickly mention that for classification problems, instead of using the quadratic cost function,",
+      "zh": "結束成本與梯度下降前，提醒分類問題，常不用二次成本，"
+    },
+    {
+      "start": 973.263,
+      "end": 977.34,
+      "en": "what we end up often using is the cross-entropy loss function.",
+      "zh": "改用交叉熵損失。"
+    },
+    {
+      "start": 977.34,
+      "end": 986.73,
+      "en": "And what's nice about this cross-entropy loss function is that basically what it does, it assumes that your model predicts a probability distribution for each class.",
+      "zh": "好處是，假設模型預測各類機率分布，"
+    },
+    {
+      "start": 986.73,
+      "end": 992.43,
+      "en": "So maybe it has a distribution for class one, class two, class three, and so on.",
+      "zh": "第一、二、三類等。"
+    },
+    {
+      "start": 992.43,
+      "end": 1000.678,
+      "en": "And the way this formula actually works out is for a binary classification that is only two classes, you have the top formula resulting",
+      "zh": "二元兩類時，上方公式，"
+    },
+    {
+      "start": 1000.678,
+      "end": 1004.82,
+      "en": "and then those logs actually represent natural logs.",
+      "zh": "log 是自然對數。"
+    },
+    {
+      "start": 1004.82,
+      "end": 1009.53,
+      "en": "And then for M number of classes greater than two, you end up using the formula below.",
+      "zh": "M 類、超過兩類，用下方。"
+    },
+    {
+      "start": 1009.53,
+      "end": 1015.32,
+      "en": "And you don't have to worry too much about this formula because essentially when we're coding it out, we're just gonna specify use cross-entropy.",
+      "zh": "不必太擔心公式，寫程式只指定用交叉熵。"
+    },
+    {
+      "start": 1015.32,
+      "end": 1026.21,
+      "en": "So when we're performing classification, especially multi-class classification that's greater than just binary classification, we'll be calling upon cross-entropy to be our cost function.",
+      "zh": "分類、尤其多類別時，會用它作成本。"
+    },
+    {
+      "start": 1026.21,
+      "end": 1027.44,
+      "en": "Okay, so just keep that in mind.",
+      "zh": "記得即可。"
+    },
+    {
+      "start": 1027.44,
+      "end": 1037.253,
+      "en": "If you ever see us coding and we specify cross-entropy, these are the actual formulas we're specifying the computer to use in order to figure out a probability distribution for each of those classes.",
+      "zh": "程式指定 cross-entropy，就是要求電腦用這些公式，處理各類機率分布。"
+    },
+    {
+      "start": 1038.63,
+      "end": 1041.15,
+      "en": "So as a quick review, we talked about cost functions.",
+      "zh": "複習，談了成本，"
+    },
+    {
+      "start": 1041.15,
+      "end": 1042.68,
+      "en": "We talked about gradient descent.",
+      "zh": "梯度下降，"
+    },
+    {
+      "start": 1042.68,
+      "end": 1049.583,
+      "en": "We talked about the fact that there's different optimizers like the Adam optimizer, and then we also talked about quadratic cost and cross-entropy.",
+      "zh": "Adam 等最佳化器，二次成本與交叉熵。"
+    },
+    {
+      "start": 1050.699,
+      "end": 1058.01,
+      "en": "So far we understand how networks take an input, affect that input with weights and biases and activation functions to produce an estimated output.",
+      "zh": "到目前懂輸入如何經權重、偏差、激活產生估計。"
+    },
+    {
+      "start": 1058.01,
+      "end": 1061.97,
+      "en": "Then we learned how do we evaluate that output against the true labels.",
+      "zh": "再學與真標籤評估。"
+    },
+    {
+      "start": 1061.97,
+      "end": 1067.1,
+      "en": "The last thing we need to do in our theory discussions is the following question.",
+      "zh": "理論最後要問，"
+    },
+    {
+      "start": 1067.1,
+      "end": 1071.39,
+      "en": "Once we actually get that cost or loss value, we understand how far off we are.",
+      "zh": "取得損失、知道差多遠後，"
+    },
+    {
+      "start": 1071.39,
+      "end": 1075.98,
+      "en": "We still haven't really talked about how we go back and adjust all those weights and biases.",
+      "zh": "還沒真正談如何回頭調權重偏差。"
+    },
+    {
+      "start": 1075.98,
+      "end": 1077.87,
+      "en": "That's still kind of this magical thing.",
+      "zh": "仍像魔法，"
+    },
+    {
+      "start": 1077.87,
+      "end": 1080.96,
+      "en": "And that magical thing in just a second will no longer be so magical.",
+      "zh": "但馬上不再神奇，"
+    },
+    {
+      "start": 1080.96,
+      "end": 1084.65,
+      "en": "Instead, it'll be mathematical and it's called back propagation.",
+      "zh": "而是數學，叫反向傳播。"
+    },
+    {
+      "start": 1084.65,
+      "end": 1089.72,
+      "en": "You essentially propagate backwards through your network and then update all those weights and biases.",
+      "zh": "往網路後方傳，更新全部權重偏差。"
+    },
+    {
+      "start": 1089.72,
+      "end": 1092.21,
+      "en": "So that's exactly what we're gonna cover in the next lecture.",
+      "zh": "下一堂正談這個。"
+    },
+    {
+      "start": 1092.21,
+      "end": 1093.16,
+      "en": "I'll see you there.",
+      "zh": "到時見。"
+    }
+  ]
+}

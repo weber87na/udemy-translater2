@@ -1,0 +1,847 @@
+{
+  "courseId": "903744",
+  "lectureId": "17739746",
+  "title": "Backpropagation",
+  "section": 25,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "a6e40bc2d7e652a77d4626fc727c08433c1913468b6e47b3d525b129cb23a76e",
+  "cues": [
+    {
+      "start": 0.166,
+      "end": 2.749,
+      "en": "(gentle music)",
+      "zh": "（輕柔音樂）"
+    },
+    {
+      "start": 5.28,
+      "end": 8.193,
+      "en": "Instructor: Welcome back, everyone, to this lecture on backpropagation.",
+      "zh": "歡迎大家回來，本堂反向傳播。"
+    },
+    {
+      "start": 9.36,
+      "end": 18.57,
+      "en": "The last theory topic we're going to cover is backpropagation, and we're gonna start by trying to build an intuition behind backpropagation and then we'll dive into the calculus",
+      "zh": "最後理論主題，先建立直覺，再深入微積分"
+    },
+    {
+      "start": 18.57,
+      "end": 20.73,
+      "en": "and notation of backpropagation.",
+      "zh": "與記法。"
+    },
+    {
+      "start": 20.73,
+      "end": 30.84,
+      "en": "I wanna point out that backpropagation is probably the hardest part of the entire theoretical deep learning process because of the calculus and the notation involved",
+      "zh": "這可能是整個深度學習理論最難，因為微積分與"
+    },
+    {
+      "start": 30.84,
+      "end": 39.15,
+      "en": "with that calculus, especially when we start talking about backpropagation and dealing with a matrix of weights and another matrix of biases.",
+      "zh": "記法，尤其權重、偏差都是矩陣。"
+    },
+    {
+      "start": 39.15,
+      "end": 40.05,
+      "en": "So keep that in mind.",
+      "zh": "記得。"
+    },
+    {
+      "start": 40.05,
+      "end": 44.19,
+      "en": "This is gonna be pretty difficult, especially if you're rusty on your calculus notation.",
+      "zh": "如果微積分記法生疏，會很難。"
+    },
+    {
+      "start": 44.19,
+      "end": 52.59,
+      "en": "With that in mind though, if you understand the basic intuition that you basically just move backwards through a network to update the weights and biases, then that's actually enough",
+      "zh": "但只要懂基本直覺，沿網路往回更新權重偏差，就足夠"
+    },
+    {
+      "start": 52.59,
+      "end": 54.57,
+      "en": "to continue on with the rest of the course.",
+      "zh": "繼續課程。"
+    },
+    {
+      "start": 54.57,
+      "end": 62.4,
+      "en": "So if you're fuzzy on the calculus portion of this lecture, don't worry too much about that because it's not like you're gonna be needing to compute the gradients yourself.",
+      "zh": "微積分不清楚，別太擔心，不需自己算梯度。"
+    },
+    {
+      "start": 62.4,
+      "end": 64.743,
+      "en": "The actual code is gonna do that for us.",
+      "zh": "程式會做。"
+    },
+    {
+      "start": 65.91,
+      "end": 74.16,
+      "en": "So, fundamentally, we want to know how the cost function results change with respect to the weights in the network.",
+      "zh": "根本上，要知道成本結果如何隨權重改變。"
+    },
+    {
+      "start": 74.16,
+      "end": 77.1,
+      "en": "That way we can update the weights to minimize the cost function.",
+      "zh": "才能更新權重、最小化成本。"
+    },
+    {
+      "start": 77.1,
+      "end": 83.013,
+      "en": "And we already talked a little bit about that when talking about things like gradient descent and how it approaches the cost function.",
+      "zh": "梯度下降已談過一些。"
+    },
+    {
+      "start": 84.36,
+      "end": 88.95,
+      "en": "So let's go ahead and begin with a very simple network in order to understand backpropagation.",
+      "zh": "先用簡單網路理解。"
+    },
+    {
+      "start": 88.95,
+      "end": 90.63,
+      "en": "So this is a super simple network.",
+      "zh": "非常簡單，"
+    },
+    {
+      "start": 90.63,
+      "end": 93.45,
+      "en": "Essentially, each layer only has one neuron.",
+      "zh": "每層只有一神經元。"
+    },
+    {
+      "start": 93.45,
+      "end": 98.25,
+      "en": "So we'll see how backpropagation works with just a network of a couple of neurons.",
+      "zh": "用幾個神經元看反向傳播，"
+    },
+    {
+      "start": 98.25,
+      "end": 103.083,
+      "en": "And then we can easily expand this to networks with multiple neurons per layer.",
+      "zh": "再擴成每層多個。"
+    },
+    {
+      "start": 104.52000000000001,
+      "end": 108.93,
+      "en": "So as we already know, each input basically receives a weight and a bias.",
+      "zh": "已知每輸入有權重、偏差。"
+    },
+    {
+      "start": 108.93,
+      "end": 111.27000000000001,
+      "en": "So there's an incoming weight attached to that edge.",
+      "zh": "邊有輸入權重，"
+    },
+    {
+      "start": 111.27000000000001,
+      "end": 114.93,
+      "en": "And then each node, or that is to say each neuron, has its own bias.",
+      "zh": "每節點、神經元有偏差。"
+    },
+    {
+      "start": 114.93,
+      "end": 120.453,
+      "en": "So we get the sort of formula, weight 1 + bias 1, weight 2 + bias 2, weight 3 + bias 3, and so on.",
+      "zh": "所以權重一加偏差一、權重二加偏差二、權重三加偏差三等形式。"
+    },
+    {
+      "start": 121.71,
+      "end": 127.173,
+      "en": "So this means that we have some sort of cost function that's dependent on those weights and biases.",
+      "zh": "成本依這些權重偏差。"
+    },
+    {
+      "start": 129.03,
+      "end": 132.33,
+      "en": "And we've already seen how this process propagates forward.",
+      "zh": "已看如何向前傳。"
+    },
+    {
+      "start": 132.33,
+      "end": 136.233,
+      "en": "So let's go ahead and start at the end to learn about backpropagation.",
+      "zh": "現在從最後學反向傳播。"
+    },
+    {
+      "start": 137.76,
+      "end": 145.2,
+      "en": "So we already noted that the way we notate layers is by having the very last layer be called L.",
+      "zh": "記得最後層標 L。"
+    },
+    {
+      "start": 145.2,
+      "end": 149.67000000000002,
+      "en": "So then our notation becomes that the neuron all the way on the right is in layer L.",
+      "zh": "最右神經元在 L 層。"
+    },
+    {
+      "start": 149.67000000000002,
+      "end": 155.433,
+      "en": "Then neuron to the left of it is L - 1, L - 2, and so on for L - n layers.",
+      "zh": "左邊 L-1、L-2，一直到 L-n。"
+    },
+    {
+      "start": 157.44,
+      "end": 168.96,
+      "en": "Now let's go ahead and just focus on the very last two layers of our network because backpropagation starts all the way at the end of the network, at layer L, once we've gone through our feedforward process.",
+      "zh": "先專注最後兩層，因為前饋完成後，反向從最後 L 開始。"
+    },
+    {
+      "start": 168.96,
+      "end": 173.55,
+      "en": "And when focusing on these two layers, I wanna remind ourselves of the notation we've been using.",
+      "zh": "提醒記法。"
+    },
+    {
+      "start": 173.55,
+      "end": 184.53,
+      "en": "So far, we've been defining z as w X x + b, and x, recall x, that notation of x, that's really only valid at the very first layer",
+      "zh": "一直定義 z=w×x+b，x 其實只適用第一層，"
+    },
+    {
+      "start": 184.53,
+      "end": 188.16,
+      "en": "because x stands for the actual raw feature inputs.",
+      "zh": "表示原始特徵。"
+    },
+    {
+      "start": 188.16,
+      "end": 196.65,
+      "en": "As you keep going from neuron to neuron, further into the layer, x technically becomes the output of the previous neuron, which is defined as a.",
+      "zh": "越往後，x 變前一神經元輸出，定義 a。"
+    },
+    {
+      "start": 196.65,
+      "end": 203.43,
+      "en": "Because remember, after we apply an activation function to z, such as sigmoid of z, we label that as a.",
+      "zh": "z 經激活，例如 sigmoid，標 a。"
+    },
+    {
+      "start": 203.43,
+      "end": 213.78,
+      "en": "So as you go further and further along into these layers, z would actually be z = w X a + b, because x is technically only valid at the very first layer",
+      "zh": "所以後面 z=w×a+b，x 只在第一層，"
+    },
+    {
+      "start": 213.78,
+      "end": 215.28,
+      "en": "as the raw feature input.",
+      "zh": "是原始特徵。"
+    },
+    {
+      "start": 215.28,
+      "end": 219.9,
+      "en": "Once you actually pass that into a neuron, you're technically not dealing with the raw features anymore.",
+      "zh": "傳進神經元後，就不是原始特徵，"
+    },
+    {
+      "start": 219.9,
+      "end": 229.38,
+      "en": "Instead, you're dealing with the output of the previous neurons layer, which is better stated as a, the sigmoid of z, or whatever activation function you choose.",
+      "zh": "而是前層輸出，最好叫 a，sigmoid(z) 或其他函數。"
+    },
+    {
+      "start": 229.38,
+      "end": 233.85,
+      "en": "Okay, so what does that actually mean when we take it into account for that very last layer?",
+      "zh": "對最後層代表什麼？"
+    },
+    {
+      "start": 233.85,
+      "end": 243.54,
+      "en": "Well, that means that z at the last layer is going to be equal to those weights at the last layer times a of L - 1.",
+      "zh": "zᴸ 等於最後權重乘 aᴸ⁻¹。"
+    },
+    {
+      "start": 243.54,
+      "end": 245.34,
+      "en": "So what is a of L - 1?",
+      "zh": "aᴸ⁻¹ 是什麼？"
+    },
+    {
+      "start": 245.34,
+      "end": 250.98,
+      "en": "Well, a of L - 1 is simply the output of that previous layer's neuron.",
+      "zh": "前層神經元輸出。"
+    },
+    {
+      "start": 250.98,
+      "end": 255.98,
+      "en": "So a L - 1 + b of L, the biases at that very last layer.",
+      "zh": "再加 bᴸ，最後偏差。"
+    },
+    {
+      "start": 257.37,
+      "end": 259.68,
+      "en": "So again, a of L.",
+      "zh": "所以 aᴸ，"
+    },
+    {
+      "start": 259.68,
+      "end": 267.3,
+      "en": "So the activation function output at that very last layer is equal to sigmoid, or the activation function of z of L.",
+      "zh": "最後層激活輸出，等於 sigmoid(zᴸ)，或其激活函數。"
+    },
+    {
+      "start": 267.3,
+      "end": 276.24,
+      "en": "So notice how zL is defined by the weights and biases at that layer L, and then it's defined by the output of the previous neuron.",
+      "zh": "zᴸ 依該層權重偏差，以及前神經元輸出。"
+    },
+    {
+      "start": 276.24,
+      "end": 279.65999999999997,
+      "en": "So hopefully, you can kind of make these connections.",
+      "zh": "希望能連起來理解。"
+    },
+    {
+      "start": 279.65999999999997,
+      "end": 287.823,
+      "en": "And that means that then the cost function is going to be equal to a of L - y, where y is the actual true output squared.",
+      "zh": "成本等於 (aᴸ-y)²，y 是真實輸出。"
+    },
+    {
+      "start": 290.01,
+      "end": 296.52,
+      "en": "So what we actually want to understand is how sensitive is the cost function to changes in w.",
+      "zh": "想知道成本對 w 改變多敏感。"
+    },
+    {
+      "start": 296.52,
+      "end": 306.96,
+      "en": "And this is where partial derivatives come into play because we wanna figure out the relationship between that final cost function and the weights, in this case at the layer L.",
+      "zh": "用偏導數，找成本與 L 層權重關係。"
+    },
+    {
+      "start": 306.96,
+      "end": 313.323,
+      "en": "So we're gonna say take the partial derivative of that cost function with respect to weights and layer L.",
+      "zh": "取成本對 L 層權重的偏導。"
+    },
+    {
+      "start": 314.94,
+      "end": 318.78,
+      "en": "And if you know some calculus, then you know that there's a chain rule.",
+      "zh": "懂微積分就知道鏈鎖律。"
+    },
+    {
+      "start": 318.78,
+      "end": 329.01,
+      "en": "And so if you were to take the formulas we just saw here and apply the chain rule for them in order to solve for this partial derivative we mentioned here, because we want to understand the relationship",
+      "zh": "把剛才公式套鏈鎖律，解這個偏導，因為要知道"
+    },
+    {
+      "start": 329.01,
+      "end": 334.11,
+      "en": "between that cost function and the weights in the network, then you end up calculating this formula.",
+      "zh": "成本與網路權重的關係，就算出這個式子。"
+    },
+    {
+      "start": 334.11,
+      "end": 335.55,
+      "en": "So this is just the chain rule.",
+      "zh": "只是鏈鎖律。"
+    },
+    {
+      "start": 335.55,
+      "end": 340.38,
+      "en": "It basically allows you to take the derivative of a function within a function.",
+      "zh": "能對函數內的函數微分。"
+    },
+    {
+      "start": 340.38,
+      "end": 351.39,
+      "en": "So here, using some calculus with the chain rule, we can determine that the partial derivative of that cost function with respect to that weights is to the partial derivative of the z",
+      "zh": "成本對權重偏導，等於 z 對權重偏導，"
+    },
+    {
+      "start": 351.39,
+      "end": 359.34000000000003,
+      "en": "with respect to the weights times the partial derivative of the a with respect to z times the partial derivative of the cost function with respect to a.",
+      "zh": "乘 a 對 z 偏導，再乘成本對 a 偏導。"
+    },
+    {
+      "start": 359.34000000000003,
+      "end": 370.2,
+      "en": "Essentially, the chain rule allows us to pull apart these functions within functions because we saw from these previous three formulas that the cost function is defined by a of L,",
+      "zh": "鏈鎖律拆開巢狀函數，前面三式顯示 C 依 aᴸ，"
+    },
+    {
+      "start": 370.2,
+      "end": 374.553,
+      "en": "a of L is then defined by z of L, then z of L is defined by w of L and b of L.",
+      "zh": "aᴸ 依 zᴸ，zᴸ 依 wᴸ、bᴸ。"
+    },
+    {
+      "start": 375.84,
+      "end": 381.81,
+      "en": "Now recall that the cost function is not just a function of the weights, but it's also a function of the biases.",
+      "zh": "成本不只依權重，也依偏差。"
+    },
+    {
+      "start": 381.81,
+      "end": 389.49,
+      "en": "So we wanna be able to understand the relationship of the cost function changing not only with the weights, but with the bias along the network as well.",
+      "zh": "所以也要理解沿網路偏差改變與成本的關係。"
+    },
+    {
+      "start": 389.49,
+      "end": 392.85,
+      "en": "So we can then calculate the same partial derivative.",
+      "zh": "能算同樣偏導，"
+    },
+    {
+      "start": 392.85,
+      "end": 397.59000000000003,
+      "en": "So the partial derivative of the cost function with respect to those bias terms in the same way.",
+      "zh": "成本對偏差項，方式相同，"
+    },
+    {
+      "start": 397.59000000000003,
+      "end": 400.653,
+      "en": "Essentially, just kind of swapping out that weight for the bias.",
+      "zh": "把權重換偏差。"
+    },
+    {
+      "start": 402.39,
+      "end": 411.63,
+      "en": "Now, the main idea here is that we can use the gradient to go back through the network and adjust our weights and biases to minimize the output of the error vector",
+      "zh": "重點用梯度往回走，調權重偏差，最小化"
+    },
+    {
+      "start": 411.63,
+      "end": 413.43,
+      "en": "on that last output layer.",
+      "zh": "最後輸出層的誤差向量。"
+    },
+    {
+      "start": 413.43,
+      "end": 419.433,
+      "en": "And recall that the gradient is essentially that derivative when you're dealing with n dimensions.",
+      "zh": "記得梯度是 n 維時的導數。"
+    },
+    {
+      "start": 421.14,
+      "end": 426.75,
+      "en": "So using some calculus notation, we can expand this idea to networks with multiple neurons per layer.",
+      "zh": "用微積分記法擴成每層多神經元。"
+    },
+    {
+      "start": 426.75,
+      "end": 434.46,
+      "en": "And there's gonna be some notation you'll see in just a little bit, which again, if you're a little rusty on linear algebra or calculus, it's called the Hadamard product.",
+      "zh": "稍後有記法，如果線代、微積分生疏，叫 Hadamard 乘積。"
+    },
+    {
+      "start": 434.46,
+      "end": 446.43,
+      "en": "And it's actually a product that you're already familiar with because it's kind of the default with NumPy and these different deep learning libraries where you're actually performing element by element multiplication.",
+      "zh": "其實熟悉，NumPy 與深度函式庫的預設，逐元素相乘。"
+    },
+    {
+      "start": 446.43,
+      "end": 452.04,
+      "en": "So again, the Hadamard product, that little dot notation that kinda looks a little bit like a hydrogen symbol.",
+      "zh": "Hadamard 乘積，小點記法，看來有點像氫符號。"
+    },
+    {
+      "start": 452.04,
+      "end": 462.45,
+      "en": "Basically what it means is just do an element by element multiplication, and that means that the two matrices should be the exact same size, which makes sense because that's gonna match up for things",
+      "zh": "基本上逐元素乘，兩矩陣大小必須完全一樣，才能配合"
+    },
+    {
+      "start": 462.45,
+      "end": 464.703,
+      "en": "like weights and biases.",
+      "zh": "權重、偏差等。"
+    },
+    {
+      "start": 466.26,
+      "end": 471.3,
+      "en": "So given this notation and backpropagation, we just have a few main steps to train neural networks.",
+      "zh": "有這些記法，訓練網路只有幾個主要步驟。"
+    },
+    {
+      "start": 471.3,
+      "end": 479.76,
+      "en": "Now note again, you don't need to fully understand these intricate details on calculus or the notation to continue on with the coding portions of this course.",
+      "zh": "不必完全懂微積分細節，也能繼續程式。"
+    },
+    {
+      "start": 479.76,
+      "end": 484.44,
+      "en": "Let's review now the actual learning process for a network.",
+      "zh": "複習實際學習流程。"
+    },
+    {
+      "start": 484.44,
+      "end": 489.39,
+      "en": "We start off with just a very basic feedforward process that we're already familiar with.",
+      "zh": "先從熟悉的前饋。"
+    },
+    {
+      "start": 489.39,
+      "end": 496.5,
+      "en": "And step 1, using that input x that is the original features, we set the activation function a for the input layer.",
+      "zh": "第一步，用原始 x 特徵，設定輸入層激活 a。"
+    },
+    {
+      "start": 496.5,
+      "end": 506.55,
+      "en": "So that very first input layer then means that we have z = wx + b, and then a, that output essentially coming out of that input layer",
+      "zh": "第一層 z=wx+b，a 基本上是該層輸出，"
+    },
+    {
+      "start": 506.55,
+      "end": 512.25,
+      "en": "is gonna be equal to your activation function of z, in this case represented as sigmoid of z.",
+      "zh": "等於激活函數，這裡 sigmoid(z)。"
+    },
+    {
+      "start": 512.25,
+      "end": 515.31,
+      "en": "So this resulting a then feeds into the next layer.",
+      "zh": "a 送下一層。"
+    },
+    {
+      "start": 515.31,
+      "end": 523.71,
+      "en": "So then you have the next layer taking in a, which means it's z is going to be w X a + b of the previous layer.",
+      "zh": "下一層接受 a，所以 z=w×a+b，依前層輸出。"
+    },
+    {
+      "start": 523.71,
+      "end": 530.193,
+      "en": "So then you go into the next layer, and then you take the output of that a, stick it into z, then so on and so on.",
+      "zh": "進下一層，取 a 放 z，依此類推。"
+    },
+    {
+      "start": 531.36,
+      "end": 538.89,
+      "en": "So if we think about this, for each layer, all we're doing is we're computing those z's and those a's, since a is based off z.",
+      "zh": "每層只算 z、a，因為 a 依 z。"
+    },
+    {
+      "start": 538.89,
+      "end": 550.11,
+      "en": "So if I'm at some layer L, then what I'm going to be doing is setting z of my current layer L equal to the weights at L times the output from the previous layer,",
+      "zh": "在某個 l 層，zˡ 等於本層權重乘前層輸出，"
+    },
+    {
+      "start": 550.11,
+      "end": 554.85,
+      "en": "that is a of L - 1, plus the biases of my current layer, b of L.",
+      "zh": "aˡ⁻¹，再加本層偏差 bˡ。"
+    },
+    {
+      "start": 554.85,
+      "end": 562.65,
+      "en": "Once I have my z of L, I'm gonna pass that through my activation function, in this case sigmoid, and then I get the a of my current layer L.",
+      "zh": "取得 zˡ，經 sigmoid 等激活，得到本層 aˡ。"
+    },
+    {
+      "start": 562.65,
+      "end": 566.613,
+      "en": "And then I can pass that to the next layer of L + 1, and so on and so on.",
+      "zh": "再傳 l+1，以此類推。"
+    },
+    {
+      "start": 567.57,
+      "end": 575.07,
+      "en": "And then we come to step 3, and here we've written it out in the full calculus notation of computing our error vector.",
+      "zh": "第三步，用完整微積分記法算誤差向量。"
+    },
+    {
+      "start": 575.07,
+      "end": 584.1,
+      "en": "But essentially, what we wanna do is if you take a look and focus on just that very first term, alt is doing is essentially expressing the rate of change",
+      "zh": "只看第一項，基本上表示"
+    },
+    {
+      "start": 584.1,
+      "end": 588.99,
+      "en": "of that cost function with respect to the output activations.",
+      "zh": "成本對輸出激活的變化率。"
+    },
+    {
+      "start": 588.99,
+      "end": 598.64,
+      "en": "And in the case of the quadratic cost function, then that's essentially the same thing as saying the activation of the last output layer - y,",
+      "zh": "二次成本下，基本上是最後層激活減 y，"
+    },
+    {
+      "start": 599.22,
+      "end": 601.32,
+      "en": "which was the true value.",
+      "zh": "真實值。"
+    },
+    {
+      "start": 601.32,
+      "end": 611.16,
+      "en": "And essentially what we wanna do is be able to calculate this error vector and back propagate it, essentially calculating the error back through every other single layer",
+      "zh": "想計算誤差向量、反向傳播，回頭逐層算誤差，"
+    },
+    {
+      "start": 611.16,
+      "end": 614.013,
+      "en": "that way we can adjust the weights and biases for that error.",
+      "zh": "據此調權重偏差。"
+    },
+    {
+      "start": 614.91,
+      "end": 621,
+      "en": "So replacing that first term with a of capital L - Y, we get the following formula.",
+      "zh": "第一項換 aᴸ-y，就有此式。"
+    },
+    {
+      "start": 621,
+      "end": 623.483,
+      "en": "And again, we're using that Hadamard product here.",
+      "zh": "也用 Hadamard 乘積。"
+    },
+    {
+      "start": 624.63,
+      "end": 634.26,
+      "en": "So what I wanna do is I wanna write a generalized error vector formula, and I'm gonna write it out in terms of the error in the next layer,",
+      "zh": "寫一般誤差向量，以後一層誤差表示，"
+    },
+    {
+      "start": 634.26,
+      "end": 638.46,
+      "en": "which makes a lot of sense because all we're doing is we're moving backwards.",
+      "zh": "合理，因為往回走。"
+    },
+    {
+      "start": 638.46,
+      "end": 646.62,
+      "en": "And a real quick note here is it's a little tricky to find a font where a lowercase L looks different than the number one.",
+      "zh": "提醒，小寫 l 和數字 1 很難找到能區分的字型，"
+    },
+    {
+      "start": 646.62,
+      "end": 649.86,
+      "en": "So I have two little bullet points there to show you what I'm talking about.",
+      "zh": "所以兩個項目展示。"
+    },
+    {
+      "start": 649.86,
+      "end": 655.62,
+      "en": "So a lowercase L essentially looks like a straight line, the number one, it has a little dash on top.",
+      "zh": "小寫 l 像直線，1 上方有短斜線。"
+    },
+    {
+      "start": 655.62,
+      "end": 658.47,
+      "en": "So keep that in mind as you see what's happening next.",
+      "zh": "留意接下來內容。"
+    },
+    {
+      "start": 658.47,
+      "end": 666.39,
+      "en": "The reason I'm not gonna be using a capital L is because in general, we should be using capital L to denote the very last output layer.",
+      "zh": "不用大寫 L，因為一般用它表示最後輸出層。"
+    },
+    {
+      "start": 666.39,
+      "end": 676.1,
+      "en": "And what I wanna do is show you the formula for the error vector and those calculations for any layer l, lowercase L that is, inside of the network.",
+      "zh": "要展示網路任意小寫 l 層的誤差公式。"
+    },
+    {
+      "start": 677.04,
+      "end": 688.615,
+      "en": "So what I'm going to do is for this backpropagation step, for every single layer, starting at the very last layer, capital L, then moving to capital L - 1, capital L - 2, et cetera,",
+      "zh": "反向傳播每層，從最後 L，到 L-1、L-2，"
+    },
+    {
+      "start": 688.615,
+      "end": 694.38,
+      "en": "all the way for all these layers, the generalized then error term.",
+      "zh": "一直到所有層，有一般化誤差項。"
+    },
+    {
+      "start": 694.38,
+      "end": 704.34,
+      "en": "So that error term, that delta to the little l, or lowercase L, is going to be equal to the weight matrix l + 1,",
+      "zh": "δˡ 等於 l+1 層權重矩陣，"
+    },
+    {
+      "start": 704.34,
+      "end": 706.23,
+      "en": "that's the lowercase L.",
+      "zh": "小寫 l，"
+    },
+    {
+      "start": 706.23,
+      "end": 715.77,
+      "en": "Then transpose that so that T, that term right there, that's the transpose of the weight matrix, and the next layer on the right-hand side",
+      "zh": "再轉置，T 表示右邊下一層"
+    },
+    {
+      "start": 715.77,
+      "end": 719.49,
+      "en": "of the l + 1, that's the lowercase L.",
+      "zh": "l+1 權重矩陣的轉置。"
+    },
+    {
+      "start": 719.49,
+      "end": 724.92,
+      "en": "And then we have there multiplied by the error term at that also next layer.",
+      "zh": "再乘同樣下一層誤差。"
+    },
+    {
+      "start": 724.92,
+      "end": 731.883,
+      "en": "And then we take the Hadamard product, again, with the z of l passed into the activation function.",
+      "zh": "接著與 zˡ 經激活函數的項做 Hadamard 乘積。"
+    },
+    {
+      "start": 733.98,
+      "end": 741.243,
+      "en": "So again, all we're doing there is back propagating the error, and here we have the generalized error for any layer, lowercase L.",
+      "zh": "就是反向傳誤差，得到任意 l 層的通式。"
+    },
+    {
+      "start": 743.07,
+      "end": 754.32,
+      "en": "So when we apply that actual transposed weight matrix, that weight matrix of l + 1 transposed, we can think intuitively of this as moving the error backward through the network,",
+      "zh": "套用 (wˡ⁺¹)ᵀ，直覺就是把誤差向後傳，"
+    },
+    {
+      "start": 754.32,
+      "end": 759.123,
+      "en": "giving us some sort of measure of the error at the output of that lth layer.",
+      "zh": "衡量第 l 層輸出誤差。"
+    },
+    {
+      "start": 760.92,
+      "end": 771.21,
+      "en": "We then take the Hadamard product of that times the Hadamard product there of the z at that layer pass into the activation function.",
+      "zh": "再與這層 z 經激活的項，做 Hadamard 乘積。"
+    },
+    {
+      "start": 771.21,
+      "end": 782.07,
+      "en": "And what this does is then this moves the error backward through the activation function in layer l, giving us the error in l in the weighted input to layer l.",
+      "zh": "把誤差向後穿過第 l 層激活函數，得到該層加權輸入誤差。"
+    },
+    {
+      "start": 782.07,
+      "end": 786.393,
+      "en": "So again, that's a generalized term, which is why you see me using that lowercase L.",
+      "zh": "所以一般化用小寫 l。"
+    },
+    {
+      "start": 788.4,
+      "end": 794.16,
+      "en": "And then we can understand that the gradient of the cost function is given by these two formulas.",
+      "zh": "再從兩公式理解成本梯度。"
+    },
+    {
+      "start": 794.16,
+      "end": 802.74,
+      "en": "So then for each layer, L - 1, L - 2, and so on, all we're really doing is computing that partial derivative of the cost function",
+      "zh": "每層 L-1、L-2 等，只是算成本"
+    },
+    {
+      "start": 802.74,
+      "end": 806.25,
+      "en": "with respect to the weights and the biases there.",
+      "zh": "對權重偏差的偏導。"
+    },
+    {
+      "start": 806.25,
+      "end": 811.473,
+      "en": "And j and k, that's just notation for the actual neurons themselves.",
+      "zh": "j、k 只是神經元索引。"
+    },
+    {
+      "start": 813.99,
+      "end": 819,
+      "en": "This then allows us to adjust the weights and biases to help minimize that cost function.",
+      "zh": "能調權重偏差，降低成本。"
+    },
+    {
+      "start": 819,
+      "end": 825.57,
+      "en": "So I know this was quite difficult to understand in terms of the notation of the calculus.",
+      "zh": "知道微積分記法很難，"
+    },
+    {
+      "start": 825.57,
+      "end": 827.46,
+      "en": "And don't worry if you didn't get it right away.",
+      "zh": "沒立刻懂不用擔心。"
+    },
+    {
+      "start": 827.46,
+      "end": 833.79,
+      "en": "This usually takes, at least for me, it took definitely a couple of hours to understand, just trying to write it out with paper and pencil.",
+      "zh": "通常需時間，我自己花了好幾小時，拿紙筆寫才懂。"
+    },
+    {
+      "start": 833.79,
+      "end": 837.63,
+      "en": "So what I've done is I've linked to you in this lecture some external links.",
+      "zh": "所以本堂附了外部連結。"
+    },
+    {
+      "start": 837.63,
+      "end": 842.64,
+      "en": "You should see it as a little folder pop-up as you're kind of watching this lecture.",
+      "zh": "看片時應看到資料夾彈出，"
+    },
+    {
+      "start": 842.64,
+      "end": 846.06,
+      "en": "Or right next to the lecture title, you should see a little dropdown folder you can click.",
+      "zh": "或標題旁下拉資料夾可點。"
+    },
+    {
+      "start": 846.06,
+      "end": 851.37,
+      "en": "There's some external links there that actually go and essentially derive step-by-step all these equations.",
+      "zh": "有外部資源，逐步推導全部方程式。"
+    },
+    {
+      "start": 851.37,
+      "end": 861.96,
+      "en": "So if this overview wasn't enough for you and you wanna see every step and the whole derivation of this process, plus the proof of those kind of four-step fundamental backpropagation equations,",
+      "zh": "若概覽不夠，想看每步、完整推導，以及四個基本反向傳播公式的證明，"
+    },
+    {
+      "start": 861.96,
+      "end": 865.47,
+      "en": "check out the external links for lots of details on that.",
+      "zh": "看外部連結，細節很多。"
+    },
+    {
+      "start": 865.47,
+      "end": 875.07,
+      "en": "But if you have the general understanding that you're basically calculating the error term at the very last layer and then going backwards through the network to calculate all those errors,",
+      "zh": "只要懂先算最後層誤差，再沿網路往回計算全部，"
+    },
+    {
+      "start": 875.07,
+      "end": 884.67,
+      "en": "and then adjusting the weights and biases accordingly to minimize that cost function, if you understand that general intuition, you know enough to go ahead and continue with the course.",
+      "zh": "相應調權重偏差以降低成本，就足夠繼續課程。"
+    },
+    {
+      "start": 884.67,
+      "end": 887.47,
+      "en": "All right, thanks, and I'll see you at the next lecture.",
+      "zh": "好，謝謝，下一堂見。"
+    }
+  ]
+}

@@ -10,7 +10,8 @@ Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 | [Detect Fake News with Machine Learning & Feature Engineering](https://www.udemy.com/course/detect-fake-news-with-machine-learning-feature-engineering/) | 24 | 3,308 |
 | [Building a RAG application in Python](https://www.udemy.com/course/building-a-rag-application-in-python/) | 75 | 6,970 |
 | [Machine Learning A-Z [2026]: ML, DL, AI with AWS, Python & R](https://www.udemy.com/course/machinelearning/) | 429 | 34,781 |
-| 合計 | **721** | **64,281** |
+| [Python for Data Science and Machine Learning Bootcamp](https://www.udemy.com/course/python-for-data-science-and-machine-learning-bootcamp/) | 152 | 16,037 |
+| 合計 | **873** | **80,318** |
 
 譯文由 Codex 直接依英文字幕製作，不使用 Google、iAI 或其他翻譯 API。程式識別字與影片敘述的版本、日期保留原文語意。
 

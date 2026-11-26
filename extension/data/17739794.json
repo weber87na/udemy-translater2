@@ -1,0 +1,529 @@
+{
+  "courseId": "903744",
+  "lectureId": "17739794",
+  "title": "TF Classification Code Along - EDA and Preprocessing",
+  "section": 25,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "1c830a0c8250fe9fed840774a3a6a4ed9714eb92b5fe2187781d9b7f443d3624",
+  "cues": [
+    {
+      "start": 0.587,
+      "end": 3.254,
+      "en": "(ambient music)",
+      "zh": "（氛圍音樂）"
+    },
+    {
+      "start": 5.16,
+      "end": 6.229,
+      "en": "Instructor: Welcome back, everyone.",
+      "zh": "講師：各位，歡迎回來。"
+    },
+    {
+      "start": 6.229,
+      "end": 10.173,
+      "en": "In this series of lectures, we're going to focus on two things.",
+      "zh": "這系列課程會著重兩件事。"
+    },
+    {
+      "start": 11.07,
+      "end": 15.24,
+      "en": "One is how to perform a classification task with TensorFlow.",
+      "zh": "第一是如何用 TensorFlow 執行分類任務。"
+    },
+    {
+      "start": 15.24,
+      "end": 23.673,
+      "en": "The second is also focusing on how to identify and deal with overfitting through Early Stopping Callback techniques as well as adding in Dropout Layers.",
+      "zh": "第二是如何辨識及處理過度擬合，方法包括提前停止回呼，以及加入 Dropout 層。"
+    },
+    {
+      "start": 25.08,
+      "end": 34.983,
+      "en": "Early stopping is something we can do with Keras to automatically stop training based on a loss condition on the validation data that we pass in during the model.fit call.",
+      "zh": "Keras 的提前停止，能根據 model.fit 時傳入的驗證資料損失條件，自動停止訓練。"
+    },
+    {
+      "start": 36.9,
+      "end": 44.49,
+      "en": "Dropout layers are layers that can be added to turn off neurons during training to prevent overfitting.",
+      "zh": "Dropout 層可以在訓練時關閉神經元，以防止過度擬合。"
+    },
+    {
+      "start": 44.49,
+      "end": 54.69,
+      "en": "Basically, what we do is each dropout layer will drop, or turn off, a user-defined percentage of neuron units in the previous layer every batch.",
+      "zh": "基本上，每個 Dropout 層會在每個批次，關閉前一層中由使用者指定比例的神經元單元。"
+    },
+    {
+      "start": 54.69,
+      "end": 61.92,
+      "en": "So that means certain neurons don't have their weights or biases affected during a batch, instead they're just turned off.",
+      "zh": "這表示在某個批次，部分神經元的權重或偏置不會受到影響，而是直接被關閉。"
+    },
+    {
+      "start": 61.92,
+      "end": 65.58,
+      "en": "Okay, so let's see how this all works by heading over to Jupyter Notebook.",
+      "zh": "好，到 Jupyter Notebook 看看如何運作。"
+    },
+    {
+      "start": 65.58,
+      "end": 67.5,
+      "en": "Alright, here I am at a Jupyter Notebook.",
+      "zh": "我現在在 Jupyter Notebook。"
+    },
+    {
+      "start": 67.5,
+      "end": 76.74,
+      "en": "I've gone ahead and imported Pandas, NumPy, matplotlib, and seaborn and the dataset we're going to be working with here is basically a bunch of measurements of tumors",
+      "zh": "已經匯入 pandas、NumPy、matplotlib 和 seaborn，這次的資料集基本上包含許多腫瘤測量值，"
+    },
+    {
+      "start": 76.74,
+      "end": 81.36,
+      "en": "and then a classification of whether they're malignant or benign.",
+      "zh": "以及惡性或良性的分類。"
+    },
+    {
+      "start": 81.36,
+      "end": 83.58,
+      "en": "And let's go ahead and load up this file.",
+      "zh": "載入這個檔案。"
+    },
+    {
+      "start": 83.58,
+      "end": 95.33,
+      "en": "We're gonna say PD read_CSV and then under data we're going to load up the file and it is called cancer classification.",
+      "zh": "使用 pd.read_csv，在 data 資料夾中載入 cancer_classification 檔案。"
+    },
+    {
+      "start": 95.94,
+      "end": 99.24000000000001,
+      "en": "So you can tab auto complete that from the data folder.",
+      "zh": "可以從 data 資料夾用 Tab 自動補齊。"
+    },
+    {
+      "start": 99.24000000000001,
+      "end": 110.64,
+      "en": "And as a quick note underneath our ANN's folder, if you go to the Keras classification notebook and open it up, you should be able to scroll through this and read the entire description of the dataset.",
+      "zh": "順帶提醒，在 ANNs 資料夾中開啟 Keras 分類筆記本，往下捲就能閱讀資料集的完整說明。"
+    },
+    {
+      "start": 110.64,
+      "end": 120.36,
+      "en": "It contains 30 numeric predictive attributes and then one extra class and it's a relatively small data set, about 569 instances.",
+      "zh": "它包含 30 個數值預測屬性和一個額外的類別欄，資料集相對小，約有 569 筆。"
+    },
+    {
+      "start": 120.36,
+      "end": 132.06,
+      "en": "So we'll come back here and let's go ahead and do a little bit of exploratory data analysis and then later on we'll move on to focusing on early stopping callbacks as well as adding in those dropout layers.",
+      "zh": "回到這裡，先做些探索式資料分析，再著重提前停止回呼和加入 Dropout 層。"
+    },
+    {
+      "start": 132.06,
+      "end": 139.326,
+      "en": "So something I would always recommend doing is just doing a quick info call and this will allow you to see if you have any null values right away.",
+      "zh": "我總是建議先快速呼叫 info，立刻查看有沒有空值。"
+    },
+    {
+      "start": 139.326,
+      "end": 146.28,
+      "en": "And if you scroll through this, you'll notice they're all 569, so none of them are nulls, which is good for us.",
+      "zh": "往下看，會發現全部都是 569，所以沒有空值，這對我們很好。"
+    },
+    {
+      "start": 146.28,
+      "end": 154.62,
+      "en": "And then we can also perform a describe call in order to begin exploring the statistical distribution",
+      "zh": "也可以呼叫 describe，開始探索各種特徵的統計分布，"
+    },
+    {
+      "start": 154.62,
+      "end": 163.17000000000002,
+      "en": "of the various features and I always like to transpose this just so it's a little easier to read with the index being the features themselves.",
+      "zh": "我喜歡轉置，讓特徵本身當索引，比較容易閱讀。"
+    },
+    {
+      "start": 163.17000000000002,
+      "end": 166.02,
+      "en": "Alright, so lots of information here we can explore.",
+      "zh": "好，這裡有很多資訊能探索。"
+    },
+    {
+      "start": 166.02,
+      "end": 169.95,
+      "en": "Let's go ahead and do a little bit of exploratory data analysis through visualization.",
+      "zh": "我們透過視覺化做些探索式資料分析。"
+    },
+    {
+      "start": 169.95,
+      "end": 180.24,
+      "en": "For classification tasks, it's always a good idea to do a count plot of your actual label to see the number of instances per label",
+      "zh": "對分類任務來說，把實際標籤畫成計數圖，查看每種標籤的筆數，是很好的做法，"
+    },
+    {
+      "start": 180.24,
+      "end": 182.79,
+      "en": "and see if it's a well-balanced problem or not.",
+      "zh": "可以判斷問題是否平衡。"
+    },
+    {
+      "start": 182.79,
+      "end": 186.287,
+      "en": "So the label column is called benign_0__mal_1.",
+      "zh": "標籤欄叫 benign_0__mal_1。"
+    },
+    {
+      "start": 193.08,
+      "end": 197.49,
+      "en": "So basically it just indicates that benign is zero and then malignant is one.",
+      "zh": "基本上表示良性為零，惡性為一。"
+    },
+    {
+      "start": 197.49,
+      "end": 201.504,
+      "en": "So here's the actual feature, or excuse me, label.",
+      "zh": "這就是實際特徵，抱歉，是標籤。"
+    },
+    {
+      "start": 201.504,
+      "end": 204.841,
+      "en": "And then our data frame is df.",
+      "zh": "資料框則是 df。"
+    },
+    {
+      "start": 204.841,
+      "end": 206.57999999999998,
+      "en": "We'll go ahead and run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 206.57999999999998,
+      "end": 215.643,
+      "en": "And this looks to be relatively well balanced, so we definitely have more cases of malignant tumors in this particular dataset but the difference is not extreme here.",
+      "zh": "看起來相對平衡，這份資料中的惡性腫瘤案例確實比較多，但差異並不極端。"
+    },
+    {
+      "start": 216.57,
+      "end": 221.67000000000002,
+      "en": "Then what else we can do is check out the correlation between the features themselves.",
+      "zh": "接著可以查看特徵之間的相關性。"
+    },
+    {
+      "start": 221.67000000000002,
+      "end": 230.85,
+      "en": "So you can say df correlation and this will actually produce a correlation here and sometimes what's nice to do",
+      "zh": "對 df 呼叫 corr，就能產生相關性資料；有時候，"
+    },
+    {
+      "start": 230.85,
+      "end": 239.55,
+      "en": "is to actually just view this in respect to the label we're trying to predict which again is whether it's malignant or benign.",
+      "zh": "只查看它和預測標籤的關係也很有幫助，標籤就是惡性或良性。"
+    },
+    {
+      "start": 239.55,
+      "end": 247.37,
+      "en": "So we can pass that in and that just gives us this right here and in that case we can then say sort values",
+      "zh": "傳入它，就得到這個結果，再使用 sort_values，"
+    },
+    {
+      "start": 248.28,
+      "end": 254.22,
+      "en": "and then we can see what is highly positively correlated as well as what's highly negatively correlated.",
+      "zh": "就能看到高度正相關和高度負相關的特徵。"
+    },
+    {
+      "start": 254.22,
+      "end": 256.69,
+      "en": "And sometimes it's easier to actually plot this out.",
+      "zh": "有時候畫出來比較容易理解。"
+    },
+    {
+      "start": 256.69,
+      "end": 262.26,
+      "en": "And we can do this by simply calling plot with kind is equal to a bar plot.",
+      "zh": "只要呼叫 plot，將 kind 設成 bar。"
+    },
+    {
+      "start": 262.26,
+      "end": 264.57,
+      "en": "You could also do this with Seaborne if you wanted to.",
+      "zh": "如果想用 seaborn，也可以。"
+    },
+    {
+      "start": 264.57,
+      "end": 270.755,
+      "en": "And notice this very last one right here is the actual label itself which is perfectly correlated at one.",
+      "zh": "注意，最後一個是標籤本身，所以完全相關，值為一。"
+    },
+    {
+      "start": 270.755,
+      "end": 273.54,
+      "en": "So, let's just go ahead and drop that one.",
+      "zh": "我們把它移除。"
+    },
+    {
+      "start": 273.54,
+      "end": 279.27,
+      "en": "So we'll go ahead and say sort values and after this we'll do the following.",
+      "zh": "在 sort_values 之後，做以下處理。"
+    },
+    {
+      "start": 279.27,
+      "end": 287.34000000000003,
+      "en": "We'll say grab everything but the last one and that will essentially drop that label column.",
+      "zh": "取得最後一項以外的所有資料，就能移除標籤欄。"
+    },
+    {
+      "start": 287.34000000000003,
+      "end": 292.02,
+      "en": "So it looks like we have very correlated values but very highly negatively correlated.",
+      "zh": "看起來有些值非常相關，不過是高度負相關。"
+    },
+    {
+      "start": 292.02,
+      "end": 297.42,
+      "en": "So we should be able to get pretty strong predictions from this dataset just based off this analysis here.",
+      "zh": "光根據這項分析，應該就能對這份資料做出相當不錯的預測。"
+    },
+    {
+      "start": 297.42,
+      "end": 304.65,
+      "en": "And we could also do a similar analysis of correlation between the actual variables themselves",
+      "zh": "也能對實際變數彼此之間的相關性做類似分析，"
+    },
+    {
+      "start": 304.65,
+      "end": 311.01,
+      "en": "by calling SNS heat map on this correlation and this returns a heat map.",
+      "zh": "對相關性資料呼叫 sns.heatmap，得到熱圖。"
+    },
+    {
+      "start": 311.01,
+      "end": 315.09,
+      "en": "However, this shows you the correlation with every feature compared to every other feature.",
+      "zh": "但這會顯示每個特徵和其他每個特徵的相關性。"
+    },
+    {
+      "start": 315.09,
+      "end": 325.11,
+      "en": "And if it's a little small, you can always expand on this by saying PLT fig size and then choose a larger size, 12 by 12 or whatever you see fit.",
+      "zh": "如果圖太小，可以用 plt.figure 設定 figsize，選擇 12 乘 12 或任何合適的較大尺寸。"
+    },
+    {
+      "start": 325.11,
+      "end": 327.12,
+      "en": "So that's something you can explore as well.",
+      "zh": "這也是你能繼續探索的部分。"
+    },
+    {
+      "start": 327.12,
+      "end": 330.3,
+      "en": "You can also change the color mappings to explore that further.",
+      "zh": "還能改變色彩映射，進一步觀察。"
+    },
+    {
+      "start": 330.3,
+      "end": 340.44,
+      "en": "But right now we'll go ahead and put exploratory data analysis to the side so we can get to our train test split and scaling the data and then in part two, we'll focus on creating the model",
+      "zh": "不過現在先把探索式資料分析放一旁，進行訓練測試集切分和資料縮放，第二部分再著重建立模型，"
+    },
+    {
+      "start": 340.44,
+      "end": 342.74,
+      "en": "and dealing with overfitting that could occur.",
+      "zh": "以及處理可能發生的過度擬合。"
+    },
+    {
+      "start": 343.65,
+      "end": 346.95,
+      "en": "So, first let's do our train test split.",
+      "zh": "首先進行訓練測試集切分。"
+    },
+    {
+      "start": 346.95,
+      "end": 351.39,
+      "en": "Our X features, we're going say DF drop the benign column.",
+      "zh": "X 特徵使用 df.drop，刪除 benign 那個標籤欄。"
+    },
+    {
+      "start": 351.39,
+      "end": 354.24,
+      "en": "In fact, I should still have that copy pasted there.",
+      "zh": "我應該還保留著剛才複製的欄名。"
+    },
+    {
+      "start": 354.24,
+      "end": 361.14,
+      "en": "And then that's along axis equals one and we'll just grab those values so that it's a NumPy array.",
+      "zh": "沿 axis=1 刪除，再取得 values，成為 NumPy 陣列。"
+    },
+    {
+      "start": 361.14,
+      "end": 368.973,
+      "en": "And then Y is going to be equal to DF and in this case it's just that column and we'll grab those values.",
+      "zh": "Y 則等於 df 的那個標籤欄，同樣取得 values。"
+    },
+    {
+      "start": 369.93,
+      "end": 378.69,
+      "en": "So then we will say from Sklearn.model.selection and this should seem very familiar to you by now, the train test split.",
+      "zh": "接著從 sklearn.model_selection 匯入 train_test_split；現在應該已經很熟悉了。"
+    },
+    {
+      "start": 378.69,
+      "end": 381.75,
+      "en": "Import that, call train test split.",
+      "zh": "匯入後，呼叫 train_test_split。"
+    },
+    {
+      "start": 381.75,
+      "end": 384.27,
+      "en": "Go ahead and expand the documentation string.",
+      "zh": "展開文件字串。"
+    },
+    {
+      "start": 384.27,
+      "end": 387.243,
+      "en": "So we can scroll down here and then grab this example.",
+      "zh": "往下捲，取得這個範例。"
+    },
+    {
+      "start": 388.65,
+      "end": 390.2,
+      "en": "Let's copy and paste that here.",
+      "zh": "複製貼到這裡。"
+    },
+    {
+      "start": 391.17,
+      "end": 396.3,
+      "en": "And then what we're going to do is we'll simply change the test size to something a little smaller.",
+      "zh": "然後把 test_size 改小一點。"
+    },
+    {
+      "start": 396.3,
+      "end": 400.83,
+      "en": "Since we don't have that many points, we'll go ahead and change it to just 25% of our data.",
+      "zh": "因為資料點不多，就用資料的 25%。"
+    },
+    {
+      "start": 400.83,
+      "end": 404.79,
+      "en": "And to keep things consistent, I'll set my random state to 101.",
+      "zh": "為了保持一致，把 random_state 設成 101。"
+    },
+    {
+      "start": 404.79,
+      "end": 406.59000000000003,
+      "en": "Of course, that's just an arbitrary choice.",
+      "zh": "當然，這只是隨意選的數字。"
+    },
+    {
+      "start": 406.59000000000003,
+      "end": 410.79,
+      "en": "But if you wanna get the same split I do, go ahead and choose the same value.",
+      "zh": "不過如果想得到和我相同的切分，就選相同的值。"
+    },
+    {
+      "start": 410.79,
+      "end": 412.35,
+      "en": "We run that, we get our split.",
+      "zh": "執行後，得到切分結果。"
+    },
+    {
+      "start": 412.35,
+      "end": 414.3,
+      "en": "And then finally, let's scale the data.",
+      "zh": "最後縮放資料。"
+    },
+    {
+      "start": 415.14,
+      "end": 423.23,
+      "en": "We'll do this by using the pre-processing from site kit learn, and then we will import MinMax scaler,",
+      "zh": "使用 scikit-learn 的 preprocessing，匯入 MinMaxScaler，"
+    },
+    {
+      "start": 425.88,
+      "end": 434.043,
+      "en": "create an instance of this scaler, and we will fit transform our training data.",
+      "zh": "建立縮放器實例，再對訓練資料做 fit_transform。"
+    },
+    {
+      "start": 435.15,
+      "end": 442.77,
+      "en": "So we'll go ahead and say X train is equal to fit transform X train and we'll do the same for our test data.",
+      "zh": "讓 X_train 等於對 X_train 執行 fit_transform 的結果；測試資料也要縮放。"
+    },
+    {
+      "start": 442.77,
+      "end": 446.58,
+      "en": "So scaler, transform X test.",
+      "zh": "使用 scaler.transform(X_test)。"
+    },
+    {
+      "start": 446.58,
+      "end": 449.25,
+      "en": "Recall, we don't want to actually fit to the test data.",
+      "zh": "請記得，不要對測試資料擬合。"
+    },
+    {
+      "start": 449.25,
+      "end": 453.03,
+      "en": "We only want to fit to our training data to prevent data leakage.",
+      "zh": "只對訓練資料擬合，避免資料洩漏。"
+    },
+    {
+      "start": 453.03,
+      "end": 455.82,
+      "en": "Alright, so we did a little bit of exploratory data analysis.",
+      "zh": "好，我們已做了一些探索式資料分析。"
+    },
+    {
+      "start": 455.82,
+      "end": 457.08,
+      "en": "There's definitely a lot more you can do.",
+      "zh": "當然還能做更多。"
+    },
+    {
+      "start": 457.08,
+      "end": 462.3,
+      "en": "So feel free to create scatter plots, distribution plots et cetera, whatever you're interested in.",
+      "zh": "可以自由建立散佈圖、分布圖等任何感興趣的圖。"
+    },
+    {
+      "start": 462.3,
+      "end": 468.09000000000003,
+      "en": "And then more importantly, we went ahead and did our train test split as well as the pre-processing to scale the data.",
+      "zh": "更重要的是，我們已切分訓練測試集，也完成縮放資料的前處理。"
+    },
+    {
+      "start": 468.09000000000003,
+      "end": 480.09,
+      "en": "So coming up next, we're gonna focus on creating the model and then showing you how to prevent overfitting and how to make sure you don't actually overrun on the training dataset and then end up having a poor fit",
+      "zh": "接下來會著重建立模型，示範如何防止過度擬合，避免過度訓練，導致，"
+    },
+    {
+      "start": 480.09,
+      "end": 481.23,
+      "en": "on your test dataset.",
+      "zh": "對測試集的擬合表現不佳。"
+    },
+    {
+      "start": 481.23,
+      "end": 483.54,
+      "en": "So we'll cover all that in part two.",
+      "zh": "第二部分會涵蓋這些內容。"
+    },
+    {
+      "start": 483.54,
+      "end": 484.49,
+      "en": "I'll see you there.",
+      "zh": "到時見。"
+    }
+  ]
+}
