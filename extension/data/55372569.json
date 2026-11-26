@@ -1,0 +1,1283 @@
+{
+  "courseId": "6795111",
+  "lectureId": "55372569",
+  "title": "Semantic Kernel to Agent Framework Migration Guide (Optional Content)",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 8.88,
+      "en": "Hi, and welcome to an ART-Sharp video on how you convert Semantic Kernel into Agent Framework.",
+      "zh": "大家好，歡迎觀看這支 AI in C# 影片，介紹如何將 Semantic Kernel 轉換成 Agent Framework。"
+    },
+    {
+      "start": 8.88,
+      "end": 14.739,
+      "en": "Lots of people out there right now have Semantic Kernel, it's in maintenance mode, you should",
+      "zh": "現在很多人都在使用 Semantic Kernel，但它已進入維護模式，因此你應該"
+    },
+    {
+      "start": 14.739,
+      "end": 22.479,
+      "en": "definitely upgrade to Agent Framework when it comes out of preview in start of the year.",
+      "zh": "在年初 Agent Framework 結束預覽階段時，升級到 Agent Framework。"
+    },
+    {
+      "start": 22.479,
+      "end": 26.04,
+      "en": "So now's the time to have a look at how you can do that.",
+      "zh": "所以現在就是了解如何遷移的好時機。"
+    },
+    {
+      "start": 26.04,
+      "end": 34.74,
+      "en": "On this video, I'm going to convert a sample project I have, I have a video of a live upgrade",
+      "zh": "這支影片會轉換我的一個範例專案。我的頻道上也有一支即時升級的影片，"
+    },
+    {
+      "start": 34.74,
+      "end": 44.439,
+      "en": "as well in my channel, but if you want to see it a bit more structured and easy to look at, this is the one for you.",
+      "zh": "但如果你想看結構更清楚、更容易理解的版本，這支影片就很適合你。"
+    },
+    {
+      "start": 44.439,
+      "end": 51.4,
+      "en": "Because in this, we are going to see how to take normal chats, streaming, structured output,",
+      "zh": "我們會示範如何遷移一般對話、串流、結構化輸出，"
+    },
+    {
+      "start": 51.4,
+      "end": 63.24,
+      "en": "tool calling, RAG, and everything from Semantic Kernel, throwing the NuGet package away, putting in the others, getting a lot of errors, and getting rid of them.",
+      "zh": "以及工具呼叫、RAG 和 Semantic Kernel 的各項功能：移除原本的 NuGet 套件、加入新套件，然後把出現的一堆錯誤修好。"
+    },
+    {
+      "start": 63.24,
+      "end": 66.879,
+      "en": "So let's get started.",
+      "zh": "那就開始吧。"
+    },
+    {
+      "start": 66.879,
+      "end": 73.76,
+      "en": "So I have a folder here in my sample repo, and the repo is linked in the descriptions.",
+      "zh": "我的範例儲存庫裡有這個資料夾，儲存庫連結放在影片說明中。"
+    },
+    {
+      "start": 73.76,
+      "end": 77.519,
+      "en": "So I have a before and a finished.",
+      "zh": "裡面有 before 與 finished 兩個版本。"
+    },
+    {
+      "start": 77.519,
+      "end": 83.58,
+      "en": "So this is the one that actually uses Agent Framework, while this one uses Semantic Kernel.",
+      "zh": "這個版本實際使用 Agent Framework，而這個版本則使用 Semantic Kernel。"
+    },
+    {
+      "start": 83.58,
+      "end": 95,
+      "en": "So I'm gonna change this live, but you might want to instead look at this in the end.",
+      "zh": "我會現場修改，不過你也可以直接參考最後完成的版本。"
+    },
+    {
+      "start": 95,
+      "end": 106.72,
+      "en": "So what I'm gonna do here is show you how the thing works, and what code we have here.",
+      "zh": "首先示範它如何運作，以及目前有哪些程式碼。"
+    },
+    {
+      "start": 106.72,
+      "end": 116.319,
+      "en": "So we have two NuGet packages, Semantic Kernel, Agents Core, and Azure AI, and then we have the in-memory.",
+      "zh": "我們有 Semantic Kernel 的 Agents.Core 與 Azure AI 兩個 NuGet 套件，另外還有 InMemory 套件。"
+    },
+    {
+      "start": 116.319,
+      "end": 120.4,
+      "en": "So these are the three packages we use.",
+      "zh": "這就是目前使用的三個套件。"
+    },
+    {
+      "start": 120.4,
+      "end": 128.52,
+      "en": "And this is a web API, so we can do a little dependency injection on things here, but it's",
+      "zh": "這是 Web API，所以可以在這裡進行一些相依性注入，不過無論使用 Semantic Kernel 或 Agent Framework，"
+    },
+    {
+      "start": 128.52,
+      "end": 133.32,
+      "en": "not needed, both for Semantic Kernel or Agent Framework.",
+      "zh": "相依性注入都不是必要條件。"
+    },
+    {
+      "start": 133.32,
+      "end": 142.559,
+      "en": "I have some credentials that I grab from a secret manager, and that's part of any of the two, and it will remain the same.",
+      "zh": "我從 Secret Manager 取得一些認證資訊。這與兩種框架本身無關，因此這部分會保持不變。"
+    },
+    {
+      "start": 142.559,
+      "end": 148.399,
+      "en": "And then I have something called a MyKernelFactory, which can build different kernels.",
+      "zh": "接著有一個 MyKernelFactory，可以建立不同的 Kernel。"
+    },
+    {
+      "start": 148.399,
+      "end": 154.07999999999998,
+      "en": "So we have the normal Kernel CreateBuilder, we add a chat completion to it, we add some",
+      "zh": "這裡先照一般方式呼叫 Kernel.CreateBuilder，加入對話完成功能，再加入一些"
+    },
+    {
+      "start": 154.07999999999998,
+      "end": 165.75900000000001,
+      "en": "middleware in terms of IAutoFunctionInvocationFilter, and we build our kernel so we can give it to the various objects here.",
+      "zh": "以 IAutoFunctionInvocationFilter 實作的中介軟體，最後建立 Kernel，提供給這裡的各個物件使用。"
+    },
+    {
+      "start": 165.75900000000001,
+      "end": 175.72,
+      "en": "And then we use the Azure OpenAI Embedding Generator, where we can get the embedding generator for the Rack stuff.",
+      "zh": "接著使用 AzureOpenAIEmbeddingGenerator，取得供 RAG 使用的嵌入向量產生器。"
+    },
+    {
+      "start": 175.72,
+      "end": 185.639,
+      "en": "Then comes six map posts, one for chat, where we try to use the kernel directly, just getting a question back.",
+      "zh": "然後有六個 MapPost。第一個是對話，直接使用 Kernel，針對問題取得回應。"
+    },
+    {
+      "start": 185.639,
+      "end": 191.16,
+      "en": "And this happens via a chat request object, which is just a question.",
+      "zh": "輸入使用 ChatRequest 物件，裡面只有一個問題。"
+    },
+    {
+      "start": 191.16,
+      "end": 201.07999999999998,
+      "en": "MyKernelFactory is dependency injected here, and we get a response back which is just the answer back, nothing special there.",
+      "zh": "這裡透過相依性注入取得 MyKernelFactory，回傳的回應就是答案，沒有什麼特別之處。"
+    },
+    {
+      "start": 201.07999999999998,
+      "end": 205.07999999999998,
+      "en": "We do something similar with streaming here, it's not really streaming because it's just",
+      "zh": "這裡也有類似的串流範例。因為只是 MapPost，所以並不是真正把串流傳給用戶端，"
+    },
+    {
+      "start": 205.07999999999998,
+      "end": 213.72,
+      "en": "a map post, but we are doing some streaming here where we go in and just do streaming.",
+      "zh": "不過內部確實有以串流方式取得結果。"
+    },
+    {
+      "start": 213.72,
+      "end": 221.24,
+      "en": "Then we do a map post with chat history, where we use the chat history object, we actually",
+      "zh": "再來是一個包含對話歷史的 MapPost，使用 ChatHistory 物件。其實這裡這行不需要，"
+    },
+    {
+      "start": 221.24,
+      "end": 231.6,
+      "en": "don't need that one here, and we don't need these, they are just in the way.",
+      "zh": "這幾行也不需要，只會干擾閱讀。"
+    },
+    {
+      "start": 231.6,
+      "end": 243.399,
+      "en": "We do a chat history, add a question, add it to the history, add another question, add to the history, and we'll see how that will be changed in Agent Framework.",
+      "zh": "我們建立對話歷史，加入問題與回應，再提出另一個問題並加入歷史。稍後會看看 Agent Framework 如何改寫這部分。"
+    },
+    {
+      "start": 243.399,
+      "end": 246.679,
+      "en": "In the same manner, we have tool calling.",
+      "zh": "同樣地，我們也有工具呼叫。"
+    },
+    {
+      "start": 246.679,
+      "end": 253.16,
+      "en": "So we have a tool where we import the tool from object, and this tool is down here.",
+      "zh": "這裡透過 ImportPluginFromObject 匯入工具，而工具定義在下面。"
+    },
+    {
+      "start": 253.16,
+      "end": 259.239,
+      "en": "In general, this is in one big file, and you can see there's 273 lines of code.",
+      "zh": "整體來說，所有程式碼都放在同一個大檔案裡，可以看到一共有 273 行。"
+    },
+    {
+      "start": 259.239,
+      "end": 264.72,
+      "en": "That's on purpose so we can both tell how many lines of code there are after the fact.",
+      "zh": "這是刻意安排的，方便最後比較程式碼行數。"
+    },
+    {
+      "start": 264.72,
+      "end": 276.279,
+      "en": "So 273 is our starting, and we'll see in the end how much there will be left with Agent Framework.",
+      "zh": "起點是 273 行，最後再看看換成 Agent Framework 後剩下多少。"
+    },
+    {
+      "start": 276.279,
+      "end": 282.079,
+      "en": "But down here we have two tools, they are dummy tools more or less, with no real implementation",
+      "zh": "下面有兩個工具，基本上只是模擬工具，沒有真正實作"
+    },
+    {
+      "start": 282.079,
+      "end": 292.15999999999997,
+      "en": "of a getWeather, it's always sunny and 90 degrees, and in terms of a getDate and time, it's really in the real life way.",
+      "zh": "GetWeather，永遠都回傳晴天、90 度。至於取得日期與時間，則是真的會計算目前時間。"
+    },
+    {
+      "start": 292.15999999999997,
+      "end": 297.64,
+      "en": "And the weather result is just a record here.",
+      "zh": "WeatherResult 只是這裡的一個 record。"
+    },
+    {
+      "start": 297.64,
+      "end": 311.88,
+      "en": "So in the tool call example, we call this tool, we give the agent the option to do tool calling,",
+      "zh": "在工具呼叫範例中，我們呼叫這個工具，允許代理程式進行工具呼叫，"
+    },
+    {
+      "start": 311.88,
+      "end": 317.6,
+      "en": "and we just get our answer back like normal.",
+      "zh": "然後像平常一樣取得答案。"
+    },
+    {
+      "start": 317.6,
+      "end": 323.32,
+      "en": "Then we have a structured output example, where we give our agent its response format,",
+      "zh": "接著是結構化輸出範例。我們設定代理程式的回應格式，"
+    },
+    {
+      "start": 323.32,
+      "end": 331.72,
+      "en": "and this response format is just a movie result with movies inside, where we then ask the",
+      "zh": "這個格式是包含電影清單的 MovieResult，然後要求"
+    },
+    {
+      "start": 331.72,
+      "end": 339.6,
+      "en": "agent to give us the JSON back, and Deo serialize that JSON to the movie result.",
+      "zh": "代理程式回傳 JSON，再將 JSON 反序列化成 MovieResult。"
+    },
+    {
+      "start": 339.6,
+      "end": 348.04,
+      "en": "Then finally we have the RAG part, where we go through and make some RAG ingestion here.",
+      "zh": "最後是 RAG。我們在這裡先完成 RAG 的資料匯入。"
+    },
+    {
+      "start": 348.04,
+      "end": 352.88,
+      "en": "You wouldn't normally do that in the call itself, but just to keep it simple for the",
+      "zh": "正常情況下，不會在每次請求內執行匯入。不過為了讓"
+    },
+    {
+      "start": 352.88,
+      "end": 361.04,
+      "en": "demo, we ingest all the data, so all of this will not change, because that is not part",
+      "zh": "示範簡單一點，我們會在這裡匯入所有資料。這一整段不會改，因為它並不屬於"
+    },
+    {
+      "start": 361.04,
+      "end": 365.959,
+      "en": "of the Agent Framework, we'll get back to that.",
+      "zh": "Agent Framework 的範圍，稍後會再提到。"
+    },
+    {
+      "start": 365.959,
+      "end": 374.239,
+      "en": "We get our kernel, we ask for the RAG, we do a search in the RAG, and we give that data",
+      "zh": "我們取得 Kernel，先搜尋 RAG 資料，再把搜尋到的內容"
+    },
+    {
+      "start": 374.239,
+      "end": 378.559,
+      "en": "next to the question for our agent.",
+      "zh": "和問題一起提供給代理程式。"
+    },
+    {
+      "start": 378.559,
+      "end": 380.5,
+      "en": "So that is all the code there is.",
+      "zh": "這就是全部的程式碼。"
+    },
+    {
+      "start": 380.5,
+      "end": 390.959,
+      "en": "We can run it, and we can see we have a little HTTP file here, so we can test it.",
+      "zh": "我們可以執行看看，這裡有一個小型 HTTP 檔案，可用來測試。"
+    },
+    {
+      "start": 390.959,
+      "end": 395.44,
+      "en": "We can ask for the capital of France, it will come back and say it's Paris.",
+      "zh": "詢問法國首都是哪裡，會回覆巴黎。"
+    },
+    {
+      "start": 395.44,
+      "end": 407.239,
+      "en": "We can ask streaming how to make soup, and after a little while it's been cooking up the recipe, it will give us back a long answer about that.",
+      "zh": "也可以用串流詢問如何煮湯。等它構思食譜後，就會回傳一大段答案。"
+    },
+    {
+      "start": 407.239,
+      "end": 413.92,
+      "en": "We can do the chat history, where we see a complete chat history back.",
+      "zh": "對話歷史的範例則會回傳完整的對話紀錄。"
+    },
+    {
+      "start": 413.92,
+      "end": 419.44,
+      "en": "Not really the real way you would do it, but that was the best way I could do it with just a web API.",
+      "zh": "這不是實際系統通常採用的方式，但在只有 Web API 的情況下，這是我想到最適合的示範方式。"
+    },
+    {
+      "start": 420.16,
+      "end": 428.16,
+      "en": "Then we have the tool calling, and the tool calling will show that the auto-invocation",
+      "zh": "接著是工具呼叫。你可以看到自動呼叫"
+    },
+    {
+      "start": 428.16,
+      "end": 439.04,
+      "en": "filter will happen, and show that the thing was called, and being used to find that it's sunny, and what the time is in Paris right now.",
+      "zh": "篩選器確實有執行，工具也確實被呼叫，用來確認天氣是晴天，以及巴黎目前的時間。"
+    },
+    {
+      "start": 439.04,
+      "end": 443.72,
+      "en": "Again, the input and output is not that important here.",
+      "zh": "同樣地，這裡的輸入與輸出細節不是重點。"
+    },
+    {
+      "start": 443.72,
+      "end": 451.359,
+      "en": "Then we have structured output, where we can see we get our movies back, and we have",
+      "zh": "再來是結構化輸出，可以看到取得了電影資料。最後還有"
+    },
+    {
+      "start": 451.359,
+      "end": 456.119,
+      "en": "a rack, where we ask for what is the Wi-Fi password, which was one of the ten things.",
+      "zh": "RAG，我們詢問 Wi-Fi 密碼，這是十筆資料中的其中一筆。"
+    },
+    {
+      "start": 456.119,
+      "end": 464.239,
+      "en": "So doing rack search, finding that, and giving us back what the Wi-Fi password is.",
+      "zh": "系統透過 RAG 搜尋找到資料，再告訴我們 Wi-Fi 密碼。"
+    },
+    {
+      "start": 464.239,
+      "end": 470.55899999999997,
+      "en": "So all good and well, now let's do the conversion.",
+      "zh": "目前一切正常，接著開始轉換。"
+    },
+    {
+      "start": 470.55899999999997,
+      "end": 480.559,
+      "en": "And in order to do that, we of course need to go to our NuGet packages, and get rid of some, and add some.",
+      "zh": "為了遷移，當然需要打開 NuGet 套件，移除一些套件，再加入一些。"
+    },
+    {
+      "start": 480.559,
+      "end": 495.839,
+      "en": "So first we will get rid of agents core here, we don't need semantic kernel agents.",
+      "zh": "首先移除這裡的 Agents.Core，因為不再需要 Semantic Kernel Agents。"
+    },
+    {
+      "start": 495.92,
+      "end": 501.32,
+      "en": "And we don't need the Azure OpenAI of semantic kernel.",
+      "zh": "也不再需要 Semantic Kernel 的 Azure OpenAI 套件。"
+    },
+    {
+      "start": 501.32,
+      "end": 508.48,
+      "en": "We do however need this one, because this is actually just semantic kernel by name.",
+      "zh": "不過這個套件仍然需要，因為它其實只是名稱上屬於 Semantic Kernel。"
+    },
+    {
+      "start": 508.48,
+      "end": 515.4,
+      "en": "In real life it's actually Microsoft extension vector data, and at some point Microsoft will",
+      "zh": "實際上，它是 Microsoft.Extensions.VectorData 的實作，Microsoft 未來應該會"
+    },
+    {
+      "start": 515.4,
+      "end": 521.599,
+      "en": "actually rename this package to vector data dot in memory instead.",
+      "zh": "把套件名稱改成 VectorData.InMemory。"
+    },
+    {
+      "start": 521.599,
+      "end": 531,
+      "en": "But right now it's just confusing, it's called semantic kernel, it really has nothing to do with semantic kernel other than the source code is in their repo.",
+      "zh": "目前這個名稱很容易混淆。它叫 Semantic Kernel，但除了原始碼放在同一個儲存庫之外，實際上與 Semantic Kernel 沒有關係。"
+    },
+    {
+      "start": 531,
+      "end": 539.76,
+      "en": "So we don't get rid of that, but what we get is we take our Azure dot AI dot OpenAI.",
+      "zh": "因此不要移除它。接著加入 Azure.AI.OpenAI。"
+    },
+    {
+      "start": 539.76,
+      "end": 545.919,
+      "en": "This package was behind the scenes in semantic kernel, but now we control it ourselves as",
+      "zh": "先前這個套件由 Semantic Kernel 在底層使用，現在則由我們自己管理，作為"
+    },
+    {
+      "start": 545.919,
+      "end": 553.96,
+      "en": "the raw connection.",
+      "zh": "原生連線用戶端。"
+    },
+    {
+      "start": 554.88,
+      "end": 562.88,
+      "en": "The other package is the Microsoft agent framework package, which is the OpenAI package we need.",
+      "zh": "另一個套件是 Microsoft Agent Framework 的 OpenAI 套件，這就是我們需要的。"
+    },
+    {
+      "start": 562.88,
+      "end": 564.719,
+      "en": "So let's put that in as well.",
+      "zh": "把它也加入進來。"
+    },
+    {
+      "start": 564.719,
+      "end": 570.08,
+      "en": "So two packets removed, two packets added.",
+      "zh": "所以總共移除了兩個套件，也加入了兩個套件。"
+    },
+    {
+      "start": 570.08,
+      "end": 582.359,
+      "en": "And once we do that, the code will be very sad.",
+      "zh": "完成後，這些程式碼就會一片紅。"
+    },
+    {
+      "start": 582.359,
+      "end": 588.44,
+      "en": "So we get, there will be more errors in one second.",
+      "zh": "目前出現這些錯誤，等一下還會有更多。"
+    },
+    {
+      "start": 588.44,
+      "end": 597.919,
+      "en": "There's actually more, there's like 42 errors.",
+      "zh": "實際上更多，大約有 42 個錯誤。"
+    },
+    {
+      "start": 597.919,
+      "end": 603.44,
+      "en": "So let's just start from the top, let's get rid of stuff that doesn't exist anymore.",
+      "zh": "就從最上面開始，先移除已經不存在的東西。"
+    },
+    {
+      "start": 603.44,
+      "end": 606.799,
+      "en": "Let's get rid of this, let's get rid of this.",
+      "zh": "移除這個，也移除這個。"
+    },
+    {
+      "start": 606.799,
+      "end": 612.76,
+      "en": "We don't need this one either, because that was just a warning from semantic kernel.",
+      "zh": "這個也不需要了，它只是 Semantic Kernel 的警告設定。"
+    },
+    {
+      "start": 612.76,
+      "end": 621.76,
+      "en": "So what we first need is we actually need a builder dot services dot add singleton.",
+      "zh": "首先需要呼叫 builder.Services.AddSingleton。"
+    },
+    {
+      "start": 621.76,
+      "end": 631.059,
+      "en": "And we need a singleton for the Azure OpenAI client.",
+      "zh": "註冊一個 AzureOpenAIClient 的單例。"
+    },
+    {
+      "start": 631.059,
+      "end": 636.859,
+      "en": "And this might feel strange for a semantic kernel person that we need to do this on our",
+      "zh": "對熟悉 Semantic Kernel 的人來說，現在必須自行處理這些，可能有點奇怪，"
+    },
+    {
+      "start": 636.859,
+      "end": 644.46,
+      "en": "own, but it will make much more sense down the line.",
+      "zh": "但稍後你就會理解這樣做的好處。"
+    },
+    {
+      "start": 644.46,
+      "end": 651.739,
+      "en": "So we get that in, and then we don't need this kernel factory anymore.",
+      "zh": "加入之後，就不再需要這個 Kernel Factory 了。"
+    },
+    {
+      "start": 651.739,
+      "end": 658.539,
+      "en": "So let's just delete it entirely. There we go.",
+      "zh": "因此直接整個刪除。好了。"
+    },
+    {
+      "start": 658.539,
+      "end": 664.219,
+      "en": "And get rid of its registration, because what we are going to do is, every time we have",
+      "zh": "它的註冊也刪掉，因為接下來要把各個方法裡的"
+    },
+    {
+      "start": 664.219,
+      "end": 674.539,
+      "en": "a kernel factory here in the different methods, we instead want to do an Azure OpenAI client of type client.",
+      "zh": "Kernel Factory，改成名為 client 的 AzureOpenAIClient。"
+    },
+    {
+      "start": 674.539,
+      "end": 681.34,
+      "en": "So let's replace those in all the six methods, so we don't have this anymore.",
+      "zh": "六個方法都替換掉，不再使用原本的 Factory。"
+    },
+    {
+      "start": 681.34,
+      "end": 688.7,
+      "en": "But because it's dependency injected here, we can do this in the various map posts.",
+      "zh": "由於這裡已經註冊相依性注入，因此可以直接在各個 MapPost 中取得它。"
+    },
+    {
+      "start": 688.7,
+      "end": 700.219,
+      "en": "We still need embedding generator, but we need to new it up in a slightly different way.",
+      "zh": "嵌入向量產生器仍然需要，但建立方式稍微不同。"
+    },
+    {
+      "start": 700.219,
+      "end": 708.739,
+      "en": "We need to say add embedding generator, and it will be constructed on the fly.",
+      "zh": "呼叫 AddEmbeddingGenerator，讓它在需要時建立。"
+    },
+    {
+      "start": 708.739,
+      "end": 720.859,
+      "en": "And we do that by checking our provider.getRequiredService.",
+      "zh": "建立時透過 provider.GetRequiredService 取得服務。"
+    },
+    {
+      "start": 720.859,
+      "end": 731.26,
+      "en": "And we need the required service of the Azure OpenAI client. There we go.",
+      "zh": "要取得的服務就是 AzureOpenAIClient。好了。"
+    },
+    {
+      "start": 731.26,
+      "end": 740.179,
+      "en": "So I could have made it out here and given it in, but let's do it in the proper manner.",
+      "zh": "我也可以在外面先建立再傳入，但這裡採用標準做法。"
+    },
+    {
+      "start": 740.179,
+      "end": 751.979,
+      "en": "So on that, we need to get the embedding general client, and that client should get the text embedding small.",
+      "zh": "接著要取得嵌入向量用戶端，並指定 text-embedding-small。"
+    },
+    {
+      "start": 751.979,
+      "end": 757.38,
+      "en": "And then we need to say SI embedding generator.",
+      "zh": "然後呼叫 AsIEmbeddingGenerator。"
+    },
+    {
+      "start": 757.38,
+      "end": 761.7,
+      "en": "And that one we can just return, and we have our new embedding generator.",
+      "zh": "直接回傳這個物件，就取得新的嵌入向量產生器了。"
+    },
+    {
+      "start": 761.7,
+      "end": 771.78,
+      "en": "So slightly more difficult to set up this part, but a lot of other places, it will become much simpler.",
+      "zh": "這部分設定稍微複雜一些，但其他許多地方會變得簡單許多。"
+    },
+    {
+      "start": 771.78,
+      "end": 774.659,
+      "en": "So let's tackle the first map post here.",
+      "zh": "接著處理第一個 MapPost。"
+    },
+    {
+      "start": 774.659,
+      "end": 785.539,
+      "en": "We have a client now instead of our factory, and we can say get chat client, we get this.",
+      "zh": "現在取得的是 client，而不是 Factory。我們可以呼叫 GetChatClient，取得這個用戶端。"
+    },
+    {
+      "start": 785.539,
+      "end": 790.78,
+      "en": "And then we can say create AI agent.",
+      "zh": "接著呼叫 CreateAIAgent。"
+    },
+    {
+      "start": 790.78,
+      "end": 795.619,
+      "en": "Once we do that, we get an agent.",
+      "zh": "如此就建立了代理程式。"
+    },
+    {
+      "start": 795.619,
+      "end": 799.859,
+      "en": "And an agent can, of course, give the answer back as well.",
+      "zh": "代理程式當然也能回傳答案。"
+    },
+    {
+      "start": 799.859,
+      "end": 807.94,
+      "en": "We just simply say agent.runAsync with our chat, our requested question.",
+      "zh": "只要呼叫 agent.RunAsync，傳入請求中的問題。"
+    },
+    {
+      "start": 807.94,
+      "end": 812.739,
+      "en": "That's a wait, and we get a response back.",
+      "zh": "加上 await，就能取得回應。"
+    },
+    {
+      "start": 813.02,
+      "end": 819.82,
+      "en": "Instead of all this, we can simply just say we want to give our response.text back.",
+      "zh": "原本這一大段可以改成直接回傳 response.Text。"
+    },
+    {
+      "start": 819.82,
+      "end": 825.859,
+      "en": "This is the text it will give back to us.",
+      "zh": "這就是它回傳給我們的文字。"
+    },
+    {
+      "start": 825.859,
+      "end": 832.859,
+      "en": "So first one done, and I'm just going to copy paste this, because we will use these for",
+      "zh": "第一個完成了。我先複製這段，因為其他範例也都會"
+    },
+    {
+      "start": 832.859,
+      "end": 844.299,
+      "en": "all the other ones, and I will just put one into each one of them, and then we will modify it slightly after that.",
+      "zh": "用到。先在每個範例中貼上一份，稍後再分別調整。"
+    },
+    {
+      "start": 844.299,
+      "end": 849.34,
+      "en": "You could, of course, make a helper method to give such an agent, but I like it being",
+      "zh": "當然也可以建立輔助方法來產生這樣的代理程式，但我喜歡讓"
+    },
+    {
+      "start": 849.34,
+      "end": 856.7,
+      "en": "on an individual basis, so I can have different models for different scenarios.",
+      "zh": "每個案例各自建立，這樣不同情境就能使用不同模型。"
+    },
+    {
+      "start": 856.7,
+      "end": 863.979,
+      "en": "But back to number two here, which was our streaming, and streaming is fairly simple as well.",
+      "zh": "回到第二個範例，也就是串流。串流的寫法也很簡單。"
+    },
+    {
+      "start": 863.979,
+      "end": 874.419,
+      "en": "We can simply say agent.runStreamingAsync with our chat, request.question.",
+      "zh": "直接呼叫 agent.RunStreamingAsync，傳入 chatRequest.Question。"
+    },
+    {
+      "start": 874.419,
+      "end": 880.859,
+      "en": "It also needs a wait for each, and give an update back.",
+      "zh": "這裡也要使用 await foreach，逐次取得更新。"
+    },
+    {
+      "start": 880.859,
+      "end": 893.02,
+      "en": "So we can take our answer, say answer.equal.update.",
+      "zh": "接著把更新內容累加到答案，也就是 answer += update。"
+    },
+    {
+      "start": 894.02,
+      "end": 897.82,
+      "en": "This is the streaming update.",
+      "zh": "這就是串流更新。"
+    },
+    {
+      "start": 897.82,
+      "end": 903.38,
+      "en": "And once we have that, we can simply just give the answer back.",
+      "zh": "取得這些內容後，直接回傳答案即可。"
+    },
+    {
+      "start": 903.38,
+      "end": 906.739,
+      "en": "So number two is done.",
+      "zh": "第二個也完成了。"
+    },
+    {
+      "start": 906.739,
+      "end": 917.739,
+      "en": "Next we have the chat history, and that chat history doesn't really exist anymore, but what it does here in our agent, we also have an instruction, and those instructions we",
+      "zh": "下一個是對話歷史。原本的 ChatHistory 不再使用。我們這裡的代理程式也有指示，因此"
+    },
+    {
+      "start": 917.739,
+      "end": 927.859,
+      "en": "just give to this instructions, and we can give our instruction up here.",
+      "zh": "把那些指示移到這裡，建立代理程式時傳入 instructions。"
+    },
+    {
+      "start": 927.859,
+      "end": 936.34,
+      "en": "So we can get rid of this, and instead of a chat history, we say agent.getNewThread,",
+      "zh": "這段可以刪掉。原本建立 ChatHistory，現在改成 agent.GetNewThread，"
+    },
+    {
+      "start": 936.34,
+      "end": 941.14,
+      "en": "which is a new name for chat history, being a thread.",
+      "zh": "也就是用 Thread 這個新名稱來表示對話歷史。"
+    },
+    {
+      "start": 941.14,
+      "end": 943.02,
+      "en": "So we don't need our history.",
+      "zh": "因此不再需要 history。"
+    },
+    {
+      "start": 943.02,
+      "end": 949.539,
+      "en": "We don't need to give the history our first question.",
+      "zh": "也不必手動把第一個問題加入歷史。"
+    },
+    {
+      "start": 949.539,
+      "end": 958.02,
+      "en": "Instead we can simply just say agent.runAsync with the chat, request.question, which was",
+      "zh": "改成直接呼叫 agent.RunAsync，傳入 chatRequest.Question，這個問題是"
+    },
+    {
+      "start": 958.02,
+      "end": 969.9,
+      "en": "who is Barack Obama, get our response number one back here, and we don't really use it",
+      "zh": "「Barack Obama 是誰？」。在這裡取得第一個回應，但這個範例沒有實際使用它，"
+    },
+    {
+      "start": 969.9,
+      "end": 975.979,
+      "en": "for anything here, but in real life you of course begin to write it out, because we just",
+      "zh": "真實情境中，當然會把它顯示出來。因為這裡只是"
+    },
+    {
+      "start": 975.979,
+      "end": 982.539,
+      "en": "wanted to simulate a follow-up question, and our follow-up question, in order to work,",
+      "zh": "想模擬後續追問。要讓追問正確運作，"
+    },
+    {
+      "start": 982.539,
+      "end": 992.58,
+      "en": "we need to give the thread in here on the various questions we want to ask.",
+      "zh": "必須把 Thread 傳入各次提問中。"
+    },
+    {
+      "start": 992.58,
+      "end": 1001.26,
+      "en": "So we want to ask us a follow-up question, how tall is he, to get our response to.",
+      "zh": "接著追問「他有多高？」，取得第二個回應。"
+    },
+    {
+      "start": 1001.26,
+      "end": 1006.82,
+      "en": "We can get rid of all this code, and we can just say that the thread here, because it's",
+      "zh": "這一整段程式碼都可以移除。因為 Thread 是一套"
+    },
+    {
+      "start": 1006.82,
+      "end": 1013.82,
+      "en": "an open-ended system with multiple versions of threads, there's multiple of them, but",
+      "zh": "可擴充的系統，有多種不同的 Thread 實作，"
+    },
+    {
+      "start": 1013.82,
+      "end": 1020.539,
+      "en": "we know in our case it's a chat client agent, so it has a chat client thread, and when we",
+      "zh": "但我們知道這裡使用 ChatClientAgent，因此它會有 ChatClientThread。當取得"
+    },
+    {
+      "start": 1020.539,
+      "end": 1033.54,
+      "en": "get one of those, we can say chatClientThread.messageStore.getMessages, and we know that this is not null,",
+      "zh": "這種 Thread 後，就可以呼叫 chatClientThread.MessageStore.GetMessages。我們知道這裡不會是 null，"
+    },
+    {
+      "start": 1033.54,
+      "end": 1040.939,
+      "en": "so we can await this, and get our messages back that has been asked between them, because",
+      "zh": "因此可以 await，取得雙方交換的訊息，因為"
+    },
+    {
+      "start": 1040.939,
+      "end": 1052.739,
+      "en": "the thread will take care of putting the input and the output, the input and output, into this, and we can go in and just return the messages, because they have the same structure back.",
+      "zh": "Thread 會自動把輸入與輸出逐次加入紀錄。直接回傳這些訊息即可，它們具有相同的回傳結構。"
+    },
+    {
+      "start": 1055.339,
+      "end": 1063.339,
+      "en": "On to the tool calling, so we have our agent again, that agent needed some instructions,",
+      "zh": "接著處理工具呼叫。我們再次建立代理程式，它也需要一些指示，"
+    },
+    {
+      "start": 1066.339,
+      "end": 1075.939,
+      "en": "so we just take the instructions, the old one needed a function calling behavior, so it would actually call the functions.",
+      "zh": "所以把指示搬過來。舊版本需要設定函式呼叫行為，才會實際呼叫函式。"
+    },
+    {
+      "start": 1075.939,
+      "end": 1081.339,
+      "en": "By default, Agent Framework could do it, so we don't need to, but instead we need to give",
+      "zh": "Agent Framework 預設就能呼叫，因此不用特別設定。不過需要提供"
+    },
+    {
+      "start": 1081.339,
+      "end": 1088.939,
+      "en": "the tools, and the tools is just a collection of AI tools, as they're called.",
+      "zh": "工具；這些工具是一組 AITool。"
+    },
+    {
+      "start": 1089.939,
+      "end": 1107.939,
+      "en": "So, we need our tools out, so we can work with them a bit here, so let's put them up here.",
+      "zh": "先把工具物件移到外面，方便接下來操作，就放在這裡。"
+    },
+    {
+      "start": 1108.939,
+      "end": 1120.939,
+      "en": "This is our tool class, not the tools themselves.",
+      "zh": "這是工具類別的實例，還不是實際的工具定義。"
+    },
+    {
+      "start": 1123.939,
+      "end": 1135.339,
+      "en": "Mr. Right buttons, and down here we need to say we want an AI function factory to create a new tool,",
+      "zh": "剛剛按錯鍵了。接著要透過 AIFunctionFactory 建立新工具，"
+    },
+    {
+      "start": 1135.339,
+      "end": 1138.339,
+      "en": "which can take a delegate or method info.",
+      "zh": "它可以接收委派或 MethodInfo。"
+    },
+    {
+      "start": 1138.339,
+      "end": 1146.339,
+      "en": "In our case, we just have two tools, so it's easier to just say, let's get the two tools in,",
+      "zh": "這個例子只有兩個工具，所以直接逐一加入最簡單，"
+    },
+    {
+      "start": 1146.339,
+      "end": 1152.339,
+      "en": "but you could also use reflection on the class itself in order to get your data.",
+      "zh": "但也可以對類別使用反射，取得需要的方法資訊。"
+    },
+    {
+      "start": 1152.339,
+      "end": 1159.339,
+      "en": "So, down here we want the name of the tool, and we don't need the kernel function anymore.",
+      "zh": "在這裡指定工具方法，原本的 KernelFunction 屬性就不再需要了。"
+    },
+    {
+      "start": 1159.339,
+      "end": 1169.339,
+      "en": "So, we put that in, and we make one more of these, one for the get city and date,",
+      "zh": "把它放進來，再建立一個，提供取得城市日期與時間的工具。"
+    },
+    {
+      "start": 1169.339,
+      "end": 1184.339,
+      "en": "and we take the name down here, and get rid of this, so we have the right names here.",
+      "zh": "把下面的名稱移過來，刪掉不需要的部分，讓這裡的名稱都正確。"
+    },
+    {
+      "start": 1185.339,
+      "end": 1189.339,
+      "en": "So, now we have our tools in place.",
+      "zh": "現在工具都準備好了。"
+    },
+    {
+      "start": 1189.339,
+      "end": 1196.339,
+      "en": "We don't need our kernel, we don't need to import, we don't need to make this agent.",
+      "zh": "不再需要 Kernel，也不必匯入外掛，原本的代理程式建立程式碼也不需要。"
+    },
+    {
+      "start": 1196.339,
+      "end": 1207.339,
+      "en": "All we need to do is answer back, so we don't need the answer here, we just say agents.runAsync,",
+      "zh": "只需要取得答案。因此原本這裡的 answer 也不需要，直接呼叫 agent.RunAsync，"
+    },
+    {
+      "start": 1207.339,
+      "end": 1211.339,
+      "en": "and we ask our question,",
+      "zh": "傳入我們的問題，"
+    },
+    {
+      "start": 1215.339,
+      "end": 1219.339,
+      "en": "and we can await the answer.",
+      "zh": "然後 await 答案即可。"
+    },
+    {
+      "start": 1223.339,
+      "end": 1230.339,
+      "en": "And once we have that, we can just say response.txt.",
+      "zh": "取得後，直接使用 response.Text。"
+    },
+    {
+      "start": 1230.339,
+      "end": 1237.339,
+      "en": "We do, however, need to have the function calling middleware, the invocation part.",
+      "zh": "不過我們仍然需要函式呼叫中介軟體，也就是處理呼叫的那一部分。"
+    },
+    {
+      "start": 1237.339,
+      "end": 1246.339,
+      "en": "We had it down here, and a slightly different way of doing it, where we had the context and call and stuff.",
+      "zh": "原本它在下面，以稍微不同的方式提供 context、呼叫資訊等內容。"
+    },
+    {
+      "start": 1246.339,
+      "end": 1252.339,
+      "en": "Like normal, we can get rid of that, and I will just bring in the new way of doing it.",
+      "zh": "和前面一樣，移除舊的實作，改成新的寫法。"
+    },
+    {
+      "start": 1252.339,
+      "end": 1262.339,
+      "en": "It's something you, in real life, will never really remember, but just take from a sample or the documentation,",
+      "zh": "真實開發時，你通常不會把這種寫法背下來，而是從範例或文件複製，"
+    },
+    {
+      "start": 1262.339,
+      "end": 1267.339,
+      "en": "and it needs to be put in here, so we can see it.",
+      "zh": "再把它放在這裡，方便閱讀。"
+    },
+    {
+      "start": 1267.339,
+      "end": 1273.339,
+      "en": "It's just a basic function called middleware.",
+      "zh": "這只是基本的工具呼叫中介軟體。"
+    },
+    {
+      "start": 1273.339,
+      "end": 1285.339,
+      "en": "We can get the calling agent, we can have the context, we can stop the next if we want to, just like the other one, with it just a slightly different nature.",
+      "zh": "可以取得呼叫它的代理程式、存取 context，也可以視需求不繼續呼叫 next，和原本相似，只是形式稍有不同。"
+    },
+    {
+      "start": 1285.339,
+      "end": 1297.339,
+      "en": "And what we need to do is we, of course, need to have the agent know about this middleware, so the way you do that is you take your agent and say",
+      "zh": "接著當然要讓代理程式知道這個中介軟體。做法是取得代理程式，再呼叫"
+    },
+    {
+      "start": 1297.339,
+      "end": 1308.339,
+      "en": "asBuilder.use in order to get middleware, so we can take our function called middleware, and then we can build the agent again.",
+      "zh": "AsBuilder().Use，加入工具呼叫中介軟體，最後重新 Build 代理程式。"
+    },
+    {
+      "start": 1308.339,
+      "end": 1317.339,
+      "en": "And now it turns from a chat client agent into something called an AI agent, because it's a more lower level fraction, but once we have that,",
+      "zh": "現在它會從 ChatClientAgent 變成 AIAgent，因為後者是更底層的抽象。不過完成後，"
+    },
+    {
+      "start": 1317.339,
+      "end": 1321.339,
+      "en": "everything works again.",
+      "zh": "一切就能正常運作。"
+    },
+    {
+      "start": 1321.339,
+      "end": 1325.339,
+      "en": "Then we have the structured output. We need to do something similar.",
+      "zh": "接著是結構化輸出，也需要做類似的調整。"
+    },
+    {
+      "start": 1325.339,
+      "end": 1331.339,
+      "en": "We saw that our agent had some instructions, so we need to put those up.",
+      "zh": "可以看到原本代理程式有一些指示，因此把它們搬過來。"
+    },
+    {
+      "start": 1331.339,
+      "end": 1339.339,
+      "en": "Instructions, and it was about asking movie questions.",
+      "zh": "這些 instructions 是關於電影問答的指示。"
+    },
+    {
+      "start": 1339.339,
+      "end": 1342.339,
+      "en": "We then told it the response format.",
+      "zh": "接著原本有設定回應格式。"
+    },
+    {
+      "start": 1342.339,
+      "end": 1348.339,
+      "en": "In agent framework, we don't need to tell the entire agent that they can only do that.",
+      "zh": "在 Agent Framework 中，不必設定整個代理程式只能使用某一種格式。"
+    },
+    {
+      "start": 1348.339,
+      "end": 1359.339,
+      "en": "It will be done on a call-by-call basis, so we don't need to do this at all, and we don't need JSON or anything.",
+      "zh": "這會在每次呼叫時個別指定，因此這些設定都不需要，也不需要自行處理 JSON。"
+    },
+    {
+      "start": 1359.339,
+      "end": 1371.339,
+      "en": "Instead, we just need to say agent.runAsync, but with this version that takes a movie result.",
+      "zh": "只要呼叫 agent.RunAsync，選擇泛型型別為 MovieResult 的版本。"
+    },
+    {
+      "start": 1371.339,
+      "end": 1378.339,
+      "en": "And then we have our chatRequests.question, get our weight,",
+      "zh": "再傳入 chatRequest.Question，加入 await，"
+    },
+    {
+      "start": 1378.339,
+      "end": 1384.339,
+      "en": "and we get our response back.",
+      "zh": "就能取得回應。"
+    },
+    {
+      "start": 1384.339,
+      "end": 1396.339,
+      "en": "And instead of doing the call here and doing the deserialization, we can simply say response.result, which will be a movie result",
+      "zh": "不必再像這裡一樣先呼叫、再反序列化，而是直接使用 response.Result，它就會是 MovieResult，"
+    },
+    {
+      "start": 1396.339,
+      "end": 1401.339,
+      "en": "because of the generic nature of this.",
+      "zh": "因為這是泛型呼叫。"
+    },
+    {
+      "start": 1401.339,
+      "end": 1412.339,
+      "en": "Finally, we need the rack setup, so all the knowledge here will stay, but we just have our agent. We can pull it down here",
+      "zh": "最後處理 RAG。這裡的知識資料維持不變，只需要改用代理程式。我們把它移到下面，"
+    },
+    {
+      "start": 1412.339,
+      "end": 1417.339,
+      "en": "so it's a little easier to see where things are happening.",
+      "zh": "讓各部分的執行位置更容易看清楚。"
+    },
+    {
+      "start": 1417.339,
+      "end": 1428.339,
+      "en": "So we need our agent. The agent had some instructions again, so let's skip that.",
+      "zh": "我們需要代理程式，它一樣有一些指示，因此把指示移過來。"
+    },
+    {
+      "start": 1428.339,
+      "end": 1433.339,
+      "en": "But beyond that, we don't need any of this code.",
+      "zh": "除此之外，這些原本的程式碼都不再需要。"
+    },
+    {
+      "start": 1433.339,
+      "end": 1445.339,
+      "en": "We still need to do our rack search up front, and then we need to call our agent, so we can say agent.runAsync,",
+      "zh": "仍然要先執行 RAG 搜尋，接著呼叫代理程式，也就是 agent.RunAsync，"
+    },
+    {
+      "start": 1445.339,
+      "end": 1454.339,
+      "en": "and we need to give it the question with the augmented part of the rack, like we did before.",
+      "zh": "像之前一樣，把問題與 RAG 補充的資料一起傳入。"
+    },
+    {
+      "start": 1454.339,
+      "end": 1466.339,
+      "en": "We say a weight, we get our response like before, we get rid of all this, and just say response.text.",
+      "zh": "加上 await，像之前一樣取得回應，移除這一大段，直接使用 response.Text。"
+    },
+    {
+      "start": 1467.339,
+      "end": 1479.339,
+      "en": "Once we have that, we have thrown away all the things we didn't use, and we should be ready to go.",
+      "zh": "完成後，所有不再使用的程式碼都移除了，應該已經可以執行。"
+    },
+    {
+      "start": 1479.339,
+      "end": 1485.339,
+      "en": "So if we run this, let's see.",
+      "zh": "來執行看看。"
+    },
+    {
+      "start": 1485.339,
+      "end": 1493.339,
+      "en": "The code is running, and again, we can try and use the same test over here.",
+      "zh": "程式已經啟動，再使用這裡同一組測試。"
+    },
+    {
+      "start": 1493.339,
+      "end": 1502.339,
+      "en": "We asked what is the capital of France for semantic kernel, and now we get the capital of France from agent framework instead.",
+      "zh": "原本使用 Semantic Kernel 詢問法國首都，現在改由 Agent Framework 回傳法國首都。"
+    },
+    {
+      "start": 1502.339,
+      "end": 1510.339,
+      "en": "We did it with streaming on how to make soup.",
+      "zh": "接著用串流詢問如何煮湯。"
+    },
+    {
+      "start": 1510.339,
+      "end": 1517.339,
+      "en": "Let's take a little longer to answer like normal, and we get our entire soup recipe back.",
+      "zh": "和往常一樣，需要多等一下，接著就會取得完整的湯品食譜。"
+    },
+    {
+      "start": 1517.339,
+      "end": 1528.339,
+      "en": "We had our chat history where we got the entire back and forward, and now we get it back as an agent thread instead with the same format.",
+      "zh": "對話歷史範例原本會回傳所有來回訊息，現在則透過 Agent Thread，以相同格式取得。"
+    },
+    {
+      "start": 1528.339,
+      "end": 1539.339,
+      "en": "We have the tool calling, and the tool calling can see again that our middleware was called on the fly,",
+      "zh": "工具呼叫這裡，也可以再次看到中介軟體在執行時被呼叫，"
+    },
+    {
+      "start": 1539.339,
+      "end": 1551.339,
+      "en": "and we get back that the weather in Paris is sunny and 90 degrees, as the tool always told, and since it's usually sea time 12.40 right now,",
+      "zh": "回傳巴黎天氣是晴天、90 度，就和工具固定回傳的一樣。目前 UTC 時間是 12:40，"
+    },
+    {
+      "start": 1551.339,
+      "end": 1560.339,
+      "en": "it's 1.40 in the afternoon in Paris right now, which is correct.",
+      "zh": "因此巴黎現在是下午 1:40，這是正確的。"
+    },
+    {
+      "start": 1560.339,
+      "end": 1568.339,
+      "en": "Then we have the structured output, which now comes back in exactly the same format, just with agent framework,",
+      "zh": "接著是結構化輸出，回傳格式完全相同，只是換成 Agent Framework。"
+    },
+    {
+      "start": 1568.339,
+      "end": 1573.339,
+      "en": "and rack where we asked for the Wi-Fi password is again exactly the same.",
+      "zh": "RAG 查詢 Wi-Fi 密碼的結果也完全相同。"
+    },
+    {
+      "start": 1573.339,
+      "end": 1577.339,
+      "en": "We get our Wi-Fi back.",
+      "zh": "我們取得了 Wi-Fi 密碼。"
+    },
+    {
+      "start": 1577.339,
+      "end": 1585.339,
+      "en": "This is actually everything that is to it, and we saw that we had 273 lines of code or something like that,",
+      "zh": "整個轉換就是這樣。原本我們大約有 273 行程式碼，"
+    },
+    {
+      "start": 1585.339,
+      "end": 1590.339,
+      "en": "and now we are down to 202 lines.",
+      "zh": "現在只剩下 202 行。"
+    },
+    {
+      "start": 1590.339,
+      "end": 1601.339,
+      "en": "So roughly 70 lines of code can be saved using a better, more condensed agent framework compared to semantic kernel.",
+      "zh": "和 Semantic Kernel 相比，使用更精簡的 Agent Framework，大約省下了 70 行程式碼。"
+    },
+    {
+      "start": 1601.339,
+      "end": 1610.339,
+      "en": "So you also get more concise, better named, in my opinion, easier to work with, especially around structured output",
+      "zh": "此外，寫法更精簡、命名也更好。我認為更容易使用，尤其是結構化輸出，"
+    },
+    {
+      "start": 1610.339,
+      "end": 1615.339,
+      "en": "where you on the fly can ask for the data.",
+      "zh": "你可以在呼叫時直接要求需要的資料型別。"
+    },
+    {
+      "start": 1615.339,
+      "end": 1618.339,
+      "en": "So overall, quite easy to do.",
+      "zh": "整體來說，相當容易完成。"
+    },
+    {
+      "start": 1618.339,
+      "end": 1628.339,
+      "en": "Let me check my time here. It has taken 27 minutes to do this live, including introduction and telling what the code does.",
+      "zh": "我看看時間。包括介紹與解釋程式碼在內，這次現場操作共花了 27 分鐘。"
+    },
+    {
+      "start": 1628.339,
+      "end": 1634.339,
+      "en": "So it should be fairly easy for you as well to go from this.",
+      "zh": "因此，你要把原本的程式遷移過來，應該也不會太困難。"
+    },
+    {
+      "start": 1634.339,
+      "end": 1639.339,
+      "en": "And as mentioned, what we just did is down here in the finished version.",
+      "zh": "如前面所說，剛剛完成的內容就放在 finished 版本裡。"
+    },
+    {
+      "start": 1639.339,
+      "end": 1647.339,
+      "en": "I will undo this just after this, but all exactly the same we did before is here as well,",
+      "zh": "稍後我會復原這裡的修改，不過我們剛剛做的相同改動，也都已經保存在這裡，"
+    },
+    {
+      "start": 1647.339,
+      "end": 1653.339,
+      "en": "so you can see it and use it for your own migrations.",
+      "zh": "你可以參考，套用到自己的遷移工作。"
+    },
+    {
+      "start": 1653.339,
+      "end": 1656.339,
+      "en": "So good luck with those, and see you in the next one.",
+      "zh": "祝你遷移順利，下一支影片見。"
+    }
+  ]
+}

@@ -1,0 +1,503 @@
+{
+  "courseId": "6795111",
+  "lectureId": "56791275",
+  "title": "Let's build a Chatbot - Conversations (Part 6)",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6,
+      "en": "In this part of let's build a chatbot, we are going to talk about conversations.",
+      "zh": "這個打造聊天機器人的單元，要介紹對話管理。"
+    },
+    {
+      "start": 6,
+      "end": 18,
+      "en": "So, the conversations we have in a chatbot, of course, often sits on the left side, where we can make a new chat,",
+      "zh": "聊天機器人的對話通常放在左側，可以建立新對話，"
+    },
+    {
+      "start": 18,
+      "end": 30,
+      "en": "and we can switch between the existing ones and keep on prompting the LLM for more information on those chats.",
+      "zh": "也能切換已有對話，繼續向 LLM 追問更多資訊。"
+    },
+    {
+      "start": 30,
+      "end": 38,
+      "en": "So, let's go in and see how I built this in the baseline of the Blazor server.",
+      "zh": "接著看看 Blazor Server 基本版如何實作。"
+    },
+    {
+      "start": 38,
+      "end": 50,
+      "en": "So, one thing up front is that Agent Framework have something that is close to this by themselves,",
+      "zh": "先說明，Agent Framework 本身也提供類似的功能，"
+    },
+    {
+      "start": 50,
+      "end": 56,
+      "en": "and they have a session format.",
+      "zh": "也就是 Session 格式。"
+    },
+    {
+      "start": 56,
+      "end": 61,
+      "en": "So, you can say, create session, and begin to work with sessions.",
+      "zh": "可以建立 Session，再透過它進行對話。"
+    },
+    {
+      "start": 61,
+      "end": 72,
+      "en": "Sessions is the thing that makes it possible to ask LLM, who is Elvis, and with a follow-up prompt say, how tall is he?",
+      "zh": "Session 能讓你先問 LLM「Elvis 是誰？」，再追問「他有多高？」。"
+    },
+    {
+      "start": 72,
+      "end": 82,
+      "en": "Just by putting in our new question, and the session will take care of the follow-up questions and so on.",
+      "zh": "只要提供新問題，Session 會處理追問的上下文。"
+    },
+    {
+      "start": 82,
+      "end": 90,
+      "en": "But, as you can see here, or if you went through the code, you will see that there is no sessions here.",
+      "zh": "不過看看這裡，或檢查程式碼，就會發現沒有使用 Session。"
+    },
+    {
+      "start": 90,
+      "end": 100,
+      "en": "In the process of building this baseline, I actually tried to use sessions, but they have a bunch of problems.",
+      "zh": "建立基本版時，我其實試過 Session，但它有不少問題。"
+    },
+    {
+      "start": 100,
+      "end": 108,
+      "en": "So, sessions are essentially just the messages we get from a response.",
+      "zh": "Session 本質上就是回應中的訊息。"
+    },
+    {
+      "start": 108,
+      "end": 117,
+      "en": "And in order to do that, it is okay, because in a response, in a message,",
+      "zh": "用來保存訊息本身沒有問題，因為在回應中，"
+    },
+    {
+      "start": 117,
+      "end": 124,
+      "en": "we get the content, we get the various back and forwards, the reasoning and everything.",
+      "zh": "可以取得 Content、來回對話、推理等內容。"
+    },
+    {
+      "start": 124,
+      "end": 128,
+      "en": "But one thing we don't get in a raw message is actually usage.",
+      "zh": "但原始訊息中缺少一個東西，就是 Usage。"
+    },
+    {
+      "start": 128,
+      "end": 138,
+      "en": "Here I'm showing my conversation version where we have to use it, but in the raw message that we see here, usage is not part of it.",
+      "zh": "這裡顯示的是我的對話版本，因此有 Usage，但這邊原始訊息本身沒有。"
+    },
+    {
+      "start": 138,
+      "end": 146,
+      "en": "So, if we were to use agent sessions, we would not be able to do that.",
+      "zh": "所以若直接使用 Agent Session，就無法保留這項資訊。"
+    },
+    {
+      "start": 146,
+      "end": 154,
+      "en": "Agent sessions, if we create one here, also have the drawback that",
+      "zh": "Agent Session 還有另一個缺點，假設在這裡建立，"
+    },
+    {
+      "start": 154,
+      "end": 160,
+      "en": "if we're using the responses API, we can't go into our session",
+      "zh": "如果使用 Responses API，就無法直接從 Session，"
+    },
+    {
+      "start": 162,
+      "end": 167,
+      "en": "and say, get the chat history. We can't get the messages out.",
+      "zh": "取得對話歷史，也不能直接取出訊息。"
+    },
+    {
+      "start": 167,
+      "end": 174,
+      "en": "We would need to use OpenAI's API to get the conversations up from the cloud.",
+      "zh": "必須使用 OpenAI API，從雲端取得對話。"
+    },
+    {
+      "start": 174,
+      "end": 181,
+      "en": "And since it doesn't fit our things anyway, that would just be a hassle.",
+      "zh": "反正也不符合需求，這樣只是更麻煩。"
+    },
+    {
+      "start": 181,
+      "end": 183,
+      "en": "But it could be done.",
+      "zh": "不過確實做得到。"
+    },
+    {
+      "start": 183,
+      "end": 186,
+      "en": "Also, a session don't have an ID.",
+      "zh": "另外，Session 沒有標準 ID。"
+    },
+    {
+      "start": 186,
+      "end": 191,
+      "en": "They can have IDs, but out of the box, there is no official ID.",
+      "zh": "某些實作可以有 ID，但預設沒有統一的正式 ID。"
+    },
+    {
+      "start": 191,
+      "end": 195,
+      "en": "And there is not a title, as we did here.",
+      "zh": "也沒有像這裡一樣的標題。"
+    },
+    {
+      "start": 195,
+      "end": 198,
+      "en": "We wanted to on the fly build a title.",
+      "zh": "我們希望在需要時自動產生標題。"
+    },
+    {
+      "start": 198,
+      "end": 205,
+      "en": "We could use the state back and say, set value, so we can save more data.",
+      "zh": "可以透過 StateBag 的 SetValue 儲存額外資料，"
+    },
+    {
+      "start": 205,
+      "end": 208,
+      "en": "But we can't save more data to the individual messages.",
+      "zh": "但不能在個別訊息附加自己的資料。"
+    },
+    {
+      "start": 208,
+      "end": 210,
+      "en": "We can only do it for the entire session.",
+      "zh": "只能附加在整個 Session 上。"
+    },
+    {
+      "start": 210,
+      "end": 216,
+      "en": "That would be okay for an ID and a title, but not for the usage.",
+      "zh": "ID 與標題這樣處理還可以，但 Usage 不適合。"
+    },
+    {
+      "start": 218,
+      "end": 225,
+      "en": "It's also incredible difficult to serialize and deserialize because behind the scenes, it needs to be done",
+      "zh": "序列化與反序列化也很困難，因為背後需要透過，"
+    },
+    {
+      "start": 225,
+      "end": 231,
+      "en": "with some internal JSON format inside the agent.",
+      "zh": "代理程式內部的特定 JSON 格式。"
+    },
+    {
+      "start": 231,
+      "end": 236,
+      "en": "So, we would need to send the agent and the session along all over the place.",
+      "zh": "因此必須到處同時傳遞代理程式與 Session。"
+    },
+    {
+      "start": 236,
+      "end": 238,
+      "en": "It was just a hassle.",
+      "zh": "真的很麻煩。"
+    },
+    {
+      "start": 238,
+      "end": 243,
+      "en": "And then I introduced what you're about to see, and everything became much more simple.",
+      "zh": "後來改成接下來要看的做法，一切簡單很多。"
+    },
+    {
+      "start": 243,
+      "end": 250,
+      "en": "So, in my book, session is not if you just need to quickly get something back and forward,",
+      "zh": "所以在我看來，Session 適合快速處理來回對話，"
+    },
+    {
+      "start": 250,
+      "end": 256,
+      "en": "but don't really use it as a storage of conversation.",
+      "zh": "但不要直接拿來當完整對話的儲存格式。"
+    },
+    {
+      "start": 257,
+      "end": 262,
+      "en": "Not if you want the entire conversation including usage and stuff like that.",
+      "zh": "尤其需要保留 Usage 等全部資訊時。"
+    },
+    {
+      "start": 263,
+      "end": 272,
+      "en": "I find it personally that I always roll my own custom conversation because it's just as easy.",
+      "zh": "我自己總會建立自訂 Conversation，因為同樣很容易。"
+    },
+    {
+      "start": 274,
+      "end": 285,
+      "en": "The only thing you need to take care of is that whenever you actually call your agent, you need to send all the conversation history here",
+      "zh": "唯一要自己處理的，是每次呼叫代理程式時，必須傳入完整對話歷史，"
+    },
+    {
+      "start": 285,
+      "end": 289,
+      "en": "instead of just sending the input plus session.",
+      "zh": "而不是只傳新輸入與 Session。"
+    },
+    {
+      "start": 289,
+      "end": 296,
+      "en": "But essentially, behind the scenes, it's exactly what's going on behind the scenes when the real LM call happens.",
+      "zh": "但實際呼叫 LLM 時，背後做的事情本來就相同。"
+    },
+    {
+      "start": 296,
+      "end": 299,
+      "en": "So, to me, sessions are not worth doing.",
+      "zh": "所以對我來說，Session 不值得使用。"
+    },
+    {
+      "start": 299,
+      "end": 301,
+      "en": "So, what are we doing instead?",
+      "zh": "那改成怎麼做呢？"
+    },
+    {
+      "start": 301,
+      "end": 304,
+      "en": "Well, we are building a conversation.",
+      "zh": "自己建立 Conversation。"
+    },
+    {
+      "start": 305,
+      "end": 316,
+      "en": "So, if we look at a conversation, it's just a list of messages, which is not the chat messages from Microsoft's Extensions AI,",
+      "zh": "看看 Conversation，它只是一組訊息清單，但不是單純使用 Microsoft.Extensions.AI 的 ChatMessage，"
+    },
+    {
+      "start": 316,
+      "end": 323,
+      "en": "but more slightly advanced one, where we have the raw message plus the usage.",
+      "zh": "而是多包裝一層，包含原始訊息與 Usage。"
+    },
+    {
+      "start": 324,
+      "end": 335,
+      "en": "So, behind the scenes, we're storing the out-of-the-box agent framework content, but just in a wrapper where we can have multiple things at the same time.",
+      "zh": "因此背後仍保存 Agent Framework 原本的 Content，只是用包裝物件，同時保留其他資訊。"
+    },
+    {
+      "start": 335,
+      "end": 343,
+      "en": "And I've just put in a few extra parameters here so it's easy, so I don't need to call that raw message dot something.",
+      "zh": "也加入幾個方便屬性，避免每次都要透過 RawMessage 再讀取內容。"
+    },
+    {
+      "start": 344,
+      "end": 351,
+      "en": "So, we're storing those messages, and we're storing an ID, and we're storing a title.",
+      "zh": "因此保存訊息、ID，以及標題。"
+    },
+    {
+      "start": 351,
+      "end": 355,
+      "en": "So, it's very easy for us to add multiple things to this.",
+      "zh": "也很容易再加入其他資料。"
+    },
+    {
+      "start": 356,
+      "end": 368,
+      "en": "But, of course, it means that we need to take care of whenever we make our conversation to remember to put in the new input, and whenever we're done with our message,",
+      "zh": "但這表示建立對話時，要記得自行加入使用者新輸入，並在取得回應後，"
+    },
+    {
+      "start": 368,
+      "end": 376,
+      "en": "to put in the new output to the conversation, meaning all the messages from the response.",
+      "zh": "把新的輸出加入對話，也就是回應中的全部訊息。"
+    },
+    {
+      "start": 376,
+      "end": 387,
+      "en": "An agent session would have done that on the fly itself, but a small hassle to put in those two things in order to get a better overall solution.",
+      "zh": "Agent Session 原本會自動完成，但為了取得更好的整體方案，自己多寫這兩個操作並不麻煩。"
+    },
+    {
+      "start": 391,
+      "end": 394,
+      "en": "Once we have that, it's just JSON.",
+      "zh": "有了這些物件，剩下就是 JSON。"
+    },
+    {
+      "start": 394,
+      "end": 398,
+      "en": "So, in my case, I'm saving it down into a temp folder.",
+      "zh": "這個範例把它們存入暫存資料夾。"
+    },
+    {
+      "start": 398,
+      "end": 409,
+      "en": "In a real-life system, we would probably put them inside a Cosmos DB, a SQL server, a blob storage, or whatever we would like to do.",
+      "zh": "真實系統中，可能存到 Cosmos DB、SQL Server、Blob Storage，或任何適合的地方。"
+    },
+    {
+      "start": 409,
+      "end": 416,
+      "en": "We're giving them names here, which is just the ID, which is just a GUID.",
+      "zh": "檔案名稱使用 ID，也就是 GUID。"
+    },
+    {
+      "start": 418,
+      "end": 423,
+      "en": "And in order to work with them, we need some GUI, and we need a little service.",
+      "zh": "要操作這些對話，還需要介面與一個小服務。"
+    },
+    {
+      "start": 423,
+      "end": 430,
+      "en": "So, we have this conversation service, which can load the previous messages.",
+      "zh": "因此有 ConversationService，可以載入先前訊息。"
+    },
+    {
+      "start": 430,
+      "end": 437,
+      "en": "Nothing revolutionary. We're just going to our conversation folder, which is this temp folder.",
+      "zh": "沒有特別的技術，只是進入對話資料夾，也就是這個暫存資料夾。"
+    },
+    {
+      "start": 437,
+      "end": 441,
+      "en": "In my case, I call it Blazor server only conversations.",
+      "zh": "這裡命名為 Blazor Server Only Conversations。"
+    },
+    {
+      "start": 441,
+      "end": 447,
+      "en": "And we're just getting all files that are JSON, and reading all the text, and turning it up.",
+      "zh": "取得所有 JSON 檔案，讀取文字，再反序列化。"
+    },
+    {
+      "start": 447,
+      "end": 450,
+      "en": "So, this is plain C-sharp.",
+      "zh": "因此只是一般 C#。"
+    },
+    {
+      "start": 451,
+      "end": 455,
+      "en": "So, we do that whenever we open the left sidebar.",
+      "zh": "每次開啟左側側邊欄，就執行這些操作。"
+    },
+    {
+      "start": 455,
+      "end": 460,
+      "en": "So, the left sidebar is just a list of conversations, and every one of them is a small button.",
+      "zh": "左側側邊欄就是對話清單，每個對話是一個小按鈕。"
+    },
+    {
+      "start": 460,
+      "end": 464,
+      "en": "So, when we click that button, we can switch to that conversation.",
+      "zh": "按下按鈕就能切換對話。"
+    },
+    {
+      "start": 464,
+      "end": 470,
+      "en": "Meaning, putting that object into context as the current conversation.",
+      "zh": "也就是把該物件設為目前對話。"
+    },
+    {
+      "start": 470,
+      "end": 478,
+      "en": "And behind the scenes, loading it is just doing UninitializeAsync, grabbing the conversation.",
+      "zh": "載入時，只是在 OnInitializedAsync 中取得對話。"
+    },
+    {
+      "start": 478,
+      "end": 481,
+      "en": "So, there's no rocket science here at all.",
+      "zh": "完全沒有什麼高深的東西。"
+    },
+    {
+      "start": 482,
+      "end": 486,
+      "en": "It's just a plain JSON object, or a list of them.",
+      "zh": "就是一般 JSON 物件，或一組物件清單。"
+    },
+    {
+      "start": 490,
+      "end": 501,
+      "en": "To have that the conversations keep up to date, of course, we need to, after we have created our response back,",
+      "zh": "為了讓對話保持最新，每次取得回應後，"
+    },
+    {
+      "start": 503,
+      "end": 505,
+      "en": "we need to store the conversation.",
+      "zh": "都需要保存對話。"
+    },
+    {
+      "start": 505,
+      "end": 512,
+      "en": "So, inside of these, we add it to the conversation, and then we are just storing the current conversation now.",
+      "zh": "因此這裡把訊息加入對話，再儲存目前對話。"
+    },
+    {
+      "start": 513,
+      "end": 518,
+      "en": "And again, that's just civilizing it down into the system.",
+      "zh": "同樣地，只是序列化後寫入系統。"
+    },
+    {
+      "start": 520,
+      "end": 527,
+      "en": "And we end up with these files, or something in a database, nothing special.",
+      "zh": "最後就會有這些檔案，或資料庫裡的資料，沒有其他特別之處。"
+    },
+    {
+      "start": 527,
+      "end": 537,
+      "en": "But again, I urge you to make your own, take the extra time to make an object for yourself, instead of just trying to use the agent session.",
+      "zh": "但我建議多花一點時間建立自己的物件，不要只是想直接使用 Agent Session。"
+    },
+    {
+      "start": 537,
+      "end": 546,
+      "en": "I found it to go from annoying, and all kinds of things back and forward, to very, very simple,",
+      "zh": "我發現這樣能把原本惱人、到處來回處理的流程，變得非常簡單，"
+    },
+    {
+      "start": 546,
+      "end": 556,
+      "en": "and add your own extra tools, like missing a title, and such things, instead of hassling around with an agent session.",
+      "zh": "而且可以自行加入標題等額外功能，不必一直遷就 Agent Session。"
+    },
+    {
+      "start": 558,
+      "end": 561,
+      "en": "So, that is everything for this video.",
+      "zh": "這支影片的內容就是這些。"
+    },
+    {
+      "start": 561,
+      "end": 563,
+      "en": "See you in the next one.",
+      "zh": "下一支影片見。"
+    }
+  ]
+}

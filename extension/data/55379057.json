@@ -1,0 +1,821 @@
+{
+  "courseId": "6795111",
+  "lectureId": "55379057",
+  "title": "AI as data-filter",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 5,
+      "en": "Hi, and welcome to this ANC SHARP video on the Microsoft 18 Framework.",
+      "zh": "大家好，歡迎收看這支介紹 Microsoft Agent Framework 的 C# AI 影片。"
+    },
+    {
+      "start": 5,
+      "end": 14,
+      "en": "In this video, I'm going to show you a neat trick about filtering data without passing the data to an LLM.",
+      "zh": "這支影片要介紹一個實用技巧：不把資料交給 LLM，也能用 AI 篩選資料。"
+    },
+    {
+      "start": 14,
+      "end": 22,
+      "en": "And the reason why you might not want to pass the data is perhaps it's a big amount of data, so it will cost a lot of time and tokens,",
+      "zh": "你可能不想把資料傳給模型，因為資料量很大，會花費很多時間與 Token，"
+    },
+    {
+      "start": 22,
+      "end": 29,
+      "en": "or it could be sensitive data, so you don't want it to be up in the cloud.",
+      "zh": "也可能因為資料敏感，不希望上傳到雲端。"
+    },
+    {
+      "start": 29,
+      "end": 40,
+      "en": "So there's ways around this, but first, let's see what the problem is in terms of speed and token count.",
+      "zh": "這些情況都有解決方法；不過先看看直接傳入資料時，在速度與 Token 用量上會遇到什麼問題。"
+    },
+    {
+      "start": 40,
+      "end": 48,
+      "en": "So in here, I have a sample, and I have, if we look into the samples,",
+      "zh": "我在這裡準備了一個範例；到範例目錄裡查看，"
+    },
+    {
+      "start": 48,
+      "end": 53,
+      "en": "it's the one on other topics, AI as data filter.",
+      "zh": "就是 Other Topics 底下的 AI as Data Filter。"
+    },
+    {
+      "start": 53,
+      "end": 65,
+      "en": "So what I have is a bunch of books, namely 100 of them, with just being some JSON, and we can see that each book",
+      "zh": "這裡有一批書籍資料，共 100 本，以 JSON 格式存放；每本書，"
+    },
+    {
+      "start": 65,
+      "end": 70,
+      "en": "have a title, a year of release, an author, a genre, and a synopsis.",
+      "zh": "都有書名、出版年份、作者、類型與內容簡介。"
+    },
+    {
+      "start": 70,
+      "end": 82,
+      "en": "So I turn these books into data code here, and I put in a string on these so I get it out as some XML",
+      "zh": "我在這裡把書籍轉成資料物件，再透過字串輸出成 XML，"
+    },
+    {
+      "start": 82,
+      "end": 91,
+      "en": "because AI are better at XML than the JSON.",
+      "zh": "因為 AI 通常比較擅長處理 XML，而不是 JSON。"
+    },
+    {
+      "start": 91,
+      "end": 99,
+      "en": "Then I make a client, and in this case, I'm using chat-tbt-41-mini as the first model.",
+      "zh": "接著建立用戶端；第一個模型使用 GPT-4.1 mini。"
+    },
+    {
+      "start": 99,
+      "end": 107,
+      "en": "And I'm just telling it's a librarian, and then I'm giving all the data in the prompt,",
+      "zh": "我只告訴它要扮演圖書館員，再把所有資料都放進提示詞，"
+    },
+    {
+      "start": 107,
+      "end": 114,
+      "en": "the prompt meaning very, very long string of text.",
+      "zh": "也就是一大段非常長的文字。"
+    },
+    {
+      "start": 114,
+      "end": 124,
+      "en": "And the reason I do this is what we're about to do is not really something RAC can do because we are going to ask some questions,",
+      "zh": "之所以這麼做，是因為接下來的問題不太適合用 RAG 解決。"
+    },
+    {
+      "start": 124,
+      "end": 130,
+      "en": "like, for example, how many of these books were released in 1980?",
+      "zh": "例如：這些書中，有幾本是在 1980 年出版的？"
+    },
+    {
+      "start": 130,
+      "end": 139,
+      "en": "How many have an author that ends with the letter S in their name, and so on and so forth.",
+      "zh": "有幾本書的作者姓名以 S 結尾？諸如此類。"
+    },
+    {
+      "start": 139,
+      "end": 149,
+      "en": "So things a user could ask, but we can't really use anything in terms of RAC",
+      "zh": "這些都是使用者可能提出的問題，但不太能直接透過 RAG 處理，"
+    },
+    {
+      "start": 149,
+      "end": 159,
+      "en": "because that would be a similarity search that has nothing to do with these kinds of filters or what you can call it.",
+      "zh": "因為 RAG 的相似度搜尋，與這些篩選條件並不是同一回事。"
+    },
+    {
+      "start": 159,
+      "end": 162,
+      "en": "So I'm going to ask three questions.",
+      "zh": "所以我會問三個問題。"
+    },
+    {
+      "start": 162,
+      "end": 166,
+      "en": "So how many of them were released in 1980?",
+      "zh": "第一個：有幾本書是在 1980 年出版的？"
+    },
+    {
+      "start": 166,
+      "end": 174,
+      "en": "Then give how many and list the books where the authors have an S as the last letter in their name.",
+      "zh": "第二個：計算並列出作者姓名最後一個字母為 S 的書籍。"
+    },
+    {
+      "start": 174,
+      "end": 181,
+      "en": "And finally, a bit more advanced, where have the last letter of S in their name.",
+      "zh": "最後一個稍微複雜一點：作者姓名以 S 結尾，"
+    },
+    {
+      "start": 181,
+      "end": 187,
+      "en": "This genre is not fantasy, and was released between 1800 and 1900.",
+      "zh": "書籍類型不是奇幻，而且出版年份介於 1800 年到 1900 年。"
+    },
+    {
+      "start": 187,
+      "end": 193,
+      "en": "So progressively more advanced questions to learn.",
+      "zh": "也就是逐步提高問題的複雜度。"
+    },
+    {
+      "start": 193,
+      "end": 201,
+      "en": "So let's first see how ChattyBT 4.1 Mini handles question 1.",
+      "zh": "先看看 GPT-4.1 mini 如何處理第一個問題。"
+    },
+    {
+      "start": 201,
+      "end": 206,
+      "en": "So we ask the question by giving the book data and the question.",
+      "zh": "我們把書籍資料與問題一起交給它。"
+    },
+    {
+      "start": 206,
+      "end": 215,
+      "en": "And we can see it came back fairly quickly, 1.6 seconds, and it says that these two books are the right ones.",
+      "zh": "可以看到，它大約 1.6 秒就回覆了，並表示符合條件的是這兩本書。"
+    },
+    {
+      "start": 215,
+      "end": 226,
+      "en": "It used 4,185 input tokens because we needed to give all the books, and output tokens were very low",
+      "zh": "由於必須傳入全部書籍，用掉 4,185 個輸入 Token；輸出 Token 則很少，"
+    },
+    {
+      "start": 226,
+      "end": 229,
+      "en": "because it just needed to write this simple text out.",
+      "zh": "因為只需要輸出這段簡短文字。"
+    },
+    {
+      "start": 229,
+      "end": 232,
+      "en": "And the real answer is actually 2.",
+      "zh": "正確答案確實是兩本。"
+    },
+    {
+      "start": 232,
+      "end": 235,
+      "en": "But if we try again.",
+      "zh": "不過如果再試一次，"
+    },
+    {
+      "start": 239,
+      "end": 242,
+      "en": "In this case, it's still clear.",
+      "zh": "這次的答案仍然正確。"
+    },
+    {
+      "start": 242,
+      "end": 246,
+      "en": "I've seen it give back 3 because it thought there was three books.",
+      "zh": "但我曾看過它回答三本，因為它以為符合條件的書有三本。"
+    },
+    {
+      "start": 246,
+      "end": 250,
+      "en": "That's not the most important thing here.",
+      "zh": "不過這還不是重點。"
+    },
+    {
+      "start": 250,
+      "end": 259,
+      "en": "So let's go to some more advanced things where the end of the author's name should be S.",
+      "zh": "接著看看稍微複雜一點、作者姓名必須以 S 結尾的問題。"
+    },
+    {
+      "start": 263,
+      "end": 266,
+      "en": "This will begin to take a little longer.",
+      "zh": "這就會開始花比較久的時間。"
+    },
+    {
+      "start": 266,
+      "end": 272,
+      "en": "But it says it has 27 books, the author ending.",
+      "zh": "它表示有 27 本符合作者姓名結尾的條件。"
+    },
+    {
+      "start": 272,
+      "end": 277,
+      "en": "And we can already see that's wrong because Lewis Carroll is not ending in S.",
+      "zh": "我們立刻就能看出錯誤，因為 Lewis Carroll 並不是以 S 結尾。"
+    },
+    {
+      "start": 277,
+      "end": 279,
+      "en": "Mark Twain is not ending in S.",
+      "zh": "Mark Twain 也不是以 S 結尾。"
+    },
+    {
+      "start": 279,
+      "end": 281,
+      "en": "It does not even have an S in it.",
+      "zh": "他的姓名裡甚至連 S 都沒有。"
+    },
+    {
+      "start": 281,
+      "end": 293,
+      "en": "So it's definitely wrong with this, and the real answer is actually 15 because I'm just using a little link here to check.",
+      "zh": "所以答案顯然錯了。正確答案其實是 15 本，我用一小段 LINQ 查詢就能確認。"
+    },
+    {
+      "start": 293,
+      "end": 299,
+      "en": "So it definitely got it wrong, and despite that, it still used a lot of our tokens.",
+      "zh": "它不但回答錯誤，還耗費了大量 Token。"
+    },
+    {
+      "start": 299,
+      "end": 309,
+      "en": "And it goes even further wrong if we give it a much more advanced question here, like the author's name should end in S,",
+      "zh": "如果問題更複雜，例如作者姓名以 S 結尾，"
+    },
+    {
+      "start": 309,
+      "end": 314,
+      "en": "it should not be a genre of fantasy, and it's released between 1800 and 1900.",
+      "zh": "類型不是奇幻，而且是在 1800 年到 1900 年間出版，錯誤就更明顯。"
+    },
+    {
+      "start": 314,
+      "end": 317,
+      "en": "In this case, it says it's 14 books.",
+      "zh": "這次它回答 14 本。"
+    },
+    {
+      "start": 317,
+      "end": 319,
+      "en": "Again, it goes wrong.",
+      "zh": "又答錯了。"
+    },
+    {
+      "start": 319,
+      "end": 321,
+      "en": "David Copperfield is...",
+      "zh": "例如《塊肉餘生錄》……"
+    },
+    {
+      "start": 321,
+      "end": 323,
+      "en": "Let's re-find it.",
+      "zh": "我們再找一下。"
+    },
+    {
+      "start": 327,
+      "end": 331,
+      "en": "Dostoevsky is not ending in S, for example.",
+      "zh": "還有杜斯妥也夫斯基，他的英文姓名也不是以 S 結尾。"
+    },
+    {
+      "start": 331,
+      "end": 335,
+      "en": "And the real answer is actually 7.",
+      "zh": "正確答案其實是七本。"
+    },
+    {
+      "start": 335,
+      "end": 340,
+      "en": "So sometimes a model like this gets it right.",
+      "zh": "所以，這類模型有時候會答對，"
+    },
+    {
+      "start": 340,
+      "end": 343,
+      "en": "Sometimes it doesn't.",
+      "zh": "有時候則會答錯。"
+    },
+    {
+      "start": 343,
+      "end": 352,
+      "en": "So let's move this all the way back up here and try with another model.",
+      "zh": "我們先回到上方，換個模型試試看。"
+    },
+    {
+      "start": 353,
+      "end": 362,
+      "en": "So now we are going in and hot reloading, so we use Chatterjeeb T5 Mini instead in order to do the same.",
+      "zh": "現在透過熱重新載入，改用 GPT-5 mini 來做相同的事情。"
+    },
+    {
+      "start": 366,
+      "end": 371,
+      "en": "I'm going to get our three questions, and we get the first answer back.",
+      "zh": "取出這三個問題，先看第一個答案。"
+    },
+    {
+      "start": 371,
+      "end": 379,
+      "en": "Now it takes longer because now we are having a reasoning model, and it will actually reason over what this is.",
+      "zh": "這次比較久，因為它是推理模型，會先對問題進行推理。"
+    },
+    {
+      "start": 379,
+      "end": 391,
+      "en": "And it comes back again with the same two books, which is good, where the other one, the ones you saw here, it could handle it, but in some cases it can't.",
+      "zh": "它同樣找到了這兩本書，這是正確的。剛才那個模型這次也能答對，但有時候會出錯。"
+    },
+    {
+      "start": 391,
+      "end": 401,
+      "en": "A model like Chatterjeeb T5 Mini is pretty good at this, so it's okay, and if we went to one of the even bigger models,",
+      "zh": "GPT-5 mini 相當擅長這類問題，如果再換更大的模型，"
+    },
+    {
+      "start": 401,
+      "end": 402,
+      "en": "it would be even better.",
+      "zh": "表現可能還會更好。"
+    },
+    {
+      "start": 402,
+      "end": 409,
+      "en": "But we are still using a lot of tokens, and now we are even using more in output due to reasoning.",
+      "zh": "但我們仍然使用大量 Token，而且現在因為推理，輸出 Token 也變得更多。"
+    },
+    {
+      "start": 410,
+      "end": 418,
+      "en": "If we go to question two, it now becomes much, much harder for it",
+      "zh": "來到第二個問題，對它而言就困難許多，"
+    },
+    {
+      "start": 418,
+      "end": 423,
+      "en": "because now it needs to really reason over if this is right.",
+      "zh": "因為它必須仔細推理，確認是否符合條件。"
+    },
+    {
+      "start": 423,
+      "end": 435,
+      "en": "So I've seen these take up to half a minute to run back, despite it being a fairly simple link query,",
+      "zh": "我曾看過它花半分鐘才回覆，但其實這只是相當簡單的 LINQ 查詢，"
+    },
+    {
+      "start": 435,
+      "end": 439,
+      "en": "if you knew what you were doing, of course.",
+      "zh": "前提是你知道怎麼寫。"
+    },
+    {
+      "start": 439,
+      "end": 451,
+      "en": "But it will think about it quite a while, and hopefully come back in one second.",
+      "zh": "不過它還是會思考一陣子，希望再等一下就能回覆。"
+    },
+    {
+      "start": 452,
+      "end": 464,
+      "en": "Yeah, it's a difficult question among 100 books, but now it comes back, and it comes back with the answer of 15,",
+      "zh": "沒錯，要從 100 本書中找答案不容易；現在回覆了，答案是 15 本，"
+    },
+    {
+      "start": 464,
+      "end": 466,
+      "en": "which is actually the right answer.",
+      "zh": "這次確實正確。"
+    },
+    {
+      "start": 466,
+      "end": 472,
+      "en": "So reasoning does help with things like this, and it's quite good at it.",
+      "zh": "所以推理確實能幫助處理這類問題，而且效果不錯。"
+    },
+    {
+      "start": 472,
+      "end": 480,
+      "en": "But we again use a lot of tokens, and now you can see we're really using a lot of reasoning tokens.",
+      "zh": "但又用了很多 Token，尤其現在能看到推理 Token 的用量也很高。"
+    },
+    {
+      "start": 481,
+      "end": 485,
+      "en": "But the real answer is 15. We got it right.",
+      "zh": "正確答案是 15 本，這次有答對。"
+    },
+    {
+      "start": 486,
+      "end": 495,
+      "en": "But now let's go and do the advanced question with both the letter S, not fantasy,",
+      "zh": "接著看更複雜的問題：作者姓名以 S 結尾、不是奇幻類型，"
+    },
+    {
+      "start": 495,
+      "end": 499,
+      "en": "and release between 1800 and 1900.",
+      "zh": "而且在 1800 年到 1900 年之間出版。"
+    },
+    {
+      "start": 499,
+      "end": 505,
+      "en": "I will just pause the video here when it's back because this will take a little long time.",
+      "zh": "因為需要一些時間，我先暫停錄影，等它完成。"
+    },
+    {
+      "start": 505,
+      "end": 507,
+      "en": "And we are back.",
+      "zh": "現在回來了。"
+    },
+    {
+      "start": 507,
+      "end": 511,
+      "en": "You see it fought for 32 seconds in order to do this.",
+      "zh": "可以看到，它為此思考了 32 秒。"
+    },
+    {
+      "start": 511,
+      "end": 516,
+      "en": "It got the answer right, which is 7, which we'll see in one second.",
+      "zh": "答案是七本，等一下會看到，這次是對的。"
+    },
+    {
+      "start": 516,
+      "end": 521,
+      "en": "But it used a lot of tokens again in order to do this.",
+      "zh": "不過完成這項工作，又消耗了大量 Token。"
+    },
+    {
+      "start": 521,
+      "end": 525,
+      "en": "But at least it gets it right.",
+      "zh": "至少這次答案正確。"
+    },
+    {
+      "start": 525,
+      "end": 529,
+      "en": "But what I want to show you now is that there is a better way.",
+      "zh": "但接下來我要示範，其實還有更好的方法。"
+    },
+    {
+      "start": 529,
+      "end": 534,
+      "en": "And we can even go up here.",
+      "zh": "我們甚至可以回到這裡，"
+    },
+    {
+      "start": 537,
+      "end": 545,
+      "en": "Switch back to the simple model because even the simple model can do it in the other way I want to show you.",
+      "zh": "切回比較簡單的模型，因為使用接下來的方法，簡單模型也做得到。"
+    },
+    {
+      "start": 545,
+      "end": 552,
+      "en": "So we're going to load up the model, and we're going to load up the three questions.",
+      "zh": "先載入模型，以及這三個問題。"
+    },
+    {
+      "start": 552,
+      "end": 558,
+      "en": "But then I'm going to jump down to some new code down here.",
+      "zh": "接著跳到下方這段新的程式碼。"
+    },
+    {
+      "start": 558,
+      "end": 568,
+      "en": "And what we're going to do here is instead of actually giving the model all the books, meaning the 100 books in XML format,",
+      "zh": "我們不再把所有書籍，也就是那 100 本書的 XML 資料交給模型，"
+    },
+    {
+      "start": 568,
+      "end": 572,
+      "en": "we're instead going to ask it to make a filter for those books.",
+      "zh": "而是要求模型替這些書建立篩選條件。"
+    },
+    {
+      "start": 572,
+      "end": 582,
+      "en": "And the book filter is just we want to have the fields, the comparison operation, and the value back.",
+      "zh": "這個書籍篩選器只需要回傳欄位、比較運算子與數值。"
+    },
+    {
+      "start": 582,
+      "end": 588,
+      "en": "So we have among title, year of release, author, genre, and synopsis.",
+      "zh": "欄位包括書名、出版年份、作者、類型與內容簡介。"
+    },
+    {
+      "start": 588,
+      "end": 597,
+      "en": "We have equals, not equals, start with, end with, contains greater than, greater than equal, less than, less than equal, and regex.",
+      "zh": "運算子有等於、不等於、開頭符合、結尾符合、包含、大於、大於等於、小於、小於等於，以及正規表示式。"
+    },
+    {
+      "start": 597,
+      "end": 601,
+      "en": "And then a value, just represent a string.",
+      "zh": "接著是一個值，這裡統一用字串表示。"
+    },
+    {
+      "start": 601,
+      "end": 604,
+      "en": "But we could have value as integer, value as string.",
+      "zh": "當然也能區分整數值與字串值。"
+    },
+    {
+      "start": 604,
+      "end": 609,
+      "en": "But it's fairly OK to do it here.",
+      "zh": "不過這裡這樣處理就夠了。"
+    },
+    {
+      "start": 609,
+      "end": 620,
+      "en": "So see what happens now when I just say, hey, LLM, make a filter for the following query and then the question.",
+      "zh": "現在看看，只告訴 LLM：「請為以下查詢建立篩選條件」，再附上問題，會發生什麼事。"
+    },
+    {
+      "start": 620,
+      "end": 624,
+      "en": "It is almost instance that it can make a filter.",
+      "zh": "它幾乎立刻就建立好了篩選條件。"
+    },
+    {
+      "start": 624,
+      "end": 631,
+      "en": "And we get back year of release equals 1980.",
+      "zh": "得到的是「出版年份等於 1980」。"
+    },
+    {
+      "start": 631,
+      "end": 633,
+      "en": "Because it's an easy question now.",
+      "zh": "因為現在的問題很簡單。"
+    },
+    {
+      "start": 633,
+      "end": 636,
+      "en": "It doesn't have all the token count.",
+      "zh": "也沒有那麼大量的輸入 Token。"
+    },
+    {
+      "start": 636,
+      "end": 644,
+      "en": "And this response, if we look at it, it only used 154 tokens.",
+      "zh": "看看這次回應，總共只使用了 154 個 Token。"
+    },
+    {
+      "start": 644,
+      "end": 647,
+      "en": "So very, very simple to do.",
+      "zh": "所以做起來非常簡單。"
+    },
+    {
+      "start": 647,
+      "end": 657,
+      "en": "And then, of course, it's our job to filter the books now, which I do in this, which is two.",
+      "zh": "接下來當然要由我們自己篩選書籍；我在這裡執行，結果是兩本。"
+    },
+    {
+      "start": 657,
+      "end": 659,
+      "en": "And this is not fun code to write.",
+      "zh": "這類程式碼寫起來確實不怎麼有趣。"
+    },
+    {
+      "start": 659,
+      "end": 671,
+      "en": "But I think it's worth getting rid of 30 seconds of wait time and 7,000 tokens by sitting down and writing this code.",
+      "zh": "不過，只要寫這段程式就能省下 30 秒等待時間與 7,000 個 Token，我認為很值得。"
+    },
+    {
+      "start": 671,
+      "end": 675,
+      "en": "It can be more advanced if you have more advanced samples, of course.",
+      "zh": "當然，如果你的案例更複雜，程式碼也可能更複雜。"
+    },
+    {
+      "start": 675,
+      "end": 683,
+      "en": "But in this case, I'm just going through the filters and slowly applying the filter based on what it gave back.",
+      "zh": "這個範例只是逐一走過篩選條件，再根據模型回傳的內容套用篩選。"
+    },
+    {
+      "start": 687,
+      "end": 690,
+      "en": "I'll let it run to here.",
+      "zh": "先讓程式執行到這裡。"
+    },
+    {
+      "start": 690,
+      "end": 692,
+      "en": "We can ask the second question.",
+      "zh": "接著提出第二個問題。"
+    },
+    {
+      "start": 692,
+      "end": 701,
+      "en": "And again, it can easily make that filter because it's really, really good at understanding what we are talking about.",
+      "zh": "同樣地，它能輕鬆建立篩選條件，因為它非常擅長理解我們的意思。"
+    },
+    {
+      "start": 701,
+      "end": 704,
+      "en": "Because it doesn't have all the context to work with.",
+      "zh": "而且不用同時處理那一大堆資料。"
+    },
+    {
+      "start": 704,
+      "end": 709,
+      "en": "So order ends with s. Simple to do.",
+      "zh": "條件就是作者姓名以 S 結尾，很簡單。"
+    },
+    {
+      "start": 709,
+      "end": 710,
+      "en": "And again, we get the books back.",
+      "zh": "接著取回符合的書籍，"
+    },
+    {
+      "start": 710,
+      "end": 714,
+      "en": "And we have the 15.",
+      "zh": "共有 15 本。"
+    },
+    {
+      "start": 714,
+      "end": 724,
+      "en": "And the final one, which is a much more advanced question, it actually goes fairly quick as well and turn it into a filter of four different things.",
+      "zh": "最後一個更複雜的問題，其實也很快，並被轉成四個不同的篩選條件。"
+    },
+    {
+      "start": 724,
+      "end": 727,
+      "en": "Order ends with s.",
+      "zh": "作者姓名以 S 結尾。"
+    },
+    {
+      "start": 727,
+      "end": 731,
+      "en": "Genre not equal fantasy.",
+      "zh": "類型不等於奇幻。"
+    },
+    {
+      "start": 731,
+      "end": 734,
+      "en": "Year for lease greater than or equal to 18.",
+      "zh": "出版年份大於或等於 1800。"
+    },
+    {
+      "start": 734,
+      "end": 741,
+      "en": "And year for lease less than or equal 1900.",
+      "zh": "出版年份小於或等於 1900。"
+    },
+    {
+      "start": 741,
+      "end": 743,
+      "en": "And again, we get the books.",
+      "zh": "接著一樣取得符合條件的書籍，"
+    },
+    {
+      "start": 743,
+      "end": 748,
+      "en": "And it has the seven books.",
+      "zh": "共七本。"
+    },
+    {
+      "start": 748,
+      "end": 754,
+      "en": "So this is a much more advanced way.",
+      "zh": "所以這是一個更進階的做法。"
+    },
+    {
+      "start": 754,
+      "end": 757,
+      "en": "It saves a lot of time.",
+      "zh": "它能節省大量時間，"
+    },
+    {
+      "start": 757,
+      "end": 760,
+      "en": "And it gives the right books back.",
+      "zh": "而且找回正確的書籍。"
+    },
+    {
+      "start": 760,
+      "end": 769,
+      "en": "It can tend to end up being a little more wooden answer because now you just have the books and you need to show the answer.",
+      "zh": "回覆可能會比較生硬，因為現在只拿到書籍資料，必須自己呈現答案，"
+    },
+    {
+      "start": 769,
+      "end": 771,
+      "en": "So it doesn't show the normal.",
+      "zh": "不會像一般模型那樣，"
+    },
+    {
+      "start": 771,
+      "end": 776,
+      "en": "I looked at it and it's this and this number of books and so on.",
+      "zh": "用「我查看後發現共有幾本書」之類的自然語言描述結果。"
+    },
+    {
+      "start": 776,
+      "end": 780,
+      "en": "But often you want to have it in a structured format anyway.",
+      "zh": "但很多時候，本來就希望得到結構化格式。"
+    },
+    {
+      "start": 780,
+      "end": 790,
+      "en": "So giving it the books like we did up here is just waste of time, in my opinion, in certain scenarios.",
+      "zh": "所以在某些情境下，我認為像上方那樣把整份書籍資料交給模型，只是在浪費時間。"
+    },
+    {
+      "start": 790,
+      "end": 796,
+      "en": "And letting it build filters like these down here, which is fairly simple to do.",
+      "zh": "讓它像下方這樣建立篩選條件，其實很容易。"
+    },
+    {
+      "start": 796,
+      "end": 804,
+      "en": "Then we, of course, have the annoying part of taking the filter and turning it and applying it.",
+      "zh": "當然，接下來比較麻煩的部分，是取得篩選條件，再把它轉換並套用到資料上。"
+    },
+    {
+      "start": 804,
+      "end": 806,
+      "en": "But it's fairly simple code.",
+      "zh": "不過程式碼其實相當簡單。"
+    },
+    {
+      "start": 806,
+      "end": 809,
+      "en": "It took me like five, ten minutes to write this code.",
+      "zh": "我大約花五到十分鐘就寫完了。"
+    },
+    {
+      "start": 809,
+      "end": 816,
+      "en": "So I definitely think it's worth doing filters instead of the system.",
+      "zh": "因此，我確實認為用篩選條件取代原本做法很值得。"
+    },
+    {
+      "start": 816,
+      "end": 826,
+      "en": "And again, if the data had been very sensitive, we could still have used an LLM to filter it, which is really, really cool.",
+      "zh": "而且，即使資料非常敏感，我們仍然能使用 LLM 來篩選，這點非常實用。"
+    },
+    {
+      "start": 826,
+      "end": 830,
+      "en": "So that is how we can do it.",
+      "zh": "以上就是實作方式。"
+    },
+    {
+      "start": 830,
+      "end": 832,
+      "en": "And thank you for seeing this video.",
+      "zh": "謝謝你觀看這支影片。"
+    },
+    {
+      "start": 832,
+      "end": 834,
+      "en": "See you in the next one.",
+      "zh": "我們下支影片見。"
+    }
+  ]
+}

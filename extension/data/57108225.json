@@ -1,0 +1,437 @@
+{
+  "courseId": "7260843",
+  "lectureId": "57108225",
+  "title": "Chat Conversation Demo",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 9.84,
+      "en": "Hello everybody. In this specific video we're going to get into the intricacies of a chat conversation. So pretty much we're going to show you how to deal with instructions inside of the",
+      "zh": "大家好，這段要深入看看對話的細節，首先介紹如何在代理程式，"
+    },
+    {
+      "start": 9.84,
+      "end": 20.399,
+      "en": "agent itself, but most importantly we're going to preserve the chat history using the agent session object inside of the agent framework. You're going to see that this is done very easily if you're",
+      "zh": "本身設定指示，但更重要的是，透過 Agent Framework 的 AgentSession 保存對話歷史。你會看到，如果只是，"
+    },
+    {
+      "start": 20.399,
+      "end": 30.639,
+      "en": "talking only in memory for the conversation for the session you're in. Later on we will see how we can persist that in databases later on for a longer term persistent, but for in memory",
+      "zh": "目前執行階段裡的記憶體對話，做法非常簡單。稍後會介紹如何把它長期保存到資料庫，但現在只在記憶體，"
+    },
+    {
+      "start": 31.44,
+      "end": 39.919,
+      "en": "for the while the conversation is going you do not have to do more than just one line of code to do that in the agent framework. And also at the end of the exercise we're going to actually show",
+      "zh": "中，對話持續時，只需要一行程式碼，就能由 Agent Framework 處理。範例最後也會展示，"
+    },
+    {
+      "start": 39.919,
+      "end": 50.959,
+      "en": "you how to get into all the messages one by one to look through the user messages and the assistant messages coming back and being able to to do something with it persisted or definitely display",
+      "zh": "如何逐一讀取每則使用者訊息與助理回應，進一步保存，或是，"
+    },
+    {
+      "start": 50.959,
+      "end": 60.4,
+      "en": "it on the screen as well if you'd like. So let's go ahead and get started. All right we are back into Visual Studio Code. I already created a brand new project called chat conversation demo.",
+      "zh": "直接顯示在畫面上。現在開始。回到 Visual Studio Code，已建立 Chat Conversation Demo 專案，"
+    },
+    {
+      "start": 61.04,
+      "end": 70.8,
+      "en": "It's still empty so I'm going to come in here. I need to go under the property group and bring in our NuGet packages that we are used to, which is of course the 1.1 version of the agent framework",
+      "zh": "目前是空的，先在 PropertyGroup 下方放入熟悉的 NuGet 套件，也就是 Agent Framework 1.1，"
+    },
+    {
+      "start": 70.8,
+      "end": 79.68,
+      "en": "itself, the Azure AI open which is still in preview, and of course my user secrets to be able to retrieve that from the user secrets locally on my machine. All right so let's go",
+      "zh": "仍在預覽的 Azure.AI.OpenAI，以及讀取本機 User Secrets 的組態套件。接著，"
+    },
+    {
+      "start": 79.68,
+      "end": 89.199,
+      "en": "ahead and say ctrl s there. There is one thing missing in here which I don't want to do all the work to be able to set up the user secrets for the endpoint and the API key. So maybe we can cheat",
+      "zh": "按 Ctrl+S。這裡還少一項，不想再完整設定一次端點和 API 金鑰，所以可以從之前，"
+    },
+    {
+      "start": 89.199,
+      "end": 98.47999999999999,
+      "en": "from a previous one. So I'm going to go to the streaming response and I'm going to actually steal this line because I don't need to create a new secret. I'm going to use the same exact folder",
+      "zh": "的範例借用。到 Streaming Response，複製這行 UserSecretsId，不必重新建立秘密，而是使用另一個專案相同的，"
+    },
+    {
+      "start": 98.47999999999999,
+      "end": 108.47999999999999,
+      "en": "that the other project used it. So we say ctrl c for this guy. We'll say thank you to that and then right after the nullable I'm going to go ahead and add that. All right sounds good. So it means this",
+      "zh": "資料夾。按 Ctrl+C，謝謝前面的專案，再回來貼到 Nullable 後面。這代表目前，"
+    },
+    {
+      "start": 108.47999999999999,
+      "end": 120.319,
+      "en": "project have access to the same exact folder which is this GUID. It has the secrets.json file with my endpoint and my API key. All right for the program.cs let me go ahead and bring in the",
+      "zh": "專案能存取同一個 Guid 對應的資料夾，裡面的 secrets.json 有端點與 API 金鑰。接著到 Program.cs 貼上，"
+    },
+    {
+      "start": 120.319,
+      "end": 130.16,
+      "en": "code. I'm going to go ahead and explain it line by line so you can actually see exactly the fun part of all of this. So the first part of course you are used to by now is to actually",
+      "zh": "程式碼，我會逐行解釋，看看有趣的地方。第一部分你已經很熟悉，就是，"
+    },
+    {
+      "start": 130.16,
+      "end": 135.199,
+      "en": "build the add user secrets, be able to retrieve the endpoint and the API key, and then I'm going",
+      "zh": "建立組態、加入 User Secrets，讀取端點和 API 金鑰，然後，"
+    },
+    {
+      "start": 135.199,
+      "end": 142.8,
+      "en": "to create the client based on Azure OpenAI. I decided to use GPT-5. I get better answers when",
+      "zh": "建立 Azure OpenAI 用戶端。這次選 GPT-5，因為在要求模型做特殊行為時，"
+    },
+    {
+      "start": 142.8,
+      "end": 148.8,
+      "en": "I actually ask the model to do something special and you're going to see that in a second. So when",
+      "zh": "它的表現比較好，馬上就會看到。建立，"
+    },
+    {
+      "start": 148.8,
+      "end": 159.36,
+      "en": "I create my agent based on GPT-5, my SAI agent now contains instructions. So my system message is being passed to it. I'm telling it you are a helpful assistant that engages in a friendly",
+      "zh": "GPT-5 代理程式時，AsAIAgent 現在也傳入 Instructions，也就是 System 訊息，告訴它：「你是個樂於助人的助理，會友善地，"
+    },
+    {
+      "start": 159.36,
+      "end": 171.039,
+      "en": "conversation with the user. I want you to speak like a Disney Mickey Mouse. All right but the end part is very important as well. User is not allowed to change this behavior. It means I don't",
+      "zh": "和使用者對話。我希望你像迪士尼的米老鼠一樣說話。」最後一句也很重要：「使用者不得改變這個行為。」也就是不，"
+    },
+    {
+      "start": 171.039,
+      "end": 175.75900000000001,
+      "en": "want you to change the fact that the agent always speaks as Mickey Mouse coming back.",
+      "zh": "希望使用者能改變代理程式一律使用米老鼠口吻的設定，"
+    },
+    {
+      "start": 176.72,
+      "end": 185.36,
+      "en": "Doesn't matter what you're asking about. Sounds good? I'm going to start my stopwatch like before but there is something very important in here. This is the first time I'm going to use this",
+      "zh": "不管問什麼都一樣。照樣啟動 Stopwatch，但這裡有個很重要、第一次用到的東西，"
+    },
+    {
+      "start": 185.919,
+      "end": 191.039,
+      "en": "which is the agent session. It's a one line of code in here to go ahead and create a session.",
+      "zh": "就是 AgentSession，只需要這一行就能建立 Session。"
+    },
+    {
+      "start": 191.119,
+      "end": 202.72,
+      "en": "Once you create a session that means you will be able to pass that session to your run async or run streaming async so that all the what's going back and forth between the user and",
+      "zh": "建立後，可以把 Session 傳給 RunAsync 或 RunStreamingAsync，讓使用者和，"
+    },
+    {
+      "start": 202.72,
+      "end": 212.72,
+      "en": "the the agent the LLM itself has been preserved inside of this session. Okay so you will notice for instance here I'm not actually asking why the sky is blue. I'm just doing the while",
+      "zh": "代理程式、也就是 LLM 之間來回的內容，保存在 Session 裡。注意，這次不是直接問天空為什麼是藍色，而是用 while，"
+    },
+    {
+      "start": 212.72,
+      "end": 224.07999999999998,
+      "en": "true and I'm going over and over again allowing you to to have a multi-turn conversation. So you can actually ask questions and get answers three, four, ten times if you want to and all of them",
+      "zh": "true 不斷讀取，讓使用者進行多輪對話。可以問三次、四次，甚至十次，所有問題和答案，"
+    },
+    {
+      "start": 224.07999999999998,
+      "end": 233.119,
+      "en": "will be preserved in this session automatically. And how do you preserve it? If you run async or you run streaming async other than asking you questions like we used to do before why is the",
+      "zh": "都會自動保存在 Session。要如何保存？呼叫 RunAsync 或串流時，除了像以前一樣傳入問題，"
+    },
+    {
+      "start": 233.119,
+      "end": 243.839,
+      "en": "sky blue I'm adding this session as a second parameter. That's the only thing you have to do line 23 to create the session and passing this session to your run async or run streaming async.",
+      "zh": "例如天空為什麼是藍色，現在多把 Session 當成第二個參數。只要第 23 行建立 Session，再傳給 RunAsync 或 RunStreamingAsync，"
+    },
+    {
+      "start": 243.839,
+      "end": 254.08,
+      "en": "Everything else is done by the framework which is awesome. Alrighty in a future video of course we're going to show you how you can persist it beyond the the session. That means the way it is",
+      "zh": "其餘全部由框架處理，非常棒。未來會示範如何在執行階段以外持久保存。目前的意思是，"
+    },
+    {
+      "start": 254.08,
+      "end": 264,
+      "en": "right now when I ask maybe three or four questions and get answers once I say exit as you can see here in the code when it sees the word exit it just breaks and and gets out of the application.",
+      "zh": "可能問三、四個問題，收到答案後，輸入 Exit。程式看到 Exit，就會 break，離開應用程式，"
+    },
+    {
+      "start": 264,
+      "end": 274.64,
+      "en": "Okay once it's out then there is no session. The session gets destroyed. So if you start the application again it has no remembrance at all of what you ask what answers you got.",
+      "zh": "一旦離開，Session 就被銷毀，重新啟動後，完全不記得你問過什麼、收到什麼答案，"
+    },
+    {
+      "start": 274.64,
+      "end": 278.88,
+      "en": "But sometimes that's important even when we exit the application and come back next week.",
+      "zh": "但有時候，即使離開應用程式、下週再回來，也希望保留，"
+    },
+    {
+      "start": 278.88,
+      "end": 288.239,
+      "en": "I want to make sure that this session has been preserved somewhere maybe in a database somehow and we're going to do of course all that work but for right now it's in memory during the session",
+      "zh": "確保 Session 存在某個地方，例如資料庫。這些之後都會做，目前只是保存在執行階段的記憶體，"
+    },
+    {
+      "start": 288.239,
+      "end": 297.519,
+      "en": "itself and that's it. Alrighty I'm going to use run streaming async to go ahead through every single chunk that comes back from the answer. I'm going to write it out right away and like we did",
+      "zh": "中。這裡使用 RunStreamingAsync，逐一處理每個答案片段，立即輸出，再像前面，"
+    },
+    {
+      "start": 297.519,
+      "end": 308.399,
+      "en": "before we're going to finally create a response object so I can get all the chunks and being able to show you the usage for the input the output and everything else. The last piece of this example",
+      "zh": "一樣建立完整的 Response，把所有片段整理起來，顯示輸入、輸出等 Usage。範例最後一部分，"
+    },
+    {
+      "start": 308.399,
+      "end": 312.72,
+      "en": "is very important as well. This is just for demonstration purposes so you know how to get to it.",
+      "zh": "也很重要，主要是示範如何讀取對話內容，"
+    },
+    {
+      "start": 313.6,
+      "end": 324.399,
+      "en": "A lot of times you don't care you just want to get the answer but if you need to get into the the user message and the assistant message based on each and every single one. So notice here I can",
+      "zh": "很多時候只需要答案，不在意這些；但如果需要逐一取得每則 User、Assistant 訊息，就可以，"
+    },
+    {
+      "start": 324.399,
+      "end": 334.15999999999997,
+      "en": "retrieve the in-memory chat history of the session one by one if I want to. The secret here this changed actually during the the release candidates of the of the agent framework now you need to say",
+      "zh": "讀取 Session 裡的記憶體對話歷史。關鍵是，Agent Framework 候選版本期間，介面有改變，現在需要呼叫，"
+    },
+    {
+      "start": 334.15999999999997,
+      "end": 345.92,
+      "en": "session.try get in-memory chat history and you're putting this out in a variable called messages in session okay and it's a it's of type list of chat messages so it has really all the messages",
+      "zh": "session.TryGetInMemoryChatHistory，把結果放到 MessagesInSession 變數，型別是 ChatMessage 清單，裡面有所有，"
+    },
+    {
+      "start": 345.92,
+      "end": 355.2,
+      "en": "between the user and the llm coming back all inside of this list. So now I can go through a for each for instance in here for each message inside of this messages in session and I can show",
+      "zh": "使用者與 LLM 來回的訊息。接著可以用 foreach，逐一讀取 MessagesInSession 中的訊息，顯示，"
+    },
+    {
+      "start": 355.279,
+      "end": 366.079,
+      "en": "you the role and the content that means role means whether you are the user or you're the assistant and the content will be the text. Of course if you go to messages dot in here and do a control space",
+      "zh": "Role 和 Content。Role 表示使用者或助理，Content 則是文字。當然，在 message 後面輸入點，再按 Ctrl+Space，"
+    },
+    {
+      "start": 366.079,
+      "end": 374.079,
+      "en": "after the dot you'll see all the properties this is role and text is not the only or not the only thing that you can actually get to there is a lot of different things and additional properties",
+      "zh": "就能看到全部屬性，不是只有 Role 和 Text，還有很多其他資訊，以及 AdditionalProperties，"
+    },
+    {
+      "start": 374.079,
+      "end": 383.04,
+      "en": "where you can get the time stamp of the message coming back and so on and so forth. Of course if there is nothing inside of this messages in session we're going to actually say if the list",
+      "zh": "例如訊息時間戳等等。如果 MessagesInSession 沒有內容，就判斷清單，"
+    },
+    {
+      "start": 383.04,
+      "end": 393.6,
+      "en": "is null or empty you didn't ask anything you just exited right. So let's go ahead and save all of this and let me go ahead and make this a little bit bigger and see if we can get it to work and",
+      "zh": "是否為 null 或空白，代表沒有提問就直接離開。儲存全部內容，放大畫面，看看能否成功，"
+    },
+    {
+      "start": 393.6,
+      "end": 402.239,
+      "en": "it can actually write out some some chat messages for us we'll say dot net run all right drums",
+      "zh": "並輸出一些對話訊息。執行 dotnet run，準備，"
+    },
+    {
+      "start": 402.239,
+      "end": 412.15999999999997,
+      "en": "rolling please and it should ask me a question say you and now it's waiting for me to enter a question so first I'm going to say hi all right just just a simple hi and remember I told it to",
+      "zh": "揭曉。應該會顯示 You，等待輸入問題。先簡單說 Hi，記得，指示是讓它，"
+    },
+    {
+      "start": 412.15999999999997,
+      "end": 423.359,
+      "en": "be mickey mouse all right and I we cannot change that so I'm going to do this three times to show you um the value of this instruction says oh boy hi a pal okay so it did the mickey mouse thing",
+      "zh": "扮演米老鼠，而且使用者不能改。我會示範三次，看看這項指示的效果。它回覆 Oh Boy、Hiya Pal，確實有米老鼠的口氣，"
+    },
+    {
+      "start": 423.359,
+      "end": 434.88,
+      "en": "but notice at the end the uh the try get in memory chat message or such history was able to say the role is user okay that my question and the content is hi and then the second one the role is assistant",
+      "zh": "注意最後，TryGetInMemoryChatHistory 能讀出角色 User，內容 Hi；第二則角色則是 Assistant，"
+    },
+    {
+      "start": 434.88,
+      "end": 439.119,
+      "en": "content oh boy hi a pal blah blah blah blah and it's asked me for another question that's why we",
+      "zh": "內容是 Oh Boy、Hiya Pal 等等。接著再詢問下一個問題，這就是使用，"
+    },
+    {
+      "start": 439.119,
+      "end": 447.119,
+      "en": "have the while true loop and now I'm going to say why is the sky blue like we always do and let's",
+      "zh": "while(true) 的原因。現在像平常一樣問：「天空為什麼是藍色的？」。看看，"
+    },
+    {
+      "start": 447.119,
+      "end": 458.15999999999997,
+      "en": "see what the system will will respond with but I want you to notice something also at the end in here for a second so let me come back in here so it will it will say um ha ha gosh pal the sky looks",
+      "zh": "系統如何回答。還想請你注意最後的資訊。回到這裡，它會說「哈哈，朋友，天空看起來，"
+    },
+    {
+      "start": 458.15999999999997,
+      "end": 468.239,
+      "en": "blue because blah blah blah rally scatter it because it got it right there is the input and tokens in here it's all good but I want you to notice it did not only show me the role of the",
+      "zh": "是藍色，因為……瑞利散射」，回答正確，也列出輸入和輸出 Token。但注意，它不只顯示這次問題的，"
+    },
+    {
+      "start": 468.239,
+      "end": 478.55899999999997,
+      "en": "user and the assistant for the question it had to bring in the entire history even from the high okay so from the high and the previous one and then why is the sky blue and it went through the",
+      "zh": "User 和 Assistant 訊息，而是把完整歷史都取回，包括一開始的 Hi，以及前一次回應，再加上天空為什麼是藍色和，"
+    },
+    {
+      "start": 478.55899999999997,
+      "end": 488.399,
+      "en": "whole answer so remember because the session now already have the question and answer for the high it actually included to what's going to that so you're paying more tokens because there are now",
+      "zh": "完整答案。因此，因為 Session 已保存 Hi 的問答，也會包含在後續上下文，所以必須支付更多 Token，現在，"
+    },
+    {
+      "start": 488.399,
+      "end": 500.079,
+      "en": "when you ask that question uh two questions and two answers had to go to the system all right so the last one to show you that the history is working I'm going to say and why is it",
+      "zh": "已經累積兩個問題和兩個答案。最後再示範歷史確實有作用，問：「那它有時候為什麼，"
+    },
+    {
+      "start": 501.44,
+      "end": 510.799,
+      "en": "red sometimes all right if I don't actually have uh history or or the the the Asian session turned",
+      "zh": "是紅色的？」。如果沒有對話歷史，或沒有啟用 AgentSession，"
+    },
+    {
+      "start": 510.799,
+      "end": 520.159,
+      "en": "on it here the system has no idea even you're in the same conversation if you don't have history it will come back and will say I don't know what it means what do you mean by it but because we",
+      "zh": "就算你認為仍在同一段對話，系統也不知道「它」指什麼，會問你是什麼意思。但因為，"
+    },
+    {
+      "start": 520.159,
+      "end": 532.159,
+      "en": "have history turned on it will know that I'm talking about the sky the it here will be the sky that means the history is working but let me go a little bit further and say answer like",
+      "zh": "這裡啟用了歷史，它知道「它」就是天空，證明歷史有作用。再進一步，加上「請像，"
+    },
+    {
+      "start": 532.719,
+      "end": 542.32,
+      "en": "a pirate all right and let's see what happens when I ask something like this look at if the instructions will be obeyed because I tell that you cannot change the persona from Mickey Mouse",
+      "zh": "海盜一樣回答」，看看這樣要求時，是否仍遵守不能把米老鼠人設改成，"
+    },
+    {
+      "start": 542.32,
+      "end": 550.479,
+      "en": "to pirate so notice here um if we uh where did we go okay there you go there you go so",
+      "zh": "海盜的指示。注意這裡；我找一下畫面，"
+    },
+    {
+      "start": 554.559,
+      "end": 561.52,
+      "en": "oh yeah there you go so let me run I gosh pal",
+      "zh": "找到了，讓它執行，還是 Gosh、Pal 的口吻，"
+    },
+    {
+      "start": 564.64,
+      "end": 570.719,
+      "en": "all right so at this point it has the user it says the content is high the assistant content",
+      "zh": "目前這裡先列出使用者內容 Hi，以及助理，"
+    },
+    {
+      "start": 570.719,
+      "end": 577.039,
+      "en": "oh boy and then it went back in twice the sky is blue and gee what is this nature colorful",
+      "zh": "回答 Oh Boy；再來天空為什麼是藍色，以及它對大自然色彩的回應，"
+    },
+    {
+      "start": 577.039,
+      "end": 585.28,
+      "en": "haha it's actually now responding uh where is the messages did I miss it somewhere in here",
+      "zh": "它其實已經回答了；訊息在哪裡，我是不是漏看了，"
+    },
+    {
+      "start": 589.52,
+      "end": 594.799,
+      "en": "reasoning tokens is for 320. Let me see",
+      "zh": "推理 Token 是 320，我看一下，"
+    },
+    {
+      "start": 594.799,
+      "end": 602.96,
+      "en": "I don't know why the last one does not have the the oh yes yes okay the roles so the last role",
+      "zh": "最後那段在哪裡？喔，找到了，Roles，最後一則角色，"
+    },
+    {
+      "start": 602.96,
+      "end": 611.76,
+      "en": "in here is the one that answered everything so uh just because everything's on top of each other maybe I should have put some lines between the different answers to be able to see this but",
+      "zh": "就在這裡，包含全部回答。因為內容擠在一起，也許應該在不同回答之間加分隔線，方便閱讀，"
+    },
+    {
+      "start": 612.4,
+      "end": 622.479,
+      "en": "it will not be able to change it will say that I cannot actually uh change that into a different user like a pirate for instance or something like that because it's not going to be able to",
+      "zh": "不過它不會改變人設，會表示不能切換成其他角色，例如海盜，因為不能，"
+    },
+    {
+      "start": 622.479,
+      "end": 630.159,
+      "en": "use it like a pirate for instance or something like that because it's in the instructions of that agent itself does that make sense folks hopefully you can play around with",
+      "zh": "用海盜的方式說話，這違反代理程式本身的指示。明白嗎？希望你可以自己，"
+    },
+    {
+      "start": 630.159,
+      "end": 639.039,
+      "en": "this make some changes to the instructions uh let it do things and um disallow it from doing other things and see if it obeys all the stuff from the instructions as well and at the end you",
+      "zh": "試試，修改指示，讓它做某些事、禁止其他事情，再看看是否遵守。最後可以，"
+    },
+    {
+      "start": 639.039,
+      "end": 649.919,
+      "en": "can just say exit right there and you are out so it was cls and it cleaned up the screen hopefully this was useful to show you how to use the agent session and how to also go through one by one",
+      "zh": "直接輸入 Exit 離開。這裡用 cls 清除畫面。希望這能幫你理解 AgentSession，以及如何逐一查看，"
+    },
+    {
+      "start": 649.919,
+      "end": 656.719,
+      "en": "all the user inputs for the users the outputs and reasoning if you're using i'm using gpt5 so it",
+      "zh": "所有使用者輸入、助理輸出，以及推理資訊。這裡使用 GPT-5，所以，"
+    },
+    {
+      "start": 656.719,
+      "end": 662.32,
+      "en": "does have reasoning of course built into it i hope you enjoyed it and i'll see you again in the next video thank you",
+      "zh": "當然內建推理能力。希望你喜歡，下段影片見，謝謝。"
+    }
+  ]
+}

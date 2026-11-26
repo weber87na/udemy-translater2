@@ -1,0 +1,1253 @@
+{
+  "courseId": "6795111",
+  "lectureId": "55378879",
+  "title": "AI Context Provider Deep Dive",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6,
+      "en": "Hi, and welcome to this AI and C-Sharp video on the Microsoft Agent Framework.",
+      "zh": "大家好，歡迎收看這支介紹 Microsoft Agent Framework 的 C# AI 影片。"
+    },
+    {
+      "start": 6,
+      "end": 15,
+      "en": "Today we're going to dive into a topic that has changed a lot during the RC1 and RC2 releases of Microsoft Agent Framework,",
+      "zh": "今天要深入介紹一個在 Microsoft Agent Framework RC1 與 RC2 期間有重大變更的主題，"
+    },
+    {
+      "start": 15,
+      "end": 25,
+      "en": "and that is the AI Contact Provider, or AI Contact Providers in plural now, because we have the option to have multiple of them.",
+      "zh": "就是 AI Context Provider；現在也可以說 Providers，因為已經能同時使用多個。"
+    },
+    {
+      "start": 25,
+      "end": 33.5,
+      "en": "But it has completely changed since the preview, so in this video, we're going to do a really, really deep dive",
+      "zh": "它和預覽版相比已經完全不同，所以這支影片會深入介紹，"
+    },
+    {
+      "start": 33.5,
+      "end": 41.5,
+      "en": "on what it can do, what is all the methods you can override, why are they there, and so on,",
+      "zh": "它能做什麼、有哪些方法可以覆寫，以及這些方法存在的原因，"
+    },
+    {
+      "start": 41.5,
+      "end": 46.5,
+      "en": "in order for you to better understand everything here.",
+      "zh": "幫助你完整理解這個機制。"
+    },
+    {
+      "start": 46.5,
+      "end": 52.5,
+      "en": "So in the samples, I have an AI Contact Providers deep dive.",
+      "zh": "範例中有一個 AI Context Providers Deep Dive。"
+    },
+    {
+      "start": 52.5,
+      "end": 63.5,
+      "en": "I've made a folder for this, and I've taken my two previous videos, one on how to do memory, and one on how to do on-the-fly tool calling,",
+      "zh": "我為此建立了資料夾，並把之前介紹記憶，以及動態加入工具的兩支影片範例，"
+    },
+    {
+      "start": 63.5,
+      "end": 69.5,
+      "en": "and put them up in here because they're all three using the AI Contact Provider.",
+      "zh": "也移到這裡，因為這三個範例都使用 AI Context Provider。"
+    },
+    {
+      "start": 69.5,
+      "end": 80.5,
+      "en": "So I'm going to primarily work here, and then I will show you how these have changed a bit as we go along.",
+      "zh": "主要會在這裡示範，再順便說明另外兩個範例有哪些變更。"
+    },
+    {
+      "start": 80.5,
+      "end": 90,
+      "en": "But what I have is a completely normal agent here, and right now, I have no Contact Providers.",
+      "zh": "這裡有一個很普通的代理程式，目前沒有任何 Context Provider。"
+    },
+    {
+      "start": 90,
+      "end": 99,
+      "en": "Before we got the RC1, this was called AI Contact Provider Factory,",
+      "zh": "在 RC1 之前，這個設定稱為 AIContextProviderFactory，"
+    },
+    {
+      "start": 99,
+      "end": 105.5,
+      "en": "and we can only give one option, and we needed to inject a bunch of odd things.",
+      "zh": "只能提供一個選項，還得注入一些比較奇怪的東西。"
+    },
+    {
+      "start": 105.5,
+      "end": 110,
+      "en": "But now, it's just that we can view our classes.",
+      "zh": "現在則只要提供我們的類別。"
+    },
+    {
+      "start": 110,
+      "end": 118,
+      "en": "But let's quickly run without, just for you to see what it is I'm running here.",
+      "zh": "先不加任何提供者執行一次，看看這個範例在做什麼。"
+    },
+    {
+      "start": 120.5,
+      "end": 127,
+      "en": "So I have a completely normal chat loop, and if I say hi,",
+      "zh": "這就是一般的對話迴圈；如果我說你好，"
+    },
+    {
+      "start": 127,
+      "end": 138.5,
+      "en": "I'm printing out the raw HTML, or the LLM call directly, so we can also see what is going on.",
+      "zh": "它會印出原始 HTTP，也就是實際送給 LLM 的呼叫，方便觀察。"
+    },
+    {
+      "start": 138.5,
+      "end": 150.5,
+      "en": "So when I say hi, the LLM call happens, the system message is being added because I put a system message here, saying we need to wave in the prefix,",
+      "zh": "說你好時，就會發出 LLM 呼叫；因為我設定了系統指示，要求回覆前先加揮手圖示，所以會加入系統訊息，"
+    },
+    {
+      "start": 150.5,
+      "end": 156,
+      "en": "the user message sent, and the final response is here.",
+      "zh": "再送出使用者訊息，最後得到這裡的回覆。"
+    },
+    {
+      "start": 156,
+      "end": 162.5,
+      "en": "So this is pretty normal, other than I put in that we can actually see what the LLM request is.",
+      "zh": "除了額外印出 LLM 請求之外，都是很一般的流程。"
+    },
+    {
+      "start": 163.5,
+      "end": 171.5,
+      "en": "So now let's put in our AI Contact Provider.",
+      "zh": "接著加入 AI Context Provider。"
+    },
+    {
+      "start": 171.5,
+      "end": 179.5,
+      "en": "And an AI Contact Provider is just a class that inherits from AI Contact Provider.",
+      "zh": "AI Context Provider 就是一個繼承 AIContextProvider 的類別。"
+    },
+    {
+      "start": 179.5,
+      "end": 186,
+      "en": "And it has four methods you can overwrite.",
+      "zh": "其中有四個可以覆寫的方法。"
+    },
+    {
+      "start": 186,
+      "end": 194,
+      "en": "Invoking call, provideAIContext, invoke call, and storeAIContext.",
+      "zh": "分別是 InvokingCoreAsync、ProvideAIContextAsync、InvokedCoreAsync，以及 StoreAIContextAsync。"
+    },
+    {
+      "start": 195,
+      "end": 204,
+      "en": "And the order they are called in is that the invoking call actually is in charge of calling the provideAIContext,",
+      "zh": "呼叫順序是 InvokingCoreAsync 先負責呼叫 ProvideAIContextAsync，"
+    },
+    {
+      "start": 204,
+      "end": 210,
+      "en": "then the LLM call happens, and then the invoked happen, and store.",
+      "zh": "接著執行 LLM 呼叫，之後執行 InvokedCoreAsync，再呼叫 StoreAIContextAsync。"
+    },
+    {
+      "start": 211,
+      "end": 222,
+      "en": "So in real life, there are four of these, theoretically, but when you are going to use these,",
+      "zh": "因此理論上有四個方法，但實際使用時，"
+    },
+    {
+      "start": 222,
+      "end": 227,
+      "en": "you will essentially never use the invoking and the invoked.",
+      "zh": "幾乎不需要自己處理 Invoking 與 Invoked。"
+    },
+    {
+      "start": 229,
+      "end": 240,
+      "en": "Behind the scenes, these two have some very, very advanced things of merging messages, because there can be multiple of these.",
+      "zh": "它們內部有非常進階的訊息合併邏輯，因為同時可能有多個提供者。"
+    },
+    {
+      "start": 240.5,
+      "end": 243.5,
+      "en": "But in reality, you will stay here.",
+      "zh": "一般情況下，只需要專注這兩個方法。"
+    },
+    {
+      "start": 243.5,
+      "end": 248,
+      "en": "This is the user version, while this is a more technical version.",
+      "zh": "這是給一般使用者覆寫的版本，另外兩個則偏底層技術。"
+    },
+    {
+      "start": 248,
+      "end": 255,
+      "en": "And I will argue that if you know when to use this, you probably don't need this video.",
+      "zh": "如果你已經知道什麼時候該覆寫底層方法，大概就不需要這支影片了。"
+    },
+    {
+      "start": 255,
+      "end": 264.5,
+      "en": "And in the same manner, if you were to use this, where you can go and overwrite how error handling works",
+      "zh": "同樣地，如果需要自行覆寫錯誤處理，"
+    },
+    {
+      "start": 264.5,
+      "end": 270,
+      "en": "when something goes wrong in the LLM, you're probably not going to need this video.",
+      "zh": "改變 LLM 發生錯誤時的行為，你大概也不需要這支影片。"
+    },
+    {
+      "start": 270,
+      "end": 276.5,
+      "en": "So we're going to focus on these two ones here.",
+      "zh": "所以這裡會專注這兩個方法。"
+    },
+    {
+      "start": 277,
+      "end": 285,
+      "en": "ProvideAIContext, which happens before the LLM call, and storeAIContext, which happens after the LLM call.",
+      "zh": "ProvideAIContextAsync 在 LLM 呼叫前執行，StoreAIContextAsync 則在呼叫後執行。"
+    },
+    {
+      "start": 285.5,
+      "end": 292.5,
+      "en": "But you can see I put in messages here, so we can see they are all being called, and we'll see that in one second.",
+      "zh": "我在這裡加入了輸出訊息，方便確認所有方法都會被呼叫，稍後就會看到。"
+    },
+    {
+      "start": 294.5,
+      "end": 297.5,
+      "en": "But what are we using this for?",
+      "zh": "那我們能用它做什麼呢？"
+    },
+    {
+      "start": 297.5,
+      "end": 305.5,
+      "en": "Well, whenever an LLM call is about to happen, we can interject things using this method.",
+      "zh": "每次即將呼叫 LLM 時，都可以透過這個方法介入，加入額外內容。"
+    },
+    {
+      "start": 306,
+      "end": 310.5,
+      "en": "And what we have here, let me set a breakpoint so we can try it out.",
+      "zh": "先在這裡設中斷點，實際試一下。"
+    },
+    {
+      "start": 319,
+      "end": 329.5,
+      "en": "So if I say hi, you will actually see that the invoking callAsync, meaning this method up here, have already been called.",
+      "zh": "如果我說你好，可以看到上方的 InvokingCoreAsync 已經先被呼叫了。"
+    },
+    {
+      "start": 329.5,
+      "end": 334,
+      "en": "But right now, I don't have any code in here other than the message.",
+      "zh": "不過我目前只在裡面輸出訊息，沒有其他程式碼。"
+    },
+    {
+      "start": 334,
+      "end": 336.5,
+      "en": "And again, we're not going to use this.",
+      "zh": "再次提醒，我們不打算使用這個底層方法。"
+    },
+    {
+      "start": 338,
+      "end": 341,
+      "en": "But in here, we get a context.",
+      "zh": "在這裡，我們會取得一個 context。"
+    },
+    {
+      "start": 341,
+      "end": 343,
+      "en": "What is this context?",
+      "zh": "這個 context 是什麼呢？"
+    },
+    {
+      "start": 343,
+      "end": 347,
+      "en": "The context contains our agent.",
+      "zh": "其中包含我們的代理程式。"
+    },
+    {
+      "start": 347,
+      "end": 356,
+      "en": "So if we need to get the name of the agent, or the instructions of the agent, or something here, we can get it from the context.",
+      "zh": "因此如果需要代理程式名稱、指示或其他相關資訊，都能從 context 取得。"
+    },
+    {
+      "start": 357,
+      "end": 359,
+      "en": "We can also get the session.",
+      "zh": "也能取得 session。"
+    },
+    {
+      "start": 359,
+      "end": 364.5,
+      "en": "In my case, I put in session on this call.",
+      "zh": "這次呼叫有傳入 session。"
+    },
+    {
+      "start": 364.5,
+      "end": 367,
+      "en": "If we didn't have a session, it would just be null.",
+      "zh": "如果沒有傳入，這裡就會是 null。"
+    },
+    {
+      "start": 369,
+      "end": 373,
+      "en": "But we have, in this case, our session we could go in and work with.",
+      "zh": "在這個範例中，我們可以取得並操作 session。"
+    },
+    {
+      "start": 374,
+      "end": 376.5,
+      "en": "And then we have AIContext.",
+      "zh": "接著是 AIContext。"
+    },
+    {
+      "start": 376.5,
+      "end": 386,
+      "en": "And this is right now what we have in the instructions in the system, and what messages that has been sent,",
+      "zh": "目前其中包含系統指示，以及已送入的訊息，"
+    },
+    {
+      "start": 386,
+      "end": 390,
+      "en": "meaning our simple message of hi.",
+      "zh": "也就是這則簡單的「你好」。"
+    },
+    {
+      "start": 391,
+      "end": 395,
+      "en": "And then it shows which tools are available right now.",
+      "zh": "另外會顯示目前有哪些工具可用。"
+    },
+    {
+      "start": 395,
+      "end": 397,
+      "en": "And we can see there's no tools.",
+      "zh": "可以看到，這裡沒有工具。"
+    },
+    {
+      "start": 397,
+      "end": 399.5,
+      "en": "I'm not using tools in this sample.",
+      "zh": "這個範例沒有使用工具。"
+    },
+    {
+      "start": 401,
+      "end": 406,
+      "en": "So what we can do is we can go in and inspect this data, of course.",
+      "zh": "當然，我們可以先檢查這些資料。"
+    },
+    {
+      "start": 407,
+      "end": 409,
+      "en": "So that's nothing special here.",
+      "zh": "這裡沒有什麼特別的處理。"
+    },
+    {
+      "start": 409,
+      "end": 414,
+      "en": "So we're just gonna do that.",
+      "zh": "所以先這樣做。"
+    },
+    {
+      "start": 423,
+      "end": 427.5,
+      "en": "What we can do here is we can go in.",
+      "zh": "接下來可以進一步修改內容。"
+    },
+    {
+      "start": 427.5,
+      "end": 432,
+      "en": "Let me restart the code so we can see it again here.",
+      "zh": "先重新執行程式，再看一次。"
+    },
+    {
+      "start": 437,
+      "end": 439,
+      "en": "Let's say hi again.",
+      "zh": "再說一次你好。"
+    },
+    {
+      "start": 440,
+      "end": 446,
+      "en": "So we gotta get in here, because what we can get out is the message itself.",
+      "zh": "進入這個位置後，就能取得訊息本身。"
+    },
+    {
+      "start": 447,
+      "end": 451.5,
+      "en": "And now you can argue, what do we need this for?",
+      "zh": "你可能會問，這到底有什麼用？"
+    },
+    {
+      "start": 452,
+      "end": 457,
+      "en": "Well, we can go in and inject additional instructions.",
+      "zh": "我們可以注入額外指示，"
+    },
+    {
+      "start": 457.5,
+      "end": 459.5,
+      "en": "We can inject additional tools.",
+      "zh": "注入額外工具，"
+    },
+    {
+      "start": 459.5,
+      "end": 463.5,
+      "en": "And we can technically inject additional messages.",
+      "zh": "技術上也可以注入額外訊息。"
+    },
+    {
+      "start": 463.5,
+      "end": 467.5,
+      "en": "But if we do that, they will become part of the chat history.",
+      "zh": "不過如果加入訊息，它們會成為對話歷程的一部分。"
+    },
+    {
+      "start": 468,
+      "end": 477,
+      "en": "Because if we see here, this only happens for the LM call this one time and nothing more.",
+      "zh": "相較之下，這裡的指示只會影響這一次 LLM 呼叫。"
+    },
+    {
+      "start": 477,
+      "end": 483,
+      "en": "It's not like it's being appended directly to the instructions again and again and again.",
+      "zh": "不會一次又一次地永久附加到原本的指示後面。"
+    },
+    {
+      "start": 483,
+      "end": 487.5,
+      "en": "So in my case, I'm injecting some new instructions.",
+      "zh": "這個範例會注入一段新的指示："
+    },
+    {
+      "start": 487.5,
+      "end": 490,
+      "en": "That is, speak like a pirate.",
+      "zh": "請像海盜一樣說話。"
+    },
+    {
+      "start": 491,
+      "end": 495,
+      "en": "And that's what I'm sending back from provide AI context.",
+      "zh": "這就是 ProvideAIContextAsync 回傳的內容。"
+    },
+    {
+      "start": 495,
+      "end": 499.5,
+      "en": "So the AI context I'm providing is speak like a pirate.",
+      "zh": "我們提供的 AI Context，就是這句海盜口吻的指示。"
+    },
+    {
+      "start": 501.5,
+      "end": 511,
+      "en": "And if I run this, we can then see now that I was called with invoking and then provide.",
+      "zh": "執行後可以看到，先呼叫 Invoking，再呼叫 Provide。"
+    },
+    {
+      "start": 511,
+      "end": 514.5,
+      "en": "And we saw we just read out the message.",
+      "zh": "剛才也有讀出原本的訊息。"
+    },
+    {
+      "start": 515,
+      "end": 523,
+      "en": "Then we can see that the messages, the system, now have the prefix or messages with our waves,",
+      "zh": "現在系統訊息中，除了原本要求前面加揮手圖示的指示，"
+    },
+    {
+      "start": 523,
+      "end": 532,
+      "en": "but also speak like a pirate. So on the fly, Agent Framework added this to the context.",
+      "zh": "還多了海盜口吻。Agent Framework 在執行時把它加入了上下文。"
+    },
+    {
+      "start": 532.5,
+      "end": 536.5,
+      "en": "But it's not like if we say hi again,",
+      "zh": "但如果再說一次你好，"
+    },
+    {
+      "start": 540.5,
+      "end": 544.5,
+      "en": "it only adds it one time.",
+      "zh": "每次都只會加一次。"
+    },
+    {
+      "start": 544.5,
+      "end": 548,
+      "en": "It's not like it's saying speak like a pirate, speak like a pirate, speak like a pirate.",
+      "zh": "不會變成「像海盜說話、像海盜說話、像海盜說話」一直累積。"
+    },
+    {
+      "start": 548,
+      "end": 558,
+      "en": "So it is taking the original instructions and appending what we put in for that one call.",
+      "zh": "它會取原始指示，再附加這一次呼叫所提供的內容。"
+    },
+    {
+      "start": 560,
+      "end": 566,
+      "en": "And then if we set some more breakpoints down in invoke,",
+      "zh": "接著，在下方的 Invoked 設幾個中斷點，"
+    },
+    {
+      "start": 566.5,
+      "end": 576.5,
+      "en": "which again we don't really want to use for anything, and our store, here we could go in and begin to store it.",
+      "zh": "這個方法同樣通常不需要覆寫；再到 Store，這裡就能開始儲存資訊。"
+    },
+    {
+      "start": 578,
+      "end": 589,
+      "en": "So we could extract information from the response or deal with exceptions in a different way than the default, which is just drawing the exception.",
+      "zh": "例如擷取回覆資訊，或改變例外處理方式；預設只是將例外拋出。"
+    },
+    {
+      "start": 590.5,
+      "end": 594,
+      "en": "So if we say hi again,",
+      "zh": "再說一次你好，"
+    },
+    {
+      "start": 596,
+      "end": 598.5,
+      "en": "we can now see that invoked happened.",
+      "zh": "可以看到 Invoked 已經執行了。"
+    },
+    {
+      "start": 599.5,
+      "end": 607,
+      "en": "And if we just go down and see that invoke will call store, we will be able to see that in context here.",
+      "zh": "它接著會呼叫 Store；現在看看這裡的 context。"
+    },
+    {
+      "start": 608,
+      "end": 611,
+      "en": "We can get the agent and the session as before.",
+      "zh": "一樣能取得代理程式與 session。"
+    },
+    {
+      "start": 611,
+      "end": 613.5,
+      "en": "We can check if there's any exceptions.",
+      "zh": "也可以檢查是否發生例外。"
+    },
+    {
+      "start": 614,
+      "end": 624.5,
+      "en": "But else we can get the request messages, meaning what we have set, but only for that one call, not the entire message or chat history.",
+      "zh": "另外能取得 RequestMessages，也就是這一次送出的訊息，不包含整段對話歷程。"
+    },
+    {
+      "start": 624.5,
+      "end": 627,
+      "en": "If we want that, we need to take that from the session.",
+      "zh": "如果需要完整歷程，就必須從 session 取得。"
+    },
+    {
+      "start": 628.5,
+      "end": 639,
+      "en": "And we can also see the response message, which is what is about to go back to the user, but haven't been shown yet to the user,",
+      "zh": "我們也能看到即將回傳給使用者、但尚未顯示的回覆訊息，"
+    },
+    {
+      "start": 639,
+      "end": 643,
+      "en": "meaning we are still in the middle of the run async right now.",
+      "zh": "因為目前仍然在 RunAsync 的執行過程中。"
+    },
+    {
+      "start": 645,
+      "end": 653,
+      "en": "So if we look at that, we can see we got invoked call async, the store AI context.",
+      "zh": "看看輸出，可以看到 InvokedCoreAsync，接著是 StoreAIContextAsync。"
+    },
+    {
+      "start": 653.5,
+      "end": 655,
+      "en": "There was no exception.",
+      "zh": "這次沒有例外。"
+    },
+    {
+      "start": 655,
+      "end": 662,
+      "en": "There was a request message of hi, and a response message of advanced here, which is the final response down here.",
+      "zh": "請求訊息是你好，回覆訊息就在這裡，也就是下方最後顯示的答案。"
+    },
+    {
+      "start": 663.5,
+      "end": 667.5,
+      "en": "So that is how one AI context works.",
+      "zh": "這就是一個 AI Context Provider 的運作方式。"
+    },
+    {
+      "start": 668,
+      "end": 675.5,
+      "en": "And let's see a few of the examples I have used it for, for context on why we want to do this.",
+      "zh": "接著看幾個實際例子，理解我們為什麼需要它。"
+    },
+    {
+      "start": 676.5,
+      "end": 685.5,
+      "en": "So over here in my memory system, we are putting in a contact provider of a custom context provider here,",
+      "zh": "在這個記憶系統裡，我們加入自訂的 Context Provider，"
+    },
+    {
+      "start": 686,
+      "end": 689,
+      "en": "where we're sending in an agent and a user ID.",
+      "zh": "並傳入代理程式與使用者 ID。"
+    },
+    {
+      "start": 690,
+      "end": 700,
+      "en": "And over here, we're just storing those and saving some user ID, which is our memory store.",
+      "zh": "提供者會保留這些資訊，並根據使用者 ID 找到記憶儲存位置。"
+    },
+    {
+      "start": 700,
+      "end": 703.5,
+      "en": "That could have been a database, but right now it's just a text file.",
+      "zh": "實際上可以使用資料庫，不過這裡只是文字檔。"
+    },
+    {
+      "start": 704,
+      "end": 707,
+      "en": "And then we're reading all existing memory.",
+      "zh": "然後讀取既有記憶。"
+    },
+    {
+      "start": 707.5,
+      "end": 711.5,
+      "en": "Again, this is a previous video, so you can go and check that in more details.",
+      "zh": "這是先前影片的範例，想了解細節可以回去看。"
+    },
+    {
+      "start": 711.5,
+      "end": 722.5,
+      "en": "But the main thing is that whenever we provide AI context, we are taking that user fax and putting it into the memory,",
+      "zh": "重點是，每次執行 ProvideAIContextAsync，都會把使用者的已知資訊加入上下文，"
+    },
+    {
+      "start": 722.5,
+      "end": 725.5,
+      "en": "just like we put in Speak Like a Pi before.",
+      "zh": "就像剛才加入海盜口吻的指示一樣。"
+    },
+    {
+      "start": 726,
+      "end": 731.5,
+      "en": "Now we're putting in, for example, if it knows my name, my favorite color, and stuff like that.",
+      "zh": "例如已知的姓名、最喜歡的顏色等。"
+    },
+    {
+      "start": 733.5,
+      "end": 744,
+      "en": "And in the store AI context, in that case, we are actually taking the request message, and we are using an AI to figure out",
+      "zh": "而在 StoreAIContextAsync 中，會取出請求訊息，使用 AI 判斷，"
+    },
+    {
+      "start": 744,
+      "end": 749,
+      "en": "what I have told the AI, my favorite color is blue, and so on,",
+      "zh": "使用者告訴了模型哪些事情，例如最喜歡的顏色是藍色，"
+    },
+    {
+      "start": 749,
+      "end": 760,
+      "en": "and extract any memories I want to add or update or delete, and save them into the file.",
+      "zh": "再擷取要新增、更新或刪除的記憶，儲存到檔案中。"
+    },
+    {
+      "start": 760.5,
+      "end": 772.5,
+      "en": "So we are essentially just doing a pre and a post, pre being put in the user fax, post being extract new user fax after the fact.",
+      "zh": "基本上就是前處理與後處理：前面加入既有使用者資訊，後面再擷取新的資訊。"
+    },
+    {
+      "start": 773.5,
+      "end": 776,
+      "en": "So that is how we use it for memory.",
+      "zh": "這就是記憶功能的用法。"
+    },
+    {
+      "start": 776.5,
+      "end": 782,
+      "en": "If we want to see how we use it for tools, it's in a similar manner.",
+      "zh": "工具的用法也很類似。"
+    },
+    {
+      "start": 784.5,
+      "end": 788.5,
+      "en": "So down here we add on-the-fly tool injection.",
+      "zh": "這裡加入動態工具注入。"
+    },
+    {
+      "start": 788.5,
+      "end": 795,
+      "en": "Again, we are putting in an agent because we want to use AI to do something about this.",
+      "zh": "同樣傳入一個代理程式，因為要用 AI 進行判斷。"
+    },
+    {
+      "start": 795.5,
+      "end": 805.5,
+      "en": "And then when we are providing AI context, we are actually looking at the message before it goes to the real run async, and extracting, in this case,",
+      "zh": "提供 AI Context 時，會在真正執行 RunAsync 之前先看訊息，判斷這次，"
+    },
+    {
+      "start": 806,
+      "end": 813.5,
+      "en": "do we need to use some time tools, some weather tools, or some file system tools, and we end up with a response.",
+      "zh": "需要時間工具、天氣工具，還是檔案系統工具，再取得結果。"
+    },
+    {
+      "start": 814,
+      "end": 822.5,
+      "en": "And based on that response, we make a new context back on which tools we want to inject.",
+      "zh": "根據結果，建立新的 context，決定要注入哪些工具。"
+    },
+    {
+      "start": 823.5,
+      "end": 830.5,
+      "en": "So if we need time tools, we inject some time tools, some file system tools, or some weather tools,",
+      "zh": "需要時間工具就注入時間工具，或是加入檔案系統、天氣相關工具，"
+    },
+    {
+      "start": 831,
+      "end": 839,
+      "en": "and the injected instruction is just something for the file tools and how it needs to work.",
+      "zh": "這裡額外注入的指示，則是說明檔案工具應該如何使用。"
+    },
+    {
+      "start": 840,
+      "end": 843.5,
+      "en": "So here we are on-the-fly putting in tools.",
+      "zh": "所以這裡是在執行時動態加入工具。"
+    },
+    {
+      "start": 843.5,
+      "end": 855,
+      "en": "Again, there's a separate video on this with much more details, but essentially, again, it's just that before the LM call, we add more instruction and tools.",
+      "zh": "這也有一支更詳細的獨立影片；基本上就是在 LLM 呼叫前加入更多指示與工具。"
+    },
+    {
+      "start": 855,
+      "end": 859,
+      "en": "In this case, we're not caring about after the fact.",
+      "zh": "這個範例不需要處理呼叫後的事情。"
+    },
+    {
+      "start": 859,
+      "end": 863,
+      "en": "Here, it's just pre-we're-going-to-do-something.",
+      "zh": "只需要呼叫前的處理。"
+    },
+    {
+      "start": 864.5,
+      "end": 868.5,
+      "en": "So it's a very, very open-ended system of doing this.",
+      "zh": "因此這是一個非常開放、可以自由延伸的機制。"
+    },
+    {
+      "start": 868.5,
+      "end": 874.5,
+      "en": "In my case, over here in the basic, we're just injecting Speak Like a Pirate.",
+      "zh": "回到最基本的範例，我們只注入海盜口吻。"
+    },
+    {
+      "start": 876.5,
+      "end": 879,
+      "en": "But what if we have multiple of these?",
+      "zh": "但如果同時有多個提供者呢？"
+    },
+    {
+      "start": 879.5,
+      "end": 884.5,
+      "en": "So I have my context provider 2 here as well.",
+      "zh": "這裡也有 MyContextProvider2。"
+    },
+    {
+      "start": 885.5,
+      "end": 894,
+      "en": "And it's almost the same thing, but it only says, instead of Speak Like a Pirate, it says, suffix response with three robots.",
+      "zh": "內容幾乎相同，只是指示改成「回覆最後加上三個機器人圖示」。"
+    },
+    {
+      "start": 895.5,
+      "end": 897.5,
+      "en": "But else, it's exactly the same.",
+      "zh": "其他地方完全一樣。"
+    },
+    {
+      "start": 897.5,
+      "end": 901,
+      "en": "Again, we're not storing any context, we're just reading it out.",
+      "zh": "同樣不儲存任何 context，只把內容輸出查看。"
+    },
+    {
+      "start": 901,
+      "end": 908,
+      "en": "But again, we could have taken whatever the AI came back with and done something with it.",
+      "zh": "不過也可以取得 AI 回覆，再做其他處理，"
+    },
+    {
+      "start": 909,
+      "end": 913,
+      "en": "Made a summary of what we have talked about so far, for example.",
+      "zh": "例如替目前對話製作摘要。"
+    },
+    {
+      "start": 914,
+      "end": 917,
+      "en": "So if we run it with two...",
+      "zh": "所以，現在用兩個提供者執行……"
+    },
+    {
+      "start": 920.5,
+      "end": 927.5,
+      "en": "and say hi again, we can see, let's take this away,",
+      "zh": "再說一次你好，先把這個移開，"
+    },
+    {
+      "start": 927.5,
+      "end": 938.5,
+      "en": "that we call the first AI context provider, then we call our second context provider.",
+      "zh": "就能看到先呼叫第一個 AI Context Provider，再呼叫第二個。"
+    },
+    {
+      "start": 938.5,
+      "end": 941.5,
+      "en": "They're getting exactly the same information.",
+      "zh": "它們取得完全相同的資訊。"
+    },
+    {
+      "start": 942.5,
+      "end": 947,
+      "en": "And they provide each one some data,",
+      "zh": "各自提供自己的內容，"
+    },
+    {
+      "start": 947,
+      "end": 955,
+      "en": "Speak Like a Pirate, and put in suffix with the robots.",
+      "zh": "一個要求海盜口吻，一個要求結尾加上機器人圖示。"
+    },
+    {
+      "start": 955,
+      "end": 958,
+      "en": "And that is all being put into the system message.",
+      "zh": "最後都會被加入系統訊息。"
+    },
+    {
+      "start": 958,
+      "end": 963,
+      "en": "We have the original, we have the Speak Like a Pirate, and we have the suffix.",
+      "zh": "這裡有原本的指示、海盜口吻，以及結尾圖示的要求。"
+    },
+    {
+      "start": 964,
+      "end": 967,
+      "en": "Beyond that, nothing else has changed in DLLM.",
+      "zh": "除此之外，LLM 的請求沒有其他變更。"
+    },
+    {
+      "start": 967,
+      "end": 976,
+      "en": "And we get our messages back, and now we have that we have instructed it to get the robots at the end.",
+      "zh": "回覆取回後，就能看到結尾有要求的機器人圖示。"
+    },
+    {
+      "start": 978.5,
+      "end": 990,
+      "en": "So we can put in as many of these as we wish to in order to do memory, tool injection, whatever we want to do.",
+      "zh": "因此可以加入任意數量的提供者，處理記憶、工具注入或其他需求。"
+    },
+    {
+      "start": 990,
+      "end": 998,
+      "en": "And we can reuse these across multiple agents, so if we wanted for some reason to have the wave thing every time,",
+      "zh": "這些提供者也可以跨代理程式重複使用；例如每次都想要求先揮手，"
+    },
+    {
+      "start": 998,
+      "end": 1005,
+      "en": "we would just have a wave before you answer IA context provider.",
+      "zh": "就建立一個「回覆前先揮手」的 AI Context Provider。"
+    },
+    {
+      "start": 1007,
+      "end": 1015.5,
+      "en": "There's also a third type of context provider, and it's called a message context provider.",
+      "zh": "還有第三種提供者，稱為 Message Context Provider。"
+    },
+    {
+      "start": 1017.5,
+      "end": 1023.5,
+      "en": "So instead of AI context provider here, we have a message context provider.",
+      "zh": "這裡不是繼承 AIContextProvider，而是 MessageContextProvider。"
+    },
+    {
+      "start": 1024.5,
+      "end": 1035.5,
+      "en": "This one is a bit strange compared to the other one in that it has both a provide AI context and a provide messages.",
+      "zh": "它和前面的版本有點不同，同時有 ProvideAIContext 與 ProvideMessages。"
+    },
+    {
+      "start": 1036.5,
+      "end": 1039.5,
+      "en": "This one can actually provide messages, but they are permanently messages.",
+      "zh": "前面提到的訊息注入，可能會讓訊息永久加入對話歷程。"
+    },
+    {
+      "start": 1039.5,
+      "end": 1044.5,
+      "en": "This one is on the fly extra messages you want to put into the system.",
+      "zh": "這個版本則是用來加入這次呼叫所需的額外訊息。"
+    },
+    {
+      "start": 1046.5,
+      "end": 1054,
+      "en": "So in my case, I'm using the provide messages, which is yet another way of calling this.",
+      "zh": "這裡我覆寫 ProvideMessages，這又是另一種使用方式。"
+    },
+    {
+      "start": 1055,
+      "end": 1060,
+      "en": "So we can go in and say, for example, make all text uppercase.",
+      "zh": "例如可以要求：「把所有文字轉成大寫」。"
+    },
+    {
+      "start": 1063,
+      "end": 1074,
+      "en": "So if we do that and say hi, we will now see that we call our first provider,",
+      "zh": "執行並說你好後，會看到先呼叫第一個提供者，"
+    },
+    {
+      "start": 1074,
+      "end": 1082,
+      "en": "which is speak like a pirate, second provider, put the robots at the end, our third provider, uppercase everything,",
+      "zh": "要求海盜口吻；第二個要求結尾加機器人；第三個則要求全部大寫。"
+    },
+    {
+      "start": 1083,
+      "end": 1095,
+      "en": "and in our case, it is putting in the ones that does things with instructions, and then it's adding one more message here, make all text uppercase.",
+      "zh": "這裡先加入修改指示的內容，再另外加上一則「把所有文字轉成大寫」的訊息。"
+    },
+    {
+      "start": 1096,
+      "end": 1105.5,
+      "en": "I'm a bit surprised that it puts it after the original message, but they must have evaluated that that is best.",
+      "zh": "它把額外訊息放在原本訊息後面，讓我有點意外，但團隊應該評估過這樣比較好。"
+    },
+    {
+      "start": 1106.5,
+      "end": 1116.5,
+      "en": "If I had made this implementation, just probably put it before, and then so the real user message would be the highlighted one,",
+      "zh": "如果是我實作，可能會放在前面，讓真正的使用者訊息更突出，"
+    },
+    {
+      "start": 1116.5,
+      "end": 1120.5,
+      "en": "but they have chosen to put it after, and AI can understand it.",
+      "zh": "不過他們選擇放後面，而 AI 仍然能理解。"
+    },
+    {
+      "start": 1122.5,
+      "end": 1132,
+      "en": "The messages comes back to all three providers, and we now get all our instructions put together,",
+      "zh": "回覆會交回三個提供者，所有指示也都整合在一起，"
+    },
+    {
+      "start": 1132,
+      "end": 1137.5,
+      "en": "plus the extra message that gives even further instructions being uppercase.",
+      "zh": "再加上要求大寫的那則額外訊息。"
+    },
+    {
+      "start": 1141,
+      "end": 1148,
+      "en": "So now we have three of these, but there's one more way of using the message providers.",
+      "zh": "現在有三個提供者；不過 Message Provider 還有另一種使用方式。"
+    },
+    {
+      "start": 1148.5,
+      "end": 1152,
+      "en": "You can't use these for that for some reason.",
+      "zh": "由於某些原因，這種方式不能使用一般的 AI Context Provider。"
+    },
+    {
+      "start": 1152,
+      "end": 1158,
+      "en": "Perhaps that will change, but you can also make this as middleware.",
+      "zh": "也許未來會改變；你也可以把它當成中介軟體。"
+    },
+    {
+      "start": 1158,
+      "end": 1167.5,
+      "en": "So middleware is where we do the tool calling middleware, the OpenTelemetry middleware, but we also have an AI context provider's middleware now.",
+      "zh": "中介軟體就是前面設定工具呼叫與 OpenTelemetry 的地方；現在也有 AI Context Provider 的中介軟體。"
+    },
+    {
+      "start": 1169,
+      "end": 1173,
+      "en": "So this one can only take message context providers.",
+      "zh": "不過這個方法只能接收 MessageContextProvider。"
+    },
+    {
+      "start": 1173,
+      "end": 1176,
+      "en": "It cannot take my AI context provider.",
+      "zh": "無法接收一般的 MyAIContextProvider。"
+    },
+    {
+      "start": 1176,
+      "end": 1180,
+      "en": "It will say it's a wrong type. Okay.",
+      "zh": "它會提示型別不正確。"
+    },
+    {
+      "start": 1182.5,
+      "end": 1188,
+      "en": "So if we do this, things change a bit.",
+      "zh": "改成這樣使用時，流程會稍有不同。"
+    },
+    {
+      "start": 1188,
+      "end": 1194,
+      "en": "Let's get rid of... let's keep these two, but keep this one down here.",
+      "zh": "先保留前面兩個，把這一個放在下方。"
+    },
+    {
+      "start": 1198,
+      "end": 1209,
+      "en": "Because when they are run like this, and we say hi, we essentially end up with the same scenario,",
+      "zh": "再說一次你好，最後結果基本上相同，"
+    },
+    {
+      "start": 1209,
+      "end": 1213,
+      "en": "but we are now calling for the provider.",
+      "zh": "不過現在這個提供者的呼叫順序改變了。"
+    },
+    {
+      "start": 1213,
+      "end": 1216.5,
+      "en": "We can see that happens before everything else.",
+      "zh": "可以看到，它會先於其他提供者執行。"
+    },
+    {
+      "start": 1216.5,
+      "end": 1220.5,
+      "en": "So it's like this one is going before the ones we get up here.",
+      "zh": "也就是下方這個會在上方那些之前執行。"
+    },
+    {
+      "start": 1221.5,
+      "end": 1230.5,
+      "en": "And it's also calling another invoking version instead of the context,",
+      "zh": "它也會呼叫另一種 Invoking 版本，而不是前面的 context 版本，"
+    },
+    {
+      "start": 1230.5,
+      "end": 1236.5,
+      "en": "because we cannot provide context for the myMessage right now.",
+      "zh": "因為 MyMessageProvider 在這裡無法提供完整 context。"
+    },
+    {
+      "start": 1236.5,
+      "end": 1241.5,
+      "en": "I don't know if it's a bug or if it's a feature, but they have chosen to do that.",
+      "zh": "我不確定這是設計還是問題，但團隊目前選擇這樣實作。"
+    },
+    {
+      "start": 1242.5,
+      "end": 1246.5,
+      "en": "Them being Microsoft Agent Framework team, of course.",
+      "zh": "這裡的團隊，當然是 Microsoft Agent Framework 團隊。"
+    },
+    {
+      "start": 1247.5,
+      "end": 1252.5,
+      "en": "The thing is essentially the same. We get the exact same setup.",
+      "zh": "本質上，最後得到的設定仍完全相同。"
+    },
+    {
+      "start": 1254.5,
+      "end": 1258.5,
+      "en": "But why would we ever want to do it down here?",
+      "zh": "那為什麼要放在下方呢？"
+    },
+    {
+      "start": 1258.5,
+      "end": 1270.5,
+      "en": "Well, this down here is kind of okay that we can do this, because, for example, if we get an agent that we don't define,",
+      "zh": "這個做法其實很有用；例如我們拿到的代理程式不是自己建立的，"
+    },
+    {
+      "start": 1272.5,
+      "end": 1275.5,
+      "en": "we don't have the chance to put in AI context providers.",
+      "zh": "就沒有機會在建立時加入 AI Context Provider。"
+    },
+    {
+      "start": 1275.5,
+      "end": 1284.5,
+      "en": "So, for example, if we use the Google's A2A protocol, the agent-to-agent protocol, we're just being given an agent,",
+      "zh": "例如使用 Google 的 A2A，也就是 Agent-to-Agent 協定，只會取得一個代理程式，"
+    },
+    {
+      "start": 1284.5,
+      "end": 1292.5,
+      "en": "but we're not being able to give it any kind of options, meaning we're not able to put in our providers.",
+      "zh": "卻不能提供建立時的選項，因此無法直接加入自己的提供者。"
+    },
+    {
+      "start": 1294.5,
+      "end": 1301.5,
+      "en": "But down here, we can certainly put in providers, but only providers to put in extra messages.",
+      "zh": "但在下方仍然可以加入提供者，只是只能注入額外訊息。"
+    },
+    {
+      "start": 1301.5,
+      "end": 1309.5,
+      "en": "And that's probably one of the reasons why we don't get the context, because they can't on the fly inject system messages,",
+      "zh": "這可能也是拿不到完整 context 的原因之一，因為無法動態調整系統指示，"
+    },
+    {
+      "start": 1309.5,
+      "end": 1314.5,
+      "en": "but they can at least send extra messages like this down here.",
+      "zh": "但至少可以像這樣送出額外訊息。"
+    },
+    {
+      "start": 1316.5,
+      "end": 1323.5,
+      "en": "So, it sort of makes sense that we can't inject instructions down here, but only messages.",
+      "zh": "因此，這裡只能加入訊息、不能注入指示，其實有一定道理。"
+    },
+    {
+      "start": 1324.5,
+      "end": 1330,
+      "en": "But that's the main reason. If you own the agent, you probably don't want to use the middleware parts.",
+      "zh": "這就是主要用途。如果代理程式是自己建立的，通常就不需要使用中介軟體版本。"
+    },
+    {
+      "start": 1330,
+      "end": 1333.5,
+      "en": "You will just put them in as your own providers.",
+      "zh": "直接在自己的代理程式選項中加入提供者即可。"
+    },
+    {
+      "start": 1334,
+      "end": 1346,
+      "en": "But in those cases, it's a nice thing that we can actually inject them by just putting in messages, because that is under our control,",
+      "zh": "但對剛才那類情況，能透過額外訊息來注入內容，就很有幫助，因為訊息仍由我們控制，"
+    },
+    {
+      "start": 1346,
+      "end": 1349.5,
+      "en": "no matter how the agent has been created.",
+      "zh": "不受代理程式建立方式的限制。"
+    },
+    {
+      "start": 1351,
+      "end": 1357.5,
+      "en": "So, that is actually everything there is to say about context providers.",
+      "zh": "以上就是 Context Provider 的完整介紹。"
+    },
+    {
+      "start": 1357.5,
+      "end": 1366.5,
+      "en": "They are kind of intimidating, but end of day, you should just see them as a place to put something in before,",
+      "zh": "它們看起來可能有點複雜，但可以把它理解為：在呼叫前加入內容，"
+    },
+    {
+      "start": 1366.5,
+      "end": 1372.5,
+      "en": "adjust on the fly instructions and tools, and after the fact, do something.",
+      "zh": "動態調整指示與工具，並在呼叫後進行額外處理。"
+    },
+    {
+      "start": 1373,
+      "end": 1385,
+      "en": "So, again, my best two examples is the memory part, where we can on the fly put in memory, and on the fly extract it again,",
+      "zh": "我最常用的兩個例子，就是記憶功能：動態加入記憶，再從回覆中擷取記憶，"
+    },
+    {
+      "start": 1385,
+      "end": 1394.5,
+      "en": "and the tool calling injection, where we can on the fly determine what tools to put in, so we can save tokens not giving every single tool.",
+      "zh": "以及工具注入：動態決定要提供哪些工具，避免每次都傳入全部工具而浪費 Token。"
+    },
+    {
+      "start": 1395,
+      "end": 1399,
+      "en": "There's probably many other ways of doing this.",
+      "zh": "當然，應該還有許多其他用法。"
+    },
+    {
+      "start": 1399,
+      "end": 1403,
+      "en": "My agent framework themselves have used it to make agent skills.",
+      "zh": "Microsoft Agent Framework 團隊自己也用它來實作 Agent Skills。"
+    },
+    {
+      "start": 1403,
+      "end": 1411,
+      "en": "I have a different video on that, and I will compare my agent skills to their agent skills,",
+      "zh": "我有另一支影片，會比較我自己的 Agent Skills 與官方版本，"
+    },
+    {
+      "start": 1411,
+      "end": 1418.5,
+      "en": "but they're actually using the AI context providers in order to inject those tools on the fly.",
+      "zh": "而官方就是利用 AI Context Provider 動態注入相關工具。"
+    },
+    {
+      "start": 1418.5,
+      "end": 1426,
+      "en": "Kind of a cool idea, but I find it a little too limiting what they do, but that's for another video.",
+      "zh": "這個點子不錯，但我覺得目前的做法限制稍多，那就留到另一支影片再說。"
+    },
+    {
+      "start": 1427,
+      "end": 1436.5,
+      "en": "So, for now, I know this is a bit advanced, but we needed to go deep dive in order to understand this,",
+      "zh": "我知道這次內容比較進階，不過要理解它，確實需要深入說明，"
+    },
+    {
+      "start": 1436.5,
+      "end": 1443.5,
+      "en": "and now that it's logged in and not changing a lot, it made sense to do this now.",
+      "zh": "而且現在介面已逐漸穩定，不再頻繁變動，正好適合完整介紹。"
+    },
+    {
+      "start": 1443.5,
+      "end": 1448,
+      "en": "So, thank you for listening. See you in the next one.",
+      "zh": "謝謝收看，我們下支影片見。"
+    }
+  ]
+}

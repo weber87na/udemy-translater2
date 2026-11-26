@@ -1,0 +1,755 @@
+{
+  "courseId": "6795111",
+  "lectureId": "56823807",
+  "title": "Let's build a Chatbot - Image/PDF Input (Part 8)",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6,
+      "en": "Hi, and welcome to part eight of Let's Build a Chatbot in C-Sharp using Gating Framework.",
+      "zh": "大家好，歡迎來到使用 C# 與 Agent Framework 打造聊天機器人的第八部分。"
+    },
+    {
+      "start": 7,
+      "end": 11,
+      "en": "In this video, we are going to extend one more feature.",
+      "zh": "這支影片會再擴充一項功能。"
+    },
+    {
+      "start": 11,
+      "end": 20,
+      "en": "Last part, we added image generation, and now we want to go the other way around, that we want to be able to actually give",
+      "zh": "上一部分加入圖像生成，現在要反過來，讓我們能提供，"
+    },
+    {
+      "start": 20,
+      "end": 31,
+      "en": "our chatbot images and PDFs, just like you can chat GPT, and in order for it to analyze about what is in PDFs and images.",
+      "zh": "圖片與 PDF 給聊天機器人，就像 ChatGPT 一樣，讓它分析檔案內容。"
+    },
+    {
+      "start": 33,
+      "end": 43,
+      "en": "For this version, there is a breaking change, where the existing conversations that you have already done,",
+      "zh": "這個版本有一項不相容的變更。如果跟著實作，先前建立的對話，"
+    },
+    {
+      "start": 43,
+      "end": 46,
+      "en": "if you follow along, will not work anymore.",
+      "zh": "將無法繼續使用。"
+    },
+    {
+      "start": 46,
+      "end": 55,
+      "en": "I will explain a little later why, but if you want to follow along, you would need to go into your temp folder and delete the existing conversations,",
+      "zh": "稍後會解釋原因，但如果要跟著操作，需要到暫存資料夾，刪除既有對話，"
+    },
+    {
+      "start": 55,
+      "end": 59,
+      "en": "because I've changed the format of conversations in this way.",
+      "zh": "因為我修改了對話的資料格式。"
+    },
+    {
+      "start": 60,
+      "end": 66,
+      "en": "So I'm going to do that, and then I'm going to run the system again.",
+      "zh": "我先完成這件事，再次執行系統。"
+    },
+    {
+      "start": 67,
+      "end": 76,
+      "en": "And what is new here is we have a plus button in order to add what we want of PDFs and images.",
+      "zh": "新的地方是這個加號按鈕，可以加入 PDF 與圖片。"
+    },
+    {
+      "start": 77,
+      "end": 85,
+      "en": "And beyond that, if we take an image, let's say, take this robot and say, what is this?",
+      "zh": "例如選取這個機器人圖片，再問：這是什麼？"
+    },
+    {
+      "start": 90,
+      "end": 100,
+      "en": "We now see this small image up here of the image, but we are giving this image to the LLM, so it can actually explain what is in it.",
+      "zh": "上方可以看到圖片縮圖，實際上也會把圖片提供給 LLM，讓它解釋內容。"
+    },
+    {
+      "start": 101,
+      "end": 106,
+      "en": "And in the same manner, we can choose, for example, an actual invoice,",
+      "zh": "同樣地，也能選擇一份真實發票，"
+    },
+    {
+      "start": 106,
+      "end": 116,
+      "en": "and say, what did I pay in this invoice?",
+      "zh": "詢問這張發票付了多少錢。"
+    },
+    {
+      "start": 121,
+      "end": 130,
+      "en": "The thing would be a PDF as input instead, and it will go in and figure out how much I paid in this case.",
+      "zh": "這次輸入是 PDF，模型會分析實際支付金額。"
+    },
+    {
+      "start": 131,
+      "end": 134,
+      "en": "So that's the new features.",
+      "zh": "這就是新功能。"
+    },
+    {
+      "start": 134,
+      "end": 141,
+      "en": "So why did we need to change the conversation format and stuff like that?",
+      "zh": "那為什麼需要修改對話格式？"
+    },
+    {
+      "start": 141,
+      "end": 143,
+      "en": "So let's go into the code.",
+      "zh": "進入程式碼看看。"
+    },
+    {
+      "start": 144,
+      "end": 149,
+      "en": "So here we are in the code, and here are the changes I've made.",
+      "zh": "這裡就是程式碼，以及這次的修改。"
+    },
+    {
+      "start": 149,
+      "end": 155,
+      "en": "So I'm primarily going to use the diff in order to show you where the changes are.",
+      "zh": "主要透過差異比較，顯示修改的位置。"
+    },
+    {
+      "start": 155,
+      "end": 167,
+      "en": "Because we had our models with conversation and conversation messages, and inside those messages were the raw message, the chat button message",
+      "zh": "原本有 Conversation 與 ConversationMessage 模型，訊息裡保留原始 ChatMessage，"
+    },
+    {
+      "start": 167,
+      "end": 170,
+      "en": "that Agent Framework uses directly.",
+      "zh": "也就是 Agent Framework 直接使用的格式。"
+    },
+    {
+      "start": 170,
+      "end": 177,
+      "en": "And that was okay right now, because we wanted to save every single little thing we sent along to the LLM.",
+      "zh": "先前這樣很好，因為希望保留每個送給 LLM 的細節。"
+    },
+    {
+      "start": 178,
+      "end": 190,
+      "en": "But now that we're sending images, these JSON files down here were beginning to become rather big because they had the base 64 version of the image.",
+      "zh": "但現在加入圖片，這些 JSON 檔案開始變得很大，因為其中包含圖片的 Base64。"
+    },
+    {
+      "start": 191,
+      "end": 194,
+      "en": "And I don't think that's a good way.",
+      "zh": "我認為這不是好方法。"
+    },
+    {
+      "start": 194,
+      "end": 204,
+      "en": "We could have stayed that way, but in order for us to not have that, I rather wanted to make this a little more lean",
+      "zh": "雖然可以維持原狀，但為了避免這件事，我想讓對話格式更精簡，"
+    },
+    {
+      "start": 204,
+      "end": 209,
+      "en": "in making it fully our own system.",
+      "zh": "完全改由自己控制。"
+    },
+    {
+      "start": 209,
+      "end": 220,
+      "en": "So now we don't have the raw message, but we're simply just saving each message where we are saving content and now also attachments.",
+      "zh": "因此不再保存 RawMessage，而是在每則訊息中，直接保存 Content，以及新增的附件。"
+    },
+    {
+      "start": 220,
+      "end": 227,
+      "en": "And because we can do that attachment using a relative part now, it doesn't fill up in this file.",
+      "zh": "附件現在可以只保留相對路徑，不必把檔案內容塞進 JSON。"
+    },
+    {
+      "start": 227,
+      "end": 234,
+      "en": "So this is the main reason why we had a backward compatibility with these files.",
+      "zh": "這就是這次無法與舊檔相容的主要原因。"
+    },
+    {
+      "start": 234,
+      "end": 245,
+      "en": "So the conversation now, instead of making a raw message to mean chat message, it just on each message itself",
+      "zh": "現在對話不再把 RawMessage 直接當成 ChatMessage，而是每則訊息分別，"
+    },
+    {
+      "start": 246,
+      "end": 253,
+      "en": "store the raw role, text, and content and uses as we did before.",
+      "zh": "儲存角色、文字、Content 與原本的 Usage。"
+    },
+    {
+      "start": 254,
+      "end": 259,
+      "en": "Now we have the attachments as well next to the image part.",
+      "zh": "除了 ImagePart，也多了 Attachments。"
+    },
+    {
+      "start": 259,
+      "end": 268,
+      "en": "So we're just getting rid of that we were not really in control because chat message fit our system well so far,",
+      "zh": "因此移除原本不完全受我們控制的部分。先前 ChatMessage 很適合需求，"
+    },
+    {
+      "start": 268,
+      "end": 274,
+      "en": "but suddenly there was something in there, meaning the base 64, that didn't fit us.",
+      "zh": "但突然多了 Base64 這個不適合的內容。"
+    },
+    {
+      "start": 274,
+      "end": 278,
+      "en": "So that's the reason why I made this change and refactor.",
+      "zh": "所以才進行這次變更與重構。"
+    },
+    {
+      "start": 279,
+      "end": 285,
+      "en": "So if we look at that, we then now just have the conversations.",
+      "zh": "看看現在的對話物件。"
+    },
+    {
+      "start": 287,
+      "end": 289,
+      "en": "Jump over here.",
+      "zh": "切換到這裡。"
+    },
+    {
+      "start": 290,
+      "end": 297,
+      "en": "And whenever we add a conversation, there might be some attachments now as well.",
+      "zh": "現在加入對話訊息時，可能也會有附件。"
+    },
+    {
+      "start": 297,
+      "end": 301,
+      "en": "And those attachments are simply just a file name.",
+      "zh": "附件只保存檔案資訊。"
+    },
+    {
+      "start": 301,
+      "end": 304,
+      "en": "So this is the original file name.",
+      "zh": "這是原始檔名。"
+    },
+    {
+      "start": 304,
+      "end": 313,
+      "en": "The stored file name will just be a file name with a grid, the content type, if it's a PDF or images,",
+      "zh": "實際儲存的檔名使用 GUID，另外保存 ContentType，判斷是 PDF 還是圖片，"
+    },
+    {
+      "start": 313,
+      "end": 323,
+      "en": "and the relative part where we store it because we are using the app data of our system.",
+      "zh": "以及相對儲存路徑，因為使用系統的 AppData 資料夾。"
+    },
+    {
+      "start": 323,
+      "end": 327,
+      "en": "Let's go into chatbot and the source.",
+      "zh": "進入 Chatbot 的原始碼資料夾。"
+    },
+    {
+      "start": 327,
+      "end": 331,
+      "en": "There we can see the app data here where the file uploads are.",
+      "zh": "這裡可以看到 AppData，裡面有 FileUploads。"
+    },
+    {
+      "start": 331,
+      "end": 335,
+      "en": "You can see I've used this robot a few times.",
+      "zh": "這個機器人圖片已經使用過幾次。"
+    },
+    {
+      "start": 336,
+      "end": 339,
+      "en": "So that's what we have changed here.",
+      "zh": "這就是這部分的變更。"
+    },
+    {
+      "start": 339,
+      "end": 350,
+      "en": "And in order for us then to send these messages along to the system, we of course need to have something that take a conversation,",
+      "zh": "接著要把訊息提供給系統，當然需要一個轉換層，取得 Conversation，"
+    },
+    {
+      "start": 350,
+      "end": 355,
+      "en": "which is now a fully custom object, and turn it into a chat message.",
+      "zh": "它現在是完全自訂的物件，再轉成 ChatMessage。"
+    },
+    {
+      "start": 355,
+      "end": 357,
+      "en": "And that's what this little service does.",
+      "zh": "這就是這個小服務的工作。"
+    },
+    {
+      "start": 357,
+      "end": 364,
+      "en": "That says, given a conversation, I can give the list of chat messages that the LLM needs.",
+      "zh": "給它一個 Conversation，就能回傳 LLM 需要的 ChatMessage 清單。"
+    },
+    {
+      "start": 365,
+      "end": 371,
+      "en": "So essentially we're just building up for each message of type chat message.",
+      "zh": "基本上就是逐則建立 ChatMessage。"
+    },
+    {
+      "start": 371,
+      "end": 376,
+      "en": "We now, our conversation message, we build up to have a chat message.",
+      "zh": "把自己的 ConversationMessage 轉成 ChatMessage。"
+    },
+    {
+      "start": 376,
+      "end": 386,
+      "en": "And we do that by on the fly building up the user messages with the text content like normal.",
+      "zh": "使用者訊息像平常一樣，以 TextContent 建立。"
+    },
+    {
+      "start": 387,
+      "end": 394,
+      "en": "And for each attachment, we actually read it from file and turn it into a content.",
+      "zh": "每個附件則從檔案讀取，再轉成 Content。"
+    },
+    {
+      "start": 395,
+      "end": 400,
+      "en": "An AI content down here with the data content as a base64.",
+      "zh": "也就是下面的 AIContent，使用包含 Base64 的 DataContent。"
+    },
+    {
+      "start": 400,
+      "end": 409,
+      "en": "So the base64 still happens, but only up against the LLM, not inside our conversations.",
+      "zh": "所以仍然會使用 Base64，但只在呼叫 LLM 時，不會存進對話。"
+    },
+    {
+      "start": 409,
+      "end": 415,
+      "en": "Because in essence, whenever we do this, it is very, very simple",
+      "zh": "本質上，送出這些資料其實非常簡單，"
+    },
+    {
+      "start": 415,
+      "end": 423,
+      "en": "because we just need to give AI content to the LLM.",
+      "zh": "只需要提供 AIContent 給 LLM。"
+    },
+    {
+      "start": 423,
+      "end": 428,
+      "en": "And that's the only thing we do whenever we send one of these.",
+      "zh": "每次傳送時，做的就是這件事。"
+    },
+    {
+      "start": 428,
+      "end": 430,
+      "en": "So if I set a breakpoint here,",
+      "zh": "如果在這裡設中斷點，"
+    },
+    {
+      "start": 432,
+      "end": 434,
+      "en": "and go into a new chat,",
+      "zh": "開啟新對話，"
+    },
+    {
+      "start": 436,
+      "end": 439,
+      "en": "and let's say we send this invoice.",
+      "zh": "例如上傳這份發票，"
+    },
+    {
+      "start": 445,
+      "end": 447,
+      "en": "And we send here.",
+      "zh": "再按送出，"
+    },
+    {
+      "start": 450,
+      "end": 456,
+      "en": "And we want to send the conversation message. What is this?",
+      "zh": "就會送出這個 ConversationMessage，問題是「這是什麼？」。"
+    },
+    {
+      "start": 456,
+      "end": 462,
+      "en": "Role user with one attachment being this attachment file.",
+      "zh": "角色是 user，並包含這個附件檔案。"
+    },
+    {
+      "start": 463,
+      "end": 470,
+      "en": "We are essentially just sending the content of a text content and a data content.",
+      "zh": "實際上只是傳送一個 TextContent，以及一個 DataContent。"
+    },
+    {
+      "start": 471,
+      "end": 480,
+      "en": "So I have a previous video in the Agent Framework series where I show this in a little more detail, but essentially, we're just taking the content,",
+      "zh": "Agent Framework 系列前面有影片，更詳細介紹過。但基本上就是取得內容，"
+    },
+    {
+      "start": 480,
+      "end": 485,
+      "en": "turning it into base64, and sending it just like we would send text.",
+      "zh": "轉成 Base64，再像傳送文字一樣送出。"
+    },
+    {
+      "start": 485,
+      "end": 489,
+      "en": "In this case, it's PDF, but it could also be an image.",
+      "zh": "這裡是 PDF，但也可以是圖片。"
+    },
+    {
+      "start": 489,
+      "end": 493,
+      "en": "So that's the only thing LLM-wise we needed to change.",
+      "zh": "這就是 LLM 部分唯一需要的修改。"
+    },
+    {
+      "start": 493,
+      "end": 500,
+      "en": "So had I not needed to do these conversions, there would not have been too much code here.",
+      "zh": "因此如果不用做那些格式轉換，其實不需要寫太多程式碼。"
+    },
+    {
+      "start": 500,
+      "end": 507,
+      "en": "But I found it to be the right time to actually get rid of the raw message in there.",
+      "zh": "不過我認為，現在正適合移除原本保存的 RawMessage。"
+    },
+    {
+      "start": 508,
+      "end": 512,
+      "en": "But essentially, that's just what we're doing whenever we send things along.",
+      "zh": "送出資料時，基本上做的就是這些。"
+    },
+    {
+      "start": 512,
+      "end": 515,
+      "en": "So when we get our messages here,",
+      "zh": "這裡取得訊息後，"
+    },
+    {
+      "start": 517,
+      "end": 527,
+      "en": "that's the messages we're going to send along to the system when we do the streaming or the non-streaming.",
+      "zh": "就是串流或非串流呼叫時，要送給系統的內容。"
+    },
+    {
+      "start": 527,
+      "end": 531,
+      "en": "So there's nothing more to it from the LLM perspective.",
+      "zh": "從 LLM 角度來看，沒有更多變更。"
+    },
+    {
+      "start": 533,
+      "end": 536,
+      "en": "And it would, of course, answer back.",
+      "zh": "接著當然會正常回覆。"
+    },
+    {
+      "start": 536,
+      "end": 539,
+      "en": "So what else have we changed?",
+      "zh": "還修改了什麼？"
+    },
+    {
+      "start": 539,
+      "end": 548,
+      "en": "We have made our chatbot have a system to upload files, of course.",
+      "zh": "當然替聊天機器人加入檔案上傳介面。"
+    },
+    {
+      "start": 548,
+      "end": 556,
+      "en": "This is just normal Blazor uploading of files, nothing special in there.",
+      "zh": "這只是一般 Blazor 檔案上傳，沒有特別之處。"
+    },
+    {
+      "start": 556,
+      "end": 560,
+      "en": "Just a normal file upload input file here.",
+      "zh": "使用普通的 InputFile 元件。"
+    },
+    {
+      "start": 561,
+      "end": 573,
+      "en": "So when we do that, and we send the message, of course, we need various things for uploading the storage and changing it into the new mapper.",
+      "zh": "選好檔案並送出時，需要處理儲存，以及轉成新的映射格式。"
+    },
+    {
+      "start": 573,
+      "end": 577,
+      "en": "There's a little thing about how big the files can be at maximum.",
+      "zh": "也有最大檔案大小設定。"
+    },
+    {
+      "start": 577,
+      "end": 583,
+      "en": "And pending files should, of course, be there while we choose one or more files.",
+      "zh": "選擇一個或多個檔案時，會保存在 PendingFiles。"
+    },
+    {
+      "start": 585,
+      "end": 589,
+      "en": "We then check if we just send a file, not just input.",
+      "zh": "接著檢查，是否只送檔案，而沒有文字。"
+    },
+    {
+      "start": 589,
+      "end": 599,
+      "en": "So now it can't go that we not even send a file or a message,",
+      "zh": "不能連檔案與訊息都沒有就送出，"
+    },
+    {
+      "start": 599,
+      "end": 603,
+      "en": "but we can actually just send a file, and it will begin to interpret from that.",
+      "zh": "但可以只送檔案，讓它直接分析。"
+    },
+    {
+      "start": 604,
+      "end": 613,
+      "en": "In here, we just make the attachments, and we are saving them as files.",
+      "zh": "這裡建立附件，並儲存成檔案。"
+    },
+    {
+      "start": 613,
+      "end": 620,
+      "en": "And that is just normal files to a place we save.",
+      "zh": "就是一般檔案寫入指定位置。"
+    },
+    {
+      "start": 620,
+      "end": 626,
+      "en": "And in that place we save right now is our AppData folder, as I showed before.",
+      "zh": "目前儲存在剛剛看到的 AppData 資料夾。"
+    },
+    {
+      "start": 626,
+      "end": 632,
+      "en": "So this is just normal Blazor writing files down to a folder.",
+      "zh": "因此只是 Blazor 把檔案寫到資料夾。"
+    },
+    {
+      "start": 633,
+      "end": 637,
+      "en": "And returning a conversation attachment.",
+      "zh": "最後回傳 ConversationAttachment。"
+    },
+    {
+      "start": 638,
+      "end": 642,
+      "en": "So nothing special there.",
+      "zh": "沒有什麼特別之處。"
+    },
+    {
+      "start": 648,
+      "end": 654,
+      "en": "We, of course, reset things on the fly, and we have our pending attachment.",
+      "zh": "當然也會即時重設狀態，清空待處理附件。"
+    },
+    {
+      "start": 654,
+      "end": 657,
+      "en": "So nothing major there.",
+      "zh": "這裡沒有重大改動。"
+    },
+    {
+      "start": 657,
+      "end": 666,
+      "en": "And again, whenever we send, we just get our new chat messages instead of the raw messages prior.",
+      "zh": "同樣地，每次送出時，現在取得轉換後的 ChatMessage，而不是直接使用先前的原始訊息。"
+    },
+    {
+      "start": 668,
+      "end": 677,
+      "en": "Inside the image generation tool, we just need to generate a conversation message instead of one with a raw message, so that's the only change there.",
+      "zh": "圖像生成工具中，也只要改成建立 ConversationMessage，而不是包含 RawMessage 的版本。"
+    },
+    {
+      "start": 677,
+      "end": 682,
+      "en": "There's a bit of CSS. We won't go too much into detail of that.",
+      "zh": "有一些 CSS 變更，這裡不詳細介紹。"
+    },
+    {
+      "start": 682,
+      "end": 689,
+      "en": "And we, of course, need to set our new singletons for our services,",
+      "zh": "也需要把新服務註冊為單例，"
+    },
+    {
+      "start": 689,
+      "end": 697,
+      "en": "and we need to use static files in order for us to work with these files.",
+      "zh": "並使用靜態檔案功能，才能提供這些檔案。"
+    },
+    {
+      "start": 697,
+      "end": 706,
+      "en": "And because we want to see the images on the screen, we also need a small map get in order for the GUI up front",
+      "zh": "因為要在畫面顯示圖片，還加入一個簡單的 MapGet，讓前端介面，"
+    },
+    {
+      "start": 706,
+      "end": 712,
+      "en": "to actually show the images on the fly as a service in here.",
+      "zh": "可以透過這個端點取得並顯示圖片。"
+    },
+    {
+      "start": 713,
+      "end": 716,
+      "en": "So that's actually everything there is to it.",
+      "zh": "完整內容就是這些。"
+    },
+    {
+      "start": 716,
+      "end": 722,
+      "en": "Again, it could have been much simpler because we just put in the content.",
+      "zh": "再次強調，核心可以更簡單，因為只是加入 Content。"
+    },
+    {
+      "start": 722,
+      "end": 732,
+      "en": "And if you want to see more, let me open that up because I do run all these other samples.",
+      "zh": "如果想看更多，我打開另一個範例，因為這些範例都有維護。"
+    },
+    {
+      "start": 732,
+      "end": 736,
+      "en": "So let me open up another Visual Studio.",
+      "zh": "再開啟一個 Visual Studio。"
+    },
+    {
+      "start": 739,
+      "end": 745,
+      "en": "Just if you want to be more familiar with the input.",
+      "zh": "如果想更熟悉輸入資料的做法，"
+    },
+    {
+      "start": 746,
+      "end": 757,
+      "en": "I have in my samples the input PDF and image, where you can see that I have some images of some board game,",
+      "zh": "範例裡有 Input PDF and Image，包含一些桌遊圖片，"
+    },
+    {
+      "start": 757,
+      "end": 769,
+      "en": "and this exact same code where we end up creating either local page images and making them into text content.",
+      "zh": "以及完全相同的程式碼，讀取本機圖片並建立對應的輸入 Content。"
+    },
+    {
+      "start": 769,
+      "end": 778,
+      "en": "We could also have made the images, make them be a URL, and then given the URL to the LLM,",
+      "zh": "也可以把圖片放在 URL，再把 URL 提供給 LLM，"
+    },
+    {
+      "start": 778,
+      "end": 784,
+      "en": "but that is not possible here because we are running local host, of course.",
+      "zh": "但這裡無法使用，因為在 localhost 執行。"
+    },
+    {
+      "start": 784,
+      "end": 788,
+      "en": "But I have more information, if need be, in that sample.",
+      "zh": "如果需要，該範例有更多資訊。"
+    },
+    {
+      "start": 790,
+      "end": 792,
+      "en": "But that's actually everything there is to it.",
+      "zh": "這次的內容就是這樣。"
+    },
+    {
+      "start": 792,
+      "end": 794,
+      "en": "It's a very simple part.",
+      "zh": "核心是很簡單的一部分。"
+    },
+    {
+      "start": 794,
+      "end": 799,
+      "en": "There is a few limitations in what I built here.",
+      "zh": "不過目前實作仍有幾項限制。"
+    },
+    {
+      "start": 799,
+      "end": 808,
+      "en": "So, for example, we haven't really built that the image generator together with the image recognizer can do things.",
+      "zh": "例如還沒有把圖像生成與圖像理解功能串接起來。"
+    },
+    {
+      "start": 808,
+      "end": 820,
+      "en": "So it's not like we can do the same as what they can do in ChatGPT that you can upload an image and say, now turn the background green, for example,",
+      "zh": "所以不像 ChatGPT，可以上傳圖片，再要求把背景改成綠色，"
+    },
+    {
+      "start": 820,
+      "end": 828,
+      "en": "or something like that. That doesn't really work here because we don't really have a concept of sending the existing image",
+      "zh": "或類似操作。這裡還不行，因為沒有把現有圖片，"
+    },
+    {
+      "start": 828,
+      "end": 833,
+      "en": "and actually doing image editing instead of image generation.",
+      "zh": "傳給圖像編輯，而不是圖像生成的機制。"
+    },
+    {
+      "start": 834,
+      "end": 841,
+      "en": "But that could be done, but I have chosen not to put this in right now.",
+      "zh": "當然做得到，只是目前選擇先不加入。"
+    },
+    {
+      "start": 841,
+      "end": 845,
+      "en": "We might do it at a fit-and-finish session at some point.",
+      "zh": "也許之後會在完善功能的單元處理。"
+    },
+    {
+      "start": 846,
+      "end": 849,
+      "en": "But that's everything there is for this today.",
+      "zh": "今天的內容就是這些。"
+    },
+    {
+      "start": 849,
+      "end": 851,
+      "en": "See you in the next one.",
+      "zh": "下一支影片見。"
+    }
+  ]
+}

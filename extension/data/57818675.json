@@ -1,0 +1,1457 @@
+{
+  "courseId": "6795111",
+  "lectureId": "57818675",
+  "title": "Optional: How to do Delta Ingestion",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6.28,
+      "en": "Hi, and welcome to this video about vector store deltas.",
+      "zh": "大家好，這段影片介紹向量儲存區的差異更新，也就是 Delta。"
+    },
+    {
+      "start": 6.28,
+      "end": 16,
+      "en": "So I have made a bunch of videos already about how you get started with RAC and RAC in general.",
+      "zh": "我已經錄過很多 RAG 入門與基本觀念的影片，"
+    },
+    {
+      "start": 16,
+      "end": 26.639,
+      "en": "But there is the thing about when you ingest data into RAC, and if you don't know what ingestion means, if you don't know what RAC is, then definitely go see my other videos",
+      "zh": "不過，把資料匯入 RAG 時，還有一些需要注意的事情。如果你不知道 Ingestion 或 RAG 是什麼，建議先看其他影片，"
+    },
+    {
+      "start": 26.639,
+      "end": 30.28,
+      "en": "before you go into this one.",
+      "zh": "再進入這段內容。"
+    },
+    {
+      "start": 30.28,
+      "end": 39.959,
+      "en": "Because this one is about what do you do day to day when your various data that needs to go into a vector store changes.",
+      "zh": "因為這次要談的是：平常要放進向量儲存區的資料改變時，應該怎麼處理。"
+    },
+    {
+      "start": 39.959,
+      "end": 44.88,
+      "en": "There might be new additions, there might be changes, there might be deletions, and so on.",
+      "zh": "可能新增資料、修改資料、刪除資料等等，"
+    },
+    {
+      "start": 44.88,
+      "end": 49.159,
+      "en": "And how do you actually take that into account?",
+      "zh": "要如何把這些變動反映進去？"
+    },
+    {
+      "start": 49.159,
+      "end": 56.119,
+      "en": "So I'm going to show various different methods, and they are all based on my experience throughout",
+      "zh": "我會展示幾種方式，都是根據自己建立向量儲存區的經驗，"
+    },
+    {
+      "start": 56.119,
+      "end": 63.599000000000004,
+      "en": "me making vector stores, from making them incorrect, to assuming it was correct, to",
+      "zh": "從一開始做錯、誤以為做對，"
+    },
+    {
+      "start": 63.599000000000004,
+      "end": 69.339,
+      "en": "actually finding real data ways of doing things.",
+      "zh": "一路到找出適合真實資料的處理方式。"
+    },
+    {
+      "start": 69.339,
+      "end": 78.599,
+      "en": "So what we're going to do is we're going to walk through this code, and here in the beginning we'll just quickly have a small summary of how vector stores work.",
+      "zh": "我們會逐段看程式碼，開頭先快速回顧向量儲存區如何運作。"
+    },
+    {
+      "start": 78.599,
+      "end": 83.9,
+      "en": "But again, we're not going to go into details in any way, see that in the other videos.",
+      "zh": "但不會深入細節，細節請參考其他影片。"
+    },
+    {
+      "start": 83.9,
+      "end": 93.66,
+      "en": "And then we're going to try and use various different data as they evolve over time.",
+      "zh": "接著，模擬資料隨時間改變，嘗試不同處理方式。"
+    },
+    {
+      "start": 93.66,
+      "end": 94.9,
+      "en": "So let's get into it.",
+      "zh": "現在開始。"
+    },
+    {
+      "start": 94.9,
+      "end": 105.22,
+      "en": "We just grab sequence like normal, and then we're going to do a little special in that we are on our Azure OpenAI client that we are going to use for embeddings.",
+      "zh": "一樣先讀取秘密設定，稍微特別的是，會在用來產生嵌入向量的 Azure OpenAI 用戶端上，"
+    },
+    {
+      "start": 105.22,
+      "end": 112.37899999999999,
+      "en": "We are attaching a handler so we can actually see when something is being called.",
+      "zh": "加入一個 Handler，方便看到實際呼叫。"
+    },
+    {
+      "start": 112.37899999999999,
+      "end": 121.139,
+      "en": "So we can check that there's actually been made a call up onto the online service where we essentially pay money for that.",
+      "zh": "如此就能確認，何時真的呼叫了會產生費用的線上服務。"
+    },
+    {
+      "start": 121.139,
+      "end": 129.66,
+      "en": "And we're going to write out exactly what was sent back and forward, because that's just what we saw in some of the other videos.",
+      "zh": "也會把來回內容印出來，這和之前一些影片示範的相同。"
+    },
+    {
+      "start": 129.66,
+      "end": 135.899,
+      "en": "But just so we know that there's actually a call. What else?",
+      "zh": "這裡只是方便確認，真的有發生服務呼叫。除此之外，"
+    },
+    {
+      "start": 135.899,
+      "end": 141.25900000000001,
+      "en": "It's an entire normal client, and we are going to make a normal embedding generator.",
+      "zh": "就是一般用戶端，再建立一般的嵌入產生器。"
+    },
+    {
+      "start": 141.25900000000001,
+      "end": 143.5,
+      "en": "Then we are going to make a vector store.",
+      "zh": "接著建立向量儲存區。"
+    },
+    {
+      "start": 143.5,
+      "end": 152.779,
+      "en": "In this case, we're doing in-memory vector stores, but had we done it with any of the others, it would have been exactly the same code.",
+      "zh": "這次使用記憶體內的向量儲存區，換成其他實作，程式碼也完全相同。"
+    },
+    {
+      "start": 152.779,
+      "end": 159.22,
+      "en": "Then we're going to make a collection, it's called knowledge space, and now comes the interesting part.",
+      "zh": "再建立名為 KnowledgeBase 的集合，接下來就是重點。"
+    },
+    {
+      "start": 159.22,
+      "end": 163.1,
+      "en": "Let me loop it down to here.",
+      "zh": "先往下移到這裡。"
+    },
+    {
+      "start": 163.1,
+      "end": 172.36,
+      "en": "We are going to import three vector records, and it's my normal knowledge space sample data here, but only three of them.",
+      "zh": "一開始匯入三筆向量記錄，使用平常的知識庫範例，但只取三筆。"
+    },
+    {
+      "start": 172.36,
+      "end": 176.119,
+      "en": "And I've given them an external ID, which haven't been there in the past.",
+      "zh": "這次多提供 External ID，先前沒有這個欄位。"
+    },
+    {
+      "start": 176.119,
+      "end": 183.96,
+      "en": "So this is just a normal question, answer an external ID record.",
+      "zh": "所以它就是一般的問題、答案與外部 ID 記錄。"
+    },
+    {
+      "start": 183.96,
+      "end": 189.47899999999998,
+      "en": "And what I'm simulating here is that, let's say this was day one of our vector store.",
+      "zh": "這裡模擬的是，向量儲存區第一天的資料。"
+    },
+    {
+      "start": 189.47899999999998,
+      "end": 195.08,
+      "en": "Day two, there has come a new addition.",
+      "zh": "第二天，新增加一筆資料，"
+    },
+    {
+      "start": 195.08,
+      "end": 206.36,
+      "en": "And day three, someone changed one of the knowledge space entries, so we also need to reflect that in the vector store, else we of course can't know.",
+      "zh": "第三天，有人修改一筆知識庫內容，向量儲存區也得同步，否則就無法知道。"
+    },
+    {
+      "start": 206.36,
+      "end": 211.279,
+      "en": "Someone deleted one of the records, and someone added one more.",
+      "zh": "另外，有人刪掉一筆，又有人新增一筆。"
+    },
+    {
+      "start": 211.279,
+      "end": 220.36,
+      "en": "So essentially, just data being manipulated in other systems, and need to be synchronized",
+      "zh": "基本上就是其他系統裡的資料變動，需要同步"
+    },
+    {
+      "start": 220.36,
+      "end": 224.8,
+      "en": "to the vector store, so it's still up to date.",
+      "zh": "到向量儲存區，讓資料保持最新。"
+    },
+    {
+      "start": 224.8,
+      "end": 230.039,
+      "en": "And then I have various different ways of running a vector store.",
+      "zh": "接著準備幾種不同的匯入方式。"
+    },
+    {
+      "start": 230.039,
+      "end": 237.559,
+      "en": "I have an incorrect way, this was actually the first one I did and didn't realize.",
+      "zh": "有一個錯誤版本，這確實是我最初寫的，當時沒有發現問題。"
+    },
+    {
+      "start": 237.559,
+      "end": 246.72,
+      "en": "Then there's an external ID as ID method, an inefficient one, and a delta one, and a",
+      "zh": "還有把 External ID 當 ID 的版本、低效率版本、差異更新版本，"
+    },
+    {
+      "start": 246.72,
+      "end": 249.039,
+      "en": "delta one with record reuse.",
+      "zh": "以及能重複使用既有記錄的差異更新版本。"
+    },
+    {
+      "start": 249.039,
+      "end": 251.8,
+      "en": "We're going to go through all of them.",
+      "zh": "我們會逐一看過。"
+    },
+    {
+      "start": 251.8,
+      "end": 262.559,
+      "en": "The first one here, we'll go into much details, and then we'll slowly go less and less details, because most of it will be the same with all the different methods, and we're going to",
+      "zh": "第一個會講得比較詳細，後面大部分相同，所以逐漸減少重複說明，專注在"
+    },
+    {
+      "start": 262.559,
+      "end": 266.6,
+      "en": "go into the differences between them.",
+      "zh": "各個版本之間的差異。"
+    },
+    {
+      "start": 266.6,
+      "end": 272,
+      "en": "So what I'm going to do is I'm going to run a stopwatch, and this is the first time we run a stopwatch.",
+      "zh": "我會啟動計時器。第一次量測，"
+    },
+    {
+      "start": 272.2,
+      "end": 277.2,
+      "en": "It will definitely be too high, of course, because we are going per breakthroughs here.",
+      "zh": "因為要一步步停在中斷點，時間當然會偏高。"
+    },
+    {
+      "start": 283.2,
+      "end": 289.359,
+      "en": "So the first one is our ingestion method, which is the incorrect way of doing things.",
+      "zh": "先看第一種匯入方式，也就是錯誤的做法。"
+    },
+    {
+      "start": 289.359,
+      "end": 295.72,
+      "en": "So we're going to go into that in a switch, so I have an ingestion method here that takes",
+      "zh": "透過 switch 進入對應的匯入方法，它會接收"
+    },
+    {
+      "start": 295.72,
+      "end": 302.679,
+      "en": "the data, and what we're about to do, we're about to put in v1 of the data.",
+      "zh": "資料，而這次準備匯入的是第一版資料。"
+    },
+    {
+      "start": 302.679,
+      "end": 308.92,
+      "en": "And in here, we're going to do it the incorrect way.",
+      "zh": "在這裡使用的是錯誤方式。"
+    },
+    {
+      "start": 308.92,
+      "end": 318.799,
+      "en": "This first time, technically not incorrect, because what we're going to do is we're going to ensure that the database exists, or the collection of the vector store exists.",
+      "zh": "不過第一次執行，技術上還看不出錯：先確保資料庫，也就是向量儲存區的集合存在。"
+    },
+    {
+      "start": 318.799,
+      "end": 324.6,
+      "en": "Then we're going to loop through each one of them, and then normally just do upsert",
+      "zh": "再逐筆處理資料，呼叫 Upsert，"
+    },
+    {
+      "start": 324.6,
+      "end": 331.839,
+      "en": "with a new grid for ID, external, question, and answer, just like we did in all the other videos.",
+      "zh": "每次用新的 Guid 作為 ID，再加上 External ID、問題、答案，和之前的影片一樣。"
+    },
+    {
+      "start": 331.839,
+      "end": 338.079,
+      "en": "And when we do that, we can see there's a call to the online service.",
+      "zh": "這時可以看到，真的呼叫了線上服務，"
+    },
+    {
+      "start": 338.079,
+      "end": 345.399,
+      "en": "One more call, one more call, and so on and so forth.",
+      "zh": "再呼叫一次，再一次，依此類推。"
+    },
+    {
+      "start": 345.399,
+      "end": 353,
+      "en": "Once we're done, embedding is complete, and we're going to go in and list the store.",
+      "zh": "完成之後，向量已建立，接著列出儲存區內容。"
+    },
+    {
+      "start": 353.399,
+      "end": 355.72,
+      "en": "This is something that we haven't looked at yet.",
+      "zh": "這個部分先前還沒仔細看過，"
+    },
+    {
+      "start": 355.72,
+      "end": 360.679,
+      "en": "How do you get all the records out of a vector store?",
+      "zh": "要如何取得向量儲存區的全部記錄呢？"
+    },
+    {
+      "start": 360.679,
+      "end": 364.679,
+      "en": "So it is just as easily as the insert.",
+      "zh": "其實和寫入一樣簡單，"
+    },
+    {
+      "start": 364.679,
+      "end": 367.92,
+      "en": "We have a getAsync.",
+      "zh": "有一個 GetAsync。"
+    },
+    {
+      "start": 367.92,
+      "end": 376.44,
+      "en": "So we ensure that the collection exists, and then we're going to make a wait for each here where we say getAsync.",
+      "zh": "先確保集合存在，再用 await foreach 呼叫 GetAsync。"
+    },
+    {
+      "start": 376.44,
+      "end": 386.2,
+      "en": "And getAsync will normally take a filter, meaning let's get all the records that have this value in a category or something like that.",
+      "zh": "GetAsync 通常會接收篩選條件，例如取出某分類中符合某個值的記錄。"
+    },
+    {
+      "start": 386.2,
+      "end": 390.72,
+      "en": "So this is just a lambda, but in my case, I just want everything.",
+      "zh": "這就是一個 Lambda；但這裡希望取得全部資料，"
+    },
+    {
+      "start": 390.72,
+      "end": 395.839,
+      "en": "So I'm just saying lambda true, meaning all records.",
+      "zh": "所以條件直接寫 true，表示所有記錄。"
+    },
+    {
+      "start": 395.839,
+      "end": 398.2,
+      "en": "And I'm saying, how many do you want?",
+      "zh": "再指定需要多少筆，"
+    },
+    {
+      "start": 398.2,
+      "end": 402.04,
+      "en": "I want all of them, so I just take int.maxValue.",
+      "zh": "我要全部，所以直接使用 int.MaxValue。"
+    },
+    {
+      "start": 402.04,
+      "end": 410.88,
+      "en": "And in my retrieval options, I'm saying I don't want the vector, because I don't really care about the vector in this scenario.",
+      "zh": "另外在 RetrievalOptions 裡設定不需要向量，因為這個情境不關心向量本身，"
+    },
+    {
+      "start": 410.88,
+      "end": 417.04,
+      "en": "I only want the raw data that we are actually putting in as metadata.",
+      "zh": "只需要原本放進去的中繼資料。"
+    },
+    {
+      "start": 417.04,
+      "end": 425.64,
+      "en": "And as a reminder, that's an ID, a question, an external ID, an answer, and the vector we don't care about.",
+      "zh": "回顧一下，包含 ID、問題、External ID、答案，以及這裡不需要的向量。"
+    },
+    {
+      "start": 425.64,
+      "end": 432.48,
+      "en": "I have something called lookupKey here, we will see what that is about in one second.",
+      "zh": "還有一個 LookupKey，等等就會介紹它的用途。"
+    },
+    {
+      "start": 432.48,
+      "end": 444.32,
+      "en": "But what I can essentially do here is I can loop through every single record and put them in an allRecords collection, meaning I'm just getting out all the three we had from",
+      "zh": "接著逐筆取出，放進 allRecords 集合，也就是把第一次匯入的三筆資料全部"
+    },
+    {
+      "start": 444.32,
+      "end": 447.32,
+      "en": "the first import.",
+      "zh": "讀出來。"
+    },
+    {
+      "start": 447.32,
+      "end": 449.72,
+      "en": "And then I'm just going to write those out.",
+      "zh": "然後把它們輸出。"
+    },
+    {
+      "start": 449.72,
+      "end": 456.679,
+      "en": "It says that the first one was v1, we need to import three records.",
+      "zh": "畫面顯示這是 V1，需要匯入三筆記錄，"
+    },
+    {
+      "start": 456.679,
+      "end": 461,
+      "en": "And as expected, there are three records in the vector store.",
+      "zh": "結果也如預期，向量儲存區裡有三筆。"
+    },
+    {
+      "start": 461.04,
+      "end": 468,
+      "en": "So I'm just going to go up here and set some breakpoints here.",
+      "zh": "在上面加幾個中斷點，"
+    },
+    {
+      "start": 468,
+      "end": 474.799,
+      "en": "So we can see that we get our three data out here.",
+      "zh": "可以看到三筆資料都取出來了。"
+    },
+    {
+      "start": 474.799,
+      "end": 481.64,
+      "en": "We get our three entries, their question, their answer, and their ID.",
+      "zh": "包含各自的問題、答案和 ID，"
+    },
+    {
+      "start": 481.64,
+      "end": 490.239,
+      "en": "And the IDs are just grids, because that was what we asked in the incorrect version here.",
+      "zh": "ID 都是 Guid，因為錯誤版本裡就是這樣指定的。"
+    },
+    {
+      "start": 490.239,
+      "end": 493.48,
+      "en": "So our import is correct.",
+      "zh": "所以第一次匯入是正確的，"
+    },
+    {
+      "start": 493.48,
+      "end": 499.88,
+      "en": "People can use the vector store for vector searches in AI, like always.",
+      "zh": "大家能像平常一樣，使用這個向量儲存區進行 AI 向量搜尋。"
+    },
+    {
+      "start": 499.88,
+      "end": 501.48,
+      "en": "But now comes day two.",
+      "zh": "但現在來到第二天。"
+    },
+    {
+      "start": 501.48,
+      "end": 506.519,
+      "en": "And again, day two, we add one more record.",
+      "zh": "第二天又增加了一筆資料，"
+    },
+    {
+      "start": 506.519,
+      "end": 509.44,
+      "en": "So we do exactly the same.",
+      "zh": "我們做完全相同的事情，"
+    },
+    {
+      "start": 509.44,
+      "end": 515.119,
+      "en": "We just loop through our data and upsert it.",
+      "zh": "逐筆走過資料並 Upsert。"
+    },
+    {
+      "start": 515.119,
+      "end": 521.32,
+      "en": "And this will go wrong, because now I'll just let it run again.",
+      "zh": "這就出問題了，先讓它繼續執行。"
+    },
+    {
+      "start": 521.32,
+      "end": 527.119,
+      "en": "Because there was four records, we called the vector store four times.",
+      "zh": "因為這次有四筆資料，所以呼叫了四次嵌入服務。"
+    },
+    {
+      "start": 527.119,
+      "end": 529.28,
+      "en": "And the embedding is complete.",
+      "zh": "向量產生完成，"
+    },
+    {
+      "start": 529.28,
+      "end": 536.84,
+      "en": "But what we are going to see is that we actually have seven records in the database.",
+      "zh": "但資料庫裡竟然有七筆記錄。"
+    },
+    {
+      "start": 536.84,
+      "end": 538.44,
+      "en": "And why do we have seven records?",
+      "zh": "為什麼會有七筆？"
+    },
+    {
+      "start": 538.44,
+      "end": 541.159,
+      "en": "That's because we're just giving new IDs.",
+      "zh": "因為每次都提供新的 ID。"
+    },
+    {
+      "start": 541.159,
+      "end": 547.4,
+      "en": "Every single time we do an upsert, we are actually just giving a brand new ID.",
+      "zh": "每次呼叫 Upsert，實際上都給了全新的 ID，"
+    },
+    {
+      "start": 547.4,
+      "end": 550.88,
+      "en": "So the same thing will be here twice.",
+      "zh": "所以同樣的資料會出現兩次。"
+    },
+    {
+      "start": 550.88,
+      "end": 552.76,
+      "en": "And it will go even further wrong.",
+      "zh": "後續還會越來越嚴重。"
+    },
+    {
+      "start": 552.76,
+      "end": 562.52,
+      "en": "Let me begin to have this in full screen while we run it.",
+      "zh": "先把執行畫面切成全螢幕，"
+    },
+    {
+      "start": 562.52,
+      "end": 571.44,
+      "en": "At the end, we will essentially end up with 11 records, same record multiple times, just with different IDs.",
+      "zh": "最後會得到十一筆記錄，同一份資料重複出現，只是 ID 不同。"
+    },
+    {
+      "start": 571.44,
+      "end": 576.039,
+      "en": "This was my first attempt back in 2024 when I made my first vector store.",
+      "zh": "這就是我在 2024 年第一次建立向量儲存區時的做法。"
+    },
+    {
+      "start": 576.039,
+      "end": 583.239,
+      "en": "I had not understood it correctly, and I ended up with things like this.",
+      "zh": "當時沒有理解正確，最後就變成這樣。"
+    },
+    {
+      "start": 583.239,
+      "end": 593.28,
+      "en": "Just so we can see, oh, let's wait with the times so far, that's not too important.",
+      "zh": "至於執行時間先不用管，目前不是重點。"
+    },
+    {
+      "start": 593.28,
+      "end": 597.599,
+      "en": "So that was incorrect version.",
+      "zh": "以上就是錯誤版本。"
+    },
+    {
+      "start": 597.599,
+      "end": 609.599,
+      "en": "Of course, you shouldn't do that, but just so you understand that when you ingest and you say upsert with an ID, of course, it will get a random ID and begin to run.",
+      "zh": "當然不應這樣做，但要理解：Upsert 根據 ID 判斷資料；如果一直給隨機 ID，就會一直新增。"
+    },
+    {
+      "start": 609.599,
+      "end": 618.84,
+      "en": "So now you might think, okay, I have an external ID, so I can fix this.",
+      "zh": "你可能會想，既然有 External ID，應該可以解決。"
+    },
+    {
+      "start": 618.84,
+      "end": 631.88,
+      "en": "I can just, when we run this again, and let's jump into the ingestion.",
+      "zh": "重新執行，進入匯入方法，"
+    },
+    {
+      "start": 631.88,
+      "end": 634.359,
+      "en": "And now we're going into a different ingestion.",
+      "zh": "這次換成另一個版本。"
+    },
+    {
+      "start": 634.359,
+      "end": 641.28,
+      "en": "And the only difference is that the ID is not just a GWT anymore, but now the external ID.",
+      "zh": "唯一差別是，ID 不再是隨機 Guid，而是使用 External ID。"
+    },
+    {
+      "start": 641.28,
+      "end": 652.64,
+      "en": "So each of these records have an ID, one, two, three, and a new record comes along here, which is four, and a new record comes along here, which is five.",
+      "zh": "每筆記錄都有固定 ID：一、二、三，新增的資料是四，再新增的是五。"
+    },
+    {
+      "start": 652.64,
+      "end": 656.719,
+      "en": "So we might think, okay, now we're safe.",
+      "zh": "你可能以為，這樣就安全了。"
+    },
+    {
+      "start": 656.719,
+      "end": 666.679,
+      "en": "So let's run this to the end and actually see the result.",
+      "zh": "先讓它執行完，看看結果，"
+    },
+    {
+      "start": 666.679,
+      "end": 668.919,
+      "en": "And as we see, it looks correct.",
+      "zh": "乍看之下確實正確，"
+    },
+    {
+      "start": 668.919,
+      "end": 671.2,
+      "en": "The IDs are now one, two, and three.",
+      "zh": "ID 現在是一、二、三。"
+    },
+    {
+      "start": 671.2,
+      "end": 681.08,
+      "en": "I'm just sorting these by text, so that's the reason why they're in different orders.",
+      "zh": "我只是按照文字排序，所以顯示順序和剛才不同。"
+    },
+    {
+      "start": 681.08,
+      "end": 691.559,
+      "en": "And if we let it run through all three imports, we would expect it to be right, but it's actually not 100% correct.",
+      "zh": "三次匯入跑完，本來以為會正確，但其實還沒有完全正確。"
+    },
+    {
+      "start": 691.559,
+      "end": 699.26,
+      "en": "Because up here, we embedded three records, then we added one more record, and we ended up with four.",
+      "zh": "第一次匯入三筆，第二次新增一筆，所以有四筆，"
+    },
+    {
+      "start": 699.32,
+      "end": 705.02,
+      "en": "And then we deleted one and added one, and now we ended up with five records.",
+      "zh": "第三次刪除一筆、新增一筆，結果卻變成五筆。"
+    },
+    {
+      "start": 705.02,
+      "end": 714.14,
+      "en": "Because up here, in version three, we wanted to delete the thing about Christmas Eve, but still here.",
+      "zh": "因為第三版本來想刪掉平安夜那筆資料，但它還在，"
+    },
+    {
+      "start": 714.14,
+      "end": 721.02,
+      "en": "Because we don't take into account which records are not in list of data.",
+      "zh": "我們沒有處理來源清單裡已經消失的記錄。"
+    },
+    {
+      "start": 721.02,
+      "end": 727.299,
+      "en": "We're just inserting what is there, but we're not getting rid of anything at any point.",
+      "zh": "只是寫入目前有的資料，從未刪除任何資料。"
+    },
+    {
+      "start": 727.34,
+      "end": 732.82,
+      "en": "And of course, we need to do something about that.",
+      "zh": "所以這點也需要處理。"
+    },
+    {
+      "start": 732.82,
+      "end": 743.34,
+      "en": "So the third way, which I started out doing in the beginning, is the inefficient way.",
+      "zh": "第三種，就是我早期也用過的低效率方式。"
+    },
+    {
+      "start": 743.34,
+      "end": 749.5,
+      "en": "And the inefficient way, if I let it run here, it's very, very simple.",
+      "zh": "做法非常簡單，讓它執行一下，"
+    },
+    {
+      "start": 749.5,
+      "end": 759.099,
+      "en": "Imagine that we go in, and when we ingest, we simply go in and delete the data and create it again.",
+      "zh": "每次匯入時，直接刪除所有資料，再重新建立。"
+    },
+    {
+      "start": 759.099,
+      "end": 768.82,
+      "en": "So we essentially just emptying out the entire vector store for that specific index and creating it again.",
+      "zh": "也就是把特定索引的整個向量儲存區清空，重新建立。"
+    },
+    {
+      "start": 768.82,
+      "end": 783.059,
+      "en": "Because when we do that, let it run, get rid of these, of course, we get the right data.",
+      "zh": "這樣執行後，當然能取得正確資料。"
+    },
+    {
+      "start": 783.059,
+      "end": 793.2,
+      "en": "So the first time, three records, three embeddings, and the three records, four records, and at the end, we get the four records as we want.",
+      "zh": "第一次三筆、產生三個向量，再來四筆，最後仍然是我們要的四筆。"
+    },
+    {
+      "start": 793.2,
+      "end": 796.52,
+      "en": "So you might think this is good.",
+      "zh": "你可能覺得這樣很好，"
+    },
+    {
+      "start": 796.52,
+      "end": 805.64,
+      "en": "And in our case, with only four or five records here, we can both handle it cost-wise and time-wise.",
+      "zh": "目前只有四、五筆，不管費用還是時間，都還能接受。"
+    },
+    {
+      "start": 805.64,
+      "end": 813.599,
+      "en": "But essentially, we're just deleting everything and putting it in again.",
+      "zh": "但本質上，就是把全部刪掉，再全部重建。"
+    },
+    {
+      "start": 813.599,
+      "end": 817.119,
+      "en": "That can be a problem for many different reasons.",
+      "zh": "這會造成好幾種問題。"
+    },
+    {
+      "start": 817.119,
+      "end": 819.419,
+      "en": "First off, it's very inefficient.",
+      "zh": "首先，效率非常差，"
+    },
+    {
+      "start": 819.419,
+      "end": 829.02,
+      "en": "We are doing embedding services for every single time, despite, in our case, three of the records haven't changed at all.",
+      "zh": "每次都要呼叫嵌入服務，即使這個例子中有三筆根本沒變。"
+    },
+    {
+      "start": 829.02,
+      "end": 835.9,
+      "en": "We only changed one, from guest 42 to guest 43 of the Wi-Fi password.",
+      "zh": "真正改變的只有 Wi-Fi 密碼，從 guest42 改為 guest43。"
+    },
+    {
+      "start": 835.9,
+      "end": 839.9,
+      "en": "But we get rid of the deleted one by being grouped.",
+      "zh": "不過，全部重建確實也順便清除了已刪除資料。"
+    },
+    {
+      "start": 839.9,
+      "end": 844.34,
+      "en": "But let's imagine you had a thousand of these.",
+      "zh": "但想像如果有一千筆，"
+    },
+    {
+      "start": 844.34,
+      "end": 851.979,
+      "en": "This actually takes quite a while, and it's a request response to a vector store.",
+      "zh": "每筆都要請求服務，就會花不少時間，"
+    },
+    {
+      "start": 851.979,
+      "end": 855.7,
+      "en": "So it takes quite a while to do this.",
+      "zh": "整個過程可能很久，"
+    },
+    {
+      "start": 855.7,
+      "end": 859.539,
+      "en": "And also, every single one of them costs money.",
+      "zh": "而且每一筆都要付費。"
+    },
+    {
+      "start": 859.539,
+      "end": 866.599,
+      "en": "And the side effect is, of course, also, if we just delete and then insert, while between",
+      "zh": "另一個副作用是，刪除後再新增的這段期間，"
+    },
+    {
+      "start": 866.599,
+      "end": 876.9,
+      "en": "delete and insert, nobody can use that vector store because it essentially is empty and will not give any data back.",
+      "zh": "沒有人能正常使用向量儲存區，因為裡面是空的，不會回傳資料。"
+    },
+    {
+      "start": 876.9,
+      "end": 884.739,
+      "en": "So while it works, it can be a problem, of course.",
+      "zh": "所以雖然能運作，還是有問題。"
+    },
+    {
+      "start": 884.739,
+      "end": 890.419,
+      "en": "That's why, whenever I do this, I do a delta.",
+      "zh": "這就是為什麼我現在都採用差異更新，"
+    },
+    {
+      "start": 890.419,
+      "end": 892.46,
+      "en": "I always do a delta.",
+      "zh": "也就是 Delta。"
+    },
+    {
+      "start": 892.46,
+      "end": 899.859,
+      "en": "So let's see how a delta is done because it's a little more involved, but it has various",
+      "zh": "看看 Delta 怎麼做。它稍微複雜一些，但有很多"
+    },
+    {
+      "start": 899.859,
+      "end": 905.78,
+      "en": "different properties that makes it much more efficient.",
+      "zh": "特性，讓效率好得多。"
+    },
+    {
+      "start": 905.78,
+      "end": 915.859,
+      "en": "So when we run and we go to our first ingestion, we start by getting all existing records,",
+      "zh": "第一次匯入時，先讀取所有既有記錄，"
+    },
+    {
+      "start": 915.859,
+      "end": 918.28,
+      "en": "just like we do when we read them out.",
+      "zh": "和剛才列出資料的方法相同。"
+    },
+    {
+      "start": 918.28,
+      "end": 923.46,
+      "en": "And of course, since this is a new one, new run, we have zero records.",
+      "zh": "因為是全新的一次執行，當然是零筆。"
+    },
+    {
+      "start": 923.46,
+      "end": 927.38,
+      "en": "And then we keep track of what are the active IDs.",
+      "zh": "接著記錄本輪哪些 ID 仍然有效，"
+    },
+    {
+      "start": 927.38,
+      "end": 934.14,
+      "en": "We are creating our table need be, and then we're going to go through every one of them.",
+      "zh": "必要時建立集合，再逐筆處理資料。"
+    },
+    {
+      "start": 934.14,
+      "end": 939.78,
+      "en": "And in this case, we are simulating that we can't have an external ID.",
+      "zh": "這個版本先假設，我們無法使用 External ID，"
+    },
+    {
+      "start": 939.78,
+      "end": 941.539,
+      "en": "We don't have it.",
+      "zh": "沒有可用的外部識別碼，"
+    },
+    {
+      "start": 941.539,
+      "end": 942.9,
+      "en": "Just ignore it here.",
+      "zh": "先忽略這個欄位。"
+    },
+    {
+      "start": 942.9,
+      "end": 949.46,
+      "en": "But we need to set in new grids every single time.",
+      "zh": "因此每次仍必須產生新的 Guid。"
+    },
+    {
+      "start": 949.46,
+      "end": 955.5,
+      "en": "But what we can do is we can check the records if any of them matches.",
+      "zh": "不過，可以比對既有記錄，看看是否有符合的資料。"
+    },
+    {
+      "start": 955.5,
+      "end": 965.78,
+      "en": "And matches meaning all of the vector stored data fields except the key are if they are the same or not.",
+      "zh": "符合的意思，是除了鍵值之外，所有 VectorStoreData 欄位都相同。"
+    },
+    {
+      "start": 965.78,
+      "end": 971.46,
+      "en": "We don't care about the vector because we don't want to check if the vector is the same.",
+      "zh": "不用比較向量本身，因為不想靠向量判斷是否更新，"
+    },
+    {
+      "start": 971.46,
+      "end": 974.78,
+      "en": "It will always be the same if it's based on the same data.",
+      "zh": "相同來源資料所產生的向量，應該相同。"
+    },
+    {
+      "start": 974.78,
+      "end": 979.64,
+      "en": "And in this case, our vector is based on the question and the answer.",
+      "zh": "這個例子中，向量來源是問題和答案。"
+    },
+    {
+      "start": 979.64,
+      "end": 985.659,
+      "en": "But the record might be different because we have an external ID or we could have a create date or update date.",
+      "zh": "但記錄還可能包含 External ID、建立日期或更新日期，所以整筆資料仍可能不同。"
+    },
+    {
+      "start": 985.659,
+      "end": 993.58,
+      "en": "And in terms of creating update dates can also help be a different approach to figuring out what should actually be updated.",
+      "zh": "其實建立、更新日期也能作為另一種判斷方式，決定哪些資料要更新。"
+    },
+    {
+      "start": 993.58,
+      "end": 1002.099,
+      "en": "If you have directly an update date, you could begin and say only the things that have actually changed since last time.",
+      "zh": "如果有更新日期，就能只處理上次同步後真正改變的內容。"
+    },
+    {
+      "start": 1002.099,
+      "end": 1004.539,
+      "en": "But in our case, we don't have that.",
+      "zh": "但這裡沒有這類資訊，"
+    },
+    {
+      "start": 1004.539,
+      "end": 1007.059,
+      "en": "We only have the fields.",
+      "zh": "只有這些欄位。"
+    },
+    {
+      "start": 1007.059,
+      "end": 1010.82,
+      "en": "So what we're essentially just doing is we're making a little lookup key.",
+      "zh": "所以我們建立一個小小的 LookupKey，"
+    },
+    {
+      "start": 1010.82,
+      "end": 1023.299,
+      "en": "Meaning this string represent the data that are actually here except the ID and the vector.",
+      "zh": "用這個字串代表除了 ID 和向量之外的資料內容。"
+    },
+    {
+      "start": 1023.299,
+      "end": 1034.739,
+      "en": "And for that reason, we can go in and check among all the records, do this specific record here, which is our question about Wi-Fi password.",
+      "zh": "如此就能在既有記錄中確認，這筆 Wi-Fi 密碼資料，"
+    },
+    {
+      "start": 1034.739,
+      "end": 1040.619,
+      "en": "Is it already something that are in the vector store with exactly the same data?",
+      "zh": "是否已經以完全相同的內容存在於向量儲存區。"
+    },
+    {
+      "start": 1040.619,
+      "end": 1047.099,
+      "en": "And in our case, it's not because it's the first time we run it, we have zero records.",
+      "zh": "這次沒有，因為是第一次執行，原本零筆資料。"
+    },
+    {
+      "start": 1047.099,
+      "end": 1056.54,
+      "en": "For that reason, we insert it until that ID we have just assigned here is an active ID.",
+      "zh": "因此寫入它，並把剛分配的 ID 標記為有效。"
+    },
+    {
+      "start": 1056.54,
+      "end": 1064.619,
+      "en": "Same one will happen exactly the same because we started out with zero data in the vector store.",
+      "zh": "其他資料也都相同，因為原本向量儲存區是空的。"
+    },
+    {
+      "start": 1064.619,
+      "end": 1073.78,
+      "en": "And at the end, we need to check, are any of the records in the system not an active record?",
+      "zh": "最後檢查，原有系統裡是否有任何記錄，不在本次有效 ID 清單中，"
+    },
+    {
+      "start": 1073.78,
+      "end": 1076.579,
+      "en": "Meaning zero except from three.",
+      "zh": "也就是從原本的零筆，排除這次的三個 ID。"
+    },
+    {
+      "start": 1076.579,
+      "end": 1078.9,
+      "en": "Of course, that means none.",
+      "zh": "當然沒有任何記錄，"
+    },
+    {
+      "start": 1078.9,
+      "end": 1081.9,
+      "en": "So there's nothing to delete.",
+      "zh": "所以不需要刪除。"
+    },
+    {
+      "start": 1081.9,
+      "end": 1084.14,
+      "en": "But if there were, we could.",
+      "zh": "但如果有，就能刪掉，"
+    },
+    {
+      "start": 1084.14,
+      "end": 1087.819,
+      "en": "And we will see that in one second.",
+      "zh": "等等馬上會看到。"
+    },
+    {
+      "start": 1087.819,
+      "end": 1094.26,
+      "en": "Because now when we go to day two in the same system here, we're again going to read",
+      "zh": "現在進入同一個系統的第二天，再次讀取"
+    },
+    {
+      "start": 1094.26,
+      "end": 1103.619,
+      "en": "all the records, there's three, and we're going to go through each one of them here and find the match.",
+      "zh": "全部記錄，共有三筆，再逐筆尋找相符資料。"
+    },
+    {
+      "start": 1103.619,
+      "end": 1111.26,
+      "en": "So the first one here is our Wi-Fi password match, and it already has a match in the database.",
+      "zh": "第一筆 Wi-Fi 密碼，在資料庫裡已經有完全相同的記錄，"
+    },
+    {
+      "start": 1111.26,
+      "end": 1122.78,
+      "en": "All the data in the lookup key will be exactly the same because the external ID didn't change, the question didn't change, and the answer didn't change.",
+      "zh": "LookupKey 的所有資料都相同，因為外部 ID、問題、答案都沒有變。"
+    },
+    {
+      "start": 1122.78,
+      "end": 1125.18,
+      "en": "So for that reason, we just say it's unchanged.",
+      "zh": "因此直接標記為未變更，"
+    },
+    {
+      "start": 1125.18,
+      "end": 1132.78,
+      "en": "We don't need to call the upsert because it will just end up being the same data in the database.",
+      "zh": "不需要呼叫 Upsert，因為寫回去也只是同樣的資料，"
+    },
+    {
+      "start": 1132.78,
+      "end": 1135.78,
+      "en": "Not like a vector will change over time.",
+      "zh": "向量不會自己隨時間變化。"
+    },
+    {
+      "start": 1139.66,
+      "end": 1145.38,
+      "en": "Second, we go in and check the Christmas Eve one.",
+      "zh": "第二筆檢查平安夜的問題，"
+    },
+    {
+      "start": 1145.38,
+      "end": 1148.38,
+      "en": "It is also unchanged.",
+      "zh": "也沒有變更。"
+    },
+    {
+      "start": 1148.38,
+      "end": 1154.38,
+      "en": "Third one, after registered vacation, it's also unchanged.",
+      "zh": "第三筆是如何申請休假，同樣沒變。"
+    },
+    {
+      "start": 1154.38,
+      "end": 1164.38,
+      "en": "While the last one, which is our new question in this day two about what to do if you're sick,",
+      "zh": "最後一筆，則是第二天新增的「生病時該怎麼做？」。"
+    },
+    {
+      "start": 1164.38,
+      "end": 1171.38,
+      "en": "it doesn't find any match because it's a new entry, and it makes it as a new entry.",
+      "zh": "找不到相符資料，因為它是新記錄，所以新增。"
+    },
+    {
+      "start": 1172.38,
+      "end": 1183.38,
+      "en": "In this case, there's nothing to delete because all the records are still records that need to exist, so we don't need to delete anything.",
+      "zh": "這次也沒有要刪除的資料，因為所有原本的記錄都還需要存在。"
+    },
+    {
+      "start": 1183.38,
+      "end": 1195.38,
+      "en": "And then comes day three, and if we look at day three, we change the password, we delete Christmas Eve here, and we add employee handbook.",
+      "zh": "第三天則修改密碼、刪除平安夜的問題，再加上員工手冊。"
+    },
+    {
+      "start": 1196.38,
+      "end": 1199.38,
+      "en": "So we go to again, get all the records.",
+      "zh": "所以一樣先取回所有記錄，"
+    },
+    {
+      "start": 1199.38,
+      "end": 1202.38,
+      "en": "In this case, we now have four.",
+      "zh": "這時共有四筆。"
+    },
+    {
+      "start": 1202.38,
+      "end": 1205.38,
+      "en": "Go to the first one.",
+      "zh": "處理第一筆，"
+    },
+    {
+      "start": 1205.38,
+      "end": 1215.38,
+      "en": "That is not a match anymore because the question has a different answer, and for that reason, we go in and actually do an upsert.",
+      "zh": "已經找不到相符內容，因為同一個問題的答案變了，因此真的呼叫 Upsert。"
+    },
+    {
+      "start": 1215.38,
+      "end": 1220.38,
+      "en": "In this case, we are just making a new record.",
+      "zh": "這個版本會建立新記錄，"
+    },
+    {
+      "start": 1221.38,
+      "end": 1229.38,
+      "en": "The reason why it's new is because what we're about to insert here actually have a different ID.",
+      "zh": "原因是準備寫入的資料，使用不同的 ID。"
+    },
+    {
+      "start": 1229.38,
+      "end": 1235.38,
+      "en": "Could we have found the ID and reused it? Yes.",
+      "zh": "能不能找到原本的 ID，再利用它？可以。"
+    },
+    {
+      "start": 1235.38,
+      "end": 1242.38,
+      "en": "But I'm just trying to show you this in order to choose, but we could go in from the match record,",
+      "zh": "這裡只是展示另一種選擇；可以從匹配資料中取得，"
+    },
+    {
+      "start": 1242.38,
+      "end": 1250.38,
+      "en": "or we could go in and begin to find it among all these that have the same lookup key and set them.",
+      "zh": "或以其他條件找出對應記錄，再把 ID 放進來。"
+    },
+    {
+      "start": 1250.38,
+      "end": 1257.38,
+      "en": "But in many cases, it's not worth doing because it's just extra lookups.",
+      "zh": "但有很多情況，額外查找不值得。"
+    },
+    {
+      "start": 1257.38,
+      "end": 1260.38,
+      "en": "Second one is our vacation.",
+      "zh": "第二筆是休假問題，"
+    },
+    {
+      "start": 1260.38,
+      "end": 1265.38,
+      "en": "Haven't changed, so we just go into unchanged.",
+      "zh": "沒有改變，所以歸類為未變更。"
+    },
+    {
+      "start": 1265.38,
+      "end": 1275.38,
+      "en": "Third one is our unchanged one about what you do if you're sick.",
+      "zh": "第三筆生病時該怎麼做，也沒有改變。"
+    },
+    {
+      "start": 1275.38,
+      "end": 1286.38,
+      "en": "And the fourth one is a record about employee handbook.",
+      "zh": "第四筆則是新加入的員工手冊。"
+    },
+    {
+      "start": 1286.38,
+      "end": 1298.38,
+      "en": "So now we have gone through the four, but in the database, there were four already, but one of them have been deleted, meaning the one that was up here.",
+      "zh": "現在四筆處理完成，原本資料庫也有四筆，但其中一筆已從來源刪除，也就是上面的那筆，"
+    },
+    {
+      "start": 1298.38,
+      "end": 1307.38,
+      "en": "We deleted Christmas Eve, so we didn't ever run that through, and for that reason, it will end up in what have been removed.",
+      "zh": "平安夜沒有出現在本輪處理過程，因此最後會被歸入已移除的資料。"
+    },
+    {
+      "start": 1307.38,
+      "end": 1313.38,
+      "en": "And we see two things being removed, and that's because we gave a new ID up here.",
+      "zh": "可以看到這裡刪了兩筆，是因為 Wi-Fi 那筆剛才使用了新 ID。"
+    },
+    {
+      "start": 1313.38,
+      "end": 1322.38,
+      "en": "And what we could have done is, of course, find that instead,",
+      "zh": "當然，也可以設法找到原本那一筆，"
+    },
+    {
+      "start": 1322.38,
+      "end": 1334.38,
+      "en": "but as we didn't in this case, we just get system and we go in.",
+      "zh": "但這個範例沒有，所以就採用新增、刪除的方式。"
+    },
+    {
+      "start": 1334.38,
+      "end": 1340.38,
+      "en": "Because we can't really find the record, because how would we among these three find the real record?",
+      "zh": "因為沒有固定識別碼時，要怎麼在這幾筆中找出原來那一筆呢？"
+    },
+    {
+      "start": 1340.38,
+      "end": 1345.38,
+      "en": "Because none of them will fit exactly the lookup key.",
+      "zh": "沒有任何記錄的 LookupKey 完全相同，"
+    },
+    {
+      "start": 1345.38,
+      "end": 1353.38,
+      "en": "None of them will fit anything except the external ID, but that will be the next one down here.",
+      "zh": "除了 External ID 以外沒有固定條件，而那是下一個版本的內容。"
+    },
+    {
+      "start": 1353.38,
+      "end": 1363.38,
+      "en": "So we can't really reuse anything if we don't have anything to match it against, and the matching is not fixed.",
+      "zh": "所以如果沒有固定的比對條件，就無法可靠地重複使用原記錄。"
+    },
+    {
+      "start": 1363.38,
+      "end": 1371.38,
+      "en": "So what we end up doing, and let's see the final output, is in the first one,",
+      "zh": "最後看輸出結果，第一次，"
+    },
+    {
+      "start": 1371.38,
+      "end": 1378.38,
+      "en": "we call the embedding service three times, because we insert the first three already.",
+      "zh": "呼叫三次嵌入服務，因為最初新增三筆資料。"
+    },
+    {
+      "start": 1378.38,
+      "end": 1384.38,
+      "en": "In the second one, where we only added one, we only spent money once.",
+      "zh": "第二次只新增一筆，因此只花一次費用，"
+    },
+    {
+      "start": 1384.38,
+      "end": 1392.38,
+      "en": "We only called the embedding service once for the new one, which were about if you were sick.",
+      "zh": "也就是只有新加入的生病請假問題，需要呼叫嵌入服務。"
+    },
+    {
+      "start": 1392.38,
+      "end": 1400.38,
+      "en": "The other ones are still just the same, because we don't even touch the vector store.",
+      "zh": "其他資料完全沒碰到向量儲存區，所以保持原樣。"
+    },
+    {
+      "start": 1400.38,
+      "end": 1407.38,
+      "en": "While in the third one, we end up calling two times.",
+      "zh": "第三次則呼叫兩次，"
+    },
+    {
+      "start": 1407.38,
+      "end": 1416.38,
+      "en": "Once for the Wi-Fi password, because we changed, and once for the employee handbook, because it's new.",
+      "zh": "一次是改變的 Wi-Fi 密碼，一次是新增的員工手冊，"
+    },
+    {
+      "start": 1416.38,
+      "end": 1419.38,
+      "en": "There we need to, of course, do real upsearch.",
+      "zh": "這兩筆才真的需要 Upsert。"
+    },
+    {
+      "start": 1423.38,
+      "end": 1431.38,
+      "en": "And what we will see is also that the Wi-Fi password once ID have changed,",
+      "zh": "同時可以看到，Wi-Fi 密碼那筆的 ID 改變了，"
+    },
+    {
+      "start": 1431.38,
+      "end": 1439.38,
+      "en": "because we essentially just deleted the old one and created the new one, because we didn't have anything to match it by.",
+      "zh": "因為實際上是刪掉舊記錄、建立新記錄，沒有固定資訊能識別它。"
+    },
+    {
+      "start": 1440.38,
+      "end": 1447.38,
+      "en": "So for that reason, we see a different ID, but we still end up with the right ones.",
+      "zh": "所以 ID 不同，但最後資料仍然正確。"
+    },
+    {
+      "start": 1447.38,
+      "end": 1453.38,
+      "en": "And that is, in many cases, if we don't have an ID we can reuse for anything,",
+      "zh": "很多情況下，如果沒有可重複使用的 ID，"
+    },
+    {
+      "start": 1453.38,
+      "end": 1460.38,
+      "en": "a perfectly good, valid system, because we're not spending more on embedded services.",
+      "zh": "這就是完全合理的方案，因為沒有多花嵌入服務費用，"
+    },
+    {
+      "start": 1460.38,
+      "end": 1465.38,
+      "en": "We are only getting a new ID, which didn't give us any value in the past anyway.",
+      "zh": "只是得到新的 ID，而舊 ID 本來就沒有其他用途。"
+    },
+    {
+      "start": 1466.38,
+      "end": 1476.38,
+      "en": "The last one I want to show is if we actually have an ID that we can reuse for anything.",
+      "zh": "最後要展示的是，真的有可重複使用的 ID 時，該怎麼處理。"
+    },
+    {
+      "start": 1476.38,
+      "end": 1488.38,
+      "en": "And it's fairly simple, because if we just say we'd reuse here and run it again, there is not really any change.",
+      "zh": "做法很簡單，這裡改成重複使用，再跑一次，其他幾乎沒有差別。"
+    },
+    {
+      "start": 1489.38,
+      "end": 1499.38,
+      "en": "The only change is that since we have an ID, we'd use that as an ID.",
+      "zh": "唯一差異，是既然有固定 ID，就直接把它當作 ID，"
+    },
+    {
+      "start": 1499.38,
+      "end": 1507.38,
+      "en": "We use something that is internal ID, and it's a good idea to often do the same ID if you can.",
+      "zh": "使用內部固定識別碼；能維持相同 ID 時，通常這樣做比較好。"
+    },
+    {
+      "start": 1508.38,
+      "end": 1519.38,
+      "en": "And by doing that, the vector match will happen, but the IDs will be the same whenever something changes.",
+      "zh": "如此一來，同樣會比對向量資料，但資料改變時，ID 仍保持相同，"
+    },
+    {
+      "start": 1519.38,
+      "end": 1524.38,
+      "en": "And for that reason, it will be a real update.",
+      "zh": "所以就是真正的更新。"
+    },
+    {
+      "start": 1524.38,
+      "end": 1530.38,
+      "en": "So when we run this through the end, we'll again see the same efficiency,",
+      "zh": "把程式執行完，也會看到相同的效率，"
+    },
+    {
+      "start": 1531.38,
+      "end": 1538.38,
+      "en": "with our 3, 2, and 1 here, adding the new one, the fourth one here.",
+      "zh": "第一次三筆，後續只處理有變動的內容，例如這裡新增的第四筆。"
+    },
+    {
+      "start": 1538.38,
+      "end": 1549.38,
+      "en": "And in our delta, where we delete and update, we can see that this one doesn't change ID, because it can do a real upsert.",
+      "zh": "到了刪除和更新的差異處理，可以看到這筆 ID 不變，因為這次是真正的 Upsert。"
+    },
+    {
+      "start": 1549.38,
+      "end": 1554.38,
+      "en": "And for that reason, we're not adding a record and deleting a record.",
+      "zh": "因此不需要新增一筆再刪掉一筆，"
+    },
+    {
+      "start": 1554.38,
+      "end": 1557.38,
+      "en": "Same efficiency, but now we can reuse.",
+      "zh": "效率相同，但現在可以重複使用記錄。"
+    },
+    {
+      "start": 1557.38,
+      "end": 1563.38,
+      "en": "So of course, if you have IDs that doesn't change along the way, it's perfectly fine to do.",
+      "zh": "所以，如果有一路保持不變的 ID，直接使用它當然很好。"
+    },
+    {
+      "start": 1563.38,
+      "end": 1575.38,
+      "en": "But no matter what, you need to do the delta scenario, because when we saw with just using IDs, we didn't get rid of the deleted records.",
+      "zh": "不過無論如何，仍然需要差異處理，因為剛才單純固定 ID 的做法，沒有清掉已刪除記錄。"
+    },
+    {
+      "start": 1578.38,
+      "end": 1582.38,
+      "en": "So that is actually everything in this.",
+      "zh": "以上就是全部內容。"
+    },
+    {
+      "start": 1583.38,
+      "end": 1587.38,
+      "en": "The source code is up on GitHub, and you can just grab it,",
+      "zh": "原始碼放在 GitHub，可以直接取得，"
+    },
+    {
+      "start": 1589.38,
+      "end": 1593.38,
+      "en": "and grab this set of IDs.",
+      "zh": "也可以參考這組 ID 處理方式。"
+    },
+    {
+      "start": 1593.38,
+      "end": 1603.38,
+      "en": "It's a very common pattern of doing deltas, but something you need to be aware of, and I haven't used in the previous session,",
+      "zh": "差異更新是非常常見的模式，但需要特別注意；之前課程沒有使用，所以"
+    },
+    {
+      "start": 1603.38,
+      "end": 1605.38,
+      "en": "so I wanted to make this video.",
+      "zh": "我想另外錄這段影片。"
+    },
+    {
+      "start": 1605.38,
+      "end": 1609.38,
+      "en": "So with that, thank you, and see you in the next one.",
+      "zh": "謝謝觀看，我們下段影片見。"
+    }
+  ]
+}

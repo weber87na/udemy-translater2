@@ -1,0 +1,563 @@
+{
+  "courseId": "6795111",
+  "lectureId": "56791269",
+  "title": "Let's build a Chatbot - Streaming (Part 5)",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 9.5,
+      "en": "In this part of let's build a chatbot in Microsoft Agent Framework, we're going to look still in Blazor Server and how we do streaming.",
+      "zh": "這個使用 Microsoft Agent Framework 打造聊天機器人的單元，繼續介紹 Blazor Server，以及如何實作串流。"
+    },
+    {
+      "start": 10,
+      "end": 14.5,
+      "en": "And because it's Blazor Server, streaming is fairly simple.",
+      "zh": "因為使用 Blazor Server，串流相對簡單。"
+    },
+    {
+      "start": 14.5,
+      "end": 25,
+      "en": "It will become much more advanced when we have a server, a backend and a frontend separately, where we will need to begin to use server-side events.",
+      "zh": "未來如果前端與後端分開，就會複雜許多，需要開始使用 Server-Sent Events。"
+    },
+    {
+      "start": 25,
+      "end": 29.5,
+      "en": "But for Blazor Server, we luckily can do it fairly simple.",
+      "zh": "不過在 Blazor Server 中，幸好可以很簡單地處理。"
+    },
+    {
+      "start": 29.5,
+      "end": 37,
+      "en": "But just so we're sure, how to make soup?",
+      "zh": "先確認效果，詢問如何煮湯。"
+    },
+    {
+      "start": 37,
+      "end": 44,
+      "en": "I use this question a lot because it has a fairly long answer so we can see the streaming part going on.",
+      "zh": "我常用這個問題，因為答案很長，方便觀察串流過程。"
+    },
+    {
+      "start": 44.5,
+      "end": 56.5,
+      "en": "So we send our request and then we both get streaming back here and streaming back here, meaning one word at a time comes into view before we get this.",
+      "zh": "送出請求後，這裡與這裡都會逐步收到文字，也就是完整答案出現前，字詞會一個個顯示。"
+    },
+    {
+      "start": 57.5,
+      "end": 62,
+      "en": "And streaming is not only like that.",
+      "zh": "而且串流不只限於這種情況。"
+    },
+    {
+      "start": 62,
+      "end": 74,
+      "en": "We can also ask what is the weather like in Paris and Copenhagen.",
+      "zh": "也可以詢問巴黎與哥本哈根的天氣。"
+    },
+    {
+      "start": 77,
+      "end": 82,
+      "en": "So we see streaming, multiple tools and stuff like that.",
+      "zh": "就能看到串流、多次工具呼叫等過程。"
+    },
+    {
+      "start": 82,
+      "end": 84,
+      "en": "So it will slowly come in.",
+      "zh": "內容會慢慢進來。"
+    },
+    {
+      "start": 84.5,
+      "end": 86.5,
+      "en": "It made the two tool calls.",
+      "zh": "它呼叫了兩個工具。"
+    },
+    {
+      "start": 88.5,
+      "end": 91.5,
+      "en": "It begins to reason over those tool calls.",
+      "zh": "開始針對工具結果推理。"
+    },
+    {
+      "start": 92.5,
+      "end": 95.5,
+      "en": "And it will stream back its result.",
+      "zh": "然後串流回傳最後答案。"
+    },
+    {
+      "start": 96,
+      "end": 98.5,
+      "en": "So let's see how we did this.",
+      "zh": "接著看看如何實作。"
+    },
+    {
+      "start": 103,
+      "end": 104.5,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 105,
+      "end": 112.5,
+      "en": "So let's close all these and have a look.",
+      "zh": "先關掉這些檔案，查看程式碼。"
+    },
+    {
+      "start": 113.5,
+      "end": 119,
+      "en": "So in our chatbot, whenever we send along,",
+      "zh": "在 Chatbot 送出訊息時，"
+    },
+    {
+      "start": 119,
+      "end": 126,
+      "en": "we have this small Boolean if we do streaming or not.",
+      "zh": "有這個布林值，決定是否串流。"
+    },
+    {
+      "start": 126,
+      "end": 129,
+      "en": "And we have seen that non-streaming is very simple.",
+      "zh": "非串流的處理，前面看過非常簡單。"
+    },
+    {
+      "start": 129,
+      "end": 131.5,
+      "en": "Streaming requires a little more.",
+      "zh": "串流則需要多做一些事情。"
+    },
+    {
+      "start": 133,
+      "end": 142,
+      "en": "So if we look at it, in order to do streaming, we need to get these response updates back.",
+      "zh": "首先，要取得這些 Response Updates。"
+    },
+    {
+      "start": 142,
+      "end": 149.5,
+      "en": "And every single response is more or less one character, one word, all depending on how much that chunk came along.",
+      "zh": "每次更新可能是一個字元、一個字詞，取決於當次收到的區塊大小。"
+    },
+    {
+      "start": 151,
+      "end": 157.5,
+      "en": "So we get into this hundreds, thousands times whenever we do things.",
+      "zh": "因此每次操作，可能進入這裡數百、數千次。"
+    },
+    {
+      "start": 159.5,
+      "end": 169.5,
+      "en": "And if you have seen my previous videos, it's often been that we just made a console.write here in order to get out the next text, next text, and so on.",
+      "zh": "前面影片常常只是 Console.Write，把下一段文字持續輸出。"
+    },
+    {
+      "start": 169.5,
+      "end": 175.5,
+      "en": "But of course, here we need to send it back to something other, real.",
+      "zh": "但這裡當然要把結果送給真正的介面。"
+    },
+    {
+      "start": 175.5,
+      "end": 184.5,
+      "en": "So in this case, we're just taking the text and just putting it into a property, a string property.",
+      "zh": "所以先取得文字，累加到字串屬性中。"
+    },
+    {
+      "start": 185.5,
+      "end": 191,
+      "en": "And then we do invoke async in order to force the GUI to redraw itself.",
+      "zh": "再呼叫 InvokeAsync，強制介面重新呈現。"
+    },
+    {
+      "start": 191,
+      "end": 202.5,
+      "en": "So this is fairly resource intensive in Blazor server where everything is sent between the backend part",
+      "zh": "在 Blazor Server 中，這相當消耗資源，因為需要在後端與瀏覽器之間，"
+    },
+    {
+      "start": 202.5,
+      "end": 205,
+      "en": "and turning it into JSON.",
+      "zh": "把更新內容序列化傳送。"
+    },
+    {
+      "start": 205,
+      "end": 210,
+      "en": "So it's redrawing the entire page, or the delta at least, every single time.",
+      "zh": "因此每次都要重新呈現整頁，或至少傳送差異部分。"
+    },
+    {
+      "start": 210.5,
+      "end": 215.5,
+      "en": "So this is rather hard for it to do, but it can do it.",
+      "zh": "負擔不小，但做得到。"
+    },
+    {
+      "start": 217.5,
+      "end": 222,
+      "en": "So what we're going to do is, of course, the text.",
+      "zh": "首先當然是處理文字。"
+    },
+    {
+      "start": 222,
+      "end": 224.5,
+      "en": "But we also have the tools.",
+      "zh": "另外也有工具資訊。"
+    },
+    {
+      "start": 226,
+      "end": 231,
+      "en": "Not the tools, the tools will just come back on the fly.",
+      "zh": "工具本身會在執行時回傳。"
+    },
+    {
+      "start": 231,
+      "end": 239,
+      "en": "But we also have the streaming reasoning, but we also want to show, now it called this tool, now it thought about this, now it called this tool, and so on.",
+      "zh": "也有串流推理，而且希望顯示：現在呼叫這個工具、現在思考這件事、接著呼叫另一個工具等等。"
+    },
+    {
+      "start": 240.5,
+      "end": 246,
+      "en": "So part of updates can actually have content as well.",
+      "zh": "因此部分 Update 本身也會包含 Content。"
+    },
+    {
+      "start": 246,
+      "end": 249,
+      "en": "So one update is the tool call.",
+      "zh": "某次更新可能是工具呼叫。"
+    },
+    {
+      "start": 249,
+      "end": 260,
+      "en": "One update is part of the reasoning, because the reasoning also come back with small parts of the text reasoning back again and again and again.",
+      "zh": "另一次可能是推理的一小部分，因為推理文字也會一小段、一小段持續回傳。"
+    },
+    {
+      "start": 261.5,
+      "end": 273,
+      "en": "So in order to do that, we need to do a fairly heavy for each around every single level of these, which again, there comes several hundred of them.",
+      "zh": "因此需要針對每一層 Content 執行 foreach，而這樣的更新又可能有數百次。"
+    },
+    {
+      "start": 273.5,
+      "end": 279,
+      "en": "Luckily C Sharp is optimized, of course, but it's fairly much what we need to do.",
+      "zh": "幸好 C# 有最佳化，但基本上需要做這些處理。"
+    },
+    {
+      "start": 279,
+      "end": 287,
+      "en": "And every time we get some content back that are text reasoning, we also need to put it into a stream reasoning part.",
+      "zh": "每當取得 TextReasoningContent，就把文字加入 StreamedReasoning。"
+    },
+    {
+      "start": 287.5,
+      "end": 296,
+      "en": "Or if it's other type of content, meaning a tool call, or a tool called result, we put them into the stream content here.",
+      "zh": "如果是其他類型，例如工具呼叫或工具結果，就放進這裡的 StreamContent。"
+    },
+    {
+      "start": 298.5,
+      "end": 302,
+      "en": "And again, every time we need to redraw the GUI.",
+      "zh": "同樣地，每次都需要更新介面。"
+    },
+    {
+      "start": 303,
+      "end": 312.5,
+      "en": "Later on, when we do streaming from a backend that have no frontend, we, of course, need to begin to send some server-side events here.",
+      "zh": "未來如果從沒有前端的後端提供串流，就需要在這裡送出 Server-Sent Events。"
+    },
+    {
+      "start": 313,
+      "end": 315,
+      "en": "But more on that when we come to that.",
+      "zh": "等到那裡再詳細介紹。"
+    },
+    {
+      "start": 316,
+      "end": 324,
+      "en": "Another thing is, whenever we do streaming, we also want in our GUI to show how many tokens we have.",
+      "zh": "另一件事是，串流時也想在介面顯示 Token 使用量。"
+    },
+    {
+      "start": 324.5,
+      "end": 333,
+      "en": "But that is impossible to underfly calculate, so we take that at the end,",
+      "zh": "但無法在過程中準確即時計算，所以會在最後取得，"
+    },
+    {
+      "start": 333,
+      "end": 343,
+      "en": "and turn all our updates, as we do here, into a real response, similar to what we did up here.",
+      "zh": "再像這裡一樣，把所有 Update 合併成真正的完整回應，類似上面的非串流回應。"
+    },
+    {
+      "start": 344,
+      "end": 354,
+      "en": "There's a handy feature that just says, to agent response, build into the agent framework, that makes this easy, and then we can send the entire thing in.",
+      "zh": "Agent Framework 內建方便的 ToAgentResponse，可以輕鬆完成，再把整份資料送入對話。"
+    },
+    {
+      "start": 354.5,
+      "end": 363.5,
+      "en": "Because the entire response we have is actually what we want to have in our conversation history, and actually show on the screen at the end.",
+      "zh": "因為完整回應才是要保存到對話歷史，並在最後顯示的內容。"
+    },
+    {
+      "start": 364,
+      "end": 366,
+      "en": "This is not what was streamed.",
+      "zh": "最後顯示的不再是暫存的串流文字。"
+    },
+    {
+      "start": 366.5,
+      "end": 377.5,
+      "en": "That streaming part have been there on the screen while it happened, then turned into a real response, like we would do non-streaming, and that is what we're seeing right now.",
+      "zh": "串流內容只在執行過程中顯示，結束後轉成和非串流相同的完整回應，現在看到的就是它。"
+    },
+    {
+      "start": 379,
+      "end": 384.5,
+      "en": "So this just takes care of exactly the same here, as we did up here.",
+      "zh": "因此這裡最後會做和上面相同的處理。"
+    },
+    {
+      "start": 385.5,
+      "end": 395.5,
+      "en": "But during the thing, we get these two or three different things, a streamed response, streamed reasoning, and streamed content.",
+      "zh": "但在過程中，會有這幾種資料：串流回應文字、串流推理，以及串流 Content。"
+    },
+    {
+      "start": 397,
+      "end": 403.5,
+      "en": "And for that, we have this little component where we send all these things in.",
+      "zh": "為此有這個小元件，把這些資料全部傳入。"
+    },
+    {
+      "start": 405,
+      "end": 415.5,
+      "en": "And if it's streaming, and we have a streamed reason, we just put out the thoughts of that streaming, so you saw it was streaming in.",
+      "zh": "如果正在串流，而且已有推理文字，就顯示目前的思考內容，因此會看到它逐步出現。"
+    },
+    {
+      "start": 416.5,
+      "end": 428,
+      "en": "And if it's tool calls, we can reuse the same tool call response part here, where we just send in the streamed content, but we don't have the entire conversation yet,",
+      "zh": "如果是工具呼叫，可以重複使用同一個工具呼叫元件，傳入 StreamContent。不過此時還沒有完整對話，"
+    },
+    {
+      "start": 428,
+      "end": 430.5,
+      "en": "because we are only interested in what's happening.",
+      "zh": "因為只關心目前發生的事情。"
+    },
+    {
+      "start": 430.5,
+      "end": 436.5,
+      "en": "So we're not setting our conversation here, and can more or less only show the tools.",
+      "zh": "所以這裡不設定 Conversation，大致只顯示工具要求。"
+    },
+    {
+      "start": 436.5,
+      "end": 440,
+      "en": "When we are fully done, we can go in and inspect them.",
+      "zh": "全部完成後，就能進一步查看完整結果。"
+    },
+    {
+      "start": 441,
+      "end": 450.5,
+      "en": "And finally, if we just have the response, the text itself, it will stream in, and once it's done streaming,",
+      "zh": "最後，如果取得的是回答文字，就會逐步顯示。當串流結束，"
+    },
+    {
+      "start": 453.5,
+      "end": 462.5,
+      "en": "we essentially throw everything away again, and let the real conversation takes care of showing the result.",
+      "zh": "基本上會丟棄這些暫存資料，改由真正的對話物件顯示結果。"
+    },
+    {
+      "start": 463.5,
+      "end": 465.5,
+      "en": "So if we go in here,",
+      "zh": "實際操作看看，"
+    },
+    {
+      "start": 467.5,
+      "end": 472.5,
+      "en": "and say, how to make soup,",
+      "zh": "詢問如何煮湯，"
+    },
+    {
+      "start": 474.5,
+      "end": 478.5,
+      "en": "and let me set a breakpoint down here,",
+      "zh": "先在下面設定中斷點，"
+    },
+    {
+      "start": 480.5,
+      "end": 482,
+      "en": "and let's run it.",
+      "zh": "然後執行。"
+    },
+    {
+      "start": 485.5,
+      "end": 489.5,
+      "en": "And let me actually also set a breakpoint in here, so we can see that along the way.",
+      "zh": "這裡也設一個中斷點，方便沿途觀察。"
+    },
+    {
+      "start": 489.5,
+      "end": 492.5,
+      "en": "So right now, it came to the word, it.",
+      "zh": "目前收到的字是 it。"
+    },
+    {
+      "start": 495,
+      "end": 499.5,
+      "en": "Clear, I'm pressing F5, and so on.",
+      "zh": "清除後，按 F5 繼續。"
+    },
+    {
+      "start": 499.5,
+      "end": 502.5,
+      "en": "And for each of these updates, there can be content.",
+      "zh": "每個 Update 都可能包含 Content。"
+    },
+    {
+      "start": 502.5,
+      "end": 508.5,
+      "en": "In this case, there's a reasoning content that is a question mark.",
+      "zh": "這個例子有推理內容，目前只收到一個問號。"
+    },
+    {
+      "start": 508.5,
+      "end": 518.5,
+      "en": "So both the object and the real text, and the reasoning is streaming in at the same time, if it's possible for it to do that.",
+      "zh": "因此 Content 物件、實際文字與推理，在支援的情況下都能同時串流回傳。"
+    },
+    {
+      "start": 518.5,
+      "end": 525.5,
+      "en": "And again, this happens probably several thousand times as well.",
+      "zh": "同樣地，這個流程可能發生數千次。"
+    },
+    {
+      "start": 526.5,
+      "end": 537.5,
+      "en": "But once it's done, and we see the GUI, these are right now controlled by the mid-level,",
+      "zh": "等到完成，看看介面，目前內容是由中間這個，"
+    },
+    {
+      "start": 538.5,
+      "end": 540.5,
+      "en": "our mid-turn visuals here.",
+      "zh": "Mid-Turn Visuals 元件控制。"
+    },
+    {
+      "start": 540.5,
+      "end": 545.5,
+      "en": "So these are the ones that have values in streaming content.",
+      "zh": "也就是顯示串流 Content 目前的資料。"
+    },
+    {
+      "start": 545.5,
+      "end": 550.5,
+      "en": "So we saw we got 700 streamed contents.",
+      "zh": "這裡可以看到，取得了 700 筆串流 Content。"
+    },
+    {
+      "start": 551.5,
+      "end": 560.5,
+      "en": "We got our streamed response, so the full response is finished, and the streamed reason is finished.",
+      "zh": "也取得完整的 StreamedResponse，與已完成的 StreamedReasoning。"
+    },
+    {
+      "start": 560.5,
+      "end": 564.5,
+      "en": "So we got all that through the system.",
+      "zh": "這些都已經通過整個處理流程。"
+    },
+    {
+      "start": 565.5,
+      "end": 571.5,
+      "en": "And now, if I go back to the code,",
+      "zh": "現在回到程式碼，"
+    },
+    {
+      "start": 571.5,
+      "end": 579.5,
+      "en": "we're essentially just taking all these three and throwing them away.",
+      "zh": "基本上會把這三個暫存值全部清空。"
+    },
+    {
+      "start": 580.5,
+      "end": 589.5,
+      "en": "So in essence, right now, the chatbot, had we done a visual GUI, this would have been empty now.",
+      "zh": "因此如果此時立刻觀察畫面，理論上會瞬間變空。"
+    },
+    {
+      "start": 591.5,
+      "end": 599.5,
+      "en": "But then we take all the updates, all 1001 of them in this case, and turn them into the response.",
+      "zh": "但接著把全部 Update，這裡一共 1,001 筆，轉成完整回應。"
+    },
+    {
+      "start": 599.5,
+      "end": 603.5,
+      "en": "And then we get it like we normally do non-streaming.",
+      "zh": "就和一般非串流一樣取得結果。"
+    },
+    {
+      "start": 604.5,
+      "end": 613.5,
+      "en": "And that is the one we just put into the conversation, and we have a visual update,",
+      "zh": "再把它加入對話，更新介面，"
+    },
+    {
+      "start": 613.5,
+      "end": 624.5,
+      "en": "and then we are back into getting this, and now it comes from the real full response object being visualized.",
+      "zh": "畫面就會重新顯示相同內容，但來源變成真正完整的 Response 物件。"
+    },
+    {
+      "start": 624.5,
+      "end": 634.5,
+      "en": "So essentially, for a millisecond, throws the things away, put in the other thing, and visualize it again using the real thing.",
+      "zh": "因此本質上，只是在極短的瞬間清除暫存，再用完整結果重新呈現。"
+    },
+    {
+      "start": 636.5,
+      "end": 638.5,
+      "en": "So that is how streaming works.",
+      "zh": "這就是串流的運作方式。"
+    },
+    {
+      "start": 638.5,
+      "end": 645.5,
+      "en": "It's a bit cumbersome to work with, but in essence, in Blazor Server, it's actually one of the easiest ones.",
+      "zh": "處理起來有點繁瑣，但 Blazor Server 已經算是最容易的版本之一。"
+    },
+    {
+      "start": 645.5,
+      "end": 654.5,
+      "en": "So streaming can be quite hard to work with, but we will manage in the future as well with other frontends.",
+      "zh": "串流確實可能很難處理，不過之後也會在其他前端中完成。"
+    },
+    {
+      "start": 654.5,
+      "end": 656.5,
+      "en": "See you in the next one.",
+      "zh": "下一支影片見。"
+    }
+  ]
+}

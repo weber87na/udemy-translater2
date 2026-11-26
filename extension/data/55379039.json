@@ -1,0 +1,719 @@
+{
+  "courseId": "6795111",
+  "lectureId": "55379039",
+  "title": "Review of the official Agent Skills Support in Agent Framework",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6,
+      "en": "Hi, and welcome to this AI and C-Sharp video on the Microsoft Agent Framework.",
+      "zh": "大家好，歡迎觀看這支使用 Microsoft Agent Framework 的 C# AI 教學影片。"
+    },
+    {
+      "start": 6,
+      "end": 16,
+      "en": "Today we're going to revisit a topic that is old to me, but new to the Agent Framework, and that is agent skills.",
+      "zh": "今天要重新討論一個對我來說不算新，但對 Agent Framework 而言是新功能的主題：代理程式技能。"
+    },
+    {
+      "start": 16,
+      "end": 25,
+      "en": "So agent skills have now an official implementation, while I, a couple of months ago, made my own implementation.",
+      "zh": "Agent Skills 現在有官方實作了，而我在幾個月前也做過自己的實作。"
+    },
+    {
+      "start": 25,
+      "end": 34,
+      "en": "So we're going to look at Agent Framework's new implementation, and compare it a little to what I have, if I need to remove it again,",
+      "zh": "因此這次會看看 Agent Framework 的新實作，再稍微比較我的版本，確認是否可以移除自己的套件，"
+    },
+    {
+      "start": 34,
+      "end": 40,
+      "en": "or if the official implementation lacks some features.",
+      "zh": "或是官方版本仍缺少某些功能。"
+    },
+    {
+      "start": 40,
+      "end": 42,
+      "en": "So let's get into it.",
+      "zh": "接著開始吧。"
+    },
+    {
+      "start": 42,
+      "end": 46,
+      "en": "And just a reminder of what agent skills are.",
+      "zh": "先回顧一下，代理程式技能是什麼。"
+    },
+    {
+      "start": 46,
+      "end": 54,
+      "en": "It's a new format that is a complementary to MCP servers,",
+      "zh": "這是一種新格式，可與 MCP 伺服器互補，"
+    },
+    {
+      "start": 54,
+      "end": 61,
+      "en": "again, invented by Anthropic and open-sourced on agentskills.io.",
+      "zh": "同樣由 Anthropic 提出，並在 agentskills.io 開放規格。"
+    },
+    {
+      "start": 61,
+      "end": 67,
+      "en": "And it's a simple and open format that gives agents capabilities and expertise.",
+      "zh": "它是一種簡單、開放的格式，讓代理程式取得能力與專業知識。"
+    },
+    {
+      "start": 67,
+      "end": 73,
+      "en": "And it's mostly for local agents because it requires a folder structure.",
+      "zh": "主要用於本機代理程式，因為它依賴資料夾結構。"
+    },
+    {
+      "start": 73,
+      "end": 83,
+      "en": "So, for example, if you have a folder called agent skills, and you add three folders, employee handbook, secret formulas, and speak like a pirate.",
+      "zh": "例如建立一個 Agent Skills 資料夾，底下放三個資料夾：員工手冊、秘密公式，以及像海盜一樣說話。"
+    },
+    {
+      "start": 83,
+      "end": 87,
+      "en": "Each one of these needs to have a skill.md.",
+      "zh": "每個資料夾都必須有 SKILL.md。"
+    },
+    {
+      "start": 87,
+      "end": 89,
+      "en": "That's part of the spec.",
+      "zh": "這是規格的一部分。"
+    },
+    {
+      "start": 89,
+      "end": 93,
+      "en": "And inside such a skill, you have a front matter up here.",
+      "zh": "在技能檔中，上方會有 Front Matter，也就是前置資料。"
+    },
+    {
+      "start": 93,
+      "end": 101,
+      "en": "We have a front matter that needs to have exactly the same name here as here in order to be a valid skill.",
+      "zh": "其中的名稱必須與資料夾名稱完全相同，才是有效的技能。"
+    },
+    {
+      "start": 101,
+      "end": 105,
+      "en": "Then you give it a description, and then you have an instruction body.",
+      "zh": "接著提供描述，再寫下指示內容。"
+    },
+    {
+      "start": 106,
+      "end": 118,
+      "en": "And what happens is that LLMs and AI in general needs to get the simple description and name,",
+      "zh": "LLM 與一般 AI 一開始只需要取得簡短的名稱與描述，"
+    },
+    {
+      "start": 118,
+      "end": 126,
+      "en": "and then on demand load the rest of the skill so it doesn't cost too many tokens if not used.",
+      "zh": "等到有需要時，才載入技能的其他內容，避免未使用的技能浪費太多 Token。"
+    },
+    {
+      "start": 127,
+      "end": 136,
+      "en": "So we can just have a skill file, but we can also have extra files that can be reference files, other MD files, for example,",
+      "zh": "因此可以只有一個技能檔，也可以有額外檔案，例如其他 Markdown 參考文件，"
+    },
+    {
+      "start": 136,
+      "end": 144,
+      "en": "assets in terms of pictures and stuff like that, but also scripts, in this case a Python script here.",
+      "zh": "圖片等素材，或是指令碼，這裡就有一支 Python 指令碼。"
+    },
+    {
+      "start": 145,
+      "end": 155,
+      "en": "So, the idea is that you have this folder, you load it up into the system, and then you take it...",
+      "zh": "概念上，就是把這個資料夾載入系統，接著……"
+    },
+    {
+      "start": 156,
+      "end": 160,
+      "en": "AI are going to use it in various different ways.",
+      "zh": "AI 就能透過不同方式使用它。"
+    },
+    {
+      "start": 160,
+      "end": 165,
+      "en": "We'll see how Alien Framework does it in one second.",
+      "zh": "稍後就會看到 Agent Framework 如何實作。"
+    },
+    {
+      "start": 165,
+      "end": 175,
+      "en": "Because, if we have a look, it's under AI context provider in my sample repo because it's implemented using that.",
+      "zh": "在我的範例儲存庫裡，它放在 AI Context Provider 底下，因為官方是以這個機制實作。"
+    },
+    {
+      "start": 176,
+      "end": 188,
+      "en": "And I have this test folder as we just saw with the employee handbook, speak like a pirate, and a script for some secret formula.",
+      "zh": "這裡有剛剛看到的測試資料夾，包含員工手冊、海盜說話風格，以及秘密公式指令碼。"
+    },
+    {
+      "start": 190,
+      "end": 200,
+      "en": "And the way Alien Framework have implemented it is they have a context provider called FileAgentSkillsProvider.",
+      "zh": "Agent Framework 提供了一個名為 FileAgentSkillsProvider 的上下文提供者。"
+    },
+    {
+      "start": 201,
+      "end": 211,
+      "en": "And the only real thing we need to give to it is a list of different parts where you have skills.",
+      "zh": "實際上，唯一必須提供的資訊，就是存放技能的各個路徑清單。"
+    },
+    {
+      "start": 212,
+      "end": 213,
+      "en": "You can give some options.",
+      "zh": "另外也能提供一些選項。"
+    },
+    {
+      "start": 213,
+      "end": 216,
+      "en": "They're fairly limited and quite buggy at the moment.",
+      "zh": "但目前選項相當有限，而且還有不少錯誤。"
+    },
+    {
+      "start": 217,
+      "end": 229,
+      "en": "You should be able to change the instruction prompt, but if you try to do it, it just doesn't add a prompt for some reason, and breaks down.",
+      "zh": "理論上可以修改指示提示詞，但實際嘗試時，不知為何它就不會加入提示詞，導致功能失效。"
+    },
+    {
+      "start": 229,
+      "end": 236,
+      "en": "So there's some bug around that, but at some point, it should be able to help you set the instructions.",
+      "zh": "這部分有個錯誤，不過未來應該可以用它設定指示。"
+    },
+    {
+      "start": 239,
+      "end": 243,
+      "en": "Once we have that, we don't need to do anything more.",
+      "zh": "設定好之後，就不需要再做其他事情。"
+    },
+    {
+      "start": 243,
+      "end": 253,
+      "en": "In my case, I'm just adding a little extra tool to run Python scripts because that's not part of the spec, to be able to run scripts at the moment.",
+      "zh": "在這個例子中，我另外加入一個執行 Python 指令碼的工具，因為目前的實作尚未包含執行指令碼的支援。"
+    },
+    {
+      "start": 253,
+      "end": 255,
+      "en": "A little more on that later.",
+      "zh": "這部分稍後會再說明。"
+    },
+    {
+      "start": 256,
+      "end": 265,
+      "en": "Also, to show this, I'm showing the raw call, and I'm doing tool calling middleware because what happens behind the scenes",
+      "zh": "為了示範，我會顯示原始呼叫，也加入工具呼叫中介軟體，因為背後的做法，"
+    },
+    {
+      "start": 265,
+      "end": 276,
+      "en": "is that agent skills are on-the-fly injected skills in terms of two skills, one to tell what skills there are,",
+      "zh": "是把技能在執行時注入成工具，主要有兩個工具：一個用來告知與讀取技能，"
+    },
+    {
+      "start": 278,
+      "end": 286,
+      "en": "to read a specific skill, and another to go in and read resources for a skill.",
+      "zh": "也就是載入特定技能；另一個則讀取該技能的資源。"
+    },
+    {
+      "start": 287,
+      "end": 289,
+      "en": "So if I run this...",
+      "zh": "執行看看……"
+    },
+    {
+      "start": 293,
+      "end": 299,
+      "en": "So before that, I'm just getting an agent, and after that, I'm just using a...",
+      "zh": "在這之前，先取得代理程式，接著使用一個……"
+    },
+    {
+      "start": 301,
+      "end": 304,
+      "en": "simple chat loop with sessions.",
+      "zh": "包含 Session 的簡單對話迴圈。"
+    },
+    {
+      "start": 304,
+      "end": 309,
+      "en": "So if I'm saying, the answer, hybrid mode,",
+      "zh": "例如要求它以海盜模式回答，"
+    },
+    {
+      "start": 312,
+      "end": 323,
+      "en": "what we will see is that, first of all, the call, we can see that on-the-fly instructions are being added,",
+      "zh": "首先在原始呼叫中，可以看到系統在執行時加入了一些指示，"
+    },
+    {
+      "start": 323,
+      "end": 326,
+      "en": "that it has these skills,",
+      "zh": "告訴模型有哪些技能。"
+    },
+    {
+      "start": 328,
+      "end": 335,
+      "en": "one for each of the skills, the employee skill, the pirate skill, the secret formula skill, and so on.",
+      "zh": "每個技能都有一筆，包括員工技能、海盜技能、秘密公式技能等等。"
+    },
+    {
+      "start": 335,
+      "end": 343,
+      "en": "So this text is what you should be able to manipulate, but at the moment, it doesn't seem like you can do that.",
+      "zh": "理論上應該能調整這段文字，但目前似乎無法正常修改。"
+    },
+    {
+      "start": 345.5,
+      "end": 357,
+      "en": "Then, we can see that what happens behind the scenes is we have a load skill function or tool, and we have a read skill resource option.",
+      "zh": "接著可以看到，背後提供了 LoadSkill 函式工具，以及 ReadSkillResource 工具。"
+    },
+    {
+      "start": 361,
+      "end": 369,
+      "en": "So that's what is there, and we get our calls back, and so on, and we see that we end up in pirate mode.",
+      "zh": "這就是實際提供的內容。取得呼叫結果之後，可以看到它最後切換成海盜模式。"
+    },
+    {
+      "start": 373,
+      "end": 376,
+      "en": "We could also then say...",
+      "zh": "接著也可以詢問……"
+    },
+    {
+      "start": 380,
+      "end": 392,
+      "en": "isParentallyPaid, which is an HR skill.",
+      "zh": "育嬰假是否有薪，這是人資技能的內容。"
+    },
+    {
+      "start": 392,
+      "end": 400,
+      "en": "So here we are using one of the reference documents, and if we have a look again...",
+      "zh": "這次會使用其中一份參考文件。再次查看，"
+    },
+    {
+      "start": 404,
+      "end": 406,
+      "en": "to go down here...",
+      "zh": "往下面看……"
+    },
+    {
+      "start": 409.5,
+      "end": 416,
+      "en": "So here we used a read skill here, and it comes back.",
+      "zh": "這裡使用了讀取技能資源的工具，並取得回應。"
+    },
+    {
+      "start": 420,
+      "end": 426,
+      "en": "If we try to call the secret formula with the Python script, it tends to not work.",
+      "zh": "如果要求它透過 Python 指令碼計算秘密公式，往往就無法成功。"
+    },
+    {
+      "start": 427,
+      "end": 434,
+      "en": "Read the secret formula...",
+      "zh": "例如要求讀取秘密公式，"
+    },
+    {
+      "start": 435,
+      "end": 446,
+      "en": "in that it fails because it can only give the relevant part to the script, and not the real part.",
+      "zh": "就會失敗，因為它只提供指令碼的相對路徑，而沒有完整路徑。"
+    },
+    {
+      "start": 446,
+      "end": 454,
+      "en": "The relevant part is here, but it doesn't know where that is in relation to the rest of the system.",
+      "zh": "相對路徑在這裡，但它不知道該路徑相對於系統的哪個位置。"
+    },
+    {
+      "start": 454,
+      "end": 459,
+      "en": "So there's some limitations. I know they are working on script support.",
+      "zh": "因此有一些限制。我知道他們正在開發指令碼支援。"
+    },
+    {
+      "start": 459,
+      "end": 468,
+      "en": "I don't know how they want to have script support, specifically, but right now it's not really possible",
+      "zh": "不過不知道具體會以什麼方式支援。現在這種做法實際上還無法正常使用，"
+    },
+    {
+      "start": 468,
+      "end": 480,
+      "en": "compared to my own setup here, where I have Agent Skills, the same folders, and up here we are using my interpretation of this,",
+      "zh": "相較之下，我自己的設定使用同樣的技能資料夾，但上面採用自己的實作，"
+    },
+    {
+      "start": 480,
+      "end": 486,
+      "en": "which is Agent Skills, where we can get the instructions, and get them as tools.",
+      "zh": "也就是 Agent Skills，可以取得指示，並將技能公開為工具。"
+    },
+    {
+      "start": 486,
+      "end": 498,
+      "en": "I also expose them as tools, one for what tools are available, and three tools, what tools are available, read a specific tool, and read a resource.",
+      "zh": "我也用工具形式公開，包含三個工具：列出可用技能、讀取特定技能，以及讀取資源。"
+    },
+    {
+      "start": 498,
+      "end": 502,
+      "en": "So I'm using three tools instead of two tools for that.",
+      "zh": "因此這部分使用三個工具，而不是兩個。"
+    },
+    {
+      "start": 503,
+      "end": 510,
+      "en": "So let's do a little side comparison in what we can do in this.",
+      "zh": "接著稍微並排比較一下兩者的功能。"
+    },
+    {
+      "start": 510,
+      "end": 520,
+      "en": "So the official implementation is here, and my version of agentskills.net, which is the NuGet package,",
+      "zh": "這裡是官方實作，另一邊是我的 AgentSkills.NET，也就是這個 NuGet 套件。"
+    },
+    {
+      "start": 520,
+      "end": 528,
+      "en": "which is also part of my Agent Framework Toolkit, which is a set of NuGet packages on top of Agent Framework.",
+      "zh": "它也是 Agent Framework Toolkit 的一部分；Toolkit 是建立在 Agent Framework 之上的一組 NuGet 套件。"
+    },
+    {
+      "start": 528,
+      "end": 538,
+      "en": "So the new one is built in, it's from Release Candidate 2 and higher, and mine is a NuGet package that you need to install if you want to.",
+      "zh": "官方版本從 Release Candidate 2 起內建提供，我的版本則需要另外安裝 NuGet 套件。"
+    },
+    {
+      "start": 539,
+      "end": 549,
+      "en": "The delivery mode that they have chosen is AI contact providers, but behind the scenes they are simply just injecting extra instructions and adding two tools.",
+      "zh": "官方選擇透過 AI Context Provider 提供功能，但背後其實只是注入額外指示，再加入兩個工具。"
+    },
+    {
+      "start": 549,
+      "end": 560,
+      "en": "I do sort of the similar, I can do two generic tools, but I also have an option to have each skill be its own tool if you rather want that for more discovery.",
+      "zh": "我的做法類似，也能提供兩個通用工具；不過還有一個選項，可以讓每個技能成為獨立工具，提升探索能力。"
+    },
+    {
+      "start": 561,
+      "end": 568,
+      "en": "And then you can get the instructions back as text that you can paste in.",
+      "zh": "另外也能把指示以文字形式取出，讓你自行貼入提示詞。"
+    },
+    {
+      "start": 568,
+      "end": 574,
+      "en": "So I'm not using AI contact providers for this, because I want to have more control here.",
+      "zh": "因此我沒有使用 AI Context Provider，因為希望保留更多控制權。"
+    },
+    {
+      "start": 574,
+      "end": 582,
+      "en": "Here we don't really have any control, in that we can't really control the instructions, where they are compared to the rest of the instructions,",
+      "zh": "官方版本目前沒有太多控制空間，例如無法決定指示放在哪裡，以及與其他指示的相對位置，"
+    },
+    {
+      "start": 582,
+      "end": 587,
+      "en": "and here we just get every tool no matter what.",
+      "zh": "而且無論如何，都會取得這些工具。"
+    },
+    {
+      "start": 587,
+      "end": 589,
+      "en": "Here we can actually control it.",
+      "zh": "我的版本則可以自行控制。"
+    },
+    {
+      "start": 591,
+      "end": 598,
+      "en": "So instructions are automatic in the official implementation, while it's configurable in my version.",
+      "zh": "因此官方版本會自動處理指示，我的版本則可以自訂設定。"
+    },
+    {
+      "start": 598,
+      "end": 609,
+      "en": "Logging-wise, they have standard iLoggers, while I instead give a log error object back on which of the skills perhaps couldn't load.",
+      "zh": "記錄方面，官方使用標準 ILogger。我則會回傳載入錯誤物件，說明哪些技能可能無法載入。"
+    },
+    {
+      "start": 610,
+      "end": 614,
+      "en": "So that's a matter of opinion, you could put that into a logger yourself.",
+      "zh": "這是設計取捨，你也可以自行把錯誤寫進 Logger。"
+    },
+    {
+      "start": 614,
+      "end": 617,
+      "en": "But else they have more out-of-the-box logging.",
+      "zh": "不過官方確實提供較完整的內建記錄功能。"
+    },
+    {
+      "start": 619,
+      "end": 623,
+      "en": "Then there's skill validation, if the skill actually follows the format.",
+      "zh": "接著是技能驗證，也就是檢查技能是否符合格式。"
+    },
+    {
+      "start": 623,
+      "end": 627,
+      "en": "And it seems that they don't care at all.",
+      "zh": "官方版本似乎完全沒有檢查。"
+    },
+    {
+      "start": 627,
+      "end": 634,
+      "en": "There is these rules, for example, that this name needs to be exactly the same name as this.",
+      "zh": "例如規則要求這裡的名稱必須與資料夾名稱完全一致。"
+    },
+    {
+      "start": 634,
+      "end": 638,
+      "en": "You can write something different here, and it will still load as a skill.",
+      "zh": "但即使填入不同名稱，它仍然會把它載入為技能。"
+    },
+    {
+      "start": 639,
+      "end": 648,
+      "en": "I put in that you can choose the strict mode and get errors back if it's wrong, or you can go into loose mode.",
+      "zh": "我的版本可以選擇嚴格模式，格式錯誤就回報錯誤；也可以改用寬鬆模式。"
+    },
+    {
+      "start": 648,
+      "end": 652,
+      "en": "That is sort of what the official implementation does.",
+      "zh": "寬鬆模式就比較接近官方目前的行為。"
+    },
+    {
+      "start": 653,
+      "end": 660,
+      "en": "Then a huge limitation they have is that you just get these skills, and you just get these tools.",
+      "zh": "官方的另一個重大限制是，你只能整組取得這些技能與工具。"
+    },
+    {
+      "start": 660,
+      "end": 668,
+      "en": "But you can't really get them back as objects, so you're not in any way able to do a subset of the skills.",
+      "zh": "沒有辦法把技能取回成物件，因此也無法選擇只使用其中一部分。"
+    },
+    {
+      "start": 668,
+      "end": 680,
+      "en": "It's all or nothing, and you can't get individual instructions if you want to use those together with some more curated parts of your instructions file.",
+      "zh": "只能全部使用或全部不用；如果想把個別技能的指示與自己精心整理的指示檔整合，也無法個別取得。"
+    },
+    {
+      "start": 680,
+      "end": 690,
+      "en": "That is fully configurable in my implementation because you get each skill back as a .NET object",
+      "zh": "我的實作則完全可以自訂，因為每個技能都會以 .NET 物件回傳，"
+    },
+    {
+      "start": 690,
+      "end": 693,
+      "en": "with all the information in it.",
+      "zh": "其中包含全部資訊。"
+    },
+    {
+      "start": 694,
+      "end": 697,
+      "en": "So that is much simpler to do.",
+      "zh": "因此這些操作容易許多。"
+    },
+    {
+      "start": 699,
+      "end": 703,
+      "en": "You need to do a little more code, but you have more control over it.",
+      "zh": "雖然需要多寫一點程式碼，但能得到更多控制權。"
+    },
+    {
+      "start": 704,
+      "end": 712,
+      "en": "Another huge problem with the official implementation right now is that it doesn't give the subfile parts.",
+      "zh": "官方目前還有一個大問題：不會提供子檔案的完整路徑。"
+    },
+    {
+      "start": 712,
+      "end": 724,
+      "en": "We saw that with the script not being able to be run because it just gives back the name and description, and when it reads it, it's only what's in the body of the Markdown file.",
+      "zh": "剛剛看到指令碼無法執行，就是因為一開始只有名稱與描述，讀取後也只回傳 Markdown 本文。"
+    },
+    {
+      "start": 727,
+      "end": 735,
+      "en": "I give the body of the Markdown file back, but then I also tell, and these files are available for this skill",
+      "zh": "我的版本也會回傳 Markdown 本文，但還會補充這個技能有哪些可用檔案，"
+    },
+    {
+      "start": 735,
+      "end": 740,
+      "en": "with the full parts, and that makes AI able to actually read",
+      "zh": "並提供完整路徑，讓 AI 實際能夠讀取，"
+    },
+    {
+      "start": 740,
+      "end": 748,
+      "en": "and execute the various scripts and subassets.",
+      "zh": "以及執行各種指令碼與附屬素材。"
+    },
+    {
+      "start": 751,
+      "end": 761,
+      "en": "In terms of reading skill metadata, not really something that's too important, but you can have extra things like license and metadata",
+      "zh": "至於讀取技能中繼資料，雖然不算太重要，但標準技能可以附帶授權條款與其他中繼資料，"
+    },
+    {
+      "start": 761,
+      "end": 764,
+      "en": "on an official agent skill.",
+      "zh": "這些都是正式技能格式支援的欄位。"
+    },
+    {
+      "start": 765,
+      "end": 775,
+      "en": "The official implementation only takes out the name and description and uses it, while I grab everything that you get back in the objects if you need to.",
+      "zh": "官方只取出名稱與描述使用；我的版本則會把所有欄位放進回傳物件，有需要就能使用。"
+    },
+    {
+      "start": 775,
+      "end": 780,
+      "en": "Honestly, you wouldn't probably need this for anything at the moment.",
+      "zh": "老實說，目前大概還不會真的用到這些欄位。"
+    },
+    {
+      "start": 782,
+      "end": 785,
+      "en": "And finally, the ability to actually shoot scripts.",
+      "zh": "最後是實際執行指令碼的能力。"
+    },
+    {
+      "start": 785,
+      "end": 792,
+      "en": "None of us actually have it, because each script execution can be very different.",
+      "zh": "兩個版本都沒有直接提供，因為每種指令碼的執行方式都可能差很多。"
+    },
+    {
+      "start": 792,
+      "end": 800,
+      "en": "How do you want to run your Python, what kind of environment, what kind of restrictions, and so on,",
+      "zh": "例如 Python 要如何執行、使用哪種環境、套用哪些限制，"
+    },
+    {
+      "start": 800,
+      "end": 805,
+      "en": "and how to run a BAT file, how to run an executable, and so on.",
+      "zh": "以及 BAT 檔、可執行檔該如何執行等等。"
+    },
+    {
+      "start": 805,
+      "end": 808,
+      "en": "You need to bring your own tools, in my opinion.",
+      "zh": "在我看來，這些應該由使用者自行提供工具。"
+    },
+    {
+      "start": 809,
+      "end": 813,
+      "en": "Right now, in the official implementation, there's no support at all.",
+      "zh": "但官方目前完全沒有這方面支援。"
+    },
+    {
+      "start": 813,
+      "end": 823,
+      "en": "You could bring your own tool, but again, the problem is the subfile parts that are not exposed to the LLM,",
+      "zh": "你可以提供自己的工具，但問題依然是沒有把子檔案路徑提供給 LLM，"
+    },
+    {
+      "start": 823,
+      "end": 828,
+      "en": "which causes it to actually not be able to call it correctly.",
+      "zh": "導致它無法正確呼叫。"
+    },
+    {
+      "start": 830,
+      "end": 842,
+      "en": "Again, they have an open issue that they want to enhance it with that, but I don't see a way they can actually make it easy and cheap token-wise as well.",
+      "zh": "他們確實有一個待處理的 Issue，打算改善。不過我還看不出來，如何同時做到容易使用，又節省 Token。"
+    },
+    {
+      "start": 843,
+      "end": 854,
+      "en": "So, right now, it is cool that they added it, but it's a very, very limited set of features that they gave,",
+      "zh": "所以目前加入這項功能是好事，但提供的功能組合實在非常有限，"
+    },
+    {
+      "start": 854,
+      "end": 860,
+      "en": "and I'm really, really surprised that they don't even validate the skills correctly.",
+      "zh": "而且我很驚訝，連技能格式都沒有正確驗證。"
+    },
+    {
+      "start": 861,
+      "end": 864,
+      "en": "So, that is my review so far.",
+      "zh": "這就是目前我的評價。"
+    },
+    {
+      "start": 864,
+      "end": 870,
+      "en": "I will definitely not use the official one yet, when I have the other one,",
+      "zh": "既然已經有自己的版本，我目前肯定不會改用官方版本，"
+    },
+    {
+      "start": 871,
+      "end": 878,
+      "en": "because I'm simply just having much more level of customization here.",
+      "zh": "因為自己的版本提供了更多自訂空間。"
+    },
+    {
+      "start": 878,
+      "end": 888,
+      "en": "But perhaps, over time, the official implementation might add more features and come to a point where we can actually throw away",
+      "zh": "不過也許隨著時間推進，官方實作會加入更多功能，最後進步到足以讓我們移除"
+    },
+    {
+      "start": 888,
+      "end": 892,
+      "en": "third-party skills like mine.",
+      "zh": "像我這樣的第三方技能套件。"
+    },
+    {
+      "start": 892,
+      "end": 897,
+      "en": "But for now, I would definitely not use the internal implementation.",
+      "zh": "但以目前的狀況，我肯定不會使用內建實作。"
+    },
+    {
+      "start": 897,
+      "end": 901,
+      "en": "So, that's everything. See you in the next one.",
+      "zh": "這次的內容就是這些，下一支影片見。"
+    }
+  ]
+}

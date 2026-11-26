@@ -1,0 +1,377 @@
+{
+  "courseId": "6795111",
+  "lectureId": "57541985",
+  "title": "Zero to RAG (CosmosDB as Vector Store)",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6.96,
+      "en": "Hi, in this companion video to my Zero to Rack mini-series, where in the main video",
+      "zh": "大家好，這是 Zero to RAG 迷你系列的補充影片。主影片中，"
+    },
+    {
+      "start": 6.96,
+      "end": 13.76,
+      "en": "I went through every single step on how to go from absolutely zero to having an agent",
+      "zh": "我示範了每一個步驟，從完全沒有設定開始，一直到建立能夠，"
+    },
+    {
+      "start": 13.76,
+      "end": 25.68,
+      "en": "that could search a rack, we are now going to cover how to switch that in-memory database that we use there into a Cosmos DB.",
+      "zh": "使用 RAG 搜尋的代理程式。現在要介紹，如何將當時使用的記憶體資料庫改成 Cosmos DB。"
+    },
+    {
+      "start": 25.68,
+      "end": 33.86,
+      "en": "So Cosmos DB is a little more involved than some of the other ones, but not too, too much.",
+      "zh": "Cosmos DB 比其他幾種儲存區稍微複雜一點，但也不會多太多。"
+    },
+    {
+      "start": 33.86,
+      "end": 44.119,
+      "en": "So because this is a Zero to Rack, meaning we need to do everything, I'm going to create a brand new Cosmos DB up here.",
+      "zh": "既然是 Zero to RAG，代表整套流程都要示範，所以我會先建立全新的 Cosmos DB。"
+    },
+    {
+      "start": 44.119,
+      "end": 55.279,
+      "en": "So up in Azure, in my sandbox, I'm going to make a Cosmos DB, and spell it.",
+      "zh": "進到 Azure，在 Sandbox 裡新增 Cosmos DB。先把名稱拼對。"
+    },
+    {
+      "start": 55.279,
+      "end": 64.16,
+      "en": "And in my case, when we use the Cosmos DB here, I'm going to use the Cosmos DB for NoSQL.",
+      "zh": "這個例子會使用 Azure Cosmos DB for NoSQL。"
+    },
+    {
+      "start": 64.16,
+      "end": 70.519,
+      "en": "There's the Mongo version, and there's two different NuGet packages, one for CERT that works with both.",
+      "zh": "另外也有 MongoDB 版本，對應的 NuGet 套件也有兩種，分別支援不同類型。"
+    },
+    {
+      "start": 70.519,
+      "end": 79.76,
+      "en": "But we're going to do NoSQL, workload type is just learning here, it's going to go away just after this record.",
+      "zh": "這裡選 NoSQL，工作負載類型只用於學習，這個資源錄完影片後就會刪除。"
+    },
+    {
+      "start": 79.76,
+      "end": 87.48,
+      "en": "And I look at the Tube, Availability Zones, we don't care, we don't care really about",
+      "zh": "名稱用 YouTube。可用性區域這裡不重要，位置也沒有特別，"
+    },
+    {
+      "start": 87.48,
+      "end": 97.44,
+      "en": "the location, and I'm going to go serverless so it costs less, because I'm already using my free TR account.",
+      "zh": "要求。我會選 Serverless，費用比較低，因為我的免費層帳戶已經用在其他地方。"
+    },
+    {
+      "start": 97.44,
+      "end": 109.44,
+      "en": "But we're just going to make it here, and that will take a little while, so I will pause the video and come back to you once it's ready.",
+      "zh": "先建立資源，這需要一點時間。我會暫停影片，等準備好再回來。"
+    },
+    {
+      "start": 109.44,
+      "end": 114.279,
+      "en": "Okay, it took a couple of minutes, but the resource is now ready.",
+      "zh": "好，過了幾分鐘，資源已經就緒。"
+    },
+    {
+      "start": 114.279,
+      "end": 125,
+      "en": "So let's go to it, and now Data Explorer, we're going to make a new database, so let's",
+      "zh": "進到資源，再到 Data Explorer 建立資料庫，"
+    },
+    {
+      "start": 125,
+      "end": 133.47899999999998,
+      "en": "just call it YouTube.",
+      "zh": "名稱就叫 YouTube。"
+    },
+    {
+      "start": 133.47899999999998,
+      "end": 142.199,
+      "en": "And different from some of the others that automatically create the table or index or",
+      "zh": "與其他會自動建立資料表或索引的儲存區不同，"
+    },
+    {
+      "start": 142.199,
+      "end": 151.44,
+      "en": "so on up in Cosmos, we also need to make the container that it goes into because of the partition keys.",
+      "zh": "Cosmos DB 還需要先建立容器，因為涉及分割區索引鍵。"
+    },
+    {
+      "start": 152.44,
+      "end": 162.91899999999998,
+      "en": "So we're going to make the container as well, we're going to call it MyCollection, so it",
+      "zh": "所以也要建立 Container，這裡取名為 MyCollection，它，"
+    },
+    {
+      "start": 162.91899999999998,
+      "end": 167.91899999999998,
+      "en": "needs to match the name we put in for our code.",
+      "zh": "必須與程式碼中指定的名稱一致。"
+    },
+    {
+      "start": 167.91899999999998,
+      "end": 169.96,
+      "en": "And then there's the partition key.",
+      "zh": "接著是 Partition key，也就是分割區索引鍵。"
+    },
+    {
+      "start": 169.96,
+      "end": 179.279,
+      "en": "Right now we only have an ID, a question and answer, and a vector, none of them really fit a partition key.",
+      "zh": "目前只有 ID、問題、答案和向量，其實都不是很理想的分割區索引鍵。"
+    },
+    {
+      "start": 179.279,
+      "end": 184.119,
+      "en": "I imagine if you're looking for this in Cosmos, you definitely know what Cosmos partition",
+      "zh": "如果你正在研究 Cosmos DB，應該已經知道 Cosmos 的分割區，"
+    },
+    {
+      "start": 184.119,
+      "end": 191.559,
+      "en": "keys are, but nothing really fits, so I'm going to do the stupid thing and do it on the ID.",
+      "zh": "索引鍵是什麼。但這裡沒有很適合的欄位，所以我先採取最簡單的做法，使用 ID。"
+    },
+    {
+      "start": 191.559,
+      "end": 200.6,
+      "en": "But in real life, if you're really onto Cosmos anyway, you'll probably have some kind of type or region or something to put into the partition key.",
+      "zh": "實際應用中，如果原本就有使用 Cosmos，通常會有類型、區域等欄位，可以用來當分割區索引鍵。"
+    },
+    {
+      "start": 200.6,
+      "end": 209.919,
+      "en": "It needs to match one of the properties that we have down in our vector here, so I'm just",
+      "zh": "它必須對應到下方向量資料模型中的某個屬性，所以我就，"
+    },
+    {
+      "start": 209.919,
+      "end": 214.119,
+      "en": "matching it against this one.",
+      "zh": "對應這個屬性。"
+    },
+    {
+      "start": 214.119,
+      "end": 221.119,
+      "en": "So let's go in and create that container, and then we should be ready.",
+      "zh": "接著建立容器，應該就準備好了。"
+    },
+    {
+      "start": 233.119,
+      "end": 243.199,
+      "en": "We have it, we of course need to get our keys, and while we're waiting for this, I'm going to expose my keys now, my connection string.",
+      "zh": "建立完成後，當然需要取得金鑰。等候的同時，我會展示金鑰與連線字串。"
+    },
+    {
+      "start": 243.199,
+      "end": 248.399,
+      "en": "That's because whenever you see this video, this resource has already been removed again,",
+      "zh": "原因是你看到這支影片時，這個資源已經刪除了，"
+    },
+    {
+      "start": 248.399,
+      "end": 255.919,
+      "en": "so it's not a security risk for me, but of course you should never share things like this.",
+      "zh": "所以對我而言沒有安全風險。但你當然不應該分享這些資訊。"
+    },
+    {
+      "start": 255.919,
+      "end": 263.6,
+      "en": "And what we're in is in a sample that looks just like the in-memory one, but we just have",
+      "zh": "現在這個範例與 InMemory 版本相同，只是多了一個，"
+    },
+    {
+      "start": 263.6,
+      "end": 269.76,
+      "en": "a place to put in a connection string, so we're going to put that in.",
+      "zh": "填入連線字串的位置，我們把它貼上。"
+    },
+    {
+      "start": 270.76,
+      "end": 281.64,
+      "en": "In order for us to work with it, we need one of the other packages in our vector data for community toolkits, so we're going to go to NuGet.",
+      "zh": "要操作這個儲存區，需要 CommunityToolkit.VectorData 的另一個套件，所以進到 NuGet。"
+    },
+    {
+      "start": 284.64,
+      "end": 289.359,
+      "en": "We already have the in-memory, we could take that away.",
+      "zh": "原本有 InMemory 套件，現在可以移除。"
+    },
+    {
+      "start": 289.359,
+      "end": 296.799,
+      "en": "And because of Cosmos, we have also put in Newtonsoft.json, because else it complains about not having that.",
+      "zh": "由於使用 Cosmos，我也加入了 Newtonsoft.Json，否則系統會抱怨缺少這個套件。"
+    },
+    {
+      "start": 296.839,
+      "end": 305.119,
+      "en": "It's a little annoying, but that's just the way it is, and it would tell you if you didn't already put it in.",
+      "zh": "雖然有點麻煩，但目前就是如此。如果沒有事先加入，執行時也會提醒。"
+    },
+    {
+      "start": 305.119,
+      "end": 312.6,
+      "en": "So we can put in community toolkit.vectordata, and among these, you can see there's two Cosmos,",
+      "zh": "搜尋 CommunityToolkit.VectorData，可以看到有兩個 Cosmos 套件，"
+    },
+    {
+      "start": 312.6,
+      "end": 319.88,
+      "en": "one if we use NoSQL, and one if we use MongoDB, because there's different APIs for them.",
+      "zh": "一個對應 NoSQL，另一個對應 MongoDB，因為使用的 API 不同。"
+    },
+    {
+      "start": 319.88,
+      "end": 323.799,
+      "en": "We of course use the ones we created at last, the NoSQL.",
+      "zh": "我們當然選剛才建立的 NoSQL。"
+    },
+    {
+      "start": 326.799,
+      "end": 334.6,
+      "en": "So that is ready, and the only thing we need to do now is to switch out our in-memory vector",
+      "zh": "準備好之後，現在唯一需要做的，是把這裡原本的 InMemory 向量，"
+    },
+    {
+      "start": 334.6,
+      "end": 341.799,
+      "en": "store here with the Cosmos DB vector store.",
+      "zh": "儲存區替換成 Cosmos DB 向量儲存區。"
+    },
+    {
+      "start": 342.799,
+      "end": 353.799,
+      "en": "This one has a bit extra, so we need the connection string, but we also need here already to tell the database name, because it's not part of the connection string.",
+      "zh": "這個版本多了一些設定：除了連線字串，還需要事先指定資料庫名稱，因為它不包含在連線字串裡。"
+    },
+    {
+      "start": 353.799,
+      "end": 360.799,
+      "en": "So I think I called it YouTube, didn't I? Let's check.",
+      "zh": "我剛才應該取名為 YouTube，對吧？確認一下。"
+    },
+    {
+      "start": 362.799,
+      "end": 364.799,
+      "en": "Yeah, YouTube.",
+      "zh": "沒錯，是 YouTube。"
+    },
+    {
+      "start": 368.799,
+      "end": 374.799,
+      "en": "We also need a Cosmos client options, so we need a new of that.",
+      "zh": "另外也需要一個 CosmosClientOptions，所以新增它。"
+    },
+    {
+      "start": 374.799,
+      "end": 384.799,
+      "en": "And the thing we need to set here is use system text JSON serialization with options.",
+      "zh": "這裡必須設定使用 System.Text.Json 序列化，以及對應的選項。"
+    },
+    {
+      "start": 385.799,
+      "end": 391.799,
+      "en": "If we don't tell that, it will complain saying, hey, you need to set this.",
+      "zh": "如果沒有指定，系統會提示必須設定。"
+    },
+    {
+      "start": 392.799,
+      "end": 399.799,
+      "en": "And we can say our JSON serialization options, and I know the web defaults work fine.",
+      "zh": "接著傳入 JsonSerializerOptions，我知道使用 Web 預設值就能正常運作。"
+    },
+    {
+      "start": 400.799,
+      "end": 409.799,
+      "en": "Beyond that, we need the Cosmos DB vector store options in order to give our link.",
+      "zh": "另外需要 Cosmos DB 向量儲存區選項，用來提供嵌入生成器。"
+    },
+    {
+      "start": 410.799,
+      "end": 413.799,
+      "en": "But beyond that, we don't need to change anything.",
+      "zh": "除此之外，不需要再修改任何東西。"
+    },
+    {
+      "start": 413.799,
+      "end": 415.799,
+      "en": "That's all we need.",
+      "zh": "只要這些就夠了。"
+    },
+    {
+      "start": 415.799,
+      "end": 420.799,
+      "en": "We can run it, and hopefully it will work.",
+      "zh": "執行看看，希望能成功。"
+    },
+    {
+      "start": 424.799,
+      "end": 426.799,
+      "en": "It begins embedding.",
+      "zh": "開始產生嵌入向量了。"
+    },
+    {
+      "start": 430.799,
+      "end": 439.799,
+      "en": "And once the embedding is done, our AI will of course answer, just like we did in the main video.",
+      "zh": "嵌入完成之後，AI 當然就會像主影片一樣回答問題。"
+    },
+    {
+      "start": 440.799,
+      "end": 446.799,
+      "en": "And if we look up in Cosmos, we should be able to look at the items here,",
+      "zh": "到 Cosmos 裡查看，應該能在 Items 這裡看到資料，"
+    },
+    {
+      "start": 446.799,
+      "end": 455.799,
+      "en": "which is our 10 different Q&A questions with the vector as well.",
+      "zh": "也就是十筆不同的問答，以及各自的向量。"
+    },
+    {
+      "start": 455.799,
+      "end": 458.799,
+      "en": "So the Q, the A, and the vector.",
+      "zh": "所以包含問題、答案和向量。"
+    },
+    {
+      "start": 460.799,
+      "end": 463.799,
+      "en": "And that's actually everything there is to it.",
+      "zh": "其實全部內容就是這樣。"
+    },
+    {
+      "start": 463.799,
+      "end": 470.799,
+      "en": "Cosmos requires a little more setup here, a bit more annoying, the partition key.",
+      "zh": "Cosmos 需要多做一點設定，分割區索引鍵也比較麻煩，"
+    },
+    {
+      "start": 470.799,
+      "end": 475.799,
+      "en": "But beyond that, we don't need to change a single line of code from the main video.",
+      "zh": "但除此之外，主影片中的程式碼不需要另外修改。"
+    },
+    {
+      "start": 476.799,
+      "end": 479.799,
+      "en": "So with that, thank you. See you in the next one.",
+      "zh": "以上，謝謝，我們下一支影片再見。"
+    }
+  ]
+}

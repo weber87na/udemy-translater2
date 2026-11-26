@@ -1,0 +1,1229 @@
+{
+  "courseId": "6795111",
+  "lectureId": "57818713",
+  "title": "Optional: How to build your own provider",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 5.4,
+      "en": "Hi and welcome to yet another video about vector stores.",
+      "zh": "大家好，歡迎觀看另一支向量儲存區教學影片。"
+    },
+    {
+      "start": 5.4,
+      "end": 17,
+      "en": "So a short while ago I made a lot of serial to rack videos and I have previously made a what is rack video as well.",
+      "zh": "前陣子我做了一系列 Zero to RAG，也曾介紹什麼是 RAG。"
+    },
+    {
+      "start": 17,
+      "end": 24,
+      "en": "This is much more deep level and if you haven't seen any of those, definitely go see them.",
+      "zh": "這次會更深入，如果還沒看過那些影片，建議先看。"
+    },
+    {
+      "start": 24,
+      "end": 35.919,
+      "en": "But I wanted to show what actually happens inside one of these vector stores from Community Toolkit and Microsoft Extensions Vector Data.",
+      "zh": "我想展示 CommunityToolkit 與 Microsoft.Extensions.VectorData 的向量儲存區，內部究竟如何運作。"
+    },
+    {
+      "start": 35.919,
+      "end": 41.759,
+      "en": "And the best way to actually show what's inside is to try and build one yourself. So I did that.",
+      "zh": "最好的方式，就是自己試著建立一個，因此我做了。"
+    },
+    {
+      "start": 41.759,
+      "end": 43.919,
+      "en": "I did a very crude version.",
+      "zh": "這是一個非常簡陋的版本。"
+    },
+    {
+      "start": 43.919,
+      "end": 53.88,
+      "en": "This is by no means something you can put into production, so I've only implemented exactly what we need, but let's go into it.",
+      "zh": "絕對不能拿去正式環境，只實作這次需要的最基本功能。接著看看。"
+    },
+    {
+      "start": 53.88,
+      "end": 59.4,
+      "en": "So here on the rack I have something called build your own vector store.",
+      "zh": "在 RAG 底下，有 Build Your Own Vector Store。"
+    },
+    {
+      "start": 59.4,
+      "end": 65.919,
+      "en": "And what you can see here is we're using Azure OpenAI in order to do the embedding and talking",
+      "zh": "可以看到，使用 Azure OpenAI 產生嵌入向量，並和，"
+    },
+    {
+      "start": 65.919,
+      "end": 75.559,
+      "en": "to an agent, but we're not using any of the, let's go here, implementations of vector stores.",
+      "zh": "代理程式對話，但沒有使用任何現成向量儲存區實作，看看這裡。"
+    },
+    {
+      "start": 75.559,
+      "end": 81.519,
+      "en": "There's a bunch of them, SQL, InMemory, Azure AI and so on.",
+      "zh": "現成實作有很多，例如 SQL、InMemory、Azure AI Search。"
+    },
+    {
+      "start": 81.76,
+      "end": 91.03999999999999,
+      "en": "And each one of them are dependent on the Microsoft Extensions Vector Data abstractions.",
+      "zh": "每個都依賴 Microsoft.Extensions.VectorData.Abstractions。"
+    },
+    {
+      "start": 91.03999999999999,
+      "end": 99,
+      "en": "That extractions is the only one we have put in here, so we have the baseline, but this by itself can't do anything.",
+      "zh": "這裡只加入 Abstractions，也就是基本抽象，但單靠它不能真正操作資料。"
+    },
+    {
+      "start": 99,
+      "end": 103.279,
+      "en": "It's just contracts on how to build a vector store.",
+      "zh": "它只是定義如何建立向量儲存區的合約。"
+    },
+    {
+      "start": 103.279,
+      "end": 105.08,
+      "en": "Microsoft will build a lot.",
+      "zh": "Microsoft 會提供很多實作。"
+    },
+    {
+      "start": 105.08,
+      "end": 108.559,
+      "en": "Let's build one ourselves.",
+      "zh": "現在我們自己建立一個。"
+    },
+    {
+      "start": 108.559,
+      "end": 113.559,
+      "en": "So before we do that, let's just quickly see the system, what's going on.",
+      "zh": "在那之前，先快速看系統的整體流程。"
+    },
+    {
+      "start": 113.559,
+      "end": 116.839,
+      "en": "So let's set a breakpoint and run it.",
+      "zh": "設中斷點，執行。"
+    },
+    {
+      "start": 116.839,
+      "end": 128.279,
+      "en": "So we have some data, just my handy internal null space data, and we build a client and we build an embedding generator.",
+      "zh": "先準備資料，就是常用的內部知識庫，再建立用戶端與嵌入產生器。"
+    },
+    {
+      "start": 128.279,
+      "end": 131.52,
+      "en": "Nothing new there so far.",
+      "zh": "目前沒有新東西。"
+    },
+    {
+      "start": 131.52,
+      "end": 141.199,
+      "en": "Then we build our vector store, but instead of the InMemory vector store, the SQLite or the SQL server and so on, we're building a MyVectorStore, and we will go in and see",
+      "zh": "接著建立向量儲存區，但不是 InMemory、SQLite、SQL Server，而是自己的 MyVectorStore。稍後會看，"
+    },
+    {
+      "start": 141.199,
+      "end": 149.07999999999998,
+      "en": "how they are built behind the scenes, but for now, we just say we have a store.",
+      "zh": "它如何實作，目前先知道已取得 Store。"
+    },
+    {
+      "start": 149.07999999999998,
+      "end": 158.52,
+      "en": "And just like we have a store, we can get a collection and we can then delete that collection and make sure that it's there again.",
+      "zh": "和其他 Store 一樣，可以取得 Collection，再刪除它，並確保重新建立。"
+    },
+    {
+      "start": 158.52,
+      "end": 162.6,
+      "en": "In real code, you would, of course, not delete the collection.",
+      "zh": "實際程式當然不會每次都刪除 Collection。"
+    },
+    {
+      "start": 162.6,
+      "end": 164.44,
+      "en": "Then we could embed the data.",
+      "zh": "接著匯入嵌入向量。"
+    },
+    {
+      "start": 164.44,
+      "end": 175.75900000000001,
+      "en": "If I pull in this, you'll see that once I've run in one, it's embedded one, and so on and so forth.",
+      "zh": "把畫面拉進來，可以看到每執行一次，就完成一筆嵌入。"
+    },
+    {
+      "start": 175.75900000000001,
+      "end": 183.199,
+      "en": "So I will just let it run through all 10 here.",
+      "zh": "先讓它把十筆全部跑完。"
+    },
+    {
+      "start": 183.199,
+      "end": 188.919,
+      "en": "And then I make a little search tool, the same from the previous video.",
+      "zh": "接著建立與前一支影片相同的小型搜尋工具。"
+    },
+    {
+      "start": 188.919,
+      "end": 198.119,
+      "en": "I make a small agent that is allowed to ask a question, what is the Wi-Fi password, which was one of these up here.",
+      "zh": "再建立代理程式，詢問 Wi-Fi 密碼，也就是上面其中一筆。"
+    },
+    {
+      "start": 198.119,
+      "end": 207.8,
+      "en": "And when it answers, it will come back, let's have a look, that it could search.",
+      "zh": "回答時，可以看到確實完成搜尋。"
+    },
+    {
+      "start": 207.8,
+      "end": 218.539,
+      "en": "So this was MyVectorStore, and I built it from scratch because MyVectorStore here is",
+      "zh": "這就是 MyVectorStore，是從零建立的，因為這個，"
+    },
+    {
+      "start": 218.539,
+      "end": 223.86,
+      "en": "not something that exists other than in my files here.",
+      "zh": "類型除了這些檔案之外，並不存在其他地方。"
+    },
+    {
+      "start": 223.86,
+      "end": 228.97899999999998,
+      "en": "I have MyVectorStore implementation here, consisting of three files.",
+      "zh": "MyVectorStore 實作總共由三個檔案組成。"
+    },
+    {
+      "start": 228.97899999999998,
+      "end": 234.699,
+      "en": "And as mentioned in the beginning, this is the bare minimum of what we need.",
+      "zh": "如一開始所說，只包含最低需求。"
+    },
+    {
+      "start": 234.699,
+      "end": 242.619,
+      "en": "I have implemented getCollection, I have implemented this, this, the absurd, and the search.",
+      "zh": "實作了 GetCollection、建立與刪除、Upsert，以及搜尋。"
+    },
+    {
+      "start": 243.619,
+      "end": 250.059,
+      "en": "There's a bunch of other methods here that I haven't taken into account.",
+      "zh": "還有很多方法完全沒有處理。"
+    },
+    {
+      "start": 250.059,
+      "end": 254.419,
+      "en": "They would be possible to, of course, create, but that's not the point here.",
+      "zh": "當然也能實作，但不是這次重點。"
+    },
+    {
+      "start": 254.419,
+      "end": 262.1,
+      "en": "I wanted to show exactly the simple scenario, which is also the 95% of what you need.",
+      "zh": "我想示範最簡單的情境，也涵蓋大約 95% 的基本需求。"
+    },
+    {
+      "start": 262.1,
+      "end": 263.1,
+      "en": "The rest could be done.",
+      "zh": "其餘功能也都能完成。"
+    },
+    {
+      "start": 263.1,
+      "end": 273.65999999999997,
+      "en": "It's just a lot of reflection.",
+      "zh": "只是需要更多反射。"
+    },
+    {
+      "start": 273.65999999999997,
+      "end": 276.779,
+      "en": "So you will see a lot of reflection in this video.",
+      "zh": "所以這支影片會看到很多反射操作。"
+    },
+    {
+      "start": 276.779,
+      "end": 286.94,
+      "en": "But let me run it again, and then let's go into exactly what happens in each one of these, so you can get a better understanding of what's going on.",
+      "zh": "重新執行，再深入每個步驟，幫助你理解。"
+    },
+    {
+      "start": 286.94,
+      "end": 292.5,
+      "en": "So let's run it, and instead of just moving over this, I will press F11.",
+      "zh": "這次不直接跳過，而是按 F11。"
+    },
+    {
+      "start": 292.5,
+      "end": 298.299,
+      "en": "So we go in and see the implementation of this.",
+      "zh": "進入實作看看。"
+    },
+    {
+      "start": 298.299,
+      "end": 306.899,
+      "en": "So inside here, I have MyVectorStore, and it takes in MyVectorStore options.",
+      "zh": "這裡是 MyVectorStore，接收 MyVectorStoreOptions。"
+    },
+    {
+      "start": 306.899,
+      "end": 315.959,
+      "en": "And as you can see, MyVectorStore implements a VectorStore abstract class that made me",
+      "zh": "可以看到，MyVectorStore 繼承 VectorStore 抽象類別，因此必須，"
+    },
+    {
+      "start": 315.959,
+      "end": 318.22,
+      "en": "need it to override a bunch of methods.",
+      "zh": "覆寫多個方法。"
+    },
+    {
+      "start": 318.22,
+      "end": 325.7,
+      "en": "And as you can see, some of them I've just left not implemented, but the get collection that we will use in one second is there.",
+      "zh": "有些直接保留未實作，但稍後會用到的 GetCollection 已經完成。"
+    },
+    {
+      "start": 325.7,
+      "end": 328.82,
+      "en": "We will go into that in one second.",
+      "zh": "稍後會進去看。"
+    },
+    {
+      "start": 328.82,
+      "end": 330.94,
+      "en": "The options are fairly simple.",
+      "zh": "Options 很簡單。"
+    },
+    {
+      "start": 330.94,
+      "end": 336.26,
+      "en": "It's just an abstraction of a generic VectorStore collection.",
+      "zh": "它沿用一般 VectorStoreCollection 的選項抽象。"
+    },
+    {
+      "start": 336.26,
+      "end": 346.26,
+      "en": "That means that we could add more options to a specific VectorStore, but in our case, we don't need to, so we don't do anything.",
+      "zh": "特定儲存區可以加入更多選項，但這個例子不需要，因此沒有額外內容。"
+    },
+    {
+      "start": 346.26,
+      "end": 353.82,
+      "en": "So that is the instructor here.",
+      "zh": "這就是建構函式。"
+    },
+    {
+      "start": 353.82,
+      "end": 365.059,
+      "en": "Then when we say get collection, just like we have done with all the other collections, we go in and we actually just make a new collection.",
+      "zh": "接著呼叫 GetCollection，和其他儲存區一樣，實際上只是建立新的 Collection。"
+    },
+    {
+      "start": 365.059,
+      "end": 368.88,
+      "en": "This collection can take in some definitions.",
+      "zh": "Collection 可以接收一些定義。"
+    },
+    {
+      "start": 368.88,
+      "end": 376.44,
+      "en": "This is the same thing you have inside the options with embedding generators and so on.",
+      "zh": "和前面選項中的嵌入產生器等設定類似。"
+    },
+    {
+      "start": 376.44,
+      "end": 382.16,
+      "en": "I've just said if we don't put in a definition, which we didn't, we just use the options we",
+      "zh": "我設定成，如果沒有額外提供定義，這裡確實沒有，就使用，"
+    },
+    {
+      "start": 382.16,
+      "end": 392.279,
+      "en": "gave in the VectorStore by itself, so we can get our embedding generator into our collection.",
+      "zh": "建立 VectorStore 時傳入的選項，讓 Collection 也能取得嵌入產生器。"
+    },
+    {
+      "start": 392.279,
+      "end": 398.839,
+      "en": "And if we go into the collection itself, you will see that this is again a class that inherits",
+      "zh": "進入 Collection，會看到它也是繼承，"
+    },
+    {
+      "start": 398.839,
+      "end": 404.76,
+      "en": "from an abstract class called VectorStoreCollection, and it has two generics.",
+      "zh": "VectorStoreCollection 抽象類別，並有兩個泛型參數。"
+    },
+    {
+      "start": 404.76,
+      "end": 410.48,
+      "en": "One for the key, in our case a string, and one for the record, in our case a vector model.",
+      "zh": "一個是 Key，這裡是 string；另一個是 Record，這裡是 VectorModel。"
+    },
+    {
+      "start": 410.48,
+      "end": 416.04,
+      "en": "So if we go out in here, you can see these are the two that we sent.",
+      "zh": "回到外面，可以看到傳入的就是這兩個。"
+    },
+    {
+      "start": 416.04,
+      "end": 422.88,
+      "en": "They are just normal generics, nothing special there.",
+      "zh": "只是一般泛型，沒有特別之處。"
+    },
+    {
+      "start": 422.88,
+      "end": 430.239,
+      "en": "We have our system where we get in the name that we specified, and we get this definition",
+      "zh": "接著取得指定的名稱，以及這份定義，"
+    },
+    {
+      "start": 430.239,
+      "end": 437.04,
+      "en": "which I've now put in so we can have the embedding generator inside here as well.",
+      "zh": "剛剛把嵌入產生器放進來，所以這裡也能使用。"
+    },
+    {
+      "start": 437.04,
+      "end": 440.239,
+      "en": "So I'm storing the name in the collection.",
+      "zh": "把名稱保存在 Collection。"
+    },
+    {
+      "start": 440.239,
+      "end": 446.6,
+      "en": "I'm storing the embedding generator so we can do embeddings when we need to.",
+      "zh": "也保存嵌入產生器，之後需要時就能向量化。"
+    },
+    {
+      "start": 446.6,
+      "end": 452.32,
+      "en": "And then I'm using reflection in order to get hold of what the record is.",
+      "zh": "接著透過反射，取得 Record 的結構。"
+    },
+    {
+      "start": 452.32,
+      "end": 461.239,
+      "en": "So tRecord is an object with four different properties, tObject is down here, you haven't",
+      "zh": "TRecord 是有四個屬性的物件，下面這個，"
+    },
+    {
+      "start": 461.239,
+      "end": 467.399,
+      "en": "seen it before, it's just a vector model and we have some attributes, one that identifies",
+      "zh": "就是 VectorModel，有一些屬性標記，其中一個識別，"
+    },
+    {
+      "start": 467.399,
+      "end": 479.48,
+      "en": "the key, some that identifies additional values, and one that identifies the VectorStore, the vector itself.",
+      "zh": "主鍵，另外兩個識別資料欄位，最後一個識別向量本身。"
+    },
+    {
+      "start": 479.48,
+      "end": 491.16,
+      "en": "So when we have those four, we can of course get the record key, because we need that in order to save it, this will be our primary key.",
+      "zh": "因此可以取得 Record Key，因為儲存時需要它，這就是主鍵。"
+    },
+    {
+      "start": 491.16,
+      "end": 500,
+      "en": "And we need to get the vector record, which is just the one that was called Vector.",
+      "zh": "也需要取得 Vector 欄位，就是名為 Vector 的屬性。"
+    },
+    {
+      "start": 500,
+      "end": 510.48,
+      "en": "Then we of course have two additional properties, which we can see here, the question and the answer.",
+      "zh": "另外還有 Question 與 Answer 兩個屬性。"
+    },
+    {
+      "start": 510.48,
+      "end": 516.76,
+      "en": "So this is just reflection getting us that so we can work with it later on.",
+      "zh": "這只是利用反射取得資訊，供稍後使用。"
+    },
+    {
+      "start": 516.76,
+      "end": 526.799,
+      "en": "Beyond that, the collection actually doesn't do anything, it's just an object in memory and the only thing it's exposing is the name, the other ones we can only see because it's",
+      "zh": "除此之外，Collection 暫時什麼也沒做，只是記憶體中的物件，對外只公開名稱。其他內容看得到，是因為，"
+    },
+    {
+      "start": 526.799,
+      "end": 531.2,
+      "en": "our own implementation.",
+      "zh": "這是我們自己的實作。"
+    },
+    {
+      "start": 531.2,
+      "end": 536.44,
+      "en": "So we have our collection and then it says ensure collection deleted.",
+      "zh": "取得 Collection 後，接著呼叫 EnsureCollectionDeletedAsync。"
+    },
+    {
+      "start": 536.44,
+      "end": 542.28,
+      "en": "I haven't talked about this yet, but my collection is actually just files.",
+      "zh": "還沒提過，我這裡的 Collection 實際上只是檔案。"
+    },
+    {
+      "start": 542.28,
+      "end": 552.28,
+      "en": "I've made a VectorStore collection in my temp folder, and inside that we'll end up with some JSON files.",
+      "zh": "在暫存資料夾建立 VectorStoreCollection，裡面最後會有一些 JSON。"
+    },
+    {
+      "start": 552.28,
+      "end": 559.479,
+      "en": "Right now it's there because I've run it already, but when I say ensure collection deleted,",
+      "zh": "現在已經存在，因為之前執行過。但呼叫 EnsureCollectionDeletedAsync，"
+    },
+    {
+      "start": 559.479,
+      "end": 567.08,
+      "en": "it will go away because what happens inside ensure deleted is I'm just going to say I",
+      "zh": "它就會消失。因為內部只是，"
+    },
+    {
+      "start": 567.08,
+      "end": 575.4,
+      "en": "have a little folder helper to get my store, which is not a space, and it just takes the",
+      "zh": "透過小型 FolderHelper 取得 Store 路徑，並不是什麼特殊儲存空間，先取得，"
+    },
+    {
+      "start": 575.4,
+      "end": 583.44,
+      "en": "temp part, put in a VectorCollection, create that folder, and then it creates the store folder.",
+      "zh": "暫存路徑，加上 VectorStoreCollection，建立資料夾，再建立 Store 對應資料夾。"
+    },
+    {
+      "start": 584.4,
+      "end": 590.76,
+      "en": "My store folder is essentially just my temp folder, slash VectorStoreCollection, that's not a space.",
+      "zh": "所以 Store 只是暫存資料夾底下的 VectorStoreCollection，沒有特殊意義。"
+    },
+    {
+      "start": 590.76,
+      "end": 593.2,
+      "en": "But this could be whatever you wanted.",
+      "zh": "不過也可以換成任何你想要的儲存。"
+    },
+    {
+      "start": 593.2,
+      "end": 598.44,
+      "en": "It could be a database that doesn't support systems and you can build it behind the scenes.",
+      "zh": "例如某種原本不支援向量的資料庫，在底層自己實作。"
+    },
+    {
+      "start": 598.44,
+      "end": 603.08,
+      "en": "I'm not saying this is easy to build, but it is possible to build.",
+      "zh": "不是說容易做，但確實可以。"
+    },
+    {
+      "start": 603.08,
+      "end": 610,
+      "en": "So I just made it using files.",
+      "zh": "這裡只是使用檔案。"
+    },
+    {
+      "start": 610.479,
+      "end": 614.52,
+      "en": "Then I'm just doing file manipulation in C-sharp like normal.",
+      "zh": "接著就是一般 C# 檔案操作。"
+    },
+    {
+      "start": 614.52,
+      "end": 622.96,
+      "en": "I delete the store, using directory.delete, nothing to do with vectors or anything, and then I'm done.",
+      "zh": "透過 Directory.Delete 刪除 Store，完全與向量無關，然後就完成。"
+    },
+    {
+      "start": 622.96,
+      "end": 633.28,
+      "en": "In the same way, when I create the collection, it just gives me the folder and creates the",
+      "zh": "同樣地，建立 Collection 時，也只是取得資料夾路徑，並建立，"
+    },
+    {
+      "start": 633.28,
+      "end": 637,
+      "en": "folder here without anything in it.",
+      "zh": "一個空資料夾。"
+    },
+    {
+      "start": 637,
+      "end": 642.84,
+      "en": "So that is just C-sharp, and it's just our implementation details on how to do it.",
+      "zh": "所以只是 C#，屬於我們自己的實作細節。"
+    },
+    {
+      "start": 642.84,
+      "end": 649.799,
+      "en": "It could have been one big JSON file, it could have been binary files, it could have been blob storage.",
+      "zh": "也可以改成單一大型 JSON、二進位檔案，或 Blob Storage。"
+    },
+    {
+      "start": 649.799,
+      "end": 658.88,
+      "en": "It's probably not a good thing because that would give a lot of latency, but there's different options of course.",
+      "zh": "Blob Storage 可能不是好選擇，因為延遲很高，不過確實有不同方案。"
+    },
+    {
+      "start": 658.88,
+      "end": 666.96,
+      "en": "So now we have our collection, not really done anything other than create a folder in a temp folder.",
+      "zh": "現在取得 Collection，實際上只是建立暫存子資料夾。"
+    },
+    {
+      "start": 666.96,
+      "end": 672.32,
+      "en": "But now we're going to go to each of our embeddings here.",
+      "zh": "接著逐一處理嵌入向量。"
+    },
+    {
+      "start": 672.32,
+      "end": 675.88,
+      "en": "So when we do our embedding, we of course make our model.",
+      "zh": "要產生嵌入向量，先建立模型。"
+    },
+    {
+      "start": 675.88,
+      "end": 682.719,
+      "en": "So again, we have the ID, question, answer, and the vector, which is built off of this.",
+      "zh": "一樣有 ID、Question、Answer，以及根據這些內容組成的 Vector。"
+    },
+    {
+      "start": 682.719,
+      "end": 691.84,
+      "en": "And we're just giving it an ID and we're doing the upsert, meaning we either insert or update.",
+      "zh": "提供 ID，再執行 Upsert，也就是新增或更新。"
+    },
+    {
+      "start": 691.84,
+      "end": 694.679,
+      "en": "So let's go in and see how that is implemented.",
+      "zh": "進入實作看看。"
+    },
+    {
+      "start": 694.679,
+      "end": 697.919,
+      "en": "And behind the scenes, there's actually two upserts.",
+      "zh": "背後其實有兩個 Upsert。"
+    },
+    {
+      "start": 697.919,
+      "end": 702.4,
+      "en": "There's one for an individual record and one for multiple records.",
+      "zh": "一個處理單筆，另一個處理多筆。"
+    },
+    {
+      "start": 702.4,
+      "end": 708.739,
+      "en": "In our case, it's easier to just keep all the implementation details in the multiple.",
+      "zh": "這個例子把實作集中在多筆版本比較方便。"
+    },
+    {
+      "start": 708.739,
+      "end": 714,
+      "en": "So it's essentially just calling the other method.",
+      "zh": "因此單筆版本只是呼叫另一個方法。"
+    },
+    {
+      "start": 714,
+      "end": 720.32,
+      "en": "When I go in here, and again, get my store folder, because I need to put a JSON file",
+      "zh": "進入後，再取得 Store 資料夾，因為要把 JSON 檔案，"
+    },
+    {
+      "start": 720.32,
+      "end": 726.799,
+      "en": "here, because each vector record will become one JSON file in my implementation.",
+      "zh": "存到這裡。我的實作中，每筆向量紀錄就是一個 JSON。"
+    },
+    {
+      "start": 726.799,
+      "end": 731.94,
+      "en": "Not efficient in any way, but it will work that way.",
+      "zh": "效率不好，但確實能運作。"
+    },
+    {
+      "start": 731.94,
+      "end": 736.88,
+      "en": "So I go to my records, and then I use, again, reflection.",
+      "zh": "接著處理每筆 Record，再使用反射。"
+    },
+    {
+      "start": 736.88,
+      "end": 743.76,
+      "en": "I have my property key and my vector key, so I can get the value of the key, meaning",
+      "zh": "已經有主鍵與向量屬性的資訊，因此能取得主鍵值，也就是，"
+    },
+    {
+      "start": 743.76,
+      "end": 755.719,
+      "en": "just a grid in this case, and a vector value, which is the concatenation of question and",
+      "zh": "這裡的 GUID；向量來源則是問題與，"
+    },
+    {
+      "start": 755.719,
+      "end": 760.88,
+      "en": "answer, as we saw in this object here.",
+      "zh": "答案的串接，和剛剛物件中看到的一樣。"
+    },
+    {
+      "start": 760.88,
+      "end": 765.599,
+      "en": "So it's just the concatenation of that.",
+      "zh": "就是把這些內容組合起來。"
+    },
+    {
+      "start": 765.599,
+      "end": 768.219,
+      "en": "And that is what I want to embed.",
+      "zh": "這就是要產生嵌入向量的文字。"
+    },
+    {
+      "start": 768.219,
+      "end": 772.32,
+      "en": "So I'm using the embedding generator to generate one of these.",
+      "zh": "因此呼叫嵌入產生器，產生一個向量。"
+    },
+    {
+      "start": 772.32,
+      "end": 776.479,
+      "en": "We haven't really seen it, because we just made the embedding generator, and then magic happened behind the scenes.",
+      "zh": "之前沒有直接看到，因為只建立嵌入產生器，之後就像自動完成。"
+    },
+    {
+      "start": 776.479,
+      "end": 781.44,
+      "en": "But this is what happens in real life, is that the embedding generator is being called",
+      "zh": "但實際上，就是對每筆，"
+    },
+    {
+      "start": 781.44,
+      "end": 789.84,
+      "en": "for each record we put in, and we get an embedding, and that embedding is the 1536 dimensions,",
+      "zh": "放入的紀錄呼叫嵌入產生器，取得 1,536 維向量，"
+    },
+    {
+      "start": 789.84,
+      "end": 796.919,
+      "en": "and behind the scenes, it's just a bunch of floats here.",
+      "zh": "背後只是一大組 float。"
+    },
+    {
+      "start": 796.919,
+      "end": 808.919,
+      "en": "Those we begin to put into a JSON object, because we on the fly need to not save, we can't just serialize this object, because that doesn't have a real vector, it has the",
+      "zh": "接著放進 JsonObject，因為不能直接序列化原本的物件；原本沒有真正的向量，而是，"
+    },
+    {
+      "start": 808.919,
+      "end": 811.2,
+      "en": "representation of a vector.",
+      "zh": "產生向量的文字。"
+    },
+    {
+      "start": 811.2,
+      "end": 818.76,
+      "en": "So we need to make our own object on the fly, in this case, I'm using JSON to do that.",
+      "zh": "所以需要即時建立自己的物件，這裡用 JSON。"
+    },
+    {
+      "start": 818.76,
+      "end": 825.559,
+      "en": "So I'm just building up a collection of the ID, which is our key, and the vector itself,",
+      "zh": "加入 ID，也就是 Key，以及向量本身，"
+    },
+    {
+      "start": 825.559,
+      "end": 831.159,
+      "en": "which is the many floats in here.",
+      "zh": "也就是這裡的大量浮點數。"
+    },
+    {
+      "start": 831.159,
+      "end": 839.919,
+      "en": "Then I'm taking the two additional records, and also putting those into this dictionary,",
+      "zh": "再把兩個額外資料欄位，放進同一個字典，"
+    },
+    {
+      "start": 839.919,
+      "end": 846.799,
+      "en": "so we essentially have a dictionary of four things, ID, vector, question, answer, and that's it.",
+      "zh": "因此最後有四項：ID、Vector、Question、Answer。"
+    },
+    {
+      "start": 846.799,
+      "end": 855.52,
+      "en": "And we just serialize that into JSON, so this JSON is very big with all the numbers here.",
+      "zh": "序列化成 JSON，因為數字很多，所以 JSON 很大。"
+    },
+    {
+      "start": 856.119,
+      "end": 865.52,
+      "en": "And we're just writing that to the store, and we're using the key.json as our file name.",
+      "zh": "再寫入 Store，檔名使用 Key.json。"
+    },
+    {
+      "start": 865.52,
+      "end": 877.239,
+      "en": "When I do this, you see that we end up with one file, and if we look inside that file,",
+      "zh": "完成後，可以看到多出一個檔案，打開看看，"
+    },
+    {
+      "start": 877.239,
+      "end": 885.479,
+      "en": "it is what we saw in some of the other vector stores, something with an ID and a vector,",
+      "zh": "內容和其他向量儲存區很像，有 ID 與 Vector，"
+    },
+    {
+      "start": 885.479,
+      "end": 890.28,
+      "en": "and at the end, in this case, there's the question and the answer.",
+      "zh": "最後則有 Question 與 Answer。"
+    },
+    {
+      "start": 890.28,
+      "end": 897.799,
+      "en": "We could have added more ETags for Cosmos DB, and whatever we need in order to do things.",
+      "zh": "也能加入 Cosmos DB 的 ETag，或其他需要的欄位。"
+    },
+    {
+      "start": 897.799,
+      "end": 908.919,
+      "en": "Again, lots of crude implementation here, not even checking if the ID is something that makes sense in a database.",
+      "zh": "同樣地，這裡很簡陋，甚至沒有檢查 ID 是否適合作為儲存鍵值。"
+    },
+    {
+      "start": 908.919,
+      "end": 912.679,
+      "en": "But just to keep it simple, we go through that.",
+      "zh": "只是為了保持簡單，先照這樣做。"
+    },
+    {
+      "start": 912.679,
+      "end": 923.32,
+      "en": "We upsert that way for all 10, and then come our search.",
+      "zh": "十筆都透過這種方式 Upsert，接著是搜尋。"
+    },
+    {
+      "start": 923.32,
+      "end": 933.159,
+      "en": "So we put in our search tool here, so we can see when the AI begins to use that search tool, how things will work.",
+      "zh": "這裡提供搜尋工具，方便觀察 AI 使用時的過程。"
+    },
+    {
+      "start": 933.76,
+      "end": 942.919,
+      "en": "We'll ask, what is the Wi-Fi password against those 10 records we have in our vector store now, which is just 10 files.",
+      "zh": "我們問 Wi-Fi 密碼，搜尋 Store 中十筆紀錄，也就是十個檔案。"
+    },
+    {
+      "start": 942.919,
+      "end": 947.679,
+      "en": "And here, we go in and use the collection.search async.",
+      "zh": "這裡呼叫 collection.SearchAsync。"
+    },
+    {
+      "start": 947.679,
+      "end": 959.559,
+      "en": "We search for what is the Wi-Fi password, in this case, the AI put a little extra in, and we want to have three of them back.",
+      "zh": "搜尋 Wi-Fi 密碼，這次 AI 稍微多加了一些文字，並要求回傳三筆。"
+    },
+    {
+      "start": 959.559,
+      "end": 963.2,
+      "en": "So let's set a breakpoint here.",
+      "zh": "在這裡設中斷點。"
+    },
+    {
+      "start": 963.2,
+      "end": 972.52,
+      "en": "I think I missed a breakpoint, so I'll just set one here, and then I'll ... Oh, we actually added here.",
+      "zh": "我可能漏設了，再設一個。喔，其實已經在這裡了。"
+    },
+    {
+      "start": 972.52,
+      "end": 977.32,
+      "en": "So we get our search input here, which is just a string.",
+      "zh": "取得搜尋輸入，目前就是字串。"
+    },
+    {
+      "start": 977.32,
+      "end": 984.359,
+      "en": "Technically, this could have already been a vector, but in our case, it's just a string.",
+      "zh": "技術上也可以已經是向量，但這裡只是字串。"
+    },
+    {
+      "start": 984.359,
+      "end": 990.76,
+      "en": "So we know that it's by the string value, we need to embed that.",
+      "zh": "既然是字串，就需要先產生嵌入向量。"
+    },
+    {
+      "start": 990.76,
+      "end": 1001.859,
+      "en": "Because before we can search of just this text, we need to have it as an embedding, just like we have all the other ones as embeddings.",
+      "zh": "因為搜尋之前，需要和其他資料一樣，先把這段文字轉成向量。"
+    },
+    {
+      "start": 1001.859,
+      "end": 1011.039,
+      "en": "So we actually make a new vector here, and this vector represents what is the Wi-Fi password.",
+      "zh": "因此建立一個代表「Wi-Fi 密碼是什麼？」的新向量。"
+    },
+    {
+      "start": 1011.039,
+      "end": 1015.239,
+      "en": "It's just a lot of numbers as well.",
+      "zh": "同樣只是一大串數字。"
+    },
+    {
+      "start": 1015.239,
+      "end": 1025.52,
+      "en": "Then we go and grab all our files, because we don't really have an easy way to figure out which of the ones are most similar, so we need to grab all records.",
+      "zh": "接著讀取所有檔案，因為沒有簡單方法預先知道哪筆最相似，所以全部都要取出。"
+    },
+    {
+      "start": 1025.52,
+      "end": 1036.76,
+      "en": "That's inefficient, of course, if we had had something that could search against an engine that could do similarity searches like a SQL server can do, it would be more efficient.",
+      "zh": "這當然沒有效率。如果有 SQL Server 這類能直接進行相似度搜尋的引擎，就會更有效率。"
+    },
+    {
+      "start": 1036.76,
+      "end": 1046.16,
+      "en": "But since we just need all our files, we have our 10 JSON files, and for each of them, we go in and read the JSON.",
+      "zh": "但這裡只能取得全部十個 JSON，再逐一讀取。"
+    },
+    {
+      "start": 1046.16,
+      "end": 1052.199,
+      "en": "So we get the vector, the ID, and such, the long, long JSON file.",
+      "zh": "取得 Vector、ID 等內容，也就是那份很長的 JSON。"
+    },
+    {
+      "start": 1052.199,
+      "end": 1061.359,
+      "en": "We pass that JSON, and we generate a new T record, meaning we're trying to build up some",
+      "zh": "解析 JSON，建立新的 TRecord，也就是嘗試重新建立，"
+    },
+    {
+      "start": 1061.359,
+      "end": 1066.119,
+      "en": "of these, 10 of them.",
+      "zh": "這些模型，總共十個。"
+    },
+    {
+      "start": 1066.119,
+      "end": 1075.599,
+      "en": "So we try to get our ID out, the ID is our GWT, and we put that into the record itself.",
+      "zh": "先取得 ID，也就是 GUID，再放入 Record。"
+    },
+    {
+      "start": 1075.599,
+      "end": 1086.319,
+      "en": "Right now the record is just using reflection, completely empty, but as soon we set this, we can see that the ID comes along.",
+      "zh": "目前透過反射建立的 Record 原本是空的，設定後就能看到 ID。"
+    },
+    {
+      "start": 1086.319,
+      "end": 1102.119,
+      "en": "We can set the two other properties, so we get our question, and we get our answer.",
+      "zh": "再設定其他兩個屬性，取得 Question 與 Answer。"
+    },
+    {
+      "start": 1102.119,
+      "end": 1107.479,
+      "en": "So now we have that one property, but we had also the vector.",
+      "zh": "現在有資料欄位，但還有向量要處理。"
+    },
+    {
+      "start": 1107.479,
+      "end": 1114.199,
+      "en": "So we can grab the vector element, and that's just the floating values of a lot of things here.",
+      "zh": "取得 Vector 元素，也就是這裡大量浮點數。"
+    },
+    {
+      "start": 1114.199,
+      "end": 1120.56,
+      "en": "We need to have that as a read-only float, because that's how vectors normally are represented here.",
+      "zh": "需要轉成唯讀浮點數記憶體，因為向量通常用這種型別表示。"
+    },
+    {
+      "start": 1120.56,
+      "end": 1123.28,
+      "en": "It looks the same as the float here.",
+      "zh": "內容和這裡的 float 相同。"
+    },
+    {
+      "start": 1123.28,
+      "end": 1130.719,
+      "en": "And then we need to take that individual vector, actually find out how close is it to the search vector.",
+      "zh": "接著要計算這筆向量，與搜尋向量有多接近。"
+    },
+    {
+      "start": 1130.719,
+      "end": 1137.439,
+      "en": "So we are going to make a score on the vector to the search embeddings vector.",
+      "zh": "因此計算它相對於搜尋嵌入向量的分數。"
+    },
+    {
+      "start": 1137.439,
+      "end": 1142.959,
+      "en": "This code is something I just had an AI agent match up.",
+      "zh": "這段程式碼是請 AI 代理程式協助整理的。"
+    },
+    {
+      "start": 1142.959,
+      "end": 1151.16,
+      "en": "I'm not a math expert, but it's a co-similarity search here that simply goes in and takes",
+      "zh": "我不是數學專家，但這是餘弦相似度搜尋，取得，"
+    },
+    {
+      "start": 1151.16,
+      "end": 1162.88,
+      "en": "vector A, vector B, and do a bunch of math-related stuff, figuring out which one of them are closest to each other.",
+      "zh": "向量 A、向量 B，經過一些數學運算，判斷彼此有多接近。"
+    },
+    {
+      "start": 1162.88,
+      "end": 1171.64,
+      "en": "And I have no clue how that actually works, but it will give a value between 0 and 1,",
+      "zh": "我不完全了解內部數學，但這裡會產生一個零到一之間的值，"
+    },
+    {
+      "start": 1171.64,
+      "end": 1175.28,
+      "en": "and the higher the value, the more similar it is.",
+      "zh": "越高表示越相似。"
+    },
+    {
+      "start": 1175.28,
+      "end": 1179.959,
+      "en": "For other vector stores, they might do other implementations.",
+      "zh": "其他向量儲存區，可能使用不同實作。"
+    },
+    {
+      "start": 1179.959,
+      "end": 1186.719,
+      "en": "This is probably very, very crude and very, very slow compared to what others can do,",
+      "zh": "和那些系統相比，這可能非常粗糙，也很慢，"
+    },
+    {
+      "start": 1186.719,
+      "end": 1193.68,
+      "en": "but it's just math behind the scenes doing vector similarity searches.",
+      "zh": "但背後本質上就是數學運算，進行向量相似度搜尋。"
+    },
+    {
+      "start": 1193.68,
+      "end": 1201.099,
+      "en": "And we find in this case that this was 0.1, meaning 10% similar.",
+      "zh": "這裡的結果是 0.1，也就是約 10% 相似。"
+    },
+    {
+      "start": 1201.099,
+      "end": 1208.219,
+      "en": "So we take that score, put it out, and we put it into this vector search result, which",
+      "zh": "取出分數，放進 VectorSearchResult，這是，"
+    },
+    {
+      "start": 1208.219,
+      "end": 1219.859,
+      "en": "is a common object of what we get back here, what we get back here.",
+      "zh": "搜尋結果共用的回傳物件。"
+    },
+    {
+      "start": 1219.859,
+      "end": 1221.78,
+      "en": "So we make one of those.",
+      "zh": "因此建立一個。"
+    },
+    {
+      "start": 1221.78,
+      "end": 1229.219,
+      "en": "So we essentially have that now this record, who's in charge of the report, this answer,",
+      "zh": "現在這筆紀錄，包括誰負責支援的問題、答案，"
+    },
+    {
+      "start": 1229.219,
+      "end": 1234.02,
+      "en": "and this ID has this score.",
+      "zh": "以及 ID，就有了對應分數。"
+    },
+    {
+      "start": 1234.02,
+      "end": 1237.459,
+      "en": "And then we do that for every single file, meaning all 10.",
+      "zh": "接著對每個檔案都做一次，共十筆。"
+    },
+    {
+      "start": 1237.459,
+      "end": 1247.3,
+      "en": "If I set a breakpoint here and let it run, get rid of that one, we now have all 10 records.",
+      "zh": "在這裡設中斷點，讓它跑完，移除另一個，就會取得十筆。"
+    },
+    {
+      "start": 1247.3,
+      "end": 1253.5,
+      "en": "And for each one of them, we have the record itself and the score.",
+      "zh": "每筆都有 Record 本身與分數。"
+    },
+    {
+      "start": 1253.5,
+      "end": 1261.699,
+      "en": "Some of them are high, some of them are low.",
+      "zh": "有些高，有些低。"
+    },
+    {
+      "start": 1261.699,
+      "end": 1268.959,
+      "en": "Then I just sort them by the highest score and take top, in our case, 3.",
+      "zh": "再依分數由高到低排序，取 Top，這裡是三筆。"
+    },
+    {
+      "start": 1268.959,
+      "end": 1277.66,
+      "en": "So we can get that back, and we need to give it back as an isync enumerable, so we need to do it in year return here.",
+      "zh": "需要以 IAsyncEnumerable 回傳，因此在這裡使用 yield return。"
+    },
+    {
+      "start": 1277.66,
+      "end": 1283.339,
+      "en": "So essentially what's happening is it will run that, and we set the breakpoint in here",
+      "zh": "實際上就是執行這些流程，我們在這裡設中斷點，"
+    },
+    {
+      "start": 1283.339,
+      "end": 1290.699,
+      "en": "so we can see that the first result comes back, the one with the highest score.",
+      "zh": "就能看到第一筆、也就是分數最高的結果回來。"
+    },
+    {
+      "start": 1290.699,
+      "end": 1300.38,
+      "en": "And luckily for us, that highest score is what is the Wi-Fi password at the office.",
+      "zh": "幸好，最高分正是辦公室 Wi-Fi 密碼的問題。"
+    },
+    {
+      "start": 1300.38,
+      "end": 1308.339,
+      "en": "And by then, once we have all three out that we wanted, we get our search result back,",
+      "zh": "取得想要的三筆後，搜尋結果就完成，"
+    },
+    {
+      "start": 1308.339,
+      "end": 1317.54,
+      "en": "which will look like this, that we can then augment onto the call using, in this case, the tool.",
+      "zh": "長這樣，再透過這個工具，補充給模型。"
+    },
+    {
+      "start": 1317.54,
+      "end": 1327.3,
+      "en": "And we can run to completion, where it will actually have done it using files on my machine for each one of them.",
+      "zh": "繼續執行到結束，整個流程實際使用的，都是電腦上的檔案。"
+    },
+    {
+      "start": 1327.3,
+      "end": 1333.619,
+      "en": "I have a long vector, an ID, and a QNP.",
+      "zh": "每筆包含長向量、ID，以及問答資料。"
+    },
+    {
+      "start": 1333.619,
+      "end": 1338.38,
+      "en": "That's actually everything there is to what's happening behind the scenes.",
+      "zh": "這就是向量儲存區背後的基本運作。"
+    },
+    {
+      "start": 1338.38,
+      "end": 1346.579,
+      "en": "Again, this is very, very crude, but the crude part is that I'm doing reflection here without",
+      "zh": "再次強調，非常粗糙，因為只是直接使用反射，沒有，"
+    },
+    {
+      "start": 1346.579,
+      "end": 1353.14,
+      "en": "any error handling or any sense of optimization and speed and stuff.",
+      "zh": "錯誤處理，也沒有考慮最佳化與速度。"
+    },
+    {
+      "start": 1353.14,
+      "end": 1362.219,
+      "en": "If you want to have a look, the community toolkit's implementations are open source,",
+      "zh": "如果想深入研究，CommunityToolkit 的實作是開放原始碼，"
+    },
+    {
+      "start": 1362.219,
+      "end": 1363.219,
+      "en": "so you can go in and check.",
+      "zh": "可以自行查看。"
+    },
+    {
+      "start": 1363.219,
+      "end": 1371.219,
+      "en": "There's a bunch of extra things, there's something called a model builder and all kinds of things.",
+      "zh": "裡面有更多功能，包括 Model Builder 等等。"
+    },
+    {
+      "start": 1371.219,
+      "end": 1377.18,
+      "en": "But I wanted to keep it very, very simple here, with code that is easy to see and understand,",
+      "zh": "但這裡希望保持簡單，讓程式碼容易閱讀理解，"
+    },
+    {
+      "start": 1377.18,
+      "end": 1384.9,
+      "en": "so we can 150 lines of code, have a vector store that can do the most basic things of what we need.",
+      "zh": "因此大約 150 行，就能建立具備最基本所需功能的向量儲存區。"
+    },
+    {
+      "start": 1384.9,
+      "end": 1393.66,
+      "en": "Of course, we would need to implement getAsync of a specific ID, but it will essentially,",
+      "zh": "當然，還需要實作依特定 ID 取得資料的 GetAsync，但基本上，"
+    },
+    {
+      "start": 1393.66,
+      "end": 1402.06,
+      "en": "if we keep it the same way like this, just be more reflection here, more reflection here.",
+      "zh": "如果維持這種方式，就是加入更多反射操作。"
+    },
+    {
+      "start": 1402.06,
+      "end": 1410.579,
+      "en": "But that's everything there is to actually look what happens inside a vector store.",
+      "zh": "以上就是向量儲存區內部的實際運作。"
+    },
+    {
+      "start": 1410.579,
+      "end": 1416.699,
+      "en": "I have some ideas of actually building one at one point, but that will be for another video.",
+      "zh": "我也有一些想法，未來也許會真的建立一個，不過留到另一支影片。"
+    },
+    {
+      "start": 1416.699,
+      "end": 1421.3,
+      "en": "So if that ever happens, then see you there. Bye for now.",
+      "zh": "如果成真，到時見。目前先再見。"
+    }
+  ]
+}

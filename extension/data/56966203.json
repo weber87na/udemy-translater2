@@ -1,0 +1,611 @@
+{
+  "courseId": "6795111",
+  "lectureId": "56966203",
+  "title": "Let's build a Chatbot - More Settings, Refactorings and Database (Part 14)",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 8.079,
+      "en": "Hi, and welcome to part 14 of Let's Build a Chatbot in C-Sharp using Microsoft Agent Framework.",
+      "zh": "大家好，歡迎來到使用 C# 與 Microsoft Agent Framework 打造聊天機器人的第十四部分。"
+    },
+    {
+      "start": 8.079,
+      "end": 16.68,
+      "en": "This is part 14, about more settings, refactorings, and real storage, because we're slowly getting",
+      "zh": "第十四部分介紹更多設定、重構，以及真正的持久化儲存，因為我們慢慢接近，"
+    },
+    {
+      "start": 16.68,
+      "end": 25.399,
+      "en": "to the first natural end of this, where we have built it all in place of server.",
+      "zh": "這個系列第一個自然的結束點，也就是完成 Blazor Server 版本。"
+    },
+    {
+      "start": 25.399,
+      "end": 31.319,
+      "en": "And we want to, at some point, be able to deploy this as well.",
+      "zh": "之後也希望能夠部署。"
+    },
+    {
+      "start": 31.319,
+      "end": 38.959,
+      "en": "But before we do that, I wanted to go in and do some more settings, some more refactorings,",
+      "zh": "但在那之前，想先加入更多設定、進行一些重構，"
+    },
+    {
+      "start": 38.959,
+      "end": 45.68,
+      "en": "and turn into real storage using Cosmos DB and some blob storage.",
+      "zh": "再改成使用 Cosmos DB 與 Blob Storage 的真正儲存。"
+    },
+    {
+      "start": 45.68,
+      "end": 56.439,
+      "en": "Because before we were running, we had our LLM and secrets in app host parameters that was just user secrets.",
+      "zh": "原本 LLM 與秘密值放在 AppHost 參數中，背後就是 User Secrets。"
+    },
+    {
+      "start": 56.439,
+      "end": 64.16,
+      "en": "But the attachment we put into app data, and the generated images we put into VVV root.",
+      "zh": "附件放在 AppData，生成圖片則放在 wwwroot。"
+    },
+    {
+      "start": 64.16,
+      "end": 70.639,
+      "en": "And the conversation settings were just put in either local storage or in temp folders on the machine.",
+      "zh": "對話與設定則放在 LocalStorage，或電腦的暫存資料夾。"
+    },
+    {
+      "start": 70.639,
+      "end": 77.08,
+      "en": "So it could run on a local Windows machine, but it couldn't really run up in the cloud",
+      "zh": "因此可以在本機 Windows 執行，但無法妥善放到雲端，"
+    },
+    {
+      "start": 77.08,
+      "end": 86.199,
+      "en": "had we made a publish of it, because those temp folders were ephemeral, and we wouldn't",
+      "zh": "因為即使發布，這些暫存資料夾也可能隨時消失，無法，"
+    },
+    {
+      "start": 86.199,
+      "end": 90.12,
+      "en": "be able to ensure that things were being saved.",
+      "zh": "確保資料持續保存。"
+    },
+    {
+      "start": 90.12,
+      "end": 94.75999999999999,
+      "en": "The same goes for app data and VVV root.",
+      "zh": "AppData 與 wwwroot 也有類似問題。"
+    },
+    {
+      "start": 94.75999999999999,
+      "end": 102.63900000000001,
+      "en": "So what we were going to cover today is that we have taken the LLM secrets, then we have",
+      "zh": "所以今天要處理的是：LLM 的秘密值，"
+    },
+    {
+      "start": 102.63900000000001,
+      "end": 110,
+      "en": "retained here, because we want them to just be in user secrets.",
+      "zh": "目前保持不變，因為希望仍然放在 User Secrets。"
+    },
+    {
+      "start": 110,
+      "end": 116.919,
+      "en": "When we deploy, we might go with a keyword or not, depending on what we need.",
+      "zh": "部署時，會依需求決定是否改用 Key Vault。"
+    },
+    {
+      "start": 116.919,
+      "end": 122,
+      "en": "Attachments and generated images are now up in Azure Blob Storage.",
+      "zh": "附件與生成圖片，現在移到 Azure Blob Storage。"
+    },
+    {
+      "start": 122,
+      "end": 128.839,
+      "en": "And conversations and settings are now stored in Cosmos DB.",
+      "zh": "對話與設定則改存 Cosmos DB。"
+    },
+    {
+      "start": 128.839,
+      "end": 132.279,
+      "en": "So another thing is the refactoring part.",
+      "zh": "另一部分是重構。"
+    },
+    {
+      "start": 132.279,
+      "end": 136.52,
+      "en": "I will go into these things a bit more in detail in one second.",
+      "zh": "稍後會更詳細介紹這些內容。"
+    },
+    {
+      "start": 136.52,
+      "end": 145.96,
+      "en": "But another thing was that when we build a Blazor server, what typically happens is that",
+      "zh": "建立 Blazor Server 時，通常會出現這種情況："
+    },
+    {
+      "start": 145.96,
+      "end": 151,
+      "en": "when we are in an Aspire, we have a small app host that takes care of parameters.",
+      "zh": "在 Aspire 中，有一個小型 AppHost，負責參數設定。"
+    },
+    {
+      "start": 151,
+      "end": 159.72,
+      "en": "We have surface default that takes care of a few dependency injections, in our case, the dependency injection against the agent framework toolkit.",
+      "zh": "ServiceDefaults 則負責一些相依性注入，這裡主要是 Agent Framework Toolkit。"
+    },
+    {
+      "start": 159.72,
+      "end": 169.16,
+      "en": "And then we end up with a Blazor server that have a bunch of visuals and logic up here for various different systems.",
+      "zh": "最後 Blazor Server 裡，堆了各種系統的畫面與邏輯。"
+    },
+    {
+      "start": 169.16,
+      "end": 177.47899999999998,
+      "en": "And I wanted to change that so that the Blazor server were more or less only visuals.",
+      "zh": "我想調整成，Blazor Server 基本上只保留介面。"
+    },
+    {
+      "start": 177.47899999999998,
+      "end": 184.88,
+      "en": "And we put in a lot of the data that was up here and put them down into the surface default.",
+      "zh": "把原本上面的很多資料與邏輯，移到 ServiceDefaults。"
+    },
+    {
+      "start": 184.88,
+      "end": 191,
+      "en": "So a lot of the logic and keeping the dependency injections down here.",
+      "zh": "因此共用邏輯與相依性注入，都放在下面。"
+    },
+    {
+      "start": 191,
+      "end": 202.199,
+      "en": "And the reason I'm doing this is for the next iteration of let's build a chatbot where we actually want to build other frontends and other backends.",
+      "zh": "原因是下一階段的聊天機器人系列，會建立其他前端與後端。"
+    },
+    {
+      "start": 202.199,
+      "end": 206.47899999999998,
+      "en": "And if we are to leverage what we have done so far and not just reinvent the wheel or",
+      "zh": "如果要重複使用目前成果，而不是重新發明輪子，或，"
+    },
+    {
+      "start": 206.47899999999998,
+      "end": 218,
+      "en": "copy-paste, we need to have them in a system where it's independent on what the frontend and the backend is.",
+      "zh": "到處複製，就需要把程式碼放在不依賴特定前後端的位置。"
+    },
+    {
+      "start": 218,
+      "end": 220.52,
+      "en": "So I put a lot of things down into server defaults.",
+      "zh": "因此很多內容都移到 ServiceDefaults。"
+    },
+    {
+      "start": 220.52,
+      "end": 222.72,
+      "en": "We will see that in one second.",
+      "zh": "稍後會看到。"
+    },
+    {
+      "start": 222.72,
+      "end": 234.399,
+      "en": "So we at some point can build an ASP.NET Core backend and a frontend in other tools, probably in React.",
+      "zh": "之後就能建立 ASP.NET Core 後端，以及使用其他技術、可能是 React 的前端。"
+    },
+    {
+      "start": 234.399,
+      "end": 240.479,
+      "en": "So we have just prepared a lot of things in here.",
+      "zh": "現在先做好相關準備。"
+    },
+    {
+      "start": 240.479,
+      "end": 247.639,
+      "en": "This means that we needed to have some online resources for the first part, that we didn't just want them in folders.",
+      "zh": "第一部分需要一些線上資源，不再只把資料放在資料夾。"
+    },
+    {
+      "start": 247.639,
+      "end": 251.88,
+      "en": "So I've made a Cosmos DB account, just a free tier.",
+      "zh": "因此我建立了 Cosmos DB 帳號，使用免費層級。"
+    },
+    {
+      "start": 251.88,
+      "end": 254.399,
+      "en": "So you can do this more or less for free.",
+      "zh": "所以大致可以免費使用。"
+    },
+    {
+      "start": 254.399,
+      "end": 258.64,
+      "en": "There's a storage account and of course pay for storage, but that's pennies.",
+      "zh": "另有 Storage Account，當然儲存需要費用，但很便宜。"
+    },
+    {
+      "start": 258.64,
+      "end": 262.559,
+      "en": "So it shouldn't be too much.",
+      "zh": "成本應該不高。"
+    },
+    {
+      "start": 262.72,
+      "end": 270.32,
+      "en": "The Cosmos DB will be auto-setup if you just provide a connection string, but it ends up",
+      "zh": "只要提供連線字串，Cosmos DB 會自動設定，最後建立，"
+    },
+    {
+      "start": 270.32,
+      "end": 280.15999999999997,
+      "en": "with a database called chatbots and two containers, one for conversations and one for settings.",
+      "zh": "名為 chatbots 的資料庫，以及 conversations、settings 兩個容器。"
+    },
+    {
+      "start": 280.15999999999997,
+      "end": 286.279,
+      "en": "So you can see here, if I have four different conversations, there will be four different things here.",
+      "zh": "這裡可以看到，如果有四段對話，就會有四筆資料。"
+    },
+    {
+      "start": 286.279,
+      "end": 292.399,
+      "en": "And each of them are linked to a user, so each user gets their own.",
+      "zh": "每筆都關聯到使用者，因此各自取得自己的對話。"
+    },
+    {
+      "start": 293.239,
+      "end": 300.04,
+      "en": "And that's just the message we had in a JSON file before, now it's just up in Cosmos.",
+      "zh": "內容就是原本 JSON 檔案中的資料，現在搬到 Cosmos DB。"
+    },
+    {
+      "start": 300.04,
+      "end": 311.16,
+      "en": "The settings, same way, we just store one record per user, so we can have the information from that user.",
+      "zh": "設定也相同，每個使用者一筆，保存該使用者的資訊。"
+    },
+    {
+      "start": 311.16,
+      "end": 320.88,
+      "en": "Finally, we made a storage account, and in that there's two blob storages, an attachment",
+      "zh": "最後建立 Storage Account，其中有兩個 Blob 容器：attachments，"
+    },
+    {
+      "start": 320.88,
+      "end": 322.839,
+      "en": "and a generated images.",
+      "zh": "以及 generated-images。"
+    },
+    {
+      "start": 322.839,
+      "end": 332.55899999999997,
+      "en": "So here, the images and PDF, we end up adding to attachment and the images we make for generation",
+      "zh": "上傳的圖片與 PDF 放在 attachments，生成的圖片，"
+    },
+    {
+      "start": 332.55899999999997,
+      "end": 334.119,
+      "en": "will be stored up here.",
+      "zh": "則放在這裡。"
+    },
+    {
+      "start": 334.119,
+      "end": 338.839,
+      "en": "So we are completely independent of the machine things are running on.",
+      "zh": "因此完全不依賴執行系統的那台機器。"
+    },
+    {
+      "start": 338.839,
+      "end": 345.279,
+      "en": "And again, when we build multiple backends and fronts, we can actually use the same data,",
+      "zh": "同樣地，未來建立多種前後端時，也能使用相同資料，"
+    },
+    {
+      "start": 345.279,
+      "end": 352.279,
+      "en": "same conversations, same attachments, same generated images.",
+      "zh": "相同對話、附件與生成圖片。"
+    },
+    {
+      "start": 352.279,
+      "end": 360.079,
+      "en": "Visual-wise, if you were to go into the repo and run the code, it will not look anything different.",
+      "zh": "如果下載儲存庫執行，介面看起來沒有什麼不同。"
+    },
+    {
+      "start": 360.079,
+      "end": 371.48,
+      "en": "Things have just been moved around, but the visuals itself is not any different, and these images are then hosted up in blob storage.",
+      "zh": "只是內容移了位置，畫面不變，這些圖片則改由 Blob Storage 提供。"
+    },
+    {
+      "start": 371.48,
+      "end": 379.48,
+      "en": "These conversations are saved in Cosmos DB, the settings are saved in Cosmos DB.",
+      "zh": "對話與設定都保存到 Cosmos DB。"
+    },
+    {
+      "start": 379.48,
+      "end": 383.799,
+      "en": "The only real change that's visual is that there's a few more of these settings.",
+      "zh": "視覺上唯一明顯變更，是多了一些設定。"
+    },
+    {
+      "start": 383.799,
+      "end": 393.239,
+      "en": "So you can choose if you want to show reasoning, want to show tokens, want to show tool calls, and want to show the memory updates.",
+      "zh": "可以選擇是否顯示推理、Token、工具呼叫，以及記憶更新。"
+    },
+    {
+      "start": 393.239,
+      "end": 395.679,
+      "en": "The final thing I'll put in is a new danger zone.",
+      "zh": "最後加入新的 Danger Zone。"
+    },
+    {
+      "start": 395.679,
+      "end": 405,
+      "en": "So because now, if someone were to use this, they can't really just go to their temp folder and delete what was previously set, and memories, and so on.",
+      "zh": "因為現在使用者不能直接進暫存資料夾，刪除先前的設定、記憶等內容。"
+    },
+    {
+      "start": 405,
+      "end": 416,
+      "en": "So now there is a small setting that you can get rid of all your conversations and settings, and that will, of course, delete them up in the cloud.",
+      "zh": "因此加入功能，可以移除所有對話與設定，當然也會刪除雲端資料。"
+    },
+    {
+      "start": 418,
+      "end": 426,
+      "en": "App host-wise, we had three parameters, the Azure endpoint and key, and then the weather service.",
+      "zh": "AppHost 原本有三個參數：Azure 端點、金鑰，以及天氣服務金鑰。"
+    },
+    {
+      "start": 426.76,
+      "end": 433.76,
+      "en": "And now we have extended that, of course, in order to get a blob storage connection string, and a Cosmos DB connection string.",
+      "zh": "現在當然也加入 Blob Storage 與 Cosmos DB 連線字串。"
+    },
+    {
+      "start": 435.76,
+      "end": 447.76,
+      "en": "And then comes the big changes in the refactoring of the code, which have taken quite a while to get right, but we saw in the past that the Blazor server had a lot of different things.",
+      "zh": "接著是花了不少時間整理的程式碼重構。原本 Blazor Server 包含很多東西。"
+    },
+    {
+      "start": 447.76,
+      "end": 453.76,
+      "en": "It had AI contact providers, it had the layout and pages, of course, it had some extensions",
+      "zh": "有 AI Context Provider、版面與頁面，也有一些擴充方法，"
+    },
+    {
+      "start": 454.519,
+      "end": 460.519,
+      "en": "that were more or less Entry ID-specific and Agent Framework-specific.",
+      "zh": "分別與 Entra ID、Agent Framework 有關。"
+    },
+    {
+      "start": 460.519,
+      "end": 465.519,
+      "en": "It had a bunch of models, services, and tools.",
+      "zh": "還有大量模型、服務與工具。"
+    },
+    {
+      "start": 465.519,
+      "end": 472.519,
+      "en": "And inside the program, all of these needed to be wired up, and all logic were up in the Blazor server.",
+      "zh": "Program 中需要把它們全部串接起來，所有邏輯都在 Blazor Server。"
+    },
+    {
+      "start": 473.519,
+      "end": 485.279,
+      "en": "Now, you can see we only really have layout and pages left, and a few new models to keep track of the visual state of things.",
+      "zh": "現在只剩下 Layout、Pages，以及幾個記錄介面狀態的新模型。"
+    },
+    {
+      "start": 485.279,
+      "end": 494.279,
+      "en": "So, what have the user input, and what are their attachments in memory right now, before we save them up into the cloud?",
+      "zh": "例如使用者輸入，以及上傳雲端之前，記憶體中有哪些附件。"
+    },
+    {
+      "start": 494.279,
+      "end": 501.279,
+      "en": "And I made a new visual state to keep track of all the things of currently streaming, and so on and so forth.",
+      "zh": "也建立新的 VisualState，記錄目前串流等各種狀態。"
+    },
+    {
+      "start": 502.279,
+      "end": 509.279,
+      "en": "There's only one local storage key left, which is dark mode, and the program is more or less empty.",
+      "zh": "LocalStorage 只剩深色模式一個鍵值，Program 也幾乎是空的。"
+    },
+    {
+      "start": 509.279,
+      "end": 511.279,
+      "en": "It's just visuals now.",
+      "zh": "現在只負責介面。"
+    },
+    {
+      "start": 512.28,
+      "end": 520.28,
+      "en": "And all this code has now gone into the service defaults of the solution, where we only had",
+      "zh": "其他程式碼移到方案的 ServiceDefaults。原本這裡只有，"
+    },
+    {
+      "start": 520.28,
+      "end": 527.28,
+      "en": "the small extension where we did a little bit about dependency injection of the Agent",
+      "zh": "少量相依性注入擴充方法，處理 Agent，"
+    },
+    {
+      "start": 527.28,
+      "end": 534.28,
+      "en": "Framework toolkit and the weather service, and we had some keys for that, some constants.",
+      "zh": "Framework Toolkit 與天氣服務，以及一些金鑰常數。"
+    },
+    {
+      "start": 534.28,
+      "end": 537.28,
+      "en": "Now, we have the contact providers that we had over here.",
+      "zh": "現在，原本那邊的 Context Provider 也搬過來。"
+    },
+    {
+      "start": 538.039,
+      "end": 542.039,
+      "en": "They have been moved over, so it can be used in multiple backends.",
+      "zh": "因此可以在多種後端使用。"
+    },
+    {
+      "start": 543.039,
+      "end": 550.039,
+      "en": "Constants for the AI models have just been drawn out of all the code over here, so it's easier to get to.",
+      "zh": "AI 模型常數，也從各處程式碼抽出來，方便集中管理。"
+    },
+    {
+      "start": 551.039,
+      "end": 556.039,
+      "en": "The customer's ID, names of things, and the secret keys we had in the past here.",
+      "zh": "還有自訂 ID、各種名稱，以及先前使用的秘密值鍵名。"
+    },
+    {
+      "start": 558.039,
+      "end": 562.039,
+      "en": "All the extensions have more or less just been moved over from over here.",
+      "zh": "大部分擴充方法，都是直接從那邊移過來。"
+    },
+    {
+      "start": 562.799,
+      "end": 571.799,
+      "en": "All the models have been moved over and cleaned up a bit, so we got one big settings instead",
+      "zh": "所有模型也移過來，並稍微整理，改成一個完整設定物件，而不是，"
+    },
+    {
+      "start": 571.799,
+      "end": 575.799,
+      "en": "of various different things that were in various different places of settings.",
+      "zh": "讓不同設定分散在各個位置。"
+    },
+    {
+      "start": 576.799,
+      "end": 587.799,
+      "en": "And then we put all the services over here, so the agent service in order to generate, for example, the title of a conversation is saved over here because we probably need to",
+      "zh": "接著把服務都放在這裡。例如產生對話標題的 AgentService，因為其他地方也可能需要，"
+    },
+    {
+      "start": 587.799,
+      "end": 590.799,
+      "en": "make a conversation title in other places as well.",
+      "zh": "產生對話標題。"
+    },
+    {
+      "start": 591.559,
+      "end": 598.559,
+      "en": "The blob storage service is just normal blob storage from Azure, nothing fancy there.",
+      "zh": "BlobStorageService 就是一般 Azure Blob Storage，沒有特別處理。"
+    },
+    {
+      "start": 599.559,
+      "end": 608.559,
+      "en": "Conversational chat message mapper is the one we had over here before, but there was nothing laser-specific in it, so we moved it.",
+      "zh": "ConversationChatMessageMapper 原本在那邊，但沒有任何 Blazor 專屬邏輯，因此移過來。"
+    },
+    {
+      "start": 609.559,
+      "end": 616.559,
+      "en": "Conversation service has been rewired, of course, instead of having files and folders to be the Cosmos DB.",
+      "zh": "ConversationService 當然也改寫，從檔案與資料夾，改成 Cosmos DB。"
+    },
+    {
+      "start": 617.32,
+      "end": 626.32,
+      "en": "Image generation service has been moved out of image generation tool here, so it can independently be used as a service and a tool.",
+      "zh": "圖像生成服務從工具中抽出來，方便同時作為服務與工具使用。"
+    },
+    {
+      "start": 628.32,
+      "end": 639.32,
+      "en": "They could be linked together, but if we need to do something special with image generation, it's its own service now, and setting services, of course, as well.",
+      "zh": "兩者可以互相串接，但如果要特別處理圖像生成，現在有獨立服務，SettingsService 也是。"
+    },
+    {
+      "start": 641.32,
+      "end": 645.32,
+      "en": "So the extension just got a bit more dependency injections.",
+      "zh": "因此相依性注入的擴充方法，多了幾項註冊。"
+    },
+    {
+      "start": 646.08,
+      "end": 657.08,
+      "en": "But beyond that, everything should more or less now be ready to have a deployment, which we'll cover in a separate video.",
+      "zh": "除此之外，現在大致已準備好部署，會用另一支影片介紹。"
+    },
+    {
+      "start": 658.08,
+      "end": 670.08,
+      "en": "I might add a few more features before we do that, but else this is kind of the first season of Let's Build a Chatbot coming to an end very soon.",
+      "zh": "在那之前也許再加幾個功能，但聊天機器人系列的第一季，應該很快就會結束。"
+    },
+    {
+      "start": 670.84,
+      "end": 676.84,
+      "en": "And also because of summer, I will take a little break before we see season two of this.",
+      "zh": "也因為夏天到了，第二季開始之前會先休息一下。"
+    },
+    {
+      "start": 676.84,
+      "end": 685.84,
+      "en": "So there might only be one or two videos left here until we wait a bit, and the next videos will be in August.",
+      "zh": "因此可能只剩一、兩支影片，之後暫停，下一批會在八月。"
+    },
+    {
+      "start": 686.84,
+      "end": 689.84,
+      "en": "But so far, so good.",
+      "zh": "目前進度很好。"
+    },
+    {
+      "start": 689.84,
+      "end": 701.599,
+      "en": "If you want to see any of the details, of course, just go to the repo, rwjchatbot, and there you can go in and grab the code.",
+      "zh": "如果想查看細節，可以到 rwjchatbot 儲存庫，下載程式碼。"
+    },
+    {
+      "start": 702.599,
+      "end": 707.599,
+      "en": "And if you want to see previous sessions, they are in different branches.",
+      "zh": "先前單元則保存在不同分支。"
+    },
+    {
+      "start": 708.599,
+      "end": 715.599,
+      "en": "So it's not like you can't go back to some of the previous versions if you don't like being dependent on the cloud.",
+      "zh": "所以如果不喜歡依賴雲端，仍然可以回到之前版本。"
+    },
+    {
+      "start": 715.599,
+      "end": 718.599,
+      "en": "You can still see the previous versions up there.",
+      "zh": "舊版本都還在。"
+    },
+    {
+      "start": 718.599,
+      "end": 723.359,
+      "en": "So with that, thank you for this time and see you in the next one.",
+      "zh": "感謝觀看，下一支影片見。"
+    }
+  ]
+}

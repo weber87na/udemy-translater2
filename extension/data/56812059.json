@@ -1,0 +1,1085 @@
+{
+  "courseId": "6795111",
+  "lectureId": "56812059",
+  "title": "Let's build a Chatbot - Image Generation (Part 7)",
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "cues": [
+    {
+      "start": 0,
+      "end": 8.5,
+      "en": "Hi, and welcome to part 7 of the Let's Build a Chatbot in C Sharp using Agent Framework.",
+      "zh": "大家好，歡迎來到使用 C# 與 Agent Framework 打造聊天機器人的第七部分。"
+    },
+    {
+      "start": 8.5,
+      "end": 20.5,
+      "en": "We're still in Blazor's server, and before we go on to having other backends and frontends, I want to add a little more features so we feel like the baseline is more feature complete.",
+      "zh": "目前仍使用 Blazor Server。在加入其他前後端之前，想先增加一些功能，讓基本版更完整。"
+    },
+    {
+      "start": 20.5,
+      "end": 24.5,
+      "en": "And that is, in this case, image generation.",
+      "zh": "這次要加入圖像生成。"
+    },
+    {
+      "start": 24.5,
+      "end": 34,
+      "en": "We want to be able to generate images on top of being able to just talk with a chatbot, just like we can do in ChatGPT.",
+      "zh": "除了與聊天機器人對話，也希望像 ChatGPT 一樣，可以生成圖片。"
+    },
+    {
+      "start": 34,
+      "end": 39.5,
+      "en": "So before we jump into the code, let me quickly show it to you.",
+      "zh": "看程式碼前，先快速示範。"
+    },
+    {
+      "start": 39.5,
+      "end": 44.5,
+      "en": "So we can just say hi, like we normally do.",
+      "zh": "可以像平常一樣說你好。"
+    },
+    {
+      "start": 44.5,
+      "end": 53,
+      "en": "I will move this breakpoint while we wait, and then we'll go into it.",
+      "zh": "等待時，先移除這個中斷點，稍後再介紹。"
+    },
+    {
+      "start": 53,
+      "end": 58.5,
+      "en": "And that just answer back like normal, what a ChatGPT will also do.",
+      "zh": "它就和平常、也和 ChatGPT 一樣回覆。"
+    },
+    {
+      "start": 58.5,
+      "end": 62,
+      "en": "But the second, we begin to ask something about generating images.",
+      "zh": "但當我們開始要求生成圖片，"
+    },
+    {
+      "start": 62,
+      "end": 69.5,
+      "en": "Generate an image of a cute dog.",
+      "zh": "例如：產生一張可愛狗狗的圖片。"
+    },
+    {
+      "start": 71.5,
+      "end": 74.5,
+      "en": "It now says generating images here.",
+      "zh": "這裡就會顯示正在生成圖片。"
+    },
+    {
+      "start": 74.5,
+      "end": 79,
+      "en": "And while it does that, generating images takes quite a while.",
+      "zh": "圖像生成需要比較長的時間。"
+    },
+    {
+      "start": 79,
+      "end": 88,
+      "en": "So at some point in this video, I also mentioned that I stopped the recording and restarted again, so you don't need to sit and wait for these images.",
+      "zh": "所以影片中有時會暫停錄影，再於完成後繼續，免得你一直等。"
+    },
+    {
+      "start": 88,
+      "end": 92,
+      "en": "But while we wait for the image, there's two ways of doing images.",
+      "zh": "等待時先說明，圖像功能有兩種實作方式。"
+    },
+    {
+      "start": 92,
+      "end": 103,
+      "en": "This is the way that ChatGPT does it, but it's kind of limiting, because this is a general mode we go into right now.",
+      "zh": "這是 ChatGPT 類似的做法，但有一些限制，因為現在會進入獨立的生成模式。"
+    },
+    {
+      "start": 103,
+      "end": 114,
+      "en": "And we're using a small agent up front to figure out if we want to go into image generation mode, or we want to actually just let our chatbot",
+      "zh": "我們先用一個小型代理程式判斷，應該切換到圖像生成模式，還是讓聊天機器人，"
+    },
+    {
+      "start": 114,
+      "end": 117,
+      "en": "have a tool that can generate images.",
+      "zh": "擁有一個可以生成圖片的工具。"
+    },
+    {
+      "start": 117,
+      "end": 127,
+      "en": "So I built in an option where we can switch between these two, and we're going to go through the router agent first, because it's probably the one you would do,",
+      "zh": "因此加入選項，可以切換兩種方式。先介紹路由代理程式，因為這可能是你會採用的做法，"
+    },
+    {
+      "start": 127,
+      "end": 136,
+      "en": "but the other one has some neat features as well, and actually also a bug I found in the agent frame that I need to create.",
+      "zh": "另一種也有不錯的特性，不過我發現了一個 Agent Framework 錯誤，需要回報。"
+    },
+    {
+      "start": 136,
+      "end": 139,
+      "en": "But we got a cute dog. That's nice.",
+      "zh": "我們取得可愛的狗狗圖片了，很好。"
+    },
+    {
+      "start": 140,
+      "end": 145,
+      "en": "So let's see how this is done behind the scenes.",
+      "zh": "接著看看背後如何實作。"
+    },
+    {
+      "start": 145,
+      "end": 152,
+      "en": "And the best way to do that is if we go in and set a breakpoint in our SendAsync.",
+      "zh": "最好的觀察方式，是在 SendAsync 設中斷點。"
+    },
+    {
+      "start": 154,
+      "end": 166,
+      "en": "And then we go in and say, generate an image of cozy house on a hill.",
+      "zh": "接著要求：產生一張山丘上溫馨房屋的圖片。"
+    },
+    {
+      "start": 169,
+      "end": 172,
+      "en": "So we get our input. That's okay.",
+      "zh": "取得輸入，沒有問題。"
+    },
+    {
+      "start": 172,
+      "end": 177,
+      "en": "We get our setup of the missing title.",
+      "zh": "接著處理尚未建立的標題。"
+    },
+    {
+      "start": 177,
+      "end": 187,
+      "en": "I've moved this up a bit so it happens before we figure out if we want to go into one of the other modes, because no matter what, we need to generate a title, so that's okay.",
+      "zh": "我把這段移到較前面，在判斷模式之前處理，因為無論哪種模式，都需要標題。"
+    },
+    {
+      "start": 188,
+      "end": 192,
+      "en": "And we put the message into the GUI so we can see it.",
+      "zh": "再把訊息放到介面中，方便查看。"
+    },
+    {
+      "start": 192.5,
+      "end": 198,
+      "en": "And then I'm taking the image gen style here, and right now we are hitting the router agent.",
+      "zh": "接著檢查 ImageGenStyle，目前使用路由代理程式。"
+    },
+    {
+      "start": 198,
+      "end": 200.5,
+      "en": "So we are essentially making one more agent.",
+      "zh": "因此實際上又建立一個代理程式。"
+    },
+    {
+      "start": 200.5,
+      "end": 204.5,
+      "en": "One for title, one for agent, and one for chatbot.",
+      "zh": "一個產生標題、一個路由，還有一個聊天機器人。"
+    },
+    {
+      "start": 206.5,
+      "end": 218,
+      "en": "But here we are just making a small GPT-5 mini and asking it, it should determine if we are in image mode or if we are in chatbot mode, meaning if we say hi,",
+      "zh": "這裡使用小型 GPT-5 mini，要求判斷應該進入圖像模式，還是聊天模式。例如說你好，"
+    },
+    {
+      "start": 218,
+      "end": 219.5,
+      "en": "we should be in chatbot mode.",
+      "zh": "就應該進入聊天模式。"
+    },
+    {
+      "start": 219.5,
+      "end": 227,
+      "en": "If we have an image, generate image of something, we should be in image generation mode.",
+      "zh": "如果要求生成某張圖片，就應該進入圖像生成模式。"
+    },
+    {
+      "start": 227,
+      "end": 237,
+      "en": "And we do that using just a normal structured output of something I call task type, where we have the two different routes that are called here.",
+      "zh": "透過一般結構化輸出完成，型別叫 TaskType，包含這兩個不同路由。"
+    },
+    {
+      "start": 238,
+      "end": 244,
+      "en": "And in this case, since we said generate image of... what was it?",
+      "zh": "這個例子要求生成……剛剛是什麼？"
+    },
+    {
+      "start": 244.5,
+      "end": 252,
+      "en": "For cozy house on a hill, we can see that we end up in the task where it's generate image.",
+      "zh": "山丘上的溫馨房屋，因此可以看到選擇了 GenerateImage。"
+    },
+    {
+      "start": 252,
+      "end": 263,
+      "en": "And then the other one, I've just extracted the normal content from previous videos in here, where we do the agent and do the streaming or non-streaming.",
+      "zh": "另一個路由只是把前面影片的一般聊天程式碼抽出來，建立代理程式，再使用串流或非串流。"
+    },
+    {
+      "start": 265,
+      "end": 269.5,
+      "en": "But in this case, we're not even gonna do any chatbottles...",
+      "zh": "但這個情況不會顯示任何聊天，"
+    },
+    {
+      "start": 271,
+      "end": 274.5,
+      "en": "bubbles back or anything, we're just doing the images.",
+      "zh": "回應泡泡，只處理圖片。"
+    },
+    {
+      "start": 274.5,
+      "end": 283.5,
+      "en": "And the way we do that is we first have a new Boolean to keep track of if we are in image generation mode right now.",
+      "zh": "先加入一個新的布林值，記錄目前是否正在生成圖片。"
+    },
+    {
+      "start": 284,
+      "end": 290.5,
+      "en": "So that means now we can't see it, but it will say generate image as you saw before.",
+      "zh": "所以現在雖然看不到，但它會像前面一樣顯示正在生成圖片。"
+    },
+    {
+      "start": 291,
+      "end": 301,
+      "en": "And in here, it will now show us that we need to do a prompt, but image generation doesn't do a prompt in that it can take",
+      "zh": "接著需要建立提示詞。不過圖像生成不能像一般對話一樣，直接接收，"
+    },
+    {
+      "start": 301,
+      "end": 305.5,
+      "en": "multiple chat messages in from user assistance and so on.",
+      "zh": "多則 user、assistant 訊息。"
+    },
+    {
+      "start": 305.5,
+      "end": 311.5,
+      "en": "So I'm actually building that up on the fly here using just a small for each loop.",
+      "zh": "因此用一個小型 foreach，把內容即時組合起來。"
+    },
+    {
+      "start": 312,
+      "end": 318.5,
+      "en": "Because I want to give the full context, so we can, in this case, just one message.",
+      "zh": "因為想提供完整上下文，這個例子目前只有一則訊息。"
+    },
+    {
+      "start": 318.5,
+      "end": 329,
+      "en": "But if I later said, no, make it summertime or make it wintertime, and then it will be able to understand and still generate an image,",
+      "zh": "但如果之後說「不，改成夏天」或「改成冬天」，它就能理解，仍然生成圖片，"
+    },
+    {
+      "start": 329,
+      "end": 333.5,
+      "en": "but just with a different tweak to the image generation.",
+      "zh": "只是依新要求調整。"
+    },
+    {
+      "start": 335.5,
+      "end": 337.5,
+      "en": "Here I have a small image generation tool.",
+      "zh": "這裡有一個小型圖像生成工具。"
+    },
+    {
+      "start": 337.5,
+      "end": 342,
+      "en": "I put it out as a tool here itself where we call it manually here.",
+      "zh": "我把它獨立成工具，這裡先手動呼叫。"
+    },
+    {
+      "start": 342,
+      "end": 346.5,
+      "en": "But later on, we'll see that the agent itself can also call this tool.",
+      "zh": "稍後會看到，代理程式自己也可以呼叫這個工具。"
+    },
+    {
+      "start": 346.5,
+      "end": 348.5,
+      "en": "And we're giving in the prompt.",
+      "zh": "先傳入提示詞。"
+    },
+    {
+      "start": 349.5,
+      "end": 352.5,
+      "en": "So we have our prompt.",
+      "zh": "這就是目前的提示詞。"
+    },
+    {
+      "start": 352.5,
+      "end": 359.5,
+      "en": "And with our agent factory that we normally make the agents from, we can get the connection and the raw client.",
+      "zh": "透過平常建立代理程式的 Agent Factory，可以取得連線與原生用戶端。"
+    },
+    {
+      "start": 360.5,
+      "end": 368,
+      "en": "So we can get the Azure OpenAI client here because agent framework itself can't do anything with images.",
+      "zh": "因此這裡取得 AzureOpenAIClient，因為 Agent Framework 本身不能直接生成圖片。"
+    },
+    {
+      "start": 368,
+      "end": 373,
+      "en": "We need to use the raw image client from OpenAI or Azure OpenAI.",
+      "zh": "需要使用 OpenAI 或 Azure OpenAI 的原生 ImageClient。"
+    },
+    {
+      "start": 374.5,
+      "end": 378.5,
+      "en": "And then we're just saying generate image async.",
+      "zh": "接著呼叫 GenerateImageAsync。"
+    },
+    {
+      "start": 378.5,
+      "end": 384,
+      "en": "There is various other options you can set on generate image, but we have covered that in other videos.",
+      "zh": "圖像生成還有其他選項，不過其他影片已經介紹。"
+    },
+    {
+      "start": 384,
+      "end": 387,
+      "en": "But we're just saying make this house.",
+      "zh": "這裡只要求生成這間房子。"
+    },
+    {
+      "start": 387,
+      "end": 390,
+      "en": "So it will do work on that right now.",
+      "zh": "目前正在處理。"
+    },
+    {
+      "start": 390.5,
+      "end": 394,
+      "en": "And I will pause the video until it comes back.",
+      "zh": "我先暫停影片，等完成再回來。"
+    },
+    {
+      "start": 395,
+      "end": 399,
+      "en": "And we're back. It took 52 seconds in order to do it.",
+      "zh": "回來了，這次花了 52 秒。"
+    },
+    {
+      "start": 399,
+      "end": 405,
+      "en": "But we now have our image in this as a binary PNG.",
+      "zh": "現在取得的是二進位 PNG 圖片。"
+    },
+    {
+      "start": 405,
+      "end": 414,
+      "en": "And what we do with that PNG, because we need to show it in a browser, we put it in the VVV route of the Blazor.",
+      "zh": "為了在瀏覽器顯示，把 PNG 放進 Blazor 的 wwwroot。"
+    },
+    {
+      "start": 414,
+      "end": 422,
+      "en": "So we generate that folder, and we just generate a random PNG file name with a GUID.",
+      "zh": "先建立資料夾，再用 GUID 產生隨機 PNG 檔名。"
+    },
+    {
+      "start": 422.5,
+      "end": 429.5,
+      "en": "Then we take our stream of our image byte and essentially make the file.",
+      "zh": "接著把圖片位元組串流寫入檔案。"
+    },
+    {
+      "start": 435,
+      "end": 445.5,
+      "en": "So we do that, and then we add to our conversation a new message saying that we have a message that is just called image part,",
+      "zh": "完成後，在對話加入新的訊息，包含我稱為 ImagePart 的欄位，"
+    },
+    {
+      "start": 445.5,
+      "end": 450,
+      "en": "because these images are not really stored anywhere in our normal conversation.",
+      "zh": "因為原本一般對話格式裡，並沒有這些生成圖片的儲存位置。"
+    },
+    {
+      "start": 450,
+      "end": 460.5,
+      "en": "But because we have a custom conversation where we previously put in the usage, we can now also just put an image part in.",
+      "zh": "但我們使用自訂 Conversation，前面已經能加入 Usage，現在也能加入 ImagePart。"
+    },
+    {
+      "start": 460.5,
+      "end": 465.5,
+      "en": "So that was nice doing that instead of the 18 sessions.",
+      "zh": "所以沒有使用 Agent Session，這時就很方便。"
+    },
+    {
+      "start": 465.5,
+      "end": 470.5,
+      "en": "So we do that, and we just say image generated, which we don't use here.",
+      "zh": "完成後回傳 Image Generated，不過這裡沒有使用那段文字。"
+    },
+    {
+      "start": 471,
+      "end": 473.5,
+      "en": "And we are essentially done.",
+      "zh": "基本上就完成了。"
+    },
+    {
+      "start": 474.5,
+      "end": 478.5,
+      "en": "And we can go back and see that we got a cozy house on a hill.",
+      "zh": "回到畫面，可以看到山丘上的溫馨房屋。"
+    },
+    {
+      "start": 481,
+      "end": 483.5,
+      "en": "And now we could do follow-up prompts.",
+      "zh": "現在還可以追問。"
+    },
+    {
+      "start": 484,
+      "end": 490.5,
+      "en": "Make it winter time.",
+      "zh": "改成冬天。"
+    },
+    {
+      "start": 491.5,
+      "end": 494.5,
+      "en": "Run it again exactly the same.",
+      "zh": "再次執行相同流程。"
+    },
+    {
+      "start": 495,
+      "end": 499.5,
+      "en": "Let's generate an image. I will pause, and I will let you see the result.",
+      "zh": "開始生成圖片。我先暫停，完成後給你看結果。"
+    },
+    {
+      "start": 500,
+      "end": 504,
+      "en": "And we're back. We got a winter house instead.",
+      "zh": "回來了，現在變成冬天的房屋。"
+    },
+    {
+      "start": 504.5,
+      "end": 513,
+      "en": "So again, follow-up prompts can be seen because we give the entire context as a generate route.",
+      "zh": "因此只要提供完整上下文，就能理解後續要求。"
+    },
+    {
+      "start": 514.5,
+      "end": 521.5,
+      "en": "So this is how ChatGBT roughly do it, but I kind of feel that it has a little...",
+      "zh": "ChatGPT 大致採用這種流程，但我覺得它有一點，"
+    },
+    {
+      "start": 525.5,
+      "end": 534.5,
+      "en": "Yeah, limitation, because we also in this chatbot have a tool called Get Weather.",
+      "zh": "限制。因為這個聊天機器人也有 GetWeather 工具。"
+    },
+    {
+      "start": 535,
+      "end": 542.5,
+      "en": "So what if I wanted to say generate an image of how the weather is in Paris?",
+      "zh": "如果想說：依照巴黎現在的天氣，生成一張圖片呢？"
+    },
+    {
+      "start": 543,
+      "end": 554,
+      "en": "That would not work because it would either go into image mode and not be able to call the tool, or it would go into the tool mode,",
+      "zh": "這樣無法直接運作，因為要嘛進入圖像模式，不能呼叫天氣工具；要嘛進入工具，"
+    },
+    {
+      "start": 554,
+      "end": 559.5,
+      "en": "or the chatbot mode, call the tool, but don't have any access to images.",
+      "zh": "也就是聊天模式，呼叫工具，但不能生成圖片。"
+    },
+    {
+      "start": 560,
+      "end": 565.5,
+      "en": "So for that reason, I have put in that we can do it in a different way.",
+      "zh": "因此我加入另一種做法。"
+    },
+    {
+      "start": 566,
+      "end": 571,
+      "en": "So we can go in and use ImageGen as tool.",
+      "zh": "可以選擇把 ImageGen 當成工具。"
+    },
+    {
+      "start": 572.5,
+      "end": 584,
+      "en": "And code-wise, the only thing that is really different is that now we go into this one, where we just use the chatbot like normal.",
+      "zh": "程式碼最大的差異，只是現在走這個分支，像平常一樣使用聊天機器人。"
+    },
+    {
+      "start": 584.5,
+      "end": 587,
+      "en": "So now we're not having an upfront agent.",
+      "zh": "不再有預先執行的路由代理程式。"
+    },
+    {
+      "start": 587,
+      "end": 590.5,
+      "en": "That is kind of good because it takes up time.",
+      "zh": "這有好處，因為路由判斷也需要時間。"
+    },
+    {
+      "start": 591.5,
+      "end": 602,
+      "en": "But when we do this, if you look at ChatGBT whenever it's create images and you say create image,",
+      "zh": "不過看看 ChatGPT，要求生成圖片時，"
+    },
+    {
+      "start": 602,
+      "end": 605,
+      "en": "it would normally just create the image for you and nothing more.",
+      "zh": "通常只生成圖片，不附加其他內容。"
+    },
+    {
+      "start": 605.5,
+      "end": 615,
+      "en": "If we do it like this, it will always both create the image because that's the result of the tool, but it will also come back with a message saying,",
+      "zh": "若採用工具方式，除了生成工具結果中的圖片，還會回傳訊息說，"
+    },
+    {
+      "start": 615,
+      "end": 618,
+      "en": "I've created the image, blah, blah, blah.",
+      "zh": "我已經生成圖片等等。"
+    },
+    {
+      "start": 619,
+      "end": 630,
+      "en": "So that's the drawback of doing it this way, and apparently OpenAI likes the other way best, but let's just see how it's done.",
+      "zh": "這就是這種做法的缺點。顯然 OpenAI 偏好另一種方式，不過先看看如何實作。"
+    },
+    {
+      "start": 630.5,
+      "end": 634.5,
+      "en": "So the only thing we need to do is we just need to new up a tool.",
+      "zh": "只需要建立一個工具物件。"
+    },
+    {
+      "start": 635.5,
+      "end": 640,
+      "en": "And we need to new it up every single time because we want to give the entire conversation.",
+      "zh": "而且每次都要重新建立，因為要傳入目前完整對話。"
+    },
+    {
+      "start": 640.5,
+      "end": 645,
+      "en": "So when we do the tool, we can add the extra message in.",
+      "zh": "這樣工具執行時，就能把額外訊息加入對話。"
+    },
+    {
+      "start": 647,
+      "end": 658,
+      "en": "We could also have begun to work with the agent and doing middleware and doing it before and after the call itself, but this is just the easier way.",
+      "zh": "也可以改用代理程式中介軟體，在呼叫前後處理，但目前這樣比較簡單。"
+    },
+    {
+      "start": 660,
+      "end": 669,
+      "en": "But as we have seen this code already, it's just the same code, now just being prompted by the LLM.",
+      "zh": "這段程式碼剛剛已經看過，完全相同，只是改由 LLM 提供提示詞並呼叫。"
+    },
+    {
+      "start": 670,
+      "end": 674.5,
+      "en": "So we can go in and do the normal things,",
+      "zh": "現在可以正常操作，"
+    },
+    {
+      "start": 674.5,
+      "end": 683,
+      "en": "so we can just say create an image",
+      "zh": "例如說：產生一張圖片，"
+    },
+    {
+      "start": 685.5,
+      "end": 688,
+      "en": "of an apple.",
+      "zh": "內容是一顆蘋果。"
+    },
+    {
+      "start": 691,
+      "end": 700.5,
+      "en": "So now it will do a tool call with a create image, and you can see it turns it out based on this",
+      "zh": "它會呼叫 CreateImage 工具，可以看到它根據要求，"
+    },
+    {
+      "start": 700.5,
+      "end": 703.5,
+      "en": "to choose itself what the prompt should be.",
+      "zh": "自行選擇合適的提示詞。"
+    },
+    {
+      "start": 703.5,
+      "end": 710.5,
+      "en": "That could also be some value of it if you have some instructions on always being",
+      "zh": "如果設定了指示，例如一律採用，"
+    },
+    {
+      "start": 712.5,
+      "end": 715.5,
+      "en": "photorealistic, cartoon, or something like that.",
+      "zh": "寫實攝影、卡通等風格，這也可能是優點。"
+    },
+    {
+      "start": 715.5,
+      "end": 720.5,
+      "en": "But it can also send it off in a different direction based on what you wrote.",
+      "zh": "但它也可能根據你的文字，把圖片引導到另一個方向。"
+    },
+    {
+      "start": 720.5,
+      "end": 724.5,
+      "en": "But now it's doing a tool call, doing exactly the same thing.",
+      "zh": "現在是工具呼叫，但執行相同的圖像生成。"
+    },
+    {
+      "start": 727,
+      "end": 730.5,
+      "en": "I will again pause. No, it's actually finished, so that's good.",
+      "zh": "我再暫停一下。喔，其實已經好了，很好。"
+    },
+    {
+      "start": 730.5,
+      "end": 739.5,
+      "en": "So it came back, but you can see we get this back as well, which is kind of good, kind of annoying,",
+      "zh": "結果回來了，但也會多這段文字。這可能很好，也可能很惱人，"
+    },
+    {
+      "start": 739.5,
+      "end": 744.5,
+      "en": "depending on what you like in the way.",
+      "zh": "取決於你偏好的互動方式。"
+    },
+    {
+      "start": 744.5,
+      "end": 749.5,
+      "en": "Apparently OpenAI didn't like this, so they didn't implement it this way.",
+      "zh": "顯然 OpenAI 不喜歡這樣，所以沒有用這種方式實作。"
+    },
+    {
+      "start": 752,
+      "end": 762.5,
+      "en": "We could again go in and say from the old videos, what is the weather like in Paris?",
+      "zh": "同樣可以先問：巴黎的天氣如何？"
+    },
+    {
+      "start": 765,
+      "end": 771.5,
+      "en": "Now we're not doing images because it has nothing to do with images, so it calls the weather.",
+      "zh": "這次與圖片無關，因此只會呼叫天氣工具。"
+    },
+    {
+      "start": 772.5,
+      "end": 775.5,
+      "en": "And we'll just go back with that.",
+      "zh": "接著取得回覆。"
+    },
+    {
+      "start": 775.5,
+      "end": 787.5,
+      "en": "But then we can, of course, go in and say generate an image of Paris",
+      "zh": "然後當然可以說：生成一張巴黎的圖片，"
+    },
+    {
+      "start": 790.5,
+      "end": 793.5,
+      "en": "in that weather.",
+      "zh": "使用剛剛那種天氣。"
+    },
+    {
+      "start": 793.5,
+      "end": 800.5,
+      "en": "And had the weather been rain, it should make an image of Paris in rain.",
+      "zh": "如果剛剛是下雨，就應該生成雨中的巴黎。"
+    },
+    {
+      "start": 800.5,
+      "end": 807.5,
+      "en": "But now we can see it says it needs to be in a very hot weather, and so on and so forth.",
+      "zh": "但現在可以看到，提示詞寫的是非常炎熱的天氣等內容。"
+    },
+    {
+      "start": 809,
+      "end": 815,
+      "en": "So that is good, of course, that we can just get the entire prompt.",
+      "zh": "這當然很好，因為可以取得完整提示詞。"
+    },
+    {
+      "start": 815,
+      "end": 821,
+      "en": "And while we wait for this, I wanted to make it so I could say",
+      "zh": "等待時，原本我還想讓使用者直接說，"
+    },
+    {
+      "start": 823.5,
+      "end": 826.5,
+      "en": "the following prompt.",
+      "zh": "下面這個提示詞。"
+    },
+    {
+      "start": 826.5,
+      "end": 828,
+      "en": "We'll send it a little while.",
+      "zh": "稍等一下再送出。"
+    },
+    {
+      "start": 828,
+      "end": 832,
+      "en": "Generate an image of how the weather is in Paris right now.",
+      "zh": "生成一張符合巴黎目前天氣的圖片。"
+    },
+    {
+      "start": 832,
+      "end": 837,
+      "en": "And it sort of works, and then it totally breaks down.",
+      "zh": "它某種程度上可以運作，但之後就完全出錯。"
+    },
+    {
+      "start": 837,
+      "end": 841,
+      "en": "And we'll see why in one second.",
+      "zh": "稍後會看到原因。"
+    },
+    {
+      "start": 841,
+      "end": 844,
+      "en": "But I will pause the video for the image.",
+      "zh": "我先暫停，等待圖片完成。"
+    },
+    {
+      "start": 844,
+      "end": 845,
+      "en": "Oh, there it is.",
+      "zh": "喔，出來了。"
+    },
+    {
+      "start": 845,
+      "end": 848,
+      "en": "So it showed an image. It's sunny.",
+      "zh": "圖片顯示晴天，"
+    },
+    {
+      "start": 848,
+      "end": 851,
+      "en": "It has the hot glow and so on.",
+      "zh": "有炎熱的陽光等效果。"
+    },
+    {
+      "start": 851,
+      "end": 854,
+      "en": "That makes total sense that it did that.",
+      "zh": "這完全符合前面的天氣資訊。"
+    },
+    {
+      "start": 854,
+      "end": 859,
+      "en": "And had we had some other weather, it would have given something else.",
+      "zh": "如果是其他天氣，圖片也應該會不同。"
+    },
+    {
+      "start": 859,
+      "end": 869,
+      "en": "But let's see what happens when I give this prompt, where we actually try and change the two tools, the weather tool and the image tool.",
+      "zh": "但接著看看，當這個提示詞要求串接天氣與圖像兩個工具時，會發生什麼。"
+    },
+    {
+      "start": 869,
+      "end": 874,
+      "en": "Because when we send it, it looks like it's actually doing it quite all right.",
+      "zh": "送出後，看起來處理得相當正常。"
+    },
+    {
+      "start": 874,
+      "end": 877,
+      "en": "So it's calling the weather.",
+      "zh": "先呼叫天氣工具。"
+    },
+    {
+      "start": 877,
+      "end": 881,
+      "en": "It's figuring out that it's hot. It still is.",
+      "zh": "確認目前很熱，現在仍然如此。"
+    },
+    {
+      "start": 881,
+      "end": 885,
+      "en": "And then, based on that, it makes a second tool call.",
+      "zh": "接著根據結果，執行第二次工具呼叫。"
+    },
+    {
+      "start": 886,
+      "end": 896,
+      "en": "But I have had problems that it seems like it messes up either in the LLM or in Agent Framework.",
+      "zh": "但我遇到的問題是，LLM 或 Agent Framework 似乎會把某些資料弄亂。"
+    },
+    {
+      "start": 896,
+      "end": 903,
+      "en": "I need to make a bug report for this after this video.",
+      "zh": "影片完成後，需要提交錯誤報告。"
+    },
+    {
+      "start": 903,
+      "end": 907,
+      "en": "But I just wanted to show it. It might work when you see this video.",
+      "zh": "只是先示範給你看，你看到影片時，也許已經修好了。"
+    },
+    {
+      "start": 907,
+      "end": 915,
+      "en": "Or it might be a limitation and perhaps be why chat.gpt has not implemented it this way.",
+      "zh": "也可能是一項限制，甚至是 ChatGPT 沒用這種方式實作的原因。"
+    },
+    {
+      "start": 915,
+      "end": 918,
+      "en": "And it might also have gone away now.",
+      "zh": "或者現在又剛好能正常運作。"
+    },
+    {
+      "start": 919,
+      "end": 923,
+      "en": "These services can be a bit temperamental, of course.",
+      "zh": "這些服務有時確實有點不穩定。"
+    },
+    {
+      "start": 923,
+      "end": 926,
+      "en": "Let's see what happens.",
+      "zh": "看看結果。"
+    },
+    {
+      "start": 930,
+      "end": 933,
+      "en": "So the tool is definitely being called.",
+      "zh": "工具確實有被呼叫。"
+    },
+    {
+      "start": 933,
+      "end": 936,
+      "en": "And I know it's generating the image right now.",
+      "zh": "我也知道，目前正在生成圖片。"
+    },
+    {
+      "start": 936,
+      "end": 939,
+      "en": "And it will actually also show the image.",
+      "zh": "而且圖片實際上也會顯示出來。"
+    },
+    {
+      "start": 939,
+      "end": 941,
+      "en": "And then we get this.",
+      "zh": "接著就會出現這個錯誤。"
+    },
+    {
+      "start": 941,
+      "end": 943,
+      "en": "We get an invalid request error.",
+      "zh": "Invalid Request，也就是無效請求。"
+    },
+    {
+      "start": 943,
+      "end": 951,
+      "en": "No tool called found for function call output with call ID and then the latest call ID.",
+      "zh": "訊息說找不到符合 Function Call Output 與指定 CallId 的工具呼叫，後面是最新的呼叫 ID。"
+    },
+    {
+      "start": 951,
+      "end": 953,
+      "en": "I tried this both with streaming, non-streaming.",
+      "zh": "我試過串流與非串流，"
+    },
+    {
+      "start": 953,
+      "end": 955,
+      "en": "I've tried it with a bigger model.",
+      "zh": "也試過更大的模型。"
+    },
+    {
+      "start": 955,
+      "end": 960,
+      "en": "But it seems like something goes wrong for some reason.",
+      "zh": "但不知為何，似乎仍會出錯。"
+    },
+    {
+      "start": 960,
+      "end": 966,
+      "en": "Perhaps because we make a different kind of call to a different kind of service.",
+      "zh": "也許是因為我們對不同類型的服務，發出了不同類型的呼叫。"
+    },
+    {
+      "start": 966,
+      "end": 968,
+      "en": "It might be a bug.",
+      "zh": "可能是一個錯誤。"
+    },
+    {
+      "start": 968,
+      "end": 975,
+      "en": "Because if we go in and begin to look at these updates behind the scenes and find the tools and stuff, the tools are there.",
+      "zh": "因為如果查看背後的 Update，工具等內容確實都存在。"
+    },
+    {
+      "start": 975,
+      "end": 978,
+      "en": "But they just say it doesn't exist.",
+      "zh": "但系統卻說找不到。"
+    },
+    {
+      "start": 978,
+      "end": 983,
+      "en": "And there is some internal guards in Agent Framework.",
+      "zh": "Agent Framework 內部有一些防護檢查。"
+    },
+    {
+      "start": 983,
+      "end": 991,
+      "en": "So I think it will be Agent Framework problem here that something is being checked in an incorrect manner",
+      "zh": "所以我懷疑問題在 Agent Framework，某個檢查條件不正確，"
+    },
+    {
+      "start": 991,
+      "end": 997,
+      "en": "where they always want to have a tool request and a tool response.",
+      "zh": "它要求工具要求與工具回應必須對應。"
+    },
+    {
+      "start": 997,
+      "end": 999,
+      "en": "Tool request and tool response.",
+      "zh": "也就是每個要求都要配上回應。"
+    },
+    {
+      "start": 999,
+      "end": 1006,
+      "en": "And this error message is essentially saying that no tool found for function call output with call ID.",
+      "zh": "這個錯誤訊息基本上就是：找不到對應 CallId 的工具呼叫，但收到了函式輸出。"
+    },
+    {
+      "start": 1006,
+      "end": 1011,
+      "en": "So it says it has an output, but it couldn't find the request itself.",
+      "zh": "所以它有輸出，卻找不到原本的要求。"
+    },
+    {
+      "start": 1013,
+      "end": 1015,
+      "en": "Again, I will log it.",
+      "zh": "同樣地，我會提交錯誤報告。"
+    },
+    {
+      "start": 1015,
+      "end": 1021,
+      "en": "But just be aware that that might be a problem if you're doing this just after the video has been done.",
+      "zh": "只要注意，如果在影片剛發布時照做，可能遇到這個問題。"
+    },
+    {
+      "start": 1021,
+      "end": 1028,
+      "en": "Because behind the scenes, we can see it actually made it, showed everything, and so on.",
+      "zh": "因為背後確實完成了生成，圖片也顯示了。"
+    },
+    {
+      "start": 1028,
+      "end": 1038,
+      "en": "But then it's just the final message back from the agent that fails because the guards inside Agent Framework fails with that.",
+      "zh": "只是最後代理程式回覆時，Agent Framework 內部檢查失敗。"
+    },
+    {
+      "start": 1039,
+      "end": 1041,
+      "en": "But beyond that...",
+      "zh": "除此之外……"
+    },
+    {
+      "start": 1041,
+      "end": 1045,
+      "en": "Let me get rid of the exception...",
+      "zh": "先把例外狀態清掉，"
+    },
+    {
+      "start": 1046,
+      "end": 1048,
+      "en": "And reload here.",
+      "zh": "再重新載入。"
+    },
+    {
+      "start": 1048,
+      "end": 1052,
+      "en": "But beyond that, we can now see that there's nothing much to it.",
+      "zh": "除此之外，可以看到，實作其實沒有太多內容。"
+    },
+    {
+      "start": 1052,
+      "end": 1057,
+      "en": "We make a tool that we have down here.",
+      "zh": "建立下面這個工具，"
+    },
+    {
+      "start": 1058,
+      "end": 1064,
+      "en": "And that tool can either be called using as a normal tool.",
+      "zh": "可以把它當成一般工具使用。"
+    },
+    {
+      "start": 1064,
+      "end": 1068,
+      "en": "Then it's just LM choosing when to make images, when to do not.",
+      "zh": "這樣由 LLM 決定何時生成圖片、何時不生成。"
+    },
+    {
+      "start": 1068,
+      "end": 1074,
+      "en": "As long as we don't do multi-tools at the same time, it seems to work.",
+      "zh": "只要不是同一輪串接多個工具，目前看起來就能正常運作。"
+    },
+    {
+      "start": 1074,
+      "end": 1086,
+      "en": "All we can do as ChatGBG chose is that we can put up an agent up front that checks are we in image generation mode",
+      "zh": "或者像 ChatGPT 選擇的方式，在前面放一個代理程式，判斷目前是圖像生成模式，"
+    },
+    {
+      "start": 1086,
+      "end": 1090,
+      "en": "or are we in chat mode at the moment.",
+      "zh": "還是聊天模式。"
+    },
+    {
+      "start": 1092,
+      "end": 1095,
+      "en": "That is actually everything for this video.",
+      "zh": "這支影片的內容就是這些。"
+    },
+    {
+      "start": 1095,
+      "end": 1102,
+      "en": "Next time, we'll do a little more features for Blazor Server, and then we will continue on.",
+      "zh": "下次會繼續為 Blazor Server 加入一些功能，再繼續往後。"
+    },
+    {
+      "start": 1102,
+      "end": 1104,
+      "en": "See you in the next one.",
+      "zh": "下一支影片見。"
+    }
+  ]
+}
