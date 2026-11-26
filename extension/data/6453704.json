@@ -1,0 +1,1345 @@
+{
+  "courseId": "950390",
+  "lectureId": "6453704",
+  "title": "Evaluating ML Model Accuracy: K-Fold Cross-Validation Implementation in R",
+  "section": 43,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "7c39a2fb5076788bd6e6039fa1083e54882994965876cef90996dd7b3fde309d",
+  "cues": [
+    {
+      "start": 0.27,
+      "end": 8.22,
+      "en": "Instructor: Hello and welcome to this R tutorial, and mostly welcome to the last part of this course, Part 10, Model Selection and Boosting.",
+      "zh": "你好，歡迎來到這堂 R 教學，尤其歡迎進入原課程最後的第十部分，模型選擇與提升法。"
+    },
+    {
+      "start": 8.22,
+      "end": 10.08,
+      "en": "So in this part, we will do two things.",
+      "zh": "這部分會做兩件事。"
+    },
+    {
+      "start": 10.08,
+      "end": 15.78,
+      "en": "First, evaluating our model performance, and second, improving our model performance.",
+      "zh": "第一，評估模型效能；第二，改善模型效能。"
+    },
+    {
+      "start": 15.78,
+      "end": 24.69,
+      "en": "And then there will be this bonus section about one of the most powerful algorithm in machine learning, which has become more and more popular, and that is called XGBoost.",
+      "zh": "之後還有額外章節，介紹越來越熱門、也是最強大機器學習演算法之一的 XGBoost。"
+    },
+    {
+      "start": 24.69,
+      "end": 31.11,
+      "en": "But first, we want to be able to improve the model performance of all the machine learning models we've built in this course.",
+      "zh": "先希望能改善本課程建立的所有機器學習模型效能。"
+    },
+    {
+      "start": 31.11,
+      "end": 40.29,
+      "en": "And improving the model performance can be done with a technique called model selection, that consist of choosing the best parameters of your machine learning models.",
+      "zh": "可透過模型選擇技術，也就是為機器學習模型選擇最佳參數。"
+    },
+    {
+      "start": 40.29,
+      "end": 46.2,
+      "en": "Because, you know, remember, every time we built a machine learning model, well, we had two types of parameters.",
+      "zh": "記得每次建立模型，都有兩類參數。"
+    },
+    {
+      "start": 46.2,
+      "end": 54.15,
+      "en": "The first type were the parameters that the model learned, that is the parameters that were changed and found optimal values by running the model.",
+      "zh": "第一類是模型學到的參數，也就是執行模型時，會調整並找到最佳值的參數。"
+    },
+    {
+      "start": 54.15,
+      "end": 58.65,
+      "en": "And then the second type of parameters are the parameters that we chose ourselves.",
+      "zh": "第二類則是我們自行選擇的參數。"
+    },
+    {
+      "start": 58.65,
+      "end": 62.4,
+      "en": "For example, the kernel parameter in the kernel SVM model.",
+      "zh": "例如核 SVM 的 kernel 參數。"
+    },
+    {
+      "start": 62.4,
+      "end": 65.64,
+      "en": "And these parameters are called the hyperparameters.",
+      "zh": "這些參數稱為超參數。"
+    },
+    {
+      "start": 65.64,
+      "end": 71.88,
+      "en": "So there is still room to improve the model because we can still choose some optimal values for these parameters.",
+      "zh": "所以模型還有改善空間，仍能替這些參數選擇最佳值。"
+    },
+    {
+      "start": 71.88,
+      "end": 82.41,
+      "en": "But since these parameters are not the parameters learned by the model, then we need to figure out another way to choose these optimal values for these parameters, for the hyperparameters.",
+      "zh": "但既然不是模型學到的參數，就需要另一種方法，為超參數選擇最佳值。"
+    },
+    {
+      "start": 82.41,
+      "end": 89.31,
+      "en": "And that's one of the powerful thing we'll do in this Part 10, and that will be through a very efficient technique called grid search.",
+      "zh": "這是第十部分會做的重要工作，會使用非常有效率的網格搜尋技術。"
+    },
+    {
+      "start": 89.31,
+      "end": 94.2,
+      "en": "But before we start grid search, we need to optimize our way to evaluate our models.",
+      "zh": "但開始網格搜尋之前，需要改善評估模型的方式。"
+    },
+    {
+      "start": 94.2,
+      "end": 99.50999999999999,
+      "en": "Because so far, what we did is split our dataset between a training set and a test set.",
+      "zh": "到目前為止，都是將資料集分為訓練集與測試集。"
+    },
+    {
+      "start": 99.50999999999999,
+      "end": 104.88,
+      "en": "And, you know, we trained our model on the training set, and we tested its performance on the test set.",
+      "zh": "在訓練集訓練，在測試集測試效能。"
+    },
+    {
+      "start": 104.88,
+      "end": 111.99000000000001,
+      "en": "That's a correct way of evaluating the model performance, but that's not the best one, because we actually have the variance problem.",
+      "zh": "這是正確方式，但不是最全面的，因為有變異問題。"
+    },
+    {
+      "start": 111.99000000000001,
+      "end": 121.89,
+      "en": "The variance problem can be explained by the fact that when we get the accuracy on the test set, well, if we run the model again, and test again its performance on another test set,",
+      "zh": "變異問題是指，取得測試集準確率後，重新執行模型，在另一個測試集評估，"
+    },
+    {
+      "start": 121.89,
+      "end": 124.68,
+      "en": "well, we can get a very different accuracy.",
+      "zh": "可能得到非常不同的準確率。"
+    },
+    {
+      "start": 124.68,
+      "end": 131.61,
+      "en": "So, judging our model performance only on one accuracy, on one test set, is actually not super relevant.",
+      "zh": "所以只憑一個測試集的一次準確率判斷效能，不夠有代表性。"
+    },
+    {
+      "start": 131.61,
+      "end": 135.33,
+      "en": "That's not the most relevant way to evaluate the model performance.",
+      "zh": "不是最全面的評估方法。"
+    },
+    {
+      "start": 135.33,
+      "end": 143.73,
+      "en": "And so there is this technique called, k-fold cross validation that improves this a lot, because that will fix this variance problem.",
+      "zh": "k 折交叉驗證可以大幅改善，處理這個變異問題。"
+    },
+    {
+      "start": 143.73,
+      "end": 145.2,
+      "en": "And how will it fix it?",
+      "zh": "怎麼處理？"
+    },
+    {
+      "start": 145.2,
+      "end": 154.23,
+      "en": "It will fix it by splitting the training set into ten fold when k equals 10, and most of the time k equals 10, and we train our model on nine fold,",
+      "zh": "當 k = 10，就將訓練集分成 10 折，通常 k 選 10，並用 9 折訓練，"
+    },
+    {
+      "start": 154.23,
+      "end": 156.78,
+      "en": "and we test it on the last remaining fold.",
+      "zh": "在剩餘的最後 1 折測試。"
+    },
+    {
+      "start": 156.78,
+      "end": 167.82,
+      "en": "And since with 10 folds, we can make 10 different combinations of nine folds to train the model, and one fold to test it, that means that we can train the model and test the model on 10 combinations",
+      "zh": "10 折可以組成 10 種「9 折訓練、1 折測試」的組合，因此可以在 10 組"
+    },
+    {
+      "start": 167.82,
+      "end": 169.65,
+      "en": "of training and test sets.",
+      "zh": "訓練與測試資料上訓練、測試模型。"
+    },
+    {
+      "start": 169.65,
+      "end": 179.13,
+      "en": "And that will already give us a much better idea of the model performance, because what we can do afterwards is take an average of the different accuracies of the 10 evaluations,",
+      "zh": "這能更了解模型效能，因為之後可以平均 10 次評估的不同準確率，"
+    },
+    {
+      "start": 179.13,
+      "end": 182.79,
+      "en": "and also compute the standard deviation to have a look at the variance.",
+      "zh": "也計算標準差，看看變異。"
+    },
+    {
+      "start": 182.79,
+      "end": 186.33,
+      "en": "So, eventually, our analysis will be much more relevant.",
+      "zh": "最後分析更有意義。"
+    },
+    {
+      "start": 186.33,
+      "end": 189.75,
+      "en": "And besides, we'll know in which of these four categories we'll be.",
+      "zh": "也能知道落在四種情況中的哪一類。"
+    },
+    {
+      "start": 189.75,
+      "end": 194.7,
+      "en": "Because if we get a good accuracy and a small variance, we'll be on the lower left one.",
+      "zh": "準確率高、變異小，就是左下角。"
+    },
+    {
+      "start": 194.7,
+      "end": 199.17000000000002,
+      "en": "If we get a large accuracy and a high variance, we will be on the lower right one.",
+      "zh": "準確率高、變異大，就是右下角。"
+    },
+    {
+      "start": 199.17000000000002,
+      "end": 203.4,
+      "en": "If we get a small accuracy and a low variance, we will be on the upper left one.",
+      "zh": "準確率低、變異小，就是左上角。"
+    },
+    {
+      "start": 203.4,
+      "end": 208.02,
+      "en": "And eventually, if we get a low accuracy and a high variance, we will be on the upper right one.",
+      "zh": "最後，準確率低、變異大，就是右上角。"
+    },
+    {
+      "start": 208.02,
+      "end": 211.23,
+      "en": "So this k-fold cross validation is very useful.",
+      "zh": "所以 k 折交叉驗證很有用。"
+    },
+    {
+      "start": 211.23,
+      "end": 215.1,
+      "en": "And besides, our performance analysis is much more relevant.",
+      "zh": "效能分析也更有代表性。"
+    },
+    {
+      "start": 215.1,
+      "end": 221.16,
+      "en": "So let's start with this k-fold cross validation, our first technique of model selection.",
+      "zh": "開始第一項模型選擇技術，k 折交叉驗證。"
+    },
+    {
+      "start": 221.16,
+      "end": 225.21,
+      "en": "So, since we already built a lot of models, we're not gonna build another one.",
+      "zh": "既然已建立很多模型，就不再建新模型。"
+    },
+    {
+      "start": 225.21,
+      "end": 230.34,
+      "en": "We are gonna use one of the model we built and apply k-fold cross validation on it.",
+      "zh": "使用之前其中一個模型，套用 k 折交叉驗證。"
+    },
+    {
+      "start": 230.34,
+      "end": 236.07,
+      "en": "And so, the model we're gonna use is this kernel SVM we made in part three classification.",
+      "zh": "會使用第三部分分類的核 SVM。"
+    },
+    {
+      "start": 236.07,
+      "end": 243.84,
+      "en": "And that, remember, we used to predict if the customers are going to click on the add on the social network to buy, yes or no, the SUV.",
+      "zh": "記得它預測顧客是否會點社群網路廣告，進而購買 SUV。"
+    },
+    {
+      "start": 243.84,
+      "end": 246.96,
+      "en": "So, the model is already built and we already have everything.",
+      "zh": "模型已建立，所需內容都有。"
+    },
+    {
+      "start": 246.96,
+      "end": 257.97,
+      "en": "So what we're gonna do is take the whole model and we are going to add a new section code inside of it, that is going to be, of course, the section code",
+      "zh": "所以取用整份模型，加入新的程式碼區段，當然就是"
+    },
+    {
+      "start": 257.97,
+      "end": 261.03,
+      "en": "that will implement k-fold cross validation.",
+      "zh": "實作 k 折交叉驗證的區段。"
+    },
+    {
+      "start": 261.03,
+      "end": 266.22,
+      "en": "So, before we start doing it, let's pick the right folder as working directory.",
+      "zh": "開始之前，選正確資料夾作為工作目錄。"
+    },
+    {
+      "start": 266.22,
+      "end": 276.9,
+      "en": "So we go to Machine Learning A-Z, we are now in the last part of this course, congratulations for reaching it, Part 10, Model Selection and Boosting, and Section 48, Model Selection.",
+      "zh": "進入 Machine Learning A-Z，現在是原課程最後一部分，恭喜走到這裡，Part 10 Model Selection & Boosting，再進入 Section 48 Model Selection。"
+    },
+    {
+      "start": 276.9,
+      "end": 282.48,
+      "en": "All right, make sure that you have the social network at CSV file, and if that's the case, you're ready to go.",
+      "zh": "確認有 Social_Network_Ads.csv，有的話就可以開始。"
+    },
+    {
+      "start": 282.48,
+      "end": 286.53,
+      "en": "All right, so now where do we apply the k-fold cross validation code section?",
+      "zh": "k 折交叉驗證應放在哪裡？"
+    },
+    {
+      "start": 286.53,
+      "end": 296.4,
+      "en": "Well, since that consists of evaluating the model performance, while the most relevant location to put it is right after we build our kernel SVM model,",
+      "zh": "既然是評估模型效能，最適合放在核 SVM 建立完成之後，"
+    },
+    {
+      "start": 296.4,
+      "end": 298.44,
+      "en": "that is right after we build the model.",
+      "zh": "也就是建立模型之後。"
+    },
+    {
+      "start": 298.44,
+      "end": 304.95,
+      "en": "And actually, in this code here, we have the predictions of the test set results and the confusion matrix.",
+      "zh": "其實這段已有測試集預測與混淆矩陣。"
+    },
+    {
+      "start": 304.95,
+      "end": 308.13,
+      "en": "That is actually a first way of evaluating the model.",
+      "zh": "這是第一種評估方式。"
+    },
+    {
+      "start": 308.13,
+      "end": 314.55,
+      "en": "But as said at the beginning of this tutorial, this is a correct way of evaluating the model but not the best one.",
+      "zh": "開頭說過，它正確，但不是最全面。"
+    },
+    {
+      "start": 314.55,
+      "end": 319.2,
+      "en": "And in today's tutorial, we are introducing a much better way to evaluate our model.",
+      "zh": "今天介紹更全面的評估方式。"
+    },
+    {
+      "start": 319.2,
+      "end": 326.01,
+      "en": "And so, let's put it right after this section as in a more advanced performance evaluation method.",
+      "zh": "所以放在這段後面，作為更進階的效能評估方法。"
+    },
+    {
+      "start": 326.01,
+      "end": 333.05,
+      "en": "And so, we're gonna call this section, Applying k-fold Cross Validation.",
+      "zh": "區段命名為 Applying k-fold Cross Validation。"
+    },
+    {
+      "start": 334.5,
+      "end": 345.06,
+      "en": "All right, so now the first thing that we have to do is to install the caret package, because this contains a very practical tool to create the 10 folds of our training set.",
+      "zh": "首先安裝 caret 套件，裡面有很實用的工具，可以建立訓練集的 10 折。"
+    },
+    {
+      "start": 345.06,
+      "end": 349.287,
+      "en": "So let's start with this, install.packages('caret').",
+      "zh": "先用 install.packages('caret')。"
+    },
+    {
+      "start": 353.34000000000003,
+      "end": 355.71,
+      "en": "All right, so mine is already installed.",
+      "zh": "我的已經安裝。"
+    },
+    {
+      "start": 355.71,
+      "end": 356.97,
+      "en": "We can check it out.",
+      "zh": "可以確認。"
+    },
+    {
+      "start": 356.97,
+      "end": 359.52,
+      "en": "Check the same on your list of packages.",
+      "zh": "請也檢查自己的套件清單。"
+    },
+    {
+      "start": 359.52,
+      "end": 361.23,
+      "en": "Here it is, caret.",
+      "zh": "就在這裡，caret。"
+    },
+    {
+      "start": 361.23,
+      "end": 365.85,
+      "en": "So I will just put that in comment, but don't forget to install it.",
+      "zh": "所以我先將這行註解，但別忘記安裝。"
+    },
+    {
+      "start": 365.85,
+      "end": 374.25,
+      "en": "And then let's not forget the library command to import automatically the caret package.",
+      "zh": "也別忘記 library 指令，自動載入 caret。"
+    },
+    {
+      "start": 374.25,
+      "end": 378.06,
+      "en": "All right, and now let's start coding k-fold cross validation.",
+      "zh": "現在開始寫 k 折交叉驗證。"
+    },
+    {
+      "start": 378.06,
+      "end": 383.1,
+      "en": "So first, we are going to create the 10 fold that will divide our training set.",
+      "zh": "首先建立訓練集的 10 折。"
+    },
+    {
+      "start": 383.1,
+      "end": 391.38,
+      "en": "And to do this, it's very simple, we're gonna use the create folds function by the caret package, to create these 10 folds very efficiently.",
+      "zh": "很簡單，使用 caret 的 createFolds，有效率地建立。"
+    },
+    {
+      "start": 391.38,
+      "end": 392.213,
+      "en": "So let's do it.",
+      "zh": "來做吧。"
+    },
+    {
+      "start": 392.213,
+      "end": 399.06,
+      "en": "We're gonna call these folds, \"folds,\" will actually be a list of 10 different test folds composing our training set.",
+      "zh": "將這些折命名為 folds，實際上是由訓練集構成的 10 個測試折串列。"
+    },
+    {
+      "start": 399.06,
+      "end": 404.06,
+      "en": "So let's use this createFolds function, here it is.",
+      "zh": "使用 createFolds，就在這裡。"
+    },
+    {
+      "start": 404.13,
+      "end": 408.54,
+      "en": "And inside the parenthesis, we just need to specify the training set.",
+      "zh": "括號裡指定訓練資料。"
+    },
+    {
+      "start": 408.54,
+      "end": 415.2,
+      "en": "So here, I'm adding the training set, and then we take our dependent variable column by which we want to make the split.",
+      "zh": "加入 training_set，再取得用來切分的依變數欄。"
+    },
+    {
+      "start": 415.2,
+      "end": 424.38,
+      "en": "You know, it's exactly like when we split the dataset between the training set and a test set, we need to specify the dependent variable to make a split so that the training set and the test set",
+      "zh": "就像切分訓練集與測試集時，需要指定依變數，讓兩份資料"
+    },
+    {
+      "start": 424.38,
+      "end": 427.53,
+      "en": "are well distributed according to the dependent variable.",
+      "zh": "依依變數分布妥善分配。"
+    },
+    {
+      "start": 427.53,
+      "end": 428.73,
+      "en": "Well, here that's the same.",
+      "zh": "這裡也是一樣。"
+    },
+    {
+      "start": 428.73,
+      "end": 437.55,
+      "en": "We're creating 10 folds of the training set and we are specifying the dependent variable to make sure, are well distributed according to the dependent variable.",
+      "zh": "將訓練集分 10 折，指定依變數，確保各折依依變數妥善分布。"
+    },
+    {
+      "start": 437.55,
+      "end": 442.347,
+      "en": "So that's why here, we need to specify our dependent variable which is \"Purchased\".",
+      "zh": "所以指定依變數 Purchased。"
+    },
+    {
+      "start": 444.09,
+      "end": 447.63,
+      "en": "All right, so that's the first argument of the createFolds function.",
+      "zh": "這是 createFolds 第一個參數。"
+    },
+    {
+      "start": 447.63,
+      "end": 455.07,
+      "en": "And of course, as you might have guessed, the second argument is the number of folds you want to divide your training set into.",
+      "zh": "你應該猜得到，第二個參數是要將訓練集分成幾折。"
+    },
+    {
+      "start": 455.07,
+      "end": 465.21,
+      "en": "And really, a good choice of the number of folds is 10, because by creating 10 folds, we will eventually get 10 accuracies, and 10 accuracies is a relevant way",
+      "zh": "10 是很好的選擇，因為會得到 10 個準確率，能透過平均"
+    },
+    {
+      "start": 465.21,
+      "end": 469.44,
+      "en": "to measure the accuracies through the mean of these 10 accuracies.",
+      "zh": "更有代表性地衡量準確率。"
+    },
+    {
+      "start": 469.44,
+      "end": 473.04,
+      "en": "So we'll take 10 folds and I recommend to do that in practice.",
+      "zh": "所以使用 10 折，實務上也建議這麼做。"
+    },
+    {
+      "start": 473.04,
+      "end": 477.42,
+      "en": "So here we just add k = 10.",
+      "zh": "加入 k = 10。"
+    },
+    {
+      "start": 477.42,
+      "end": 478.253,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 478.253,
+      "end": 487.41,
+      "en": "Now we're going to implement k-fold cross validation, because what we just did here is just to create the folds, but now we need to implement the algorithm itself.",
+      "zh": "現在實作 k 折交叉驗證，剛才只建立折，現在要實作演算法本身。"
+    },
+    {
+      "start": 487.41,
+      "end": 488.76,
+      "en": "And to do this...",
+      "zh": "做法是……"
+    },
+    {
+      "start": 488.76,
+      "end": 500.07,
+      "en": "Well, there are several ways of doing it, but we're gonna use a very practical function in R, which is called the lapply function, and that consists of applying a function",
+      "zh": "有幾種方式，但這裡使用 R 很實用的 lapply，將函式套用到"
+    },
+    {
+      "start": 500.07,
+      "end": 502.65,
+      "en": "to the different elements of a list.",
+      "zh": "串列的不同元素。"
+    },
+    {
+      "start": 502.65,
+      "end": 511.53,
+      "en": "So this list is going to be our folds list that contains the 10 test folds, and the function, is the function that is going to compute",
+      "zh": "串列就是 folds，包含 10 個測試折，而函式會計算"
+    },
+    {
+      "start": 511.53,
+      "end": 514.74,
+      "en": "the accuracy for each of these 10 test folds.",
+      "zh": "各測試折的準確率。"
+    },
+    {
+      "start": 514.74,
+      "end": 519,
+      "en": "So let's start by creating a new variable that we're gonna call cv.",
+      "zh": "先建立新變數，叫做 cv。"
+    },
+    {
+      "start": 519,
+      "end": 522.87,
+      "en": "And then let's use here this lapply function.",
+      "zh": "再使用 lapply。"
+    },
+    {
+      "start": 522.87,
+      "end": 525.09,
+      "en": "All right, and you're gonna understand what's gonna happen.",
+      "zh": "接著就會明白。"
+    },
+    {
+      "start": 525.09,
+      "end": 528.57,
+      "en": "So in this lapply function, we need to input two arguments.",
+      "zh": "lapply 需要兩個參數。"
+    },
+    {
+      "start": 528.57,
+      "end": 535.86,
+      "en": "The first argument is the list of the elements to which we're going to apply the next function, which is the next argument.",
+      "zh": "第一個是要套用函式的元素串列，函式則是下一個參數。"
+    },
+    {
+      "start": 535.86,
+      "end": 539.34,
+      "en": "And so, as I just said, this list is folds.",
+      "zh": "如剛才所說，串列是 folds。"
+    },
+    {
+      "start": 539.34,
+      "end": 542.04,
+      "en": "The list of our 10 test folds.",
+      "zh": "也就是 10 個測試折的串列。"
+    },
+    {
+      "start": 542.04,
+      "end": 545.16,
+      "en": "And then the next argument is the function.",
+      "zh": "下一個參數是函式。"
+    },
+    {
+      "start": 545.16,
+      "end": 553.73,
+      "en": "So a function in R, can be written this way, function, then in parenthesis we need to input the argument,",
+      "zh": "R 的函式可以這樣寫，function，再在括號內輸入參數，"
+    },
+    {
+      "start": 554.16,
+      "end": 557.7,
+      "en": "which we will call \"x\", this is a local argument so far.",
+      "zh": "命名為 x，目前是區域參數。"
+    },
+    {
+      "start": 557.7,
+      "end": 561.78,
+      "en": "But x is actually going to be each one of the 10 test folds.",
+      "zh": "x 實際上會依序是 10 個測試折。"
+    },
+    {
+      "start": 561.78,
+      "end": 566.73,
+      "en": "So x here and then a pair of brackets. Here we go.",
+      "zh": "所以 x，接著一對大括號。"
+    },
+    {
+      "start": 566.73,
+      "end": 575.04,
+      "en": "And inside these brackets, we are going to implement this function that will compute the accuracy of the model on each of these 10 test folds.",
+      "zh": "在大括號裡，實作計算模型對每個測試折準確率的函式。"
+    },
+    {
+      "start": 575.04,
+      "end": 579.54,
+      "en": "So, basically, in this function, we're going to implement k-fold cross validation.",
+      "zh": "基本上，這個函式就是 k 折交叉驗證的實作。"
+    },
+    {
+      "start": 579.54,
+      "end": 582.69,
+      "en": "So what do we need to implement k-fold cross validation?",
+      "zh": "需要什麼？"
+    },
+    {
+      "start": 582.69,
+      "end": 585.45,
+      "en": "Well, first, we need the training fold.",
+      "zh": "首先需要訓練折。"
+    },
+    {
+      "start": 585.45,
+      "end": 590.07,
+      "en": "The training fold, is the whole training set to which we withdraw the test fold.",
+      "zh": "訓練折是整個訓練集，扣除測試折。"
+    },
+    {
+      "start": 590.07,
+      "end": 598.263,
+      "en": "So, basically, training fold here, I'm creating a new local variable, actually, that I'm calling training_fold.",
+      "zh": "所以建立新的區域變數，命名 training_fold。"
+    },
+    {
+      "start": 599.13,
+      "end": 602.34,
+      "en": "And so, as I just said, this is the whole training set.",
+      "zh": "如剛才所說，先使用整個 training_set。"
+    },
+    {
+      "start": 602.34,
+      "end": 603.42,
+      "en": "Here we go.",
+      "zh": "就在這裡。"
+    },
+    {
+      "start": 603.42,
+      "end": 613.56,
+      "en": "But, to which, we withdraw the test fold, that is, \"-x\", because, you know, x is actually each element of this folds list here.",
+      "zh": "但要扣除測試折，也就是 -x，因為 x 是 folds 串列的各個元素。"
+    },
+    {
+      "start": 613.56,
+      "end": 620.79,
+      "en": "So by putting -x here, we are taking the whole training set but without the test fold, and therefore that's actually the training fold.",
+      "zh": "放入 -x，就取得完整訓練集，但不含測試折，因此是訓練折。"
+    },
+    {
+      "start": 620.79,
+      "end": 623.463,
+      "en": "And then \"comma\" to take all the columns.",
+      "zh": "再加逗號，取得所有欄位。"
+    },
+    {
+      "start": 624.33,
+      "end": 626.73,
+      "en": "All right. So we got our training fold.",
+      "zh": "好，訓練折有了。"
+    },
+    {
+      "start": 626.73,
+      "end": 628.95,
+      "en": "Now let's get our test fold.",
+      "zh": "接著取得測試折。"
+    },
+    {
+      "start": 628.95,
+      "end": 632.28,
+      "en": "So our test fold, try to guess what it's going to be.",
+      "zh": "猜猜測試折是什麼。"
+    },
+    {
+      "start": 632.28,
+      "end": 638.07,
+      "en": "Test_fold = training_set, and inside the square brackets...",
+      "zh": "test_fold = training_set，中括號裡……"
+    },
+    {
+      "start": 638.07,
+      "end": 639.75,
+      "en": "Well, what do we need to put here?",
+      "zh": "應放什麼？"
+    },
+    {
+      "start": 639.75,
+      "end": 647.04,
+      "en": "Well, that's actually x, because, you know, x represents all the observations for each one of the 10 test folds.",
+      "zh": "就是 x，因為 x 代表各個測試折包含的觀測資料索引。"
+    },
+    {
+      "start": 647.04,
+      "end": 650.16,
+      "en": "So, we got our test fold.",
+      "zh": "所以測試折也有了。"
+    },
+    {
+      "start": 650.16,
+      "end": 652.08,
+      "en": "And then what do we need to do now?",
+      "zh": "接著做什麼？"
+    },
+    {
+      "start": 652.08,
+      "end": 662.13,
+      "en": "Now, what we need to do is train our kernel SVM model on the training fold, and then we will test its performance on the test fold.",
+      "zh": "在訓練折訓練核 SVM，再於測試折評估效能。"
+    },
+    {
+      "start": 662.13,
+      "end": 669.51,
+      "en": "So basically what do we need to do now, we need to add our model, which is our kernel SVM classifier.",
+      "zh": "所以要加入模型，也就是核 SVM 分類器。"
+    },
+    {
+      "start": 669.51,
+      "end": 678.69,
+      "en": "So what we can do now is just take this code section here, because that's where we build the model, and we need to include this model in the function,",
+      "zh": "直接取用這段，因為這裡建立模型，要把它放入函式，"
+    },
+    {
+      "start": 678.69,
+      "end": 680.22,
+      "en": "that's why we're taking it.",
+      "zh": "所以取用它。"
+    },
+    {
+      "start": 680.22,
+      "end": 684.33,
+      "en": "So copy and let's add it here.",
+      "zh": "複製，再加到這裡。"
+    },
+    {
+      "start": 684.33,
+      "end": 685.35,
+      "en": "Paste.",
+      "zh": "貼上。"
+    },
+    {
+      "start": 685.35,
+      "end": 687.66,
+      "en": "And here we go, we have our model.",
+      "zh": "模型就有了。"
+    },
+    {
+      "start": 687.66,
+      "end": 693.03,
+      "en": "But we're not training this kernel SVM classifier on the training set.",
+      "zh": "但不是在整個訓練集上訓練核 SVM。"
+    },
+    {
+      "start": 693.03,
+      "end": 700.08,
+      "en": "We are training it on the training fold, because that's the principle of k-fold cross validation.",
+      "zh": "而是在 training_fold，因為這是 k 折交叉驗證的原則。"
+    },
+    {
+      "start": 700.08,
+      "end": 704.37,
+      "en": "We are training our classifier on each one of the 10 training fold.",
+      "zh": "對 10 組訓練折分別訓練分類器。"
+    },
+    {
+      "start": 704.37,
+      "end": 713.01,
+      "en": "So that's why here, we're taking the training fold, and that we create here inside this function that we're making right now.",
+      "zh": "所以這裡使用 training_fold，就是正在寫的函式內建立的變數。"
+    },
+    {
+      "start": 713.01,
+      "end": 715.41,
+      "en": "And then we keep the same argument.",
+      "zh": "其他參數維持相同。"
+    },
+    {
+      "start": 715.41,
+      "end": 717.6,
+      "en": "All right. Then what do we need to do?",
+      "zh": "接著做什麼？"
+    },
+    {
+      "start": 717.6,
+      "end": 727.98,
+      "en": "Well, that's exactly the same as what we're doing when we make a model, that is, predicting the test set results, that's the next step, because that's from this test set results",
+      "zh": "和一般建立模型相同，下一步預測測試結果，因為透過這些結果，"
+    },
+    {
+      "start": 727.98,
+      "end": 738.9,
+      "en": "that we will then compute the confusion matrix, and therefore the accuracy, which is exactly what we need, that is which is exactly what will be returned by the function we are making right now,",
+      "zh": "才能計算混淆矩陣，進而算準確率，也就是目前這個函式要回傳的值，"
+    },
+    {
+      "start": 738.9,
+      "end": 741.24,
+      "en": "to implement k-fold cross validation.",
+      "zh": "用來實作 k 折交叉驗證。"
+    },
+    {
+      "start": 741.24,
+      "end": 749.01,
+      "en": "So, same, let's copy this line to predict the test set result, and let's copy it here.",
+      "zh": "同樣複製這行預測程式，貼到這裡。"
+    },
+    {
+      "start": 749.01,
+      "end": 750.54,
+      "en": "And is that all?",
+      "zh": "這樣就好了嗎？"
+    },
+    {
+      "start": 750.54,
+      "end": 758.58,
+      "en": "Of course, no, because we are not testing our classifier on the test set, but we're testing it on the test fold.",
+      "zh": "當然不是，因為不是在 test_set 測試，而是在 test_fold。"
+    },
+    {
+      "start": 758.58,
+      "end": 764.73,
+      "en": "Right, because, you know, we are training our model on the training fold, and testing its performance on the test fold.",
+      "zh": "對，在 training_fold 訓練，在 test_fold 測試效能。"
+    },
+    {
+      "start": 764.73,
+      "end": 766.23,
+      "en": "So now that's good.",
+      "zh": "現在好了。"
+    },
+    {
+      "start": 766.23,
+      "end": 772.38,
+      "en": "And now let's move on to the next step, which is to compute the confusion matrix.",
+      "zh": "下一步，計算混淆矩陣。"
+    },
+    {
+      "start": 772.38,
+      "end": 780.36,
+      "en": "So still, let's take this line here and let's paste it below right here, paste.",
+      "zh": "同樣取用這行，貼到下方。"
+    },
+    {
+      "start": 780.36,
+      "end": 786.6,
+      "en": "And now of course we need to change test_set and replace it by test_fold.",
+      "zh": "當然要把 test_set 換成 test_fold。"
+    },
+    {
+      "start": 786.6,
+      "end": 797.37,
+      "en": "All right, and this will give us the confusion matrix of this classifier SVM model of this kernel SVM classifier, and that is trained on the training fold",
+      "zh": "這會得到在訓練折訓練的核 SVM 分類器，"
+    },
+    {
+      "start": 797.37,
+      "end": 799.89,
+      "en": "and tested on the test fold.",
+      "zh": "在測試折上測試的混淆矩陣。"
+    },
+    {
+      "start": 799.89,
+      "end": 805.74,
+      "en": "And therefore, this line of code will give you the confusion matrix for the observations of the test fold.",
+      "zh": "所以這行會取得測試折觀測資料的混淆矩陣。"
+    },
+    {
+      "start": 805.74,
+      "end": 816.12,
+      "en": "All right, and now last step, we need to compute the accuracy because we're doing all this to get the accuracies for all the 10 test folds here.",
+      "zh": "最後一步，計算準確率，因為全部操作就是為了取得 10 個測試折的準確率。"
+    },
+    {
+      "start": 816.12,
+      "end": 817.8,
+      "en": "So let's compute the accuracy.",
+      "zh": "來計算。"
+    },
+    {
+      "start": 817.8,
+      "end": 819.38,
+      "en": "The accuracy is...",
+      "zh": "準確率是……"
+    },
+    {
+      "start": 820.26,
+      "end": 822.87,
+      "en": "We've calculated this accuracy many times.",
+      "zh": "我們已經算過很多次。"
+    },
+    {
+      "start": 822.87,
+      "end": 834.12,
+      "en": "We take the number of correct predictions, which is cm[1,1], because this corresponds to the number of correct predictions of the first class,",
+      "zh": "先取正確預測數量，cm[1,1]，對應第一個類別的正確預測數量，"
+    },
+    {
+      "start": 834.12,
+      "end": 844.38,
+      "en": "plus cm[2,2], because this corresponds to the number of correct predictions of the second class, and since we have two classes,",
+      "zh": "加上 cm[2,2]，第二個類別的正確預測數量。只有兩類，"
+    },
+    {
+      "start": 844.38,
+      "end": 849.09,
+      "en": "this sum corresponds to the total number of correct predictions.",
+      "zh": "所以這個總和，就是所有正確預測的數量。"
+    },
+    {
+      "start": 849.09,
+      "end": 855.42,
+      "en": "And then we divide it by the total number of observations in the test set.",
+      "zh": "再除以測試資料的總觀測筆數。"
+    },
+    {
+      "start": 855.42,
+      "end": 860.913,
+      "en": "And therefore, that's the number of correct predictions, which is this sum here.",
+      "zh": "因此先放這個正確預測數量，也就是這個總和，"
+    },
+    {
+      "start": 862.29,
+      "end": 873.24,
+      "en": "To which, we also need to add the number of incorrect predictions, and therefore, you know, we can copy this and take the first number of incorrect predictions",
+      "zh": "再加上錯誤預測數量，可以複製這段，取得第一個類別的錯誤預測數，"
+    },
+    {
+      "start": 873.24,
+      "end": 880.08,
+      "en": "that corresponds to the first class, and this second number of incorrect predictions that corresponds to the second class.",
+      "zh": "以及第二個類別的錯誤預測數。"
+    },
+    {
+      "start": 880.08,
+      "end": 889.29,
+      "en": "And so, here, we are actually taking all the elements of this confusion matrix, that is, the number of correct predictions plus the number of incorrect predictions.",
+      "zh": "這裡實際取了混淆矩陣全部元素，也就是正確與錯誤預測數量的總和。"
+    },
+    {
+      "start": 889.29,
+      "end": 894.81,
+      "en": "And so, now, with this line of code, we get the accuracy for one fold.",
+      "zh": "透過這一行，取得一折的準確率。"
+    },
+    {
+      "start": 894.81,
+      "end": 904.62,
+      "en": "But since we're using this lapply function, this will do all this, compute the accuracy, for each of the 10 test folds, and therefore we will get 10 accuracies",
+      "zh": "因為使用 lapply，會對全部 10 個測試折都計算，所以得到 10 個準確率，"
+    },
+    {
+      "start": 904.62,
+      "end": 915.57,
+      "en": "and we will compute its mean, which will give us a much more relevant accuracy than just a single one we obtained earlier with our previous method of evaluating the model performance.",
+      "zh": "再平均，會比先前評估方法只取得單一準確率，更有代表性。"
+    },
+    {
+      "start": 915.57,
+      "end": 924.48,
+      "en": "All right, so now we have everything, but we just need to specify that we want to have this accuracy returned because this is a function.",
+      "zh": "現在都有了，但因為這是函式，還需要指定回傳準確率。"
+    },
+    {
+      "start": 924.48,
+      "end": 927.63,
+      "en": "So we need to specify what we want this function to return.",
+      "zh": "要明確指定函式回傳什麼。"
+    },
+    {
+      "start": 927.63,
+      "end": 930.147,
+      "en": "And to do this, we just add, return(accuracy).",
+      "zh": "只要加入 return(accuracy)。"
+    },
+    {
+      "start": 933.06,
+      "end": 938.4,
+      "en": "And now everything is ready, k-fold cross validation is well implemented.",
+      "zh": "現在全部準備好，k 折交叉驗證實作完成。"
+    },
+    {
+      "start": 938.4,
+      "end": 945.12,
+      "en": "All right, so now we're ready to get the 10 accuracies that will result from this 10 fold cross validation technique.",
+      "zh": "可以取得 10 折交叉驗證產生的 10 個準確率。"
+    },
+    {
+      "start": 945.12,
+      "end": 953.04,
+      "en": "So we are going to select everything from here up to the top because we haven't imported the dataset yet.",
+      "zh": "選取這裡到最上方的全部內容，因為尚未匯入資料集。"
+    },
+    {
+      "start": 953.04,
+      "end": 957.24,
+      "en": "So let's press command Control + Enter to execute the whole thing.",
+      "zh": "按 Command 或 Control 加 Enter 執行全部。"
+    },
+    {
+      "start": 957.24,
+      "end": 958.08,
+      "en": "Here we go.",
+      "zh": "開始。"
+    },
+    {
+      "start": 958.08,
+      "end": 961.65,
+      "en": "Everything was correctly executed in less than one second.",
+      "zh": "不到一秒就全部正確執行。"
+    },
+    {
+      "start": 961.65,
+      "end": 962.88,
+      "en": "So that's perfect.",
+      "zh": "很好。"
+    },
+    {
+      "start": 962.88,
+      "end": 965.1,
+      "en": "Let's have a look at the results.",
+      "zh": "看看結果。"
+    },
+    {
+      "start": 965.1,
+      "end": 967.74,
+      "en": "So, first, let's put that down.",
+      "zh": "先把這裡縮下來。"
+    },
+    {
+      "start": 967.74,
+      "end": 968.7,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 968.7,
+      "end": 970.23,
+      "en": "So, here, we get all the results.",
+      "zh": "這裡有全部結果。"
+    },
+    {
+      "start": 970.23,
+      "end": 977.34,
+      "en": "First, the dataset was well imported, was splitted into the training set and the test set at this section here.",
+      "zh": "首先資料集正確匯入，再在這段切分訓練集與測試集。"
+    },
+    {
+      "start": 977.34,
+      "end": 981.45,
+      "en": "And then we build our classifier, which is our kernel SVM classifier.",
+      "zh": "接著建立分類器，也就是核 SVM。"
+    },
+    {
+      "start": 981.45,
+      "end": 988.2,
+      "en": "And of course, we get our cv list that we built through k-fold cross validation.",
+      "zh": "當然也得到透過交叉驗證建立的 cv 串列。"
+    },
+    {
+      "start": 988.2,
+      "end": 995.28,
+      "en": "That is, this cv list, which is the list of the 10 accuracies that result from k-fold cross validation.",
+      "zh": "它包含 k 折交叉驗證得到的 10 個準確率。"
+    },
+    {
+      "start": 995.28,
+      "end": 996.63,
+      "en": "And so let's check it out.",
+      "zh": "來確認。"
+    },
+    {
+      "start": 996.63,
+      "end": 999.42,
+      "en": "Let's have a look at what these 10 accuracies are.",
+      "zh": "看看這 10 個準確率是多少。"
+    },
+    {
+      "start": 999.42,
+      "end": 1002.21,
+      "en": "So we're gonna look at it from the console.",
+      "zh": "從主控台查看。"
+    },
+    {
+      "start": 1002.21,
+      "end": 1005.39,
+      "en": "So I'm pressing cv here and pressing Enter.",
+      "zh": "輸入 cv，再按 Enter。"
+    },
+    {
+      "start": 1005.39,
+      "end": 1006.86,
+      "en": "And here we go.",
+      "zh": "出來了。"
+    },
+    {
+      "start": 1006.86,
+      "end": 1010.13,
+      "en": "That's the results, that's the 10 accuracies.",
+      "zh": "這是結果，也就是 10 個準確率。"
+    },
+    {
+      "start": 1010.13,
+      "end": 1013.4,
+      "en": "So fold one, we get 93% accuracy.",
+      "zh": "第 1 折，準確率 93%。"
+    },
+    {
+      "start": 1013.4,
+      "end": 1014.42,
+      "en": "That's very good.",
+      "zh": "非常好。"
+    },
+    {
+      "start": 1014.42,
+      "end": 1016.31,
+      "en": "Fold two, 87%.",
+      "zh": "第 2 折，87%。"
+    },
+    {
+      "start": 1016.31,
+      "end": 1020.03,
+      "en": "Fold three, 100%. So no incorrect prediction.",
+      "zh": "第 3 折，100%，沒有錯誤預測。"
+    },
+    {
+      "start": 1020.03,
+      "end": 1021.71,
+      "en": "Fold four, 86%.",
+      "zh": "第 4 折，86%。"
+    },
+    {
+      "start": 1021.71,
+      "end": 1023.75,
+      "en": "Fold five, 96%.",
+      "zh": "第 5 折，96%。"
+    },
+    {
+      "start": 1023.75,
+      "end": 1025.34,
+      "en": "90% On fold six.",
+      "zh": "第 6 折，90%。"
+    },
+    {
+      "start": 1025.34,
+      "end": 1027.02,
+      "en": "90% on fold seven.",
+      "zh": "第 7 折，90%。"
+    },
+    {
+      "start": 1027.02,
+      "end": 1028.58,
+      "en": "93% on fold eight.",
+      "zh": "第 8 折，93%。"
+    },
+    {
+      "start": 1028.58,
+      "end": 1029.99,
+      "en": "90% fold nine.",
+      "zh": "第 9 折，90%。"
+    },
+    {
+      "start": 1029.99,
+      "end": 1033.35,
+      "en": "And eventually, 83% on fold 10.",
+      "zh": "最後第 10 折，83%。"
+    },
+    {
+      "start": 1033.35,
+      "end": 1043.58,
+      "en": "So that clearly illustrates what I told you about this variance problem that can occur when we rerun the model several times, because indeed, we get different accuracies",
+      "zh": "這清楚展示，多次重新執行模型可能出現的變異問題，準確率會不同，"
+    },
+    {
+      "start": 1043.58,
+      "end": 1048.53,
+      "en": "and sometimes a large difference in accuracy from one fold to another.",
+      "zh": "有時不同折之間差距很大。"
+    },
+    {
+      "start": 1048.53,
+      "end": 1049.97,
+      "en": "So from here to here, that's fine.",
+      "zh": "這裡到這裡還好。"
+    },
+    {
+      "start": 1049.97,
+      "end": 1056.72,
+      "en": "But here, for example, from fold two to fold three, we get a 13% difference of accuracies.",
+      "zh": "但第 2 折到第 3 折，準確率相差 13 個百分點。"
+    },
+    {
+      "start": 1056.72,
+      "end": 1062.54,
+      "en": "So that's why it's not that relevant to compute the accuracy on one single split.",
+      "zh": "所以只在單次切分計算準確率，不夠有代表性。"
+    },
+    {
+      "start": 1062.54,
+      "end": 1069.517,
+      "en": "And it's much more relevant to compute the accuracies on 10 splits, because then we can take the mean, and that's exactly what we're going to do right now.",
+      "zh": "計算 10 種切分的準確率，再平均更好，現在就做。"
+    },
+    {
+      "start": 1069.517,
+      "end": 1074.21,
+      "en": "We are going to compute the mean of the 10 accuracies that we obtained here.",
+      "zh": "計算這裡 10 個準確率的平均。"
+    },
+    {
+      "start": 1074.21,
+      "end": 1078.56,
+      "en": "So, to get this mean, it's actually very simple.",
+      "zh": "要取得平均，非常簡單。"
+    },
+    {
+      "start": 1078.56,
+      "end": 1082.07,
+      "en": "We're just gonna use the mean function.",
+      "zh": "只需要 mean 函式。"
+    },
+    {
+      "start": 1082.07,
+      "end": 1090.38,
+      "en": "So parenthesis here, and inside this mean, we of course input cv, because cv is the list of our 10 accuracies that we obtained here.",
+      "zh": "加括號，當然傳入 cv，因為它是這裡 10 個準確率的串列。"
+    },
+    {
+      "start": 1090.38,
+      "end": 1097.52,
+      "en": "However, just to make sure we get the values of the accuracies of each of the 10 folds, we need to specify here, (as.numeric(cv)),",
+      "zh": "但為了確保取得每折準確率數值，要在這裡使用 as.numeric(cv)，"
+    },
+    {
+      "start": 1101.69,
+      "end": 1106.25,
+      "en": "to make sure we take the mean of these values here that are the accuracies.",
+      "zh": "確保平均的是這些準確率值。"
+    },
+    {
+      "start": 1106.25,
+      "end": 1113.57,
+      "en": "And let's put this average of the accuracies into one variable that will appear in the values here.",
+      "zh": "把平均存進一個變數，會顯示在 Values。"
+    },
+    {
+      "start": 1113.57,
+      "end": 1122.75,
+      "en": "And let's call this variable simply \"accuracy\", because the mean of these accuracies is just the ultimate relevant accuracy.",
+      "zh": "簡單叫 accuracy，因為平均準確率就是這裡更有代表性的準確率。"
+    },
+    {
+      "start": 1122.75,
+      "end": 1127.75,
+      "en": "So, accuracy = mean, of the accuracies in this cv list.",
+      "zh": "所以 accuracy 等於 cv 串列內準確率的 mean。"
+    },
+    {
+      "start": 1128.12,
+      "end": 1139.4,
+      "en": "All right, so let's compute it, and we'll get, let's see, an accuracy of 91%, and that's the relevant accuracy we're looking for.",
+      "zh": "來計算，看看，準確率是 91%，這就是想取得的代表性準確率。"
+    },
+    {
+      "start": 1139.4,
+      "end": 1147.053,
+      "en": "So, overall, we can say with more credibility that our model, our kernel SVM classifier is pretty performance.",
+      "zh": "因此更有把握說，核 SVM 分類器的效能相當好。"
+    },
+    {
+      "start": 1148.07,
+      "end": 1149.12,
+      "en": "So that's pretty good.",
+      "zh": "很不錯。"
+    },
+    {
+      "start": 1149.12,
+      "end": 1156.05,
+      "en": "And now congratulations, you have a much more advanced way of evaluating your model performance in your data science toolkit.",
+      "zh": "恭喜，資料科學工具箱裡有更進階的模型效能評估方式。"
+    },
+    {
+      "start": 1156.05,
+      "end": 1165.02,
+      "en": "But you'll see, in the next tutorial, we'll see a very powerful technique that will help us choose the optimal hyperparameters of any machine learning model we built.",
+      "zh": "下一堂會介紹強大的技術，替本課程建立的模型選擇最佳超參數。"
+    },
+    {
+      "start": 1165.02,
+      "end": 1167.54,
+      "en": "So I look forward to doing that in the next tutorial.",
+      "zh": "期待下一堂一起完成。"
+    },
+    {
+      "start": 1167.54,
+      "end": 1169.523,
+      "en": "And until then, enjoy machine learning.",
+      "zh": "在那之前，享受機器學習的樂趣吧。"
+    }
+  ]
+}

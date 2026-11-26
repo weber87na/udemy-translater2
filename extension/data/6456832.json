@@ -1,0 +1,1093 @@
+{
+  "courseId": "950390",
+  "lectureId": "6456832",
+  "title": "Upper Confidence Bound Algorithm: Solving Multi-Armed Bandit Problems in ML",
+  "section": 32,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "899e34e2c54338c0ece4ea08e816c1a9bf29cfc48d03e4aa47636b422621f373",
+  "cues": [
+    {
+      "start": 0.13,
+      "end": 3.21,
+      "en": "-: Hello and welcome back to the course on machine learning.",
+      "zh": "講師：大家好，歡迎回到機器學習課程。"
+    },
+    {
+      "start": 3.21,
+      "end": 12.45,
+      "en": "Today we're talking about the upper confidence bound and the intuition behind this algorithm of the reinforcement branch of machine learning.",
+      "zh": "今天要談信賴上界，以及這個屬於機器學習強化學習分支的演算法背後的直覺概念。"
+    },
+    {
+      "start": 12.45,
+      "end": 13.86,
+      "en": "So let's get started.",
+      "zh": "開始吧。"
+    },
+    {
+      "start": 13.86,
+      "end": 23.43,
+      "en": "As we discussed previously, the problem we are solving is a multi-armed bandit problem where you've got five or more or any number of slot machines",
+      "zh": "先前談過，要解的是多臂吃角子老虎問題，面前有五台、更多台，或任意數量的拉霸機，"
+    },
+    {
+      "start": 23.43,
+      "end": 26.67,
+      "en": "and you can bet your money in any one of them.",
+      "zh": "可以選任一台下注。"
+    },
+    {
+      "start": 26.67,
+      "end": 33.3,
+      "en": "And you need to find out how to bet to maximize your returns.",
+      "zh": "必須找出怎麼下注才能讓報酬最大。"
+    },
+    {
+      "start": 33.3,
+      "end": 43.14,
+      "en": "And basically we agreed that behind every machine there is a certain distribution and that's because you don't know which of these distributions is optimal.",
+      "zh": "基本上，先前同意每台背後有一個分布，而且因為不知道哪個分布最佳，"
+    },
+    {
+      "start": 43.14,
+      "end": 53.19,
+      "en": "You need to combine exploration of these machines with their exploitation in order to find out which one of these machines is the best",
+      "zh": "就必須結合探索與利用，找出哪台最好，"
+    },
+    {
+      "start": 53.19,
+      "end": 56.13,
+      "en": "and then you can start exploiting that one.",
+      "zh": "再開始利用它。"
+    },
+    {
+      "start": 56.13,
+      "end": 59.91,
+      "en": "And the modern application of this problem is of course advertising.",
+      "zh": "這個問題的現代應用，當然就是廣告。"
+    },
+    {
+      "start": 59.91,
+      "end": 67.59,
+      "en": "So if you have five or 10 or 50 or 500 different ads, how do you find out which one is the best one?",
+      "zh": "如果有五個、十個、五十個或五百個廣告，如何找出哪個最好？"
+    },
+    {
+      "start": 67.59,
+      "end": 76.26,
+      "en": "Of course, you can run just an AB test and then use the results of that, but that means you're doing the exploration and then you're doing the exploitation separately.",
+      "zh": "當然可以只做 A/B 測試，再使用結果，但這表示把探索和利用分開。"
+    },
+    {
+      "start": 76.26,
+      "end": 80.61,
+      "en": "You're going to incur lots of costs, you're gonna waste a lot of time.",
+      "zh": "會產生很多成本，浪費很多時間。"
+    },
+    {
+      "start": 80.61,
+      "end": 90.33,
+      "en": "We want to combine exploration, exploitation, and get to the optimal result as soon as we can and maximize the output of our efforts.",
+      "zh": "我們希望結合探索與利用，盡快得到最佳結果，讓努力的產出最大化。"
+    },
+    {
+      "start": 90.33,
+      "end": 96.12,
+      "en": "All right, so this is a quick summary of the multi-arm bandit problem.",
+      "zh": "這就是多臂吃角子老虎問題的簡短回顧。"
+    },
+    {
+      "start": 96.12,
+      "end": 99.27000000000001,
+      "en": "So let's go through this very quickly so we can get to the fun stuff.",
+      "zh": "快速看過，再進入有趣的內容。"
+    },
+    {
+      "start": 99.27000000000001,
+      "end": 101.16,
+      "en": "So we have D arms, for example.",
+      "zh": "例如有 d 支臂。"
+    },
+    {
+      "start": 101.16,
+      "end": 110.22,
+      "en": "Arms are ads that we display each time a user comes to a webpage, each time an ad is displayed or a user visits this page, that's a round.",
+      "zh": "這些臂就是使用者來網頁時顯示的廣告，每次顯示廣告，或使用者造訪頁面，就是一回合。"
+    },
+    {
+      "start": 110.22,
+      "end": 114.03,
+      "en": "For each round \"N\", we choose which ads to display.",
+      "zh": "每個回合 n，選擇顯示哪個廣告。"
+    },
+    {
+      "start": 114.03,
+      "end": 115.41,
+      "en": "Usually, you can only display one ad.",
+      "zh": "通常只能顯示一個。"
+    },
+    {
+      "start": 115.41,
+      "end": 119.85,
+      "en": "Like with the one-arm bandits, you can only pull one of those arms.",
+      "zh": "就像單臂老虎，每次只能拉一支把手。"
+    },
+    {
+      "start": 119.85,
+      "end": 122.82,
+      "en": "You can only choose one machine to bet on at each round.",
+      "zh": "每回合只能選一台機器下注。"
+    },
+    {
+      "start": 122.82,
+      "end": 126.783,
+      "en": "And ad \"I\", gives a reward whether it's a zero or a one.",
+      "zh": "廣告 i 會給一個獎勵，0 或 1。"
+    },
+    {
+      "start": 127.8,
+      "end": 132.51,
+      "en": "And basically our \"I\" of ante of \"N\" is equal to one.",
+      "zh": "基本上，rᵢ(n) 等於 1，"
+    },
+    {
+      "start": 132.51,
+      "end": 136.68,
+      "en": "If the user clicks on ad and zero, if you didn't, the user didn't.",
+      "zh": "如果使用者點了廣告；沒點就是 0。"
+    },
+    {
+      "start": 136.68,
+      "end": 140.5,
+      "en": "And our goal is to max our total reward we get over the mini round.",
+      "zh": "目標是在許多回合中，最大化總獎勵。"
+    },
+    {
+      "start": 140.5,
+      "end": 146.88,
+      "en": "So that's basically what we are doing and this is how the upper confidence bound algorithm works.",
+      "zh": "這就是要做的事，而信賴上界演算法是這樣運作的。"
+    },
+    {
+      "start": 146.88,
+      "end": 158.57999999999998,
+      "en": "And I won't go into too much detail on this because actually Hadlana is going to run you through this and you're going to code this from scratch in R and you're gonna code this also",
+      "zh": "這裡不深入細節，因為 Hadelin 會帶你走過，從零用 R 撰寫，也會"
+    },
+    {
+      "start": 158.57999999999998,
+      "end": 161.25,
+      "en": "in Python in the following lectures of the course.",
+      "zh": "在接下來的課用 Python 實作。"
+    },
+    {
+      "start": 161.25,
+      "end": 164.105,
+      "en": "So we're not gonna waste, spend time on this.",
+      "zh": "所以不在這裡花時間。"
+    },
+    {
+      "start": 164.105,
+      "end": 166.2,
+      "en": "We're actually gonna get to the essence of the algorithm, right?",
+      "zh": "直接看演算法的核心。"
+    },
+    {
+      "start": 166.2,
+      "end": 170.97,
+      "en": "So let's get to the intuition part which is, how does it work?",
+      "zh": "進入直覺概念部分：它如何運作？"
+    },
+    {
+      "start": 170.97,
+      "end": 174.72,
+      "en": "What's actually happening in the background when this algorithm is running?",
+      "zh": "演算法執行時，背後實際發生什麼？"
+    },
+    {
+      "start": 174.72,
+      "end": 176.49,
+      "en": "All right, so let's have a look.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 176.49,
+      "end": 184.53,
+      "en": "These are our slot machines or one-arm bandits and each one of them has a distribution behind it.",
+      "zh": "這些是拉霸機，也就是單臂老虎，每台背後都有一個分布。"
+    },
+    {
+      "start": 184.53,
+      "end": 185.85,
+      "en": "We wanna find the best one, right?",
+      "zh": "想找出最好的那台。"
+    },
+    {
+      "start": 185.85,
+      "end": 192,
+      "en": "Looking at them, we can't tell which one it is But let's see, we do know, let's see we know the end result.",
+      "zh": "光看機器看不出來；但假設知道最終結果，"
+    },
+    {
+      "start": 192,
+      "end": 194.52,
+      "en": "Just for arguments sake, what would it look like?",
+      "zh": "為方便說明，會是什麼樣子？"
+    },
+    {
+      "start": 194.52,
+      "end": 197.94,
+      "en": "Well, this is for instance, in this case, the distribute.",
+      "zh": "例如本例中，這是分布。"
+    },
+    {
+      "start": 197.94,
+      "end": 200.25,
+      "en": "These are the distributions behind those machines.",
+      "zh": "這些就是機器背後的分布。"
+    },
+    {
+      "start": 200.25,
+      "end": 206.13,
+      "en": "You've got, you know, the machine, this is how they're spitting out the results with these distributions.",
+      "zh": "機器會依這些分布產生結果。"
+    },
+    {
+      "start": 206.13,
+      "end": 210.93,
+      "en": "And just by looking at this, you can tell right away which one is the best machine.",
+      "zh": "光看這裡，馬上就知道哪台最好。"
+    },
+    {
+      "start": 210.93,
+      "end": 216.69,
+      "en": "Which one would you bet your money on constantly if you were playing, it would be this one, right?",
+      "zh": "如果你玩，會一直在哪台下注？就是這台，對吧？"
+    },
+    {
+      "start": 216.69,
+      "end": 227.57999999999998,
+      "en": "So right away here you can see that this one has the best return and you would want to just, all the time, just bet on this one and your outcome would be the best.",
+      "zh": "馬上看得出這台報酬最好，會想一直只在它下注，結果就會最好。"
+    },
+    {
+      "start": 227.57999999999998,
+      "end": 228.78,
+      "en": "But we don't know that, right?",
+      "zh": "但我們不知道，對吧？"
+    },
+    {
+      "start": 228.78,
+      "end": 230.07,
+      "en": "We don't know that.",
+      "zh": "不知道。"
+    },
+    {
+      "start": 230.07,
+      "end": 240.96,
+      "en": "And we wanna find that out in the process of playing these machines or using those ads that we're running and find out you know, which one is getting the most clicks.",
+      "zh": "希望在玩機器，或實際投放廣告的過程中，找出哪個點擊最多。"
+    },
+    {
+      "start": 240.96,
+      "end": 249.18,
+      "en": "We don't want to, we don't have the time and money to do that exploration before the actual campaign is running.",
+      "zh": "不想，也沒有時間和金錢，在活動實際開始前做探索。"
+    },
+    {
+      "start": 249.18,
+      "end": 250.41,
+      "en": "We want to do that in the process.",
+      "zh": "要在過程中做。"
+    },
+    {
+      "start": 250.41,
+      "end": 254.04,
+      "en": "We wanna maximize our return already from the very start.",
+      "zh": "從一開始就盡可能提高報酬。"
+    },
+    {
+      "start": 254.04,
+      "end": 255.09,
+      "en": "So how do we do that?",
+      "zh": "怎麼做？"
+    },
+    {
+      "start": 255.09,
+      "end": 261.66,
+      "en": "Well, let's transfer these distributions or the actual expected return from these distributions onto a vertical access.",
+      "zh": "把這些分布，或者說分布的實際期望報酬，移到垂直軸。"
+    },
+    {
+      "start": 261.66,
+      "end": 266.94,
+      "en": "So we're gonna take these values and we're gonna put them onto a vertical access over here.",
+      "zh": "取出這些值，放到這裡的垂直軸。"
+    },
+    {
+      "start": 266.94,
+      "end": 268.44,
+      "en": "So there's our vertical access.",
+      "zh": "這是垂直軸。"
+    },
+    {
+      "start": 268.44,
+      "end": 270.6,
+      "en": "So for distribution one, let's say the value was there.",
+      "zh": "第一個分布，假設值在這裡。"
+    },
+    {
+      "start": 270.6,
+      "end": 273.87,
+      "en": "For distribution two, there was a value we could, we remember it was lower.",
+      "zh": "第二個分布的值，記得比較低。"
+    },
+    {
+      "start": 273.87,
+      "end": 275.43,
+      "en": "Distribution three even lower.",
+      "zh": "第三個更低。"
+    },
+    {
+      "start": 275.43,
+      "end": 279.24,
+      "en": "Distribution four higher, and distribution five the best, right?",
+      "zh": "第四個較高，第五個最好，對吧？"
+    },
+    {
+      "start": 279.24,
+      "end": 286.74,
+      "en": "So those are the expected values or returns for each of those distribution for each of those machines.",
+      "zh": "這些是每個分布、每台機器的期望值或期望報酬。"
+    },
+    {
+      "start": 286.74,
+      "end": 288.24,
+      "en": "That's why our Y axis.",
+      "zh": "這就是 Y 軸。"
+    },
+    {
+      "start": 288.24,
+      "end": 289.74,
+      "en": "But again, we don't know that.",
+      "zh": "但再說一次，我們不知道這些值。"
+    },
+    {
+      "start": 289.74,
+      "end": 292.05,
+      "en": "So how does this algorithm work?",
+      "zh": "演算法怎麼運作？"
+    },
+    {
+      "start": 292.05,
+      "end": 294.36,
+      "en": "Well, it assumes some starting point.",
+      "zh": "先假設一個起點。"
+    },
+    {
+      "start": 294.36,
+      "end": 305.13,
+      "en": "For every distribution, it just assumes that there is a certain starting value that, okay, let's just assume that because we can't distinguish we can't discriminate against these machines in any way.",
+      "zh": "每個分布先假設某個起始值，因為無法區別，沒有理由偏袒任何一台。"
+    },
+    {
+      "start": 305.13,
+      "end": 306.18,
+      "en": "They all look the same.",
+      "zh": "它們看起來都一樣。"
+    },
+    {
+      "start": 306.18,
+      "end": 310.56,
+      "en": "Let's assume that they all have the same return and let's put it on that level.",
+      "zh": "假設報酬相同，都放在這個高度。"
+    },
+    {
+      "start": 310.56,
+      "end": 321.003,
+      "en": "Now then what the algorithm does is those formulas that are behind the algorithm, they create a confidence band.",
+      "zh": "接著演算法背後的公式，會建立一個信賴帶。"
+    },
+    {
+      "start": 322.09,
+      "end": 332.36,
+      "en": "And it is designed in such a way that with a very high level of certainty that confidence band will include the actual...",
+      "zh": "設計方式，是讓這個信賴帶以非常高的確定程度，包含真正的……"
+    },
+    {
+      "start": 333.69,
+      "end": 337.74,
+      "en": "Will include the actual return or the actual expected return.",
+      "zh": "包含真正報酬或期望報酬。"
+    },
+    {
+      "start": 337.74,
+      "end": 343.5,
+      "en": "So basically the first couple of rounds are going to be trial runs.",
+      "zh": "所以前幾回合會先試玩。"
+    },
+    {
+      "start": 343.5,
+      "end": 352.56,
+      "en": "So we are going to intentionally just try out the machines at least one time each in order for us to be able to place this value here and come",
+      "zh": "刻意每台至少試一次，才能把這個值放在這裡，並建立"
+    },
+    {
+      "start": 352.56,
+      "end": 355.65,
+      "en": "up with a confidence band, which is gonna be very large.",
+      "zh": "很大的信賴帶。"
+    },
+    {
+      "start": 355.65,
+      "end": 364.35,
+      "en": "So at the very start, it's very large but it is designed specifically in a way that the expected value which is this one over here",
+      "zh": "最初非常大，但特別設計成讓期望值，也就是這裡這個，"
+    },
+    {
+      "start": 365.282,
+      "end": 373.26,
+      "en": "with a very high level of confidence falls inside this confidence with a little high, with a very high degree of certainty falls inside this confidence bound",
+      "zh": "以非常高的信心、很高的確定程度，落在這個信賴界限之內，"
+    },
+    {
+      "start": 373.26,
+      "end": 379.47,
+      "en": "which is built around this red empirical value which we have derived.",
+      "zh": "而這個區間是圍繞剛算出的紅色經驗值建立。"
+    },
+    {
+      "start": 379.47,
+      "end": 381.15,
+      "en": "At the very start, it's all the same, right?",
+      "zh": "最初全都一樣，對吧？"
+    },
+    {
+      "start": 381.15,
+      "end": 382.95,
+      "en": "So, and then how does this algorithm work?",
+      "zh": "接著演算法怎麼做？"
+    },
+    {
+      "start": 382.95,
+      "end": 387.93,
+      "en": "Well, out of all of them, we pick the machine with the highest confidence bound.",
+      "zh": "從中選信賴界限最高的機器。"
+    },
+    {
+      "start": 387.93,
+      "end": 390.03,
+      "en": "Right now it can be any of these machines, right?",
+      "zh": "目前任何一台都可以。"
+    },
+    {
+      "start": 390.03,
+      "end": 391.95,
+      "en": "They all have the same confidence bound.",
+      "zh": "它們信賴界限相同。"
+    },
+    {
+      "start": 391.95,
+      "end": 394.26,
+      "en": "We're talking about the upper confidence bound.",
+      "zh": "我們談的是信賴上界。"
+    },
+    {
+      "start": 394.26,
+      "end": 397.71,
+      "en": "That's why algorithm's called the upper confidence bound.",
+      "zh": "所以演算法叫信賴上界。"
+    },
+    {
+      "start": 397.71,
+      "end": 400.98,
+      "en": "And so we are just gonna pick any one of them because it doesn't matter which one we pick.",
+      "zh": "隨便選一台，選哪台都沒差。"
+    },
+    {
+      "start": 400.98,
+      "end": 404.363,
+      "en": "Again, we don't know these blue, these color lines, we don't know about them.",
+      "zh": "再說一次，我們不知道這些藍色、彩色線條。"
+    },
+    {
+      "start": 404.363,
+      "end": 409.34000000000003,
+      "en": "All we see as the agent or as the person analyzing this,",
+      "zh": "身為代理或分析的人，"
+    },
+    {
+      "start": 411.39,
+      "end": 414.87,
+      "en": "we only see these boxes and they're all identical to us, so we just pick any one of 'em.",
+      "zh": "只看到這些方框，而且看來完全相同，所以任選一個。"
+    },
+    {
+      "start": 414.87,
+      "end": 416.1,
+      "en": "Let's say we pick this one.",
+      "zh": "假設選這台。"
+    },
+    {
+      "start": 416.1,
+      "end": 422.52,
+      "en": "So what happens next is we actually pull that lever of that machine and something happens or we place that ad, right?",
+      "zh": "接著真的拉這台機器的把手，得到結果，或者投放這個廣告。"
+    },
+    {
+      "start": 422.52,
+      "end": 428.37,
+      "en": "So we display that ad next and we want to see did the person click on it or did the person not click on it?",
+      "zh": "顯示這個廣告，看看對方點不點。"
+    },
+    {
+      "start": 428.37,
+      "end": 433.17,
+      "en": "And in this case, the person didn't click on it, right?",
+      "zh": "這次對方沒點。"
+    },
+    {
+      "start": 433.17,
+      "end": 441.81,
+      "en": "So it went, this red value goes down because it's, well now we have another observation just for this machine that is added",
+      "zh": "所以紅色值下降，因為這台機器又多了一筆觀測資料，加入"
+    },
+    {
+      "start": 441.81,
+      "end": 445.77,
+      "en": "to the whole sample of observations for this machine.",
+      "zh": "它的整體觀測樣本。"
+    },
+    {
+      "start": 445.77,
+      "end": 453.96,
+      "en": "And the value goes down because well always this red value is like the observed average.",
+      "zh": "數值下降，因為紅色值一直代表觀測平均值。"
+    },
+    {
+      "start": 453.96,
+      "end": 464.15999999999997,
+      "en": "The observed average is going to, according to the law of large numbers, is always going to, in the long run is going to converge to the expected, expected return",
+      "zh": "根據大數法則，長期而言，觀測平均值會收斂到這個分布的期望報酬、"
+    },
+    {
+      "start": 464.15999999999997,
+      "end": 469.15999999999997,
+      "en": "or expected average or expected value for this distribution.",
+      "zh": "期望平均值或期望值。"
+    },
+    {
+      "start": 471.3,
+      "end": 476.43,
+      "en": "So, therefore it is a very likely that this value is gonna go down.",
+      "zh": "所以這個值很可能下降。"
+    },
+    {
+      "start": 476.43,
+      "end": 484.59,
+      "en": "And now because we have an extra observation the second thing happens is the confidence bound, confidence interval, you see that?",
+      "zh": "現在多一筆觀測資料，第二件事發生，信賴界限、信賴區間，看到了嗎？"
+    },
+    {
+      "start": 484.59,
+      "end": 489.21,
+      "en": "Confidence interval becomes smaller simply because we have an additional observation.",
+      "zh": "單純因為多一筆觀測資料，信賴區間就縮小。"
+    },
+    {
+      "start": 489.21,
+      "end": 497.73,
+      "en": "Of course, it doesn't become that much smaller but this is to, just to illustrate a point because we have an additional observation, we are more confident in our predictions,",
+      "zh": "當然不會小這麼多，這只是示意；因為多一筆資料，對預測更有信心，"
+    },
+    {
+      "start": 497.73,
+      "end": 499.86,
+      "en": "we are more confident in everything that's going on.",
+      "zh": "也更確定目前的情況。"
+    },
+    {
+      "start": 499.86,
+      "end": 504.09,
+      "en": "So the confidence interval slowly starts to shrink.",
+      "zh": "所以信賴區間逐漸縮小。"
+    },
+    {
+      "start": 504.09,
+      "end": 508.23,
+      "en": "All right, so the next step is now we find the next one with the highest confidence bound.",
+      "zh": "下一步找下一個信賴上界最高的。"
+    },
+    {
+      "start": 508.23,
+      "end": 510.3,
+      "en": "So obviously it's not this one, it's one of these four.",
+      "zh": "顯然不是這台，而是其他四台之一。"
+    },
+    {
+      "start": 510.3,
+      "end": 511.53,
+      "en": "Just pick any random one.",
+      "zh": "任意選一個。"
+    },
+    {
+      "start": 511.53,
+      "end": 512.363,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 512.363,
+      "end": 514.56,
+      "en": "This one, do the same thing.",
+      "zh": "這台，一樣做。"
+    },
+    {
+      "start": 514.56,
+      "end": 520.74,
+      "en": "So again, the ad is displayed, a person either clicks or doesn't click.",
+      "zh": "顯示廣告，對方點或不點。"
+    },
+    {
+      "start": 520.74,
+      "end": 523.53,
+      "en": "And that affects the average that we've measured so far.",
+      "zh": "這會影響目前量到的平均值。"
+    },
+    {
+      "start": 523.53,
+      "end": 529.14,
+      "en": "The empirical average or you've pulled the lever you've got a certain, you know, you either won or you lost.",
+      "zh": "也就是經驗平均值；或者拉了把手，贏或輸。"
+    },
+    {
+      "start": 529.14,
+      "end": 532.53,
+      "en": "And that affects your empirical average, this red line.",
+      "zh": "會影響經驗平均值，也就是紅線。"
+    },
+    {
+      "start": 532.53,
+      "end": 537.84,
+      "en": "And as expected, it slowly starts to converge with over like lots of iterations.",
+      "zh": "如預期，經過很多次迭代，逐漸收斂。"
+    },
+    {
+      "start": 537.84,
+      "end": 542.16,
+      "en": "It'll start to converge to the expected value.",
+      "zh": "會開始收斂到期望值。"
+    },
+    {
+      "start": 542.16,
+      "end": 548.49,
+      "en": "So it comes closer and right away you can see now this machine is all of a sudden above all of the other machines, right?",
+      "zh": "所以更接近，你馬上看到，這台突然高於其他所有機器。"
+    },
+    {
+      "start": 548.49,
+      "end": 552.48,
+      "en": "So if this was the end of this iteration, that's it.",
+      "zh": "如果這次迭代到這裡就結束，"
+    },
+    {
+      "start": 552.48,
+      "end": 558.96,
+      "en": "We would assume from here that this is the best machine and we would start exploiting it and therefore this algorithm would be completely useless.",
+      "zh": "就會認為它最好，開始利用它，這樣演算法就完全沒用了。"
+    },
+    {
+      "start": 558.96,
+      "end": 561.81,
+      "en": "But we shouldn't forget about the second thing that happens.",
+      "zh": "但別忘了第二件事。"
+    },
+    {
+      "start": 561.81,
+      "end": 571.53,
+      "en": "The second thing that happens is that because we got an additional observation in our sample now, we are more confident",
+      "zh": "第二件事是，樣本又多一筆資料，因此我們對"
+    },
+    {
+      "start": 571.53,
+      "end": 575.01,
+      "en": "in this interval and these confidence bounds, they're designed.",
+      "zh": "這個區間更有信心；這些信賴界限經過設計，"
+    },
+    {
+      "start": 575.01,
+      "end": 582.323,
+      "en": "Their only purpose is to include the actual expected value wherever it is.",
+      "zh": "唯一目的就是包含真正的期望值，不論它在哪裡。"
+    },
+    {
+      "start": 582.323,
+      "end": 588.87,
+      "en": "We don't know where it is, but they are telling us that this value, this green value somewhere inside this box.",
+      "zh": "不知道它在哪，但界限告訴我們，這個綠色值在方框內某處。"
+    },
+    {
+      "start": 588.87,
+      "end": 593.19,
+      "en": "But because we got additional observation, we're more confident our sample size is larger.",
+      "zh": "因為多了一筆觀測，樣本更大，所以更有信心。"
+    },
+    {
+      "start": 593.19,
+      "end": 597,
+      "en": "So we are more confident in the overall picture for this machine.",
+      "zh": "對這台機器的整體情況更確定。"
+    },
+    {
+      "start": 597,
+      "end": 599.61,
+      "en": "So the confidence bounds decreased.",
+      "zh": "因此信賴界限縮小。"
+    },
+    {
+      "start": 599.61,
+      "end": 605.19,
+      "en": "And now as you can see, it's no longer the top machine because even though it went up, the confidence bounds went down.",
+      "zh": "現在它不再最高；雖然值上升，但信賴上界下降。"
+    },
+    {
+      "start": 605.19,
+      "end": 608.55,
+      "en": "So now we're going to look for the next highest confidence bound.",
+      "zh": "現在找下一個最高的信賴上界。"
+    },
+    {
+      "start": 608.55,
+      "end": 610.74,
+      "en": "It can be any one of these three machines.",
+      "zh": "可能是這三台任一台。"
+    },
+    {
+      "start": 610.74,
+      "end": 614.97,
+      "en": "And just look at any one randomly for now, this one.",
+      "zh": "目前隨便選，例如這台。"
+    },
+    {
+      "start": 614.97,
+      "end": 623.97,
+      "en": "And here, even though the red line is above the blue line so according to the law of large numbers, you'd expect this to converge to that.",
+      "zh": "這裡雖然紅線高於藍線，依大數法則會預期收斂過去，"
+    },
+    {
+      "start": 623.97,
+      "end": 628.23,
+      "en": "But sometimes it can randomly occur that it can go the other way, right?",
+      "zh": "但偶爾隨機地，也可能往另一方向，對吧？"
+    },
+    {
+      "start": 628.23,
+      "end": 629.67,
+      "en": "It things can happen like this.",
+      "zh": "事情可能如此發生。"
+    },
+    {
+      "start": 629.67,
+      "end": 631.41,
+      "en": "It's all probability zone.",
+      "zh": "全都在機率的範疇。"
+    },
+    {
+      "start": 631.41,
+      "end": 634.32,
+      "en": "So, basically it might even go up.",
+      "zh": "所以甚至可能上升。"
+    },
+    {
+      "start": 634.32,
+      "end": 644.82,
+      "en": "So there we go, it went up, even though the blue line was below the red line, it can happen as a, you know, like as a, just as per chance, right?",
+      "zh": "你看，上升了，即使藍線低於紅線，也可能純粹碰巧發生。"
+    },
+    {
+      "start": 644.82,
+      "end": 649.443,
+      "en": "In the long run it will converge, but on a random occasion it can go up, it can go in any way.",
+      "zh": "長期會收斂，但某次隨機情況可能上升，任何方向都可能。"
+    },
+    {
+      "start": 650.28,
+      "end": 654.03,
+      "en": "And again, we got another element in the sample.",
+      "zh": "一樣，樣本多了一個元素。"
+    },
+    {
+      "start": 654.03,
+      "end": 657.15,
+      "en": "So the confidence bands converge.",
+      "zh": "所以信賴帶收縮。"
+    },
+    {
+      "start": 657.15,
+      "end": 660.18,
+      "en": "Okay, so we kinda get the picture of what's going on here.",
+      "zh": "好，大概了解情況了。"
+    },
+    {
+      "start": 660.18,
+      "end": 665.223,
+      "en": "So, now we're gonna pick the next one of the highest upper confident bound, let's say this one.",
+      "zh": "接著選下一個信賴上界最高的，例如這台。"
+    },
+    {
+      "start": 666.657,
+      "end": 668.85,
+      "en": "Then we do the trial, we do the round.",
+      "zh": "進行試驗，跑一回合。"
+    },
+    {
+      "start": 668.85,
+      "end": 670.5,
+      "en": "What happens as the person click on add?",
+      "zh": "使用者有沒有點廣告？"
+    },
+    {
+      "start": 670.5,
+      "end": 674.79,
+      "en": "Do we win money from the slot machine and it goes down?",
+      "zh": "拉霸機有沒有贏錢？值下降了。"
+    },
+    {
+      "start": 674.79,
+      "end": 675.623,
+      "en": "Probably not.",
+      "zh": "大概沒有。"
+    },
+    {
+      "start": 676.59,
+      "end": 680.28,
+      "en": "We didn't click on the ad, didn't win money from the slot machine.",
+      "zh": "沒有點廣告，沒有贏錢。"
+    },
+    {
+      "start": 680.28,
+      "end": 688.583,
+      "en": "So the average of our observation goes down, comes closer to the expected value and the confidence bounds also decreased.",
+      "zh": "所以觀測平均下降，靠近期望值，信賴界限也縮小。"
+    },
+    {
+      "start": 688.583,
+      "end": 693.87,
+      "en": "Okay, now we kind of, now we're in business, we can now, all of them are kind of starting to play.",
+      "zh": "好，現在開始運作了，所有機器都逐漸參與。"
+    },
+    {
+      "start": 693.87,
+      "end": 695.868,
+      "en": "Next one is this one, okay, this is the...",
+      "zh": "下一個是這台，這是……"
+    },
+    {
+      "start": 695.868,
+      "end": 699.93,
+      "en": "Now because we know the end result, we know that this is the best one, right?",
+      "zh": "因為知道最終結果，知道它最好。"
+    },
+    {
+      "start": 699.93,
+      "end": 703.83,
+      "en": "We know that this is the best ad or this is the best slot machine we should be using.",
+      "zh": "知道它是應該使用的最佳廣告或拉霸機。"
+    },
+    {
+      "start": 703.83,
+      "end": 711.66,
+      "en": "But like, because we were kind of like given this insight just for argument's sake or for the purpose of this exercise.",
+      "zh": "但這只是為方便說明或練習，特別給我們的資訊。"
+    },
+    {
+      "start": 711.66,
+      "end": 716.13,
+      "en": "But the person that's reforming this algorithm or the algorithm itself, doesn't know that.",
+      "zh": "實際執行的人，或演算法本身，不知道。"
+    },
+    {
+      "start": 716.13,
+      "end": 721.74,
+      "en": "So, unknowingly, it's actually starting to exploit the best option right now.",
+      "zh": "所以它現在不知不覺開始利用最佳選項。"
+    },
+    {
+      "start": 721.74,
+      "end": 727.98,
+      "en": "So again, okay, it goes up, good, confidence band goes down and as you can see, it's still the best one.",
+      "zh": "一樣，上升，很好，信賴帶縮小，如你所見，仍然最好。"
+    },
+    {
+      "start": 727.98,
+      "end": 730.38,
+      "en": "All right, so now we're gonna do it again.",
+      "zh": "現在再做一次。"
+    },
+    {
+      "start": 730.38,
+      "end": 735.03,
+      "en": "We're gonna use this one again and it comes closer and but the confidence bound goes down.",
+      "zh": "再用這台，更接近，但信賴上界下降。"
+    },
+    {
+      "start": 735.03,
+      "end": 738.36,
+      "en": "Again, this is all just for illustration purposes.",
+      "zh": "再次強調，全是示意。"
+    },
+    {
+      "start": 738.36,
+      "end": 744.69,
+      "en": "Of course it's not gonna go down by that much just because of one observation, but we don't wanna be sitting here through a thousand iterations.",
+      "zh": "當然不會只因一筆資料就降這麼多，但不想在這裡看一千次迭代。"
+    },
+    {
+      "start": 744.69,
+      "end": 746.85,
+      "en": "This is just to demonstrate the overall picture.",
+      "zh": "只是展示整體情況。"
+    },
+    {
+      "start": 746.85,
+      "end": 756.48,
+      "en": "So, even though we exploited the best option by exploiting the best option, we're decreasing the confidence bound which gives an opportunity or by exploiting any option",
+      "zh": "所以即使利用最佳選項，也會讓信賴上界下降，提供機會；利用任何選項時，"
+    },
+    {
+      "start": 756.48,
+      "end": 763.62,
+      "en": "if it keeps going up, keeps being good because we are building up the sample size.",
+      "zh": "即使它一直上升、一直表現好，因為樣本數增加，"
+    },
+    {
+      "start": 763.62,
+      "end": 774.45,
+      "en": "This gives an option to the other, gives opportunity to the other options to, or machines or ads to have a chance in the place so that we are not just, you know",
+      "zh": "就給其他選項、機器或廣告一次機會，讓我們不會只是"
+    },
+    {
+      "start": 774.45,
+      "end": 780.06,
+      "en": "we're not biased towards which one we think is the best or optimal outcome, optimal machine.",
+      "zh": "偏向自己以為最佳的結果或機器。"
+    },
+    {
+      "start": 780.06,
+      "end": 789.33,
+      "en": "So now that we move on to this one, same thing comes closer, bounds decrease move on to this one, bounds decrease",
+      "zh": "現在換這台，一樣更接近、界限縮小，再換這台，界限縮小，"
+    },
+    {
+      "start": 789.33,
+      "end": 792.51,
+      "en": "and we move on this one and bounds decrease.",
+      "zh": "再換這台，界限縮小。"
+    },
+    {
+      "start": 792.51,
+      "end": 795.78,
+      "en": "And then again, this one bounds decrease.",
+      "zh": "接著又是這台，界限縮小。"
+    },
+    {
+      "start": 795.78,
+      "end": 799.41,
+      "en": "And again, this one, might jump closer, bounds decrease.",
+      "zh": "再這台，可能跳得更接近，界限縮小。"
+    },
+    {
+      "start": 799.41,
+      "end": 805.11,
+      "en": "And even though we were very close to, you know finding the solution that, that one, the bounds decrease so much.",
+      "zh": "雖然已經很接近找出解答，但界限縮小很多。"
+    },
+    {
+      "start": 805.11,
+      "end": 816.69,
+      "en": "And you'll actually see this in the practical application and practical tutorials that are following that sometimes we will, after using the optimal option for some time, we'll switch",
+      "zh": "接下來實作也會看到，有時使用最佳選項一段時間後，會切換，"
+    },
+    {
+      "start": 816.69,
+      "end": 822.06,
+      "en": "the algorithm will still switch to a suboptimal option just because the bounds are decreasing all the time.",
+      "zh": "演算法仍會轉到次佳選項，就是因為界限一直縮小。"
+    },
+    {
+      "start": 822.06,
+      "end": 826.29,
+      "en": "And then we'll use this one, bounds will decrease and now we're back to the best one, bounds decrease.",
+      "zh": "接著用這台，界限縮小，再回到最佳，界限縮小。"
+    },
+    {
+      "start": 826.29,
+      "end": 833.61,
+      "en": "And then we're just going to be exploiting this one and exploiting this one and exploiting this one because we found out that it's the best one.",
+      "zh": "最後就一直利用這台、利用這台、利用這台，因為發現它最好。"
+    },
+    {
+      "start": 833.61,
+      "end": 841.62,
+      "en": "So that is, in essence, the whole concept behind this upper confidence bound algorithm.",
+      "zh": "這基本上就是信賴上界演算法的完整概念。"
+    },
+    {
+      "start": 841.62,
+      "end": 846.363,
+      "en": "And that's how it solves the multi-arm bandit problem.",
+      "zh": "也是它解決多臂吃角子老虎問題的方式。"
+    },
+    {
+      "start": 847.29,
+      "end": 858.27,
+      "en": "It's a very interesting solution, much more sophisticated than just selecting randomly or running an AB test and then selecting the option, you know that one.",
+      "zh": "這個解法很有意思，比隨機選擇，或先做 A/B 測試再選一個選項，複雜得多。"
+    },
+    {
+      "start": 858.27,
+      "end": 867.87,
+      "en": "So you know if you're an advertising or if you've got campaigns or if you come across problems that are similar to this, always just remember about the upper confidence bound algorithm.",
+      "zh": "如果從事廣告、有活動，或遇到類似問題，記得信賴上界演算法。"
+    },
+    {
+      "start": 867.87,
+      "end": 871.02,
+      "en": "You can apply this in your work as well.",
+      "zh": "也能應用在工作上。"
+    },
+    {
+      "start": 871.02,
+      "end": 872.67,
+      "en": "Very powerful algorithm.",
+      "zh": "非常強大的演算法。"
+    },
+    {
+      "start": 872.67,
+      "end": 875.76,
+      "en": "And on that note, I hope you enjoyed today's tutorial.",
+      "zh": "希望你喜歡今天這堂。"
+    },
+    {
+      "start": 875.76,
+      "end": 885.36,
+      "en": "In the next couple of videos, Hedlana will take you through the programming of this algorithm, both in our end and Python and you'll get your takeaway templates.",
+      "zh": "接下來幾支影片，Hadelin 會帶你用 R 與 Python 撰寫這個演算法，取得可帶走使用的範本。"
+    },
+    {
+      "start": 885.36,
+      "end": 891.03,
+      "en": "And I can't wait to see you next time when we'll be talking about the Thompson sampling algorithm.",
+      "zh": "期待下次再見，我們會談 Thompson 抽樣演算法。"
+    },
+    {
+      "start": 891.03,
+      "end": 893.193,
+      "en": "And until then, enjoy machine learning.",
+      "zh": "在那之前，祝你享受機器學習的樂趣。"
+    }
+  ]
+}

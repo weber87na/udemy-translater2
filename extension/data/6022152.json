@@ -1,0 +1,961 @@
+{
+  "courseId": "950390",
+  "lectureId": "6022152",
+  "title": "Step 1 - Exploring Upper Confidence Bound in R: Multi-Armed Bandit Problems",
+  "section": 32,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ee34a992812e93faed244b442232b8a56f44ad7deeffcfbb657c05401a9d924b",
+  "cues": [
+    {
+      "start": 0.3,
+      "end": 2.67,
+      "en": "-: Hello, and welcome to this R tutorial.",
+      "zh": "講師：大家好，歡迎來到 R 教學。"
+    },
+    {
+      "start": 2.67,
+      "end": 7.56,
+      "en": "So, today we're starting a new branch of machine learning which is reinforcement learning.",
+      "zh": "今天開始新的機器學習分支，強化學習。"
+    },
+    {
+      "start": 7.56,
+      "end": 18.45,
+      "en": "And that is taking us closer to the field of artificial intelligence because robots and artificial intelligence that comes with it are partly built with reinforcement learning.",
+      "zh": "這讓我們更靠近人工智慧，因為機器人及其人工智慧，有一部分就是用強化學習建立。"
+    },
+    {
+      "start": 18.45,
+      "end": 28.59,
+      "en": "So, to prevent from any disappointment in the next tutorials, we're not going to build any robot but we will solve a very interesting problem which is called the multi-armed bandit problem,",
+      "zh": "先免得你失望，接下來不會造機器人，但會解一個很有意思的問題，叫多臂吃角子老虎問題，"
+    },
+    {
+      "start": 28.59,
+      "end": 32.76,
+      "en": "and we are going to solve this problem with the two most popular algorithms for this.",
+      "zh": "使用兩個最受歡迎的演算法。"
+    },
+    {
+      "start": 32.76,
+      "end": 36.72,
+      "en": "These are the Upper Confidence Bound and the Thompson sampling algorithms.",
+      "zh": "信賴上界與 Thompson 抽樣。"
+    },
+    {
+      "start": 36.72,
+      "end": 39.87,
+      "en": "So, we are gonna start today with Upper Confidence Bound.",
+      "zh": "今天先從信賴上界開始。"
+    },
+    {
+      "start": 39.87,
+      "end": 51.57,
+      "en": "We're going to implement this algorithm in R, and in this first tutorial, we are going to import the data set and explain what the problem is, that is we will explain what the multi-armed bandit problem is about.",
+      "zh": "用 R 實作，第一堂先匯入資料集，解釋問題，也就是多臂吃角子老虎問題的內容。"
+    },
+    {
+      "start": 51.57,
+      "end": 53.49,
+      "en": "So, let's start with the basics.",
+      "zh": "從基本開始。"
+    },
+    {
+      "start": 53.49,
+      "end": 55.98,
+      "en": "Let's set the right folder as working directory.",
+      "zh": "把正確資料夾設為工作目錄。"
+    },
+    {
+      "start": 55.98,
+      "end": 58.47,
+      "en": "So, let's go to our Machine Learning A-Z folder.",
+      "zh": "進入 Machine Learning A-Z。"
+    },
+    {
+      "start": 58.47,
+      "end": 64.65,
+      "en": "Then part six, reinforcement learning, and section 32, Upper Confidence Bound, UCB.",
+      "zh": "再進第六部分「強化學習」，第 32 節「信賴上界 UCB」。"
+    },
+    {
+      "start": 64.65,
+      "end": 69.36,
+      "en": "All right, and now in this folder, make sure that you have the ads CTR optimization.",
+      "zh": "確認資料夾內有 Ads CTR Optimisation。"
+    },
+    {
+      "start": 69.36,
+      "end": 71.31,
+      "en": "CTR is for click-through rates.",
+      "zh": "CTR 代表點閱率。"
+    },
+    {
+      "start": 71.31,
+      "end": 78.87,
+      "en": "So, we are going to try to optimize the click-through rate of different users on an ad that we put on a social network.",
+      "zh": "我們要最佳化不同使用者對社群平台廣告的點閱率。"
+    },
+    {
+      "start": 78.87,
+      "end": 82.17,
+      "en": "And therefore, that's the name of our dataset CSV file.",
+      "zh": "所以資料集 CSV 取這個名稱。"
+    },
+    {
+      "start": 82.17,
+      "end": 88.38,
+      "en": "So, if you have this dataset, you're now ready to click on this more button here, and then set as working directory.",
+      "zh": "有資料集後，就能點 More，再選 Set As Working Directory。"
+    },
+    {
+      "start": 88.38,
+      "end": 89.213,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 89.213,
+      "end": 91.47,
+      "en": "And now, we are going to import the dataset.",
+      "zh": "接著匯入資料集。"
+    },
+    {
+      "start": 91.47,
+      "end": 100.65,
+      "en": "So as usual, we're gonna call our variable for the dataset, dataset, and then = read.csv Here it is.",
+      "zh": "照慣例，資料集變數叫 dataset，等於 read.csv。"
+    },
+    {
+      "start": 100.65,
+      "end": 106.65,
+      "en": "And then in parenthesis, we just need to add and quote the name of the dataset.",
+      "zh": "括號裡加上引號包住的資料集名稱。"
+    },
+    {
+      "start": 106.65,
+      "end": 111.193,
+      "en": "So it's right here, and it is add_CTR_optimization.",
+      "zh": "就在這裡，Ads_CTR_Optimisation。"
+    },
+    {
+      "start": 115.77000000000001,
+      "end": 116.64,
+      "en": "Here we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 116.64,
+      "end": 119.85,
+      "en": "And let's not forget the .csv in the end.",
+      "zh": "別忘了結尾的 .csv。"
+    },
+    {
+      "start": 119.85,
+      "end": 121.95,
+      "en": "And now we're ready to import this data set.",
+      "zh": "準備匯入了。"
+    },
+    {
+      "start": 121.95,
+      "end": 122.97,
+      "en": "So, let's do it.",
+      "zh": "來吧。"
+    },
+    {
+      "start": 122.97,
+      "end": 126.15,
+      "en": "Let's select this line and execute.",
+      "zh": "選這行並執行。"
+    },
+    {
+      "start": 126.15,
+      "end": 127.32,
+      "en": "Dataset, we'll import it.",
+      "zh": "dataset，成功匯入。"
+    },
+    {
+      "start": 127.32,
+      "end": 132.09,
+      "en": "So, now let's have a look by clicking on dataset right here.",
+      "zh": "點這裡的 dataset 查看。"
+    },
+    {
+      "start": 132.09,
+      "end": 132.923,
+      "en": "Here we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 132.923,
+      "end": 143.91,
+      "en": "Okay, so remember in part three classification, we dealt with a problem that consisted of classifying and targeting the users on the social network for some car company marketing campaigns?",
+      "zh": "記得第三部分分類，我們處理了某汽車公司行銷活動，在社群平台分類並鎖定使用者的問題嗎？"
+    },
+    {
+      "start": 143.91,
+      "end": 153.48,
+      "en": "Remember, we had this business client of the social network that put ads on this social network, and then we made these classification models to target the users on the social network,",
+      "zh": "有個社群平台的企業客戶在上面放廣告，我們建立分類模型，鎖定"
+    },
+    {
+      "start": 153.48,
+      "end": 159.96,
+      "en": "most likely to buy this brand new luxury SUV that the car company launched at a very low price?",
+      "zh": "最可能買這台全新、低價豪華 SUV 的使用者。"
+    },
+    {
+      "start": 159.96,
+      "end": 167.73,
+      "en": "And basically, to prepare this marketing campaign this car company prepared an ad that they would put on the social network.",
+      "zh": "為了準備行銷活動，汽車公司製作社群平台廣告。"
+    },
+    {
+      "start": 167.73,
+      "end": 172.74,
+      "en": "And what happened is that the department of marketing prepared some different versions of this same ad.",
+      "zh": "行銷部門做了同一廣告的不同版本。"
+    },
+    {
+      "start": 172.74,
+      "end": 181.65,
+      "en": "You know, putting the car on different sceneries, like for example, one ad had the car on a beautiful road, and on another version of the ad, the car is on a mountain,",
+      "zh": "把車放在不同場景，例如一個在漂亮道路，另一個在山上，"
+    },
+    {
+      "start": 181.65,
+      "end": 184.32,
+      "en": "and maybe on another version it's on a beautiful bridge.",
+      "zh": "也許另一個在漂亮橋梁上。"
+    },
+    {
+      "start": 184.32,
+      "end": 191.79,
+      "en": "Well, the department of marketing prepared different versions of this same ad that they would put on the social network.",
+      "zh": "行銷部門為要投放的同一個廣告，準備不同版本。"
+    },
+    {
+      "start": 191.79,
+      "end": 197.94,
+      "en": "But the problem is that they prepared 10 great versions of this same ad.",
+      "zh": "但問題是，做了十個很棒的版本。"
+    },
+    {
+      "start": 197.94,
+      "end": 200.82,
+      "en": "The 10 versions of this ad look great.",
+      "zh": "十個看起來都很好。"
+    },
+    {
+      "start": 200.82,
+      "end": 205.47,
+      "en": "So, they're actually not very sure of which ad to put on the social network.",
+      "zh": "所以不太確定該在社群平台放哪一個。"
+    },
+    {
+      "start": 205.47,
+      "end": 211.26,
+      "en": "They want to put the ad that will get the maximum clicks, you know, so that most users buy the SUV.",
+      "zh": "希望放點擊最多的，讓更多使用者買 SUV。"
+    },
+    {
+      "start": 211.26,
+      "end": 215.4,
+      "en": "And so they need to put the ad that will lead to the best conversion rate.",
+      "zh": "所以得選轉換率最高的廣告。"
+    },
+    {
+      "start": 215.4,
+      "end": 222.57,
+      "en": "So, what this car company did is that they hired us as a data scientist and they said, \"Okay, I have 10 versions of the ad.",
+      "zh": "汽車公司聘請我們當資料科學家，說：「有十個廣告版本，"
+    },
+    {
+      "start": 222.57,
+      "end": 228.69,
+      "en": "We have a limited budget to place the ads on this social network because putting these ads on the social network costs some money.\"",
+      "zh": "預算有限，因為在社群平台投放要花錢。」"
+    },
+    {
+      "start": 228.69,
+      "end": 238.14,
+      "en": "And so this car company would like us data scientist to find the best strategy to quickly find out which version of these ad is the best for the users.",
+      "zh": "希望我們找到最佳策略，快速找出哪個版本最適合使用者。"
+    },
+    {
+      "start": 238.14,
+      "end": 245.28,
+      "en": "That is which version of the ad will lead us to the highest conversion rate, that's the CTR, that's the click-through rate.",
+      "zh": "也就是轉換率最高的版本，CTR，點閱率。"
+    },
+    {
+      "start": 245.28,
+      "end": 248.453,
+      "en": "We want to find the ad that will get the most clicks.",
+      "zh": "想找點擊最多的廣告。"
+    },
+    {
+      "start": 248.453,
+      "end": 256.35,
+      "en": "And so now, speaking of this, this is leading us to the key difference between what we're about to do now and what we've been doing earlier.",
+      "zh": "這帶出了接下來要做的，與之前內容之間的關鍵差異。"
+    },
+    {
+      "start": 256.35,
+      "end": 262.98,
+      "en": "Because earlier, we had a data set with some data containing independent variables and one dependent variable.",
+      "zh": "先前資料集包含自變數與一個應變數。"
+    },
+    {
+      "start": 262.98,
+      "end": 267.03,
+      "en": "And then we did some clustering where we had independent variables only.",
+      "zh": "之後分群只有自變數。"
+    },
+    {
+      "start": 267.03,
+      "end": 269.16,
+      "en": "And now, things are different.",
+      "zh": "現在不同。"
+    },
+    {
+      "start": 269.16,
+      "end": 271.56,
+      "en": "We start with no data.",
+      "zh": "一開始沒有資料。"
+    },
+    {
+      "start": 271.56,
+      "end": 277.89,
+      "en": "I know we have some data set in front of us but this is just the data set for simulation, because what happens in real life?",
+      "zh": "我知道面前有資料集，但那只是模擬，因為現實中會怎麼樣？"
+    },
+    {
+      "start": 277.89,
+      "end": 282.75,
+      "en": "And we're gonna pretend we're in real life, we're going to pretend that we don't have any data yet.",
+      "zh": "假裝身處真實生活，假裝還沒有任何資料。"
+    },
+    {
+      "start": 282.75,
+      "end": 293.25,
+      "en": "Well, what happens in real life is that we are gonna start experimenting with these ads by placing them on a social network, the different versions of the ads, and according to the results we observe,",
+      "zh": "現實中會開始實驗，把不同廣告版本放上社群平台，根據觀察結果，"
+    },
+    {
+      "start": 293.25,
+      "end": 297.75,
+      "en": "we will change our strategy to place these ads on the social network.",
+      "zh": "改變投放策略。"
+    },
+    {
+      "start": 297.75,
+      "end": 300.6,
+      "en": "So, here are the different steps of the process.",
+      "zh": "流程步驟如下。"
+    },
+    {
+      "start": 300.6,
+      "end": 303.54,
+      "en": "We have 10 versions of the same ad.",
+      "zh": "同一個廣告有十個版本。"
+    },
+    {
+      "start": 303.54,
+      "end": 308.54,
+      "en": "10 versions of this ad trying to sell this cheap luxury SUV.",
+      "zh": "都是要賣這台便宜豪華 SUV。"
+    },
+    {
+      "start": 309.36,
+      "end": 318.57,
+      "en": "And each time a user of the social network will log into his account, we will place one version of these 10 ads and that will be a round.",
+      "zh": "每次社群平台使用者登入，就顯示十個版本之一，這是一個回合。"
+    },
+    {
+      "start": 318.57,
+      "end": 328.35,
+      "en": "Each time a user connects to its account, we will show him one version of the ad, for example, ad three, version three of the ad and we will observe its response.",
+      "zh": "每次登入，顯示一個版本，例如第三版，再觀察反應。"
+    },
+    {
+      "start": 328.35,
+      "end": 332.64,
+      "en": "If the user clicks on the ad, we get a reward equals to one.",
+      "zh": "點廣告，就得到獎勵 1。"
+    },
+    {
+      "start": 332.64,
+      "end": 337.2,
+      "en": "And if the user doesn't click on the ad, we get a reward equals to zero.",
+      "zh": "沒點，就獎勵 0。"
+    },
+    {
+      "start": 337.2,
+      "end": 341.85,
+      "en": "And we are gonna do this for 10,000 users on the social network.",
+      "zh": "會對平台的一萬位使用者這樣做。"
+    },
+    {
+      "start": 341.85,
+      "end": 351.12,
+      "en": "We're gonna show the ad to 10,000 users, We're gonna observe if the user clicks yes or no on the ad, If the user clicks on the ad, that will give us one reward.",
+      "zh": "展示給一萬人，觀察點或不點；點就得到一個獎勵。"
+    },
+    {
+      "start": 351.12,
+      "end": 355.2,
+      "en": "And if the user doesn't click on the ad, that will give us zero reward.",
+      "zh": "沒點就零獎勵。"
+    },
+    {
+      "start": 355.2,
+      "end": 360.51,
+      "en": "However, we're not going to show the different versions of the ad to each user at random.",
+      "zh": "但不會隨機向每個人展示不同版本。"
+    },
+    {
+      "start": 360.51,
+      "end": 363.81,
+      "en": "There's gonna be a specific strategy to do this.",
+      "zh": "會有特定策略。"
+    },
+    {
+      "start": 363.81,
+      "end": 375.12,
+      "en": "And the key thing to understand about reinforcement learning is that this strategy will depend at each round on the previous results we observed at the previous round.",
+      "zh": "強化學習的關鍵，是每回合的策略，會取決於前面回合觀察到的結果。"
+    },
+    {
+      "start": 375.12,
+      "end": 385.62,
+      "en": "So, for example, when we are at round 10, well, what happens behind the scene is that the algorithm will look at the different results observed during the first 10 rounds and according to these results,",
+      "zh": "例如第十回合，背後演算法查看前十回合結果，根據這些結果，"
+    },
+    {
+      "start": 385.62,
+      "end": 390.06,
+      "en": "it will decide which version of the ad it will show to the user.",
+      "zh": "決定展示哪個版本。"
+    },
+    {
+      "start": 390.06,
+      "end": 402,
+      "en": "That's why reinforcement learning is also called online learning or interactive learning because the strategy is dynamic, it depends on the observations from the beginning of the experiment up to the present time.",
+      "zh": "所以強化學習也叫線上學習或互動式學習，因為策略動態改變，取決於實驗開始到目前的觀測。"
+    },
+    {
+      "start": 402,
+      "end": 403.74,
+      "en": "And so now, what is the data set?",
+      "zh": "那資料集是什麼？"
+    },
+    {
+      "start": 403.74,
+      "end": 409.05,
+      "en": "This is just some simulation of what is going to happen when we show the ads to the users.",
+      "zh": "只是模擬把廣告給使用者看時，會發生什麼。"
+    },
+    {
+      "start": 409.05,
+      "end": 415.86,
+      "en": "In other words, this is what God knows because we have no idea on which ad each user is going to click on.",
+      "zh": "換句話說，這是上帝知道的事，因為我們不知道每個人會點哪個。"
+    },
+    {
+      "start": 415.86,
+      "end": 417.65999999999997,
+      "en": "And that's what this data set is telling us.",
+      "zh": "資料集告訴我們這些。"
+    },
+    {
+      "start": 417.65999999999997,
+      "end": 425.19,
+      "en": "It's telling us for each round that is for each user connecting to its account on which versions of the ad the user is going to click on.",
+      "zh": "每回合、每位登入的使用者，會點哪個廣告版本。"
+    },
+    {
+      "start": 425.19,
+      "end": 426.66,
+      "en": "So, let's give an example.",
+      "zh": "舉個例子。"
+    },
+    {
+      "start": 426.66,
+      "end": 429.81,
+      "en": "Let's explain what happens for the five first users.",
+      "zh": "解釋前五位使用者。"
+    },
+    {
+      "start": 429.81,
+      "end": 437.94,
+      "en": "So, let's take the first round, and according to the simulation, or according to God, this first user of the social network is going to click on the ad.",
+      "zh": "第一回合，根據模擬，或上帝所知，這位使用者會點廣告，"
+    },
+    {
+      "start": 437.94,
+      "end": 443.28,
+      "en": "If we show him the first version, the fifth version, and the ninth version.",
+      "zh": "如果顯示第一、第五或第九版。"
+    },
+    {
+      "start": 443.28,
+      "end": 453,
+      "en": "And if we show him the second version, the third version, the fourth version, sixth, seventh, eighth, or tenth version, well, this user is not going to click on the ad.",
+      "zh": "如果顯示第二、三、四、六、七、八或十版，就不點。"
+    },
+    {
+      "start": 453,
+      "end": 460.5,
+      "en": "So, this is what God knows, but as far as we are concerned, we have no idea on which ads this user will click on.",
+      "zh": "這是上帝知道的，但我們不知道他會點哪個。"
+    },
+    {
+      "start": 460.5,
+      "end": 461.97,
+      "en": "So, what about the second user?",
+      "zh": "第二位呢？"
+    },
+    {
+      "start": 461.97,
+      "end": 463.14,
+      "en": "So, that's the second round.",
+      "zh": "也就是第二回合。"
+    },
+    {
+      "start": 463.14,
+      "end": 465.9,
+      "en": "At the second round, we show another version of the ad.",
+      "zh": "顯示另一個版本。"
+    },
+    {
+      "start": 465.9,
+      "end": 472.47,
+      "en": "And according to God's truth, the second user will only click on the ad if we show him the ninth version.",
+      "zh": "根據真實結果，第二位只有看到第九版才會點。"
+    },
+    {
+      "start": 472.47,
+      "end": 482.97,
+      "en": "The third user will never click on the ad whatever version we display, the fourth user will only click on the second version, and the eighth version, and the fifth user will never click on the ad",
+      "zh": "第三位無論哪版都不點，第四位只點第二、八版，第五位則不論"
+    },
+    {
+      "start": 482.97,
+      "end": 484.95,
+      "en": "whatever version we show to him.",
+      "zh": "哪版都不點。"
+    },
+    {
+      "start": 484.95,
+      "end": 486.99,
+      "en": "All right, so that's the idea of the problem.",
+      "zh": "這就是問題的概念。"
+    },
+    {
+      "start": 486.99,
+      "end": 492.45,
+      "en": "And so, we're gonna build two algorithms, the UCB algorithm, and the Thompson sampling algorithm.",
+      "zh": "我們會建立 UCB 和 Thompson 抽樣兩個演算法。"
+    },
+    {
+      "start": 492.45,
+      "end": 498.63,
+      "en": "And these algorithms will decide at each round here which version of the ad to show to the user.",
+      "zh": "每回合決定向使用者顯示哪一版。"
+    },
+    {
+      "start": 498.63,
+      "end": 509.37,
+      "en": "And depending on the reward the ads will get, that is reward equals one if the user clicks on the ads, or reward equals zero if the user doesn't click on the ad, it will decide which ad to show to the user",
+      "zh": "根據廣告獲得的獎勵，點就是 1、不點就是 0，依據先前觀測，決定下一回合"
+    },
+    {
+      "start": 509.37,
+      "end": 513,
+      "en": "at the next round according to the previous observations.",
+      "zh": "顯示哪個廣告。"
+    },
+    {
+      "start": 513,
+      "end": 515.79,
+      "en": "And so we are gonna have 10,000 rounds.",
+      "zh": "總共一萬回合。"
+    },
+    {
+      "start": 515.79,
+      "end": 520.95,
+      "en": "If we go down here, we can see that we are showing the add to 10,000 users.",
+      "zh": "往下看，會向一萬人展示。"
+    },
+    {
+      "start": 520.95,
+      "end": 532.02,
+      "en": "And so of course, the goal of the algorithm is to maximize the total reward that is the sum of all the different rewards at each round obtained by the different selections of the ads.",
+      "zh": "目標當然是最大化總獎勵，也就是各回合選不同廣告所得到的獎勵總和。"
+    },
+    {
+      "start": 532.02,
+      "end": 533.43,
+      "en": "Okay, so let's do it.",
+      "zh": "好，開始吧。"
+    },
+    {
+      "start": 533.43,
+      "end": 537.6,
+      "en": "Let's start with Upper Confidence Bound, the UCB algorithm.",
+      "zh": "先從信賴上界 UCB 開始。"
+    },
+    {
+      "start": 537.6,
+      "end": 541.95,
+      "en": "But before we start implementing this algorithm, I would like to show you something.",
+      "zh": "但實作之前，想先示範一件事。"
+    },
+    {
+      "start": 541.95,
+      "end": 547.77,
+      "en": "I would like to show you what would happen if we randomly select the versions of the ad at each round.",
+      "zh": "如果每回合隨機選廣告版本，會怎樣？"
+    },
+    {
+      "start": 547.77,
+      "end": 557.79,
+      "en": "You know, no algorithm, no strategy, each time a user connects to its account we are displaying one version of these 10 ads totally at random.",
+      "zh": "沒有演算法、沒有策略，每次使用者登入，就完全隨機顯示十個版本之一。"
+    },
+    {
+      "start": 557.79,
+      "end": 561.03,
+      "en": "So, I actually prepared this algorithm.",
+      "zh": "我準備好這個演算法了。"
+    },
+    {
+      "start": 561.03,
+      "end": 565.71,
+      "en": "We're not going to implement it together because this algorithm is actually not very relevant.",
+      "zh": "不會一起實作，因為它不太重要。"
+    },
+    {
+      "start": 565.71,
+      "end": 569.76,
+      "en": "It's just to give you the motivation of what we will implement in the next tutorials.",
+      "zh": "只是為接下來幾堂提供動機。"
+    },
+    {
+      "start": 569.76,
+      "end": 573.42,
+      "en": "But this algorithm is actually provided in the folder.",
+      "zh": "不過資料夾裡有。"
+    },
+    {
+      "start": 573.42,
+      "end": 579.7090000000001,
+      "en": "You see? It's this random selection file and actually I prepared it here, that's the algorithm.",
+      "zh": "看，就是 random_selection 檔案；我在這裡準備好，就是這個演算法。"
+    },
+    {
+      "start": 579.7090000000001,
+      "end": 583.17,
+      "en": "So, as you can see, I call this algorithm random selection.",
+      "zh": "叫做隨機選擇。"
+    },
+    {
+      "start": 583.17,
+      "end": 587.91,
+      "en": "Here, I'm importing the data set as we just did so I don't need to execute that again.",
+      "zh": "這裡像剛才匯入資料集，不用再執行。"
+    },
+    {
+      "start": 587.91,
+      "end": 598.8,
+      "en": "And in this section I am implementing the random selection algorithm that's just consists of selecting its random one version of the ad at each round that is each time a user connects",
+      "zh": "這個區段實作隨機選擇演算法，每回合，也就是每位使用者登入"
+    },
+    {
+      "start": 598.8,
+      "end": 600.498,
+      "en": "on its social network accounts.",
+      "zh": "社群帳號時，隨機選一個廣告版本。"
+    },
+    {
+      "start": 600.498,
+      "end": 604.29,
+      "en": "So, I'm going to execute this section right now.",
+      "zh": "現在執行這區段。"
+    },
+    {
+      "start": 604.29,
+      "end": 606.39,
+      "en": "So, here it is. Well implemented.",
+      "zh": "好了，實作完成。"
+    },
+    {
+      "start": 606.39,
+      "end": 609.12,
+      "en": "And we can see the different results of this algorithm.",
+      "zh": "看看不同結果。"
+    },
+    {
+      "start": 609.12,
+      "end": 619.89,
+      "en": "So, the most important result is the total reward that is this variable is the sum of the different rewards up to the last round that is up to the 10,000th user.",
+      "zh": "最重要的是 total_reward，這變數是直到最後，也就是第一萬位使用者，所有獎勵的總和。"
+    },
+    {
+      "start": 619.89,
+      "end": 621.6,
+      "en": "And so, what is this total reward?",
+      "zh": "總獎勵是多少？"
+    },
+    {
+      "start": 621.6,
+      "end": 625.53,
+      "en": "This total reward is 1,242.",
+      "zh": "1,242。"
+    },
+    {
+      "start": 625.53,
+      "end": 631.35,
+      "en": "So, what happened is that the random selection algorithm randomly selected each ad at each round.",
+      "zh": "隨機選擇演算法每回合隨機選一個廣告。"
+    },
+    {
+      "start": 631.35,
+      "end": 635.58,
+      "en": "We can actually see the random selections in this ad selected list.",
+      "zh": "可以在 ads_selected 串列看到。"
+    },
+    {
+      "start": 635.58,
+      "end": 642.72,
+      "en": "So, we can clearly see what happened at round zero for the first user, the random selection algorithm selected the version number four.",
+      "zh": "第 0 回合，也就是第一位使用者，隨機選了第四版。"
+    },
+    {
+      "start": 642.72,
+      "end": 651.24,
+      "en": "Then at the second round, the version number four, then at the third round, the version number three, then the fourth round version number one, and the fifth round version number four.",
+      "zh": "第二回合第四版，第三回合第三版，第四回合第一版，第五回合第四版。"
+    },
+    {
+      "start": 651.24,
+      "end": 652.83,
+      "en": "That's the random selections.",
+      "zh": "這就是隨機選擇。"
+    },
+    {
+      "start": 652.83,
+      "end": 659.49,
+      "en": "And so at each round, based on the God's true results, the selection of the ad generated a reward.",
+      "zh": "每回合根據真實結果，所選廣告產生獎勵。"
+    },
+    {
+      "start": 659.49,
+      "end": 670.32,
+      "en": "So, at the first round, for the first user connecting on its account, the random selection algorithm selected the ad number four, and we see a zero here which means that this first user doesn't click on this ad,",
+      "zh": "第一位使用者登入時，演算法選第四個廣告，這裡是 0，表示沒點，"
+    },
+    {
+      "start": 670.32,
+      "end": 673.05,
+      "en": "so we get a zero reward at the first round.",
+      "zh": "所以第一回合獎勵 0。"
+    },
+    {
+      "start": 673.05,
+      "end": 674.79,
+      "en": "Then what about the second selection?",
+      "zh": "第二次選擇呢？"
+    },
+    {
+      "start": 674.79,
+      "end": 685.11,
+      "en": "Four? Well, we see here at the second round that there is also a zero for ad number four, which means that the second user doesn't click on this ad and therefore, we also get a zero reward.",
+      "zh": "第四版？第二回合第四個廣告也是 0，表示第二位沒點，所以也是零獎勵。"
+    },
+    {
+      "start": 685.11,
+      "end": 695.49,
+      "en": "And the total reward that we observe here is actually the sum of all the rewards that it gets, whether it's zero or one at the end of the 10,000 rounds.",
+      "zh": "這裡的總獎勵，就是一萬回合結束時，各次得到的 0 或 1 加總。"
+    },
+    {
+      "start": 695.49,
+      "end": 704.31,
+      "en": "All right, so the interesting thing to remember here is that when we randomly select the ads, we get a reward of 1,242.",
+      "zh": "有趣且要記住的是，隨機選廣告，獎勵是 1,242。"
+    },
+    {
+      "start": 704.31,
+      "end": 713.88,
+      "en": "Well, you know, there is this random factor, and so of course, if we select that again, we'll get another reward, but it will be very close to this value here.",
+      "zh": "因為隨機因素，再執行會得到不同獎勵，但會很接近。"
+    },
+    {
+      "start": 713.88,
+      "end": 715.98,
+      "en": "I'm going to do that again.",
+      "zh": "再做一次。"
+    },
+    {
+      "start": 715.98,
+      "end": 719.64,
+      "en": "And as you can see, we get 1,232.",
+      "zh": "得到 1,232。"
+    },
+    {
+      "start": 719.64,
+      "end": 721.44,
+      "en": "And I can even do that again.",
+      "zh": "再來一次。"
+    },
+    {
+      "start": 721.44,
+      "end": 724.14,
+      "en": "I get 1,246.",
+      "zh": "1,246。"
+    },
+    {
+      "start": 724.14,
+      "end": 726.87,
+      "en": "Again, 1,236.",
+      "zh": "再一次，1,236。"
+    },
+    {
+      "start": 726.87,
+      "end": 731.87,
+      "en": "So, we always get a total reward close to 1,200.",
+      "zh": "總獎勵一直在 1,200 左右。"
+    },
+    {
+      "start": 732.33,
+      "end": 739.5,
+      "en": "So, let's keep this result in our mind because then, we will compare it to the total reward that we get.",
+      "zh": "記住這結果，接著與"
+    },
+    {
+      "start": 739.5,
+      "end": 746.7,
+      "en": "Thanks to our more advanced algorithm which is the Upper Confidence Bound, and then the Thompson sampling algorithm.",
+      "zh": "更進階的信賴上界、Thompson 抽樣演算法比較。"
+    },
+    {
+      "start": 746.7,
+      "end": 748.74,
+      "en": "So, 1,200.",
+      "zh": "1,200。"
+    },
+    {
+      "start": 748.74,
+      "end": 752.37,
+      "en": "Let's see how UCB and Thompson sampling beat that.",
+      "zh": "看看 UCB 和 Thompson 抽樣如何勝過它。"
+    },
+    {
+      "start": 752.37,
+      "end": 760.05,
+      "en": "And now, just the last thing to show you as for every algorithm we implement in this course, we get the exciting step in the end which is to visualize the results.",
+      "zh": "最後再示範一件事。本課每個演算法最後都有精彩的結果視覺化。"
+    },
+    {
+      "start": 760.05,
+      "end": 769.83,
+      "en": "Well, in this part, reinforcement learning, the visualization of the results will consist of visualizing the histogram where we see the different selections",
+      "zh": "強化學習這部分，會用長條分布圖顯示不同廣告版本"
+    },
+    {
+      "start": 769.83,
+      "end": 771.54,
+      "en": "of the different versions of the ad.",
+      "zh": "的選取情況。"
+    },
+    {
+      "start": 771.54,
+      "end": 775.86,
+      "en": "So, I'm gonna show you what happened for our random selection algorithm.",
+      "zh": "來看隨機選擇演算法的結果。"
+    },
+    {
+      "start": 775.86,
+      "end": 776.97,
+      "en": "Let's do it.",
+      "zh": "開始。"
+    },
+    {
+      "start": 776.97,
+      "end": 779.37,
+      "en": "Press command and control, plus enter to execute.",
+      "zh": "按 Command 或 Ctrl 加 Enter 執行。"
+    },
+    {
+      "start": 779.37,
+      "end": 780.6,
+      "en": "And here we go.",
+      "zh": "出來了。"
+    },
+    {
+      "start": 780.6,
+      "end": 790.53,
+      "en": "Of course, since our algorithm randomly selected to different versions of the ads at each round, well, of course, we get a nearly uniform distribution",
+      "zh": "當然，因為每回合隨機選版本，得到近乎均勻的"
+    },
+    {
+      "start": 790.53,
+      "end": 792.3,
+      "en": "of the different versions of the ads.",
+      "zh": "廣告版本分布。"
+    },
+    {
+      "start": 792.3,
+      "end": 797.67,
+      "en": "The 10 different versions of the ad were selected more or less the same number of times.",
+      "zh": "十個版本被選次數大致相同。"
+    },
+    {
+      "start": 797.67,
+      "end": 801.18,
+      "en": "All right, so that was just to give you a little extra motivation.",
+      "zh": "這只是多提供一點動機。"
+    },
+    {
+      "start": 801.18,
+      "end": 803.37,
+      "en": "And now, time to go pro.",
+      "zh": "現在進入專業做法。"
+    },
+    {
+      "start": 803.37,
+      "end": 808.71,
+      "en": "Let's go back to our UCB algorithm and start implementing it.",
+      "zh": "回到 UCB，開始實作。"
+    },
+    {
+      "start": 808.71,
+      "end": 813.48,
+      "en": "So, remember, 1,200 total reward for the random selection algorithm.",
+      "zh": "記得，隨機選擇總獎勵 1,200。"
+    },
+    {
+      "start": 813.48,
+      "end": 815.73,
+      "en": "Let's see how UCB beats that.",
+      "zh": "看看 UCB 如何勝過它。"
+    },
+    {
+      "start": 815.73,
+      "end": 817.77,
+      "en": "So, we'll find out in the next tutorial.",
+      "zh": "下一堂揭曉。"
+    },
+    {
+      "start": 817.77,
+      "end": 819.723,
+      "en": "And until then, enjoy machine learning.",
+      "zh": "在那之前，祝你享受機器學習的樂趣。"
+    }
+  ]
+}

@@ -1,0 +1,1321 @@
+{
+  "courseId": "950390",
+  "lectureId": "6456840",
+  "title": "Understanding Thompson Sampling Algorithm: Intuition and Implementation",
+  "section": 33,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "694516db1ae1f431f45429d793844499af96114babfdcc46603181ce47531e8d",
+  "cues": [
+    {
+      "start": 0.81,
+      "end": 3.45,
+      "en": "-: Hello, welcome back to the course on Machine Learning.",
+      "zh": "講師：大家好，歡迎回到機器學習課程。"
+    },
+    {
+      "start": 3.45,
+      "end": 5.04,
+      "en": "Today we've got a very interesting topic.",
+      "zh": "今天有個非常有意思的主題。"
+    },
+    {
+      "start": 5.04,
+      "end": 9.783,
+      "en": "Today we're talking about Thompson sampling and the algorithm's intuition.",
+      "zh": "要談 Thompson 抽樣及演算法的直覺概念。"
+    },
+    {
+      "start": 11.111,
+      "end": 16.14,
+      "en": "And again, we're going to be using this algorithm to solve the multi-armed bandit problem.",
+      "zh": "一樣用它解決多臂吃角子老虎問題。"
+    },
+    {
+      "start": 16.14,
+      "end": 18.09,
+      "en": "All right, so let's get started.",
+      "zh": "好，開始吧。"
+    },
+    {
+      "start": 18.09,
+      "end": 20.82,
+      "en": "A quick refresher on the multi-armed bandit problem.",
+      "zh": "快速回顧問題。"
+    },
+    {
+      "start": 20.82,
+      "end": 23.46,
+      "en": "We have several slot machines.",
+      "zh": "有幾台拉霸機。"
+    },
+    {
+      "start": 23.46,
+      "end": 27.12,
+      "en": "Each one of them has a distribution behind it D1 to D5.",
+      "zh": "背後各有分布 D₁ 到 D₅。"
+    },
+    {
+      "start": 27.12,
+      "end": 38.62,
+      "en": "We don't know what these distributions are and we need to start playing these machines and at the same time, figure out which one has the best distribution so that we then exploit that best distribution",
+      "zh": "不知道分布，要開始玩，同時找出哪個分布最好，再利用最佳分布，"
+    },
+    {
+      "start": 40.44,
+      "end": 42.54,
+      "en": "but it'll take us some time to figure it out.",
+      "zh": "但找出來需要時間。"
+    },
+    {
+      "start": 42.54,
+      "end": 46.35,
+      "en": "So we need to maximize our return during the process of figuring out.",
+      "zh": "所以在尋找過程中，也要最大化報酬。"
+    },
+    {
+      "start": 46.35,
+      "end": 53.85,
+      "en": "So we have to find that ideal balance or trade off between exploration and exploitation.",
+      "zh": "得在探索與利用之間，找理想平衡或取捨。"
+    },
+    {
+      "start": 53.85,
+      "end": 57.39,
+      "en": "We had a few tutorials previously on these things.",
+      "zh": "前幾堂談過這些。"
+    },
+    {
+      "start": 57.39,
+      "end": 60.57,
+      "en": "So we talked about the multi-armed bandit problem in a lot of details.",
+      "zh": "已詳細介紹多臂吃角子老虎問題。"
+    },
+    {
+      "start": 60.57,
+      "end": 64.77,
+      "en": "So if you haven't watched that tutorial highly recommend jumping into the previous section and watching it there.",
+      "zh": "如果還沒看，強烈建議回上一單元觀看。"
+    },
+    {
+      "start": 64.77,
+      "end": 74.67,
+      "en": "Also, understanding of the upper confidence bound algorithm will really help you grasp the concepts of Thompson sampling.",
+      "zh": "理解 UCB，也很有助掌握 Thompson 抽樣。"
+    },
+    {
+      "start": 74.67,
+      "end": 84.24,
+      "en": "So if you haven't seen the upper confidence bound tutorial then I highly recommend checking that out before proceeding with today's lecture.",
+      "zh": "沒看過 UCB 教學，強烈建議先看，再繼續今天這堂。"
+    },
+    {
+      "start": 84.24,
+      "end": 86.73,
+      "en": "All right, so let's get started.",
+      "zh": "開始吧。"
+    },
+    {
+      "start": 86.73,
+      "end": 91.703,
+      "en": "A quick summary of the multi-armed bandit problem is as follows.",
+      "zh": "多臂吃角子老虎問題可簡述如下。"
+    },
+    {
+      "start": 91.703,
+      "end": 93.72,
+      "en": "We have D arms, for example.",
+      "zh": "例如有 d 支臂。"
+    },
+    {
+      "start": 93.72,
+      "end": 97.97999999999999,
+      "en": "Arms are ads that we display to users each time they connect to webpage.",
+      "zh": "就是每次使用者連上網頁，向他展示的廣告。"
+    },
+    {
+      "start": 97.97999999999999,
+      "end": 107.46000000000001,
+      "en": "So by the way, yes, indeed a modern application of the or modern representation of a multi-armed bandit problem is advertising.",
+      "zh": "順帶一提，廣告確實是這個問題的現代應用或表示方式。"
+    },
+    {
+      "start": 107.46000000000001,
+      "end": 117.81,
+      "en": "So when you display ads that is very similar or the algorithms that we're gonna be applying learning can be applied to solving that problem",
+      "zh": "展示廣告時，情況很類似，我們學的演算法可用來解決"
+    },
+    {
+      "start": 117.81,
+      "end": 119.16,
+      "en": "where you're displaying ads.",
+      "zh": "廣告投放問題。"
+    },
+    {
+      "start": 119.16,
+      "end": 129.5,
+      "en": "So if you go back here, instead of having these slot machines, each one of these is a different ad and you want to figure out which one of these ads is the best performing ad, but you don't have time to do an AB test.",
+      "zh": "回頭看，把拉霸機換成不同廣告，想知道哪個效果最好，但沒時間做 A/B 測試。"
+    },
+    {
+      "start": 129.5,
+      "end": 133.2,
+      "en": "So you don't have the funds or the resources to do an AB test.",
+      "zh": "沒有資金或資源做測試。"
+    },
+    {
+      "start": 133.2,
+      "end": 135.06,
+      "en": "You want to figure it out on the fly.",
+      "zh": "想在進行中找出來。"
+    },
+    {
+      "start": 135.06,
+      "end": 139.953,
+      "en": "That's when you would apply one of these algorithms that we talking about in this part of the course.",
+      "zh": "這時就可用這部分介紹的演算法。"
+    },
+    {
+      "start": 140.94,
+      "end": 151.2,
+      "en": "And of course, there's of other, lots of other modern problems that are very similar to the multi-armed bandit problem, therefore these algorithms are valid for them too.",
+      "zh": "當然還有很多類似的現代問題，也適用。"
+    },
+    {
+      "start": 151.2,
+      "end": 152.61,
+      "en": "All right, so moving back here.",
+      "zh": "回到這裡。"
+    },
+    {
+      "start": 152.61,
+      "end": 163.82999999999998,
+      "en": "So we've got DR for example, arms, our ads that we display users each time they connect to a webpage each time a user connects to this page that is considered as a round at each round,",
+      "zh": "有 d 支臂，就是使用者連上網頁時展示的廣告；每次連線視為一回合，"
+    },
+    {
+      "start": 163.82999999999998,
+      "end": 167.16,
+      "en": "and we choose which ad display to the user at each round.",
+      "zh": "每回合選要顯示哪個廣告。"
+    },
+    {
+      "start": 167.16,
+      "end": 174.06,
+      "en": "And the ad gives us a reward, either 01 if the ad is clicked, zero, if the ad is not clicked.",
+      "zh": "廣告給獎勵 0 或 1，點就是 1，不點就是 0。"
+    },
+    {
+      "start": 174.06,
+      "end": 178.47,
+      "en": "In the case of the actual bandits it'll be a monetary reward.",
+      "zh": "實際拉霸機則是金錢獎勵。"
+    },
+    {
+      "start": 178.47,
+      "end": 179.73,
+      "en": "So it won't be just zero to one.",
+      "zh": "不只有 0 或 1。"
+    },
+    {
+      "start": 179.73,
+      "end": 181.62,
+      "en": "It'll be some value.",
+      "zh": "而是某個金額。"
+    },
+    {
+      "start": 181.62,
+      "end": 186.27,
+      "en": "Our goal is to maximize the total reward we get over many rounds.",
+      "zh": "目標是最大化很多回合的總獎勵。"
+    },
+    {
+      "start": 186.27,
+      "end": 191.28,
+      "en": "All right, so that's a quick overview of the problem that we're solving.",
+      "zh": "這就是待解問題的概覽。"
+    },
+    {
+      "start": 191.28,
+      "end": 200.17000000000002,
+      "en": "Then here we've got some very complex looking mathematics and Bayesian inference and all these distributions",
+      "zh": "這裡有看似複雜的數學、貝氏推論，以及各種分布，"
+    },
+    {
+      "start": 201.15,
+      "end": 208.95,
+      "en": "and posterior probability and other prior distributions and beta distributions and so on.",
+      "zh": "後驗機率、先驗分布、Beta 分布等等。"
+    },
+    {
+      "start": 208.95,
+      "end": 211.14,
+      "en": "We're not gonna delve deep into this right now.",
+      "zh": "現在不深入。"
+    },
+    {
+      "start": 211.14,
+      "end": 218.19,
+      "en": "So Harlan will take some time to walk through this slide with you in the practical tutorials",
+      "zh": "Hadelin 會在實作課帶你看這張投影片，"
+    },
+    {
+      "start": 218.19,
+      "end": 223.19,
+      "en": "because we're going to be coding this from scratch.",
+      "zh": "因為會從零寫程式。"
+    },
+    {
+      "start": 223.35,
+      "end": 229.35,
+      "en": "Well at least in R and therefore he will actually walk you through this slide.",
+      "zh": "至少 R 會，所以會介紹投影片。"
+    },
+    {
+      "start": 229.35,
+      "end": 235.02,
+      "en": "Our goal for today is to understand the intuition behind all of these things.",
+      "zh": "今天的目標，是了解這些背後的直覺。"
+    },
+    {
+      "start": 235.02,
+      "end": 238.74,
+      "en": "So we're going to skip the slide and get to the intuition part.",
+      "zh": "先跳過，進入概念部分。"
+    },
+    {
+      "start": 238.74,
+      "end": 244.56,
+      "en": "And this is the actual steps that you're going to be using in the practical tutorial.",
+      "zh": "這些是實作課實際用的步驟。"
+    },
+    {
+      "start": 244.56,
+      "end": 247.593,
+      "en": "So again, Harlan will walk you through this slide as well.",
+      "zh": "Hadelin 也會帶你看。"
+    },
+    {
+      "start": 248.43,
+      "end": 250.47,
+      "en": "And today we're talking about the intuition.",
+      "zh": "今天談直覺。"
+    },
+    {
+      "start": 250.47,
+      "end": 252.36,
+      "en": "So this is going to be fun.",
+      "zh": "會很有趣。"
+    },
+    {
+      "start": 252.36,
+      "end": 256.98,
+      "en": "This is some interesting slides coming up and get ready for a fun ride.",
+      "zh": "接下來投影片很有意思，準備享受這段旅程。"
+    },
+    {
+      "start": 256.98,
+      "end": 262.92,
+      "en": "So grab your cup of coffee, a cup of tea and even a popcorn, and let's get started.",
+      "zh": "拿杯咖啡、茶，甚至爆米花，開始吧。"
+    },
+    {
+      "start": 262.92,
+      "end": 273.18,
+      "en": "All right, so here we've got a scale y or the horizontal access is the return the return that we expect to get from a bandit.",
+      "zh": "這裡有個刻度，水平軸是期望從機器得到的報酬。"
+    },
+    {
+      "start": 273.18,
+      "end": 275.04,
+      "en": "So we're going to look at a simplified problem.",
+      "zh": "看一個簡化問題。"
+    },
+    {
+      "start": 275.04,
+      "end": 284.13,
+      "en": "We're gonna look at rather than five or even 10 we're gonna just look at three bandits because it's gonna be a lot of stuff going on on this chart and I don't want to clutter it up.",
+      "zh": "不看五台或十台，只看三台，因為圖上有很多東西，不想太擁擠。"
+    },
+    {
+      "start": 284.13,
+      "end": 287.49,
+      "en": "And we want to keep it as simple as possible just so that we can understand the concept.",
+      "zh": "盡可能簡單，以理解概念。"
+    },
+    {
+      "start": 287.49,
+      "end": 294.36,
+      "en": "And then the same thing applies for five or 10 or however many machines that you'd be looking at.",
+      "zh": "相同道理適用五台、十台或任何數量。"
+    },
+    {
+      "start": 294.36,
+      "end": 303.75,
+      "en": "So here we've got the return and these vertical lines, just like in the case of the upper confidence bond we had the horizontal lines.",
+      "zh": "這裡是報酬，這些垂直線，就像 UCB 裡的水平線，"
+    },
+    {
+      "start": 303.75,
+      "end": 308.79,
+      "en": "These vertical lines represent the expected return for each of the machines.",
+      "zh": "代表每台的期望報酬。"
+    },
+    {
+      "start": 308.79,
+      "end": 318.63,
+      "en": "So each of the machines out of the three machines that we have, each of the machines has a distribution behind it so that the result, the amount of money",
+      "zh": "三台機器各有背後分布，所以每局贏的"
+    },
+    {
+      "start": 318.63,
+      "end": 324.66,
+      "en": "that you win per a game is picked as a random value from that distribution.",
+      "zh": "金額，從該分布隨機選出。"
+    },
+    {
+      "start": 324.66,
+      "end": 331.77,
+      "en": "And we're not gonna draw distributions, but basically just imagine a distribution behind each one of these expected values.",
+      "zh": "不會畫出那些分布，但想像每個期望值背後都有分布。"
+    },
+    {
+      "start": 331.77,
+      "end": 338.7,
+      "en": "So this is just the center of that distribution or the actual expected return from that machine.",
+      "zh": "這只是分布中心，或該機器真正的期望報酬。"
+    },
+    {
+      "start": 338.7,
+      "end": 339.96,
+      "en": "And we're just visualizing it here.",
+      "zh": "在這裡視覺化。"
+    },
+    {
+      "start": 339.96,
+      "end": 350.85,
+      "en": "But this is us kind of like looking into the actual machine itself or like pulling it apart and knowing how it works or being the designer",
+      "zh": "這有點像看進機器內部，拆開知道如何運作，或是身為"
+    },
+    {
+      "start": 350.85,
+      "end": 351.683,
+      "en": "of the machine.",
+      "zh": "機器設計者。"
+    },
+    {
+      "start": 351.683,
+      "end": 354.09000000000003,
+      "en": "In reality, when you're playing these machines of course you don't know this.",
+      "zh": "現實中玩時當然不知道。"
+    },
+    {
+      "start": 354.09000000000003,
+      "end": 361.11,
+      "en": "So this is some additional information that will guide us, that will help us understand how the algorithm actually works.",
+      "zh": "這是額外資訊，引導我們理解演算法。"
+    },
+    {
+      "start": 361.11,
+      "end": 363.48,
+      "en": "The algorithm itself doesn't know this information, right?",
+      "zh": "演算法本身不知道。"
+    },
+    {
+      "start": 363.48,
+      "end": 367.98,
+      "en": "So this is hidden, but it's just there for us so that we can better understand what's going on.",
+      "zh": "資訊隱藏，只是為了讓我們理解狀況。"
+    },
+    {
+      "start": 367.98,
+      "end": 371.58,
+      "en": "So these are the expected returns the actual expected returns of each of the machines.",
+      "zh": "這些是各機器真正的期望報酬。"
+    },
+    {
+      "start": 371.58,
+      "end": 380.01,
+      "en": "And obviously if you knew this right away you would say that machine number three or the yellow machine is the best one because it has the highest return, right?",
+      "zh": "如果事先知道，馬上會說第三台、黃色最好，因為報酬最高。"
+    },
+    {
+      "start": 380.01,
+      "end": 382.11,
+      "en": "It has the highest success return.",
+      "zh": "成功的報酬最高。"
+    },
+    {
+      "start": 382.11,
+      "end": 384.993,
+      "en": "You'd always just bet on this one, but again you don't know this yet.",
+      "zh": "會一直只在這台下注，但目前不知道。"
+    },
+    {
+      "start": 386.1,
+      "end": 388.83,
+      "en": "Alright, so what happens with this algorithm?",
+      "zh": "演算法接著怎麼做？"
+    },
+    {
+      "start": 388.83,
+      "end": 394.47,
+      "en": "Well, at the start, just like with upper confidence bond algorithm you don't know anything, right?",
+      "zh": "一開始和 UCB 一樣，什麼都不知道。"
+    },
+    {
+      "start": 394.47,
+      "end": 405.78,
+      "en": "You have no prior knowledge of the current situation or status of things and therefore all the machines are identical to you and you have to have at least one or even a couple",
+      "zh": "沒有目前狀況的先驗知識，所以每台看起來相同，必須至少做一回合，甚至幾回合"
+    },
+    {
+      "start": 405.78,
+      "end": 409.44,
+      "en": "of trial rounds just to get some data to analyze.",
+      "zh": "試驗，取得資料分析。"
+    },
+    {
+      "start": 409.44,
+      "end": 412.53,
+      "en": "And so let's say that has happened.",
+      "zh": "假設已做完。"
+    },
+    {
+      "start": 412.53,
+      "end": 417.72,
+      "en": "There's some trial rounds for machine number one or the blue machine.",
+      "zh": "對第一台、藍色機器試了幾回合。"
+    },
+    {
+      "start": 417.72,
+      "end": 427.38,
+      "en": "And based on those trial runs, the algorithm the Thompson sampling algorithm, this is where it starts getting different to the upper conference bound",
+      "zh": "根據試驗，Thompson 抽樣演算法，這裡開始與 UCB 不同，"
+    },
+    {
+      "start": 427.38,
+      "end": 430.53,
+      "en": "will construct a distribution, right?",
+      "zh": "會建立一個分布。"
+    },
+    {
+      "start": 430.53,
+      "end": 433.29,
+      "en": "So we'll get to this distribution in a second, what means.",
+      "zh": "等一下談它的意義。"
+    },
+    {
+      "start": 433.29,
+      "end": 437.49,
+      "en": "But for now let's just do the same thing for machine, the green machine.",
+      "zh": "先對綠色機器做相同的事。"
+    },
+    {
+      "start": 437.49,
+      "end": 448.95,
+      "en": "And so again, we are just pulling the arm several times like four times for instance, and we're getting some values and that are gonna be somewhere around obviously",
+      "zh": "拉幾次把手，例如四次，得到一些值，當然大概在"
+    },
+    {
+      "start": 448.95,
+      "end": 451.68,
+      "en": "the actual expected return, right?",
+      "zh": "真正期望報酬附近。"
+    },
+    {
+      "start": 451.68,
+      "end": 456.39,
+      "en": "And based on that, and based on those values of course it's probably gonna be a bit more than four.",
+      "zh": "根據這些值，當然實際可能不只四筆，"
+    },
+    {
+      "start": 456.39,
+      "end": 462.39,
+      "en": "We're constructing some sort of distribution or some sort of perception of the current state of things.",
+      "zh": "建立某種分布，也就是對目前狀況的認知。"
+    },
+    {
+      "start": 462.39,
+      "end": 464.7,
+      "en": "And this is the part where it gets interesting.",
+      "zh": "有趣的部分來了。"
+    },
+    {
+      "start": 464.7,
+      "end": 470.73,
+      "en": "So the actual meaning of these distributions is not which you might think at first.",
+      "zh": "這些分布實際意義，並不是你最初可能想的那樣。"
+    },
+    {
+      "start": 470.73,
+      "end": 480.15,
+      "en": "So these distributions are actually showing us or they're representing not the distributions,",
+      "zh": "它們顯示、代表的，不是那些分布，"
+    },
+    {
+      "start": 480.15,
+      "end": 483.42,
+      "en": "we're not trying to guess the distributions behind the machine.",
+      "zh": "不是試著猜機器背後的分布。"
+    },
+    {
+      "start": 483.42,
+      "end": 487.83,
+      "en": "So the first thing that might come to mind is that all right, so we've constructed distribution.",
+      "zh": "首先可能想到，建立了分布，"
+    },
+    {
+      "start": 487.83,
+      "end": 495.3,
+      "en": "And so the blue distribution is our attempt and guessing the actual distribution behind the blue machine, right?",
+      "zh": "所以藍色分布是在猜藍色機器背後真正的分布，對吧？"
+    },
+    {
+      "start": 495.3,
+      "end": 501.15,
+      "en": "The distribution that this is the expected return for and the green is for the green machine, the yellow is for yellow machine.",
+      "zh": "也就是期望報酬在這裡的分布，綠色對綠色、黃色對黃色。"
+    },
+    {
+      "start": 501.15,
+      "end": 503.28,
+      "en": "Well, actually not, that's not the case.",
+      "zh": "其實不是。"
+    },
+    {
+      "start": 503.28,
+      "end": 508.067,
+      "en": "We are constructing something completely different something completely out of this world.",
+      "zh": "建立的是完全不同、很不一樣的東西。"
+    },
+    {
+      "start": 508.067,
+      "end": 515.93,
+      "en": "We are constructing distributions of where we think the actual expected value might lie.",
+      "zh": "是在建立我們認為真正期望值可能位於哪裡的分布。"
+    },
+    {
+      "start": 517.2,
+      "end": 518.64,
+      "en": "It's very important to understand that.",
+      "zh": "這點非常重要。"
+    },
+    {
+      "start": 518.64,
+      "end": 528.84,
+      "en": "So we are creating kind of a, if you want to think of it that way, we're creating an auxiliary mechanism for us to solve the problem.",
+      "zh": "可以想成，建立一個輔助機制，幫助解問題。"
+    },
+    {
+      "start": 528.84,
+      "end": 538.59,
+      "en": "So we're not trying to recreate these machines we're recreating the possible way these machines could have been created kind of in that sense.",
+      "zh": "不是重建這些機器，而是某種程度上，重建它們可能的建立方式。"
+    },
+    {
+      "start": 538.59,
+      "end": 547.38,
+      "en": "So let's just solidify that, this is where we think the expected, the actual expected values will be.",
+      "zh": "再強化一次概念：這是我們認為真正期望值可能的位置。"
+    },
+    {
+      "start": 547.38,
+      "end": 555.442,
+      "en": "So let's look at the blue one for instance, we got four values and based on those four values we've constructed this distribution,",
+      "zh": "看藍色，取得四個值，根據它們建出分布，"
+    },
+    {
+      "start": 555.442,
+      "end": 560.442,
+      "en": "which is showing us where is that value mustard.",
+      "zh": "顯示這個值可能在哪裡。"
+    },
+    {
+      "start": 561.3,
+      "end": 565.08,
+      "en": "So this is mustard, the actual mustard but we don't know it, so the algorithm doesn't know it.",
+      "zh": "真正的值在這裡，但我們不知道，演算法不知道。"
+    },
+    {
+      "start": 565.08,
+      "end": 569.1,
+      "en": "So it's constructed a distribution trying to guess where this value is.",
+      "zh": "所以建立分布，試著猜它在哪。"
+    },
+    {
+      "start": 569.1,
+      "end": 572.19,
+      "en": "And of course, concert say it's over here it's over there, it's over there.",
+      "zh": "當然不能直接說在這裡、那裡或那裡。"
+    },
+    {
+      "start": 572.19,
+      "end": 577.29,
+      "en": "It's saying, okay, there's a very high likelihood it's over here, but it also could be here it could be here, it could be here.",
+      "zh": "而是說，很可能在這裡，但也可能在這、這或這。"
+    },
+    {
+      "start": 577.29,
+      "end": 582.18,
+      "en": "And as you move away, likelihood drops but it still could be anywhere in this blue space.",
+      "zh": "越往外，可能性越低，但仍可能在整個藍色範圍任何地方。"
+    },
+    {
+      "start": 582.18,
+      "end": 585.06,
+      "en": "Same for the thing for the green distribution.",
+      "zh": "綠色分布同理。"
+    },
+    {
+      "start": 585.06,
+      "end": 596.61,
+      "en": "So based on the values that we've seen the random values that have been selected in the four rounds the algorithm has created this distribution,",
+      "zh": "根據四回合選出的隨機值，演算法建立這個分布，"
+    },
+    {
+      "start": 596.61,
+      "end": 606.69,
+      "en": "which is saying that this actual expected return from the green machine is somewhere in this area.",
+      "zh": "表示綠色機器真正的期望報酬，在這個區域某處。"
+    },
+    {
+      "start": 606.69,
+      "end": 611.37,
+      "en": "And it's most likely to be here but it could be here, it could be here it could be here, it could be anywhere, it could be.",
+      "zh": "最可能在這裡，但也可能這、這、這，任何地方都有可能。"
+    },
+    {
+      "start": 611.37,
+      "end": 615.51,
+      "en": "So basically it's more likely to be here then it could be here, it could be here.",
+      "zh": "基本上，這裡比較可能，再來可能這裡、這裡。"
+    },
+    {
+      "start": 615.51,
+      "end": 620.04,
+      "en": "And as you move away, the likelihood of it actually being there drops off.",
+      "zh": "越往外，真正位於那裡的可能性就越低。"
+    },
+    {
+      "start": 620.04,
+      "end": 621.09,
+      "en": "Same thing for the yellow.",
+      "zh": "黃色也一樣。"
+    },
+    {
+      "start": 621.09,
+      "end": 622.38,
+      "en": "So it's very important to understand.",
+      "zh": "這很重要。"
+    },
+    {
+      "start": 622.38,
+      "end": 628.41,
+      "en": "So just to reiterate, we are not trying to guess the distributions behind machines, right?",
+      "zh": "再次強調，不是在猜機器背後的分布。"
+    },
+    {
+      "start": 628.41,
+      "end": 634.32,
+      "en": "We are doing like kind of a little magic trick or a little hat trick.",
+      "zh": "有點像變個小魔術。"
+    },
+    {
+      "start": 634.32,
+      "end": 641.34,
+      "en": "I don't know if it's called hat trick, but we're trying to do this, create this perception of the world.",
+      "zh": "不知道該不該叫帽子戲法，但我們試著建立對世界的認知。"
+    },
+    {
+      "start": 641.34,
+      "end": 650.01,
+      "en": "We're trying to mathematically explain what we think is actually going on or what could be going on.",
+      "zh": "用數學解釋我們認為正在發生、或可能發生的事。"
+    },
+    {
+      "start": 650.01,
+      "end": 661.11,
+      "en": "And that is also important thing because this demonstrates that the Thompson sampling is a probabilistic algorithm.",
+      "zh": "這也重要，因為展示 Thompson 抽樣是機率式演算法。"
+    },
+    {
+      "start": 661.11,
+      "end": 668.07,
+      "en": "The upper confidence bond was a deterministic algorithm where everything was strict, everything was okay.",
+      "zh": "UCB 是確定式，一切嚴格明確。"
+    },
+    {
+      "start": 668.07,
+      "end": 672.72,
+      "en": "So whichever one has a highest upper confidence bond that's all we're going to choose and so on.",
+      "zh": "哪個信賴上界最高，就選哪個。"
+    },
+    {
+      "start": 672.72,
+      "end": 683.55,
+      "en": "But here we're creating a probabilistic perception of the world, we're saying, so it's likely to be here, but it could be anywhere in this blue area, and this one could be anywhere in this green and so on.",
+      "zh": "這裡則建立世界的機率式認知，說可能在這裡，但也可能在藍色區任何地方，這個可能在綠色區任何地方，等等。"
+    },
+    {
+      "start": 683.55,
+      "end": 689.64,
+      "en": "And you'll see exactly why we've done this in the next slide we'll understand how this works and let's jump straight into that.",
+      "zh": "下一張會確切看到為什麼這樣做，了解如何運作，直接來看。"
+    },
+    {
+      "start": 689.64,
+      "end": 696.21,
+      "en": "Let's understand now that this is probably the hardest part to kind of get your head around what we've created.",
+      "zh": "先理解，剛才建立的東西，可能是最難掌握的部分。"
+    },
+    {
+      "start": 696.21,
+      "end": 704.88,
+      "en": "And now that we've created it, let's see how the algorithm is going to utilize this auxiliary mechanism that we have created.",
+      "zh": "既然建好了，就看演算法如何利用這個輔助機制。"
+    },
+    {
+      "start": 704.88,
+      "end": 706.44,
+      "en": "All right, so let's have a look.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 706.44,
+      "end": 708.42,
+      "en": "So there are our distributions.",
+      "zh": "這是我們的分布。"
+    },
+    {
+      "start": 708.42,
+      "end": 709.41,
+      "en": "That's where we think.",
+      "zh": "這是我們的判斷。"
+    },
+    {
+      "start": 709.41,
+      "end": 714.93,
+      "en": "So these are the actual expected returns for each of the machines, but the algorithm doesn't know them.",
+      "zh": "這些是各機器真正期望報酬，但演算法不知道。"
+    },
+    {
+      "start": 714.93,
+      "end": 725.48,
+      "en": "The old algorithm has created is are these distributions where, which allow it to kind of guess where the actual distribution might lie",
+      "zh": "演算法只建立了這些分布，用來猜各機器真正期望值可能"
+    },
+    {
+      "start": 725.52,
+      "end": 727.17,
+      "en": "for each of these machines.",
+      "zh": "位於哪裡。"
+    },
+    {
+      "start": 727.17,
+      "end": 731.07,
+      "en": "So what it's going to do is it's actually going to trigger each of these distributions.",
+      "zh": "接著會觸發每個分布。"
+    },
+    {
+      "start": 731.07,
+      "end": 736.44,
+      "en": "So like we're in a new round we have to choose a machine to use.",
+      "zh": "到了新回合，要選一台。"
+    },
+    {
+      "start": 736.44,
+      "end": 744.15,
+      "en": "So what the algorithm will do is it will go and call this distribution and it'll pull out of value out of this distribution.",
+      "zh": "演算法會呼叫這個分布，從中抽一個值。"
+    },
+    {
+      "start": 744.15,
+      "end": 753.63,
+      "en": "And let's say pull that value, then it'll pull a value out of the green distribution, let's say it pull that value out of the green distribution and let's say and then pulls a value out of yellow distribution,",
+      "zh": "假設抽到這裡，再從綠色分布抽值，假設這裡，接著從黃色分布抽值，"
+    },
+    {
+      "start": 753.63,
+      "end": 755.7,
+      "en": "is that distribution, that value.",
+      "zh": "就是這個值。"
+    },
+    {
+      "start": 755.7,
+      "end": 757.11,
+      "en": "And again, it's pulling them.",
+      "zh": "再說一次，它依照"
+    },
+    {
+      "start": 757.11,
+      "end": 759.27,
+      "en": "So according to the distribution, right?",
+      "zh": "這些分布抽取。"
+    },
+    {
+      "start": 759.27,
+      "end": 761.28,
+      "en": "So this is a distribution of values.",
+      "zh": "這是數值分布。"
+    },
+    {
+      "start": 761.28,
+      "end": 765.39,
+      "en": "So basically it's most likely to pull a value somewhere in this area.",
+      "zh": "基本上最可能抽到這個區域的值。"
+    },
+    {
+      "start": 765.39,
+      "end": 770.07,
+      "en": "Then less likely in further way you go, it's more, less less and less likely.",
+      "zh": "再來比較不可能，越遠就越不可能。"
+    },
+    {
+      "start": 770.07,
+      "end": 778.86,
+      "en": "But still it can happen that you can see that, this yellow value is actually quite far from the center but it still can happen that it pulled this value out of distribution.",
+      "zh": "但仍可能發生，你看黃色值離中心相當遠，仍可能從分布抽到。"
+    },
+    {
+      "start": 778.86,
+      "end": 786.88,
+      "en": "And it can happen that it picked this green a value out of the green distribution totally can happen in the long term of course, you're gonna be picking somewhere close to the center, like over the long run.",
+      "zh": "綠色也完全可能抽到這個值。長期而言，會多抽到靠近中心的值，"
+    },
+    {
+      "start": 787.86,
+      "end": 791.46,
+      "en": "But on a one-off basis, this can totally happen.",
+      "zh": "但單次完全可能這樣。"
+    },
+    {
+      "start": 791.46,
+      "end": 794.97,
+      "en": "And so now it's picked these values and guess what that means?",
+      "zh": "現在抽出這些值，猜猜代表什麼？"
+    },
+    {
+      "start": 794.97,
+      "end": 803.79,
+      "en": "Well, what this actually means is that, we have, by doing that we have generated our own bandit configuration.",
+      "zh": "實際上，這樣就產生自己的拉霸機配置。"
+    },
+    {
+      "start": 803.79,
+      "end": 813.187,
+      "en": "So we have created this hypothetical or imaginary batch of machine, or not batch,",
+      "zh": "建立一個假想、想像的機器組合，或者不是一批，"
+    },
+    {
+      "start": 814.74,
+      "end": 825.06,
+      "en": "imaginary set of machines in our own virtual world where we are saying, okay, so the expected, the actual expected return",
+      "zh": "而是在自己的虛擬世界，想像有一組機器，其中真正的期望報酬，"
+    },
+    {
+      "start": 825.06,
+      "end": 829.83,
+      "en": "for the blue machine is this value the actual expected return for the green machine is this value.",
+      "zh": "藍色是這個值，綠色是這個值，"
+    },
+    {
+      "start": 829.83,
+      "end": 832.41,
+      "en": "And the actual expected return for the yellow machine is this value.",
+      "zh": "黃色是這個值。"
+    },
+    {
+      "start": 832.41,
+      "end": 842.97,
+      "en": "So we've created this this SUBCIDO OBCIDO world or hypothetical virtual reality in which we have our own three bandits",
+      "zh": "建立了這個假想世界、虛擬實境，其中有自己的三台機器，"
+    },
+    {
+      "start": 842.97,
+      "end": 845.7,
+      "en": "and how we're going to solve this problem.",
+      "zh": "該怎麼解這個問題？"
+    },
+    {
+      "start": 845.7,
+      "end": 847.71,
+      "en": "And this problem is very easy to solve.",
+      "zh": "這個問題很好解。"
+    },
+    {
+      "start": 847.71,
+      "end": 849.78,
+      "en": "It's obvious how to solve this problem.",
+      "zh": "解法很明顯。"
+    },
+    {
+      "start": 849.78,
+      "end": 851.19,
+      "en": "You just pick this machine, right?",
+      "zh": "選這台，對吧？"
+    },
+    {
+      "start": 851.19,
+      "end": 860.08,
+      "en": "Because this machine has the highest expected return out of the three, and obviously just gonna go with this machine in the virtual world in the reality.",
+      "zh": "因為三台中期望報酬最高，顯然就在虛擬世界選它。"
+    },
+    {
+      "start": 862.71,
+      "end": 869.16,
+      "en": "And what's that means is that now we translate this result into the actual world.",
+      "zh": "意思是，把這個結果轉到真實世界。"
+    },
+    {
+      "start": 869.16,
+      "end": 873.36,
+      "en": "In the virtual hypothetical world we've selected the green machine.",
+      "zh": "虛擬假想世界選了綠色。"
+    },
+    {
+      "start": 873.36,
+      "end": 878.31,
+      "en": "So in the actual world, the algorithm will also select the green machine.",
+      "zh": "真實世界，演算法也選綠色。"
+    },
+    {
+      "start": 878.31,
+      "end": 882.15,
+      "en": "And what that will do so it'll basically pull the lever for this machine, right?",
+      "zh": "所以實際去拉這台把手。"
+    },
+    {
+      "start": 882.15,
+      "end": 886.5,
+      "en": "And what that'll do is actually, it will give us a value.",
+      "zh": "這就會給我們一個值。"
+    },
+    {
+      "start": 886.5,
+      "end": 895.83,
+      "en": "So the machine will spit out a value but that value is going to be based on the distribution behind this machine, where this is the actual expected value of that distribution.",
+      "zh": "機器產生的值，根據它背後的分布，而這裡是真正的期望值。"
+    },
+    {
+      "start": 895.83,
+      "end": 900.96,
+      "en": "So the value is gonna be somewhere here probably close to the actual expected value.",
+      "zh": "結果可能在這附近，靠近真正期望值。"
+    },
+    {
+      "start": 900.96,
+      "end": 903.33,
+      "en": "It doesn't have to be, again, there's a distribution behind all this.",
+      "zh": "不一定，再說一次，背後有分布。"
+    },
+    {
+      "start": 903.33,
+      "end": 906.75,
+      "en": "It could be far away, it could be closed but let's say in this case, it's this one.",
+      "zh": "可能遠，也可能近，假設這次是這個。"
+    },
+    {
+      "start": 906.75,
+      "end": 910.77,
+      "en": "So now this information this is new information to the algorithm.",
+      "zh": "這是演算法的新資訊。"
+    },
+    {
+      "start": 910.77,
+      "end": 918.99,
+      "en": "What it's going to do is it's going to say, Ah-huh, Okay so I pulled the green lever the lever for the green machine, I got this value.",
+      "zh": "它會說，好，拉了綠色把手，得到這個值。"
+    },
+    {
+      "start": 918.99,
+      "end": 922.26,
+      "en": "So now I have to adjust my perception of the world, right?",
+      "zh": "現在必須調整對世界的認知。"
+    },
+    {
+      "start": 922.26,
+      "end": 925.05,
+      "en": "So I have a prior probability.",
+      "zh": "所以有先驗機率。"
+    },
+    {
+      "start": 925.05,
+      "end": 932.76,
+      "en": "So these are my, well, for the green machine this is my prior distribution this is where the Bayesian inference comes into play, or it's already been in play.",
+      "zh": "對綠色機器，這是先驗分布，貝氏推論在這裡發揮作用，或者其實已經在作用。"
+    },
+    {
+      "start": 932.76,
+      "end": 934.86,
+      "en": "And this is where adding to the Bayesian inference.",
+      "zh": "現在加入新的貝氏推論資訊。"
+    },
+    {
+      "start": 934.86,
+      "end": 937.41,
+      "en": "So that's our prior distribution.",
+      "zh": "這是先驗分布。"
+    },
+    {
+      "start": 937.41,
+      "end": 939.45,
+      "en": "Now we've got some new information.",
+      "zh": "有了新資訊。"
+    },
+    {
+      "start": 939.45,
+      "end": 940.71,
+      "en": "This is our new information.",
+      "zh": "就是這個。"
+    },
+    {
+      "start": 940.71,
+      "end": 945.15,
+      "en": "We're going to add it in and see how that changes our perception of the world.",
+      "zh": "加入看看，如何改變世界認知。"
+    },
+    {
+      "start": 945.15,
+      "end": 953.13,
+      "en": "Well, perception of the world has changed the distribution has shifted a bit and it's become narrower because we have more information.",
+      "zh": "認知改變，分布略微移動、變窄，因為有更多資訊。"
+    },
+    {
+      "start": 953.13,
+      "end": 955.18,
+      "en": "Our sample size has increased, of course.",
+      "zh": "樣本數增加了。"
+    },
+    {
+      "start": 956.43,
+      "end": 959.823,
+      "en": "Excuse me, of course it's not going to increase that much.",
+      "zh": "不好意思，當然不會變這麼多。"
+    },
+    {
+      "start": 960.69,
+      "end": 966.3,
+      "en": "This is just an example to demonstrate what we're talking about, to get the point across.",
+      "zh": "只是示範，傳達概念。"
+    },
+    {
+      "start": 966.3,
+      "end": 973.41,
+      "en": "But that's the point that every time we add new information our distribution becomes more and more refined.",
+      "zh": "重點是每次加新資訊，分布就越來越精確。"
+    },
+    {
+      "start": 973.41,
+      "end": 975.33,
+      "en": "So now we have a new perception of the world.",
+      "zh": "現在有新的世界認知。"
+    },
+    {
+      "start": 975.33,
+      "end": 978.54,
+      "en": "Now what happens next is a new round, right?",
+      "zh": "接著新回合。"
+    },
+    {
+      "start": 978.54,
+      "end": 981.21,
+      "en": "Same thing, we're gonna do the same thing again for a new round.",
+      "zh": "再做相同事情。"
+    },
+    {
+      "start": 981.21,
+      "end": 991.5,
+      "en": "Again, we generate or we pick some values out of our distributions that they are, now, we've constructed a or we've generated our own bandit configuration",
+      "zh": "再次從分布抽值，這些就是結果；現在又建立或產生了自己的機器配置，"
+    },
+    {
+      "start": 991.5,
+      "end": 996.5,
+      "en": "in our virtual reality or in our hypothetical world.",
+      "zh": "在虛擬或假想世界中。"
+    },
+    {
+      "start": 997.02,
+      "end": 1002.24,
+      "en": "Out of these three, we have to pick the best bandit which is of course the one here, the yellow bandit.",
+      "zh": "三台中要挑最好的，當然這裡的黃色。"
+    },
+    {
+      "start": 1002.24,
+      "end": 1010.31,
+      "en": "And we are going to now pull, actually pull in the real world, pull the lever of the yellow bandit, or the algorithm's gonna do that.",
+      "zh": "現在真正在現實中拉黃色把手，或者說演算法會這麼做。"
+    },
+    {
+      "start": 1010.31,
+      "end": 1014.06,
+      "en": "That's gonna trigger the distribution behind the yellow bandit.",
+      "zh": "觸發黃色機器背後的分布。"
+    },
+    {
+      "start": 1014.06,
+      "end": 1016.64,
+      "en": "And that will give us some sort of value.",
+      "zh": "得到某個值。"
+    },
+    {
+      "start": 1016.64,
+      "end": 1020.27,
+      "en": "So this is the actual value that we received in the real world.",
+      "zh": "這是在真實世界收到的實際值。"
+    },
+    {
+      "start": 1020.27,
+      "end": 1028.25,
+      "en": "Now we're gonna incorporate that value into our perception of the world and our perception of the world's going to change, is gonna adjust.",
+      "zh": "把值納入對世界的認知，認知就會改變、調整。"
+    },
+    {
+      "start": 1028.25,
+      "end": 1029.27,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 1029.27,
+      "end": 1030.86,
+      "en": "Now we're going to do that again.",
+      "zh": "再做一次。"
+    },
+    {
+      "start": 1030.86,
+      "end": 1036.68,
+      "en": "All right, so let's just do this one more time just so we practice the logic behind all of this.",
+      "zh": "再來一次，練習背後的邏輯。"
+    },
+    {
+      "start": 1036.68,
+      "end": 1041.68,
+      "en": "So new round generates the bandit configuration, right?",
+      "zh": "新回合產生機器配置。"
+    },
+    {
+      "start": 1043.7,
+      "end": 1051.47,
+      "en": "So this is what we're going to think that our expected, actual expected returns are going to be our bandit configuration.",
+      "zh": "這是我們認為實際期望報酬的值，也就是機器配置。"
+    },
+    {
+      "start": 1051.47,
+      "end": 1055.25,
+      "en": "This is obviously the best one we're going to use.",
+      "zh": "顯然這個最好，要用它。"
+    },
+    {
+      "start": 1055.25,
+      "end": 1064.64,
+      "en": "Pull the yellow machines or lever that's going to trigger the distribution behind the yellow machine is gonna spit out a value in the real world, there's a value.",
+      "zh": "拉黃色把手，觸發背後分布，在真實世界產生一個值，就這個。"
+    },
+    {
+      "start": 1064.64,
+      "end": 1072.56,
+      "en": "And then we're going to have to adjust our perception of the world again to match the, or to incorporate the new information.",
+      "zh": "接著再次調整世界認知，以符合、或者納入新資訊。"
+    },
+    {
+      "start": 1072.56,
+      "end": 1081.65,
+      "en": "And so on, we're going to keep doing that until we get to a point where we've refined the distributions substantially and the picture looks like this",
+      "zh": "依此類推，持續做，直到分布大幅精煉，圖像變成這樣，"
+    },
+    {
+      "start": 1081.65,
+      "end": 1084.02,
+      "en": "so they might be refined even more.",
+      "zh": "甚至可能更精確。"
+    },
+    {
+      "start": 1084.02,
+      "end": 1086.45,
+      "en": "This one might be more refined, this one might more refined.",
+      "zh": "這個可能更精確，這個也更精確。"
+    },
+    {
+      "start": 1086.45,
+      "end": 1094.88,
+      "en": "But as you could see from there we slowly will start generating more and more rounds based on the yellow machine will be triggering the yellow machine.",
+      "zh": "但可以看到，逐漸越來越多回合會根據黃色機器，觸發黃色。"
+    },
+    {
+      "start": 1094.88,
+      "end": 1105.32,
+      "en": "So these ones might not even get that refined in the long run, which is totally fine because our point is to get to the best machine to find it and exploit it as much as we can.",
+      "zh": "所以長期而言，其他可能不會精煉那麼多，完全沒關係，因為目標是找到最佳機器，盡可能利用。"
+    },
+    {
+      "start": 1105.32,
+      "end": 1106.46,
+      "en": "So there we go.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 1106.46,
+      "end": 1110.57,
+      "en": "That is pretty much how the Thompson sampling algorithm works.",
+      "zh": "Thompson 抽樣大致如此運作。"
+    },
+    {
+      "start": 1110.57,
+      "end": 1114.47,
+      "en": "And as you can see, it is a probabilistic algorithm.",
+      "zh": "如你所見，是機率式演算法。"
+    },
+    {
+      "start": 1114.47,
+      "end": 1124.16,
+      "en": "And every time we're generating these values, we're kind of creating this hypothetical setup",
+      "zh": "每次產生這些值，就像建立假想的"
+    },
+    {
+      "start": 1124.16,
+      "end": 1130.49,
+      "en": "of the bandits, and then we're solving that and then we're applying the results to the real world.",
+      "zh": "機器配置，再解問題，把結果套用到真實世界。"
+    },
+    {
+      "start": 1130.49,
+      "end": 1134.21,
+      "en": "We're adjusting our perception of reality based on the new information that that generates.",
+      "zh": "根據新產生的資訊，調整對現實的認知。"
+    },
+    {
+      "start": 1134.21,
+      "end": 1135.56,
+      "en": "And then we're doing that again.",
+      "zh": "再重複。"
+    },
+    {
+      "start": 1135.56,
+      "end": 1139.67,
+      "en": "So hopefully this was a interesting tutorial.",
+      "zh": "希望這堂有意思。"
+    },
+    {
+      "start": 1139.67,
+      "end": 1142.13,
+      "en": "I find this algorithm very, very cool.",
+      "zh": "我覺得這個演算法非常酷。"
+    },
+    {
+      "start": 1142.13,
+      "end": 1150.38,
+      "en": "And in the next tutorial we're going to compare a little bit upper confidence bound and the Thompson sampling algorithm and I can't wait to see you there.",
+      "zh": "下一堂稍微比較 UCB 與 Thompson 抽樣，期待再見。"
+    },
+    {
+      "start": 1150.38,
+      "end": 1152.363,
+      "en": "Until next time, happy analyzing.",
+      "zh": "下次見，在那之前，祝你分析愉快。"
+    }
+  ]
+}

@@ -1,0 +1,877 @@
+{
+  "courseId": "950390",
+  "lectureId": "6456816",
+  "title": "Multi-Armed Bandit: Exploration vs Exploitation in Reinforcement Learning",
+  "section": 32,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "80ffcf2e7d3162ed61520dcf78c7ba2508294d4fdd043cca6923f6cd315aa1f8",
+  "cues": [
+    {
+      "start": 1.77,
+      "end": 5.46,
+      "en": "-: Hello and welcome back to the course on Machine Learning.",
+      "zh": "講師：大家好，歡迎回到機器學習課程。"
+    },
+    {
+      "start": 5.46,
+      "end": 8.76,
+      "en": "Today we're talking about the multi-armed bandit problem.",
+      "zh": "今天要談多臂吃角子老虎問題。"
+    },
+    {
+      "start": 8.76,
+      "end": 15.87,
+      "en": "Don't you just love these names when they come up such cool names for machine learning algorithms and problems?",
+      "zh": "機器學習演算法與問題有這麼酷的名字，你是不是也很喜歡？"
+    },
+    {
+      "start": 15.87,
+      "end": 25.83,
+      "en": "Well, today we're indeed talking about this problem and it is the example that we're going to be using in this whole section on reinforcement learning,",
+      "zh": "今天確實要談這個問題，它會是整個強化學習單元使用的例子，"
+    },
+    {
+      "start": 25.83,
+      "end": 32.73,
+      "en": "we're going to be looking at different ways that we can solve the multi-armed bandit problem and comparing the results.",
+      "zh": "我們會看不同解法，並比較結果。"
+    },
+    {
+      "start": 32.73,
+      "end": 41.22,
+      "en": "But before we continue, I just wanted to mention that the multi-arm bandit problem is not the only problem that can be solved with reinforcement learning.",
+      "zh": "但繼續前，先說明多臂吃角子老虎不是強化學習唯一能解的問題。"
+    },
+    {
+      "start": 41.22,
+      "end": 43.97,
+      "en": "Reinforcement learning is actually really, really cool.",
+      "zh": "強化學習其實非常酷。"
+    },
+    {
+      "start": 45.056,
+      "end": 49.26,
+      "en": "Reinforcement learning, for instance is used to train robot dogs to walk.",
+      "zh": "例如可以用來訓練機器狗走路。"
+    },
+    {
+      "start": 49.26,
+      "end": 59.34,
+      "en": "And I'll give you a quick example; for instance you can, once you've created a robot dog you can implement an algorithm inside the robot dog which will tell it how to walk.",
+      "zh": "舉個簡單例子，造好機器狗後，可以在裡面實作演算法，告訴它如何走路。"
+    },
+    {
+      "start": 59.34,
+      "end": 66.06,
+      "en": "You can tell it, alright, move your front right foot and then move your left back foot and then front left foot, right back foot, and so on.",
+      "zh": "可以告訴它，先移動右前腳，再移動左後腳，接著左前腳、右後腳等等。"
+    },
+    {
+      "start": 66.06,
+      "end": 71.73,
+      "en": "You can actually give the sequence of actions that it needs to take in order to accomplish a task which is walking.",
+      "zh": "直接提供動作順序，完成走路這項任務。"
+    },
+    {
+      "start": 71.73,
+      "end": 80.49,
+      "en": "Or you can implement a reinforcement learning algorithm which will train the dog to walk in a very, very interesting way.",
+      "zh": "也可以實作強化學習演算法，以非常有趣的方式訓練狗走路。"
+    },
+    {
+      "start": 80.49,
+      "end": 89.681,
+      "en": "So basically what it will do is it will say, Hey dog here are all the actions you can take: You can move your legs like this, you can move your legs like that,",
+      "zh": "基本上就是說：「狗，這些是你能做的所有動作，可以這樣動腿，也可以那樣動腿，"
+    },
+    {
+      "start": 89.681,
+      "end": 92.85,
+      "en": "and your goal is to make a step forward.",
+      "zh": "目標是往前走一步。」"
+    },
+    {
+      "start": 92.85,
+      "end": 96.21000000000001,
+      "en": "Every time you make a step forward, you are given a reward.",
+      "zh": "每往前走一步，就得到獎勵。"
+    },
+    {
+      "start": 96.21000000000001,
+      "end": 99.69,
+      "en": "Every time you fall over, you're given a punishment.",
+      "zh": "每跌倒一次，就得到懲罰。"
+    },
+    {
+      "start": 99.69,
+      "end": 102.21000000000001,
+      "en": "And a reward is basically a one in the algorithm.",
+      "zh": "獎勵基本上就是演算法中的 1。"
+    },
+    {
+      "start": 102.21000000000001,
+      "end": 110.94,
+      "en": "You don't actually have to give it a carrot or a, you know, something to eat, you just give it a one in the algorithm and a punishment is a zero.",
+      "zh": "不用真的給胡蘿蔔或食物，只要在演算法給 1，懲罰則是 0。"
+    },
+    {
+      "start": 110.94,
+      "end": 116.31,
+      "en": "And basically every time it takes a step forward it knows it's got a reward and it will that that's good for it.",
+      "zh": "每次往前走一步，它知道得到獎勵，也就是對它有利。"
+    },
+    {
+      "start": 116.31,
+      "end": 122.25,
+      "en": "So it basically will try all these random sets of actions and see what they lead to.",
+      "zh": "所以會嘗試各種隨機動作組合，看看導致什麼結果。"
+    },
+    {
+      "start": 122.25,
+      "end": 127.71,
+      "en": "Every time it takes a step forward it'll remember that those were good actions and it will try to repeat them more and more.",
+      "zh": "每次向前一步，就記得這些動作很好，越來越常嘗試重複。"
+    },
+    {
+      "start": 127.71,
+      "end": 131.423,
+      "en": "And actually dogs like that can learn to walk.",
+      "zh": "這樣的機器狗真的能學會走路。"
+    },
+    {
+      "start": 131.423,
+      "end": 138.78,
+      "en": "So you don't have to program an actual walking algorithm into it, it'll figure out the steps it needs to take on its own.",
+      "zh": "不用寫出實際的走路演算法，它自己會找出需要的步驟。"
+    },
+    {
+      "start": 138.78,
+      "end": 149.4,
+      "en": "I think that's really mind blowing and really cool but unfortunately that is a, a more, a topic more of on the side of artificial intelligence rather",
+      "zh": "我覺得真的很驚人、很酷，但可惜這比較偏人工智慧，"
+    },
+    {
+      "start": 149.4,
+      "end": 155.04,
+      "en": "than just machine learning, and that is, you know that can be a whole course on its own.",
+      "zh": "不只是機器學習，而且可以獨立成一整門課。"
+    },
+    {
+      "start": 155.04,
+      "end": 159.72,
+      "en": "We're not going to delve into training robot dogs to walk inside this section.",
+      "zh": "這個單元不會深入訓練機器狗走路。"
+    },
+    {
+      "start": 159.72,
+      "end": 169.972,
+      "en": "Inside this section we are going to talk about the multi-armed bandit problem which is a bit of a different application of this machine learning branch of",
+      "zh": "我們會談多臂吃角子老虎問題，是機器學習中"
+    },
+    {
+      "start": 170.4,
+      "end": 172.2,
+      "en": "reinforcement learning.",
+      "zh": "強化學習這個分支的另一種應用。"
+    },
+    {
+      "start": 172.2,
+      "end": 176.94,
+      "en": "And plus of course there's other, lots of other applications of reinforcement learning as well.",
+      "zh": "當然，強化學習還有很多其他應用。"
+    },
+    {
+      "start": 176.94,
+      "end": 185.82,
+      "en": "So, moving on to our multi-armed bandit problem, so first of all, what on earth is a multi-armed bandit, right?",
+      "zh": "回到多臂吃角子老虎問題，首先，到底什麼是 multi-armed bandit？"
+    },
+    {
+      "start": 185.82,
+      "end": 192.75,
+      "en": "So the first thing that comes to mind a is like a robber going into a bank and so on and uh, or somebody with a gun.",
+      "zh": "第一個想到的，可能是銀行搶匪，或拿槍的人。"
+    },
+    {
+      "start": 192.75,
+      "end": 204.15,
+      "en": "But actually a bandit or a one-armed bandit, Let's uh, let's simplify things: A one-armed bandit is a slot machine, right?",
+      "zh": "但其實 bandit，或先簡化成 one-armed bandit，單臂老虎，就是拉霸機，對吧？"
+    },
+    {
+      "start": 204.15,
+      "end": 208.14,
+      "en": "It's one of these and why is it called a one-armed bandit?",
+      "zh": "就是這些，為什麼叫單臂老虎？"
+    },
+    {
+      "start": 208.14,
+      "end": 210.3,
+      "en": "Well, there's got a bit of a history there.",
+      "zh": "有一點歷史。"
+    },
+    {
+      "start": 210.3,
+      "end": 219.45,
+      "en": "Back in the day, they used to have this handle on the right and you can still see that in movies and maybe some places you can still find these slot machines",
+      "zh": "以前右邊有一支把手，電影裡還能看到，也許有些地方還找得到這種機器，"
+    },
+    {
+      "start": 219.45,
+      "end": 224.25,
+      "en": "where you actually have to pull the handle because now they're all electronic and you just press a button, right?",
+      "zh": "必須真的拉把手；現在都電子化，只要按按鈕。"
+    },
+    {
+      "start": 224.25,
+      "end": 232.537,
+      "en": "They're push push slot machines, whereas in the, back in the day you had to pull the a lever to make it work",
+      "zh": "現在用按的，以前要拉一支桿子才會啟動，"
+    },
+    {
+      "start": 233.46,
+      "end": 237.18,
+      "en": "to like initiate the, the game.",
+      "zh": "開始遊戲。"
+    },
+    {
+      "start": 237.18,
+      "end": 239.88,
+      "en": "And so hence the arm.",
+      "zh": "所以叫「單臂」。"
+    },
+    {
+      "start": 239.88,
+      "end": 242.058,
+      "en": "Yeah, but why is it called a bandit?",
+      "zh": "但為什麼叫 bandit，強盜？"
+    },
+    {
+      "start": 242.058,
+      "end": 252.48,
+      "en": "Well, because these machines they would actually, you know, these, this is one of the quickest way to lose your money in, in a casino.",
+      "zh": "因為這些機器，是在賭場最快輸光錢的方式之一。"
+    },
+    {
+      "start": 252.48,
+      "end": 260.73,
+      "en": "They would take, um I think it was like a 50% chance that they would take away your money back in the day.",
+      "zh": "以前我想大約有 50% 的機率會拿走你的錢。"
+    },
+    {
+      "start": 260.73,
+      "end": 269.44,
+      "en": "So they would, of course you would earn less than you're, you're actually winning, and it was about a, you know",
+      "zh": "當然，贏回來的會比投入少，而大約"
+    },
+    {
+      "start": 269.44,
+      "end": 275.28,
+      "en": "a 50-50 chance, whether you or not you actually make a, or you get a win or you, you lose money.",
+      "zh": "一半一半的機會，會贏或輸錢。"
+    },
+    {
+      "start": 275.28,
+      "end": 286.2,
+      "en": "But then they put a bug into them like I read up a little bit online, they put a bug into them that people who were playing them were losing even faster than, or even more frequent than 50%,",
+      "zh": "但後來加了個程式漏洞，我在網上稍微讀到，讓玩家輸得更快，輸的頻率甚至超過 50%，"
+    },
+    {
+      "start": 286.2,
+      "end": 295.83,
+      "en": "so hence the name bandit because it was basically robbing you of your money and you know, one of the quickest way to ways to lose your money, hence the multi,",
+      "zh": "所以叫強盜，因為基本上在搶你的錢，也是最快輸錢的方法之一，所以多……"
+    },
+    {
+      "start": 295.83,
+      "end": 298.276,
+      "en": "oh, that's why it's called the one-armed bandit.",
+      "zh": "這就是叫單臂老虎的原因。"
+    },
+    {
+      "start": 298.276,
+      "end": 300.6,
+      "en": "And what is the multi-arm banded?",
+      "zh": "那什麼是多臂吃角子老虎？"
+    },
+    {
+      "start": 300.6,
+      "end": 312.03,
+      "en": "Well, the multi, multi-arm bandit problem is kind of the challenge that a person is faced when he comes up to a whole set of these machines.",
+      "zh": "就是當一個人面對整排這些機器時，會遇到的挑戰。"
+    },
+    {
+      "start": 312.03,
+      "end": 321.42,
+      "en": "When he doesn't have just one, he has like five or 10 you know, programming examples will have example of 10 but we won't be talking specifically about these machines.",
+      "zh": "不只一台，而是五台或十台；程式範例有十台，但不會真的談這些機器。"
+    },
+    {
+      "start": 321.42,
+      "end": 324.66,
+      "en": "Of course this is, this is the historic problem.",
+      "zh": "當然，這是歷史上的問題。"
+    },
+    {
+      "start": 324.66,
+      "end": 335.49,
+      "en": "You'll just now will see that there are many many other applications that, even though it's called the multi arm bandit problem it's actually used to",
+      "zh": "等一下會看到，還有很多其他應用，即使叫多臂吃角子老虎問題，其實也用來"
+    },
+    {
+      "start": 335.49,
+      "end": 338.07,
+      "en": "solve any many other problems as well.",
+      "zh": "解決許多別的問題。"
+    },
+    {
+      "start": 338.07,
+      "end": 342.6,
+      "en": "So basically here you're faced with challenge, you've got five of these machines, right?",
+      "zh": "基本上，你面對五台機器的挑戰。"
+    },
+    {
+      "start": 342.6,
+      "end": 352.34000000000003,
+      "en": "And how do you actually play them to maximize your return um from the, the number of games that you can actually play?",
+      "zh": "要怎麼玩，才能在可玩的次數中，讓報酬最大？"
+    },
+    {
+      "start": 352.35,
+      "end": 358.77,
+      "en": "So you've, you know, you decided you're gonna play, you know, a hundred times or a thousand times um and you wanna maximize your return.",
+      "zh": "假設決定玩一百次或一千次，希望報酬最大。"
+    },
+    {
+      "start": 358.77,
+      "end": 364.05,
+      "en": "How do you figure out which ones of them to play in order to maximize your returns?",
+      "zh": "該如何找出要玩哪些機器，才能達到這個目標？"
+    },
+    {
+      "start": 364.05,
+      "end": 372.69,
+      "en": "Well, the problem, to describe the problem in more detail we've got to mention that the assumption here is that",
+      "zh": "更詳細說明，要提到這裡的假設是，"
+    },
+    {
+      "start": 372.69,
+      "end": 376.83,
+      "en": "each one of these machines has a distribution behind it.",
+      "zh": "每台機器背後各有一個分布。"
+    },
+    {
+      "start": 376.83,
+      "end": 384.81,
+      "en": "So there's a distribution of numbers out of which or outcomes out of which the machine picks results, right?",
+      "zh": "有一個數字或結果的分布，機器從中選出結果。"
+    },
+    {
+      "start": 384.81,
+      "end": 393.87,
+      "en": "So it has, it has, like each one of these machines has its own distribution and it picks out a result; you, you pull the trigger and, and it just picks out randomly",
+      "zh": "每台都有自己的分布，會選一個結果；你拉把手，它就從自己的分布中隨機"
+    },
+    {
+      "start": 393.87,
+      "end": 396.24,
+      "en": "out of its distribution a result, an outcome.",
+      "zh": "挑出一個結果。"
+    },
+    {
+      "start": 396.24,
+      "end": 403.86,
+      "en": "You know, we are, whether you win or whether you lose and how much you win and how much you lose, or basically you lose the same amount you just put in the coin.",
+      "zh": "決定你贏或輸、贏多少、輸多少；基本上輸的都一樣，就是投入的硬幣。"
+    },
+    {
+      "start": 403.86,
+      "end": 409.98,
+      "en": "But basically it tells you whether you win/lose based on the distribution that's built into the machine.",
+      "zh": "總之，根據內建分布決定輸贏。"
+    },
+    {
+      "start": 409.98,
+      "end": 413.76,
+      "en": "But the problem here is that you don't know these distributions, right?",
+      "zh": "問題是，你不知道這些分布。"
+    },
+    {
+      "start": 413.76,
+      "end": 419.489,
+      "en": "You don't know in advance what the distributions are and they are assumed to be different for these machines.",
+      "zh": "事先不知道，而且假設各台機器的分布不同。"
+    },
+    {
+      "start": 419.489,
+      "end": 425.253,
+      "en": "Sometimes it can be similar or the same in some of the machines, but by, by default they are different.",
+      "zh": "有些可能類似或相同，但原則上不同。"
+    },
+    {
+      "start": 426.09,
+      "end": 432.87,
+      "en": "And your goal is to figure out which of these distributions is the best one for you.",
+      "zh": "目標是找出哪個分布對你最有利。"
+    },
+    {
+      "start": 432.87,
+      "end": 434.67,
+      "en": "So let's have a look.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 434.67,
+      "end": 436.68,
+      "en": "So there are these distributions, right?",
+      "zh": "這就是那些分布。"
+    },
+    {
+      "start": 436.68,
+      "end": 447.272,
+      "en": "So for example we've got these five machines, the five distributions and as you can see right away, but just by looking at this which is the best machine right away, obviously the one",
+      "zh": "例如五台機器、五個分布，光看就能馬上知道哪台最好，顯然"
+    },
+    {
+      "start": 447.272,
+      "end": 456.96,
+      "en": "on the right, the orange one is the best machine because it's got the best, you know it's the most left skewed: left skewed because it tails on the left.",
+      "zh": "右邊橘色最好，因為它最偏左，尾巴在左邊，所以叫左偏。"
+    },
+    {
+      "start": 456.96,
+      "end": 461.37,
+      "en": "So it's, it's got the most favorable outcomes it's got the highest mean, median and mode.",
+      "zh": "它有最有利的結果，平均數、中位數和眾數最高。"
+    },
+    {
+      "start": 461.37,
+      "end": 471.75,
+      "en": "And you, if, if you knew these distributions in advance you would obviously just go to the fifth machine and you would bet on the fifth machine, just on the fifth machine all the time",
+      "zh": "如果事先知道分布，當然直接選第五台，一直只在第五台下注，"
+    },
+    {
+      "start": 471.75,
+      "end": 474.54,
+      "en": "because it's got the best distribution, right?",
+      "zh": "因為它分布最好，對吧？"
+    },
+    {
+      "start": 474.54,
+      "end": 477.09000000000003,
+      "en": "So on average you would get the best results.",
+      "zh": "平均而言會得到最佳結果。"
+    },
+    {
+      "start": 477.09000000000003,
+      "end": 485.37,
+      "en": "But you don't know that, you don't know that in advance, and your goal is to figure out, you know, it's, it's like a, it's like a mind game.",
+      "zh": "但事先不知道，你的目標是找出來，有點像智力遊戲。"
+    },
+    {
+      "start": 485.37,
+      "end": 495.21,
+      "en": "You know how there's all these movies about machine learning and really cool or cool mathematics and how they're using, they're cool, really good movie",
+      "zh": "就像那些講機器學習或很酷數學的電影，如何運用它們；有部很好的電影，"
+    },
+    {
+      "start": 495.21,
+      "end": 503.82,
+      "en": "was um \"Imitation Game\" right? About Alan Turing and, and and how he was solving the Enigma and so on.",
+      "zh": "《模仿遊戲》，談 Alan Turing 如何破解 Enigma 等等。"
+    },
+    {
+      "start": 503.82,
+      "end": 513.81,
+      "en": "But similar kind of concept, you don't know which one of these is the best, you gotta figure it out, but at the same time you are already spending your money doing this, right?",
+      "zh": "這是類似概念，你不知道哪個最好，必須找出來，但同時已經在花錢。"
+    },
+    {
+      "start": 513.81,
+      "end": 519,
+      "en": "You can't just, you know the longer you take to figure it out, there's a trade off, right?",
+      "zh": "不能只是一直找，找越久，就有取捨。"
+    },
+    {
+      "start": 519,
+      "end": 528.919,
+      "en": "The longer you take to figure it out the more money you will probably spend on the wrong ones and therefore you have to figure out very quickly.",
+      "zh": "找得越久，可能在錯的機器上花越多錢，所以必須很快找出來。"
+    },
+    {
+      "start": 528.919,
+      "end": 533.16,
+      "en": "So there are these two factors that are in play: exploration and exploitation.",
+      "zh": "因此有兩個因素：探索與利用。"
+    },
+    {
+      "start": 533.16,
+      "end": 538.98,
+      "en": "So you need to explore the machines to find out which one of them is the best one.",
+      "zh": "要探索機器，找出哪台最好。"
+    },
+    {
+      "start": 538.98,
+      "end": 549.27,
+      "en": "And at the same time, you need to, as soon as you can already start exploiting, exploiting these machines exploiting your findings to make the maximum return.",
+      "zh": "同時，必須盡快開始利用機器、利用發現，取得最大報酬。"
+    },
+    {
+      "start": 549.27,
+      "end": 555.09,
+      "en": "So basically, and and there's another mathematical constant find behind all of this, which is called regret.",
+      "zh": "這背後還有另一個數學概念，叫做遺憾值。"
+    },
+    {
+      "start": 555.09,
+      "end": 564.09,
+      "en": "And regret is like, is mathematically defined, and if you wanna read more about this, there's a there's a really good white paper on it it's called \"Using Confidence Balance",
+      "zh": "遺憾值有數學定義；若想深入讀，有一篇很好的論文，叫「Using Confidence Bounds"
+    },
+    {
+      "start": 564.09,
+      "end": 567.18,
+      "en": "for Exploitation and Exploration of trade offs.\"",
+      "zh": "for Exploitation-Exploration Trade-offs」。"
+    },
+    {
+      "start": 567.18,
+      "end": 575.853,
+      "en": "And it is by: Peter Auer or A-U-E-R from Graz University of Technology in Austria.",
+      "zh": "作者 Peter Auer，A-U-E-R，來自奧地利格拉茨科技大學。"
+    },
+    {
+      "start": 576.84,
+      "end": 585.57,
+      "en": "Really like the white paper, it goes into a lot of detail like I didn't even read the whole thing but the first couple of chapters are pretty good, If you wanna go into detail.",
+      "zh": "我很喜歡這篇論文，內容很詳細；雖然沒全看完，但前幾章很不錯，想深入可以看。"
+    },
+    {
+      "start": 585.57,
+      "end": 594.81,
+      "en": "But basically regret is, is when, is suffered when you're using non, non alternative, not optimal method right?",
+      "zh": "基本上，使用非最佳方法時，就會產生遺憾。"
+    },
+    {
+      "start": 594.81,
+      "end": 600.87,
+      "en": "So the one on the right is the optimal or the one on the right is the optimal machine.",
+      "zh": "右邊這台是最佳機器。"
+    },
+    {
+      "start": 600.87,
+      "end": 610.634,
+      "en": "Whenever you're using the non-optimal machine you have a regret, which, which can be quantified as like as the difference between the best outcome",
+      "zh": "每次使用非最佳機器，就有遺憾值，可以量化為最佳結果"
+    },
+    {
+      "start": 610.86,
+      "end": 620.82,
+      "en": "and the non-best outcome and the, you know, all of those sums of the money that you put like, your opportunity cost of actually exploring the other machines.",
+      "zh": "與非最佳結果的差異，以及投入金額的總和，也就是探索其他機器的機會成本。"
+    },
+    {
+      "start": 620.82,
+      "end": 632.28,
+      "en": "And so the longer you explore the non-optimal machines that higher the regret, but at the same time if you don't explore for long enough, right if you explore, if you don't explore for long enough",
+      "zh": "探索非最佳機器越久，遺憾值越高；但同時，若探索時間不夠，"
+    },
+    {
+      "start": 632.28,
+      "end": 638.37,
+      "en": "then you're, and a suboptimal machine might come might appear as an optimal machine.",
+      "zh": "次佳機器可能看起來像最佳。"
+    },
+    {
+      "start": 638.37,
+      "end": 647.85,
+      "en": "So for instance, this machine over here, right, So if we explore, explore, explore but we don't spend enough time exploring we might think that this is the best machine",
+      "zh": "例如這台，如果探索、探索、探索，但花的時間不夠，可能以為它最好，"
+    },
+    {
+      "start": 647.85,
+      "end": 649.32,
+      "en": "because it's got quite a good return right?",
+      "zh": "因為報酬相當不錯。"
+    },
+    {
+      "start": 649.32,
+      "end": 656.43,
+      "en": "Close to this one, and we might start exploiting this one for the rest of the time, but then in reality we this one was the best one.",
+      "zh": "和這台接近，就可能剩下時間都利用它，但實際上這台才最好。"
+    },
+    {
+      "start": 656.43,
+      "end": 666.6,
+      "en": "So the, the goal is to find the best one and exploit the best one, but spend the me the least amount of time exploring all of them, right?",
+      "zh": "所以目標是找出最佳並利用它，同時用最少時間探索所有機器。"
+    },
+    {
+      "start": 666.6,
+      "end": 670.8,
+      "en": "And while you're exploring, you're still earning money but not from the optimal machine, right?",
+      "zh": "探索時仍然在賺錢，只是不是來自最佳機器。"
+    },
+    {
+      "start": 670.8,
+      "end": 674.22,
+      "en": "So that's the goal, that's the point of this whole exercise.",
+      "zh": "這就是整個練習的目標與意義。"
+    },
+    {
+      "start": 674.22,
+      "end": 678.33,
+      "en": "And it's important to understand here that there is the best one.",
+      "zh": "這裡必須了解，確實有一台是最好的。"
+    },
+    {
+      "start": 678.33,
+      "end": 688.08,
+      "en": "So that we're, even though these machines, you know they have like jackpots sometimes and so on but we are assuming that there's just",
+      "zh": "雖然這些機器有時會有大獎之類，但我們假設"
+    },
+    {
+      "start": 688.08,
+      "end": 695.13,
+      "en": "that's these distributions are finite they're, and out of them there's a best one that you are looking for.",
+      "zh": "這些分布有限，而且其中有一個最好，是你要找的。"
+    },
+    {
+      "start": 695.13,
+      "end": 699.533,
+      "en": "That's kind of the pre-emphasis, of the whole assumption of this problem.",
+      "zh": "這是整個問題假設的前提。"
+    },
+    {
+      "start": 699.533,
+      "end": 710.1,
+      "en": "If there are, there are more complex options and versions of this problem, and again check out some additional reading on that topic, that's",
+      "zh": "這個問題還有更複雜的選項與版本，可以再讀其他資料，"
+    },
+    {
+      "start": 710.1,
+      "end": 716.76,
+      "en": "that's more even more advanced, But what we are going to be using this for is that's gonna be sufficient and why is that gonna be sufficient for us?",
+      "zh": "那更進階；但目前用途這樣已經足夠。為什麼？"
+    },
+    {
+      "start": 716.76,
+      "end": 726.814,
+      "en": "Because the most common modern application of this that we can think of, and the one that we're going to be exploring is advertising Voya.",
+      "zh": "因為最常見、我們也將探索的現代應用，就是廣告投資報酬率。"
+    },
+    {
+      "start": 726.814,
+      "end": 729.84,
+      "en": "So let's have a look at some ads. This is gonna be fun.",
+      "zh": "看一些廣告，會很有趣。"
+    },
+    {
+      "start": 729.84,
+      "end": 735.919,
+      "en": "So just a a disclaimer, this there's no affiliation of Coca-Cola, examples are used just for educational purposes, alright?",
+      "zh": "先聲明，與可口可樂沒有任何關係，例子純粹用於教學。"
+    },
+    {
+      "start": 735.919,
+      "end": 737.202,
+      "en": "So let's have a look.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 737.202,
+      "end": 748.26,
+      "en": "We have, let's say Coca-Cola or some company wants to run a campaign and it's gonna be called \"Welcome to the Coke Side of Life\" campaign.",
+      "zh": "假設可口可樂或某公司想做一個活動，叫「Welcome to the Coke Side of Life」。"
+    },
+    {
+      "start": 748.26,
+      "end": 755.49,
+      "en": "And if you search for this campaign online you'll see that they had, you know, hundreds of different ads that they came up with for this campaign.",
+      "zh": "網上搜尋這個活動，會看到他們為它設計了數百種不同廣告。"
+    },
+    {
+      "start": 755.49,
+      "end": 766.264,
+      "en": "And here's, here's one example of them where these are just some images I pulled from Google so maybe these are even drawn by people but we're going to assume that these are legitimate ads that were going to go",
+      "zh": "這裡是一些例子，只是從 Google 找來的圖片，也許是網友畫的，但先假設是要放進"
+    },
+    {
+      "start": 766.264,
+      "end": 767.667,
+      "en": "into the campaign.",
+      "zh": "活動的正式廣告。"
+    },
+    {
+      "start": 767.667,
+      "end": 771.42,
+      "en": "And so we wanna find out which is the best ad which is the ad that works best.",
+      "zh": "想知道哪個最好、效果最好。"
+    },
+    {
+      "start": 771.42,
+      "end": 777.54,
+      "en": "So we've got options, number one, number two number three, number four, and number five.",
+      "zh": "有選項一、二、三、四、五。"
+    },
+    {
+      "start": 777.54,
+      "end": 785.97,
+      "en": "And so now our goal is to find out which ad works the best or maximize our returns but right now we don't know which ads worked the best right?",
+      "zh": "現在目標是找出哪個廣告效果最好，或最大化報酬，但目前不知道哪個最好。"
+    },
+    {
+      "start": 785.97,
+      "end": 796.11,
+      "en": "So there's no, there is a distribution behind it but that distribution will only become known after thousands and thousands and thousands of people look",
+      "zh": "背後有個分布，但必須等成千上萬人看到"
+    },
+    {
+      "start": 796.11,
+      "end": 798.36,
+      "en": "at these ads and click or not click on these ads.",
+      "zh": "廣告、點擊或不點擊，才知道。"
+    },
+    {
+      "start": 798.36,
+      "end": 801.93,
+      "en": "And this is actually gonna be very similar to the example that we're going to be looking at.",
+      "zh": "這和接下來的範例很相似。"
+    },
+    {
+      "start": 801.93,
+      "end": 806.13,
+      "en": "The example that Hudlan is going to be walking you through in the programming tutorials.",
+      "zh": "也就是 Hadelin 在程式教學帶你做的例子。"
+    },
+    {
+      "start": 806.13,
+      "end": 809.22,
+      "en": "In that example we're actually gonna have 10 ads, so even more.",
+      "zh": "那個例子有十個廣告，更多。"
+    },
+    {
+      "start": 809.22,
+      "end": 811.23,
+      "en": "And so the, what, what can you do here?",
+      "zh": "這裡可以怎麼做？"
+    },
+    {
+      "start": 811.23,
+      "end": 814.56,
+      "en": "Well, one way to approach a problem is just run an AB test, right?",
+      "zh": "一個方法是跑 A/B 測試。"
+    },
+    {
+      "start": 814.56,
+      "end": 822.381,
+      "en": "So take your five, or 50, or 500 ads and run a huge AB test with or multiple AB test",
+      "zh": "取五個、五十個或五百個廣告，做一個大型 A/B 測試，或多個測試，"
+    },
+    {
+      "start": 822.381,
+      "end": 833.28,
+      "en": "and wait until you have enough of a large enough sample and then conclude which ad is the best right? With, with certain confidence.",
+      "zh": "等樣本夠大，再以一定信心判斷哪個廣告最好。"
+    },
+    {
+      "start": 833.28,
+      "end": 839.79,
+      "en": "But the problem with that is that you would spend a lot of time and money doing that, right?",
+      "zh": "問題是，這會花很多時間和錢。"
+    },
+    {
+      "start": 839.79,
+      "end": 842.82,
+      "en": "So an AB test is pure exploration, right?",
+      "zh": "A/B 測試是純探索。"
+    },
+    {
+      "start": 842.82,
+      "end": 850.47,
+      "en": "You're not exploiting the best option you are exploiting the best option, but to the same extent as you're exploiting the non-optimal options, right?",
+      "zh": "你沒有利用最佳選項；有利用，但程度和非最佳選項一樣。"
+    },
+    {
+      "start": 850.47,
+      "end": 860.97,
+      "en": "So if, if we go by our previous distributions if this is the best one, if you're just run an AB test then you are uniformly distributing or you uniformly using these five options",
+      "zh": "依先前分布，如果這個最好，只做 A/B 測試，就是平均分配、平均使用這五個選項，"
+    },
+    {
+      "start": 860.97,
+      "end": 865.47,
+      "en": "and therefore as much as you're using this one you're not using all four, all four of them.",
+      "zh": "因此用這個的同時，也在用其他四個。"
+    },
+    {
+      "start": 865.47,
+      "end": 867.51,
+      "en": "So basically all, all five of them.",
+      "zh": "基本上五個都用。"
+    },
+    {
+      "start": 867.51,
+      "end": 878.43,
+      "en": "So basically you are exploiting it a bit but un-unconsciously, right, in a random way and therefore AB tests are just for exploration.",
+      "zh": "其實有利用一點，但不是有意識地，而是隨機地，因此 A/B 測試只是探索。"
+    },
+    {
+      "start": 878.43,
+      "end": 889.74,
+      "en": "So the, the challenge is to find out which is the best one but do it while you are explore, while you're, no, to exploit the best one while you are",
+      "zh": "挑戰是找出最好，同時在探索……不，是在"
+    },
+    {
+      "start": 889.74,
+      "end": 891.75,
+      "en": "exploring for it, right?",
+      "zh": "尋找它的同時，利用最佳選項。"
+    },
+    {
+      "start": 891.75,
+      "end": 895.653,
+      "en": "So find out which of them is the best one in the process of,",
+      "zh": "在這個過程中找出哪個最好，"
+    },
+    {
+      "start": 897.81,
+      "end": 903.21,
+      "en": "hold on, find-find out which is the best one in the process of the actual launch campaign.",
+      "zh": "等一下，是在實際上線的活動中找出哪個最好。"
+    },
+    {
+      "start": 903.21,
+      "end": 914.25,
+      "en": "So not, don't have two phases, yeah, do the AB test and then use the most, the best one but actually find out the best one in the quickest way possible and start exploiting it along the way.",
+      "zh": "不要分成先 A/B 測試、再使用最佳選項兩個階段，而是盡快找出最佳，過程中就開始利用。"
+    },
+    {
+      "start": 914.25,
+      "end": 922.77,
+      "en": "So that's the challenge here and that's what we're going to be solving and that's the modern application of the multi-armed bandit problem.",
+      "zh": "這就是挑戰，也是要解的問題，這是多臂吃角子老虎問題的現代應用。"
+    },
+    {
+      "start": 922.77,
+      "end": 924.6,
+      "en": "So hopefully you're excited about this.",
+      "zh": "希望你覺得很期待。"
+    },
+    {
+      "start": 924.6,
+      "end": 927.03,
+      "en": "We've got two great algorithms coming up.",
+      "zh": "接下來有兩個很棒的演算法。"
+    },
+    {
+      "start": 927.03,
+      "end": 933.303,
+      "en": "I can't wait to get started, I look forward to seeing you the next tutorial and until then, enjoy machine learning.",
+      "zh": "迫不及待要開始了，期待下一堂再見，在那之前，祝你享受機器學習的樂趣。"
+    }
+  ]
+}

@@ -1,0 +1,847 @@
+{
+  "courseId": "950390",
+  "lectureId": "56077215",
+  "title": "XGBoost for Regression",
+  "section": 46,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "1453b18859f00b02d2262519e36811a1312b6db97b0ac6fb292924e977d8c29b",
+  "cues": [
+    {
+      "start": 0.27,
+      "end": 1.41,
+      "en": "Hello, and welcome back.",
+      "zh": "你好，歡迎回來。"
+    },
+    {
+      "start": 1.41,
+      "end": 5.88,
+      "en": "Today we are talking about XGBoost, or eXtreme Gradient Boosting.",
+      "zh": "今天談 XGBoost，eXtreme Gradient Boosting。"
+    },
+    {
+      "start": 5.88,
+      "end": 17.67,
+      "en": "Now, quick heads-up, this tutorial will be a bit more technical than the other ones, so feel free to skip it if you don't want to go into this much level of technicalities.",
+      "zh": "先提醒，這堂比其他更技術性，不想深入這麼多細節，可以略過。"
+    },
+    {
+      "start": 17.67,
+      "end": 20.85,
+      "en": "But otherwise, here we go. Let's have some fun.",
+      "zh": "不然就開始，開心學習。"
+    },
+    {
+      "start": 20.85,
+      "end": 26.04,
+      "en": "All right, so here is our original data and our residuals as we discussed previously.",
+      "zh": "這是之前談的原始資料與殘差。"
+    },
+    {
+      "start": 26.04,
+      "end": 32.28,
+      "en": "Now, what we're going to talk about is once we have these residuals, so this original data was our first model, right?",
+      "zh": "現在要討論，有了這些殘差之後怎麼辦。原始資料套用第一個模型，對吧？"
+    },
+    {
+      "start": 32.28,
+      "end": 39.9,
+      "en": "So that's where we started this original data, we applied the 0.54, which is average, then we got these residuals.",
+      "zh": "從原始資料開始，用平均值 0.54，再得到這些殘差。"
+    },
+    {
+      "start": 39.9,
+      "end": 45.78,
+      "en": "Then we're taking these residuals and we're applying our second model, which is a decision tree.",
+      "zh": "取殘差，套用第二個模型，也就是決策樹。"
+    },
+    {
+      "start": 45.78,
+      "end": 53.73,
+      "en": "Now, the question that we're going to be answering today is how does the model know where to put these lines, how to split the data?",
+      "zh": "今天要回答：模型如何知道這些線放哪裡、怎麼分割資料？"
+    },
+    {
+      "start": 53.73,
+      "end": 60.81,
+      "en": "And of course, we're talking about, just as a side note, we're talking about a very simplistic example with one independent variable.",
+      "zh": "順帶提醒，這是非常簡化、只有一個自變數的例子。"
+    },
+    {
+      "start": 60.81,
+      "end": 63.96,
+      "en": "So it looks like this, it's very easy to visualize.",
+      "zh": "所以長這樣，很容易視覺化。"
+    },
+    {
+      "start": 63.96,
+      "end": 69.03,
+      "en": "In reality, of course, there's many, many more independent variables, and the process is more sophisticated.",
+      "zh": "真實情況有更多自變數，流程更複雜。"
+    },
+    {
+      "start": 69.03,
+      "end": 72.72,
+      "en": "But for illustration purposes, we're going to stick to one independent variable.",
+      "zh": "為了說明，先只用一個自變數。"
+    },
+    {
+      "start": 72.72,
+      "end": 77.07,
+      "en": "So how does the model know where to put these lines?",
+      "zh": "模型如何決定線的位置？"
+    },
+    {
+      "start": 77.07,
+      "end": 82.02,
+      "en": "How to split this decision tree, how to split it into leaves?",
+      "zh": "如何分割決策樹、分成葉節點？"
+    },
+    {
+      "start": 82.02,
+      "end": 91.23,
+      "en": "And the interesting thing is that XGBoost doesn't apply your typical decision tree, just your standard decision tree algorithm of its standard process",
+      "zh": "有趣的是，XGBoost 不直接套用一般決策樹的標準演算法與流程，"
+    },
+    {
+      "start": 91.23,
+      "end": 96.03,
+      "en": "where it actually has its own very special type of decision tree.",
+      "zh": "而有自己的特殊決策樹做法。"
+    },
+    {
+      "start": 96.03,
+      "end": 97.22999999999999,
+      "en": "And we're gonna talk about that.",
+      "zh": "會談到這點。"
+    },
+    {
+      "start": 97.22999999999999,
+      "end": 105.96000000000001,
+      "en": "So the first thing that needs to be done is even before these lines are applied, we need to take all of these values that we have and we need to calculate the similarity score.",
+      "zh": "首先，甚至還沒畫這些線前，要取全部值，算相似度分數。"
+    },
+    {
+      "start": 105.96000000000001,
+      "end": 111.45,
+      "en": "And there's gonna be a similarity score of the root, because that's before we apply the lines, right?",
+      "zh": "是根節點的相似度，因為還沒分割。"
+    },
+    {
+      "start": 111.45,
+      "end": 115.47,
+      "en": "So this is called the root part for this level.",
+      "zh": "這一層稱為根節點。"
+    },
+    {
+      "start": 115.47,
+      "end": 118.95,
+      "en": "And the similarity score is calculated as the sum of all the residuals.",
+      "zh": "相似度計算先把所有殘差相加。"
+    },
+    {
+      "start": 118.95,
+      "end": 123.48,
+      "en": "So you take all of these values that you have and you square them.",
+      "zh": "再將總和平方。"
+    },
+    {
+      "start": 123.48,
+      "end": 125.52,
+      "en": "So this is very important.",
+      "zh": "這點很重要。"
+    },
+    {
+      "start": 125.52,
+      "end": 129.24,
+      "en": "You apply the squaring after you take the sum.",
+      "zh": "先加總，再平方。"
+    },
+    {
+      "start": 129.24,
+      "end": 131.04,
+      "en": "So some of them will cancel each other out.",
+      "zh": "所以部分值會互相抵消。"
+    },
+    {
+      "start": 131.04,
+      "end": 133.943,
+      "en": "So these ones are above zero, these ones are below zero, these ones are above zero.",
+      "zh": "這些大於 0，這些小於 0，這些又大於 0。"
+    },
+    {
+      "start": 133.943,
+      "end": 136.29,
+      "en": "So some of them will cancel each other out.",
+      "zh": "部分會抵消。"
+    },
+    {
+      "start": 136.29,
+      "end": 140.7,
+      "en": "You square it and then you divide by the number of residuals total and you add lambda.",
+      "zh": "平方後，除以殘差總數加 lambda。"
+    },
+    {
+      "start": 140.7,
+      "end": 147.93,
+      "en": "So now lambda, quick note oN lambda, this is a regularization parameter to prevent overfitting.",
+      "zh": "補充 lambda，它是防止過度擬合的正規化參數。"
+    },
+    {
+      "start": 147.93,
+      "end": 151.35,
+      "en": "This is something that you can hyper-tune in your model.",
+      "zh": "可以調校這個超參數。"
+    },
+    {
+      "start": 151.35,
+      "end": 154.5,
+      "en": "For illustration purposes, we're going to keep lambda at zero.",
+      "zh": "為了說明，先設 lambda 為 0。"
+    },
+    {
+      "start": 154.5,
+      "end": 161.52,
+      "en": "But again, you'll be able to hyper-tune it in the hands-on when you're doing the hands-on if you like.",
+      "zh": "想的話，實作時可以調校。"
+    },
+    {
+      "start": 161.52,
+      "end": 171.39,
+      "en": "And let's say for example, without going into too much mathematical detail and like just doing all the calculations, let's say that all of this similarity score",
+      "zh": "不深入數學細節與全部計算，假設這些值算出的相似度分數，"
+    },
+    {
+      "start": 171.39,
+      "end": 176.37,
+      "en": "is equal to 16 for all of these values, let's say for argument's sake.",
+      "zh": "為了說明，就假設是 16。"
+    },
+    {
+      "start": 176.37,
+      "end": 177.87,
+      "en": "Now, what happens next?",
+      "zh": "下一步？"
+    },
+    {
+      "start": 177.87,
+      "end": 186.39,
+      "en": "Well, we need to calculate similarity scores for, like, basically we need to, yeah, calculate similarity scores for hypothetical branches.",
+      "zh": "需要計算假設分支的相似度分數。"
+    },
+    {
+      "start": 186.39,
+      "end": 189.54,
+      "en": "So let's say this is our original data, right?",
+      "zh": "假設這是原始資料。"
+    },
+    {
+      "start": 189.54,
+      "end": 193.68,
+      "en": "And we already know the similarity score of the root of all of these values is 16.",
+      "zh": "已知根節點全部值的相似度為 16。"
+    },
+    {
+      "start": 193.68,
+      "end": 196.26,
+      "en": "Now, the question is, where do we put this first split, right?",
+      "zh": "問題是第一個切分放哪裡？"
+    },
+    {
+      "start": 196.26,
+      "end": 198.84,
+      "en": "So we have two splits, we're gonna start one by one.",
+      "zh": "最後會有兩個切分，一次來一個。"
+    },
+    {
+      "start": 198.84,
+      "end": 200.37,
+      "en": "So where would we put the first split?",
+      "zh": "第一個放哪？"
+    },
+    {
+      "start": 200.37,
+      "end": 203.61,
+      "en": "Well, let's say we put it here, randomly, put it over here.",
+      "zh": "假設隨意放這裡。"
+    },
+    {
+      "start": 203.61,
+      "end": 207,
+      "en": "What will the similarity score of each one of these leaves be?",
+      "zh": "兩個葉節點的相似度各是多少？"
+    },
+    {
+      "start": 207,
+      "end": 211.8,
+      "en": "So the left leaf, again, we would apply this same formula, but just to the values in here.",
+      "zh": "左葉用同樣公式，但只算這裡的值。"
+    },
+    {
+      "start": 211.8,
+      "end": 214.47,
+      "en": "And then for the right leaf, we would apply the same formula to the values in here.",
+      "zh": "右葉也用同樣公式，算這裡的值。"
+    },
+    {
+      "start": 214.47,
+      "end": 219.03,
+      "en": "And again, some of them would cancel each other out because some are below zero and some are above zero.",
+      "zh": "同樣有部分抵消，因為有正有負。"
+    },
+    {
+      "start": 219.03,
+      "end": 222.18,
+      "en": "So we get the similarity for the left and similarity for the right.",
+      "zh": "得到左、右相似度。"
+    },
+    {
+      "start": 222.18,
+      "end": 224.97,
+      "en": "And then we need to calculate something called the gain.",
+      "zh": "接著算所謂增益。"
+    },
+    {
+      "start": 224.97,
+      "end": 228,
+      "en": "And the gain is basically, how much better are we?",
+      "zh": "基本上就是變好多少。"
+    },
+    {
+      "start": 228,
+      "end": 232.92000000000002,
+      "en": "How much are we better off by having this split compared to how we were before?",
+      "zh": "和分割前相比，這個分割改善多少？"
+    },
+    {
+      "start": 232.92000000000002,
+      "end": 235.53,
+      "en": "So previously the similarity was 16.",
+      "zh": "原先相似度 16。"
+    },
+    {
+      "start": 235.53,
+      "end": 241.35,
+      "en": "Now we're going to take the sum of the similarities of the left and right and subtract that original similarity.",
+      "zh": "現在左、右相似度相加，再減原本相似度。"
+    },
+    {
+      "start": 241.35,
+      "end": 243.9,
+      "en": "So in this case, 43 plus 120.",
+      "zh": "這裡是 43 加 120。"
+    },
+    {
+      "start": 243.9,
+      "end": 246.783,
+      "en": "Well, one of these numbers is incorrect.",
+      "zh": "喔，其中一個數字不對。"
+    },
+    {
+      "start": 247.62,
+      "end": 250.26,
+      "en": "Anyway, so it should be, let's see what it should be.",
+      "zh": "看看應該是多少。"
+    },
+    {
+      "start": 250.26,
+      "end": 252.6,
+      "en": "So it should be 123 over here. So that's my bad.",
+      "zh": "這裡應該是 123，是我寫錯。"
+    },
+    {
+      "start": 252.6,
+      "end": 254.223,
+      "en": "We should have 123 over here.",
+      "zh": "應該是 123。"
+    },
+    {
+      "start": 255.36,
+      "end": 262.173,
+      "en": "So we add that 43 plus 123 minus 16, and we get our 150 value.",
+      "zh": "所以 43 + 123 - 16 = 150。"
+    },
+    {
+      "start": 263.16,
+      "end": 266.16,
+      "en": "So that's our gain if we split like this.",
+      "zh": "這樣分割的增益就是 150。"
+    },
+    {
+      "start": 266.16,
+      "end": 267.33,
+      "en": "But what if we split it differently?",
+      "zh": "換別種分割呢？"
+    },
+    {
+      "start": 267.33,
+      "end": 268.89,
+      "en": "What if we split it like this?",
+      "zh": "像這樣切呢？"
+    },
+    {
+      "start": 268.89,
+      "end": 272.4,
+      "en": "What will the similarity score be on the left and right?",
+      "zh": "左右相似度是多少？"
+    },
+    {
+      "start": 272.4,
+      "end": 273.233,
+      "en": "There they are.",
+      "zh": "就是這些。"
+    },
+    {
+      "start": 273.233,
+      "end": 274.06600000000003,
+      "en": "What will the gain be?",
+      "zh": "增益是多少？"
+    },
+    {
+      "start": 274.06600000000003,
+      "end": 275.58,
+      "en": "That's what the gain will be.",
+      "zh": "就是這個。"
+    },
+    {
+      "start": 275.58,
+      "end": 281.46,
+      "en": "And again, if, let's say we take a different split over here, what will the similarity score be on the left and right?",
+      "zh": "再換一個切分位置，左右相似度是多少？"
+    },
+    {
+      "start": 281.46,
+      "end": 284.07,
+      "en": "There we go. Gain, that's our gain.",
+      "zh": "就在這裡，這是增益。"
+    },
+    {
+      "start": 284.07,
+      "end": 286.293,
+      "en": "So here we can see the highest gain.",
+      "zh": "可以看到這裡增益最高。"
+    },
+    {
+      "start": 287.13,
+      "end": 296.85,
+      "en": "So meaning that this split results in most similarity here plus here, and it's the highest compared to the original similarity of 16.",
+      "zh": "也就是這個分割的左右相似度總和，相對原本 16，改善最大。"
+    },
+    {
+      "start": 296.85,
+      "end": 300.51,
+      "en": "So out of all the splits, we've got the biggest gain here that's the largest gain.",
+      "zh": "所有分割裡，這裡增益最大。"
+    },
+    {
+      "start": 300.51,
+      "end": 303.33,
+      "en": "So that means that's the best split and that's the one we'll keep.",
+      "zh": "所以這是最佳切分，保留它。"
+    },
+    {
+      "start": 303.33,
+      "end": 308.763,
+      "en": "Now, naturally, you'll probably have a question of how do we even choose these random locations?",
+      "zh": "自然會問，一開始怎麼選這些隨機位置？"
+    },
+    {
+      "start": 309.66,
+      "end": 312.42,
+      "en": "Why here? Why not a bit to the right, a bit to the left?",
+      "zh": "為什麼這裡，不是左一點、右一點？"
+    },
+    {
+      "start": 312.42,
+      "end": 320.96,
+      "en": "There's a separate algorithm that takes care of that, that looks at like quantiles",
+      "zh": "有另外的演算法處理，會看分位數，"
+    },
+    {
+      "start": 321.24,
+      "end": 327.12,
+      "en": "or breaks down the dataset into parts and then does this iteratively.",
+      "zh": "或將資料集分部分，再迭代。"
+    },
+    {
+      "start": 327.12,
+      "end": 337.83,
+      "en": "We're not gonna go into detail on that, but just keep in mind that there is an optimized way of looking for these splits without having to check all the possible positions",
+      "zh": "不深入，但記得有最佳化方式搜尋，不需要檢查所有可能位置，"
+    },
+    {
+      "start": 337.83,
+      "end": 339.63,
+      "en": "like millions and millions of positions.",
+      "zh": "例如數百萬個位置。"
+    },
+    {
+      "start": 339.63,
+      "end": 345.81,
+      "en": "It does that with in discretized way with a discreet kind of step.",
+      "zh": "會以離散方式、特定步長進行。"
+    },
+    {
+      "start": 345.81,
+      "end": 347.22,
+      "en": "But again, we're not gonna go into that in detail.",
+      "zh": "不過不深入。"
+    },
+    {
+      "start": 347.22,
+      "end": 350.283,
+      "en": "It's a bit more technical than what we're aiming for here.",
+      "zh": "超過這堂預計的技術深度。"
+    },
+    {
+      "start": 351.21,
+      "end": 353.61,
+      "en": "So that's the largest gain. So that's the best split.",
+      "zh": "這裡增益最大，所以最佳。"
+    },
+    {
+      "start": 353.61,
+      "end": 355.23,
+      "en": "So we're gonna keep that split.",
+      "zh": "保留這個切分。"
+    },
+    {
+      "start": 355.23,
+      "end": 359.7,
+      "en": "It's at about 71% of these...",
+      "zh": "大約在這個軸的 71%。"
+    },
+    {
+      "start": 359.7,
+      "end": 361.5,
+      "en": "On this axis, it's from zero to a hundred.",
+      "zh": "軸從 0 到 100。"
+    },
+    {
+      "start": 361.5,
+      "end": 370.74,
+      "en": "Remember, in our particular dataset, it could be anything else, it could be kilograms, it could be miles, it could be time, it could be anything.",
+      "zh": "記得只是這份資料，其他可能是公斤、英里、時間，任何值。"
+    },
+    {
+      "start": 370.74,
+      "end": 372.75,
+      "en": "Basically that's the split we'll keep.",
+      "zh": "基本上保留這個切分。"
+    },
+    {
+      "start": 372.75,
+      "end": 374.67,
+      "en": "Now, what happens next?",
+      "zh": "下一步？"
+    },
+    {
+      "start": 374.67,
+      "end": 376.59,
+      "en": "So this is the second model, right?",
+      "zh": "這是第二個模型，對吧？"
+    },
+    {
+      "start": 376.59,
+      "end": 381.33,
+      "en": "So our second model that's applied to the residuals of the very first model.",
+      "zh": "套用到第一個模型殘差的第二個模型。"
+    },
+    {
+      "start": 381.33,
+      "end": 388.11,
+      "en": "So let's say for simplicity's sake that if you're on this side, then we're not gonna split it any further.",
+      "zh": "簡單起見，假設這一側不再切。"
+    },
+    {
+      "start": 388.11,
+      "end": 395.97,
+      "en": "Even though in reality it can be split many, many times, we're gonna keep it simple, we're gonna say here it's not gonna be split further, we're just gonna have one more leaf, one more split here.",
+      "zh": "實際上可以再切很多次，但先簡單，只在這裡再加一次切分。"
+    },
+    {
+      "start": 395.97,
+      "end": 397.59000000000003,
+      "en": "So two leaves on this side.",
+      "zh": "所以這一側有兩個葉節點。"
+    },
+    {
+      "start": 397.59000000000003,
+      "end": 399.27,
+      "en": "So how is that gonna look?",
+      "zh": "會長怎樣？"
+    },
+    {
+      "start": 399.27,
+      "end": 402.54,
+      "en": "Well, where exactly? Where do we split next?",
+      "zh": "究竟在哪裡再切？"
+    },
+    {
+      "start": 402.54,
+      "end": 404.22,
+      "en": "Where do you split next?",
+      "zh": "下一個切分在哪？"
+    },
+    {
+      "start": 404.22,
+      "end": 405.78,
+      "en": "Well, we're going to do the same process.",
+      "zh": "重複同樣流程。"
+    },
+    {
+      "start": 405.78,
+      "end": 409.89,
+      "en": "We're gonna assume this is the root now, and we're going to look at different splits.",
+      "zh": "將這部分視為根，找不同分割。"
+    },
+    {
+      "start": 409.89,
+      "end": 415.74,
+      "en": "So if we have this split, there's S left and S right, the gain will be calculated as minus 36.",
+      "zh": "這樣切，有 S_left、S_right，增益算出 -36。"
+    },
+    {
+      "start": 415.74,
+      "end": 416.7,
+      "en": "So it's a bad gain.",
+      "zh": "是不好增益。"
+    },
+    {
+      "start": 416.7,
+      "end": 426.3,
+      "en": "Like splitting like this is worse than leaving it as it is, because the gain is negative, right?",
+      "zh": "比不切更差，因為增益為負。"
+    },
+    {
+      "start": 426.3,
+      "end": 433.383,
+      "en": "So these two values are not as high as the similarity in the root.",
+      "zh": "兩個值加起來，不及根的相似度。"
+    },
+    {
+      "start": 434.55,
+      "end": 441.57,
+      "en": "Now, if we split somewhere else, let's say a bit more to the right, then we have the left and right gain.",
+      "zh": "換個地方，右邊一點，再算左右與增益。"
+    },
+    {
+      "start": 441.57,
+      "end": 443.37,
+      "en": "And there it is, 461.",
+      "zh": "結果 461。"
+    },
+    {
+      "start": 443.37,
+      "end": 445.77,
+      "en": "And let's say again, let's split over here.",
+      "zh": "再假設切這裡。"
+    },
+    {
+      "start": 445.77,
+      "end": 447.78,
+      "en": "What will the similarity scores be?",
+      "zh": "相似度是多少？"
+    },
+    {
+      "start": 447.78,
+      "end": 450.03,
+      "en": "There's the gain, calculated 99.",
+      "zh": "增益算出 99。"
+    },
+    {
+      "start": 450.03,
+      "end": 452.31,
+      "en": "So obviously this is the largest gain.",
+      "zh": "顯然這裡增益最大。"
+    },
+    {
+      "start": 452.31,
+      "end": 456.78,
+      "en": "And so that means that is the best split that we can have.",
+      "zh": "因此是最佳切分。"
+    },
+    {
+      "start": 456.78,
+      "end": 459.75,
+      "en": "And yeah, so we're gonna keep that one.",
+      "zh": "保留它。"
+    },
+    {
+      "start": 459.75,
+      "end": 461.61,
+      "en": "And as a result, we have these two splits.",
+      "zh": "結果有這兩個切分。"
+    },
+    {
+      "start": 461.61,
+      "end": 464.88,
+      "en": "And our model, our second model looks like this.",
+      "zh": "第二個模型就長這樣。"
+    },
+    {
+      "start": 464.88,
+      "end": 468.78,
+      "en": "Now again, we could have more splits rather than just leaving at the average.",
+      "zh": "同樣，可以繼續切，不只是停在平均。"
+    },
+    {
+      "start": 468.78,
+      "end": 471.93,
+      "en": "We could have more, and more, and more, and more splits over here and here.",
+      "zh": "這裡、這裡還能切更多次。"
+    },
+    {
+      "start": 471.93,
+      "end": 478.14,
+      "en": "And of course, it could be also not just one independent variable, but it could be on many independent variables.",
+      "zh": "也不只一個自變數，可以有很多自變數。"
+    },
+    {
+      "start": 478.14,
+      "end": 480.42,
+      "en": "But for simplicity's sake, we're going to keep it like this.",
+      "zh": "但先簡單保持這樣。"
+    },
+    {
+      "start": 480.42,
+      "end": 482.73,
+      "en": "And by the way, when does the split stop?",
+      "zh": "順帶一提，什麼時候停止切分？"
+    },
+    {
+      "start": 482.73,
+      "end": 486.18,
+      "en": "Well, there's three main times when a split would stop.",
+      "zh": "主要有三種情況。"
+    },
+    {
+      "start": 486.18,
+      "end": 496.35,
+      "en": "when we reach the maximum depth of the tree that we set, when there's no more gain in making a split, like we could see in this example over here, the gain is negative.",
+      "zh": "達到設定最大樹深，或者切分沒有增益，例如這裡是負增益。"
+    },
+    {
+      "start": 496.35,
+      "end": 501.93,
+      "en": "So if we cannot find any split that gives us a positive gain, then we're not gonna keep splitting.",
+      "zh": "找不到正增益，就不繼續切。"
+    },
+    {
+      "start": 501.93,
+      "end": 510.09,
+      "en": "And the final one, if there's just not enough dataset inside each leaf, like we can set a minimum number of datasets, or a minimum weight it's called,",
+      "zh": "最後，葉節點資料不夠，能設定最低資料量，或所謂最小權重，"
+    },
+    {
+      "start": 510.09,
+      "end": 519.21,
+      "en": "of how many minimum observations you want to have in each one of these leaves, and if it's below that, then you don't keep splitting.",
+      "zh": "要求每個葉節點至少有多少觀測資料，低於就停止。"
+    },
+    {
+      "start": 519.21,
+      "end": 520.29,
+      "en": "So that's what it is.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 520.29,
+      "end": 524.91,
+      "en": "But mostly it's about the depth of the tree that you set if you have a large dataset, of course.",
+      "zh": "大型資料集主要看設定的樹深。"
+    },
+    {
+      "start": 524.91,
+      "end": 528.54,
+      "en": "So now let's recap what we have with our full model.",
+      "zh": "現在回顧完整模型。"
+    },
+    {
+      "start": 528.54,
+      "end": 536.61,
+      "en": "So at the start, it's 0.54, and that is our average that we apply, that's the very first model.",
+      "zh": "開始是 0.54，套用平均，也就是第一個模型。"
+    },
+    {
+      "start": 536.61,
+      "end": 543.54,
+      "en": "Then the second model which we applied to residuals level one is over here, and that's the one we were building this whole time.",
+      "zh": "第二個套用第一層殘差，就是這裡，也是整堂建立的這棵。"
+    },
+    {
+      "start": 543.54,
+      "end": 552.813,
+      "en": "So this whole time, this whole tutorial today, we've spent on figuring out where to put these, and that was to create this one model, one tree.",
+      "zh": "整堂都在決定這些切分的位置，就是建立這一個模型、一棵樹。"
+    },
+    {
+      "start": 554.19,
+      "end": 563.95,
+      "en": "Then we would do the same thing to take the residuals of this model, then we would have them here and then apply how to build the decision tree",
+      "zh": "接著同樣取這個模型的殘差，再建立"
+    },
+    {
+      "start": 565.05,
+      "end": 565.95,
+      "en": "for model number three.",
+      "zh": "第三個模型的決策樹。"
+    },
+    {
+      "start": 565.95,
+      "end": 568.71,
+      "en": "So this is model number one, model number two, model number three.",
+      "zh": "這是第一、第二、第三個模型。"
+    },
+    {
+      "start": 568.71,
+      "end": 574.68,
+      "en": "How to build the decision tree, here again, we would undergo the same process, and then we'd do the same thing again.",
+      "zh": "同樣流程建立這棵樹，再重複。"
+    },
+    {
+      "start": 574.68,
+      "end": 577.56,
+      "en": "We would go through the same process to build this decision tree.",
+      "zh": "又用同樣流程建立這棵。"
+    },
+    {
+      "start": 577.56,
+      "end": 588.33,
+      "en": "So I just wanted to point out that what we were doing today is just building this one decision tree, and XGBoost has its very specific, unique way",
+      "zh": "想強調，今天只建立其中一棵樹，而 XGBoost 有很特殊、獨特的"
+    },
+    {
+      "start": 588.33,
+      "end": 591.63,
+      "en": "of building these decision trees.",
+      "zh": "決策樹建立方式。"
+    },
+    {
+      "start": 591.63,
+      "end": 596.16,
+      "en": "And that is through the similarity score and the gain.",
+      "zh": "透過相似度分數與增益。"
+    },
+    {
+      "start": 596.16,
+      "end": 602.1,
+      "en": "All right, so that's how XG Boost works under the hood, the very technical details.",
+      "zh": "這就是 XGBoost 底層的技術細節。"
+    },
+    {
+      "start": 602.1,
+      "end": 604.29,
+      "en": "And I look forward to seeing you back here next time.",
+      "zh": "期待下次見。"
+    },
+    {
+      "start": 604.29,
+      "end": 606.273,
+      "en": "Until then, enjoy machine learning.",
+      "zh": "在那之前，享受機器學習的樂趣吧。"
+    }
+  ]
+}

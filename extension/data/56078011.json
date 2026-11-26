@@ -1,0 +1,541 @@
+{
+  "courseId": "950390",
+  "lectureId": "56078011",
+  "title": "Symmetric Trees in CatBoost",
+  "section": 46,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "51e7abb05f6ce33d479b2a300bcc5698c1655ada23b078dfe6c019dcbd5c20d9",
+  "cues": [
+    {
+      "start": 0.24,
+      "end": 1.2,
+      "en": "Hello, and welcome back.",
+      "zh": "你好，歡迎回來。"
+    },
+    {
+      "start": 1.2,
+      "end": 6.75,
+      "en": "CatBoost uses symmetric trees, and today we're going to talk about symmetric trees.",
+      "zh": "CatBoost 使用對稱樹，今天就談它。"
+    },
+    {
+      "start": 6.75,
+      "end": 8.16,
+      "en": "So let's have a look.",
+      "zh": "看看。"
+    },
+    {
+      "start": 8.16,
+      "end": 10.05,
+      "en": "First we're going to talk about traditional trees.",
+      "zh": "先談傳統樹。"
+    },
+    {
+      "start": 10.05,
+      "end": 14.52,
+      "en": "In traditional trees, during the training phase, a tree is built split by split.",
+      "zh": "訓練時，一次一個切分建立。"
+    },
+    {
+      "start": 14.52,
+      "end": 17.717,
+      "en": "So here, for example, age. Is it less than 25 years?",
+      "zh": "例如年齡小於 25 歲嗎？"
+    },
+    {
+      "start": 17.717,
+      "end": 18.57,
+      "en": "Yes or no?",
+      "zh": "是或否？"
+    },
+    {
+      "start": 18.57,
+      "end": 21.309,
+      "en": "If it's less than 25, there might be another branch.",
+      "zh": "小於 25，可能再有分支。"
+    },
+    {
+      "start": 21.309,
+      "end": 24.9,
+      "en": "In that branch, there might be another split into two branches.",
+      "zh": "分支再切成兩個。"
+    },
+    {
+      "start": 24.9,
+      "end": 32.43,
+      "en": "If 10 years is how long the customer has been with the company is, let's say we're modeling churn, for example, how likely the customer is to leave your company.",
+      "zh": "Tenure 表示顧客與公司往來時間，假設做流失建模，預測離開公司的可能性。"
+    },
+    {
+      "start": 32.43,
+      "end": 41.04,
+      "en": "So if the age is less than 25 and they've been with you for less than a year, then their churn score is 37.1.",
+      "zh": "年齡小於 25、往來少於一年，流失分數 37.1。"
+    },
+    {
+      "start": 41.04,
+      "end": 44.85,
+      "en": "But if they've been longer than a year, then you need to look at their income.",
+      "zh": "超過一年，再看收入。"
+    },
+    {
+      "start": 44.85,
+      "end": 49.92,
+      "en": "And if it's less than $33,000, then their churn score is 22.1.",
+      "zh": "少於 33,000 美元，分數 22.1。"
+    },
+    {
+      "start": 49.92,
+      "end": 58.08,
+      "en": "If it's more than $33,000, then the insurance score is negative, meaning that they're a lot more likely to stay.",
+      "zh": "超過 33,000，流失分數為負，表示更可能留下。"
+    },
+    {
+      "start": 58.08,
+      "end": 67.47,
+      "en": "On the other hand, if age is not less than 25, the tree might build another split there, and then another split in one of those branches and then another split, et cetera.",
+      "zh": "年齡不小於 25，樹可能在那裡切，再在某分支繼續切，以此類推。"
+    },
+    {
+      "start": 67.47,
+      "end": 71.245,
+      "en": "So it's all built split by split, branch by branch.",
+      "zh": "一個切分、一個分支地建立。"
+    },
+    {
+      "start": 71.245,
+      "end": 80.64099999999999,
+      "en": "And then during inference, when we have some customer that you want to evaluate against this tree, you would need to perform a number of operations",
+      "zh": "推論時，要對某顧客用這棵樹評估，需要做幾次運算，"
+    },
+    {
+      "start": 80.64099999999999,
+      "end": 86.49,
+      "en": "in like computational terms, less than or equal to the max step of this tree.",
+      "zh": "次數最多等於最大樹深。"
+    },
+    {
+      "start": 86.49,
+      "end": 88.05,
+      "en": "In this case, it's four.",
+      "zh": "這裡是 4。"
+    },
+    {
+      "start": 88.05,
+      "end": 91.23,
+      "en": "So you would need to look at their age, that's one operation.",
+      "zh": "看年齡，第一次。"
+    },
+    {
+      "start": 91.23,
+      "end": 93.12,
+      "en": "Then look at their income, that second operation.",
+      "zh": "再看收入，第二次。"
+    },
+    {
+      "start": 93.12,
+      "end": 95.43,
+      "en": "Then look at their age, again, third operation.",
+      "zh": "再看年齡，第三次。"
+    },
+    {
+      "start": 95.43,
+      "end": 97.02000000000001,
+      "en": "Look at their tenure, fourth operation.",
+      "zh": "看往來年資，第四次。"
+    },
+    {
+      "start": 97.02000000000001,
+      "end": 100.68,
+      "en": "So up to four operations during inference per customer.",
+      "zh": "每位顧客推論最多四次。"
+    },
+    {
+      "start": 100.68,
+      "end": 107.713,
+      "en": "So imagine if your tree has got a hundred levels, a depth of a hundred, that'd be a hundred operations per customer you need to do during inference.",
+      "zh": "如果樹有 100 層，深度 100，每位顧客就要 100 次。"
+    },
+    {
+      "start": 107.713,
+      "end": 113.55,
+      "en": "Now, in terms of symmetric trees, a symmetric tree is a tree where nodes of each level use the same split.",
+      "zh": "對稱樹，是同一層全部節點用相同切分。"
+    },
+    {
+      "start": 113.55,
+      "end": 115.961,
+      "en": "So for example, it'd be age, less than 25.",
+      "zh": "例如年齡小於 25。"
+    },
+    {
+      "start": 115.961,
+      "end": 120.36,
+      "en": "Then in both of these branches, the next split would be exactly the same.",
+      "zh": "兩邊分支下一個切分完全相同。"
+    },
+    {
+      "start": 120.36,
+      "end": 122.19,
+      "en": "Income less than $48,000.",
+      "zh": "收入小於 48,000 美元。"
+    },
+    {
+      "start": 122.19,
+      "end": 123.6,
+      "en": "So it can't even be a different number.",
+      "zh": "甚至不能用不同數字。"
+    },
+    {
+      "start": 123.6,
+      "end": 127.8,
+      "en": "It has to be the same exact split in both cases.",
+      "zh": "兩邊一定完全相同。"
+    },
+    {
+      "start": 127.8,
+      "end": 132.57,
+      "en": "Then in all of these branches, the next split is the same, et cetera, et cetera, et cetera.",
+      "zh": "接下來全部分支，下一層也相同，以此類推。"
+    },
+    {
+      "start": 132.57,
+      "end": 133.83,
+      "en": "So it might be a deeper tree.",
+      "zh": "可以更深。"
+    },
+    {
+      "start": 133.83,
+      "end": 138.441,
+      "en": "In our case, for simplicity's sake, we're gonna finish there, and then we gotta get those results.",
+      "zh": "簡單起見，停在這裡，得到這些結果。"
+    },
+    {
+      "start": 138.441,
+      "end": 140.57999999999998,
+      "en": "So what does this mean?",
+      "zh": "代表什麼？"
+    },
+    {
+      "start": 140.57999999999998,
+      "end": 143.37,
+      "en": "Well, there's a huge advantage to this.",
+      "zh": "有很大優點。"
+    },
+    {
+      "start": 143.37,
+      "end": 146.31,
+      "en": "First of all, of course, it's huge disadvantage.",
+      "zh": "當然先看很大缺點。"
+    },
+    {
+      "start": 146.31,
+      "end": 147.81,
+      "en": "It's a weaker tree.",
+      "zh": "樹比較弱。"
+    },
+    {
+      "start": 147.81,
+      "end": 149.82,
+      "en": "It's a weaker learner.",
+      "zh": "是較弱學習器。"
+    },
+    {
+      "start": 149.82,
+      "end": 152.74099999999999,
+      "en": "You're putting more constraints on this tree.",
+      "zh": "給了更多限制。"
+    },
+    {
+      "start": 152.74099999999999,
+      "end": 157.07999999999998,
+      "en": "You're not letting it build more creatively, so to speak.",
+      "zh": "不讓它更有創意地建構。"
+    },
+    {
+      "start": 157.07999999999998,
+      "end": 162.69,
+      "en": "You're not letting it create these branches however it needs to create these branches.",
+      "zh": "不讓它依需要自由建立分支。"
+    },
+    {
+      "start": 162.69,
+      "end": 164.7,
+      "en": "It has to be symmetrical, right?",
+      "zh": "一定要對稱。"
+    },
+    {
+      "start": 164.7,
+      "end": 165.53300000000002,
+      "en": "So that's a constraints.",
+      "zh": "這是限制。"
+    },
+    {
+      "start": 165.53300000000002,
+      "end": 166.49,
+      "en": "It's a weaker learner.",
+      "zh": "較弱的學習器。"
+    },
+    {
+      "start": 167.436,
+      "end": 173.43,
+      "en": "But actually, interestingly, in the case of gradient boosting, this is a good thing.",
+      "zh": "但有趣的是，對梯度提升而言，這是好事。"
+    },
+    {
+      "start": 173.43,
+      "end": 176.1,
+      "en": "We want weak learners in gradient boosting.",
+      "zh": "希望使用弱學習器。"
+    },
+    {
+      "start": 176.1,
+      "end": 177.9,
+      "en": "That's how these methods are built.",
+      "zh": "這些方法就是這樣建立。"
+    },
+    {
+      "start": 177.9,
+      "end": 179.07,
+      "en": "They combine weak learners.",
+      "zh": "結合弱學習器。"
+    },
+    {
+      "start": 179.07,
+      "end": 181.47,
+      "en": "So it's not a drawback.",
+      "zh": "所以不是缺點。"
+    },
+    {
+      "start": 181.47,
+      "end": 183.9,
+      "en": "In fact, it's a good thing that it's a weaker learner.",
+      "zh": "弱一點其實是好事。"
+    },
+    {
+      "start": 183.9,
+      "end": 188.49,
+      "en": "And the second thing is that we are, it has a huge advantage.",
+      "zh": "第二，它有很大優點。"
+    },
+    {
+      "start": 188.49,
+      "end": 192.45,
+      "en": "Let's say we have a new customer that we want to evaluate during inference.",
+      "zh": "假設推論時評估新顧客。"
+    },
+    {
+      "start": 192.45,
+      "end": 196.89,
+      "en": "So we take the features of this customer, so we'll put age at the top because they is here.",
+      "zh": "取顧客特徵，年齡放最上，因為第一層是年齡。"
+    },
+    {
+      "start": 196.89,
+      "end": 198.27,
+      "en": "We'll put income second.",
+      "zh": "收入第二。"
+    },
+    {
+      "start": 198.27,
+      "end": 200.67000000000002,
+      "en": "We'll put tenure, third, et cetera.",
+      "zh": "往來年資第三，等等。"
+    },
+    {
+      "start": 200.67000000000002,
+      "end": 205.47,
+      "en": "And then we will create a column with these values.",
+      "zh": "用這些值建立一欄，"
+    },
+    {
+      "start": 205.47,
+      "end": 209.07,
+      "en": "Or we'll create a, you know, like a vector with these values.",
+      "zh": "或者說建立向量。"
+    },
+    {
+      "start": 209.07,
+      "end": 213.24,
+      "en": "25, 48, 2 years, et cetera, from our tree.",
+      "zh": "再從樹取出 25、48、2 年等等門檻。"
+    },
+    {
+      "start": 213.24,
+      "end": 219.75,
+      "en": "And then all we have to do is compare this vector to this vector.",
+      "zh": "只需比較兩個向量。"
+    },
+    {
+      "start": 219.75,
+      "end": 221.37,
+      "en": "So it's one operation.",
+      "zh": "就是一次運算。"
+    },
+    {
+      "start": 221.37,
+      "end": 222.72,
+      "en": "We have to see, is it less?",
+      "zh": "看是否小於。"
+    },
+    {
+      "start": 222.72,
+      "end": 224.55,
+      "en": "And then it is gonna be element by element.",
+      "zh": "逐元素比較。"
+    },
+    {
+      "start": 224.55,
+      "end": 231,
+      "en": "So in the first case, let's say our customer is 50 years old, or let's say they're 22 years old.",
+      "zh": "第一個，假設顧客 50 歲，或者說 22 歲。"
+    },
+    {
+      "start": 231,
+      "end": 232.613,
+      "en": "So then the answer is one.",
+      "zh": "答案為 1。"
+    },
+    {
+      "start": 232.613,
+      "end": 237.57,
+      "en": "In the second case, let's say their income is $50,000, so the answer is zero.",
+      "zh": "第二個，收入假設 50,000 美元，答案 0。"
+    },
+    {
+      "start": 237.57,
+      "end": 243.48,
+      "en": "In the third case, let's say their tenure of the customer, the company, they've been with the company only one and a half years.",
+      "zh": "第三個，和公司往來只有一年半。"
+    },
+    {
+      "start": 243.48,
+      "end": 244.59,
+      "en": "So the answer is one.",
+      "zh": "答案為 1。"
+    },
+    {
+      "start": 244.59,
+      "end": 251.1,
+      "en": "So we get a comparison, the answer in one operation, and then we can right away tell that down the tree it'll be this one, right?",
+      "zh": "一次向量運算取得比較結果，直接知道樹裡會走到這個位置。"
+    },
+    {
+      "start": 251.1,
+      "end": 255.09,
+      "en": "So we don't even need to go down the tree in like in computational terms.",
+      "zh": "運算上不必逐步走樹。"
+    },
+    {
+      "start": 255.09,
+      "end": 257.19,
+      "en": "It'll be just comparison of these two vectors.",
+      "zh": "只比較這兩個向量。"
+    },
+    {
+      "start": 257.19,
+      "end": 258.57,
+      "en": "And then it will know the answer.",
+      "zh": "就知道答案。"
+    },
+    {
+      "start": 258.57,
+      "end": 261.54,
+      "en": "Based on what this vector is, it will know exactly what their answer is.",
+      "zh": "根據向量，就確切知道結果。"
+    },
+    {
+      "start": 261.54,
+      "end": 267.45,
+      "en": "And so during inference, the number of operations is equal to one, regardless of the tree depth.",
+      "zh": "所以講者說，推論的運算數是 1，與樹深無關。"
+    },
+    {
+      "start": 267.45,
+      "end": 271.89,
+      "en": "So you can have a very deep tree, whatever depth it is, doesn't matter.",
+      "zh": "樹很深也沒關係。"
+    },
+    {
+      "start": 271.89,
+      "end": 275.52,
+      "en": "It's always gonna be just one operation because you can put this whole tree into a vector.",
+      "zh": "仍只有一次，因為能把整棵樹表示為向量。"
+    },
+    {
+      "start": 275.52,
+      "end": 278.82,
+      "en": "And that's only possible because it's a symmetric tree.",
+      "zh": "只有對稱樹才可以。"
+    },
+    {
+      "start": 278.82,
+      "end": 283.237,
+      "en": "So no matter where you go, the comparison's always gonna be the same at the same level.",
+      "zh": "不管往哪邊走，同層比較條件相同。"
+    },
+    {
+      "start": 283.237,
+      "end": 285,
+      "en": "It's a very powerful thing.",
+      "zh": "非常強大。"
+    },
+    {
+      "start": 285,
+      "end": 286.44,
+      "en": "And that speeds up inference.",
+      "zh": "能加速推論。"
+    },
+    {
+      "start": 286.44,
+      "end": 290.97,
+      "en": "If that's something that you're looking for, to speed up inference, then symmetric tree can be helpful.",
+      "zh": "如果需要加速，對稱樹有幫助。"
+    },
+    {
+      "start": 290.97,
+      "end": 301.44,
+      "en": "So as a summary, symmetric tree, it has a seeming disadvantage that it's a weaker learner, but actually it's a good thing because in ensemble methods and boosting, gradient boosting methods,",
+      "zh": "整理一下，看似缺點是較弱學習器，但在集成與梯度提升中，反而是好事，"
+    },
+    {
+      "start": 301.44,
+      "end": 306.48,
+      "en": "they prefer weaker learners and it's much faster at inference.",
+      "zh": "因為偏好弱學習器，而且推論快得多。"
+    },
+    {
+      "start": 306.48,
+      "end": 308.43,
+      "en": "It can be resolved in one vector operation.",
+      "zh": "一次向量操作就能解決。"
+    },
+    {
+      "start": 308.43,
+      "end": 309.99,
+      "en": "All right, so that's symmetric trees.",
+      "zh": "這就是對稱樹。"
+    },
+    {
+      "start": 309.99,
+      "end": 319.59,
+      "en": "And if you'd like to dive further into it, there's a great video from Josh Starmer, StatQuest on YouTube, \"CatBoost Part 2: Building and Using Trees.\"",
+      "zh": "想深入，推薦 Josh Starmer 的 YouTube StatQuest 影片，CatBoost Part 2: Building and Using Trees。"
+    },
+    {
+      "start": 319.59,
+      "end": 321.09,
+      "en": "I look forward to seeing you back here next time.",
+      "zh": "期待下次見。"
+    },
+    {
+      "start": 321.09,
+      "end": 323.103,
+      "en": "And until then, enjoy machine learning.",
+      "zh": "在那之前，享受機器學習的樂趣吧。"
+    }
+  ]
+}
