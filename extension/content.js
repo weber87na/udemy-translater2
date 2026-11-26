@@ -31,7 +31,7 @@
     <div id="tools">
       <button id="toggle" aria-expanded="true" aria-controls="panel"><b>繁中 CC</b><small>字幕設定</small></button>
       <section id="panel" aria-label="繁體中文字幕設定">
-        <p class="eyebrow">AGENT FRAMEWORK · STUDY</p><h2>繁體中文字幕</h2>
+        <p class="eyebrow">COURSE SUBTITLES</p><h2>繁體中文字幕</h2>
         <div id="name"></div><p id="status" role="status">正在讀取字幕…</p>
         <label>顯示中文字幕<input id="enabled" type="checkbox" checked></label>
         <label>同時顯示英文<input id="bilingual" type="checkbox" checked></label>

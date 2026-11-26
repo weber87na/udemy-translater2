@@ -1,0 +1,643 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56292949",
+  "title": "Implementing the Postgres store I",
+  "section": 3,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "245e2eb4bf259d515441837160cb302d6f1cebe71724d3b98f8973b63020e73e",
+  "cues": [
+    {
+      "start": 0,
+      "end": 8.52,
+      "en": "So at this point we have defined the contract for our vector stores and of course now we need to start implementing the Postgres store. And we're not going",
+      "zh": "現在已定義向量儲存區的契約，接著當然要開始實作 PostgresStore。這堂課不會"
+    },
+    {
+      "start": 8.52,
+      "end": 17.04,
+      "en": "to get it all done this time around but we'll get some of it done, okay? So to get started let's go over to the stores directory and create a new file inside",
+      "zh": "全部做完，但會先完成一部分。首先到 stores 目錄，在裡面新增"
+    },
+    {
+      "start": 17.04,
+      "end": 24.079,
+      "en": "of that called postgres.py. Now this is where we",
+      "zh": "postgres.py。這個檔案就是要"
+    },
+    {
+      "start": 24.079,
+      "end": 35.159,
+      "en": "satisfy the contract we specified over in base.py. And I'll start as I normally do with some imports. And I'm going to want annotations. So from future import",
+      "zh": "滿足 base.py 定義的契約。照例先匯入需要的項目，從 __future__ 匯入"
+    },
+    {
+      "start": 35.159,
+      "end": 45.04,
+      "en": "annotations, okay? And we're also going to want to import JSON or JSON if you prefer. And we're doing that because we're storing our metadata as JSON in",
+      "zh": "annotations。另外也要匯入 json，因為中繼資料會以 JSON 格式存放在"
+    },
+    {
+      "start": 45.04,
+      "end": 50.159,
+      "en": "the database, okay? So we need that. We're also going to want to get the type any",
+      "zh": "資料庫，所以需要它。還要從 typing 取得 Any"
+    },
+    {
+      "start": 50.159,
+      "end": 58.4,
+      "en": "from typing. So from typing import any right there. And then we want the",
+      "zh": "型別，寫 from typing import Any。接著需要"
+    },
+    {
+      "start": 58.4,
+      "end": 66.959,
+      "en": "postgres stuff. So we'll import PSYCOPG right there, okay? And then we want",
+      "zh": "Postgres 相關功能，所以匯入 psycopg。然後還需要"
+    },
+    {
+      "start": 66.959,
+      "end": 75.959,
+      "en": "the pgvector stuff. From pgvector right there dot PSYCOPG. We'll import",
+      "zh": "pgvector 的功能，從 pgvector.psycopg 匯入"
+    },
+    {
+      "start": 75.959,
+      "end": 82.559,
+      "en": "register vector, okay? We need that. And we need some things from our base.py.",
+      "zh": "register_vector。我們需要它，也需要 base.py 的幾個型別。"
+    },
+    {
+      "start": 82.559,
+      "end": 91.239,
+      "en": "So from dot base we're going to import search head and stored chunk and vector",
+      "zh": "所以從 .base 匯入 SearchHit、StoredChunk 和 VectorStore。"
+    },
+    {
+      "start": 91.239,
+      "end": 97.08,
+      "en": "store, okay? So we need those. Now this is pretty straightforward. Let's create a",
+      "zh": "這些都是必要的。接下來很簡單，建立一個"
+    },
+    {
+      "start": 97.08,
+      "end": 104.839,
+      "en": "class which we'll call postgres store, okay? That seems like a meaningful name.",
+      "zh": "名為 PostgresStore 的類別，這個名稱很有意義。"
+    },
+    {
+      "start": 104.839,
+      "end": 112.47999999999999,
+      "en": "And that takes a vector store, okay? So this will be vector store backed by",
+      "zh": "它繼承 VectorStore，也就是使用"
+    },
+    {
+      "start": 112.47999999999999,
+      "end": 122.44,
+      "en": "postgres and pgvector, okay? So we'll need our init function. So def underscore underscore init underscore underscore. That takes self and it also takes the",
+      "zh": "Postgres 和 pgvector 的向量儲存區。接著建立 def __init__，接收 self，還有"
+    },
+    {
+      "start": 122.44,
+      "end": 127.36,
+      "en": "DSN, our connection string to postgres. And that's just a string, okay? And it",
+      "zh": "dsn，也就是 Postgres 連線字串，型別是 str。"
+    },
+    {
+      "start": 127.36,
+      "end": 135.559,
+      "en": "doesn't return anything. Now this is simple. Self dot underscore DSN is equal",
+      "zh": "這個函式不回傳任何內容。裡面很簡單：self._dsn 等於"
+    },
+    {
+      "start": 135.559,
+      "end": 142.72,
+      "en": "to, try that again, DSN. So we set our DSN. And self dot underscore con for",
+      "zh": "dsn，重新輸入一下。這樣就設定了 DSN。再將 self._conn 的"
+    },
+    {
+      "start": 142.72,
+      "end": 159.039,
+      "en": "connection type into to PSYCOPGG dot connection. And that takes any or none",
+      "zh": "型別標註為 psycopg.Connection[Any] 或 None，"
+    },
+    {
+      "start": 159.039,
+      "end": 170.47899999999998,
+      "en": "equals none. Now what we're going to do is hold a single long live connection per store instance, okay? Each call lazily reconnects if the connection has been",
+      "zh": "初始值設為 None。我們要讓每個儲存區實例保留一條長期存在的連線。如果連線已"
+    },
+    {
+      "start": 170.47899999999998,
+      "end": 178.91899999999998,
+      "en": "closed. That's the easiest way to do it for our purposes. And it's more than sufficient for what we're trying to do. Now let's go down and create another",
+      "zh": "關閉，每次呼叫時就延遲重建。這對我們的需求而言最簡單，也完全足夠。現在再建立另一個"
+    },
+    {
+      "start": 178.91899999999998,
+      "end": 187.559,
+      "en": "function, def underscore connect, okay? And this just requires self. And it",
+      "zh": "函式 def _connect，只需要 self，"
+    },
+    {
+      "start": 187.559,
+      "end": 199.88,
+      "en": "returns a PSYCOPG, cycle PG dot connection with any, okay? So what is this",
+      "zh": "回傳 psycopg.Connection[Any]。它要做什麼？"
+    },
+    {
+      "start": 199.88,
+      "end": 205.919,
+      "en": "going to do? Return an open connection and create one if we need it. So if self",
+      "zh": "回傳開啟中的連線，必要時建立一條。因此，如果 self._conn"
+    },
+    {
+      "start": 205.919,
+      "end": 215.32,
+      "en": "dot con underscore con is none, there is no connection, or self dot con self dot",
+      "zh": "是 None，表示沒有連線，或者 self._conn.closed"
+    },
+    {
+      "start": 215.32,
+      "end": 221.119,
+      "en": "underscore con dot closed, if that returns true, closed with a D at the end,",
+      "zh": "為 True，注意 closed 最後有 d，"
+    },
+    {
+      "start": 221.119,
+      "end": 231.199,
+      "en": "okay? Then con is now equal to cycle PG, PSYCOPG, I have trouble typing that for",
+      "zh": "就將 conn 設為 psycopg.connect 的結果。我不知道為什麼總是很難把它打對。"
+    },
+    {
+      "start": 231.199,
+      "end": 239,
+      "en": "some reason, dot connect. And we connect using self dot underscore DSN. And we'll",
+      "zh": "使用 self._dsn 連接，再將"
+    },
+    {
+      "start": 239,
+      "end": 249.75900000000001,
+      "en": "set auto commit equal to false, okay? With a capital F. Now auto commit false just means each statement starts with an implicit transaction. We control commit",
+      "zh": "autocommit 設為 False，F 大寫。False 表示每個敘述會啟動隱含交易，由我們控制 commit"
+    },
+    {
+      "start": 249.75900000000001,
+      "end": 259.2,
+      "en": "and rollback, okay? Now this matters for most upsert document commands, where the document row, the chunk delete, and the chunk inserts must all succeed or all",
+      "zh": "和 rollback。這對 upsert_document 很重要，因為文件資料列、刪除區塊和插入區塊，必須全部成功或全部"
+    },
+    {
+      "start": 259.2,
+      "end": 270.399,
+      "en": "fail together. That's the only reason we have auto commit set to false, okay? And the next thing we want to do is to register vector, that import we just used,",
+      "zh": "失敗。這是把 autocommit 設為 False 的唯一原因。接著要呼叫剛才匯入的 register_vector，"
+    },
+    {
+      "start": 270.399,
+      "end": 275.55899999999997,
+      "en": "okay? We're going to register vector con. So now it knows about our PG vector, okay?",
+      "zh": "傳入 conn，讓它能識別 pgvector。"
+    },
+    {
+      "start": 275.55899999999997,
+      "end": 286.72,
+      "en": "And self underscore con is now equal to con, okay? So there's our connect function. The last thing we need to do, of course, is to return it. So come back here,",
+      "zh": "然後 self._conn = conn。_connect 就完成了，最後當然還要回傳它，回到這裡，"
+    },
+    {
+      "start": 286.72,
+      "end": 297.48,
+      "en": "get over to the same level as the if statement, and return self dot underscore con, okay? I'm going to save to format. Now we start satisfying the contract. Well,",
+      "zh": "與 if 同一縮排層級，return self._conn。儲存並格式化。現在開始實作契約要求。"
+    },
+    {
+      "start": 297.48,
+      "end": 305.359,
+      "en": "what's the first thing we need? Well, let's do the has document. That's really easy, okay? So we'll define has underscore document, and I'm not going to use the",
+      "zh": "首先需要什麼？先做 has_document，很簡單。定義 has_document，我不使用"
+    },
+    {
+      "start": 305.359,
+      "end": 316.6,
+      "en": "autocomplete there because that'll mess it up for me, okay? This requires self and source path, which is a string. And of course, this must exactly match what's",
+      "zh": "這裡的自動完成，免得它替我填錯。參數是 self 和字串 source_path，"
+    },
+    {
+      "start": 316.6,
+      "end": 322.16,
+      "en": "in base dot pi, okay? Content underscore hash, which is also a string, and it must",
+      "zh": "簽章當然要與 base.py 完全一致。再加上同樣是字串的 content_hash，"
+    },
+    {
+      "start": 322.16,
+      "end": 330.88,
+      "en": "return a bool, okay? So we return true if source path and content hash are already",
+      "zh": "回傳型別是 bool。如果 source_path 和 content_hash 已經"
+    },
+    {
+      "start": 330.88,
+      "end": 339.88,
+      "en": "stored in the database. So let's get our con. Con equals self dot underscore connect,",
+      "zh": "儲存在資料庫，就回傳 True。先取得連線：conn 等於 self._connect，"
+    },
+    {
+      "start": 339.88,
+      "end": 344.399,
+      "en": "right there, with opening and closing parentheses. Now we have a connection.",
+      "zh": "加上左右括號。現在有連線了。"
+    },
+    {
+      "start": 344.399,
+      "end": 355.279,
+      "en": "With con dot cursor, and I'll say as cur to make less typing, okay? Cur dot execute.",
+      "zh": "使用 with conn.cursor() as cur，名稱短一點比較好打。接著呼叫 cur.execute。"
+    },
+    {
+      "start": 356.279,
+      "end": 361.799,
+      "en": "And we're going to execute, and I'll put it on the next line so it fits nicely. Select one",
+      "zh": "我要執行 SQL，放到下一行讓排版更好看：SELECT 1，"
+    },
+    {
+      "start": 361.799,
+      "end": 370.92,
+      "en": "from documents where, and that's our documents table, source underscore path equals percent s,",
+      "zh": "FROM documents WHERE，也就是 documents 表，條件是 source_path = %s，"
+    },
+    {
+      "start": 370.92,
+      "end": 380.76,
+      "en": "and content underscore hash equals percent s, okay? Those are both strings. And on the next",
+      "zh": "AND content_hash = %s。這兩個參數都是字串。下一行，"
+    },
+    {
+      "start": 380.76,
+      "end": 386.64,
+      "en": "line, I'll just put in parentheses source underscore path, which we get as a call to",
+      "zh": "在括號裡傳入呼叫這個方法時收到的 source_path，"
+    },
+    {
+      "start": 386.64,
+      "end": 396.48,
+      "en": "this, okay? And content hash, which I see I spelled wrong. Let's go fix that. Content hash.",
+      "zh": "以及 content_hash。我發現它拼錯了，先修正 content_hash。"
+    },
+    {
+      "start": 396.48,
+      "end": 408.64,
+      "en": "That's better, okay? And then a comma. And then down outside of that, found equals cur,",
+      "zh": "這樣對了，加逗號。接著在外面設定 found 等於 cur，"
+    },
+    {
+      "start": 408.799,
+      "end": 420.48,
+      "en": "our cursor, dot fetch one is not none. Now that'll be true if it finds it, and false if it",
+      "zh": "也就是游標的 fetchone() is not None。找到是 True，找不到則是 False。"
+    },
+    {
+      "start": 420.48,
+      "end": 424.92,
+      "en": "doesn't find it. And now, of course, we want to do the commit ourself, okay? So back over here,",
+      "zh": "現在當然要自行 commit，回到這裡，"
+    },
+    {
+      "start": 424.92,
+      "end": 435.88,
+      "en": "at the same level as with, con dot commit. And then return found. And that's it. That's it for",
+      "zh": "與 with 同一縮排層級，呼叫 conn.commit()，再 return found。這樣"
+    },
+    {
+      "start": 435.88,
+      "end": 447.279,
+      "en": "has document. That's dead simple. We just query the database. If we find it, we return true. If we don't find it, we return false, okay? So that one's really easy. Now this one's a bit more code,",
+      "zh": "has_document 就完成了。很簡單，查詢資料庫，找到回傳 True，找不到回傳 False。接著程式碼會比較多，"
+    },
+    {
+      "start": 447.279,
+      "end": 457.32,
+      "en": "but not complex at all. We'll define our upsert document, okay? And remember that requires,",
+      "zh": "但完全不複雜。定義 upsert_document，記得它需要以下參數，"
+    },
+    {
+      "start": 457.32,
+      "end": 462.6,
+      "en": "and we'll put them on multiple lines so it all fits nicely, self, obviously. It also requires",
+      "zh": "我會分行寫讓排版好看：首先當然是 self，還需要"
+    },
+    {
+      "start": 462.64,
+      "end": 472.959,
+      "en": "the source path, which is a string. It also requires the content hash, which is also a string.",
+      "zh": "字串型別的 source_path，以及同樣是字串的 content_hash，"
+    },
+    {
+      "start": 472.959,
+      "end": 483.44,
+      "en": "And it requires chunks. And that is a list of stored chunk right there, okay? So there's its",
+      "zh": "另外還需要 chunks，型別為 list[StoredChunk]。這些就是它的"
+    },
+    {
+      "start": 483.44,
+      "end": 494.239,
+      "en": "parameters. And what does it return? It returns nothing. So we return none. And then a colon. So",
+      "zh": "參數。回傳什麼？沒有回傳值，所以標註 None，再加冒號。"
+    },
+    {
+      "start": 494.239,
+      "end": 505.839,
+      "en": "here, we're going to atomically replace a document and all of its chunks. So there's three steps inside of one transaction. We have to upsert the documents row. That's an insert or an update,",
+      "zh": "這裡會以原子操作替換文件及其所有區塊。一個交易內分三步：先對 documents 資料列執行 upsert，也就是插入或更新，"
+    },
+    {
+      "start": 505.839,
+      "end": 517.64,
+      "en": "depending on whether we're adding a new document or replacing an existing one. We delete all the existing chunks for that document, if it exists, and then we insert the new chunks. And if anything",
+      "zh": "取決於新增或替換文件；若文件存在，就刪除它所有既有區塊，然後插入新區塊。如果任何步驟"
+    },
+    {
+      "start": 517.64,
+      "end": 523.52,
+      "en": "fails, we roll back, leaving things untouched, right as they were before we tried to do anything,",
+      "zh": "失敗，就 rollback，保持資料不變，完全回到操作之前的狀態。"
+    },
+    {
+      "start": 523.52,
+      "end": 531.84,
+      "en": "okay? So this is not difficult. First of all, we need our connection. And con equals self dot",
+      "zh": "所以不難。首先取得連線，conn 等於 self._connect，"
+    },
+    {
+      "start": 531.84,
+      "end": 537.88,
+      "en": "underscore connect, right there, with its parentheses. So now we have our connection.",
+      "zh": "加上括號，現在有連線了。"
+    },
+    {
+      "start": 537.88,
+      "end": 545.2,
+      "en": "And now we have a try statement, okay? So what are we going to try? Well, with con dot cursor,",
+      "zh": "接著加上 try。要嘗試做什麼？先寫 with conn.cursor()，"
+    },
+    {
+      "start": 545.2,
+      "end": 553.479,
+      "en": "with parentheses, as cur, once again, just to get our cursor. Step one, upsert the document row. So",
+      "zh": "加括號，再寫 as cur，取得游標。第一步是對文件資料列執行 upsert。"
+    },
+    {
+      "start": 553.479,
+      "end": 559.96,
+      "en": "cur dot execute. And we write some SQL, okay? So in here, to make it really easy, I'll use the three",
+      "zh": "呼叫 cur.execute，裡面寫 SQL。為了方便閱讀，使用三個"
+    },
+    {
+      "start": 559.96,
+      "end": 569.28,
+      "en": "parentheses, okay? And get this over to the right level. And up here, in this row, let's write our",
+      "zh": "引號，再調整至正確縮排。在這一行寫"
+    },
+    {
+      "start": 569.28,
+      "end": 578.799,
+      "en": "SQL. We're going to insert into documents using source underscore path, and content underscore",
+      "zh": "SQL：INSERT INTO documents，指定 source_path、content_hash，"
+    },
+    {
+      "start": 578.799,
+      "end": 588.88,
+      "en": "hash, and chunk underscore count, okay? And then on the next line, we'll say values. And in here,",
+      "zh": "以及 chunk_count。下一行寫 VALUES，裡面"
+    },
+    {
+      "start": 588.88,
+      "end": 598.119,
+      "en": "a string, and a string, and a string, okay? On conflict, and this is the upsert, with source",
+      "zh": "放三個參數佔位符。接著是 ON CONFLICT，這就是 upsert 的部分，衝突欄位是 source_path，"
+    },
+    {
+      "start": 598.119,
+      "end": 611.88,
+      "en": "path, do update. And in here, and we'll tab in, set content underscore hash equal to excluded,",
+      "zh": "接上 DO UPDATE。往內縮排，寫 SET content_hash = EXCLUDED，"
+    },
+    {
+      "start": 611.88,
+      "end": 622.479,
+      "en": "excluded. Got to spell this right. Content underscore hash, comma, next line. And then I'll",
+      "zh": "EXCLUDED，注意拼字，再接 .content_hash，逗號後換行。"
+    },
+    {
+      "start": 622.479,
+      "end": 635.76,
+      "en": "tab in, chunk underscore count equals excluded dot chunk underscore count. And then on the next line,",
+      "zh": "再往內縮排，chunk_count = EXCLUDED.chunk_count。接著下一行，"
+    },
+    {
+      "start": 635.76,
+      "end": 647.28,
+      "en": "ingested at equal to, well, just now, okay? And then down on the next line, back over to the same",
+      "zh": "ingested_at 等於現在，也就是 NOW()。再到下一行，回到"
+    },
+    {
+      "start": 647.28,
+      "end": 652.359,
+      "en": "level as on conflict, just to format it nicely. It doesn't really matter. It'll work either way.",
+      "zh": "與 ON CONFLICT 相同縮排，只是為了排版；不管怎麼排都能正常運作。"
+    },
+    {
+      "start": 652.359,
+      "end": 661.119,
+      "en": "We'll say returning ID, okay? And then down here, put a comma after our three quotation marks,",
+      "zh": "寫 RETURNING id。接著在結尾的三個引號後加逗號，"
+    },
+    {
+      "start": 661.119,
+      "end": 666.919,
+      "en": "and then we have our substitutions. Source underscore path, content underscore hash,",
+      "zh": "再提供代入值：source_path、content_hash，"
+    },
+    {
+      "start": 666.919,
+      "end": 678.96,
+      "en": "and the length of chunks, okay? Then, outside of the curr execute bit, okay? On the next line,",
+      "zh": "以及 len(chunks)。然後離開 cur.execute，在下一行，"
+    },
+    {
+      "start": 678.96,
+      "end": 686.28,
+      "en": "so at the same level as curr.execute up there on line 45, we say doc ID, a variable name I'm",
+      "zh": "與上面第 45 行 cur.execute 同一縮排層級，設定 doc_id，這是我現在取的變數名，"
+    },
+    {
+      "start": 686.28,
+      "end": 697.039,
+      "en": "choosing right now, equals curr dot fetch one, okay? And we want that at index zero. Okay,",
+      "zh": "值等於 cur.fetchone()，並取索引 0。"
+    },
+    {
+      "start": 697.039,
+      "end": 703.239,
+      "en": "so that's step one. Step one is upsert the document row, and on conflict handles that for",
+      "zh": "這就是第一步：對文件資料列執行 upsert，ON CONFLICT 會替我們處理。"
+    },
+    {
+      "start": 703.239,
+      "end": 710.2,
+      "en": "us, okay? Now, go down a couple of lines. Now we want to do step two, and that's wipe out the old",
+      "zh": "接著往下幾行，進行第二步，清除舊的"
+    },
+    {
+      "start": 710.239,
+      "end": 720,
+      "en": "chunks, okay? And we'll just use a delete command here. So, curr.execute, and we're going to execute,",
+      "zh": "區塊。這裡只要使用 DELETE 命令，呼叫 cur.execute，執行"
+    },
+    {
+      "start": 720,
+      "end": 732.52,
+      "en": "very simple this time, delete from chunks where document underscore ID equals percent S. And my",
+      "zh": "簡單的 SQL：DELETE FROM chunks WHERE document_id = %s。"
+    },
+    {
+      "start": 732.52,
+      "end": 740.799,
+      "en": "substitution is just doc underscore ID, which I just got back, okay? Like that. So, that's step",
+      "zh": "代入值就是剛取得的 doc_id。這就是第二步。"
+    },
+    {
+      "start": 740.799,
+      "end": 749.599,
+      "en": "two. Step three, this is where we insert the new chunks, okay? So, very simple, we'll use execute",
+      "zh": "第三步要插入新區塊，很簡單，我們會使用游標的"
+    },
+    {
+      "start": 749.599,
+      "end": 757.919,
+      "en": "many on the curr cursor. So, if chunks, we're only going to insert if we actually have chunks. So,",
+      "zh": "executemany。先檢查 if chunks，只有真的有區塊時才插入。"
+    },
+    {
+      "start": 758.039,
+      "end": 764.84,
+      "en": "I'll say curr.execute many, right there, and then opening parentheses, and then again,",
+      "zh": "因此呼叫 cur.executemany，再加上左括號，"
+    },
+    {
+      "start": 764.84,
+      "end": 771.2,
+      "en": "once again, to make this readable, I'll use the three quotation marks and get this to the right",
+      "zh": "同樣為了容易閱讀使用三個引號，並調整到正確"
+    },
+    {
+      "start": 771.2,
+      "end": 777.679,
+      "en": "level. There it is. And then up here, inside of here, all I'm going to say is insert into chunks,",
+      "zh": "縮排。在這裡面只要寫 INSERT INTO chunks，"
+    },
+    {
+      "start": 777.679,
+      "end": 784.119,
+      "en": "a table in our database. On the next line, I'll tab in. We're going to insert document underscore",
+      "zh": "也就是資料庫裡的表。下一行往內縮排，插入的欄位是 document_id、"
+    },
+    {
+      "start": 784.119,
+      "end": 796.84,
+      "en": "ID, chunk underscore index, the content, our embedding, and our metadata, okay? And then,",
+      "zh": "chunk_index、content、embedding，以及 metadata。"
+    },
+    {
+      "start": 796.84,
+      "end": 803.96,
+      "en": "on the next line, we'll say values, and then we'll just put our substitutions, which are percent S",
+      "zh": "接著下一行寫 VALUES，再放入代入值的佔位符，第一個是 %s，"
+    },
+    {
+      "start": 803.96,
+      "end": 812.88,
+      "en": "for the first one, percent S, percent S, percent S, and one more, percent S. So, again, the number",
+      "zh": "然後 %s、%s、%s，最後再一個 %s。"
+    },
+    {
+      "start": 812.88,
+      "end": 824.32,
+      "en": "of percent S's must exactly match what you have in here, okay? So, those are the values. And then, outside of this, just beside our closing three quotes, I'll put a comma. And then, in here,",
+      "zh": "%s 的數量必須與這裡的欄位完全一致。這就是 VALUES；接著在結尾三引號旁邊加逗號。"
+    },
+    {
+      "start": 824.32,
+      "end": 834.88,
+      "en": "in square brackets, and I'll put it on multiple lines so it's readable, opening and closing parentheses, again, on multiple lines, we're inserting doc underscore ID. We already have",
+      "zh": "在這裡用方括號建立串列，同樣分行讓內容好讀；裡面用元組的左右括號包住，首先代入 doc_id，"
+    },
+    {
+      "start": 834.88,
+      "end": 848.599,
+      "en": "that. C dot index, okay? C dot text, then C dot embedding, and JSON underscore dump, whatever C",
+      "zh": "這個值已經有了。接著 c.index、c.text、c.embedding，並將"
+    },
+    {
+      "start": 848.599,
+      "end": 859.359,
+      "en": "dot metadata is. Meta data. And it's JSON dot dump. We can't type there. And let's give ourselves some",
+      "zh": "c.metadata 序列化為 JSON。metadata，這裡應該寫 json.dumps，我又打不好了。多留一點"
+    },
+    {
+      "start": 859.559,
+      "end": 867.479,
+      "en": "room. And outside of this, well, we don't have a C yet, so we need that. We just put four C in chunks,",
+      "zh": "空間。這裡還沒有 c，所以要在外面加上 for c in chunks。"
+    },
+    {
+      "start": 867.479,
+      "end": 874.88,
+      "en": "okay? Then, let's put our closing comma after the square brackets. And down here, outside of these",
+      "zh": "然後在方括號後面補上逗號。往下到這些"
+    },
+    {
+      "start": 874.88,
+      "end": 880.679,
+      "en": "parentheses, okay, we'll hit return. We'll get back to the right level, which is not in line",
+      "zh": "括號外面換行，回到正確的縮排層級，不是"
+    },
+    {
+      "start": 880.679,
+      "end": 887.88,
+      "en": "with the if. It's over here, okay? Underneath or in line with the with con cursor up on line 44.",
+      "zh": "和 if 對齊，而是對齊第 44 行的 with conn.cursor。"
+    },
+    {
+      "start": 887.88,
+      "end": 896.919,
+      "en": "And now, we do con dot commit, okay? So, that's the try part of our try except. So, now, we come",
+      "zh": "接著呼叫 conn.commit()。這就是 try/except 的 try 部分。然後往下，"
+    },
+    {
+      "start": 896.919,
+      "end": 903.96,
+      "en": "down here, and we go back in one level, and we say accept. And accept, just an exception. Any",
+      "zh": "退回一個縮排層級，寫 except，捕捉 Exception，也就是任何"
+    },
+    {
+      "start": 903.96,
+      "end": 912.08,
+      "en": "exception at all, okay? If anything goes wrong, we just want to roll back. Con dot rollback, like",
+      "zh": "例外。任何地方出錯，就呼叫 conn.rollback()，"
+    },
+    {
+      "start": 912.08,
+      "end": 921.479,
+      "en": "that, okay? And we'll raise the exception. So, that is our upsert command, okay? Now, this lecture is",
+      "zh": "再用 raise 拋出例外。upsert 命令就完成了。這堂課"
+    },
+    {
+      "start": 921.479,
+      "end": 929.88,
+      "en": "getting fairly long, so we'll take care of delete and a stub for search in the next lecture, okay? Let's move on.",
+      "zh": "有點長，delete 和 search 的骨架留到下一堂再處理。我們繼續。"
+    }
+  ]
+}

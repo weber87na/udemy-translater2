@@ -1,0 +1,1351 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56346565",
+  "title": "Implement an ask command — RAG end-to-end in one function",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "f0f1b5cfaded9b11ca9bc7089ed40091f322d6f4ed523a319c33eb3d3dda0625",
+  "cues": [
+    {
+      "start": 0,
+      "end": 7.199,
+      "en": "So, at this point, we've set up our necessary query logic and everything seems to work as it should.",
+      "zh": "現在必要的查詢邏輯已建立，看起來一切都正常運作。"
+    },
+    {
+      "start": 7.199,
+      "end": 15.279,
+      "en": "And what I'd like to do this time around is to work on creating a new command over in here in cli.py.",
+      "zh": "這堂課想在 cli.py 裡新增一個命令。"
+    },
+    {
+      "start": 15.279,
+      "end": 18.44,
+      "en": "We have a command right now, ingest and scan and chat.",
+      "zh": "目前已有 ingest、scan 和 chat。"
+    },
+    {
+      "start": 18.44,
+      "end": 25.719,
+      "en": "I'm going to create another one, just called ask, and it'll be a little bit different than chat because it'll be completely stateless.",
+      "zh": "我要再建立一個 ask，它與 chat 有些不同，因為完全不保留狀態。"
+    },
+    {
+      "start": 25.719,
+      "end": 32.439,
+      "en": "So I want to be able to type a command like pyreg ask, and then in quotation marks, what is a vampire?",
+      "zh": "我希望能輸入像 pyrag ask，再用引號包住「什麼是吸血鬼？」這樣的命令。"
+    },
+    {
+      "start": 32.439,
+      "end": 39.04,
+      "en": "And the goal here is to demonstrate that our entire system will work from end to end.",
+      "zh": "目標是示範整套系統從頭到尾都能運作。"
+    },
+    {
+      "start": 39.04,
+      "end": 45.919,
+      "en": "So this is going to be a little bit different than chat, this command, because this one actually remembers the state of the conversation.",
+      "zh": "所以它會與 chat 這個會記住對話狀態的命令不同。"
+    },
+    {
+      "start": 45.919,
+      "end": 51.2,
+      "en": "I could ask, what is a vampire, get an answer, and then say, tell me more about that.",
+      "zh": "在 chat 可以問「什麼是吸血鬼？」，取得答案後再說「多說一點」，"
+    },
+    {
+      "start": 51.2,
+      "end": 55,
+      "en": "And it would know what that refers to because it maintains the context.",
+      "zh": "它會知道「這個」指什麼，因為保留了上下文。"
+    },
+    {
+      "start": 55,
+      "end": 56,
+      "en": "We're not going to do that with this one.",
+      "zh": "但這個命令不做那件事，"
+    },
+    {
+      "start": 56,
+      "end": 58.119,
+      "en": "This will be a simple one-shot one.",
+      "zh": "只是一個簡單的單次問答。"
+    },
+    {
+      "start": 58.119,
+      "end": 63.959,
+      "en": "And to make that happen, we're going to need to set up a few things over in config.py.",
+      "zh": "為此，需要在 config.py 做一些設定。"
+    },
+    {
+      "start": 63.959,
+      "end": 67.08,
+      "en": "There's two things I need to add here, plus a couple of helper functions.",
+      "zh": "要新增兩項設定，以及幾個輔助函式。"
+    },
+    {
+      "start": 67.08,
+      "end": 72.919,
+      "en": "The first thing I'll do is I'll add two more entries to the actual class config, one for the system prompt.",
+      "zh": "首先在 Config 類別新增兩個欄位，其中一個是系統提示詞。"
+    },
+    {
+      "start": 72.919,
+      "end": 75.72,
+      "en": "We're not going to use it right now, but we need it.",
+      "zh": "現在還沒要用，但需要先有它。"
+    },
+    {
+      "start": 75.72,
+      "end": 82.68,
+      "en": "So I'll say system underscore prompt, and that will be either a string or it could be none.",
+      "zh": "所以加入 system_prompt，型別是 str 或 None。"
+    },
+    {
+      "start": 82.68,
+      "end": 85.48,
+      "en": "And if we don't have this specified, then it's actually not going to use it.",
+      "zh": "如果沒指定，就不使用自訂內容。"
+    },
+    {
+      "start": 85.48,
+      "end": 89.199,
+      "en": "I better spell prompt right. System prompt.",
+      "zh": "prompt 要拼對，是 system_prompt。"
+    },
+    {
+      "start": 89.199,
+      "end": 92.72,
+      "en": "We'll do that and also set up something called top underscore k.",
+      "zh": "設定好後，再加入 top_k，"
+    },
+    {
+      "start": 92.72,
+      "end": 94.199,
+      "en": "And of course, that's going to be top k.",
+      "zh": "也就是 top_k，"
+    },
+    {
+      "start": 94.199,
+      "end": 96.4,
+      "en": "How many chunks do we want returned?",
+      "zh": "表示希望回傳幾個區塊，"
+    },
+    {
+      "start": 96.4,
+      "end": 99.12,
+      "en": "And that's just going to be an integer.",
+      "zh": "型別就是整數。"
+    },
+    {
+      "start": 99.12,
+      "end": 100.47999999999999,
+      "en": "So we're going to have that.",
+      "zh": "因此加入它。"
+    },
+    {
+      "start": 100.47999999999999,
+      "end": 112.12,
+      "en": "Now for the system prompt file, we're actually going to need some kind of helper function, something that allows us to read the actual contents of the system prompt file if it exists.",
+      "zh": "針對系統提示詞檔案，還需要輔助函式，讓我們在檔案存在時讀取實際內容。"
+    },
+    {
+      "start": 113.12,
+      "end": 117.03999999999999,
+      "en": "So I'll come down here just before load config, and I'll add a little helper function.",
+      "zh": "我到 load_config 前面，加一個小型輔助函式。"
+    },
+    {
+      "start": 117.03999999999999,
+      "end": 121.599,
+      "en": "Actually, no, let's put it up here with the rest of the helper functions just to keep things organized.",
+      "zh": "不，還是放到上面其他輔助函式旁邊，結構更清楚。"
+    },
+    {
+      "start": 121.599,
+      "end": 129.8,
+      "en": "I'll define a function called underscore read underscore prompt underscore file.",
+      "zh": "定義 _read_prompt_file，"
+    },
+    {
+      "start": 129.8,
+      "end": 135.919,
+      "en": "And that's just going to take one argument or one parameter, path string, path str of",
+      "zh": "它只接收一個參數 path_str，"
+    },
+    {
+      "start": 135.919,
+      "end": 141.839,
+      "en": "type str or none with a capital N.",
+      "zh": "型別為 str 或首字母大寫的 None，"
+    },
+    {
+      "start": 141.839,
+      "end": 147.199,
+      "en": "And it's going to return either a string or none.",
+      "zh": "回傳值也是 str 或 None。"
+    },
+    {
+      "start": 147.199,
+      "end": 148.96,
+      "en": "And this is dead simple.",
+      "zh": "這非常簡單。"
+    },
+    {
+      "start": 148.96,
+      "end": 152.8,
+      "en": "Let's see if we have path string set to anything other than an empty value.",
+      "zh": "先確認 path_str 不是空值。"
+    },
+    {
+      "start": 152.8,
+      "end": 156.16,
+      "en": "If not, path underscore str.",
+      "zh": "如果 not path_str，"
+    },
+    {
+      "start": 156.16,
+      "end": 158.75900000000001,
+      "en": "In that case, we don't have it, so we'll just return none.",
+      "zh": "表示沒有提供路徑，就直接 return None。"
+    },
+    {
+      "start": 158.75900000000001,
+      "end": 162.24,
+      "en": "And that'll work just fine because we have our default system prompt.",
+      "zh": "這沒問題，因為還有預設系統提示詞。"
+    },
+    {
+      "start": 162.24,
+      "end": 173.639,
+      "en": "Otherwise, path is equal to using path, which is imported right up there on line five in my code, path underscore str dot expand user.",
+      "zh": "否則將 path 設為 Path(path_str).expanduser()，Path 是第 5 行匯入的。"
+    },
+    {
+      "start": 173.639,
+      "end": 177.559,
+      "en": "So we'll call that to get the data in the format we need it to be.",
+      "zh": "呼叫它，將路徑轉成需要的格式。"
+    },
+    {
+      "start": 177.559,
+      "end": 183.52,
+      "en": "And the contents come from calling path dot read underscore text.",
+      "zh": "contents 則來自 path.read_text，"
+    },
+    {
+      "start": 183.52,
+      "end": 185.16,
+      "en": "Just read the text from the file.",
+      "zh": "就是讀取檔案文字，"
+    },
+    {
+      "start": 185.16,
+      "end": 190.44,
+      "en": "With encoding set to utf-8, and we'll strip it.",
+      "zh": "指定 encoding=\"utf-8\"，再呼叫 strip，"
+    },
+    {
+      "start": 190.44,
+      "end": 194.119,
+      "en": "Get rid of any blank lines at the beginning and end.",
+      "zh": "清除開頭和結尾的空白行。"
+    },
+    {
+      "start": 194.119,
+      "end": 195.119,
+      "en": "So we have that.",
+      "zh": "這樣內容有了，"
+    },
+    {
+      "start": 195.119,
+      "end": 197,
+      "en": "And then we return contents.",
+      "zh": "接著 return contents，"
+    },
+    {
+      "start": 197,
+      "end": 199.36,
+      "en": "And just to be safe, we could also say or none.",
+      "zh": "安全起見也可以加上 or None。"
+    },
+    {
+      "start": 199.36,
+      "end": 203.279,
+      "en": "OK, so now we have a helper function that lets me read that prompt file.",
+      "zh": "現在有輔助函式能讀取提示詞檔案，"
+    },
+    {
+      "start": 203.279,
+      "end": 206.32,
+      "en": "And we've added system prompt and top k.",
+      "zh": "也加上了 system_prompt 和 top_k。"
+    },
+    {
+      "start": 206.32,
+      "end": 210.8,
+      "en": "So now let's go down to the part where we actually load the config, and I'll add two more entries.",
+      "zh": "接著到實際載入設定的地方，再加入兩項，"
+    },
+    {
+      "start": 210.8,
+      "end": 214.039,
+      "en": "One for top k, top underscore k.",
+      "zh": "一項是 top_k，"
+    },
+    {
+      "start": 214.039,
+      "end": 219.279,
+      "en": "We'll make that equal to underscore onv underscore int.",
+      "zh": "它的值使用 _env_int，"
+    },
+    {
+      "start": 219.279,
+      "end": 228.559,
+      "en": "And we'll look for the key in our dot on file called top underscore k and give it a default of five, OK?",
+      "zh": "在 .env 尋找 TOP_K，預設值給 5。"
+    },
+    {
+      "start": 228.559,
+      "end": 233.75900000000001,
+      "en": "And I missed a parentheses there somehow.",
+      "zh": "不知怎麼漏了一個括號，"
+    },
+    {
+      "start": 233.75900000000001,
+      "end": 239.96,
+      "en": "And get rid of the extra one it helpfully added for me, as it always does. That's better. So that's easy.",
+      "zh": "又把編輯器熱心多加的括號刪掉，它總是這樣。現在對了，很簡單。"
+    },
+    {
+      "start": 239.96,
+      "end": 242.24,
+      "en": "And system prompt, we can set that.",
+      "zh": "也可以設定 system_prompt，"
+    },
+    {
+      "start": 242.24,
+      "end": 244.919,
+      "en": "System prompt is going to be equal to.",
+      "zh": "將它的值設為"
+    },
+    {
+      "start": 244.919,
+      "end": 247.96,
+      "en": "And we'll just call underscore read prompt file.",
+      "zh": "呼叫 _read_prompt_file 的結果，"
+    },
+    {
+      "start": 247.96,
+      "end": 251.88,
+      "en": "And we'll give that os dot get onv.",
+      "zh": "傳入 os.getenv，"
+    },
+    {
+      "start": 251.88,
+      "end": 259.119,
+      "en": "And we'll look for system underscore prompt underscore file, OK?",
+      "zh": "尋找 SYSTEM_PROMPT_FILE。"
+    },
+    {
+      "start": 259.119,
+      "end": 261.359,
+      "en": "And put a comma at the end.",
+      "zh": "最後加上逗號，"
+    },
+    {
+      "start": 261.359,
+      "end": 263.48,
+      "en": "And that should take care of it.",
+      "zh": "這樣應該就完成了。"
+    },
+    {
+      "start": 263.48,
+      "end": 265.92,
+      "en": "So our config is now all set up.",
+      "zh": "現在設定都準備好了，"
+    },
+    {
+      "start": 265.92,
+      "end": 270.16,
+      "en": "There's probably a typo in there somewhere, but we'll find out soon enough.",
+      "zh": "裡面可能某處有錯字，但很快就會知道。"
+    },
+    {
+      "start": 270.16,
+      "end": 273.279,
+      "en": "So now let's go back to CLI.py, OK?",
+      "zh": "回到 cli.py。"
+    },
+    {
+      "start": 273.279,
+      "end": 277,
+      "en": "Now I'm going to be adding a new command that uses our query commands.",
+      "zh": "接著要新增一個會使用查詢功能的命令，"
+    },
+    {
+      "start": 277,
+      "end": 280.119,
+      "en": "So that means I need to add an import here at the very top.",
+      "zh": "因此需要在最上方新增匯入，"
+    },
+    {
+      "start": 280.359,
+      "end": 284.279,
+      "en": "Dot query, because it's in the same directory as this file.",
+      "zh": "從 .query，因為與此檔案位於相同目錄，"
+    },
+    {
+      "start": 284.279,
+      "end": 286.279,
+      "en": "So we just started with a dot.",
+      "zh": "所以前面加一個點。"
+    },
+    {
+      "start": 286.279,
+      "end": 287.279,
+      "en": "We're going to import.",
+      "zh": "我們要匯入，"
+    },
+    {
+      "start": 287.279,
+      "end": 288.64,
+      "en": "And what do we need from there?",
+      "zh": "需要哪些東西？"
+    },
+    {
+      "start": 288.64,
+      "end": 290.55899999999997,
+      "en": "Well, we need build user message.",
+      "zh": "首先是 build_user_message，"
+    },
+    {
+      "start": 290.55899999999997,
+      "end": 292.079,
+      "en": "We definitely need that.",
+      "zh": "這個一定需要，"
+    },
+    {
+      "start": 292.079,
+      "end": 294.959,
+      "en": "We also need initial messages, no question.",
+      "zh": "當然也需要 initial_messages，"
+    },
+    {
+      "start": 294.959,
+      "end": 297.44,
+      "en": "And we need retrieve, OK?",
+      "zh": "以及 retrieve。"
+    },
+    {
+      "start": 297.44,
+      "end": 301.279,
+      "en": "Now let's come down here to where we have our chat command.",
+      "zh": "現在到 chat 命令的位置，"
+    },
+    {
+      "start": 301.279,
+      "end": 305.799,
+      "en": "And just before that, I'll add a command.",
+      "zh": "在它前面新增一個命令，"
+    },
+    {
+      "start": 305.799,
+      "end": 308.359,
+      "en": "And it's going to be called mask, OK?",
+      "zh": "名稱是 ask。"
+    },
+    {
+      "start": 308.359,
+      "end": 309.399,
+      "en": "So let's define it.",
+      "zh": "來定義它，"
+    },
+    {
+      "start": 309.399,
+      "end": 312.44,
+      "en": "We'll define an ask underscore CMD.",
+      "zh": "def ask_cmd，"
+    },
+    {
+      "start": 312.44,
+      "end": 317.079,
+      "en": "And then it's going to have, as its parameters, question, OK?",
+      "zh": "參數有 question，"
+    },
+    {
+      "start": 317.079,
+      "end": 318.44,
+      "en": "And that's going to be a string.",
+      "zh": "型別是 str，"
+    },
+    {
+      "start": 318.44,
+      "end": 323.959,
+      "en": "And that's going to come from calling typer.argument right there.",
+      "zh": "它來自呼叫 typer.Argument，"
+    },
+    {
+      "start": 323.959,
+      "end": 326.88,
+      "en": "And as usual, dot, dot, dot is the first parameter.",
+      "zh": "照例第一個參數是 ...，"
+    },
+    {
+      "start": 326.88,
+      "end": 330.959,
+      "en": "Then help equals, and we'll just put a help string in here.",
+      "zh": "接著設定 help，在這裡放說明字串，"
+    },
+    {
+      "start": 330.959,
+      "end": 337.32,
+      "en": "Just say one shot question to ask, or whatever you want, OK?",
+      "zh": "例如「要提出的單次問題」，或任何想寫的內容。"
+    },
+    {
+      "start": 337.359,
+      "end": 339.48,
+      "en": "So that's easy enough.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 339.48,
+      "end": 341.119,
+      "en": "Then we'll have to have k.",
+      "zh": "然後還需要 k，"
+    },
+    {
+      "start": 341.119,
+      "end": 346.839,
+      "en": "If you want to specify the top k commands, we'll allow them to put a flag in there, say dash, dash, k, OK?",
+      "zh": "讓使用者可以用旗標指定 top-k，例如 --k。"
+    },
+    {
+      "start": 346.839,
+      "end": 348.76,
+      "en": "So how many things to return?",
+      "zh": "也就是回傳多少筆。"
+    },
+    {
+      "start": 348.76,
+      "end": 352.48,
+      "en": "If dash, dash, k is set to 7, we'll look for 7.",
+      "zh": "如果 --k 設為 7，就找 7 筆，"
+    },
+    {
+      "start": 352.48,
+      "end": 354.959,
+      "en": "So that'll just be an integer.",
+      "zh": "所以它只是一個整數。"
+    },
+    {
+      "start": 354.959,
+      "end": 359.6,
+      "en": "And it's equal to hyper.option.",
+      "zh": "它等於 typer.Option，"
+    },
+    {
+      "start": 359.6,
+      "end": 364.119,
+      "en": "And that takes none as its first parameter, the default, OK?",
+      "zh": "第一個參數是預設值 None，"
+    },
+    {
+      "start": 364.119,
+      "end": 367.76,
+      "en": "And then dash, dash, k is the flag that invokes it.",
+      "zh": "接著 --k 就是啟用它的旗標，"
+    },
+    {
+      "start": 367.76,
+      "end": 371.559,
+      "en": "And the help is equal to override.",
+      "zh": "help 設為 Override，"
+    },
+    {
+      "start": 371.559,
+      "end": 375.519,
+      "en": "And we just call that top underscore k, OK?",
+      "zh": "也就是覆寫 TOP_K，"
+    },
+    {
+      "start": 375.519,
+      "end": 377.72,
+      "en": "And then a comma.",
+      "zh": "後面加上逗號。"
+    },
+    {
+      "start": 377.72,
+      "end": 383.519,
+      "en": "And then outside the parentheses for the function definition, this doesn't return anything, so none.",
+      "zh": "在函式參數括號外，標註沒有回傳值，所以是 None。"
+    },
+    {
+      "start": 383.519,
+      "end": 384.88,
+      "en": "And this is really simple, OK?",
+      "zh": "內容很簡單，"
+    },
+    {
+      "start": 384.88,
+      "end": 386.679,
+      "en": "This is going to be completely stateless.",
+      "zh": "完全不保留狀態，"
+    },
+    {
+      "start": 386.679,
+      "end": 388.92,
+      "en": "We don't even get into an interactive chat.",
+      "zh": "甚至不會進入互動聊天，"
+    },
+    {
+      "start": 388.92,
+      "end": 395.079,
+      "en": "We just do it all from pyreg, ask, followed by some question, OK?",
+      "zh": "直接用 pyrag ask，後面接問題就完成。"
+    },
+    {
+      "start": 395.079,
+      "end": 396.2,
+      "en": "So what do we have to do?",
+      "zh": "那要做什麼？"
+    },
+    {
+      "start": 396.2,
+      "end": 397.7,
+      "en": "Same sort of thing we did last time.",
+      "zh": "和上次差不多，"
+    },
+    {
+      "start": 397.7,
+      "end": 400.519,
+      "en": "We need to set up our logging. No question.",
+      "zh": "當然需要設定日誌，"
+    },
+    {
+      "start": 400.519,
+      "end": 402.359,
+      "en": "We need to get our config. That's easy.",
+      "zh": "還需要取得設定，這很容易，"
+    },
+    {
+      "start": 402.359,
+      "end": 405.15999999999997,
+      "en": "Call load underscore config, OK?",
+      "zh": "呼叫 load_config。"
+    },
+    {
+      "start": 405.15999999999997,
+      "end": 406.6,
+      "en": "We need to have a store.",
+      "zh": "需要一個儲存區，"
+    },
+    {
+      "start": 406.6,
+      "end": 408.48,
+      "en": "And we can just call make store.",
+      "zh": "直接呼叫 make_store，"
+    },
+    {
+      "start": 408.48,
+      "end": 409.839,
+      "en": "Make underscore store.",
+      "zh": "就是 make_store，"
+    },
+    {
+      "start": 409.839,
+      "end": 412,
+      "en": "And that just requires the config.",
+      "zh": "只需傳入 cfg。"
+    },
+    {
+      "start": 412,
+      "end": 414.65999999999997,
+      "en": "We require an embedder.",
+      "zh": "還需要嵌入器，"
+    },
+    {
+      "start": 414.65999999999997,
+      "end": 421.739,
+      "en": "And we just call embedder right there from config and have that CFG.",
+      "zh": "直接呼叫 Embedder.from_config，傳入 cfg。"
+    },
+    {
+      "start": 421.739,
+      "end": 425.42,
+      "en": "So we've got our logging, our config, our store, our embedder.",
+      "zh": "現在有日誌、設定、儲存區和嵌入器。"
+    },
+    {
+      "start": 425.42,
+      "end": 426.899,
+      "en": "What else do we need?",
+      "zh": "還需要什麼？"
+    },
+    {
+      "start": 426.899,
+      "end": 428.54,
+      "en": "Well, we need a chat client.",
+      "zh": "還需要 ChatClient，"
+    },
+    {
+      "start": 428.54,
+      "end": 436.42,
+      "en": "And that's going to be equal to chat client right there from config and have that CFG. No problem.",
+      "zh": "同樣透過 ChatClient.from_config 傳入 cfg，沒問題。"
+    },
+    {
+      "start": 436.42,
+      "end": 437.739,
+      "en": "Now we've got that.",
+      "zh": "現在用戶端也有了。"
+    },
+    {
+      "start": 437.739,
+      "end": 439.32,
+      "en": "And we may as well take care of top k.",
+      "zh": "順便處理 top_k，"
+    },
+    {
+      "start": 439.32,
+      "end": 442.859,
+      "en": "Even though I probably won't do it in this lecture, you can play with it if you want to.",
+      "zh": "雖然這堂課我可能不會試，你想的話可以自行調整，"
+    },
+    {
+      "start": 442.859,
+      "end": 444.98,
+      "en": "You can change the number of retrieved results.",
+      "zh": "改變檢索結果的筆數。"
+    },
+    {
+      "start": 444.98,
+      "end": 450.66,
+      "en": "k, if k is not none.",
+      "zh": "如果 k 不是 None，就使用 k，"
+    },
+    {
+      "start": 450.66,
+      "end": 456.1,
+      "en": "Else, we'll just go cfg.hopk, like that, OK?",
+      "zh": "否則用 cfg.top_k。"
+    },
+    {
+      "start": 456.1,
+      "end": 462.22,
+      "en": "And now it's a simple try command. Try, OK? With a finally.",
+      "zh": "現在只需要簡單的 try，搭配 finally，"
+    },
+    {
+      "start": 462.22,
+      "end": 465.299,
+      "en": "And the finally just says store.close, OK?",
+      "zh": "finally 裡只要呼叫 store.close()。"
+    },
+    {
+      "start": 465.299,
+      "end": 468.5,
+      "en": "And I'm going to have to have a helper function here in a minute, I think.",
+      "zh": "我想等一下還需要一個輔助函式，"
+    },
+    {
+      "start": 468.5,
+      "end": 470.38,
+      "en": "But don't worry about that.",
+      "zh": "但先不用擔心。"
+    },
+    {
+      "start": 470.38,
+      "end": 474.94,
+      "en": "Now back up at the try, get over the correct indentation.",
+      "zh": "回到 try，調整到正確縮排。"
+    },
+    {
+      "start": 474.94,
+      "end": 479.779,
+      "en": "First of all, all we do here is retrieve, wrap, and send. Retrieve.",
+      "zh": "首先要做的只有檢索、包裝、傳送。先檢索，"
+    },
+    {
+      "start": 479.779,
+      "end": 481.059,
+      "en": "So we get the context.",
+      "zh": "因此取得上下文 ctx，"
+    },
+    {
+      "start": 481.059,
+      "end": 482.38,
+      "en": "And that's going to be equal to.",
+      "zh": "值設為"
+    },
+    {
+      "start": 482.38,
+      "end": 485.14,
+      "en": "Why don't we just retrieve, OK? Right there.",
+      "zh": "呼叫 retrieve，"
+    },
+    {
+      "start": 485.14,
+      "end": 488.859,
+      "en": "And all that requires is the store. Try that again.",
+      "zh": "它只需要 store，重新輸入一下，"
+    },
+    {
+      "start": 488.859,
+      "end": 498.26,
+      "en": "All that requires is the store, the embedder, the question, and top k, OK?",
+      "zh": "需要的是 store、embedder、question 和 top_k。"
+    },
+    {
+      "start": 498.26,
+      "end": 500.299,
+      "en": "So now I have my context.",
+      "zh": "現在有上下文了，"
+    },
+    {
+      "start": 500.72,
+      "end": 504.22,
+      "en": "In other words, it searches for whatever we're looking for.",
+      "zh": "也就是搜尋我們想找的內容。"
+    },
+    {
+      "start": 504.22,
+      "end": 507.94,
+      "en": "Then we have messages.",
+      "zh": "接著建立 messages，"
+    },
+    {
+      "start": 507.94,
+      "end": 511.1,
+      "en": "That's equal to initial messages.",
+      "zh": "值等於 initial_messages，"
+    },
+    {
+      "start": 511.1,
+      "end": 516.619,
+      "en": "And that requires cfg.systemprompt, OK?",
+      "zh": "傳入 cfg.system_prompt。"
+    },
+    {
+      "start": 516.619,
+      "end": 522.02,
+      "en": "And then we need to get to append to that, the user's message, messages.append, OK?",
+      "zh": "然後將使用者訊息加入其中，呼叫 messages.append。"
+    },
+    {
+      "start": 522.02,
+      "end": 524.659,
+      "en": "And we need to build a user message.",
+      "zh": "我們需要建立使用者訊息，"
+    },
+    {
+      "start": 524.659,
+      "end": 529.46,
+      "en": "So in parentheses, next line, start with our curly brackets.",
+      "zh": "所以在括號裡換行，先建立字典。"
+    },
+    {
+      "start": 529.46,
+      "end": 532.299,
+      "en": "Role is going to be user.",
+      "zh": "role 是 user，"
+    },
+    {
+      "start": 532.299,
+      "end": 535.219,
+      "en": "And content, well, that's going to be.",
+      "zh": "content 則是"
+    },
+    {
+      "start": 535.219,
+      "end": 538.059,
+      "en": "Here's what we call buildUserMessage.",
+      "zh": "呼叫 build_user_message，"
+    },
+    {
+      "start": 538.059,
+      "end": 541.38,
+      "en": "And we hand it the question and the contact.",
+      "zh": "傳入 question 和 ctx，"
+    },
+    {
+      "start": 541.38,
+      "end": 544.38,
+      "en": "We rewrite the user's message, OK?",
+      "zh": "改寫使用者訊息。"
+    },
+    {
+      "start": 544.38,
+      "end": 549.9,
+      "en": "And then outside of that, after messages.append, we just go through the return results.",
+      "zh": "在 messages.append 外面，遍歷回傳結果，"
+    },
+    {
+      "start": 549.9,
+      "end": 559.26,
+      "en": "For piece in chat.stream with messages, we start our for loop.",
+      "zh": "寫 for piece in chat.stream(messages)，開始 for 迴圈。"
+    },
+    {
+      "start": 559.26,
+      "end": 561.979,
+      "en": "And all we have to say is typer.echo.",
+      "zh": "裡面只要呼叫 typer.echo，"
+    },
+    {
+      "start": 561.979,
+      "end": 566.659,
+      "en": "And we're going to echo the piece with nl equal to false.",
+      "zh": "輸出 piece，並設定 nl=False，"
+    },
+    {
+      "start": 566.659,
+      "end": 568.859,
+      "en": "Don't put a new line in there, OK?",
+      "zh": "不要插入換行。"
+    },
+    {
+      "start": 568.859,
+      "end": 571.419,
+      "en": "And after the for loop, get a blank line.",
+      "zh": "for 迴圈後加一個空白行，"
+    },
+    {
+      "start": 571.419,
+      "end": 575.26,
+      "en": "So typer.echo, an empty string.",
+      "zh": "呼叫 typer.echo，傳入空字串，"
+    },
+    {
+      "start": 575.26,
+      "end": 579.7,
+      "en": "And that gives me a blank line, or an carriage return, if you prefer.",
+      "zh": "這樣就會輸出空白行，或者說換行。"
+    },
+    {
+      "start": 579.7,
+      "end": 581.78,
+      "en": "Now, that's all really good.",
+      "zh": "目前很好。"
+    },
+    {
+      "start": 581.78,
+      "end": 589.979,
+      "en": "What I'd also like to do is I'd like to see where it's getting its data from, just to be sure it's actually consulting our vector store.",
+      "zh": "我也想知道資料來自哪裡，確認它確實查詢了向量儲存區。"
+    },
+    {
+      "start": 589.979,
+      "end": 592.059,
+      "en": "So let's invoke a function that doesn't exist yet.",
+      "zh": "所以呼叫一個還不存在的函式，"
+    },
+    {
+      "start": 592.059,
+      "end": 595.7,
+      "en": "And I'll call it print underscore sources, OK?",
+      "zh": "我叫它 _print_sources，"
+    },
+    {
+      "start": 595.7,
+      "end": 598.34,
+      "en": "And all it's going to take is ctx.hits.",
+      "zh": "只要傳入 ctx.hits，"
+    },
+    {
+      "start": 598.34,
+      "end": 600.299,
+      "en": "So we can see that it's actually working.",
+      "zh": "就能看到它是否真的運作。"
+    },
+    {
+      "start": 600.299,
+      "end": 602.539,
+      "en": "And now we'll go define that function, OK?",
+      "zh": "現在來定義這個函式。"
+    },
+    {
+      "start": 602.539,
+      "end": 604.58,
+      "en": "So I can put it pretty much anywhere I want.",
+      "zh": "幾乎放哪裡都可以，"
+    },
+    {
+      "start": 604.58,
+      "end": 610.02,
+      "en": "But I'll go back up here with all the other helper functions, build and jester, that sort of thing, OK?",
+      "zh": "不過我會回到其他輔助函式旁邊，例如 _build_ingestor 附近。"
+    },
+    {
+      "start": 610.02,
+      "end": 615.299,
+      "en": "So here, I'll put in def underscore print underscore sources.",
+      "zh": "在這裡寫 def _print_sources，"
+    },
+    {
+      "start": 615.34,
+      "end": 618.539,
+      "en": "And that's going to take as its arguments, well, hits.",
+      "zh": "參數就是 hits，"
+    },
+    {
+      "start": 618.539,
+      "end": 620.099,
+      "en": "And that's just a list, OK?",
+      "zh": "型別是 list，"
+    },
+    {
+      "start": 620.099,
+      "end": 621.419,
+      "en": "And it doesn't return anything.",
+      "zh": "不回傳任何內容，"
+    },
+    {
+      "start": 621.419,
+      "end": 623.26,
+      "en": "We're just going to print it to console.",
+      "zh": "只輸出到主控台。"
+    },
+    {
+      "start": 623.26,
+      "end": 626.38,
+      "en": "And this is dead simple, if not hits.",
+      "zh": "非常簡單，先檢查 if not hits，"
+    },
+    {
+      "start": 626.38,
+      "end": 628.7,
+      "en": "If we don't have any hits, just return, OK?",
+      "zh": "如果沒有結果就直接 return，"
+    },
+    {
+      "start": 628.7,
+      "end": 630.859,
+      "en": "Nothing to print.",
+      "zh": "因為沒有內容可印。"
+    },
+    {
+      "start": 630.859,
+      "end": 634.58,
+      "en": "Underneath that, typer.echo, we'll write to the console.",
+      "zh": "下面用 typer.echo 輸出到主控台，"
+    },
+    {
+      "start": 634.58,
+      "end": 641.5,
+      "en": "And we'll write, say, a blank line, or a carriage return, and then sources, and then a colon.",
+      "zh": "先加換行，再寫 Sources，後面接冒號。"
+    },
+    {
+      "start": 641.5,
+      "end": 645.7,
+      "en": "And then underneath that, we just say for h in hits.",
+      "zh": "接著只要 for h in hits，"
+    },
+    {
+      "start": 645.7,
+      "end": 647.099,
+      "en": "We didn't go through all the hits.",
+      "zh": "逐一遍歷所有結果，"
+    },
+    {
+      "start": 647.099,
+      "end": 648.4,
+      "en": "And we just printed the console.",
+      "zh": "並輸出到主控台。"
+    },
+    {
+      "start": 648.4,
+      "end": 649.78,
+      "en": "Let's get the name of the source.",
+      "zh": "先取得來源名稱，"
+    },
+    {
+      "start": 649.78,
+      "end": 651.739,
+      "en": "Name is going to be equal to.",
+      "zh": "name 的值是，"
+    },
+    {
+      "start": 651.739,
+      "end": 653.26,
+      "en": "I can get that from path.",
+      "zh": "可以從 Path 取得，"
+    },
+    {
+      "start": 653.26,
+      "end": 654.419,
+      "en": "I have that available to me.",
+      "zh": "目前已經能使用它，"
+    },
+    {
+      "start": 654.419,
+      "end": 655.739,
+      "en": "It's already imported.",
+      "zh": "因為之前已匯入。"
+    },
+    {
+      "start": 655.739,
+      "end": 660.14,
+      "en": "And I go h.source underscore path, OK?",
+      "zh": "傳入 h.source_path，"
+    },
+    {
+      "start": 660.14,
+      "end": 661.46,
+      "en": "And then I want the name.",
+      "zh": "接著取 .name，"
+    },
+    {
+      "start": 661.46,
+      "end": 663.02,
+      "en": "So now I know the name of the file.",
+      "zh": "就知道檔名了。"
+    },
+    {
+      "start": 663.02,
+      "end": 665.58,
+      "en": "And now I just say typer.echo.",
+      "zh": "然後呼叫 typer.echo，"
+    },
+    {
+      "start": 665.58,
+      "end": 668.419,
+      "en": "And I'll put this on multiple lines so it's easier to read.",
+      "zh": "我會分行寫，讓內容更容易閱讀，"
+    },
+    {
+      "start": 668.419,
+      "end": 670.14,
+      "en": "I'll use the format string.",
+      "zh": "使用格式化字串，"
+    },
+    {
+      "start": 670.14,
+      "end": 679.619,
+      "en": "And I'll put in, say, three spaces, and then a dash, and then a space, and then the name of the file, which I just got, and then a space,",
+      "zh": "先放三個空格、破折號、空格，再放剛取得的檔名，後面再加空格，"
+    },
+    {
+      "start": 679.619,
+      "end": 684.659,
+      "en": "and then say chunk, h.chunk index.",
+      "zh": "接著寫 chunk，再放 h.chunk_index，"
+    },
+    {
+      "start": 684.659,
+      "end": 687.02,
+      "en": "So I know which chunk it came from.",
+      "zh": "這樣就知道它來自哪個區塊。"
+    },
+    {
+      "start": 687.02,
+      "end": 689.34,
+      "en": "And then outside of the parentheses, I'll put a comma.",
+      "zh": "在括號外面加逗號，"
+    },
+    {
+      "start": 689.34,
+      "end": 693.859,
+      "en": "And score is just h.score.",
+      "zh": "score 就是 h.score，"
+    },
+    {
+      "start": 693.859,
+      "end": 697.539,
+      "en": "And we'll format to, say, .2f, two decimal places.",
+      "zh": "格式設為 .2f，顯示小數兩位，"
+    },
+    {
+      "start": 697.539,
+      "end": 701.099,
+      "en": "That should be fine, OK?",
+      "zh": "這樣就可以。"
+    },
+    {
+      "start": 701.099,
+      "end": 703.38,
+      "en": "And this should absolutely do the trick.",
+      "zh": "應該完全能達成目的。"
+    },
+    {
+      "start": 703.38,
+      "end": 705.78,
+      "en": "So let's make sure I got printSources here.",
+      "zh": "確認這裡有 _print_sources，"
+    },
+    {
+      "start": 705.78,
+      "end": 709.46,
+      "en": "And I'll go down to my ask command, printSources.",
+      "zh": "再到 ask 命令，確認呼叫 _print_sources。"
+    },
+    {
+      "start": 709.46,
+      "end": 712.38,
+      "en": "OK, so we should be able to give this a try.",
+      "zh": "現在應該可以測試了。"
+    },
+    {
+      "start": 712.38,
+      "end": 718.619,
+      "en": "So I know that I have, well, let's go look and see what's in my database first, OK? There it is.",
+      "zh": "先看看資料庫有什麼，就在這裡。"
+    },
+    {
+      "start": 718.619,
+      "end": 719.979,
+      "en": "And I have one file in there.",
+      "zh": "裡面有一份文件，"
+    },
+    {
+      "start": 719.979,
+      "end": 721.179,
+      "en": "And it's about vampires.",
+      "zh": "內容與吸血鬼有關，"
+    },
+    {
+      "start": 721.179,
+      "end": 723.719,
+      "en": "So I should be able to ask about vampires.",
+      "zh": "所以應該能問吸血鬼的問題，"
+    },
+    {
+      "start": 723.719,
+      "end": 726.82,
+      "en": "And it should consult this document. Let's find out.",
+      "zh": "它也應該參考這份文件。來確認看看。"
+    },
+    {
+      "start": 726.82,
+      "end": 728.38,
+      "en": "So I'll open my terminal.",
+      "zh": "開啟終端機，"
+    },
+    {
+      "start": 728.38,
+      "end": 730.46,
+      "en": "And now I'll just type pyreg.",
+      "zh": "輸入 pyrag，"
+    },
+    {
+      "start": 730.46,
+      "end": 732.099,
+      "en": "Try that again, pyreg.",
+      "zh": "重新輸入 pyrag，"
+    },
+    {
+      "start": 732.099,
+      "end": 734.5,
+      "en": "Ask, what is a vampire?",
+      "zh": "ask \"What is a vampire?\"，"
+    },
+    {
+      "start": 737.26,
+      "end": 741.219,
+      "en": "Question mark inside the quotes. And hit Return.",
+      "zh": "問號要放在引號內，再按 Enter。"
+    },
+    {
+      "start": 741.219,
+      "end": 742.5,
+      "en": "So it makes the request.",
+      "zh": "它送出請求了，"
+    },
+    {
+      "start": 742.5,
+      "end": 745.52,
+      "en": "It's waking up the Olamo model, because I haven't hit it for a while.",
+      "zh": "正在喚醒 Ollama 模型，因為已經有一段時間沒呼叫它。"
+    },
+    {
+      "start": 745.52,
+      "end": 748.58,
+      "en": "And here is the response.",
+      "zh": "這就是回覆，"
+    },
+    {
+      "start": 748.58,
+      "end": 751.059,
+      "en": "And it actually consulted vampire.txt.",
+      "zh": "它確實參考了 vampire.txt，"
+    },
+    {
+      "start": 751.059,
+      "end": 755.5,
+      "en": "And it uses chunk 0, chunk 9, and so on and so forth.",
+      "zh": "使用了區塊 0、區塊 9 等內容。"
+    },
+    {
+      "start": 755.5,
+      "end": 758.26,
+      "en": "The scores are actually ranked in the correct order.",
+      "zh": "分數也依正確順序排列，"
+    },
+    {
+      "start": 758.26,
+      "end": 760.539,
+      "en": "And I got a meaningful response.",
+      "zh": "而且得到有意義的回覆。"
+    },
+    {
+      "start": 760.539,
+      "end": 762.34,
+      "en": "That is perfect.",
+      "zh": "非常好。"
+    },
+    {
+      "start": 762.34,
+      "end": 765.5,
+      "en": "So clearly, this works end-to-end.",
+      "zh": "顯然整個流程已經能運作。"
+    },
+    {
+      "start": 765.5,
+      "end": 769.219,
+      "en": "So we're at the point now where we know that consulting the vector store works.",
+      "zh": "目前已經確認，查詢向量儲存區可行，"
+    },
+    {
+      "start": 769.219,
+      "end": 772.659,
+      "en": "Our first actual reg command succeeded.",
+      "zh": "第一個真正的 RAG 命令成功了。"
+    },
+    {
+      "start": 772.659,
+      "end": 773.979,
+      "en": "That means we can go back.",
+      "zh": "這表示可以回頭，"
+    },
+    {
+      "start": 773.979,
+      "end": 777.099,
+      "en": "And we can either modify our chat loop to use reg.",
+      "zh": "修改聊天迴圈，讓它使用 RAG，"
+    },
+    {
+      "start": 777.099,
+      "end": 779.179,
+      "en": "Or we can create an entirely new command.",
+      "zh": "或建立全新的命令。"
+    },
+    {
+      "start": 779.179,
+      "end": 782.219,
+      "en": "But either way, we know we can do that now.",
+      "zh": "無論哪一種，現在都知道做得到。"
+    },
+    {
+      "start": 782.219,
+      "end": 785.099,
+      "en": "So let's move on.",
+      "zh": "我們繼續。"
+    }
+  ]
+}

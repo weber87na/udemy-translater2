@@ -1,0 +1,811 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56333259",
+  "title": "Implementing search in the postgres vector store",
+  "section": 5,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "a2460c3b812205f1fbc2f541bbb846c3dc8a3a34854b93ea434030a17dc53469",
+  "cues": [
+    {
+      "start": 0,
+      "end": 7.32,
+      "en": "So, what we're going to work on this time around is implementing, well, it's right here in base.py.",
+      "zh": "這堂課要實作的功能，就在 base.py 這裡。"
+    },
+    {
+      "start": 7.32,
+      "end": 8.319,
+      "en": "This is the contract.",
+      "zh": "這是契約，"
+    },
+    {
+      "start": 8.319,
+      "end": 15.439,
+      "en": "And if you come down here to line 43 in my code, we have this abstract method search.",
+      "zh": "到我程式第 43 行，可以看到抽象方法 search。"
+    },
+    {
+      "start": 15.439,
+      "end": 21.52,
+      "en": "And any vector store that wants to satisfy this contract has to have this function.",
+      "zh": "任何要滿足這份契約的向量儲存區，都必須提供這個函式。"
+    },
+    {
+      "start": 21.52,
+      "end": 29.719,
+      "en": "And if we go over to Postgres, the only one we're supporting right now, and we look for search, we'll find it way down here, OK, on line 92 in my code.",
+      "zh": "到目前唯一支援的 Postgres 裡找 search，會在下面這裡找到，我的程式第 92 行。"
+    },
+    {
+      "start": 29.719,
+      "end": 33.2,
+      "en": "And we just have this retrieval is to do.",
+      "zh": "目前只寫著檢索尚待實作。"
+    },
+    {
+      "start": 33.2,
+      "end": 36.52,
+      "en": "So what we want to do is to implement the search here.",
+      "zh": "因此現在要在這裡實作 search。"
+    },
+    {
+      "start": 36.52,
+      "end": 42.319,
+      "en": "And although in the last lecture I said we're just going to implement cosine similarity search, I got thinking about it.",
+      "zh": "雖然上一堂說只實作餘弦相似度搜尋，但我後來想了一下，"
+    },
+    {
+      "start": 42.319,
+      "end": 47.86,
+      "en": "And there's absolutely no reason why we can't implement HMSW at the same time.",
+      "zh": "其實完全沒有理由不能同時支援 HNSW。"
+    },
+    {
+      "start": 47.86,
+      "end": 51.34,
+      "en": "It's very little change in the actual required code.",
+      "zh": "實際程式碼只需要很小的變更。"
+    },
+    {
+      "start": 51.34,
+      "end": 55.159,
+      "en": "The one caveat would be that Postgres is very smart.",
+      "zh": "唯一要注意的是，Postgres 非常聰明，"
+    },
+    {
+      "start": 55.159,
+      "end": 65.559,
+      "en": "And if we have a small amount of information in our database, say, 75 chunks, for example, the planner will look at it and say, yeah, I don't need to use HMSW here.",
+      "zh": "如果資料庫裡只有少量資訊，例如 75 個區塊，查詢規劃器會判斷這裡不需要使用 HNSW，"
+    },
+    {
+      "start": 65.559,
+      "end": 70.4,
+      "en": "I can just do the simple search, and it'll be just as fast, if not faster.",
+      "zh": "直接做簡單搜尋，速度一樣快，甚至更快。"
+    },
+    {
+      "start": 70.4,
+      "end": 71.4,
+      "en": "And that's true.",
+      "zh": "這是事實。"
+    },
+    {
+      "start": 71.4,
+      "end": 75.879,
+      "en": "It's absolutely true if we have, say, up to about 5,000 entries in our database.",
+      "zh": "例如資料庫中大約 5000 筆以下時，確實如此。"
+    },
+    {
+      "start": 75.879,
+      "end": 79.919,
+      "en": "But if we have 5 million, it becomes really, really inefficient.",
+      "zh": "但若有 500 萬筆，這種方式就非常沒效率。"
+    },
+    {
+      "start": 79.919,
+      "end": 83.639,
+      "en": "And fortunately, Postgres will be smart enough to say, hey, this is a big search.",
+      "zh": "幸好 Postgres 會聰明地判斷：這是大型搜尋，"
+    },
+    {
+      "start": 83.639,
+      "end": 86.239,
+      "en": "I'm going to use the HMSW index, OK?",
+      "zh": "我要使用 HNSW 索引。"
+    },
+    {
+      "start": 86.239,
+      "end": 95.239,
+      "en": "And if you remember, over here in init.sql, in the db init.sql that we used to set up our database, down here we created the indices.",
+      "zh": "還記得用來建立資料庫的 db/init.sql 嗎？下面已經建立索引，"
+    },
+    {
+      "start": 95.239,
+      "end": 99.36,
+      "en": "We created one, just a standard one, on document ID.",
+      "zh": "一個是 document_id 上的一般索引，"
+    },
+    {
+      "start": 99.36,
+      "end": 101.44,
+      "en": "Then we created one for HMSW.",
+      "zh": "另一個則是 HNSW 索引。"
+    },
+    {
+      "start": 101.44,
+      "end": 106.16,
+      "en": "And then we have this create index if not exist chunks content TSVGIN.",
+      "zh": "接著還有 CREATE INDEX IF NOT EXISTS，以及 chunks 的 content_tsv GIN 索引。"
+    },
+    {
+      "start": 106.16,
+      "end": 108.559,
+      "en": "And I'll talk more about that later on.",
+      "zh": "這部分稍後再詳細談。"
+    },
+    {
+      "start": 108.559,
+      "end": 112.319,
+      "en": "So the indices are already there in our database, OK?",
+      "zh": "因此資料庫裡已經有這些索引，"
+    },
+    {
+      "start": 112.319,
+      "end": 118.199,
+      "en": "So there's no reason why we can't just take advantage of them if appropriate to do so, OK?",
+      "zh": "適合時就能直接利用它們，沒有理由不使用。"
+    },
+    {
+      "start": 118.199,
+      "end": 124.199,
+      "en": "So let's get started on this search method inside the Postgres store, in postgres.py.",
+      "zh": "現在開始處理 postgres.py 中 PostgresStore 的 search 方法。"
+    },
+    {
+      "start": 124.199,
+      "end": 127.48,
+      "en": "So what I'll do is I'll just delete all of this, OK?",
+      "zh": "先把這裡的內容刪掉。"
+    },
+    {
+      "start": 127.48,
+      "end": 128.8,
+      "en": "The function signature is correct.",
+      "zh": "函式簽章是正確的，"
+    },
+    {
+      "start": 128.8,
+      "end": 133.039,
+      "en": "It has to be, or it wouldn't satisfy the necessary contract, OK?",
+      "zh": "它一定得正確，否則就不符合必要契約。"
+    },
+    {
+      "start": 133.039,
+      "end": 137.46,
+      "en": "So what we'll do first of all is get our connection, con.",
+      "zh": "首先取得連線 conn，"
+    },
+    {
+      "start": 137.46,
+      "end": 142.94,
+      "en": "That's equal to, right from self, and we call dot underscore connect, right there.",
+      "zh": "值來自 self._connect，"
+    },
+    {
+      "start": 142.94,
+      "end": 146.38,
+      "en": "And make sure you put the parentheses on it, something I often forget to do, OK?",
+      "zh": "記得加上括號，我很常忘。"
+    },
+    {
+      "start": 146.38,
+      "end": 148.25900000000001,
+      "en": "So now I have my connection.",
+      "zh": "現在有連線了。"
+    },
+    {
+      "start": 148.25900000000001,
+      "end": 156.3,
+      "en": "And now I'll say with con dot cursor, right there, and in parentheses I'll put row underscore",
+      "zh": "接著寫 with conn.cursor，括號裡設定 row_factory，"
+    },
+    {
+      "start": 156.3,
+      "end": 162.74,
+      "en": "factory equals dict underscore row, OK?",
+      "zh": "等於 dict_row，"
+    },
+    {
+      "start": 162.74,
+      "end": 166.74,
+      "en": "And I'll use that as cur, C-U-R, OK?",
+      "zh": "再寫 as cur，C-U-R。"
+    },
+    {
+      "start": 166.74,
+      "end": 172.3,
+      "en": "Now what we're doing here is we're using H-N-S-W, if it's available, OK?",
+      "zh": "這裡是在可使用時採用 HNSW，"
+    },
+    {
+      "start": 172.3,
+      "end": 177.38,
+      "en": "And we're going to widen its candidate list before we actually execute the search.",
+      "zh": "而且會在真正執行搜尋前，擴大候選清單。"
+    },
+    {
+      "start": 177.38,
+      "end": 183.02,
+      "en": "Now the default is actually E-F underscore search equals 40, if you care, OK?",
+      "zh": "如果你想知道，預設 ef_search 其實是 40。"
+    },
+    {
+      "start": 183.02,
+      "end": 185.5,
+      "en": "And this cannot work as well as we want it to.",
+      "zh": "這個設定可能達不到我們要的效果。"
+    },
+    {
+      "start": 185.5,
+      "end": 190.82,
+      "en": "If we say for find more than 20 neighbors, eh, we'll have a bit of a problem, OK?",
+      "zh": "例如想找超過 20 個鄰近項目時，就可能遇到一些問題。"
+    },
+    {
+      "start": 190.82,
+      "end": 193.059,
+      "en": "So all we're doing is just setting some defaults here.",
+      "zh": "所以這裡只是設定預設值，"
+    },
+    {
+      "start": 193.059,
+      "end": 197.86,
+      "en": "So we'll do that by saying, right now, cur dot execute, OK?",
+      "zh": "透過 cur.execute 執行。"
+    },
+    {
+      "start": 197.86,
+      "end": 200.1,
+      "en": "We're going to execute something on Postgres.",
+      "zh": "我們要在 Postgres 執行敘述，"
+    },
+    {
+      "start": 200.1,
+      "end": 210.94,
+      "en": "And we'll just say set local H-N-S-W dot E-F underscore search.",
+      "zh": "內容是 SET LOCAL hnsw.ef_search，"
+    },
+    {
+      "start": 210.94,
+      "end": 212.779,
+      "en": "We'll set that equal to 100.",
+      "zh": "把它設為 100。"
+    },
+    {
+      "start": 212.779,
+      "end": 217.41899999999998,
+      "en": "We're just going to make this perform as efficiently as it possibly can, OK?",
+      "zh": "目的只是讓它盡可能有效率地運作。"
+    },
+    {
+      "start": 217.41899999999998,
+      "end": 218.899,
+      "en": "Now I see I missed an import.",
+      "zh": "我發現漏了一項匯入，"
+    },
+    {
+      "start": 218.899,
+      "end": 220.699,
+      "en": "I have dict underscore row.",
+      "zh": "這裡使用了 dict_row，"
+    },
+    {
+      "start": 220.699,
+      "end": 227.25900000000001,
+      "en": "I need to go back up here, where I'm importing from PsychoPG.",
+      "zh": "所以需要回到上面匯入 psycopg 的位置，"
+    },
+    {
+      "start": 227.25900000000001,
+      "end": 229.46,
+      "en": "And I'll just add an entry right here.",
+      "zh": "在這裡加上一項，"
+    },
+    {
+      "start": 229.46,
+      "end": 236.38,
+      "en": "From PsychoPG dot rows, we'll import a kind of row, OK?",
+      "zh": "從 psycopg.rows 匯入一種資料列型別，"
+    },
+    {
+      "start": 236.38,
+      "end": 238.46,
+      "en": "Dict underscore row.",
+      "zh": "也就是 dict_row。"
+    },
+    {
+      "start": 238.46,
+      "end": 241.82,
+      "en": "Otherwise, our code won't know how to deal with the things it gets back.",
+      "zh": "否則程式不知道如何處理回傳的內容。"
+    },
+    {
+      "start": 241.82,
+      "end": 244.779,
+      "en": "So we're just importing a particular kind of dict row.",
+      "zh": "我們只是在匯入特定的字典資料列表示法。"
+    },
+    {
+      "start": 244.779,
+      "end": 249.1,
+      "en": "So you see here, a row factory to represent rows as dictionaries.",
+      "zh": "可以看到，row_factory 會把資料列表示為字典，"
+    },
+    {
+      "start": 249.1,
+      "end": 250.139,
+      "en": "That's all that that is.",
+      "zh": "就是這個用途。"
+    },
+    {
+      "start": 250.139,
+      "end": 251.779,
+      "en": "So we'll come back down here now.",
+      "zh": "現在回到下面，"
+    },
+    {
+      "start": 251.779,
+      "end": 253.46,
+      "en": "And that arrow went away. Perfect.",
+      "zh": "錯誤提示消失了，很好。"
+    },
+    {
+      "start": 253.46,
+      "end": 255.179,
+      "en": "So I've widened my search.",
+      "zh": "我已經擴大搜尋範圍。"
+    },
+    {
+      "start": 255.179,
+      "end": 260.899,
+      "en": "Now, I'm going to put in here the order by cosine distance, OK?",
+      "zh": "接著要依餘弦距離排序，"
+    },
+    {
+      "start": 260.899,
+      "end": 265.859,
+      "en": "We're going to order by cosine distance using that less than, equal sign, greater than operator.",
+      "zh": "使用小於、等號、大於，也就是 <=> 運算子，依餘弦距離排序。"
+    },
+    {
+      "start": 265.859,
+      "end": 267.5,
+      "en": "And we'll join back the documents.",
+      "zh": "並且聯結 documents，"
+    },
+    {
+      "start": 267.5,
+      "end": 270.779,
+      "en": "And that way, we're going to get the source path along with each chunk.",
+      "zh": "這樣每個區塊都會附上來源路徑。"
+    },
+    {
+      "start": 270.779,
+      "end": 272.15999999999997,
+      "en": "That's all we're going to do here.",
+      "zh": "這裡要做的就是這些。"
+    },
+    {
+      "start": 272.15999999999997,
+      "end": 276.339,
+      "en": "So it's just another bit of SQL, cur dot execute.",
+      "zh": "所以再寫一段 SQL，呼叫 cur.execute。"
+    },
+    {
+      "start": 276.339,
+      "end": 284.299,
+      "en": "And I'll do this on multiple lines using the three quotation marks, just to make it as readable as possible, OK?",
+      "zh": "我用三個引號分行書寫，盡量提高可讀性。"
+    },
+    {
+      "start": 284.299,
+      "end": 287.54,
+      "en": "So up in between these, let's just tab over the correct space.",
+      "zh": "在引號中先調整到適當縮排，"
+    },
+    {
+      "start": 287.54,
+      "end": 289.94,
+      "en": "And we'll say select.",
+      "zh": "寫 SELECT。"
+    },
+    {
+      "start": 289.94,
+      "end": 291.019,
+      "en": "And what do I want to get?",
+      "zh": "要取得什麼？"
+    },
+    {
+      "start": 291.019,
+      "end": 293.779,
+      "en": "Well, I want to get d dot source underscore path, OK?",
+      "zh": "首先是 d.source_path，"
+    },
+    {
+      "start": 293.779,
+      "end": 296.5,
+      "en": "I want to know where the document actually exists.",
+      "zh": "想知道文件實際位於哪裡。"
+    },
+    {
+      "start": 296.5,
+      "end": 300.54,
+      "en": "And then I want c dot chunk index.",
+      "zh": "接著是 c.chunk_index，"
+    },
+    {
+      "start": 300.54,
+      "end": 306.059,
+      "en": "And we'll get those aliases set up in a minute, c and d. So chunk index.",
+      "zh": "稍後會定義 c 和 d 的別名。所以這裡是 chunk_index，"
+    },
+    {
+      "start": 306.059,
+      "end": 309.7,
+      "en": "And I want c dot content.",
+      "zh": "再取 c.content，"
+    },
+    {
+      "start": 309.7,
+      "end": 313.42,
+      "en": "And I want c dot metadata.",
+      "zh": "以及 c.metadata。"
+    },
+    {
+      "start": 313.42,
+      "end": 320.899,
+      "en": "And here, I would put 1 minus c dot embedding.",
+      "zh": "這裡則寫 1 減去 c.embedding，"
+    },
+    {
+      "start": 320.899,
+      "end": 324.98,
+      "en": "And then I have less than, equal sign, greater than.",
+      "zh": "接小於、等號、大於，"
+    },
+    {
+      "start": 324.98,
+      "end": 326.22,
+      "en": "And I'll put percent.",
+      "zh": "再寫百分比符號，"
+    },
+    {
+      "start": 326.22,
+      "end": 331.1,
+      "en": "And then in parentheses, vec, close the parentheses, and put s.",
+      "zh": "括號裡放 vec，括號後接 s，"
+    },
+    {
+      "start": 331.1,
+      "end": 334.42,
+      "en": "And then I'll cast that to a vector, OK?",
+      "zh": "然後轉型成 vector。"
+    },
+    {
+      "start": 334.42,
+      "end": 342.22,
+      "en": "And outside of those parentheses, I'll say as cosine, which I have to spell right, cosine, OK?",
+      "zh": "在外面加上 AS cosine，注意拼字，是 cosine。"
+    },
+    {
+      "start": 342.22,
+      "end": 344.05899999999997,
+      "en": "And then hit Return. Come down here.",
+      "zh": "再按 Enter，往下寫。"
+    },
+    {
+      "start": 344.05899999999997,
+      "end": 349.779,
+      "en": "We're selecting from chunks as c.",
+      "zh": "我們從 chunks AS c 選取資料，"
+    },
+    {
+      "start": 349.779,
+      "end": 357.82,
+      "en": "And on the next line, we'll say join documents, lowercase, documents, d.",
+      "zh": "下一行 JOIN documents，documents 用小寫，別名是 d。"
+    },
+    {
+      "start": 357.82,
+      "end": 365.019,
+      "en": "And we're going to join on d dot id equals c dot document id.",
+      "zh": "聯結條件是 d.id = c.document_id，"
+    },
+    {
+      "start": 365.019,
+      "end": 366.94,
+      "en": "Hit our foreign key.",
+      "zh": "也就是連接外鍵。"
+    },
+    {
+      "start": 366.94,
+      "end": 367.899,
+      "en": "And then Return.",
+      "zh": "再換行，"
+    },
+    {
+      "start": 367.899,
+      "end": 371.54,
+      "en": "We'll get a particular order, order by.",
+      "zh": "使用 ORDER BY 指定順序，"
+    },
+    {
+      "start": 371.54,
+      "end": 374.339,
+      "en": "And we'll say c dot embedding.",
+      "zh": "寫 c.embedding，"
+    },
+    {
+      "start": 374.339,
+      "end": 378.739,
+      "en": "And then once again, less than equals greater than.",
+      "zh": "再次接上 <=>，"
+    },
+    {
+      "start": 378.739,
+      "end": 384.14,
+      "en": "And percent, and then vec, and then s.",
+      "zh": "以及百分比、括號中的 vec、再接 s，"
+    },
+    {
+      "start": 384.14,
+      "end": 387.5,
+      "en": "And cast that to a vector.",
+      "zh": "並轉型成 vector。"
+    },
+    {
+      "start": 387.5,
+      "end": 388.579,
+      "en": "And we want to limit it.",
+      "zh": "還要限制結果筆數，"
+    },
+    {
+      "start": 388.579,
+      "end": 397.94,
+      "en": "Limit, I'll put it in all caps to be consistent, limit percent k s, OK?",
+      "zh": "使用 LIMIT，為了保持一致全大寫，接 %(k)s。"
+    },
+    {
+      "start": 397.94,
+      "end": 399.899,
+      "en": "So that's my basic query.",
+      "zh": "這就是基本查詢。"
+    },
+    {
+      "start": 399.899,
+      "end": 407.1,
+      "en": "But of course, I need to go outside of my triple quotation marks, hit a comma, go to the next line, and put my substitutions in.",
+      "zh": "當然，還需要離開三引號、加逗號，換到下一行提供代入值。"
+    },
+    {
+      "start": 407.1,
+      "end": 415.7,
+      "en": "So in curly brackets, vec colon, and then query embedding,",
+      "zh": "在大括號裡，用 vec 作為鍵，query_embedding 作為值，"
+    },
+    {
+      "start": 415.7,
+      "end": 420.82,
+      "en": "and k, lowercase k, that's just k.",
+      "zh": "另一個鍵是小寫 k，值就是 k，"
+    },
+    {
+      "start": 420.82,
+      "end": 424.059,
+      "en": "Number of chunks to return, OK?",
+      "zh": "也就是回傳區塊數量。"
+    },
+    {
+      "start": 424.059,
+      "end": 425.299,
+      "en": "So that's my SQL.",
+      "zh": "SQL 就完成了。"
+    },
+    {
+      "start": 425.299,
+      "end": 427.22,
+      "en": "So I execute that SQL.",
+      "zh": "接著執行這個 SQL。"
+    },
+    {
+      "start": 427.22,
+      "end": 432.299,
+      "en": "Now let's come down here outside of this cur execute bit, OK?",
+      "zh": "現在離開 cur.execute 的部分，"
+    },
+    {
+      "start": 432.299,
+      "end": 433.5,
+      "en": "And let's get our hits.",
+      "zh": "取得命中的結果。"
+    },
+    {
+      "start": 433.5,
+      "end": 435.22,
+      "en": "Hits, which I have to spell right.",
+      "zh": "變數叫 hits，注意拼字。"
+    },
+    {
+      "start": 435.22,
+      "end": 438.5,
+      "en": "Hits, a variable name I'm choosing right now, equals.",
+      "zh": "hits 是我現在取的名稱，它等於"
+    },
+    {
+      "start": 438.5,
+      "end": 443.619,
+      "en": "And in square brackets, I just create search hit, that type.",
+      "zh": "一個串列，裡面建立 SearchHit 型別的實例。"
+    },
+    {
+      "start": 443.619,
+      "end": 448.26,
+      "en": "And in parentheses, we'll go to the next line to make it as readable as possible.",
+      "zh": "括號裡換行，讓它盡可能容易閱讀。"
+    },
+    {
+      "start": 448.26,
+      "end": 453.65999999999997,
+      "en": "Source underscore path, well, that's going to be equal to, with a lowercase r,",
+      "zh": "source_path 的值來自小寫 r，"
+    },
+    {
+      "start": 453.65999999999997,
+      "end": 461.26,
+      "en": "then square brackets, source underscore path, OK? And a comma.",
+      "zh": "透過方括號存取 \"source_path\"，後面加逗號。"
+    },
+    {
+      "start": 461.26,
+      "end": 465.019,
+      "en": "And on the next line, chunk underscore index.",
+      "zh": "下一行是 chunk_index，"
+    },
+    {
+      "start": 465.019,
+      "end": 467.579,
+      "en": "That equals, with r, at index.",
+      "zh": "它等於 r 的對應項目，"
+    },
+    {
+      "start": 467.579,
+      "end": 470.239,
+      "en": "And we'll have r in a minute, so don't worry about that.",
+      "zh": "r 等一下就會定義，不必擔心。"
+    },
+    {
+      "start": 470.239,
+      "end": 473.54,
+      "en": "In quotes, chunk underscore index.",
+      "zh": "索引鍵是引號裡的 \"chunk_index\"，"
+    },
+    {
+      "start": 473.54,
+      "end": 476.05899999999997,
+      "en": "And then a comma.",
+      "zh": "再加逗號。"
+    },
+    {
+      "start": 476.05899999999997,
+      "end": 477.98,
+      "en": "And the next one is text.",
+      "zh": "下一個是 text，"
+    },
+    {
+      "start": 477.98,
+      "end": 485.899,
+      "en": "Well, that'll be r at index, content, with a comma.",
+      "zh": "值為 r[\"content\"]，後面加逗號。"
+    },
+    {
+      "start": 485.899,
+      "end": 491.459,
+      "en": "And then score, how closely does it match what the user is searching for, that has to be a float.",
+      "zh": "接著是 score，表示與使用者搜尋內容的相似程度，必須是浮點數，"
+    },
+    {
+      "start": 491.459,
+      "end": 493.019,
+      "en": "So we'll cast it to a float.",
+      "zh": "所以將它轉型為 float，"
+    },
+    {
+      "start": 493.019,
+      "end": 503.059,
+      "en": "And then we'll use r at index, cosine, which I keep misspelling, cosine, OK? And a comma.",
+      "zh": "使用 r[\"cosine\"]，cosine 我一直拼錯，再加逗號。"
+    },
+    {
+      "start": 503.059,
+      "end": 505.019,
+      "en": "And then metadata.",
+      "zh": "然後是 metadata，"
+    },
+    {
+      "start": 505.019,
+      "end": 514.14,
+      "en": "That will be equal to, as a dict, using r at index, in quotation marks, metadata.",
+      "zh": "使用 dict，傳入 r[\"metadata\"]。"
+    },
+    {
+      "start": 514.14,
+      "end": 523.94,
+      "en": "And then just to be safe, I'm going to come outside of this, OK, but before the closing parentheses, and put or like that, just to be absolutely sure it's",
+      "zh": "為了安全起見，在這個值外面、右括號前面加上 or 作為備援，確保它"
+    },
+    {
+      "start": 523.94,
+      "end": 527.46,
+      "en": "going to work as expected. And close this.",
+      "zh": "能如預期運作，再關閉括號。"
+    },
+    {
+      "start": 527.46,
+      "end": 535.94,
+      "en": "And then down, outside the parentheses, we need to define what r is, for r in cur.fetchAll,",
+      "zh": "然後在建構式括號外面定義 r：for r in cur.fetchall，"
+    },
+    {
+      "start": 535.94,
+      "end": 540.58,
+      "en": "right there, with its parentheses, OK?",
+      "zh": "記得加上括號。"
+    },
+    {
+      "start": 540.58,
+      "end": 544.58,
+      "en": "Now, down outside of hits, we'll come down here.",
+      "zh": "在 hits 串列外面往下寫，"
+    },
+    {
+      "start": 544.58,
+      "end": 549.9,
+      "en": "We'll go con.commit to commit everything.",
+      "zh": "呼叫 conn.commit()，提交所有操作。"
+    },
+    {
+      "start": 549.9,
+      "end": 552.979,
+      "en": "And then we return hits, not nits, hits.",
+      "zh": "再 return hits，不是 nits，是 hits。"
+    },
+    {
+      "start": 555.5,
+      "end": 560.659,
+      "en": "And that should take care of actually setting up the search method, OK?",
+      "zh": "這樣應該就完成 search 方法了。"
+    },
+    {
+      "start": 560.659,
+      "end": 570.059,
+      "en": "So as I said before, what's going to happen here is when we call this method, it might use cosine similarity, and it might use HNSW.",
+      "zh": "如前面所說，呼叫這個方法時，可能直接使用餘弦相似度搜尋，也可能使用 HNSW，"
+    },
+    {
+      "start": 570.059,
+      "end": 574.94,
+      "en": "Postgres's planner will actually make that decision for us, but we support both, OK?",
+      "zh": "Postgres 的規劃器會替我們決定，但兩種都支援。"
+    },
+    {
+      "start": 574.94,
+      "end": 579.02,
+      "en": "So that's enough for this time around. Let's move on.",
+      "zh": "這堂課先到這裡，我們繼續。"
+    }
+  ]
+}

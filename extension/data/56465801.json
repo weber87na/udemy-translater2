@@ -1,0 +1,1639 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56465801",
+  "title": "Updating the ingestor for images",
+  "section": 13,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ed54a6f43da74b8dc435fef0b0e00e74c2eca789ee79c9c2af40d9cfbf87a5b7",
+  "cues": [
+    {
+      "start": 0,
+      "end": 9.899,
+      "en": "So, at this point, we know we can give our system an image, and get back a description of it, which is extremely helpful, and we'll be using that before too long.",
+      "zh": "現在已經知道，可以把圖片交給系統並取得描述，這很有幫助，稍後就會用到。"
+    },
+    {
+      "start": 9.899,
+      "end": 16.04,
+      "en": "But before we can do anything else, we have to handle actually ingesting image information into our vector store.",
+      "zh": "但在繼續之前，必須先處理如何將圖片資訊匯入向量儲存。"
+    },
+    {
+      "start": 16.04,
+      "end": 20.68,
+      "en": "And, as I said before, we're not putting the binary information in the vector store.",
+      "zh": "正如之前所說，不是把圖片的二進位資料放進向量儲存。"
+    },
+    {
+      "start": 20.68,
+      "end": 23.959,
+      "en": "We're putting textual descriptions of it.",
+      "zh": "放入的是圖片的文字描述。"
+    },
+    {
+      "start": 23.959,
+      "end": 29.399,
+      "en": "So to get started, let's go to ingest.py, and we need to add one import.",
+      "zh": "先到 ingest.py，需要新增一個匯入項目。"
+    },
+    {
+      "start": 29.399,
+      "end": 30.399,
+      "en": "And it's right here.",
+      "zh": "就在這裡。"
+    },
+    {
+      "start": 30.399,
+      "end": 33.86,
+      "en": "At the top, I'll put it right after embeddings.",
+      "zh": "我把它放在最上方的 embeddings 之後。"
+    },
+    {
+      "start": 33.86,
+      "end": 38.4,
+      "en": "We need to import from.llm.",
+      "zh": "從 .llm 匯入。"
+    },
+    {
+      "start": 38.4,
+      "end": 42.2,
+      "en": "We need to import, and we just need the chat client.",
+      "zh": "這次只需要 ChatClient。"
+    },
+    {
+      "start": 42.2,
+      "end": 44.36,
+      "en": "So we have to have that.",
+      "zh": "這個一定要有。"
+    },
+    {
+      "start": 44.36,
+      "end": 47.36,
+      "en": "Now let's come a little bit further below this.",
+      "zh": "再往下面一點。"
+    },
+    {
+      "start": 47.36,
+      "end": 50.2,
+      "en": "We're going to add, we already have text suffixes.",
+      "zh": "目前已經有 TEXT_SUFFIXES，"
+    },
+    {
+      "start": 50.2,
+      "end": 54.639,
+      "en": "Let's add some information here, also for image suffixes.",
+      "zh": "也要新增圖片副檔名的資訊。"
+    },
+    {
+      "start": 54.639,
+      "end": 60.84,
+      "en": "So image suffixes, suffixes, like that.",
+      "zh": "命名為 IMAGE_SUFFIXES，先把 suffixes 拼對。"
+    },
+    {
+      "start": 60.84,
+      "end": 66.919,
+      "en": "We'll make that equal to, and we'll put all the common things in here, in curly brackets, which eventually I'll type properly.",
+      "zh": "使用大括號建立集合，把常見格式都放進來，總算把括號打對了。"
+    },
+    {
+      "start": 66.919,
+      "end": 71.379,
+      "en": "So we definitely want png, so .png.",
+      "zh": "肯定需要 PNG，所以放入 .png。"
+    },
+    {
+      "start": 71.379,
+      "end": 78.279,
+      "en": "And we want .jpg, and say .jpeg, which people still use.",
+      "zh": "也需要 .jpg，以及仍有人使用的 .jpeg。"
+    },
+    {
+      "start": 78.279,
+      "end": 81.72,
+      "en": "And .gifs, or gifs if you prefer.",
+      "zh": "還有 GIF，或者你偏好的另一種念法。"
+    },
+    {
+      "start": 81.72,
+      "end": 86.12,
+      "en": "I'm not getting into that argument. Then webp.",
+      "zh": "我不打算參與發音爭論。再加入 WebP。"
+    },
+    {
+      "start": 86.12,
+      "end": 91.199,
+      "en": "And we may as well put, even though I never use them, some people do, bmp, bitmap files.",
+      "zh": "也加入 BMP 點陣圖，雖然我從來不用，但有人會用。"
+    },
+    {
+      "start": 91.199,
+      "end": 93.44,
+      "en": "So we have to have that.",
+      "zh": "所以這些都需要。"
+    },
+    {
+      "start": 93.44,
+      "end": 97.72,
+      "en": "Let's also put in our supported suffixes.",
+      "zh": "接著設定所有支援的副檔名。"
+    },
+    {
+      "start": 97.72,
+      "end": 107.4,
+      "en": "So we'll put in supported suffixes, and we'll make that equal to, and we'll just use text",
+      "zh": "建立 SUPPORTED_SUFFIXES，值使用 TEXT_"
+    },
+    {
+      "start": 107.4,
+      "end": 117.44,
+      "en": "suffixes, and then a pipe, and then image suffixes.",
+      "zh": "SUFFIXES，再加上管線符號 |，然後是 IMAGE_SUFFIXES。"
+    },
+    {
+      "start": 117.44,
+      "end": 123.48,
+      "en": "So we're just saying we support all of these, and all of these. Simple enough.",
+      "zh": "也就是支援這兩組副檔名的聯集，很簡單。"
+    },
+    {
+      "start": 123.48,
+      "end": 130,
+      "en": "Now the next thing I'll put in here is my system prompt for images, and I'll call this, say, imageDescribePrompt.",
+      "zh": "下一個要加入的是圖片的系統提示，命名為 IMAGE_DESCRIBE_PROMPT。"
+    },
+    {
+      "start": 130,
+      "end": 134.88,
+      "en": "That seems like a good name.",
+      "zh": "這個名稱很合適。"
+    },
+    {
+      "start": 134.88,
+      "end": 138.52,
+      "en": "And I'll put this on multiple lines, as I usually do.",
+      "zh": "照慣例分成多行。"
+    },
+    {
+      "start": 138.52,
+      "end": 147.52,
+      "en": "So describe this image in detail for a search index.",
+      "zh": "內容是：「為搜尋索引詳細描述這張圖片。"
+    },
+    {
+      "start": 147.52,
+      "end": 155.199,
+      "en": "Include the main, and then a space, and then on the next line, subject.",
+      "zh": "包含主要」，加上空格，下一行寫「主題」。"
+    },
+    {
+      "start": 155.199,
+      "end": 166.96,
+      "en": "So the main subject, any creatures, people, or objects present.",
+      "zh": "也就是主要主題，以及其中出現的生物、人物或物品。"
+    },
+    {
+      "start": 166.96,
+      "end": 175.839,
+      "en": "Also include the setting, and then on the next line, mood, colors, which I'm going to spell the Canadian way.",
+      "zh": "也包含場景，再下一行寫情緒、色彩；色彩的英文我採加拿大拼法。"
+    },
+    {
+      "start": 175.839,
+      "end": 178.039,
+      "en": "You can spell it however you want.",
+      "zh": "你可以使用自己習慣的拼法。"
+    },
+    {
+      "start": 178.039,
+      "end": 187.08,
+      "en": "And any distinctive visual features, and we'll make it a period.",
+      "zh": "以及任何具有辨識度的視覺特徵，最後加上句點。"
+    },
+    {
+      "start": 187.08,
+      "end": 195.399,
+      "en": "Be factual, and, and then on the next line, concise.",
+      "zh": "再寫：「保持客觀且」，下一行接「精簡」。"
+    },
+    {
+      "start": 195.399,
+      "end": 197.07999999999998,
+      "en": "This is for a search index, right?",
+      "zh": "畢竟這是供搜尋索引使用。"
+    },
+    {
+      "start": 197.07999999999998,
+      "end": 199.559,
+      "en": "Okay, and then a dash.",
+      "zh": "接著加上破折號。"
+    },
+    {
+      "start": 199.559,
+      "end": 204.639,
+      "en": "A short paragraph is enough.",
+      "zh": "「一小段文字就足夠。"
+    },
+    {
+      "start": 204.639,
+      "end": 210.279,
+      "en": "Do not editorialize, okay?",
+      "zh": "不要加入主觀評論。」"
+    },
+    {
+      "start": 210.279,
+      "end": 213.5,
+      "en": "So just the facts, ma'am, as it were.",
+      "zh": "換句話說，只要客觀事實。"
+    },
+    {
+      "start": 213.5,
+      "end": 214.96,
+      "en": "So now I have my image prompt.",
+      "zh": "現在圖片提示就準備好了。"
+    },
+    {
+      "start": 214.96,
+      "end": 220.679,
+      "en": "So I've got my net supported suffixes, I've got my image prompt, I've done my import.",
+      "zh": "已經有支援的副檔名、圖片提示，也完成匯入。"
+    },
+    {
+      "start": 220.679,
+      "end": 223.339,
+      "en": "Now let's go down to the init function here, okay?",
+      "zh": "接著到 __init__ 函式。"
+    },
+    {
+      "start": 223.339,
+      "end": 233.96,
+      "en": "So in the init function, I'm going to add chatClient, okay, and I'll just call it chat of type chatClient, okay, chatClient, that's better.",
+      "zh": "在初始化參數裡加入聊天用戶端，命名為 chat，型別是 ChatClient，先把它拼對。"
+    },
+    {
+      "start": 233.96,
+      "end": 237.96,
+      "en": "And we'll also allow it to be none equals to none, okay?",
+      "zh": "也允許是 None，預設值設為 None。"
+    },
+    {
+      "start": 237.96,
+      "end": 243.36,
+      "en": "So we have to have that support for our chatClient.",
+      "zh": "因此加入對 ChatClient 的支援。"
+    },
+    {
+      "start": 243.36,
+      "end": 251.839,
+      "en": "And of course down here, we'll set self.chat equal to chat.",
+      "zh": "下面當然要把 self.chat 設為 chat。"
+    },
+    {
+      "start": 251.839,
+      "end": 256.739,
+      "en": "Now when we do the ingest, we'll actually be ingesting a file, okay?",
+      "zh": "執行匯入時，實際上會匯入一個檔案。"
+    },
+    {
+      "start": 256.739,
+      "end": 258.959,
+      "en": "So we need to make some changes to this.",
+      "zh": "所以這裡需要修改。"
+    },
+    {
+      "start": 258.959,
+      "end": 261.76,
+      "en": "Right now it takes self and path.",
+      "zh": "目前參數只有 self 與 path。"
+    },
+    {
+      "start": 261.76,
+      "end": 265.04,
+      "en": "Let's add description of type string, okay?",
+      "zh": "再加入字串型別的 description。"
+    },
+    {
+      "start": 265.04,
+      "end": 267.88,
+      "en": "So here I'll put desk.",
+      "zh": "我本來想寫 desc，"
+    },
+    {
+      "start": 267.88,
+      "end": 272.079,
+      "en": "Now I'll put the full word description of type string.",
+      "zh": "還是用完整的 description，型別是 str。"
+    },
+    {
+      "start": 272.079,
+      "end": 274.04,
+      "en": "Now that may also be none.",
+      "zh": "它也可能是 None。"
+    },
+    {
+      "start": 274.04,
+      "end": 278.799,
+      "en": "So none equals none with a pipe separating those, okay?",
+      "zh": "所以用 | 分隔，型別為 str | None，預設值為 None。"
+    },
+    {
+      "start": 278.799,
+      "end": 280.64,
+      "en": "It might not be an image we're dealing with.",
+      "zh": "因為處理的未必是圖片。"
+    },
+    {
+      "start": 280.64,
+      "end": 282.55899999999997,
+      "en": "So there might not be a description.",
+      "zh": "所以不一定會有描述。"
+    },
+    {
+      "start": 282.55899999999997,
+      "end": 287.079,
+      "en": "And down here, if suffix not in text suffixes, of course, we're not going to use that anymore.",
+      "zh": "下面原本判斷 suffix 不在 TEXT_SUFFIXES，現在當然不能再只用文字副檔名。"
+    },
+    {
+      "start": 287.079,
+      "end": 290.6,
+      "en": "We'll call it supported suffixes.",
+      "zh": "改成 SUPPORTED_SUFFIXES。"
+    },
+    {
+      "start": 290.6,
+      "end": 293.92,
+      "en": "Supported suffixes right there, okay?",
+      "zh": "就是這個 SUPPORTED_SUFFIXES。"
+    },
+    {
+      "start": 293.92,
+      "end": 299.119,
+      "en": "Because we're including now .jpg, .png, things like that, okay?",
+      "zh": "因為現在也包含 .jpg、.png 等格式。"
+    },
+    {
+      "start": 299.119,
+      "end": 304.399,
+      "en": "Now at the very end of ingest file, way down here, okay?",
+      "zh": "接著到 ingest_file 最下面。"
+    },
+    {
+      "start": 304.399,
+      "end": 310.959,
+      "en": "After we check for has document here on line 69 in my code, we need to add support for images.",
+      "zh": "在我程式碼第 69 行檢查 has_document 之後，要新增圖片支援。"
+    },
+    {
+      "start": 310.959,
+      "end": 316.559,
+      "en": "And what we can do is look at the suffix of the file that's being added to the store, okay?",
+      "zh": "可以根據即將加入儲存的檔案副檔名來判斷。"
+    },
+    {
+      "start": 316.559,
+      "end": 319.2,
+      "en": "So text and image paths share the suffix check.",
+      "zh": "文字與圖片的路徑都共用副檔名檢查。"
+    },
+    {
+      "start": 319.2,
+      "end": 320.519,
+      "en": "We already know what the suffix is.",
+      "zh": "我們已經知道副檔名。"
+    },
+    {
+      "start": 321.44,
+      "end": 322.44,
+      "en": "We know what the hash is.",
+      "zh": "也知道雜湊值。"
+    },
+    {
+      "start": 322.44,
+      "end": 324.119,
+      "en": "We know all of that sort of thing, okay?",
+      "zh": "這些資訊都已經有了。"
+    },
+    {
+      "start": 324.119,
+      "end": 327.279,
+      "en": "So here, right after this, we need to make some changes, okay?",
+      "zh": "就在這段後面做修改。"
+    },
+    {
+      "start": 327.279,
+      "end": 331.839,
+      "en": "So I'm going to put some blank space in here so I know where I need to make the changes.",
+      "zh": "先留一些空白，標示需要修改的位置。"
+    },
+    {
+      "start": 331.839,
+      "end": 334.839,
+      "en": "We're going to take some of this and extract it to a helper function.",
+      "zh": "要把其中一部分抽成輔助函式。"
+    },
+    {
+      "start": 334.839,
+      "end": 338.679,
+      "en": "And we're going to create a second helper function for images, okay?",
+      "zh": "再另外建立處理圖片的輔助函式。"
+    },
+    {
+      "start": 338.679,
+      "end": 342.2,
+      "en": "And what we're going to do is dispatch on suffix.",
+      "zh": "然後根據副檔名分派處理方式。"
+    },
+    {
+      "start": 342.2,
+      "end": 344.15999999999997,
+      "en": "If it's a text file, we'll do one thing.",
+      "zh": "如果是文字檔，就做一種處理。"
+    },
+    {
+      "start": 344.15999999999997,
+      "end": 347.6,
+      "en": "If it's an image file, we'll do something else, okay?",
+      "zh": "如果是圖片，就做另一種處理。"
+    },
+    {
+      "start": 347.6,
+      "end": 350.399,
+      "en": "So let's think about what we're going to do first, okay?",
+      "zh": "先想想要怎麼做。"
+    },
+    {
+      "start": 350.399,
+      "end": 355.799,
+      "en": "So here I'm going to say dispatch on suffix, okay?",
+      "zh": "我在這裡加上 Dispatch on suffix 註解。"
+    },
+    {
+      "start": 355.799,
+      "end": 357.64,
+      "en": "So I know where to come back to.",
+      "zh": "這樣就知道稍後要回到哪裡。"
+    },
+    {
+      "start": 357.64,
+      "end": 363.559,
+      "en": "Now I'll leave this alone for the moment, and I'm going to come down here, and I'm going to create two new functions, okay?",
+      "zh": "目前先不動它，到下面建立兩個新函式。"
+    },
+    {
+      "start": 363.559,
+      "end": 366.92,
+      "en": "So def, I'll do ingest text first, okay?",
+      "zh": "先定義處理文字匯入的函式。"
+    },
+    {
+      "start": 366.92,
+      "end": 371.48,
+      "en": "So ingest underscore text, okay?",
+      "zh": "也就是 _ingest_text。"
+    },
+    {
+      "start": 371.48,
+      "end": 383.48,
+      "en": "And this takes, as you might expect, self, and it also is going to take the path, where's the file of type path, and I'll give myself some room here, okay?",
+      "zh": "照預期需要 self，以及 Path 型別的檔案路徑 path，這裡再留一些空間。"
+    },
+    {
+      "start": 383.48,
+      "end": 387.64,
+      "en": "It's also going to take data, which is bytes, okay?",
+      "zh": "也需要 bytes 型別的 data。"
+    },
+    {
+      "start": 387.64,
+      "end": 397.839,
+      "en": "It's going to take the source path, which is a string, and it's going to take the content hash, which is also a string, okay?",
+      "zh": "還有字串型別的 source_path，以及同樣為字串的 content_hash。"
+    },
+    {
+      "start": 397.839,
+      "end": 401.2,
+      "en": "So that's the definition, and this doesn't return anything.",
+      "zh": "這就是函式定義，而且不回傳任何值。"
+    },
+    {
+      "start": 401.2,
+      "end": 408.279,
+      "en": "So what we're going to do here is basically what we did up above here, everything after that comment, okay?",
+      "zh": "內容基本上就是上方註解之後原本做的那些處理。"
+    },
+    {
+      "start": 408.279,
+      "end": 409.279,
+      "en": "So let's define the function.",
+      "zh": "開始實作。"
+    },
+    {
+      "start": 409.279,
+      "end": 410.88,
+      "en": "We'll do the same sort of thing we did before.",
+      "zh": "採用與先前相同的方式。"
+    },
+    {
+      "start": 410.88,
+      "end": 415,
+      "en": "I can copy and paste, but I think it's helpful to make sure I get it right by typing it out.",
+      "zh": "雖然可以複製貼上，但重新輸入有助於確認內容正確。"
+    },
+    {
+      "start": 415,
+      "end": 421.579,
+      "en": "So text is going to be equal to, from data, which we get as a call to this function, dot decode, okay?",
+      "zh": "text 的值來自傳入函式的 data，呼叫它的 decode 方法。"
+    },
+    {
+      "start": 421.579,
+      "end": 430.22,
+      "en": "We're going to decode using utf-8, same as before, and errors equals replace.",
+      "zh": "同樣使用 UTF-8 解碼，並指定 errors='replace'。"
+    },
+    {
+      "start": 430.22,
+      "end": 434.359,
+      "en": "Replace anything you can't decode with a valid character, okay?",
+      "zh": "無法解碼的部分用有效字元取代。"
+    },
+    {
+      "start": 434.359,
+      "end": 437.119,
+      "en": "I think it's a question mark.",
+      "zh": "我想是問號。"
+    },
+    {
+      "start": 437.119,
+      "end": 440.119,
+      "en": "Could be an underscore. Who knows? Then chunks.",
+      "zh": "也可能是底線，誰知道呢？接著是 chunks。"
+    },
+    {
+      "start": 440.119,
+      "end": 441.519,
+      "en": "We need to get our chunks.",
+      "zh": "需要取得文字區塊。"
+    },
+    {
+      "start": 441.519,
+      "end": 446.839,
+      "en": "That equals chunk underscore text, which already exists, and that just requires the text, which",
+      "zh": "它等於呼叫現有的 chunk_text，傳入"
+    },
+    {
+      "start": 446.839,
+      "end": 457.239,
+      "en": "we just defined on line 113, and self.config.chunksize, right there, and self.config.chunkoverlap,",
+      "zh": "剛在第 113 行定義的 text，以及 self.config.chunk_size 和 self.config.chunk_overlap，"
+    },
+    {
+      "start": 457.239,
+      "end": 458.959,
+      "en": "right there, okay?",
+      "zh": "就在這裡。"
+    },
+    {
+      "start": 458.959,
+      "end": 461.679,
+      "en": "So now we have our chunks, and we make sure we have them.",
+      "zh": "現在有了 chunks，接著確認它不是空的。"
+    },
+    {
+      "start": 461.679,
+      "end": 466.839,
+      "en": "If not chunks, well, we have a problem, okay?",
+      "zh": "如果 not chunks，就代表有問題。"
+    },
+    {
+      "start": 466.839,
+      "end": 470.44,
+      "en": "We'll just say log.warning.",
+      "zh": "呼叫 log.warning。"
+    },
+    {
+      "start": 470.44,
+      "end": 478.44,
+      "en": "No content to ingest in %s, and my substitution is path.name, okay?",
+      "zh": "訊息是 No content to ingest in %s，替換值為 path.name。"
+    },
+    {
+      "start": 478.44,
+      "end": 485.88,
+      "en": "And we say self.underscore moveToProcessed, okay, path. And we return. We're done.",
+      "zh": "再呼叫 self._move_to_processed(path)，然後 return，處理結束。"
+    },
+    {
+      "start": 485.88,
+      "end": 486.88,
+      "en": "We can't do anything else.",
+      "zh": "因為也無法再做其他事。"
+    },
+    {
+      "start": 486.88,
+      "end": 488.559,
+      "en": "But if we get past that, we have some chunks.",
+      "zh": "如果通過這個檢查，就表示有區塊。"
+    },
+    {
+      "start": 488.559,
+      "end": 498.799,
+      "en": "So log.info, same as we have up above, and we'll just say embedding %dchunks from %s,",
+      "zh": "和上面一樣呼叫 log.info，訊息寫 Embedding %d chunks from %s，"
+    },
+    {
+      "start": 498.799,
+      "end": 506.14,
+      "en": "and my two substitutions are the length of chunks and path.name, okay?",
+      "zh": "兩個替換值分別是 len(chunks) 與 path.name。"
+    },
+    {
+      "start": 506.14,
+      "end": 507.14,
+      "en": "So we know what's going on.",
+      "zh": "這樣就知道目前在做什麼。"
+    },
+    {
+      "start": 507.14,
+      "end": 508.14,
+      "en": "Same as we have before.",
+      "zh": "與之前完全相同。"
+    },
+    {
+      "start": 508.14,
+      "end": 510.959,
+      "en": "We don't want to lose any functionality.",
+      "zh": "我們不希望遺失任何功能。"
+    },
+    {
+      "start": 510.959,
+      "end": 515.76,
+      "en": "Now we batch embed all the chunks, so embeddings.",
+      "zh": "接著批次產生所有區塊的嵌入向量，建立 embeddings。"
+    },
+    {
+      "start": 515.76,
+      "end": 524.32,
+      "en": "That's going to be equal to self.embedder.embed, and we just hand that in curly brackets, c.text",
+      "zh": "它的值是呼叫 self.embedder.embed，傳入 c.text，"
+    },
+    {
+      "start": 524.32,
+      "end": 527.979,
+      "en": "for c in chunks.",
+      "zh": "逐一取自 for c in chunks。"
+    },
+    {
+      "start": 527.979,
+      "end": 534.4,
+      "en": "One nice thing about Python is it can be extremely concise, okay? Down here.",
+      "zh": "Python 的一個優點，就是能寫得非常精簡。繼續往下。"
+    },
+    {
+      "start": 534.4,
+      "end": 545.239,
+      "en": "Now we're going to have stored, same as we do above, and that's going to be equal to, in square brackets, a stored chunk right there.",
+      "zh": "接著和上面一樣建立 stored，在串列中建立 StoredChunk。"
+    },
+    {
+      "start": 545.239,
+      "end": 552.679,
+      "en": "And in parentheses, index equals c.index, and we'll get c in a minute.",
+      "zh": "括號裡的 index 設為 c.index，等一下就會取得 c。"
+    },
+    {
+      "start": 552.679,
+      "end": 557.039,
+      "en": "Text equals c.text.",
+      "zh": "text 設為 c.text。"
+    },
+    {
+      "start": 557.039,
+      "end": 561.52,
+      "en": "Embeddings equals emb, which we'll get in a minute.",
+      "zh": "embedding 設為 emb，等一下也會取得。"
+    },
+    {
+      "start": 561.52,
+      "end": 568.719,
+      "en": "And metadata equals, and we'll just use what we had before, type text, okay?",
+      "zh": "metadata 則沿用原本的設定，type 為 text。"
+    },
+    {
+      "start": 568.719,
+      "end": 574.76,
+      "en": "And a closing comma, and then down here, outside of parentheses, we get c and emb.",
+      "zh": "加上結尾逗號，在括號外面取得 c 與 emb。"
+    },
+    {
+      "start": 574.76,
+      "end": 587.2,
+      "en": "For c, emb, in, we call zip, chunks, embeddings, and strict equals true.",
+      "zh": "使用 for c, emb in zip(chunks, embeddings, strict=True)。"
+    },
+    {
+      "start": 587.2,
+      "end": 590.159,
+      "en": "Okay, no surprises there at all.",
+      "zh": "這裡沒有任何意外。"
+    },
+    {
+      "start": 590.159,
+      "end": 591.479,
+      "en": "That's exactly what we had before.",
+      "zh": "與先前完全一致。"
+    },
+    {
+      "start": 591.479,
+      "end": 594.919,
+      "en": "Then, of course, we want to do the per-document metadata.",
+      "zh": "接著當然要處理文件層級的中繼資料。"
+    },
+    {
+      "start": 594.919,
+      "end": 601.239,
+      "en": "So we'll get outside of the square brackets, give ourselves a couple of lines, and we'll take care of the per-document metadata.",
+      "zh": "離開串列的中括號，留兩行，再處理每份文件的中繼資料。"
+    },
+    {
+      "start": 601.239,
+      "end": 608.64,
+      "en": "So self.store.upsert document, okay?",
+      "zh": "呼叫 self.store.upsert_document。"
+    },
+    {
+      "start": 608.64,
+      "end": 611.159,
+      "en": "And I'll put the parameters on separate lines.",
+      "zh": "我把各個參數放在不同的行。"
+    },
+    {
+      "start": 611.159,
+      "end": 615.039,
+      "en": "The first one is source path.",
+      "zh": "第一個是 source_path。"
+    },
+    {
+      "start": 615.039,
+      "end": 618.679,
+      "en": "The second one is content hash.",
+      "zh": "第二個是 content_hash。"
+    },
+    {
+      "start": 618.679,
+      "end": 622.84,
+      "en": "The third one is stored, which we just created.",
+      "zh": "第三個是剛建立的 stored。"
+    },
+    {
+      "start": 622.84,
+      "end": 625.359,
+      "en": "And then the metadata, okay?",
+      "zh": "然後是 metadata。"
+    },
+    {
+      "start": 625.359,
+      "end": 627.64,
+      "en": "So we're doing our upsert and including our metadata.",
+      "zh": "所以會執行 upsert，並附上中繼資料。"
+    },
+    {
+      "start": 627.64,
+      "end": 632.719,
+      "en": "Equals in curly brackets, suffix, may as well store that.",
+      "zh": "metadata 使用字典，先存 suffix，這個資訊值得保留。"
+    },
+    {
+      "start": 632.719,
+      "end": 638.84,
+      "en": "And that's path.suffix.lower, okay?",
+      "zh": "值來自 path.suffix.lower()。"
+    },
+    {
+      "start": 638.84,
+      "end": 644.799,
+      "en": "And then the kind, well, that's text, okay?",
+      "zh": "kind 則是 text。"
+    },
+    {
+      "start": 644.799,
+      "end": 647.799,
+      "en": "So that upserts the document, and we're almost done with this, okay?",
+      "zh": "這樣就完成文件的 upsert，這部分快完成了。"
+    },
+    {
+      "start": 647.799,
+      "end": 648.799,
+      "en": "Just two more things to do.",
+      "zh": "只剩兩件事。"
+    },
+    {
+      "start": 648.919,
+      "end": 656.359,
+      "en": "Write to the log, log.info, and we'll just say ingested, try that again, ingested percent",
+      "zh": "先寫入日誌，呼叫 log.info，訊息寫 Ingested，再試一次，是 Ingested %"
+    },
+    {
+      "start": 656.359,
+      "end": 661.4,
+      "en": "S, percent D chunks.",
+      "zh": "s，後面再接 %d chunks。"
+    },
+    {
+      "start": 661.4,
+      "end": 668.28,
+      "en": "And my substitutions are just path.name and the length of stored, okay?",
+      "zh": "替換值是 path.name 與 len(stored)。"
+    },
+    {
+      "start": 668.28,
+      "end": 670.119,
+      "en": "So that's the second to last thing.",
+      "zh": "這是倒數第二件事。"
+    },
+    {
+      "start": 670.119,
+      "end": 676.32,
+      "en": "And the final thing to worry about here is self.underscore moveToProcessed, and we're going to move, okay?",
+      "zh": "最後要呼叫 self._move_to_processed，將檔案移到已處理目錄。"
+    },
+    {
+      "start": 676.84,
+      "end": 679.84,
+      "en": "And I have to get the parentheses right, path.",
+      "zh": "記得把括號打對，傳入 path。"
+    },
+    {
+      "start": 679.84,
+      "end": 682.359,
+      "en": "Okay, so that one is done.",
+      "zh": "這個就完成了。"
+    },
+    {
+      "start": 682.359,
+      "end": 683.359,
+      "en": "Ingest text is done.",
+      "zh": "文字匯入函式已完成。"
+    },
+    {
+      "start": 683.359,
+      "end": 685.88,
+      "en": "And we'll leave that other function alone for a minute.",
+      "zh": "另外那個函式先放著。"
+    },
+    {
+      "start": 685.88,
+      "end": 688.719,
+      "en": "We may as well get this one out of the way, okay?",
+      "zh": "我們不如先完成這一個，"
+    },
+    {
+      "start": 688.719,
+      "end": 690.559,
+      "en": "Our ingest of the image.",
+      "zh": "也就是圖片匯入。"
+    },
+    {
+      "start": 690.559,
+      "end": 695.359,
+      "en": "And this, not that complex, but it will take a fair bit of code, okay?",
+      "zh": "它並不複雜，但需要寫不少程式碼。"
+    },
+    {
+      "start": 695.359,
+      "end": 697.119,
+      "en": "Same basic idea.",
+      "zh": "基本概念相同。"
+    },
+    {
+      "start": 697.119,
+      "end": 702.96,
+      "en": "We'll define an internal function called ingest underscore image.",
+      "zh": "定義名為 _ingest_image 的內部方法。"
+    },
+    {
+      "start": 702.96,
+      "end": 704.719,
+      "en": "And that's going to take self.",
+      "zh": "需要 self。"
+    },
+    {
+      "start": 704.719,
+      "end": 708.919,
+      "en": "And that's going to take the path, no surprises, of type path, okay?",
+      "zh": "也需要 Path 型別的 path，這不意外。"
+    },
+    {
+      "start": 708.919,
+      "end": 715.039,
+      "en": "And that will take the source path, which is a string.",
+      "zh": "接著是字串型別的 source_path。"
+    },
+    {
+      "start": 715.039,
+      "end": 716.52,
+      "en": "And it will take the content hash.",
+      "zh": "以及 content_hash。"
+    },
+    {
+      "start": 716.52,
+      "end": 720,
+      "en": "We still need that even for images, a string.",
+      "zh": "圖片也一樣需要雜湊值，型別是 str。"
+    },
+    {
+      "start": 720,
+      "end": 723.44,
+      "en": "And it's also going to take the description, okay?",
+      "zh": "還需要 description。"
+    },
+    {
+      "start": 723.44,
+      "end": 727.96,
+      "en": "Which is new for this one, description, which is a string, but it might be nothing.",
+      "zh": "這是圖片函式新增的參數，型別是字串，但也可能沒有值。"
+    },
+    {
+      "start": 727.96,
+      "end": 733.52,
+      "en": "Always nice to be safe, none equals none, not name, none, okay?",
+      "zh": "保險起見，允許 None，預設設為 None。不是 name，而是 None。"
+    },
+    {
+      "start": 733.52,
+      "end": 734.52,
+      "en": "And what does this return?",
+      "zh": "回傳什麼？"
+    },
+    {
+      "start": 734.52,
+      "end": 736.719,
+      "en": "Well, it returns none.",
+      "zh": "回傳 None。"
+    },
+    {
+      "start": 736.719,
+      "end": 738.84,
+      "en": "And our colon, and now we define the function.",
+      "zh": "加上冒號，開始實作函式。"
+    },
+    {
+      "start": 738.84,
+      "end": 741.799,
+      "en": "Let's give ourselves some room, okay?",
+      "zh": "先留一點空間。"
+    },
+    {
+      "start": 741.799,
+      "end": 744.52,
+      "en": "So let's check to see if we have no description.",
+      "zh": "檢查是否沒有描述。"
+    },
+    {
+      "start": 744.52,
+      "end": 747.599,
+      "en": "If description is none.",
+      "zh": "也就是 description is None。"
+    },
+    {
+      "start": 747.599,
+      "end": 749.919,
+      "en": "What do we want to do here if we don't have a description?",
+      "zh": "沒有描述時，要怎麼處理？"
+    },
+    {
+      "start": 749.919,
+      "end": 753.4,
+      "en": "Let's check to see if we have our chat client available.",
+      "zh": "先確認有沒有可用的聊天用戶端。"
+    },
+    {
+      "start": 753.4,
+      "end": 757.32,
+      "en": "If self.chat is none, okay?",
+      "zh": "判斷 self.chat is None。"
+    },
+    {
+      "start": 757.32,
+      "end": 758.32,
+      "en": "We don't have a description.",
+      "zh": "目前沒有描述，"
+    },
+    {
+      "start": 758.32,
+      "end": 762.239,
+      "en": "And if we don't have an LLM client, we can't actually go get one.",
+      "zh": "如果也沒有 LLM 用戶端，就無法取得描述。"
+    },
+    {
+      "start": 762.239,
+      "end": 763.239,
+      "en": "So we'll just raise an error.",
+      "zh": "因此直接拋出錯誤。"
+    },
+    {
+      "start": 763.96,
+      "end": 767.44,
+      "en": "We'll raise a runtime error, okay?",
+      "zh": "拋出 RuntimeError。"
+    },
+    {
+      "start": 767.44,
+      "end": 769.559,
+      "en": "And I'll put this on multiple lines.",
+      "zh": "把錯誤訊息分成多行。"
+    },
+    {
+      "start": 769.559,
+      "end": 779.84,
+      "en": "So the error is going to be image ingestion, ingestion, requires a chat client or an explicit,",
+      "zh": "內容是：「圖片匯入需要聊天用戶端，或明確提供的"
+    },
+    {
+      "start": 779.84,
+      "end": 789.919,
+      "en": "explicit, and then a space, and then on the next line, description, semicolon, construct",
+      "zh": "描述。」在 explicit 後加上空格，下一行接 description，再加上分號，然後寫「建立"
+    },
+    {
+      "start": 789.919,
+      "end": 798.96,
+      "en": "the ingester, ingestor, with chat equals chat client, and then dot, dot, dot, whatever",
+      "zh": "Ingester 時，請傳入 chat=ChatClient(...)」，"
+    },
+    {
+      "start": 798.96,
+      "end": 800.44,
+      "en": "it might be, okay?",
+      "zh": "實際內容依用戶端而定。"
+    },
+    {
+      "start": 800.44,
+      "end": 806.28,
+      "en": "But if we get past that, outside of this if statement, let's just log some information, log.info.",
+      "zh": "如果通過這項檢查，離開這個 if 區塊後，先呼叫 log.info 記錄資訊。"
+    },
+    {
+      "start": 806.28,
+      "end": 809.239,
+      "en": "And I'll put this on multiple lines so it fits nicely.",
+      "zh": "分成多行，讓排版比較整齊。"
+    },
+    {
+      "start": 809.239,
+      "end": 815.4,
+      "en": "Describing image, %s, with %s, dot, dot, dot, okay?",
+      "zh": "訊息寫 Describing image %s with %s...。"
+    },
+    {
+      "start": 815.4,
+      "end": 824.119,
+      "en": "So down here, I'm going to say path.name, and then whatever my vision model is, self.config.visionModel, okay? There.",
+      "zh": "替換值是 path.name，以及實際的視覺模型 self.config.vision_model。"
+    },
+    {
+      "start": 824.119,
+      "end": 833.08,
+      "en": "Now, down here, I'll say description equals, and we can call self.chat.describe, just like",
+      "zh": "然後設定 description，呼叫 self.chat.describe，就像"
+    },
+    {
+      "start": 833.08,
+      "end": 836.14,
+      "en": "we did in the Python interpreter, okay?",
+      "zh": "先前在 Python 直譯器裡做的一樣。"
+    },
+    {
+      "start": 836.14,
+      "end": 840.479,
+      "en": "And I'll hand it self.config.visionModel right there.",
+      "zh": "傳入 self.config.vision_model。"
+    },
+    {
+      "start": 840.479,
+      "end": 851.64,
+      "en": "But it also requires the imageDescriptionPrompt, so imageDescribePrompt, imageDescribePrompt right there, the one we just did a couple of minutes ago, and whatever the path is, okay?",
+      "zh": "也需要 IMAGE_DESCRIBE_PROMPT，也就是幾分鐘前建立的圖片描述提示，以及 path。"
+    },
+    {
+      "start": 851.64,
+      "end": 852.84,
+      "en": "So pretty simple logic.",
+      "zh": "邏輯很簡單。"
+    },
+    {
+      "start": 852.84,
+      "end": 856.239,
+      "en": "So when we come into this function, we check to see if we have a description.",
+      "zh": "進入函式時，先檢查有沒有描述。"
+    },
+    {
+      "start": 856.239,
+      "end": 861.559,
+      "en": "If we don't have one, let's check to see if we actually have the means to go get one from the vision model.",
+      "zh": "如果沒有，就確認是否具備從視覺模型取得描述的能力。"
+    },
+    {
+      "start": 861.559,
+      "end": 863.039,
+      "en": "If we don't, we raise an error.",
+      "zh": "如果沒有，就拋出錯誤。"
+    },
+    {
+      "start": 863.039,
+      "end": 869.659,
+      "en": "Otherwise, we're just going to say we're going to describe this image using this vision model, and we call self.chat.describe.",
+      "zh": "否則記錄將使用哪個視覺模型來描述圖片，再呼叫 self.chat.describe。"
+    },
+    {
+      "start": 869.659,
+      "end": 870.78,
+      "en": "That returns a string.",
+      "zh": "它會回傳字串。"
+    },
+    {
+      "start": 870.78,
+      "end": 873.979,
+      "en": "We store that string in description, okay?",
+      "zh": "把這個字串存進 description。"
+    },
+    {
+      "start": 873.979,
+      "end": 874.979,
+      "en": "Pretty straightforward.",
+      "zh": "非常直接。"
+    },
+    {
+      "start": 874.979,
+      "end": 878.539,
+      "en": "But, of course, we can't assume we're going to get a description back.",
+      "zh": "但當然不能假設一定會收到描述。"
+    },
+    {
+      "start": 878.539,
+      "end": 880.34,
+      "en": "So let's come down here.",
+      "zh": "所以再往下。"
+    },
+    {
+      "start": 880.34,
+      "end": 885.619,
+      "en": "Let's go back to the same level as that if, so we're outside of the if block now, okay?",
+      "zh": "退回與 if 相同的縮排，離開 if 區塊。"
+    },
+    {
+      "start": 885.619,
+      "end": 895.299,
+      "en": "And we'll say description equals description.strip, just to get rid of the spaces, okay?",
+      "zh": "將 description 設為 description.strip()，先移除空白。"
+    },
+    {
+      "start": 895.299,
+      "end": 896.659,
+      "en": "And then we have an if statement.",
+      "zh": "再加上條件判斷，"
+    },
+    {
+      "start": 896.659,
+      "end": 902.5,
+      "en": "If description else an empty string, okay?",
+      "zh": "如果有 description 就使用它，否則使用空字串。"
+    },
+    {
+      "start": 902.5,
+      "end": 907.859,
+      "en": "So at this point, I either have a description, or I have description set to an empty string.",
+      "zh": "所以到這裡，不是取得描述，就是 description 為空字串。"
+    },
+    {
+      "start": 907.859,
+      "end": 911.52,
+      "en": "So we can say if not description, okay?",
+      "zh": "接著就能判斷 if not description。"
+    },
+    {
+      "start": 911.52,
+      "end": 913.299,
+      "en": "Another safety check, or sanity check.",
+      "zh": "再做一次安全檢查，或基本合理性檢查。"
+    },
+    {
+      "start": 913.299,
+      "end": 917.38,
+      "en": "A little log of warning. Log.warning.",
+      "zh": "用 log.warning 記錄警告。"
+    },
+    {
+      "start": 917.38,
+      "end": 925.78,
+      "en": "Empty description for %s, falling back to filename.",
+      "zh": "訊息是 Empty description for %s, falling back to filename。"
+    },
+    {
+      "start": 925.78,
+      "end": 927.739,
+      "en": "At least we'll try it with the filename.",
+      "zh": "至少先退回使用檔名試試看。"
+    },
+    {
+      "start": 927.739,
+      "end": 930.619,
+      "en": "There might be some useful information in there, okay?",
+      "zh": "檔名可能也含有一些有用資訊。"
+    },
+    {
+      "start": 930.619,
+      "end": 933.94,
+      "en": "And my substitution is path.name, okay?",
+      "zh": "替換值是 path.name。"
+    },
+    {
+      "start": 933.94,
+      "end": 936.32,
+      "en": "Now, we get past that.",
+      "zh": "通過這裡之後，"
+    },
+    {
+      "start": 936.32,
+      "end": 937.32,
+      "en": "What do we do next?",
+      "zh": "接下來要做什麼？"
+    },
+    {
+      "start": 937.32,
+      "end": 938.9,
+      "en": "Well, let's get the chunk body.",
+      "zh": "建立 chunk_body。"
+    },
+    {
+      "start": 938.9,
+      "end": 942.299,
+      "en": "Well, let's get the chunk body, okay?",
+      "zh": "也就是區塊本文。"
+    },
+    {
+      "start": 942.299,
+      "end": 944.739,
+      "en": "And that's going to be equal to a format string.",
+      "zh": "它的值是一個格式化字串。"
+    },
+    {
+      "start": 944.739,
+      "end": 949.34,
+      "en": "And we're going to prefix it with, in square brackets, image, like this.",
+      "zh": "開頭加上中括號，在裡面寫 image。"
+    },
+    {
+      "start": 949.34,
+      "end": 952.58,
+      "en": "Just so we know what the chunk is for in image, okay?",
+      "zh": "讓我們知道這個區塊與圖片有關。"
+    },
+    {
+      "start": 952.58,
+      "end": 956.46,
+      "en": "And then inside of that, we'll use path.name, the image name, okay?",
+      "zh": "中括號裡再放 path.name，也就是圖片檔名。"
+    },
+    {
+      "start": 956.46,
+      "end": 960.78,
+      "en": "We're putting information in the chunk that will be useful for us, okay?",
+      "zh": "我們正在區塊裡加入有用的資訊。"
+    },
+    {
+      "start": 960.78,
+      "end": 962.26,
+      "en": "And then we'll close our square brackets.",
+      "zh": "接著關閉中括號。"
+    },
+    {
+      "start": 962.26,
+      "end": 963.78,
+      "en": "So get outside of that.",
+      "zh": "移到括號外面，"
+    },
+    {
+      "start": 963.78,
+      "end": 967.78,
+      "en": "And we'll put in a blank line, or a carriage return.",
+      "zh": "加上一個換行。"
+    },
+    {
+      "start": 967.78,
+      "end": 973.82,
+      "en": "And in here, we'll just put in whatever the description is, okay?",
+      "zh": "後面再放入 description 的內容。"
+    },
+    {
+      "start": 973.9,
+      "end": 975.299,
+      "en": "So we're setting that up.",
+      "zh": "就這樣建立。"
+    },
+    {
+      "start": 975.299,
+      "end": 976.7,
+      "en": "So that's the chunk body.",
+      "zh": "這就是 chunk_body。"
+    },
+    {
+      "start": 976.7,
+      "end": 985.419,
+      "en": "Now, let's get an embedding, in square brackets, embedding, and make that equal to self.embedder.embed, okay?",
+      "zh": "接著取得嵌入向量，用 [embedding] 接收 self.embedder.embed 的結果。"
+    },
+    {
+      "start": 985.419,
+      "end": 991.02,
+      "en": "And we're going to embed chunk body in square brackets.",
+      "zh": "傳入的串列裡放 chunk_body，為它產生嵌入向量。"
+    },
+    {
+      "start": 991.02,
+      "end": 994.359,
+      "en": "Chunk body, okay?",
+      "zh": "就是 chunk_body。"
+    },
+    {
+      "start": 994.359,
+      "end": 996.58,
+      "en": "So that gives us our embedding.",
+      "zh": "這樣就取得嵌入向量了。"
+    },
+    {
+      "start": 996.58,
+      "end": 1001.539,
+      "en": "Now, we need another stored, just like we did with the text one.",
+      "zh": "現在和文字處理一樣，需要建立 stored。"
+    },
+    {
+      "start": 1001.539,
+      "end": 1010.9,
+      "en": "Stored equals, in square brackets, a stored chunk, right there, and then in parentheses, and I'll give myself some room.",
+      "zh": "stored 是一個串列，裡面建立 StoredChunk，括號裡先留一些空間。"
+    },
+    {
+      "start": 1010.9,
+      "end": 1013.979,
+      "en": "Index will be equal to zero, okay?",
+      "zh": "index 設為 0。"
+    },
+    {
+      "start": 1013.979,
+      "end": 1018.739,
+      "en": "Text will be equal to chunk body, chunk underscore body, okay?",
+      "zh": "text 設為 chunk_body。"
+    },
+    {
+      "start": 1018.739,
+      "end": 1021.78,
+      "en": "Embedding, well, that's going to be equal to embedding.",
+      "zh": "embedding 當然就設為 embedding。"
+    },
+    {
+      "start": 1021.78,
+      "end": 1025.099,
+      "en": "We just got that, okay?",
+      "zh": "剛才已經取得了。"
+    },
+    {
+      "start": 1025.099,
+      "end": 1034.14,
+      "en": "And the metadata, we'll make that equal to, all we really need is, in curly brackets, type image, okay?",
+      "zh": "metadata 只需要一個字典，裡面的 type 設為 image。"
+    },
+    {
+      "start": 1034.14,
+      "end": 1036.219,
+      "en": "And a trailing comma.",
+      "zh": "最後加上逗號。"
+    },
+    {
+      "start": 1036.219,
+      "end": 1037.479,
+      "en": "So that's my stored.",
+      "zh": "這就是 stored。"
+    },
+    {
+      "start": 1037.479,
+      "end": 1042.619,
+      "en": "Let's get outside of stored, way down here, hit return, and upsert the document.",
+      "zh": "離開 stored 的括號，到下面換行，執行文件的 upsert。"
+    },
+    {
+      "start": 1042.619,
+      "end": 1049.859,
+      "en": "Self.store.upsert document, and we give that the source path.",
+      "zh": "呼叫 self.store.upsert_document，傳入 source_path。"
+    },
+    {
+      "start": 1049.859,
+      "end": 1053.099,
+      "en": "We give that content hash.",
+      "zh": "再傳入 content_hash。"
+    },
+    {
+      "start": 1053.099,
+      "end": 1057.52,
+      "en": "We give that stored, and we give it the metadata, okay?",
+      "zh": "接著是 stored，以及 metadata。"
+    },
+    {
+      "start": 1057.52,
+      "end": 1061.64,
+      "en": "So metadata for this is, in curly brackets, suffix.",
+      "zh": "這裡的 metadata 使用字典，先記錄 suffix。"
+    },
+    {
+      "start": 1061.64,
+      "end": 1071.16,
+      "en": "Useful information to have, and of course, that's path.suffix.lower, okay?",
+      "zh": "這是有用的資訊，值當然來自 path.suffix.lower()。"
+    },
+    {
+      "start": 1071.16,
+      "end": 1077.68,
+      "en": "And we'll also give it the kind, well, that's an image, okay?",
+      "zh": "也提供 kind，這次就是 image。"
+    },
+    {
+      "start": 1077.68,
+      "end": 1085.76,
+      "en": "And after that, we'll do some logging, log.info, and I'll just say, ingested image, percent",
+      "zh": "接著用 log.info 記錄日誌，訊息寫 Ingested image %"
+    },
+    {
+      "start": 1085.76,
+      "end": 1092,
+      "en": "s, and my substitution can just be path.name, okay?",
+      "zh": "s，替換值只需要 path.name。"
+    },
+    {
+      "start": 1092,
+      "end": 1100.64,
+      "en": "And after that, we want self.underscore, move to processed, and we're going to move path, not parth, path, okay?",
+      "zh": "然後呼叫 self._move_to_processed，傳入 path。不是 parth，而是 path。"
+    },
+    {
+      "start": 1100.64,
+      "end": 1109.479,
+      "en": "So that gives me this helper, or this internal function, ingest image, and that gives me this internal function, ingest text.",
+      "zh": "現在有了 _ingest_image 和 _ingest_text 這兩個內部方法。"
+    },
+    {
+      "start": 1109.479,
+      "end": 1114.079,
+      "en": "So let's go back into that comment I put right here, dispatch on suffix.",
+      "zh": "回到剛才留下的 Dispatch on suffix 註解。"
+    },
+    {
+      "start": 1114.079,
+      "end": 1118.719,
+      "en": "Now I can take all of this out of here, right up to the comment.",
+      "zh": "可以把註解之後原本的這一大段程式移除。"
+    },
+    {
+      "start": 1118.719,
+      "end": 1122.359,
+      "en": "Make sure you don't get any of ingest text, but we can get rid of all of that.",
+      "zh": "確認不要刪到 _ingest_text，其他這些都可以刪掉。"
+    },
+    {
+      "start": 1122.359,
+      "end": 1125.479,
+      "en": "That's gone now, and it becomes much simpler, okay?",
+      "zh": "移除之後，程式就簡單多了。"
+    },
+    {
+      "start": 1125.479,
+      "end": 1135.359,
+      "en": "All we have to do is to say, if suffix in image suffixes, image suffixes, right there, okay?",
+      "zh": "只需要判斷 if suffix in IMAGE_SUFFIXES。"
+    },
+    {
+      "start": 1135.359,
+      "end": 1137.4,
+      "en": "Then it's an image, and what do we do then?",
+      "zh": "如果是圖片，要做什麼？"
+    },
+    {
+      "start": 1137.719,
+      "end": 1144.719,
+      "en": "self.underscore, ingest image, and we give that path, and we give that source underscore",
+      "zh": "呼叫 self._ingest_image，傳入 path、source_"
+    },
+    {
+      "start": 1144.719,
+      "end": 1154.719,
+      "en": "path, and we give that content hash, right there, and the last thing it needs is description, equal to description, okay?",
+      "zh": "path、content_hash，最後還需要 description=description。"
+    },
+    {
+      "start": 1154.719,
+      "end": 1159.04,
+      "en": "And then down here, we can just say else.",
+      "zh": "然後在下面使用 else。"
+    },
+    {
+      "start": 1159.04,
+      "end": 1162.28,
+      "en": "If it's not an image, by default, it is text.",
+      "zh": "如果不是圖片，就預設是文字。"
+    },
+    {
+      "start": 1162.28,
+      "end": 1172.16,
+      "en": "self.ingest text, and we give that path, and data, and source path, right there, and",
+      "zh": "呼叫 self._ingest_text，傳入 path、data、source_path，以及"
+    },
+    {
+      "start": 1172.16,
+      "end": 1176.439,
+      "en": "content hash, right there.",
+      "zh": "content_hash。"
+    },
+    {
+      "start": 1176.439,
+      "end": 1182.4,
+      "en": "And in theory, that should be the bulk of the changes we need in this particular file.",
+      "zh": "理論上，這就是這個檔案大部分需要修改的內容。"
+    },
+    {
+      "start": 1182.4,
+      "end": 1190.04,
+      "en": "The last thing I want to change is in our debounced handler, which is down here somewhere, right here, okay?",
+      "zh": "最後還想改一下下面某處的防抖動事件處理器，就在這裡。"
+    },
+    {
+      "start": 1190.04,
+      "end": 1195.839,
+      "en": "We need to make sure that our watcher, when we're running Pyrag watch, that it will also ingest images, okay?",
+      "zh": "必須確保執行 pyrag watch 時，監看器也能匯入圖片。"
+    },
+    {
+      "start": 1195.839,
+      "end": 1203.68,
+      "en": "Not critical because we're focusing on the web stuff here, but we may as well put this in place just for completeness.",
+      "zh": "這不是最關鍵的，因為目前重點在網頁功能，但為了完整性，還是一起處理。"
+    },
+    {
+      "start": 1203.68,
+      "end": 1211.319,
+      "en": "So in this schedule, if path.suffix.lower not in text suffixes, well, let's just change that.",
+      "zh": "在 schedule 裡，原本判斷 path.suffix.lower() 不在 TEXT_SUFFIXES，現在把它改掉。"
+    },
+    {
+      "start": 1211.319,
+      "end": 1220.8,
+      "en": "Let's change that to supported suffixes, right there, and that should be the only change we need, okay?",
+      "zh": "改成 SUPPORTED_SUFFIXES，應該只需要這一項變更。"
+    },
+    {
+      "start": 1220.8,
+      "end": 1226.92,
+      "en": "So if it's not in one of the files or one of the types that we actually support, which now include images, it'll just return.",
+      "zh": "如果檔案不屬於支援的類型，就直接 return；現在支援的類型也包含圖片。"
+    },
+    {
+      "start": 1226.92,
+      "end": 1227.92,
+      "en": "There's nothing to do.",
+      "zh": "沒有其他事情要做。"
+    },
+    {
+      "start": 1227.92,
+      "end": 1230.56,
+      "en": "But if it is an image file, it won't just return.",
+      "zh": "但如果是圖片檔，就不會直接回傳。"
+    },
+    {
+      "start": 1230.56,
+      "end": 1233.359,
+      "en": "Now it will go ahead and process it.",
+      "zh": "現在會繼續處理它。"
+    },
+    {
+      "start": 1233.359,
+      "end": 1237.239,
+      "en": "And I think that is the last change we need to make in this file.",
+      "zh": "我想這就是這個檔案最後需要做的修改。"
+    },
+    {
+      "start": 1237.239,
+      "end": 1244.359,
+      "en": "So the next thing we need to do is to go over to query.py and make some changes there to support images, and there won't be very many, okay?",
+      "zh": "下一步到 query.py，做幾項修改以支援圖片，改動不多。"
+    },
+    {
+      "start": 1244.359,
+      "end": 1246.599,
+      "en": "So we'll get started on that in the next lecture.",
+      "zh": "我們下一堂課開始。"
+    }
+  ]
+}

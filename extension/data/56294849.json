@@ -1,0 +1,547 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56294849",
+  "title": "Getting started",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ef257e58f599ee3aef2de993842de19fe5fa1721aa3a1b0156b9846fde3565e9",
+  "cues": [
+    {
+      "start": 0,
+      "end": 7.199,
+      "en": "So, at this point, we have a vector store that can store chunks of information, but",
+      "zh": "現在已有能儲存資訊區塊的向量儲存區，但"
+    },
+    {
+      "start": 7.199,
+      "end": 13.079,
+      "en": "we have no way to produce those chunks, and a chunk is just a part of a text file in our case.",
+      "zh": "還沒有產生區塊的方法。這裡的區塊，就是文字檔的一部分。"
+    },
+    {
+      "start": 13.079,
+      "end": 23.44,
+      "en": "So, we'll be importing text files or markdown files, that sort of thing, into our vector store, and we don't want to store the entire file as one thing in the database.",
+      "zh": "我們會把文字檔、Markdown 等檔案匯入向量儲存區，但不希望在資料庫中將整份檔案當成一個單位儲存。"
+    },
+    {
+      "start": 23.44,
+      "end": 28.639,
+      "en": "Instead, we break it up into chunks, and we need some way to produce those chunks.",
+      "zh": "而是切成多個區塊，所以需要能產生這些區塊的方法。"
+    },
+    {
+      "start": 28.639,
+      "end": 32.68,
+      "en": "And our chat system still ignores documents that are in the vector store.",
+      "zh": "目前聊天系統仍然忽略向量儲存區裡的文件。"
+    },
+    {
+      "start": 32.68,
+      "end": 37.759,
+      "en": "So, what we want to work on this time around in this section is the ingestion pipeline.",
+      "zh": "因此這一節要實作資料匯入管線。"
+    },
+    {
+      "start": 37.759,
+      "end": 40.84,
+      "en": "So, we're going to have a file on the disk.",
+      "zh": "磁碟上會有一份檔案，"
+    },
+    {
+      "start": 40.84,
+      "end": 42.259,
+      "en": "We want to read that.",
+      "zh": "我們要讀取它，"
+    },
+    {
+      "start": 42.259,
+      "end": 53.279,
+      "en": "We want to turn it into chunks, plus the vectors associated with those chunks, the numeric information that we actually use in our vector store, and we want to hand that to the store.",
+      "zh": "將它轉成區塊，以及每個區塊對應的向量，也就是向量儲存區實際使用的數值資訊，再交給儲存區。"
+    },
+    {
+      "start": 53.279,
+      "end": 58,
+      "en": "Later on, we'll need to retrieve that, but first of all, we're going to worry about getting it in there.",
+      "zh": "之後才需要檢索，現在先專注於將資料存進去。"
+    },
+    {
+      "start": 58,
+      "end": 66.12,
+      "en": "We're going to worry about retrieving it later on, and of course, we'll be going back to that search function in our contract that we specified in base.py.",
+      "zh": "檢索稍後再處理；到時當然會回到 base.py 契約裡的 search 方法。"
+    },
+    {
+      "start": 66.12,
+      "end": 70.839,
+      "en": "So, in order to make that happen, first of all, we need to worry about configuration.",
+      "zh": "首先，為了做到這些，需要先處理設定。"
+    },
+    {
+      "start": 70.839,
+      "end": 80.4,
+      "en": "We have to make some changes to config.py, the file you see right now, and also we'll have to have some entries in our .onv that will be read by config.py.",
+      "zh": "得修改目前畫面上的 config.py，也要在 .env 增加設定，讓 config.py 讀取。"
+    },
+    {
+      "start": 80.4,
+      "end": 82.16,
+      "en": "So, let's get started.",
+      "zh": "我們開始吧。"
+    },
+    {
+      "start": 82.16,
+      "end": 85.279,
+      "en": "Now, the first thing I'm going to do is add an import here.",
+      "zh": "首先新增一個匯入項目。"
+    },
+    {
+      "start": 85.279,
+      "end": 87.279,
+      "en": "We're going to be reading files from the disk.",
+      "zh": "我們會從磁碟讀取檔案，"
+    },
+    {
+      "start": 87.279,
+      "end": 94.44,
+      "en": "Ultimately, we'll have a directory that's watched by the application, and it'll look for new files in there and just feed them to our ingest pipeline.",
+      "zh": "最終應用程式會監看某個目錄，尋找新檔案並送進匯入管線。"
+    },
+    {
+      "start": 94.44,
+      "end": 97.87899999999999,
+      "en": "So, we're going to need to import something up here.",
+      "zh": "所以需要在上面匯入一些東西。"
+    },
+    {
+      "start": 97.87899999999999,
+      "end": 104.47999999999999,
+      "en": "Let's just import from pathlib, so we can use directory path names.",
+      "zh": "從 pathlib 匯入，方便使用目錄路徑，"
+    },
+    {
+      "start": 104.47999999999999,
+      "end": 107.36,
+      "en": "We'll import path.",
+      "zh": "我們要的是 Path。"
+    },
+    {
+      "start": 107.36,
+      "end": 108.36,
+      "en": "That's easy enough.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 108.36,
+      "end": 111.239,
+      "en": "So, we're not using it yet, but we will be shortly.",
+      "zh": "雖然目前還沒用到，但很快就會。"
+    },
+    {
+      "start": 111.239,
+      "end": 116.03999999999999,
+      "en": "Next, I want to come down here to the config, and I'm going to add a few things.",
+      "zh": "接著到 Config 類別，新增幾個設定。"
+    },
+    {
+      "start": 116.03999999999999,
+      "end": 120.959,
+      "en": "We have here on line 24, the chat model, but we're also going to have the embed model.",
+      "zh": "第 24 行有 chat_model，不過還需要 embed_model。"
+    },
+    {
+      "start": 120.959,
+      "end": 127,
+      "en": "So, let's put an entry for that, embed underscore model, and that will just be a string.",
+      "zh": "所以新增 embed_model，型別就是 str，"
+    },
+    {
+      "start": 127,
+      "end": 130.039,
+      "en": "We're just going to store the name of our embedding model.",
+      "zh": "用來存放嵌入模型的名稱。"
+    },
+    {
+      "start": 130.039,
+      "end": 134.36,
+      "en": "So, we have that, and down here, I'll add a few more as well.",
+      "zh": "這項有了，下面再增加幾項。"
+    },
+    {
+      "start": 134.36,
+      "end": 140.36,
+      "en": "We're going to want what's the directory where we're going to put documents that we want to ingest into our vector store.",
+      "zh": "需要指定要匯入向量儲存區的文件，應該放在哪個目錄。"
+    },
+    {
+      "start": 140.36,
+      "end": 143.44,
+      "en": "So, we'll call that documents tier.",
+      "zh": "把它叫做 documents_dir，"
+    },
+    {
+      "start": 143.44,
+      "end": 145.47899999999998,
+      "en": "That'll just be a string.",
+      "zh": "先標註為 str。"
+    },
+    {
+      "start": 145.47899999999998,
+      "end": 147.96,
+      "en": "Once we process them, we don't want to leave them in that directory.",
+      "zh": "處理完成後，不希望檔案還留在同一目錄，"
+    },
+    {
+      "start": 147.96,
+      "end": 155.6,
+      "en": "We'll move them somewhere else, so we'll call that processed tier, and that's also a string. Easy enough.",
+      "zh": "而是移到別處，所以再加 processed_dir，同樣是 str，很簡單。"
+    },
+    {
+      "start": 155.6,
+      "end": 159.24,
+      "en": "We're also going to want to know how big should the chunks be, and that actually matters.",
+      "zh": "還要知道每個區塊多大，這點其實很重要。"
+    },
+    {
+      "start": 159.24,
+      "end": 167.639,
+      "en": "So, a chunk size, and that will be an integer, and typically speaking, the smaller the chunk",
+      "zh": "因此加入整數 chunk_size。一般而言，在合理範圍內，區塊越"
+    },
+    {
+      "start": 167.639,
+      "end": 173.75900000000001,
+      "en": "is within some reasonable limit, the better our vector store will perform, so we'll experiment",
+      "zh": "小，向量儲存區的搜尋效果通常越好；必要時可以實驗調整。"
+    },
+    {
+      "start": 173.75900000000001,
+      "end": 182.52,
+      "en": "with that if we have to, and then we want chunk overlap, so when we take some text in",
+      "zh": "再加入 chunk_overlap。將文字切成"
+    },
+    {
+      "start": 182.52,
+      "end": 189.88,
+      "en": "a chunk, we want the chunk before it, if any, and the chunk after it, if any, to overlap a bit.",
+      "zh": "區塊時，希望它與前一個區塊及後一個區塊，如果存在，都有一些重疊。"
+    },
+    {
+      "start": 189.88,
+      "end": 194.199,
+      "en": "It just makes things much simpler, and it makes things perform better as well, so that'll",
+      "zh": "這樣做更簡單，效果也更好，所以這也"
+    },
+    {
+      "start": 194.199,
+      "end": 202.36,
+      "en": "be an integer as well, and I think there's one more we need up here under the embed model.",
+      "zh": "是一個整數。另外在 embed_model 下面應該還需要一項，"
+    },
+    {
+      "start": 202.36,
+      "end": 210.32,
+      "en": "Let's put in what's called the embedding dimensions, so embed underscore dim, and that'll be an integer as well.",
+      "zh": "就是嵌入維度 embed_dim，也同樣是整數。"
+    },
+    {
+      "start": 210.32,
+      "end": 216.16,
+      "en": "Now the embedding dimensions, remember that 768 we multiplied things by in the last lecture?",
+      "zh": "還記得上一堂課用來乘上串列的 768 嗎？"
+    },
+    {
+      "start": 216.16,
+      "end": 217.91899999999998,
+      "en": "That's the dimension I'm talking about.",
+      "zh": "那就是這裡說的維度。"
+    },
+    {
+      "start": 217.91899999999998,
+      "end": 223.96,
+      "en": "It's the embedding dimensions of our embedding model and the corresponding entry in our vector database.",
+      "zh": "它同時是嵌入模型的維度，以及向量資料庫中對應欄位的維度。"
+    },
+    {
+      "start": 223.96,
+      "end": 227.6,
+      "en": "It has to be the same size, so we have to have those.",
+      "zh": "兩者大小必須相同，所以這些設定是必要的。"
+    },
+    {
+      "start": 227.6,
+      "end": 231.119,
+      "en": "Now let's put in here a method on this class.",
+      "zh": "現在在這個類別新增一個方法。"
+    },
+    {
+      "start": 231.119,
+      "end": 242.88,
+      "en": "We're going to be having the directories to look for, the one to watch for documents we want to ingest, and the one to move them to once they've been processed, so let's make sure those directories exist. Simple enough.",
+      "zh": "我們有兩個目錄：一個監看待匯入文件，另一個放處理完的文件。先確認這些目錄確實存在，做法很簡單。"
+    },
+    {
+      "start": 242.88,
+      "end": 243.88,
+      "en": "We'll define a method.",
+      "zh": "定義一個方法，"
+    },
+    {
+      "start": 243.88,
+      "end": 253.52,
+      "en": "We'll call it insure, which I have to spell right, insuredirs for directories, okay, and it just takes self, and what does it return? Nothing.",
+      "zh": "名稱是 ensure_dirs，注意拼字，dirs 代表 directories。它只接收 self，回傳什麼？沒有回傳值。"
+    },
+    {
+      "start": 253.52,
+      "end": 255.639,
+      "en": "Nothing at all, and it's a simple thing here.",
+      "zh": "完全不回傳內容，裡面的操作很簡單。"
+    },
+    {
+      "start": 255.639,
+      "end": 259.679,
+      "en": "We're going to create the documents here and the processed here if they don't exist, and",
+      "zh": "如果 documents_dir 和 processed_dir 不存在，就建立它們，"
+    },
+    {
+      "start": 259.679,
+      "end": 271.48,
+      "en": "we'll make it idempotent, safe to call from every entry point, so self.documents.dir.mkdir.",
+      "zh": "並讓方法具備冪等性，從任何進入點呼叫都安全。先寫 self.documents_dir.mkdir。"
+    },
+    {
+      "start": 271.48,
+      "end": 273.44,
+      "en": "Standard Python, okay?",
+      "zh": "這是標準 Python 用法。"
+    },
+    {
+      "start": 273.44,
+      "end": 275.48,
+      "en": "Parents equals true.",
+      "zh": "設定 parents=True，"
+    },
+    {
+      "start": 275.48,
+      "end": 278.579,
+      "en": "Create the parents if necessary. Exist okay.",
+      "zh": "需要時連父目錄也建立。再設定 exist_ok，"
+    },
+    {
+      "start": 278.579,
+      "end": 281.64,
+      "en": "That will be equal to true as well, okay?",
+      "zh": "同樣設為 True。"
+    },
+    {
+      "start": 281.64,
+      "end": 284.72,
+      "en": "That way it's not going to hurt to call it as many times as you want, and then we'll",
+      "zh": "如此無論呼叫多少次都沒關係。然後"
+    },
+    {
+      "start": 284.72,
+      "end": 294.15999999999997,
+      "en": "just duplicate this and change it from documents.dir to processed.dir, okay, and get rid of my",
+      "zh": "複製這行，將 documents_dir 改成 processed_dir，再去掉我"
+    },
+    {
+      "start": 294.15999999999997,
+      "end": 301.279,
+      "en": "extra dir there, so now we have that method, and down here where we actually load the config,",
+      "zh": "多打的 dir。方法就完成了。接著到下面實際載入設定的地方，"
+    },
+    {
+      "start": 301.279,
+      "end": 308.76,
+      "en": "of course we actually have to load the config, so after the chat model here, let's just return,",
+      "zh": "當然也要真的讀取設定，所以在 chat_model 後換行，"
+    },
+    {
+      "start": 308.76,
+      "end": 314.359,
+      "en": "and we'll put in embed model, and we have to have that.",
+      "zh": "加入必要的 embed_model，"
+    },
+    {
+      "start": 314.359,
+      "end": 317.959,
+      "en": "That's going to be equal to calling underscore onv.",
+      "zh": "它的值來自呼叫 _env，"
+    },
+    {
+      "start": 317.959,
+      "end": 329.279,
+      "en": "We'll look for an entry named embed underscore model, and we'll give it a default, okay, and the default will be the one we're going to use, nomic embed next.",
+      "zh": "尋找 EMBED_MODEL，並給預設值，就使用我們準備採用的 nomic-embed-text。"
+    },
+    {
+      "start": 329.279,
+      "end": 338.179,
+      "en": "We'll have to go get that eventually, but we're okay with this for now, and then a comma, and we're also going to need the embedding dimensions, so right after that, let's have",
+      "zh": "之後還得下載這個模型，但目前先這樣，後面加逗號。另外還要嵌入維度，緊接著新增"
+    },
+    {
+      "start": 338.179,
+      "end": 345.94,
+      "en": "embed underscore dim equals, and we'll make that equal to, by calling underscore onv,",
+      "zh": "embed_dim，值使用 _env 讀取，"
+    },
+    {
+      "start": 345.94,
+      "end": 355.299,
+      "en": "we're going to look for embed dim in our .on file, and we'll default that to 768, and of",
+      "zh": "在 .env 中尋找 EMBED_DIM，預設為 768；"
+    },
+    {
+      "start": 355.299,
+      "end": 361.14,
+      "en": "course that means I need to make this an onv int right here.",
+      "zh": "當然，這也表示這裡應該改成 _env_int，"
+    },
+    {
+      "start": 361.14,
+      "end": 362.14,
+      "en": "That's an integer.",
+      "zh": "因為它是整數。"
+    },
+    {
+      "start": 362.14,
+      "end": 370.899,
+      "en": "Okay, that's better, and our closing comma, and we'll put the rest of them at the very end here, okay, and there's four more, I think.",
+      "zh": "這樣好了，加上結尾逗號。其餘設定放到最後，應該還有四項。"
+    },
+    {
+      "start": 370.899,
+      "end": 381.42,
+      "en": "Documents dir, that's going to be equal to, and here's what we're going to call path, okay, and we're going to call path to resolve something like .slash documents into an absolute",
+      "zh": "documents_dir 的值，這裡會呼叫 Path，將 ./documents 這類路徑解析成絕對"
+    },
+    {
+      "start": 381.42,
+      "end": 388.38,
+      "en": "path, so path, and it takes as an argument, underscore onv, and that takes, we'll look",
+      "zh": "路徑。呼叫 Path，參數是 _env 的結果，而 _env 要"
+    },
+    {
+      "start": 388.38,
+      "end": 395.26,
+      "en": "for documents dir, and give that a default of .slash documents, and that seems logical.",
+      "zh": "尋找 DOCUMENTS_DIR，預設值為 ./documents，這樣很合理。"
+    },
+    {
+      "start": 395.26,
+      "end": 403.7,
+      "en": "Just a documents directory right at the root level of the project, so we'll put a comma here, and then I'll duplicate this to save some time, and instead of documents dir, we'll",
+      "zh": "就是專案根目錄下的 documents 目錄。加逗號，再複製這行節省時間，然後將 documents_dir"
+    },
+    {
+      "start": 403.7,
+      "end": 415.299,
+      "en": "make this process dir, okay, and we'll change this one to processed dir, and we'll change",
+      "zh": "改成 processed_dir，這裡也改成 PROCESSED_DIR，路徑則改為"
+    },
+    {
+      "start": 415.299,
+      "end": 419.459,
+      "en": "it to .slash documents .slash processed.",
+      "zh": "./documents/processed。"
+    },
+    {
+      "start": 419.459,
+      "end": 428.22,
+      "en": "We'll just have the processed document right inside the documents folder itself, and that should be fine, okay, so two more things to worry about.",
+      "zh": "處理完的文件就放在 documents 裡的子目錄，應該沒問題。接著還有兩項。"
+    },
+    {
+      "start": 428.22,
+      "end": 435.7,
+      "en": "Chunk size, chunk size right there, that's going to be equal to calling underscore onv,",
+      "zh": "chunk_size 的值來自 _env_int，"
+    },
+    {
+      "start": 435.7,
+      "end": 443.899,
+      "en": "underscore int, and we're going to look for chunk size, and we'll give it a reasonable",
+      "zh": "尋找 CHUNK_SIZE，並給一個合理的"
+    },
+    {
+      "start": 443.899,
+      "end": 453.26,
+      "en": "default, say a thousand, okay, a thousand characters, and the last thing to worry about is chunk overlap right there, and that's going to be equal to underscore onv, underscore",
+      "zh": "預設值，例如 1000，也就是一千個字元。最後是 chunk_overlap，一樣使用 _env_int，"
+    },
+    {
+      "start": 453.26,
+      "end": 462.65999999999997,
+      "en": "int, and we'll look for chunk overlap, and we'll give it a default of, say, a hundred",
+      "zh": "尋找 CHUNK_OVERLAP，預設值設為一百"
+    },
+    {
+      "start": 462.65999999999997,
+      "end": 469.299,
+      "en": "and fifty characters, and it has to be an integer, okay, so that's it for our config.",
+      "zh": "五十個字元，它必須是整數。Config 就完成了。"
+    },
+    {
+      "start": 469.299,
+      "end": 481.019,
+      "en": "Now of course we need the corresponding entries in .onv, so let's go over there, and let's add after the chat model right here, let's put it embed model, and even though we have",
+      "zh": ".env 當然也需要對應設定，所以回到那裡，在 CHAT_MODEL 後面加上 EMBED_MODEL。雖然已指定"
+    },
+    {
+      "start": 481.019,
+      "end": 489.899,
+      "en": "the default specified, we'll make that nomic embed text, okay, and we may also put embed",
+      "zh": "預設值，還是明確設為 nomic-embed-text。也可以把 EMBED_DIM"
+    },
+    {
+      "start": 489.899,
+      "end": 500.339,
+      "en": "dim right there as well, that seems like a logical spot, and that has to be 768, or nothing will work, and then down here at the very bottom, let's put the rest of them all together",
+      "zh": "放在這裡，位置很合理，值必須是 768，否則會無法運作。然後在最下面把其他設定集中"
+    },
+    {
+      "start": 500.339,
+      "end": 509.179,
+      "en": "down here, we need documents dir, and we'll make that equal to .slash documents, try that",
+      "zh": "放在這裡。需要 DOCUMENTS_DIR，設為 ./documents，重新輸入，"
+    },
+    {
+      "start": 509.179,
+      "end": 521.179,
+      "en": "again, documents, and we need the process dir, and that will be equal to .slash documents",
+      "zh": "是 documents。還需要 PROCESSED_DIR，值是 ./documents"
+    },
+    {
+      "start": 521.179,
+      "end": 530.02,
+      "en": "slash processed, and don't autocomplete that for me, chunk size, we'll go with the default",
+      "zh": "/processed。不要幫我自動完成。CHUNK_SIZE 先使用預設值，"
+    },
+    {
+      "start": 530.02,
+      "end": 540.219,
+      "en": "of 1000, and chunk overlap, and we'll make that 150, okay, and we might play with these",
+      "zh": "也就是 1000，CHUNK_OVERLAP 則設為 150。我們之後可能會調整這些"
+    },
+    {
+      "start": 540.219,
+      "end": 544.7,
+      "en": "numbers to get something that performs better, but these are reasonable defaults.",
+      "zh": "數值，找出效果更好的設定，但目前這些都是合理的預設值。"
+    },
+    {
+      "start": 544.7,
+      "end": 550.78,
+      "en": "Okay, that should take care of the actual configuration, so let's move on to the next step.",
+      "zh": "這樣就完成實際設定，接著進行下一步。"
+    }
+  ]
+}

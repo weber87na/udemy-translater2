@@ -1,0 +1,511 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56373947",
+  "title": "Setting up a debouncing handler",
+  "section": 7,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d8dc2c791a1dd915ab22e33e400e1d05f391f17aa5aaf9a8550435c73b9edbb2",
+  "cues": [
+    {
+      "start": 0,
+      "end": 10.659,
+      "en": "So our goal this time around is to set up a debouncing handler, okay, and it's really important to have one of these because file system events, when you move",
+      "zh": "這堂課的目標是建立防彈跳處理器。這很重要，因為移動"
+    },
+    {
+      "start": 10.659,
+      "end": 19.26,
+      "en": "or copy a file, well, events fire repeatedly while that file is being written. So typically, for example, if you're writing something with an editor,",
+      "zh": "或複製檔案時，在寫入過程中會反覆觸發檔案系統事件。例如使用編輯器儲存時，"
+    },
+    {
+      "start": 19.26,
+      "end": 28.02,
+      "en": "it might create a temp file and it might write to it in several chunks. Each is going to fire an event, a file system event, something like modified, for",
+      "zh": "它可能先建立暫存檔，再分好幾塊寫入，每一次都會觸發事件，例如 modified。"
+    },
+    {
+      "start": 28.02,
+      "end": 37.18,
+      "en": "example. Or we might rename it over a different file. We're firing a moved event. So all of these events, we have to make sure that everything is finished",
+      "zh": "也可能透過重新命名取代另一個檔案，這會觸發 moved。因此，必須確認所有操作完成後，"
+    },
+    {
+      "start": 37.18,
+      "end": 46.5,
+      "en": "before we start ingesting a file. If we read a file the moment we first see it, the first time we see an event, well, we'd be reading a half-written file or",
+      "zh": "才能開始匯入。若第一次看見事件就讀檔，可能讀到只寫了一半，"
+    },
+    {
+      "start": 46.5,
+      "end": 55.34,
+      "en": "something even smaller than that. What we're going to do is we're going to keep timers. One timer for each path for every kind of event we want to watch for. So",
+      "zh": "甚至更少的內容。我們會保留計時器，對每個要監看的路徑，各有一個計時器。"
+    },
+    {
+      "start": 55.38,
+      "end": 65.459,
+      "en": "every new event for a path, when we see one of those, it'll reset a little timer, say 750 milliseconds. That's probably enough. It almost certainly is enough,",
+      "zh": "每次該路徑出現新事件，就重新設定計時器，例如 750 毫秒，這大概已足夠，幾乎可以確定足夠。"
+    },
+    {
+      "start": 65.459,
+      "end": 75.339,
+      "en": "okay? We're only going to ingest the file once that countdown finally reaches zero, meaning that the file has been moved and it's been quiet, not firing any events",
+      "zh": "只有當倒數真的到 0 才匯入，也就是檔案移動後已安靜一段時間，沒有觸發任何事件，"
+    },
+    {
+      "start": 75.339,
+      "end": 82.22,
+      "en": "for 750 milliseconds. So back in the file, ingest.py, after the class",
+      "zh": "持續 750 毫秒。回到 ingest.py，在 Ingestor 類別"
+    },
+    {
+      "start": 82.22,
+      "end": 92.739,
+      "en": "ingester, let's set up a new class, okay? So right down here, just before initial scan in my code, I'm going to give myself the blank lines, go over to the far left,",
+      "zh": "後面建立新類別。在我這裡是 initial_scan 前面，先留空白行，回到最左邊，"
+    },
+    {
+      "start": 92.739,
+      "end": 97.059,
+      "en": "and I'll define a class, only used locally, so I'll start it with an",
+      "zh": "再定義類別，只在內部使用，所以名稱前面加"
+    },
+    {
+      "start": 97.059,
+      "end": 106.739,
+      "en": "underscore, debounced handler, okay? And that's going to take a file system event",
+      "zh": "底線，叫 _DebouncedHandler。它會繼承 FileSystemEventHandler，"
+    },
+    {
+      "start": 106.819,
+      "end": 114.53999999999999,
+      "en": "handler, right there, okay? Now, we have to have an init function, so we'll define an init",
+      "zh": "就是這個型別。接著需要初始化函式，所以定義"
+    },
+    {
+      "start": 114.53999999999999,
+      "end": 124.739,
+      "en": "function, def underscore underscore init underscore underscore, and of course that takes self. And it's also going to take our ingester, okay, which is of type ingester.",
+      "zh": "def __init__，當然接收 self，還有 ingestor，型別為 Ingestor。"
+    },
+    {
+      "start": 124.739,
+      "end": 132.86,
+      "en": "And we're going to set debounce seconds, d-b-o-u-n-c-e, debounce underscore seconds.",
+      "zh": "另外設定 debounce_seconds，debounce 的拼字要注意，"
+    },
+    {
+      "start": 132.86,
+      "end": 138.699,
+      "en": "I'll set that, I better spell seconds right. That's of type float, and I'll have",
+      "zh": "seconds 也要拼對。型別是 float，"
+    },
+    {
+      "start": 138.699,
+      "end": 145.3,
+      "en": "that default to 0.75, 750 milliseconds, okay? And it doesn't return anything, none.",
+      "zh": "預設值 0.75，也就是 750 毫秒，沒有回傳值，標註 None。"
+    },
+    {
+      "start": 145.3,
+      "end": 157.1,
+      "en": "So let's give ourselves some room, and what are we going to set here? Well, obviously self dot underscore ingester, that's going to be equal to ingester,",
+      "zh": "多留一點空間。這裡要設定什麼？當然先設定 self._ingestor = ingestor，"
+    },
+    {
+      "start": 157.22,
+      "end": 164.02,
+      "en": "okay? And self dot underscore debounce, well, that's obviously equal to debounce",
+      "zh": "再設定 self._debounce，值當然是 debounce_seconds。"
+    },
+    {
+      "start": 164.02,
+      "end": 173.179,
+      "en": "underscore seconds, okay? Now, we also need some timers, so let's set up, on the next line,",
+      "zh": "還需要一些計時器，下一行建立"
+    },
+    {
+      "start": 173.179,
+      "end": 183.979,
+      "en": "self dot underscore timers, okay? And that's going to be a dictionary of strings, and here's",
+      "zh": "self._timers，型別是一個字典，鍵是字串，值則"
+    },
+    {
+      "start": 183.979,
+      "end": 190.22,
+      "en": "where we use threading, threading dot timers, okay? And we'll make that equal, initially,",
+      "zh": "使用 threading.Timer，這就是用到 threading 的地方。初始值設為"
+    },
+    {
+      "start": 191.02,
+      "end": 198.86,
+      "en": "to just an empty value. And threads, of course, need locks, okay? So self dot underscore lock,",
+      "zh": "空字典。執行緒當然需要鎖，所以 self._lock"
+    },
+    {
+      "start": 198.86,
+      "end": 209.339,
+      "en": "that's going to be equal to threading dot lock, right, like that. And don't forget your opening and closing parentheses, which I often do. And self dot underscore processdir,",
+      "zh": "等於 threading.Lock()，別忘記括號，我很常忘。另外 self._processed_dir，"
+    },
+    {
+      "start": 210.22,
+      "end": 218.059,
+      "en": "well, that'll be equal to from ingester config processdir, okay? So there's our init function,",
+      "zh": "值來自 ingestor.config.processed_dir。初始化方法就完成了，"
+    },
+    {
+      "start": 218.059,
+      "end": 225.179,
+      "en": "very simple. Now, we're also going to need a method called schedule, okay? So I'll define",
+      "zh": "非常簡單。接著需要一個叫 schedule 的方法，"
+    },
+    {
+      "start": 225.179,
+      "end": 236.38,
+      "en": "a method called underscore schedule, which I won't spell correctly. That'll take self, and it'll also take a parameter called raw underscore path, okay? And that's of type",
+      "zh": "定義 _schedule，我大概又會拼錯。它接收 self，以及我取名為 raw_path 的參數，型別是"
+    },
+    {
+      "start": 236.779,
+      "end": 244.779,
+      "en": "string. And this doesn't return anything, none. So this will restart the debounce timer for raw",
+      "zh": "str。沒有回傳值，標註 None。它會重新啟動 raw_path"
+    },
+    {
+      "start": 244.779,
+      "end": 253.97899999999998,
+      "en": "path, whatever file we're looking at. So path is equal to, and we'll just use path, raw underscore path, the parameter that we get as a call to this method, okay?",
+      "zh": "對應的防彈跳計時器，也就是正在查看的檔案。因此 path 等於 Path(raw_path)，raw_path 就是呼叫時傳入的參數。"
+    },
+    {
+      "start": 255.179,
+      "end": 264.94,
+      "en": "And we'll say if path dot suffix dot lower, suffix dot lower, the lowercase suffix of this file,",
+      "zh": "接著檢查 path.suffix.lower()，也就是檔案副檔名的小寫形式，"
+    },
+    {
+      "start": 264.94,
+      "end": 271.5,
+      "en": "if it's not in our constant text underscore suffixes, right there,",
+      "zh": "如果不在常數 TEXT_SUFFIXES 裡，"
+    },
+    {
+      "start": 272.7,
+      "end": 281.739,
+      "en": "well, of course, we missed in, not in. That's better. If it's not one of the ones that we're",
+      "zh": "當然，我漏掉了 in，應該是 not in。如果不是我們"
+    },
+    {
+      "start": 281.739,
+      "end": 285.579,
+      "en": "handling, well, we'll just return, okay? We're done. We can't do anything.",
+      "zh": "能處理的類型，就直接 return，結束，沒有事情能做。"
+    },
+    {
+      "start": 286.619,
+      "end": 295.1,
+      "en": "And then we'll have another check here. We'll make sure it's not in the process directory, if the process directory is inside the documents directory. So our helper function",
+      "zh": "再做一個檢查，確保檔案不在 processed 目錄裡，尤其它是 documents 子目錄的情況。所以使用輔助函式"
+    },
+    {
+      "start": 295.1,
+      "end": 305.179,
+      "en": "is under, if is under, path and self dot underscore process dir. If that's true,",
+      "zh": "_is_under，傳入 path 和 self._processed_dir。如果回傳 True，"
+    },
+    {
+      "start": 305.179,
+      "end": 311.42,
+      "en": "again, we'll just return. We can't do anything, okay? Now, if we get past all of that,",
+      "zh": "同樣直接 return，不能處理它。若通過全部檢查，"
+    },
+    {
+      "start": 311.42,
+      "end": 322.14,
+      "en": "here's what we call with self dot underscore lock. So we're going to cancel any pending timer for this path and replace it with a fresh one. That's all we're going to do here, okay?",
+      "zh": "就使用 with self._lock，取消這個路徑目前尚未執行的計時器，再換成新的，這裡只做這件事。"
+    },
+    {
+      "start": 323.019,
+      "end": 330.94,
+      "en": "So let's say existing, a variable name I'm choosing right now, equals self dot underscore timers,",
+      "zh": "先將我現在取名的 existing，設為 self._timers，"
+    },
+    {
+      "start": 330.94,
+      "end": 341.019,
+      "en": "and we call the method pop, and we give that its required parameters. We only care about the first one, raw underscore path, where is the file. The second, we don't care about at all, okay?",
+      "zh": "呼叫 pop，提供所需參數。第一個是 raw_path，也就是檔案位置；第二個只是找不到時的預設值，我們不在意。"
+    },
+    {
+      "start": 341.82,
+      "end": 352.299,
+      "en": "So we have existing, and we say if existing is not none, okay, then we have a timer. So we'll just say existing dot cancel.",
+      "zh": "取得 existing 後，若 existing 不是 None，表示有計時器，因此呼叫 existing.cancel()。"
+    },
+    {
+      "start": 354.459,
+      "end": 360.619,
+      "en": "Okay? Now, timer dot cancel, it's a no op if the timer has already fired. So this is absolutely",
+      "zh": "timer.cancel 在計時器已觸發時不會做任何事，所以這樣完全"
+    },
+    {
+      "start": 360.619,
+      "end": 367.26,
+      "en": "safe, okay? So we do that, and then we say timer, a variable name I'm choosing right now,",
+      "zh": "安全。接著設定我現在取名的 timer，"
+    },
+    {
+      "start": 368.14,
+      "end": 376.059,
+      "en": "equals threading dot timer, and we give it self dot underscore debounce,",
+      "zh": "等於 threading.Timer，傳入 self._debounce，"
+    },
+    {
+      "start": 376.7,
+      "end": 386.54,
+      "en": "750 milliseconds in our case, self dot underscore fire, okay? And args equals, as a tuple, raw",
+      "zh": "在我們這裡是 750 毫秒，再傳入 self._fire，以及 args，值是元組中的 raw_path。"
+    },
+    {
+      "start": 386.54,
+      "end": 397.579,
+      "en": "underscore path, and because it's a tuple, well, we need our comma there, something else I often forget, okay? So now I have my timer variable, and we set some properties on it. Timer dot daemon,",
+      "zh": "因為是單一元素元組，記得加逗號，我也很常忘。現在有 timer 變數，再設定屬性：timer.daemon，"
+    },
+    {
+      "start": 398.779,
+      "end": 408.22,
+      "en": "d-a-e-m-o-n. We'll make that equal to true, okay? And self dot underscore timers at raw path,",
+      "zh": "daemon 拼字是 D-A-E-M-O-N，設為 True。再把 self._timers[raw_path]，"
+    },
+    {
+      "start": 408.94,
+      "end": 414.619,
+      "en": "dictionary, well, that's going to be equal to timer, the one we just set up, okay? And we",
+      "zh": "也就是字典中的這個項目，設為剛建立的 timer。接著"
+    },
+    {
+      "start": 414.619,
+      "end": 422.459,
+      "en": "start the timer. So on the next line, timer dot start, okay? So that's our schedule method, okay?",
+      "zh": "啟動計時器，下一行呼叫 timer.start()。這就是 _schedule 方法。"
+    },
+    {
+      "start": 423.179,
+      "end": 433.899,
+      "en": "Now, we made reference to a fire method, but we don't have it yet. So we'll come down here, and we'll get to the same indentation level as def underscore schedule, and we'll create one,",
+      "zh": "現在參照了 _fire，但它還不存在。所以往下到與 def _schedule 相同縮排，建立它，"
+    },
+    {
+      "start": 433.899,
+      "end": 439.579,
+      "en": "def underscore fire. That'll take, once again, self and raw underscore path. That's what I'll",
+      "zh": "def _fire，再次接收 self 和 raw_path，我就把"
+    },
+    {
+      "start": 439.579,
+      "end": 445.98,
+      "en": "call the parameter of type string, and it doesn't return anything, so none, okay? Now, let's define",
+      "zh": "參數叫這個名字，型別為 str，沒有回傳值，標註 None。現在來定義內容，"
+    },
+    {
+      "start": 445.98,
+      "end": 452.459,
+      "en": "this. This is called by the timer thread when a path has been quiet long enough, okay? So 750",
+      "zh": "當路徑安靜夠久，計時器執行緒就會呼叫它，也就是 750"
+    },
+    {
+      "start": 452.459,
+      "end": 460.38,
+      "en": "milliseconds have gone by without us receiving any events at all from that file, okay? So with",
+      "zh": "毫秒內都沒收到該檔案的事件。先使用 with"
+    },
+    {
+      "start": 460.38,
+      "end": 467.579,
+      "en": "self dot underscore lock, and we want to use our lock, we'll say self dot timers dot underscore",
+      "zh": "self._lock，取得鎖，再呼叫 self._timers.pop，"
+    },
+    {
+      "start": 467.579,
+      "end": 475.339,
+      "en": "timers dot pop, and we give that, again, raw underscore path and none, okay?",
+      "zh": "同樣傳入 raw_path 和 None。"
+    },
+    {
+      "start": 477.739,
+      "end": 485.899,
+      "en": "And next, path is now equal to, calling path from the path lib, raw underscore path, okay? So now I",
+      "zh": "接著 path 等於 pathlib 的 Path(raw_path)。現在"
+    },
+    {
+      "start": 485.899,
+      "end": 497.42,
+      "en": "know where the file is, and we'll say, just as a safety check, if not, try that again, if not path dot exists. If it doesn't exist anymore, well, the file might have been deleted between",
+      "zh": "知道檔案位置。安全起見判斷 if not path.exists()，如果檔案已不存在，可能是在"
+    },
+    {
+      "start": 497.42,
+      "end": 506.54,
+      "en": "the scheduling and the firing. That's absolutely possible, and we're not optimists. Computer scientists are not optimists. We'll just return. There's nothing to do. Let's give ourselves some",
+      "zh": "排程與觸發之間被刪除了，這完全有可能。我們不是樂觀主義者，電腦科學家可不樂觀。直接 return，無事可做。多留一點"
+    },
+    {
+      "start": 506.54,
+      "end": 515.82,
+      "en": "room, okay? But if we get past that, then we could try. Try, and what are we going to try?",
+      "zh": "空間。若通過檢查，就可以 try，究竟要嘗試什麼？"
+    },
+    {
+      "start": 516.619,
+      "end": 522.059,
+      "en": "And what are we going to try? Self dot underscore ingester dot ingest file,",
+      "zh": "呼叫 self._ingestor.ingest_file，"
+    },
+    {
+      "start": 522.059,
+      "end": 533.739,
+      "en": "and that requires just path. What's the file to ingest? And our except, well, we'll just, again, look for any exception. Here, we'll just write to the log. Log dot exception,",
+      "zh": "只需要傳入 path，也就是要匯入的檔案。except 同樣捕捉任何 Exception，再寫日誌，呼叫 log.exception，"
+    },
+    {
+      "start": 534.7,
+      "end": 542.619,
+      "en": "and we'll just say failed to ingest percent s, and my substitution for that is just the name",
+      "zh": "訊息是「Failed to ingest %s」，代入值就是"
+    },
+    {
+      "start": 542.619,
+      "end": 549.9,
+      "en": "of the file, path, okay? So there's our fire function. Now, there's three more things we need",
+      "zh": "檔案路徑 path。這就是 _fire。接著還有三件事"
+    },
+    {
+      "start": 549.9,
+      "end": 561.58,
+      "en": "to keep track of here, and these are three things that the watchdog library calls on file system events, okay? We need to look for on created, on moved, and on modified, okay? And without these",
+      "zh": "需要處理，這是 watchdog 收到檔案系統事件時會呼叫的三個方法，也就是 on_created、on_moved 和 on_modified。沒有這"
+    },
+    {
+      "start": 561.58,
+      "end": 567.659,
+      "en": "three methods, this just won't work. So give yourself a blank line. Get back to the same",
+      "zh": "三個方法就不會運作。留空白行，回到"
+    },
+    {
+      "start": 567.659,
+      "end": 574.059,
+      "en": "indentation level as def underscore fire, and we'll create these. They're very simple. Def,",
+      "zh": "與 def _fire 相同的縮排，建立它們，非常簡單。定義 def，"
+    },
+    {
+      "start": 574.059,
+      "end": 580.059,
+      "en": "the first one, must be named exactly on created. Watchdog is going to be looking for that, okay?",
+      "zh": "第一個一定得精確叫做 on_created，因為 watchdog 會找這個方法。"
+    },
+    {
+      "start": 580.619,
+      "end": 586.219,
+      "en": "And it has to have self and an event, and the event is of type file system event,",
+      "zh": "它必須接收 self 和 event，event 的型別是 FileSystemEvent，"
+    },
+    {
+      "start": 587.26,
+      "end": 595.9,
+      "en": "right there, okay? And it doesn't return anything, none. So we'll say if not event",
+      "zh": "就在這裡。沒有回傳值，標註 None。接著判斷 if not event"
+    },
+    {
+      "start": 595.9,
+      "end": 603.5,
+      "en": "dot is underscore directory. So if it's not a directory, then self dot, and we call schedule,",
+      "zh": ".is_directory，如果不是目錄，就呼叫 self._schedule，"
+    },
+    {
+      "start": 604.059,
+      "end": 615.979,
+      "en": "schedule, so underscore schedule, and what does that require for parameters? Well, the source path. So we'll need to get that as a string, so str, and in parentheses, whatever the event dot",
+      "zh": "也就是 _schedule。它需要什麼參數？來源路徑。因此要把它轉成字串，使用 str，括號裡放 event.src_path，"
+    },
+    {
+      "start": 615.979,
+      "end": 623.58,
+      "en": "source path is, okay? So that is the entirety of the first one, on created, and we do almost",
+      "zh": "這樣第一個 on_created 就完成了。on_moved 幾乎也是"
+    },
+    {
+      "start": 623.58,
+      "end": 631.5,
+      "en": "exactly the same thing for on moved. Def on underscore moved. Again, it takes self, and again,",
+      "zh": "完全相同的做法。定義 def on_moved，一樣接收 self，"
+    },
+    {
+      "start": 631.5,
+      "end": 637.979,
+      "en": "it takes an event, and that's of type file system event, and again, it doesn't return anything,",
+      "zh": "還有 FileSystemEvent 型別的 event，也一樣沒有回傳值，"
+    },
+    {
+      "start": 638.619,
+      "end": 649.5,
+      "en": "none, okay? So if not event dot is directory, again, self dot schedule dot underscore schedule,",
+      "zh": "標註 None。如果 not event.is_directory，則呼叫 self._schedule，"
+    },
+    {
+      "start": 649.5,
+      "end": 657.82,
+      "en": "we're going to schedule string event dot source underscore path. And one more.",
+      "zh": "傳入 str(event.src_path)。最後還有一個方法，"
+    },
+    {
+      "start": 659.099,
+      "end": 664.619,
+      "en": "Let's give ourselves a little bit more room. We need to take care of the on modified case.",
+      "zh": "多留一點空間，得處理 on_modified 的情況。"
+    },
+    {
+      "start": 664.619,
+      "end": 671.26,
+      "en": "Def on underscore modified, okay? And for some reason, it did the autocomplete for me, so let",
+      "zh": "定義 def on_modified，不知道為何編輯器自動幫我完成了，所以"
+    },
+    {
+      "start": 671.26,
+      "end": 680.46,
+      "en": "me try that again. Modify, okay? Again, self, and again, event of type file system event.",
+      "zh": "重新輸入 modified。同樣是 self，以及 FileSystemEvent 型別的 event。"
+    },
+    {
+      "start": 682.14,
+      "end": 693.26,
+      "en": "Right there, okay? And it still returns nothing, like the other two. And here, just to save some time, because it's exactly the same code, I'll just copy these two and paste them right here.",
+      "zh": "和另外兩個方法一樣不回傳內容。為了省時間，因為程式完全相同，直接把這兩行複製貼到這裡。"
+    },
+    {
+      "start": 694.059,
+      "end": 700.059,
+      "en": "And that's the entirety of our debounced handler, okay? So now we have a means of making sure that",
+      "zh": "這就是完整的 _DebouncedHandler。現在已經有方法確認"
+    },
+    {
+      "start": 700.059,
+      "end": 711.979,
+      "en": "a file is ready to process. So our next step is to wire everything together, okay? We need to start an observer with the handler, and a few other things, okay? Nothing too complex,",
+      "zh": "檔案準備好可以處理。下一步把所有東西接起來，需要以這個處理器啟動 Observer，還有幾個設定，都不複雜，"
+    },
+    {
+      "start": 711.979,
+      "end": 716.38,
+      "en": "but we'll get started on that in the next lecture.",
+      "zh": "下一堂就開始處理。"
+    }
+  ]
+}

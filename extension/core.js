@@ -1,7 +1,7 @@
 /* Shared subtitle timing logic, also exercised by the Node test runner. */
 (() => {
   'use strict';
-  const courses = ['ai-in-c-sharp-using-the-microsoft-agent-framework','mastering-microsoft-agent-framework-in-c'];
+  const courses = globalThis.UdemyZhCourses || [];
   function lectureId(url) {
     try {
       const u = new URL(url);

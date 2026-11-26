@@ -1,0 +1,637 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56343953",
+  "title": "Getting started: the system prompt",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "68845baa3409e2214e84cf5c205c4ce365f82e12c8d98563cb117e5daa7361d6",
+  "cues": [
+    {
+      "start": 0,
+      "end": 10.927,
+      "en": "So at this point, our code has the ability to create a VectorStore, to put documents in the VectorStore, and to retrieve documents from the VectorStore.",
+      "zh": "現在程式已能建立 VectorStore、存入文件，也能從裡面檢索文件。"
+    },
+    {
+      "start": 11,
+      "end": 20.947,
+      "en": "So we're getting very close. But of course, right now, if I was to start a chat, it still has no idea what documents are in the VectorStore, and has no way to retrieve them, to access them.",
+      "zh": "距離完成很近了。但如果現在開始聊天，它仍不知道 VectorStore 裡有哪些文件，也沒有方法檢索或存取它們。"
+    },
+    {
+      "start": 21,
+      "end": 30,
+      "en": "We need to write that necessary code. And we also need to give our chat assistant some additional rules.",
+      "zh": "必須補上相關程式碼，也需要給聊天助理更多規則。"
+    },
+    {
+      "start": 30,
+      "end": 34,
+      "en": "And what I want to focus on this time around is the system prompt.",
+      "zh": "這堂課要專注於系統提示詞。"
+    },
+    {
+      "start": 34,
+      "end": 39,
+      "en": "So we have a system prompt right now. We can go over to CLI.py. Let's have a look at that.",
+      "zh": "目前已經有一個系統提示詞，到 cli.py 看看。"
+    },
+    {
+      "start": 39,
+      "end": 41,
+      "en": "And here's our system prompt, the default one.",
+      "zh": "這是預設的系統提示詞："
+    },
+    {
+      "start": 41,
+      "end": 46,
+      "en": "You are a helpful assistant. Answer the user's questions clearly and concisely.",
+      "zh": "「你是一位樂於助人的助理，請清楚且簡潔地回答使用者問題。」"
+    },
+    {
+      "start": 46,
+      "end": 52,
+      "en": "And that's pretty vague. We want to give more instructions to our chat assistant.",
+      "zh": "這很籠統，我們希望給聊天助理更多指示，"
+    },
+    {
+      "start": 52,
+      "end": 59.942,
+      "en": "We want to say who you are. And we want to make them, because my documents, my body of documents I use is all about mythological creatures.",
+      "zh": "例如告訴它身分。因為我使用的文件集合全都與神話生物有關，"
+    },
+    {
+      "start": 60,
+      "end": 64,
+      "en": "I want to say you're an expert in mythology, or something like that.",
+      "zh": "所以要告訴它「你是神話專家」之類的內容。"
+    },
+    {
+      "start": 64,
+      "end": 67,
+      "en": "And we want to give certain permission to the system as well.",
+      "zh": "也要給系統一些明確的許可，"
+    },
+    {
+      "start": 67,
+      "end": 74,
+      "en": "You can use your general knowledge, provided it's in scope. It's related to the topic that you're an expert in.",
+      "zh": "可以使用一般知識，但必須在範圍內，也就是與專業主題相關。"
+    },
+    {
+      "start": 74,
+      "end": 77,
+      "en": "And refuse to answer any questions outside of that scope.",
+      "zh": "並拒絕回答超出範圍的問題。"
+    },
+    {
+      "start": 77,
+      "end": 82,
+      "en": "We also want to tell it, and sometimes this even works, don't invent facts.",
+      "zh": "還要告訴它「不要捏造事實」；有時這個指示甚至真的會奏效。"
+    },
+    {
+      "start": 82,
+      "end": 88,
+      "en": "And we want it to use the documents that are available to it in the VectorStore.",
+      "zh": "也希望它使用 VectorStore 中可取得的文件。"
+    },
+    {
+      "start": 88,
+      "end": 94.947,
+      "en": "And we don't want to have it say things like, well, according to the documents, it doesn't sound conversational. It's kind of jarring.",
+      "zh": "不希望它說「根據文件……」這類話，因為聽起來不像自然對話，有點突兀。"
+    },
+    {
+      "start": 96,
+      "end": 100,
+      "en": "So we're going to write this once in code, as a kind of default.",
+      "zh": "所以先在程式碼中寫一份預設提示詞，"
+    },
+    {
+      "start": 100,
+      "end": 104,
+      "en": "And we're also going to let the users override it from a file.",
+      "zh": "也允許使用者從檔案覆寫它。"
+    },
+    {
+      "start": 104,
+      "end": 111,
+      "en": "And if the file exists, it'll use that. If the file does not exist, it'll use the ones we have in code.",
+      "zh": "檔案存在就用檔案，不存在則使用程式碼裡的版本。"
+    },
+    {
+      "start": 111,
+      "end": 118,
+      "en": "So, let's open up query.py. I'll close this one. And I have query.py right here.",
+      "zh": "現在開啟 query.py，關掉這個，query.py 就在這裡。"
+    },
+    {
+      "start": 118,
+      "end": 122,
+      "en": "Let's set up a default system prompt.",
+      "zh": "設定一個預設系統提示詞。"
+    },
+    {
+      "start": 122,
+      "end": 127,
+      "en": "So I'll leave the one that's over in cli.py there for now. And we'll get rid of it later on.",
+      "zh": "cli.py 原本的提示詞先留著，稍後再刪除。"
+    },
+    {
+      "start": 127,
+      "end": 132,
+      "en": "And I'll come here, right after my imports, and I'll set up a variable.",
+      "zh": "在匯入項目後面建立一個變數，"
+    },
+    {
+      "start": 132,
+      "end": 137,
+      "en": "Default underscore system underscore prompt.",
+      "zh": "叫做 DEFAULT_SYSTEM_PROMPT。"
+    },
+    {
+      "start": 137,
+      "end": 145,
+      "en": "And we'll make that equal to, and I'll just put it in parentheses like this, and put it one line at a time.",
+      "zh": "值用括號包住，並且逐行寫，"
+    },
+    {
+      "start": 145,
+      "end": 155,
+      "en": "You are a helpful assistant answering questions about mythological creatures.",
+      "zh": "「你是一位樂於助人的助理，回答神話生物相關問題。」"
+    },
+    {
+      "start": 155,
+      "end": 160,
+      "en": "Mythological creatures. And then a space.",
+      "zh": "神話生物，後面加空格，"
+    },
+    {
+      "start": 160,
+      "end": 164,
+      "en": "And on the next line. Let's change that to a comma.",
+      "zh": "下一行，先把這裡改成逗號。"
+    },
+    {
+      "start": 164,
+      "end": 168,
+      "en": "You're not just doing it about creatures. We'll make it a little broader than that.",
+      "zh": "不只限於生物，我們把範圍稍微放寬，"
+    },
+    {
+      "start": 169,
+      "end": 181,
+      "en": "So back down here. Creatures, folklore, mythology, and related topics.",
+      "zh": "所以這裡寫生物、民間傳說、神話，以及相關主題。"
+    },
+    {
+      "start": 181,
+      "end": 189,
+      "en": "You have documents available to you. Available to you.",
+      "zh": "「你有可以使用的文件」，可以使用，"
+    },
+    {
+      "start": 189,
+      "end": 193,
+      "en": "To use to. And then we'll go to the next line.",
+      "zh": "「用來……」，然後換到下一行，"
+    },
+    {
+      "start": 193,
+      "end": 197,
+      "en": "Answer questions.",
+      "zh": "「回答問題」。"
+    },
+    {
+      "start": 197,
+      "end": 204,
+      "en": "Use the context provided and your general knowledge.",
+      "zh": "「使用提供的上下文與你的一般知識。」"
+    },
+    {
+      "start": 204,
+      "end": 207,
+      "en": "No sense in ignoring all that training data that's in there.",
+      "zh": "沒有道理忽略訓練資料裡的所有知識，"
+    },
+    {
+      "start": 207,
+      "end": 211,
+      "en": "From outside. And then a space. And on the next line.",
+      "zh": "也就是來自文件以外的知識，後面加空格，再到下一行，"
+    },
+    {
+      "start": 211,
+      "end": 216,
+      "en": "The documents. To answer questions.",
+      "zh": "「文件……用來回答問題」。"
+    },
+    {
+      "start": 216,
+      "end": 219,
+      "en": "To answer each question.",
+      "zh": "改成「回答每個問題」，"
+    },
+    {
+      "start": 219,
+      "end": 221,
+      "en": "Just be as clear as we can.",
+      "zh": "我們盡可能寫清楚。"
+    },
+    {
+      "start": 221,
+      "end": 224,
+      "en": "Do not invent facts.",
+      "zh": "「不要捏造事實。」"
+    },
+    {
+      "start": 224,
+      "end": 233,
+      "en": "Now to be clear, if you're using a cloud model like ChachiBT or something like that, that'll have a lot more effect than using a locally hosted OLAMA model.",
+      "zh": "先說明，如果使用 ChatGPT 這類雲端模型，這條指示的效果通常比使用本機 Ollama 模型更明顯。"
+    },
+    {
+      "start": 233,
+      "end": 236,
+      "en": "But we may also put it in there.",
+      "zh": "不過還是把它加進去。"
+    },
+    {
+      "start": 236,
+      "end": 247,
+      "en": "When you use a fact, and then a space, from the context, and the context refers to the documents that we have,",
+      "zh": "「當你使用上下文中的事實時」，上下文就是我們提供的文件，"
+    },
+    {
+      "start": 247,
+      "end": 257,
+      "en": "do not cite the source file name in parentheses.",
+      "zh": "「不要在括號中引用來源檔名。」"
+    },
+    {
+      "start": 257,
+      "end": 268,
+      "en": "Just write the, and then on the next line, response as a part of the normal conversation.",
+      "zh": "「只要把……」，下一行接「回覆寫成自然對話的一部分」。"
+    },
+    {
+      "start": 268,
+      "end": 272,
+      "en": "Let's go with that. Okay? And then a space.",
+      "zh": "就用這個版本，後面加空格，"
+    },
+    {
+      "start": 272,
+      "end": 274,
+      "en": "And then on the next line.",
+      "zh": "然後下一行，"
+    },
+    {
+      "start": 274,
+      "end": 286,
+      "en": "Never use phrasing like, and then I'll put it in single quotes, according to the documents, dot dot dot.",
+      "zh": "「絕對不要使用像是『根據文件……』這類說法」，我會用單引號括起來。"
+    },
+    {
+      "start": 286,
+      "end": 289,
+      "en": "I lost my quote so I'll put it back.",
+      "zh": "引號不見了，我補回來，"
+    },
+    {
+      "start": 289,
+      "end": 296,
+      "en": "Or anything similar. Next line.",
+      "zh": "「或任何類似措辭」。下一行，"
+    },
+    {
+      "start": 296,
+      "end": 303,
+      "en": "You are allowed to use your general knowledge",
+      "zh": "「你可以使用一般知識，"
+    },
+    {
+      "start": 303,
+      "end": 314,
+      "en": "to answer questions, comma, provided, and then on the next line, that the question is about, no, is related, that's better,",
+      "zh": "回答問題，但前提是」，下一行接「問題關於……」，不，改成「問題相關於」更好，"
+    },
+    {
+      "start": 314,
+      "end": 319,
+      "en": "to your area of expertise.",
+      "zh": "「你的專業領域」。"
+    },
+    {
+      "start": 319,
+      "end": 331,
+      "en": "Politely decline to, and then a space, answer questions not related to, and we'll be clear,",
+      "zh": "「請禮貌拒絕回答與……無關的問題」，我們明確寫出，"
+    },
+    {
+      "start": 331,
+      "end": 341,
+      "en": "mythological creatures, folklore, mythology,",
+      "zh": "「神話生物、民間傳說、神話，"
+    },
+    {
+      "start": 341,
+      "end": 348,
+      "en": "and then on the next line, and related topics.",
+      "zh": "以及相關主題」。"
+    },
+    {
+      "start": 348,
+      "end": 350,
+      "en": "And then one last instruction.",
+      "zh": "最後再加一條指示，"
+    },
+    {
+      "start": 350,
+      "end": 359,
+      "en": "Keep your responses friendly and conversational.",
+      "zh": "「保持回覆友善且自然，如同對話」。"
+    },
+    {
+      "start": 359,
+      "end": 364,
+      "en": "Okay? So now I've set up this default system prompt.",
+      "zh": "這樣就建立了預設系統提示詞，"
+    },
+    {
+      "start": 364,
+      "end": 367,
+      "en": "But of course we have no way to use this yet.",
+      "zh": "但當然還沒有方法使用它。"
+    },
+    {
+      "start": 367,
+      "end": 370,
+      "en": "So what I'm going to do now is set up another function.",
+      "zh": "所以現在再建立一個函式，"
+    },
+    {
+      "start": 370,
+      "end": 373,
+      "en": "And I'll call it initial messages. Okay?",
+      "zh": "我叫它 initial_messages。"
+    },
+    {
+      "start": 373,
+      "end": 380,
+      "en": "So, let's come down here, after this retrieval function, and let's set up another function.",
+      "zh": "到 retrieve 函式後面，再加一個函式，"
+    },
+    {
+      "start": 380,
+      "end": 385,
+      "en": "And I'll call it initial messages, plural. Okay?",
+      "zh": "名稱是複數的 initial_messages。"
+    },
+    {
+      "start": 385,
+      "end": 392,
+      "en": "And it's going to have a system prompt as a parameter, of type string, or none.",
+      "zh": "它接收 system_prompt 參數，型別為 str 或 None。"
+    },
+    {
+      "start": 392,
+      "end": 396,
+      "en": "And if it's none, we're just going to use the default one we just set up. Okay?",
+      "zh": "若是 None，就使用剛才建立的預設值。"
+    },
+    {
+      "start": 396,
+      "end": 405,
+      "en": "And it's going to return a list of that type we set up a long time ago, message. Okay?",
+      "zh": "回傳值是之前定義的 Message 型別串列。"
+    },
+    {
+      "start": 405,
+      "end": 408,
+      "en": "Now, we can't actually use message until we import it.",
+      "zh": "不過還沒匯入 Message，現在不能直接使用它。"
+    },
+    {
+      "start": 408,
+      "end": 412,
+      "en": "So back up here in the imports, let's just import that.",
+      "zh": "所以回到上面的匯入區，把它加進來，"
+    },
+    {
+      "start": 412,
+      "end": 417,
+      "en": "So from.llm, we'll import message.",
+      "zh": "從 .llm 匯入 Message，"
+    },
+    {
+      "start": 417,
+      "end": 419,
+      "en": "Okay? So we have to have that.",
+      "zh": "這是必要的。"
+    },
+    {
+      "start": 419,
+      "end": 421,
+      "en": "There's a few other things we're going to use later.",
+      "zh": "還有一些東西稍後會用到，"
+    },
+    {
+      "start": 421,
+      "end": 423,
+      "en": "I may as well do those imports right now.",
+      "zh": "乾脆現在就先匯入。"
+    },
+    {
+      "start": 423,
+      "end": 425,
+      "en": "So we have data classes up there.",
+      "zh": "上面已經有 dataclasses，"
+    },
+    {
+      "start": 425,
+      "end": 429,
+      "en": "We're also going to be looking for a file, so we're going to want to have path available to us.",
+      "zh": "也會尋找檔案，所以需要能使用 Path，"
+    },
+    {
+      "start": 429,
+      "end": 434,
+      "en": "So from pathlib, we'll import path.",
+      "zh": "因此從 pathlib 匯入 Path。"
+    },
+    {
+      "start": 434,
+      "end": 437,
+      "en": "We're not using it right now, but we will shortly. Okay?",
+      "zh": "現在還沒用到，但很快就會。"
+    },
+    {
+      "start": 437,
+      "end": 444,
+      "en": "And down here, after our import of message, we're also going to have to have our vector store, our search hits in our vector store.",
+      "zh": "另外在 Message 的匯入後面，也需要向量儲存區與搜尋結果，"
+    },
+    {
+      "start": 444,
+      "end": 449,
+      "en": "So from.stores.base, we'll import.",
+      "zh": "所以從 .stores.base 匯入，"
+    },
+    {
+      "start": 449,
+      "end": 452,
+      "en": "We need search hit, and we need vector store.",
+      "zh": "需要 SearchHit 與 VectorStore，"
+    },
+    {
+      "start": 452,
+      "end": 454,
+      "en": "We'll be using those before too long.",
+      "zh": "很快就會使用，"
+    },
+    {
+      "start": 454,
+      "end": 456,
+      "en": "So we may as well put them in there for now.",
+      "zh": "現在先放進來。"
+    },
+    {
+      "start": 456,
+      "end": 458,
+      "en": "Now let's finish off initial message.",
+      "zh": "接著完成 initial_messages，"
+    },
+    {
+      "start": 458,
+      "end": 459,
+      "en": "It's very short. Okay?",
+      "zh": "內容非常短。"
+    },
+    {
+      "start": 459,
+      "end": 465,
+      "en": "All we're going to do here is we're going to pass a config variable system prompt. Okay?",
+      "zh": "我們會傳入一個設定值 system_prompt，"
+    },
+    {
+      "start": 465,
+      "end": 468,
+      "en": "So we'll have to set that up in config before too long.",
+      "zh": "所以稍後也要在設定裡加上它。"
+    },
+    {
+      "start": 468,
+      "end": 475,
+      "en": "And if that doesn't exist, we'll use the variable default system prompt we have up on line 12. Okay?",
+      "zh": "如果沒有，則使用第 12 行的 DEFAULT_SYSTEM_PROMPT。"
+    },
+    {
+      "start": 475,
+      "end": 477,
+      "en": "So this is simple. Base equals.",
+      "zh": "很簡單，設定 base 等於，"
+    },
+    {
+      "start": 477,
+      "end": 479,
+      "en": "Base is just a variable name I'm choosing right now.",
+      "zh": "base 只是我現在取的變數名，"
+    },
+    {
+      "start": 479,
+      "end": 482,
+      "en": "System underscore prompt. Okay?",
+      "zh": "system_prompt，"
+    },
+    {
+      "start": 482,
+      "end": 484,
+      "en": "Which is a passed parameter.",
+      "zh": "也就是傳入的參數，"
+    },
+    {
+      "start": 484,
+      "end": 494,
+      "en": "If system prompt, right there, is not none, else we'll use default system prompt.",
+      "zh": "前提是 system_prompt 不是 None，否則用 DEFAULT_SYSTEM_PROMPT，"
+    },
+    {
+      "start": 494,
+      "end": 500,
+      "en": "Default system prompt. Right there. Okay?",
+      "zh": "就是這裡的 DEFAULT_SYSTEM_PROMPT。"
+    },
+    {
+      "start": 500,
+      "end": 507,
+      "en": "And now we just return, and we'll put it in square brackets, and then in curly brackets,",
+      "zh": "然後回傳一個串列，裡面放一個字典，"
+    },
+    {
+      "start": 507,
+      "end": 515,
+      "en": "role system content base. Okay?",
+      "zh": "role 是 system，content 是 base。"
+    },
+    {
+      "start": 515,
+      "end": 516,
+      "en": "So we're just adding a message.",
+      "zh": "所以只是加入一則訊息，"
+    },
+    {
+      "start": 516,
+      "end": 517,
+      "en": "That's all we're doing.",
+      "zh": "做的就是這件事。"
+    },
+    {
+      "start": 517,
+      "end": 518,
+      "en": "A list of messages.",
+      "zh": "這是一個訊息串列，"
+    },
+    {
+      "start": 518,
+      "end": 522,
+      "en": "It just happens to have one entry in that list. Okay?",
+      "zh": "只是目前串列裡剛好只有一個項目。"
+    },
+    {
+      "start": 522,
+      "end": 527,
+      "en": "So that's our initial messages function, which we're not calling yet, but we'll get there before too long.",
+      "zh": "這就是 initial_messages 函式；還沒呼叫它，但很快就會用到。"
+    },
+    {
+      "start": 527,
+      "end": 529,
+      "en": "So that's a good start.",
+      "zh": "這是個不錯的開始。"
+    },
+    {
+      "start": 529,
+      "end": 534,
+      "en": "What we want to work on next is wrapping retrieval in a user message. Okay?",
+      "zh": "下一步要將檢索內容包裝進使用者訊息，"
+    },
+    {
+      "start": 534,
+      "end": 537,
+      "en": "And we'll be doing that here in query.py as well.",
+      "zh": "同樣會在 query.py 裡處理，"
+    },
+    {
+      "start": 537,
+      "end": 540,
+      "en": "So we'll get started on that in the next lecture.",
+      "zh": "下一堂就開始。"
+    }
+  ]
+}

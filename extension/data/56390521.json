@@ -1,0 +1,1285 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56390521",
+  "title": "Setting up search",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d299380ec977a27628c47c8ed9908e9665176f0df2704e07dc2ffb13cfd49084",
+  "cues": [
+    {
+      "start": 0,
+      "end": 7.28,
+      "en": "So, let's see where we are in our Weaviate vector store by going back to the contract over in base.py.",
+      "zh": "回到 base.py 的介面契約，看看 Weaviate 向量儲存目前完成到哪裡。"
+    },
+    {
+      "start": 7.28,
+      "end": 17.92,
+      "en": "So this vector store, this class vector store, anything that implements this abstract interface must have hasDocument when we have that one out of the way, upsertDocument, we have that",
+      "zh": "這個 VectorStore 類別定義了抽象介面，任何實作它的類別都必須有 has_document，這個已完成；還有 upsert_document，"
+    },
+    {
+      "start": 17.92,
+      "end": 21.819,
+      "en": "one out of the way, deleteDocument, we just did that one.",
+      "zh": "也已完成，以及剛剛實作的 delete_document。"
+    },
+    {
+      "start": 21.819,
+      "end": 25.12,
+      "en": "So now we need search and close, at least.",
+      "zh": "所以至少還需要 search 和 close。"
+    },
+    {
+      "start": 25.12,
+      "end": 27.7,
+      "en": "We may need some helper methods, but we'll get to that sooner or later.",
+      "zh": "可能也需要一些輔助方法，之後再處理。"
+    },
+    {
+      "start": 27.7,
+      "end": 33.38,
+      "en": "So let's take care of this one right now, search, and it's a little longer, but it's not complex.",
+      "zh": "先完成 search。它比較長一點，但並不複雜。"
+    },
+    {
+      "start": 33.38,
+      "end": 42.139,
+      "en": "So back over in Weaviate.py, I'll go to the bottom of this file and give myself a blank line and go back to the same level as deleteDocument to add a new method, okay?",
+      "zh": "回到 weaviate.py 的最下方，留一個空行，將縮排調回與 delete_document 相同的層級，新增方法。"
+    },
+    {
+      "start": 42.139,
+      "end": 46.459,
+      "en": "And the method is called search, it has to be called search, okay?",
+      "zh": "這個方法叫 search，而且名稱必須是 search。"
+    },
+    {
+      "start": 46.459,
+      "end": 52.939,
+      "en": "And it has to take as parameters, and I'll put this on the next line, self, okay?",
+      "zh": "參數分行列出，第一個是 self。"
+    },
+    {
+      "start": 52.939,
+      "end": 62.54,
+      "en": "Query text, which is a string, query embedding, and that's a list of floats, right, our embeddings,",
+      "zh": "接著是字串型別的 query_text，以及浮點數串列 query_embedding，也就是嵌入向量，"
+    },
+    {
+      "start": 62.54,
+      "end": 70.339,
+      "en": "the ones that are readable by the actual LLM, and how many things to return, k, and that's just an int, okay?",
+      "zh": "讓實際的 LLM 能讀取的表示；還有要回傳幾個項目的 k，型別是 int。"
+    },
+    {
+      "start": 70.339,
+      "end": 73.98,
+      "en": "And then down here on our closing parentheses, what does this return?",
+      "zh": "接著在右括號後面，指定它的回傳型別。"
+    },
+    {
+      "start": 73.98,
+      "end": 79.26,
+      "en": "Well, this returns a list of search hits, okay? And our colon.",
+      "zh": "這裡回傳 SearchHit 的串列，最後加上冒號。"
+    },
+    {
+      "start": 79.26,
+      "end": 82.019,
+      "en": "So now let's define this, and what's the first thing we need?",
+      "zh": "現在開始實作，首先需要什麼？"
+    },
+    {
+      "start": 82.019,
+      "end": 93.819,
+      "en": "By this point, you should know, we need our collection, call equals self.underscore connect, with opening and closing parentheses, then our collections, then we get, and we hand",
+      "zh": "到這裡你應該已經知道，需要取得集合。col 等於 self._connect()，再使用 collections.get，傳入"
+    },
+    {
+      "start": 93.819,
+      "end": 97.5,
+      "en": "that self.underscore collection name.",
+      "zh": "self._collection_name。"
+    },
+    {
+      "start": 97.5,
+      "end": 105.18,
+      "en": "That gives me my collection, with its connection, and if the collection doesn't exist, it creates it as usual.",
+      "zh": "這樣就取得集合與連線；同樣地，如果集合不存在就會建立。"
+    },
+    {
+      "start": 105.18,
+      "end": 113.58,
+      "en": "Now what we're going to do in here, this is search, and we're going to implement the hybrid retrieval, what we're going to do it using Weave 8's built-in hybrid query.",
+      "zh": "這是搜尋方法，我們要實作混合檢索，這次使用 Weaviate 內建的 hybrid 查詢。"
+    },
+    {
+      "start": 113.58,
+      "end": 118.18,
+      "en": "We don't need to build our own, like we did in Postgres, okay?",
+      "zh": "不用像 Postgres 那樣自行組合。"
+    },
+    {
+      "start": 118.18,
+      "end": 127.98,
+      "en": "So Weave 8 will run both things, our dense retrieval and our lexical retrieval, in one request, and it fuses those for us, okay?",
+      "zh": "Weaviate 會在一個請求裡同時執行稠密檢索和詞彙檢索，並替我們融合結果。"
+    },
+    {
+      "start": 127.98,
+      "end": 133.3,
+      "en": "So we don't have to worry about the heavy lifting here, Weave 8 does it for us.",
+      "zh": "所以不必自己處理繁重的工作，Weaviate 會完成。"
+    },
+    {
+      "start": 133.3,
+      "end": 137.419,
+      "en": "So let's set up a variable, I'll call it result, okay?",
+      "zh": "先建立一個變數，我叫它 result。"
+    },
+    {
+      "start": 137.419,
+      "end": 142.5,
+      "en": "And result equals a really simple thing, call.query, okay?",
+      "zh": "result 的值很簡單，從 col.query 開始。"
+    },
+    {
+      "start": 142.5,
+      "end": 152.5,
+      "en": "So for my collection, we're calling query.hybrid, that kind, and then I'll open and close parentheses and give myself some blank lines, so I can put things one line at a time.",
+      "zh": "也就是對集合呼叫 query.hybrid，加上左右括號並留幾行空白，讓參數各佔一行。"
+    },
+    {
+      "start": 152.5,
+      "end": 156.02,
+      "en": "Well that requires query, and of course that's query text, okay?",
+      "zh": "它需要 query，值當然是 query_text。"
+    },
+    {
+      "start": 156.02,
+      "end": 158.539,
+      "en": "We already have that as a call to this method.",
+      "zh": "這已經是呼叫此方法時傳入的參數。"
+    },
+    {
+      "start": 158.539,
+      "end": 165.41899999999998,
+      "en": "It also requires vector, and in this case, vector is our query embedding, right there, okay?",
+      "zh": "它也需要 vector，這裡使用 query_embedding。"
+    },
+    {
+      "start": 165.41899999999998,
+      "end": 171.3,
+      "en": "It also requires the limit, and limit is equal to, well, k in our case, okay?",
+      "zh": "還需要 limit，在我們的情況就是 k。"
+    },
+    {
+      "start": 171.3,
+      "end": 174.139,
+      "en": "That value we're passing is a call to this method.",
+      "zh": "這也是呼叫方法時傳入的值。"
+    },
+    {
+      "start": 174.139,
+      "end": 177.199,
+      "en": "And then we specify fusion underscore type, okay?",
+      "zh": "再指定 fusion_type。"
+    },
+    {
+      "start": 177.199,
+      "end": 187.72,
+      "en": "And this is specific to Weave 8, and we use one of the values from Weave 8, hybrid fusion right there, dot ranked, okay?",
+      "zh": "這是 Weaviate 專用的設定，使用它提供的 HybridFusion.RANKED。"
+    },
+    {
+      "start": 187.72,
+      "end": 189.72,
+      "en": "That tells it how to do this.",
+      "zh": "這個值會告訴它如何融合結果。"
+    },
+    {
+      "start": 189.72,
+      "end": 192.75900000000001,
+      "en": "And then we're going to return underscore metadata.",
+      "zh": "接著是 return_metadata。"
+    },
+    {
+      "start": 192.75900000000001,
+      "end": 194.86,
+      "en": "It also requires one of those.",
+      "zh": "這個參數也需要提供。"
+    },
+    {
+      "start": 194.86,
+      "end": 199.619,
+      "en": "And here we're going to use, once again, metadata query, something from our package.",
+      "zh": "這裡同樣使用套件提供的 MetadataQuery。"
+    },
+    {
+      "start": 199.619,
+      "end": 208.75900000000001,
+      "en": "Metadata query, score equals true, which has to have a capital T, and the second thing we'll hand it is explain score, true, okay?",
+      "zh": "MetadataQuery(score=True, explain_score=True)，注意 True 的 T 要大寫。"
+    },
+    {
+      "start": 208.75900000000001,
+      "end": 211.75900000000001,
+      "en": "So it requires that, and my trailing comma.",
+      "zh": "傳入這些設定，最後加上逗號。"
+    },
+    {
+      "start": 211.75900000000001,
+      "end": 213.38,
+      "en": "So that's going to be my result.",
+      "zh": "這樣就得到 result。"
+    },
+    {
+      "start": 213.38,
+      "end": 216.24,
+      "en": "Now what is score, and what is explain score?",
+      "zh": "那麼 score 與 explain_score 是什麼？"
+    },
+    {
+      "start": 216.24,
+      "end": 218,
+      "en": "Score is the fused score, okay?",
+      "zh": "score 是融合後的分數。"
+    },
+    {
+      "start": 218,
+      "end": 222.399,
+      "en": "It tells us how closely what it retrieved matches what we were looking for.",
+      "zh": "表示檢索到的內容與搜尋目標有多相符。"
+    },
+    {
+      "start": 222.399,
+      "end": 229.07999999999998,
+      "en": "And explain score is just a string describing how it was computed, which is handy for debugging, but we don't need to surface it, okay?",
+      "zh": "explain_score 則是說明分數如何計算的字串，對除錯很方便，但不需要顯示給使用者。"
+    },
+    {
+      "start": 229.07999999999998,
+      "end": 231.44,
+      "en": "But if you ever need it, it's there.",
+      "zh": "需要的時候，這個資訊就在那裡。"
+    },
+    {
+      "start": 231.44,
+      "end": 234.36,
+      "en": "Now let's go down beyond this, okay?",
+      "zh": "現在繼續往下。"
+    },
+    {
+      "start": 234.36,
+      "end": 236.6,
+      "en": "So we've got our result.",
+      "zh": "我們已經有 result 了。"
+    },
+    {
+      "start": 236.6,
+      "end": 242.399,
+      "en": "Let's set up hits, and we'll make that list of type search hit.",
+      "zh": "建立 hits，型別設為 SearchHit 的串列。"
+    },
+    {
+      "start": 242.399,
+      "end": 245.119,
+      "en": "It's going to be a list of search hits, okay?",
+      "zh": "也就是 list[SearchHit]。"
+    },
+    {
+      "start": 245.119,
+      "end": 248.75900000000001,
+      "en": "And we're going to initialize that to an empty list.",
+      "zh": "並初始化為空串列。"
+    },
+    {
+      "start": 248.75900000000001,
+      "end": 251.96,
+      "en": "We're just setting up a place to store our hits.",
+      "zh": "這只是先準備一個存放搜尋結果的地方。"
+    },
+    {
+      "start": 251.96,
+      "end": 255.399,
+      "en": "And then we look through the results we get back from result.",
+      "zh": "接著走訪 result 回傳的結果。"
+    },
+    {
+      "start": 255.399,
+      "end": 263.32,
+      "en": "So I'll say for obj, standing for object, OBJ, in result, and we call the property objects, okay?",
+      "zh": "使用 for obj in result.objects，其中 obj 是 object 的縮寫。"
+    },
+    {
+      "start": 263.32,
+      "end": 264.76,
+      "en": "So we have a for loop.",
+      "zh": "這樣就建立 for 迴圈。"
+    },
+    {
+      "start": 264.76,
+      "end": 267.859,
+      "en": "We're going to go through all the results one at a time.",
+      "zh": "逐一處理每個回傳結果。"
+    },
+    {
+      "start": 267.859,
+      "end": 271.88,
+      "en": "So let's store the object properties in a variable called props.",
+      "zh": "先把物件屬性存入名為 props 的變數。"
+    },
+    {
+      "start": 271.88,
+      "end": 275.839,
+      "en": "props equals obj.properties, okay?",
+      "zh": "也就是 props = obj.properties。"
+    },
+    {
+      "start": 275.839,
+      "end": 277.079,
+      "en": "Just for convenience.",
+      "zh": "這只是為了方便使用。"
+    },
+    {
+      "start": 277.079,
+      "end": 284.119,
+      "en": "Now some of the information saved in our vector store will be JSON, but it's actually going to be serialized JSON.",
+      "zh": "向量儲存中的部分資訊是 JSON，但實際儲存的是序列化後的 JSON。"
+    },
+    {
+      "start": 284.119,
+      "end": 289.65999999999997,
+      "en": "And that means we need some convenient way to deserialize that back into the format we need it to be.",
+      "zh": "因此，需要一種方便的方式，將它反序列化為所需格式。"
+    },
+    {
+      "start": 289.65999999999997,
+      "end": 296,
+      "en": "So what I'm going to do is create a helper function, one that's only going to be used in this particular file, okay?",
+      "zh": "我會建立一個只在此檔案中使用的輔助函式。"
+    },
+    {
+      "start": 296,
+      "end": 304.94,
+      "en": "So I'll come down here before we actually do this, give myself a couple of blank lines, and we'll go back over to the far left so we're no longer defining something in the class.",
+      "zh": "在繼續實作前，先到下面留幾個空行，縮排退到最左邊，讓它不屬於類別。"
+    },
+    {
+      "start": 304.94,
+      "end": 306.059,
+      "en": "And we'll define a helper.",
+      "zh": "然後定義輔助函式。"
+    },
+    {
+      "start": 306.059,
+      "end": 308.739,
+      "en": "I'm going to call it safe underscore JSON.",
+      "zh": "我把它命名為 _safe_json。"
+    },
+    {
+      "start": 308.739,
+      "end": 310.339,
+      "en": "And it's a very simple function, okay?",
+      "zh": "這是個非常簡單的函式。"
+    },
+    {
+      "start": 310.339,
+      "end": 320,
+      "en": "It's going to take one parameter, blob of type, I'll spell blob right, blob of type just object, okay?",
+      "zh": "只接受一個名為 blob 的參數，先把 blob 拼對，型別標註為 object。"
+    },
+    {
+      "start": 320,
+      "end": 328.899,
+      "en": "And it's going to return a dict of strings and any, str, not string, string and any with a capital A. That's what it's going to return.",
+      "zh": "回傳型別是鍵為 str、值為 Any 的字典。是 str，不是 string，而且 Any 的 A 要大寫。"
+    },
+    {
+      "start": 329.14,
+      "end": 332.42,
+      "en": "We're just going to deserialize what we get back from the vector store.",
+      "zh": "我們只是把向量儲存回傳的內容反序列化。"
+    },
+    {
+      "start": 332.42,
+      "end": 336.26,
+      "en": "So we're going to parse JSON string into a dict, okay?",
+      "zh": "也就是把 JSON 字串解析為字典。"
+    },
+    {
+      "start": 336.26,
+      "end": 340.459,
+      "en": "So if not blob, if there's nothing there, well, what are we going to do?",
+      "zh": "如果 not blob，也就是沒有內容時，該怎麼辦？"
+    },
+    {
+      "start": 340.459,
+      "end": 344.779,
+      "en": "We'll just return that, an empty value, okay?",
+      "zh": "直接回傳空字典。"
+    },
+    {
+      "start": 344.779,
+      "end": 348.5,
+      "en": "And then down here, after that, we'll have another check.",
+      "zh": "接著在下面再做一次檢查。"
+    },
+    {
+      "start": 348.5,
+      "end": 358.5,
+      "en": "If is instance, okay, which is available right from Python, if is instance blob dict, okay?",
+      "zh": "使用 Python 內建的 isinstance，檢查 blob 是否已經是 dict。"
+    },
+    {
+      "start": 358.5,
+      "end": 362.779,
+      "en": "And we'll just return the blob, okay? Easy enough.",
+      "zh": "如果是，直接回傳 blob，很簡單。"
+    },
+    {
+      "start": 362.779,
+      "end": 366.059,
+      "en": "And I see I misspelled dict. Let's fix that. Okay.",
+      "zh": "我看到 dict 拼錯了，把它修正。"
+    },
+    {
+      "start": 366.059,
+      "end": 368.859,
+      "en": "So two sanity checks.",
+      "zh": "這就是兩個基本檢查。"
+    },
+    {
+      "start": 368.859,
+      "end": 369.859,
+      "en": "And then we'll try.",
+      "zh": "接著使用 try。"
+    },
+    {
+      "start": 369.859,
+      "end": 372.82,
+      "en": "If we get this far, we actually have to try. So we'll try.",
+      "zh": "如果執行到這裡，就需要嘗試解析。"
+    },
+    {
+      "start": 372.82,
+      "end": 374.859,
+      "en": "And I'm going to declare a variable parsed.",
+      "zh": "建立一個名為 parsed 的變數。"
+    },
+    {
+      "start": 374.859,
+      "end": 384.299,
+      "en": "What I'm parsing it into equals just from JSON load S. We're going to deserialize a string into a Python object, okay?",
+      "zh": "它的值來自 json.loads，將字串反序列化為 Python 物件。"
+    },
+    {
+      "start": 384.299,
+      "end": 389.059,
+      "en": "So load S, and here we'll put str blob.",
+      "zh": "呼叫 loads，傳入 str(blob)。"
+    },
+    {
+      "start": 389.059,
+      "end": 392.619,
+      "en": "So we get the raw bytes we're getting back from our vector store.",
+      "zh": "先取得向量儲存回傳的原始資料，"
+    },
+    {
+      "start": 392.619,
+      "end": 394.14,
+      "en": "We convert it to a string.",
+      "zh": "轉成字串，"
+    },
+    {
+      "start": 394.14,
+      "end": 400.98,
+      "en": "We call the method load S on the JSON package, and we store the result in parsed, okay? Simple enough.",
+      "zh": "再呼叫 json 套件的 loads 方法，將結果存入 parsed，很簡單。"
+    },
+    {
+      "start": 400.98,
+      "end": 406.179,
+      "en": "Now, if that works, at this point, we can return parsed.",
+      "zh": "如果成功，這裡就可以回傳 parsed。"
+    },
+    {
+      "start": 406.179,
+      "end": 407.739,
+      "en": "But we may also put a check here.",
+      "zh": "不過也可以再加上一個檢查。"
+    },
+    {
+      "start": 407.739,
+      "end": 416.42,
+      "en": "If is instance, once again, parsed, dict, else, we'll just return an empty value.",
+      "zh": "再次使用 isinstance：如果 parsed 是 dict 就回傳它，否則回傳空字典。"
+    },
+    {
+      "start": 416.42,
+      "end": 420.54,
+      "en": "There's nothing to return, okay?",
+      "zh": "因為沒有可用的內容。"
+    },
+    {
+      "start": 420.54,
+      "end": 423.339,
+      "en": "And now, of course, our except.",
+      "zh": "接著當然需要 except。"
+    },
+    {
+      "start": 423.339,
+      "end": 428.42,
+      "en": "And my exception would be something like JSON.JSONDecodeError right there.",
+      "zh": "這裡捕捉的例外是 json.JSONDecodeError。"
+    },
+    {
+      "start": 428.42,
+      "end": 429.42,
+      "en": "That's what we're looking for.",
+      "zh": "也就是我們要處理的錯誤。"
+    },
+    {
+      "start": 429.42,
+      "end": 432.059,
+      "en": "And, again, we're just going to return that.",
+      "zh": "同樣回傳空字典。"
+    },
+    {
+      "start": 432.059,
+      "end": 433.779,
+      "en": "So we don't actually die.",
+      "zh": "這樣程式就不會直接終止。"
+    },
+    {
+      "start": 433.779,
+      "end": 435.739,
+      "en": "There's just nothing to return.",
+      "zh": "只是沒有內容可回傳。"
+    },
+    {
+      "start": 435.739,
+      "end": 437.66,
+      "en": "Now I have my safe JSON helper.",
+      "zh": "現在 _safe_json 輔助函式完成了。"
+    },
+    {
+      "start": 437.66,
+      "end": 444.1,
+      "en": "So back up here, in our new search method, I can actually try to get the metadata, okay?",
+      "zh": "回到上方新的 search 方法，就可以取得中繼資料。"
+    },
+    {
+      "start": 444.1,
+      "end": 445.859,
+      "en": "So I'm still inside this for loop.",
+      "zh": "我們仍然位於這個 for 迴圈內。"
+    },
+    {
+      "start": 445.859,
+      "end": 450.22,
+      "en": "Now I can say chunk underscore MD. Chunk metadata.",
+      "zh": "建立 chunk_md，也就是區塊中繼資料。"
+    },
+    {
+      "start": 450.22,
+      "end": 457.779,
+      "en": "That's going to be equal to calling safe JSON, which we just set up, and we hand that props.get.",
+      "zh": "它的值是呼叫剛剛建立的 _safe_json，並傳入 props.get 的結果。"
+    },
+    {
+      "start": 457.779,
+      "end": 464.459,
+      "en": "And we're going to get, well, whatever's in self.p underscore chunk metadata right there, okay?",
+      "zh": "要取得的鍵是 self.p_chunk_metadata。"
+    },
+    {
+      "start": 464.459,
+      "end": 465.94,
+      "en": "That helpful constant we set up.",
+      "zh": "就是先前設定的那個方便使用的常數。"
+    },
+    {
+      "start": 466.42,
+      "end": 469.05899999999997,
+      "en": "So that will give me something for chunk markdown.",
+      "zh": "這樣就能取得 chunk_md 的內容。"
+    },
+    {
+      "start": 469.05899999999997,
+      "end": 470.98,
+      "en": "It might be an empty value, but it's a valid value.",
+      "zh": "它可能是空字典，但仍然是有效的值。"
+    },
+    {
+      "start": 470.98,
+      "end": 473.05899999999997,
+      "en": "And we do the same thing for doc MD.",
+      "zh": "對 doc_md 也做相同處理。"
+    },
+    {
+      "start": 473.05899999999997,
+      "end": 476.1,
+      "en": "Again, a local variable I'm declaring right now.",
+      "zh": "這也是我現在宣告的區域變數。"
+    },
+    {
+      "start": 476.1,
+      "end": 478.7,
+      "en": "We call safe JSON.",
+      "zh": "呼叫 _safe_json，"
+    },
+    {
+      "start": 478.7,
+      "end": 481.899,
+      "en": "And we hand that props.get.",
+      "zh": "傳入 props.get 的結果。"
+    },
+    {
+      "start": 481.899,
+      "end": 489.14,
+      "en": "And we're going to get whatever's in self.p underscore document metadata, okay?",
+      "zh": "這次取得 self.p_document_metadata 對應的值。"
+    },
+    {
+      "start": 489.14,
+      "end": 495.26,
+      "en": "So now I have valid entries for both my chunk metadata and for my document metadata.",
+      "zh": "如此一來，區塊中繼資料與文件中繼資料都有有效的值。"
+    },
+    {
+      "start": 495.26,
+      "end": 498.42,
+      "en": "Now let's add some information to our metadata, okay?",
+      "zh": "接著在中繼資料中加上一些資訊。"
+    },
+    {
+      "start": 498.42,
+      "end": 500.739,
+      "en": "Just some diagnostic information.",
+      "zh": "只是一些診斷用的資訊。"
+    },
+    {
+      "start": 500.739,
+      "end": 508.619,
+      "en": "So chunk MD is now equal to, as a dictionary, chunk MD, okay?",
+      "zh": "把 chunk_md 轉成字典，再存回 chunk_md。"
+    },
+    {
+      "start": 508.619,
+      "end": 512.94,
+      "en": "We're just making sure it's cast to the right format, okay?",
+      "zh": "只是確認它是正確的格式。"
+    },
+    {
+      "start": 512.94,
+      "end": 516.02,
+      "en": "And then here on the next line, let's add an entry.",
+      "zh": "下一行新增一個項目。"
+    },
+    {
+      "start": 516.02,
+      "end": 524.34,
+      "en": "Chunk underscore MD at the index, and we'll just add one, hybrid score, okay?",
+      "zh": "以 hybrid_score 為鍵，將它加入 chunk_md。"
+    },
+    {
+      "start": 524.419,
+      "end": 532.219,
+      "en": "That's going to be equal to, with opening and closing parentheses, and I'll put it on the next line so it fits nicely.",
+      "zh": "它的值放在左右括號內，我另起一行，讓排版比較整齊。"
+    },
+    {
+      "start": 532.219,
+      "end": 533.219,
+      "en": "We need a float.",
+      "zh": "這裡需要浮點數。"
+    },
+    {
+      "start": 533.219,
+      "end": 540.82,
+      "en": "We're going to cast to a float whatever's in obj.metadata.score, okay?",
+      "zh": "將 obj.metadata.score 轉成 float。"
+    },
+    {
+      "start": 540.82,
+      "end": 551.9,
+      "en": "And then we'll say if obj.metadata, which is hard to say and hard to type, apparently, dot score is not none.",
+      "zh": "不過要先判斷 obj.metadata.score 是否不是 None。這段似乎既難念又難打。"
+    },
+    {
+      "start": 552.9,
+      "end": 556.34,
+      "en": "Well, it's none, okay?",
+      "zh": "如果是 None，就保留 None。"
+    },
+    {
+      "start": 556.34,
+      "end": 563.979,
+      "en": "And now, now that we have everything set up, we can actually add to that list named hits, the one we defined on line 141.",
+      "zh": "現在所有資料都準備好了，可以加入第 141 行定義的 hits 串列。"
+    },
+    {
+      "start": 563.979,
+      "end": 567.219,
+      "en": "And we do that by saying hits dot append, okay?",
+      "zh": "呼叫 hits.append。"
+    },
+    {
+      "start": 567.219,
+      "end": 575.179,
+      "en": "And we're going to append, using opening and closing parentheses, a search hit, because that's what it has to hold, okay?",
+      "zh": "在括號中加入 SearchHit，因為串列必須存放這種型別。"
+    },
+    {
+      "start": 575.179,
+      "end": 579.059,
+      "en": "And opening and closing parentheses, and then we just populate its fields.",
+      "zh": "建立 SearchHit 的括號內，再逐一填入欄位。"
+    },
+    {
+      "start": 579.059,
+      "end": 584.419,
+      "en": "Source path, that's going to be equal to, and we'll cast it to a string to be safe,",
+      "zh": "首先是 source_path，保險起見轉成字串，"
+    },
+    {
+      "start": 584.419,
+      "end": 594.82,
+      "en": "whatever's in props, from object properties, at index self dot p underscore source path, okay?",
+      "zh": "從物件屬性 props 取得 self.p_source_path 這個鍵的內容。"
+    },
+    {
+      "start": 594.82,
+      "end": 600.979,
+      "en": "And then we get outside of our brackets and parentheses, and we add a comma.",
+      "zh": "然後離開中括號與括號，加上一個逗號。"
+    },
+    {
+      "start": 600.979,
+      "end": 602.919,
+      "en": "And then we want the chunk index, okay?",
+      "zh": "接著需要 chunk_index。"
+    },
+    {
+      "start": 602.919,
+      "end": 611.119,
+      "en": "And chunk index will be equal to, casting it to an int, from props, at index, self dot",
+      "zh": "chunk_index 的值要轉成 int，來源是 props 裡的"
+    },
+    {
+      "start": 611.119,
+      "end": 616.119,
+      "en": "p underscore chunk index, right there, okay?",
+      "zh": "self.p_chunk_index。"
+    },
+    {
+      "start": 616.119,
+      "end": 618.52,
+      "en": "And our trailing comma.",
+      "zh": "最後加上逗號。"
+    },
+    {
+      "start": 618.52,
+      "end": 620.799,
+      "en": "And let's give ourselves some room, okay?",
+      "zh": "再留點空間。"
+    },
+    {
+      "start": 620.799,
+      "end": 622.4,
+      "en": "So we have the source path populated.",
+      "zh": "source_path 已經填好了。"
+    },
+    {
+      "start": 622.4,
+      "end": 624.28,
+      "en": "We have the chunk index populated.",
+      "zh": "chunk_index 也填好了。"
+    },
+    {
+      "start": 624.28,
+      "end": 626.119,
+      "en": "Next is the actual text.",
+      "zh": "接下來是實際文字。"
+    },
+    {
+      "start": 626.119,
+      "end": 637.119,
+      "en": "And text is going to be equal to, as a string, whatever's in props, at index, self dot p",
+      "zh": "text 的值要轉成字串，從 props 取得"
+    },
+    {
+      "start": 637.119,
+      "end": 642.919,
+      "en": "underscore content, okay? Trailing comma.",
+      "zh": "self.p_content 對應的內容，最後加上逗號。"
+    },
+    {
+      "start": 642.919,
+      "end": 645.64,
+      "en": "Next, the score.",
+      "zh": "下一個是 score。"
+    },
+    {
+      "start": 645.64,
+      "end": 649.28,
+      "en": "Well that's a float, so we'll cast it to a float, okay?",
+      "zh": "這是浮點數，所以轉成 float。"
+    },
+    {
+      "start": 649.28,
+      "end": 653.239,
+      "en": "And that's from aug dot metadata dot score.",
+      "zh": "來源是 obj.metadata.score。"
+    },
+    {
+      "start": 653.52,
+      "end": 657.2,
+      "en": "Just to be safe, we'll say or 0.0, okay?",
+      "zh": "保險起見，加上 or 0.0。"
+    },
+    {
+      "start": 657.2,
+      "end": 659.799,
+      "en": "Why take chances?",
+      "zh": "何必冒險呢？"
+    },
+    {
+      "start": 659.799,
+      "end": 662.719,
+      "en": "And after score comes metadata.",
+      "zh": "score 後面是 metadata。"
+    },
+    {
+      "start": 662.719,
+      "end": 666.88,
+      "en": "And this is the chunk metadata, so it's chunk underscore md.",
+      "zh": "這裡指的是區塊中繼資料，所以填入 chunk_md。"
+    },
+    {
+      "start": 666.88,
+      "end": 669.32,
+      "en": "And then we have document metadata, right there.",
+      "zh": "接著是 document_metadata。"
+    },
+    {
+      "start": 669.32,
+      "end": 673.559,
+      "en": "And of course, that's going to be doc underscore md.",
+      "zh": "當然就使用 doc_md。"
+    },
+    {
+      "start": 673.559,
+      "end": 676,
+      "en": "And I think the last one is just ingested at.",
+      "zh": "我想最後一個欄位是 ingested_at。"
+    },
+    {
+      "start": 676,
+      "end": 678.719,
+      "en": "And this one's a little trickier than you might think.",
+      "zh": "這比你想像的稍微麻煩一點。"
+    },
+    {
+      "start": 678.719,
+      "end": 682.799,
+      "en": "Ingested at, in our world, has to be a date time, okay?",
+      "zh": "在我們的程式裡，ingested_at 必須是 datetime。"
+    },
+    {
+      "start": 682.799,
+      "end": 691.799,
+      "en": "So I'm going to leave that alone here, and I'm going to come back down here, at the same level as def safe json, and I'm going to write a second helper function.",
+      "zh": "所以先留著，回到下面與 def _safe_json 同一層的位置，再寫第二個輔助函式。"
+    },
+    {
+      "start": 691.799,
+      "end": 695.64,
+      "en": "And I'll call this one underscore as underscore date time.",
+      "zh": "這次命名為 _as_datetime。"
+    },
+    {
+      "start": 695.64,
+      "end": 697.32,
+      "en": "That's the format we need it to be in.",
+      "zh": "因為這就是我們需要的格式。"
+    },
+    {
+      "start": 697.32,
+      "end": 701.179,
+      "en": "And I might use this elsewhere, so it makes sense to extract it to a helper.",
+      "zh": "而且其他地方也可能用到，所以抽成輔助函式很合理。"
+    },
+    {
+      "start": 701.179,
+      "end": 703.28,
+      "en": "That's going to take some value, which I'll call v.",
+      "zh": "它接受一個值，我命名為 v。"
+    },
+    {
+      "start": 703.28,
+      "end": 708.32,
+      "en": "And I'll type in that to just object, okay?",
+      "zh": "型別標註為 object。"
+    },
+    {
+      "start": 708.32,
+      "end": 715.96,
+      "en": "Now, we want that to return a date time or none, okay, in case we can't get it into date time.",
+      "zh": "回傳型別是 datetime 或 None，因為可能無法轉成 datetime。"
+    },
+    {
+      "start": 715.96,
+      "end": 717.119,
+      "en": "And it's not difficult.",
+      "zh": "這個函式並不難。"
+    },
+    {
+      "start": 717.119,
+      "end": 719.919,
+      "en": "First of all, let's have our sanity checks.",
+      "zh": "首先做基本檢查。"
+    },
+    {
+      "start": 719.919,
+      "end": 722.559,
+      "en": "If v is none, well, that's easy.",
+      "zh": "如果 v 是 None，那就很簡單。"
+    },
+    {
+      "start": 722.559,
+      "end": 724.96,
+      "en": "We'll just return none, okay?",
+      "zh": "直接回傳 None。"
+    },
+    {
+      "start": 724.96,
+      "end": 725.96,
+      "en": "There's nothing to deal with.",
+      "zh": "因為沒有內容需要處理。"
+    },
+    {
+      "start": 725.96,
+      "end": 727.64,
+      "en": "We'll just return none.",
+      "zh": "所以回傳 None。"
+    },
+    {
+      "start": 727.64,
+      "end": 731.82,
+      "en": "And then we'll say if, let's make sure it's the correct type, okay?",
+      "zh": "再確認它是否已經是正確的型別。"
+    },
+    {
+      "start": 731.82,
+      "end": 740.979,
+      "en": "If is instance, right there, comparing types, v and date time, okay, well, if it's in that",
+      "zh": "使用 isinstance(v, datetime) 比較型別，如果已經是"
+    },
+    {
+      "start": 740.979,
+      "end": 745.419,
+      "en": "format, we'll just return v, a sanity check.",
+      "zh": "datetime，就直接回傳 v，這也是基本檢查。"
+    },
+    {
+      "start": 745.419,
+      "end": 751.619,
+      "en": "And now, Weaviate might return an RFC 3339.",
+      "zh": "Weaviate 也可能回傳 RFC 3339 格式的值。"
+    },
+    {
+      "start": 751.619,
+      "end": 756.419,
+      "en": "That's the RFC, the actual number for it, the time in a particular format.",
+      "zh": "這個時間格式對應的 RFC 編號就是 3339。"
+    },
+    {
+      "start": 756.419,
+      "end": 758.46,
+      "en": "And we need to convert it if it does.",
+      "zh": "如果收到這種格式，就需要轉換。"
+    },
+    {
+      "start": 758.46,
+      "end": 762.179,
+      "en": "And the easiest way to check that is to say, did it give me a string?",
+      "zh": "最簡單的判斷方式，就是檢查它是否是字串。"
+    },
+    {
+      "start": 762.179,
+      "end": 769.659,
+      "en": "If is instance, instance, and we're going to compare v to string. That's true.",
+      "zh": "使用 isinstance，比較 v 是否屬於 str；如果為真，"
+    },
+    {
+      "start": 769.659,
+      "end": 770.659,
+      "en": "Then it came back as a string.",
+      "zh": "就表示回傳的是字串。"
+    },
+    {
+      "start": 770.659,
+      "end": 773.82,
+      "en": "And if it came back as a string, it's in a particular format.",
+      "zh": "而且這個字串採用特定的時間格式。"
+    },
+    {
+      "start": 773.82,
+      "end": 777.859,
+      "en": "So what we do here is a try statement, okay, try.",
+      "zh": "因此，這裡使用 try 陳述式。"
+    },
+    {
+      "start": 777.859,
+      "end": 784.659,
+      "en": "And we'll say return date time dot from ISO format, okay?",
+      "zh": "然後回傳 datetime.fromisoformat 的結果。"
+    },
+    {
+      "start": 784.659,
+      "end": 788.58,
+      "en": "That's what RFC 3339 is.",
+      "zh": "這就是 RFC 3339 所使用的格式。"
+    },
+    {
+      "start": 788.58,
+      "end": 790.979,
+      "en": "And we'll say v dot replace.",
+      "zh": "傳入 v.replace 的結果。"
+    },
+    {
+      "start": 790.979,
+      "end": 800.7,
+      "en": "We're just going to get rid of here, zed with plus 00 colon 00, okay?",
+      "zh": "把 Z 換成 +00:00。"
+    },
+    {
+      "start": 800.7,
+      "end": 802.38,
+      "en": "So we're going to try that.",
+      "zh": "我們會嘗試這樣轉換。"
+    },
+    {
+      "start": 802.38,
+      "end": 804.979,
+      "en": "And if that works, life is good.",
+      "zh": "如果成功，就沒問題。"
+    },
+    {
+      "start": 804.979,
+      "end": 806.94,
+      "en": "And if not, we'll just say accept.",
+      "zh": "否則就使用 except。"
+    },
+    {
+      "start": 806.94,
+      "end": 810.46,
+      "en": "We don't want to die, but we want to spell accept right.",
+      "zh": "我們不希望程式終止，但也要先把 except 拼對。"
+    },
+    {
+      "start": 810.46,
+      "end": 811.46,
+      "en": "Say value error.",
+      "zh": "捕捉 ValueError。"
+    },
+    {
+      "start": 811.46,
+      "end": 814.34,
+      "en": "That's what we get if that didn't work, okay?",
+      "zh": "如果轉換失敗，就會得到這種例外。"
+    },
+    {
+      "start": 814.34,
+      "end": 817.299,
+      "en": "We'll just return none.",
+      "zh": "這時直接回傳 None。"
+    },
+    {
+      "start": 817.299,
+      "end": 822.82,
+      "en": "And then just to be safe down here, I'll say return none.",
+      "zh": "最後在這裡也加上 return None，以防萬一。"
+    },
+    {
+      "start": 822.82,
+      "end": 826.46,
+      "en": "So if we didn't hit any of these cases here, then we'll just return none.",
+      "zh": "也就是說，如果前面的情況都不符合，就回傳 None。"
+    },
+    {
+      "start": 826.46,
+      "end": 829.619,
+      "en": "And then for formatting, give myself another blank line.",
+      "zh": "排版上再加一個空行。"
+    },
+    {
+      "start": 829.619,
+      "end": 835.58,
+      "en": "Now I can come back up here to ingest it at, and now I can just call underscore as date",
+      "zh": "現在可以回到上方的 ingested_at，呼叫 _as_datetime，"
+    },
+    {
+      "start": 835.58,
+      "end": 843.5,
+      "en": "time and hand that whatever is in props, the object properties, dot get, and look for self",
+      "zh": "並傳入物件屬性 props.get 所取得的"
+    },
+    {
+      "start": 843.659,
+      "end": 849.7,
+      "en": "dot p underscore ingest it at, okay?",
+      "zh": "self.p_ingested_at 對應內容。"
+    },
+    {
+      "start": 849.7,
+      "end": 852.58,
+      "en": "And give that as trailing comma.",
+      "zh": "最後加上逗號。"
+    },
+    {
+      "start": 852.58,
+      "end": 861.059,
+      "en": "And then down here at the same level as our for loop, we return hints, okay?",
+      "zh": "然後在下面，與 for 迴圈相同的層級，回傳 hits。"
+    },
+    {
+      "start": 861.059,
+      "end": 863.179,
+      "en": "Now what are you complaining about?",
+      "zh": "這裡為什麼出現錯誤提示？"
+    },
+    {
+      "start": 863.179,
+      "end": 867.02,
+      "en": "Oh, closing parentheses is missing.",
+      "zh": "原來少了一個右括號。"
+    },
+    {
+      "start": 867.02,
+      "end": 869.5,
+      "en": "That's better, okay.",
+      "zh": "這樣就對了。"
+    },
+    {
+      "start": 869.5,
+      "end": 872.539,
+      "en": "So that should be our entire search function, okay?",
+      "zh": "這應該就是完整的 search 函式。"
+    },
+    {
+      "start": 872.58,
+      "end": 877.14,
+      "en": "Now I think there's only one thing left right now, and it's dead simple.",
+      "zh": "現在我想只剩下一個方法，而且非常簡單。"
+    },
+    {
+      "start": 877.14,
+      "end": 880.099,
+      "en": "If we go back over to base.py, okay?",
+      "zh": "回到 base.py 看一下。"
+    },
+    {
+      "start": 880.099,
+      "end": 881.539,
+      "en": "We have our has document.",
+      "zh": "已經有 has_document。"
+    },
+    {
+      "start": 881.539,
+      "end": 884.58,
+      "en": "We have our upsert document and delete document.",
+      "zh": "也有 upsert_document 和 delete_document。"
+    },
+    {
+      "start": 884.58,
+      "end": 885.58,
+      "en": "And now we have search.",
+      "zh": "現在 search 也完成了。"
+    },
+    {
+      "start": 885.58,
+      "end": 887.78,
+      "en": "And the last one is close, and that's so short.",
+      "zh": "最後一個是 close，這個很短。"
+    },
+    {
+      "start": 887.78,
+      "end": 890.32,
+      "en": "Let's just put it in here right now.",
+      "zh": "我們現在就把它寫進來。"
+    },
+    {
+      "start": 890.32,
+      "end": 896.78,
+      "en": "So one blank line, tab over once, so this becomes a method, dev close, and that's required, okay?",
+      "zh": "留一個空行，縮排一層，讓它成為方法，定義所需的 def close。"
+    },
+    {
+      "start": 896.78,
+      "end": 899.26,
+      "en": "And that requires self, and it returns nothing, none.",
+      "zh": "它需要 self，回傳型別是 None。"
+    },
+    {
+      "start": 899.26,
+      "end": 900.619,
+      "en": "And it's very short.",
+      "zh": "實作非常短。"
+    },
+    {
+      "start": 900.619,
+      "end": 907.979,
+      "en": "All we have to say here is if self.underscore client is not none, well, in that case, we'll",
+      "zh": "只要檢查 self._client 是否不是 None；如果確實有用戶端，"
+    },
+    {
+      "start": 907.979,
+      "end": 917.38,
+      "en": "just say try self.underscore client.close, built right into Weaviate, okay?",
+      "zh": "就嘗試呼叫 self._client.close，這是 Weaviate 內建的方法。"
+    },
+    {
+      "start": 917.38,
+      "end": 923.5,
+      "en": "And we'll have a finally, and we'll just say self.underscore client.close.",
+      "zh": "接著加上 finally，這裡再處理 self._client.close。"
+    },
+    {
+      "start": 923.5,
+      "end": 926.7,
+      "en": "One way or another, we're going to close that, okay?",
+      "zh": "無論如何都要把它關閉。"
+    },
+    {
+      "start": 926.7,
+      "end": 937.2,
+      "en": "And at this point, barring any typographical errors, and there's almost certainly at least one in there, we should have our Weaviate vector store completely satisfying the abstract",
+      "zh": "到這裡，只要沒有打字錯誤，雖然幾乎肯定至少還有一個，我們的 Weaviate 向量儲存應該已經完全符合"
+    },
+    {
+      "start": 937.2,
+      "end": 940.38,
+      "en": "interface defined over in base.py.",
+      "zh": "base.py 定義的抽象介面。"
+    },
+    {
+      "start": 940.38,
+      "end": 944.14,
+      "en": "So now, of course, we need to be able to use it, and that's not terribly difficult.",
+      "zh": "接下來當然需要讓程式實際使用它，這並不困難。"
+    },
+    {
+      "start": 944.14,
+      "end": 947.26,
+      "en": "So we'll give that a try in the next lecture.",
+      "zh": "我們在下一堂課試試看。"
+    }
+  ]
+}

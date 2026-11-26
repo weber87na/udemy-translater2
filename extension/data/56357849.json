@@ -1,0 +1,1099 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56357849",
+  "title": "Adding a spinner",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b164bc034aacef9ac786e07d01a2c615aa22eda27da68e11d7d500a88c0e1cd7",
+  "cues": [
+    {
+      "start": 0,
+      "end": 7,
+      "en": "So let's set up a spinner to give some visual feedback while the LLM is doing its thing.",
+      "zh": "現在來建立旋轉指示器，讓 LLM 工作時提供視覺回饋。"
+    },
+    {
+      "start": 7,
+      "end": 11,
+      "en": "And we're going to make those changes over here in CLI.py.",
+      "zh": "變更會放在 cli.py。"
+    },
+    {
+      "start": 11,
+      "end": 18,
+      "en": "And of course, there's all kinds of packages out there we could just import to put a spinner in, but it's simple enough to build one by hand. So let's do that.",
+      "zh": "當然有各種套件可以直接匯入，但自己做也很簡單，所以動手寫。"
+    },
+    {
+      "start": 18,
+      "end": 26,
+      "en": "Now, the first thing I'm going to do at the very top of this file, we no longer need this variable system prompt. We're not using it anymore, so we may as well delete that.",
+      "zh": "首先，檔案最上方的 SYSTEM_PROMPT 已不再使用，可以刪掉。"
+    },
+    {
+      "start": 26,
+      "end": 34,
+      "en": "We have a hard-coded system prompt elsewhere, and we have the ability to import one from an external file if we wish to do so.",
+      "zh": "其他地方已有寫死的預設提示詞，也能視需要從外部檔案匯入。"
+    },
+    {
+      "start": 34,
+      "end": 39,
+      "en": "Now, we're going to need a few new imports, nothing too onerous.",
+      "zh": "接著需要幾個新匯入，不會太麻煩。"
+    },
+    {
+      "start": 39,
+      "end": 45,
+      "en": "So right at the very top here, before I do logging, let's just import IterTools.",
+      "zh": "在最上方、logging 之前，匯入 itertools，"
+    },
+    {
+      "start": 45,
+      "end": 50,
+      "en": "Import IterTools. Right there.",
+      "zh": "也就是 import itertools，就在這裡。"
+    },
+    {
+      "start": 50,
+      "end": 57,
+      "en": "And we're going to use that to animate our spinner, which will just be some different ASCII characters.",
+      "zh": "我們用它把幾個 ASCII 字元變成旋轉動畫。"
+    },
+    {
+      "start": 57,
+      "end": 61,
+      "en": "And we still need logging, and we're going to also add sys.",
+      "zh": "logging 仍需要，另外也加入 sys，"
+    },
+    {
+      "start": 61,
+      "end": 67,
+      "en": "So I'll put sys right here. Import sys.",
+      "zh": "所以這裡寫 import sys。"
+    },
+    {
+      "start": 67,
+      "end": 70,
+      "en": "Built-in functions, type, and exceptions, and other objects.",
+      "zh": "它提供內建函式、型別、例外與其他物件的存取。"
+    },
+    {
+      "start": 70,
+      "end": 74,
+      "en": "Again, we need this for our spinner. And we're also going to need threading.",
+      "zh": "同樣是為了旋轉指示器，另外還需要 threading，"
+    },
+    {
+      "start": 74,
+      "end": 78,
+      "en": "So we'll import threading.",
+      "zh": "所以匯入 threading，"
+    },
+    {
+      "start": 78,
+      "end": 81,
+      "en": "And we'll want time. Import time.",
+      "zh": "以及 time，寫 import time。"
+    },
+    {
+      "start": 81,
+      "end": 85,
+      "en": "We want to have a little delay between the animation of our spinner.",
+      "zh": "動畫各個畫格之間需要短暫延遲，"
+    },
+    {
+      "start": 85,
+      "end": 87,
+      "en": "And that's the only reason we're importing that.",
+      "zh": "匯入 time 只有這個原因。"
+    },
+    {
+      "start": 87,
+      "end": 89,
+      "en": "So simple enough.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 89,
+      "end": 94,
+      "en": "Now, let's come down here, after this. Right here.",
+      "zh": "接著往下到這裡，"
+    },
+    {
+      "start": 94,
+      "end": 98,
+      "en": "Before command ingest, we'll just set up a class for our spinner.",
+      "zh": "在 ingest 命令前面，為旋轉指示器建立類別。"
+    },
+    {
+      "start": 98,
+      "end": 103,
+      "en": "So, class, and I'll call it spinner, underscore spinner, because we only use it internally.",
+      "zh": "class，命名為 _Spinner，因為只在內部使用。"
+    },
+    {
+      "start": 103,
+      "end": 105,
+      "en": "And it's pretty simple. Okay?",
+      "zh": "內容相當簡單，"
+    },
+    {
+      "start": 105,
+      "end": 110,
+      "en": "This is a minimal terminal spinner that animates in a background thread. Okay?",
+      "zh": "這是最小型的終端機旋轉動畫，在背景執行緒裡更新。"
+    },
+    {
+      "start": 110,
+      "end": 112,
+      "en": "So, we'll set up some frames.",
+      "zh": "因此先設定幾個畫格，"
+    },
+    {
+      "start": 112,
+      "end": 115,
+      "en": "And, conventionally, this is the sort of thing you can use.",
+      "zh": "一般會使用這類字元，"
+    },
+    {
+      "start": 115,
+      "end": 117,
+      "en": "So I'll just say frames in all cab.",
+      "zh": "所以宣告全大寫的 FRAMES，"
+    },
+    {
+      "start": 117,
+      "end": 119,
+      "en": "The variable name I'm choosing right now.",
+      "zh": "這是我現在取的變數名，"
+    },
+    {
+      "start": 119,
+      "end": 123,
+      "en": "We'll make that equal to a pipe, the starting position.",
+      "zh": "第一個值是直線符號，作為起始位置，"
+    },
+    {
+      "start": 123,
+      "end": 127,
+      "en": "Then a slash. Then a dash.",
+      "zh": "接著是斜線、破折號，"
+    },
+    {
+      "start": 127,
+      "end": 130,
+      "en": "Then a backslash, which, of course, I have to escape.",
+      "zh": "再來是反斜線，當然需要跳脫，"
+    },
+    {
+      "start": 130,
+      "end": 132,
+      "en": "Okay? So I'll have to type that twice.",
+      "zh": "所以必須連打兩次。"
+    },
+    {
+      "start": 132,
+      "end": 134,
+      "en": "And those are the frames for our spinner.",
+      "zh": "這些就是旋轉指示器的畫格，"
+    },
+    {
+      "start": 134,
+      "end": 136,
+      "en": "Very straightforward. Okay?",
+      "zh": "非常直接。"
+    },
+    {
+      "start": 136,
+      "end": 137,
+      "en": "We're just going to cycle through those.",
+      "zh": "我們只要循環切換它們，"
+    },
+    {
+      "start": 137,
+      "end": 139,
+      "en": "And that will look like a little spinner.",
+      "zh": "看起來就會像在旋轉。"
+    },
+    {
+      "start": 139,
+      "end": 142,
+      "en": "Then we'll define its init function.",
+      "zh": "接著定義初始化方法，"
+    },
+    {
+      "start": 142,
+      "end": 144,
+      "en": "And that will take self.",
+      "zh": "接收 self，"
+    },
+    {
+      "start": 144,
+      "end": 146,
+      "en": "It will also take a message.",
+      "zh": "另外也接收 message，"
+    },
+    {
+      "start": 146,
+      "end": 149,
+      "en": "Okay? And we'll make that default to, say, thinking.",
+      "zh": "預設值設為例如 Thinking，"
+    },
+    {
+      "start": 149,
+      "end": 152,
+      "en": "We'll put that beside the spinner. Okay?",
+      "zh": "顯示在旋轉符號旁邊。"
+    },
+    {
+      "start": 152,
+      "end": 154,
+      "en": "And the interval.",
+      "zh": "還有 interval，"
+    },
+    {
+      "start": 154,
+      "end": 156,
+      "en": "How much of a delay do we have between these things?",
+      "zh": "表示畫格間要延遲多久，"
+    },
+    {
+      "start": 156,
+      "end": 157,
+      "en": "We'll use a float.",
+      "zh": "使用浮點數，"
+    },
+    {
+      "start": 157,
+      "end": 159,
+      "en": "And we'll type in that to a float.",
+      "zh": "因此型別標註為 float，"
+    },
+    {
+      "start": 159,
+      "end": 162,
+      "en": "And we'll set it to, by default, 0.1.",
+      "zh": "預設值設為 0.1。"
+    },
+    {
+      "start": 162,
+      "end": 166,
+      "en": "And this doesn't return anything. So none. Okay?",
+      "zh": "沒有回傳值，所以標註 None。"
+    },
+    {
+      "start": 166,
+      "end": 173,
+      "en": "And all we have to do is say self.underscore message is equal to message.",
+      "zh": "裡面只要設定 self._message = message，"
+    },
+    {
+      "start": 173,
+      "end": 176,
+      "en": "Self.underscore interval.",
+      "zh": "self._interval，"
+    },
+    {
+      "start": 176,
+      "end": 180,
+      "en": "And that will be equal to interval.",
+      "zh": "等於 interval。"
+    },
+    {
+      "start": 180,
+      "end": 183,
+      "en": "Self.underscore stop.",
+      "zh": "self._stop，"
+    },
+    {
+      "start": 183,
+      "end": 187,
+      "en": "That will be equal to a threading. Try that again.",
+      "zh": "值設為 threading，重新輸入一下，"
+    },
+    {
+      "start": 187,
+      "end": 190,
+      "en": "Threading.event.",
+      "zh": "是 threading.Event，"
+    },
+    {
+      "start": 190,
+      "end": 192,
+      "en": "With opening and closing parentheses. Okay?",
+      "zh": "記得左右括號。"
+    },
+    {
+      "start": 192,
+      "end": 195,
+      "en": "And self.underscore thread.",
+      "zh": "還有 self._thread，"
+    },
+    {
+      "start": 195,
+      "end": 199,
+      "en": "We'll make that equal to threading.thread.",
+      "zh": "設為 threading.Thread，"
+    },
+    {
+      "start": 199,
+      "end": 205,
+      "en": "With target equal to self.spin.",
+      "zh": "target 指定為 self._spin，"
+    },
+    {
+      "start": 205,
+      "end": 207,
+      "en": "Which we'll set up in a minute.",
+      "zh": "這個方法等一下會建立，"
+    },
+    {
+      "start": 207,
+      "end": 211,
+      "en": "And D-A-E-M-O-N equals to true. Okay?",
+      "zh": "並設定 daemon=True。"
+    },
+    {
+      "start": 211,
+      "end": 213,
+      "en": "So, that's the init function.",
+      "zh": "初始化方法就完成了，"
+    },
+    {
+      "start": 213,
+      "end": 216,
+      "en": "Nothing too complex there.",
+      "zh": "沒有太複雜的地方。"
+    },
+    {
+      "start": 216,
+      "end": 218,
+      "en": "Now, let's set up the spinner.",
+      "zh": "現在設定旋轉動畫的方法，"
+    },
+    {
+      "start": 218,
+      "end": 221,
+      "en": "Def.underscore spinner. Okay?",
+      "zh": "def _spin，"
+    },
+    {
+      "start": 221,
+      "end": 223,
+      "en": "And this is going to take self.",
+      "zh": "接收 self，"
+    },
+    {
+      "start": 223,
+      "end": 226,
+      "en": "And it's going to return none.",
+      "zh": "回傳 None。"
+    },
+    {
+      "start": 226,
+      "end": 233,
+      "en": "So, we'll just go for frame in iter tools. Right there.",
+      "zh": "寫 for frame in itertools，"
+    },
+    {
+      "start": 233,
+      "end": 237,
+      "en": "This is why we imported that. Dot cycle.",
+      "zh": "這就是匯入它的原因，使用 .cycle，"
+    },
+    {
+      "start": 237,
+      "end": 245,
+      "en": "Dot cycle through whatever in self.frames. Okay? Add our colon.",
+      "zh": "循環遍歷 self.FRAMES 裡的內容，再加冒號。"
+    },
+    {
+      "start": 245,
+      "end": 247,
+      "en": "And then we implement the for loop.",
+      "zh": "接著實作 for 迴圈，"
+    },
+    {
+      "start": 247,
+      "end": 256,
+      "en": "If self.underscore stop.isSet. Right there. Okay? Then we break.",
+      "zh": "如果 self._stop.is_set()，就 break，"
+    },
+    {
+      "start": 256,
+      "end": 258,
+      "en": "We get out of this. Okay?",
+      "zh": "跳出迴圈。"
+    },
+    {
+      "start": 258,
+      "end": 265,
+      "en": "Otherwise, at the same level as the if, sys.stdout.write.",
+      "zh": "否則在與 if 相同的縮排層級，呼叫 sys.stdout.write，"
+    },
+    {
+      "start": 265,
+      "end": 266,
+      "en": "And we'll write a format string.",
+      "zh": "輸出格式化字串，"
+    },
+    {
+      "start": 266,
+      "end": 268,
+      "en": "We'll go with F and then double quotes.",
+      "zh": "使用 f 加雙引號，"
+    },
+    {
+      "start": 268,
+      "end": 270,
+      "en": "And we'll go with a slash R.",
+      "zh": "先寫反斜線 r，"
+    },
+    {
+      "start": 270,
+      "end": 274,
+      "en": "And then in curly brackets, the current frame.",
+      "zh": "再於大括號中放入目前 frame，"
+    },
+    {
+      "start": 274,
+      "end": 275,
+      "en": "And then a space.",
+      "zh": "加空格，"
+    },
+    {
+      "start": 275,
+      "end": 279,
+      "en": "And then in curly brackets, self.underscore message.",
+      "zh": "然後大括號中放入 self._message，"
+    },
+    {
+      "start": 279,
+      "end": 280,
+      "en": "Thinking, in our case.",
+      "zh": "在我們這裡就是 Thinking，"
+    },
+    {
+      "start": 280,
+      "end": 282,
+      "en": "That's the default, in any case.",
+      "zh": "至少預設值如此。"
+    },
+    {
+      "start": 282,
+      "end": 286,
+      "en": "And then, outside of that, I'll put dot, dot, dot.",
+      "zh": "在外面再加三個點，"
+    },
+    {
+      "start": 286,
+      "end": 289,
+      "en": "And the closing quotes. Okay?",
+      "zh": "關閉引號。"
+    },
+    {
+      "start": 289,
+      "end": 297,
+      "en": "And to make this actually show up in the terminal, we have to call sys.stdout.flush.",
+      "zh": "為了真正顯示到終端機，必須呼叫 sys.stdout.flush，"
+    },
+    {
+      "start": 297,
+      "end": 299,
+      "en": "With opening and closing parentheses.",
+      "zh": "記得左右括號。"
+    },
+    {
+      "start": 299,
+      "end": 302,
+      "en": "And then we wait. Time.sleep.",
+      "zh": "接著等待，呼叫 time.sleep，"
+    },
+    {
+      "start": 302,
+      "end": 305,
+      "en": "And we'll sleep whatever is set in self.underscore interval.",
+      "zh": "睡眠長度使用 self._interval，"
+    },
+    {
+      "start": 305,
+      "end": 310,
+      "en": "Point one, in our case. Okay? There.",
+      "zh": "我們這裡是 0.1。"
+    },
+    {
+      "start": 310,
+      "end": 313,
+      "en": "So that is the spin function. Very simple.",
+      "zh": "這就是 _spin 函式，非常簡單。"
+    },
+    {
+      "start": 313,
+      "end": 316,
+      "en": "Cycle through the characters that we find in the string frames.",
+      "zh": "循環切換 FRAMES 字串中的字元，"
+    },
+    {
+      "start": 316,
+      "end": 319,
+      "en": "In all caps, set there in line 49.",
+      "zh": "就是第 49 行全大寫的設定。"
+    },
+    {
+      "start": 319,
+      "end": 324,
+      "en": "Then we need some means of starting this. Start. Self.",
+      "zh": "接著需要啟動方法 start，接收 self，"
+    },
+    {
+      "start": 324,
+      "end": 326,
+      "en": "That returns nothing.",
+      "zh": "沒有回傳值。"
+    },
+    {
+      "start": 326,
+      "end": 330,
+      "en": "And all we do here is say self.underscore thread.",
+      "zh": "裡面只要對 self._thread，"
+    },
+    {
+      "start": 330,
+      "end": 333,
+      "en": "Start the thread. Start. Okay?",
+      "zh": "呼叫 start，啟動執行緒。"
+    },
+    {
+      "start": 333,
+      "end": 337,
+      "en": "And we need a stop function. Def stop.",
+      "zh": "另外需要停止方法，def stop，"
+    },
+    {
+      "start": 337,
+      "end": 338,
+      "en": "Again, with self.",
+      "zh": "同樣接收 self，"
+    },
+    {
+      "start": 338,
+      "end": 340,
+      "en": "Again, returning none.",
+      "zh": "回傳 None。"
+    },
+    {
+      "start": 340,
+      "end": 351,
+      "en": "And the first thing we do is check if self.underscore stop.isset. Try that again. Underscore set.",
+      "zh": "首先檢查 self._stop.is_set()，重新輸入一下，是 is_set，"
+    },
+    {
+      "start": 351,
+      "end": 353,
+      "en": "Well, then we just want to return. Okay?",
+      "zh": "如果已設定，就直接 return。"
+    },
+    {
+      "start": 353,
+      "end": 359,
+      "en": "And at the same level as the if statement, self.underscore stop.set.",
+      "zh": "在與 if 相同縮排層級，呼叫 self._stop.set()，"
+    },
+    {
+      "start": 359,
+      "end": 365,
+      "en": "And underneath that, self.underscore thread.join.",
+      "zh": "下面再呼叫 self._thread.join()。"
+    },
+    {
+      "start": 365,
+      "end": 371,
+      "en": "And underneath that, we're going to write to the standard out a carriage return plus a clear to the end of the line.",
+      "zh": "接著要往標準輸出寫入回到行首的字元，並清除到行尾，"
+    },
+    {
+      "start": 371,
+      "end": 376,
+      "en": "sys.stdout.write.",
+      "zh": "使用 sys.stdout.write，"
+    },
+    {
+      "start": 377,
+      "end": 382,
+      "en": "And we'll write slash r slash 0.",
+      "zh": "寫入反斜線 r、反斜線 0，"
+    },
+    {
+      "start": 382,
+      "end": 385,
+      "en": "Not the uppercase O, but a 0. 3, 3.",
+      "zh": "不是大寫 O，而是數字 0，再接 3、3，"
+    },
+    {
+      "start": 385,
+      "end": 387,
+      "en": "And then an opening square bracket.",
+      "zh": "然後是左方括號，"
+    },
+    {
+      "start": 387,
+      "end": 393,
+      "en": "And then go over and get rid of the closing square bracket because the IDE actually adds it. An uppercase K. Okay?",
+      "zh": "再去掉 IDE 自動加入的右方括號，接上大寫 K。"
+    },
+    {
+      "start": 393,
+      "end": 394,
+      "en": "So we write that.",
+      "zh": "我們輸出這個序列，"
+    },
+    {
+      "start": 394,
+      "end": 398,
+      "en": "And that's nothing more than a carriage return and a clear to the end of the line.",
+      "zh": "它只是回到行首並清除到行尾。"
+    },
+    {
+      "start": 398,
+      "end": 405,
+      "en": "And then sys.stdout.flush to make sure it's actually written to the terminal. Okay?",
+      "zh": "再呼叫 sys.stdout.flush()，確保真的寫進終端機。"
+    },
+    {
+      "start": 405,
+      "end": 406,
+      "en": "And that's the entire class.",
+      "zh": "整個類別就完成了，"
+    },
+    {
+      "start": 406,
+      "end": 408,
+      "en": "Nothing too complex there.",
+      "zh": "沒有太複雜的地方。"
+    },
+    {
+      "start": 408,
+      "end": 411,
+      "en": "Then we go down to our actual chat command right here.",
+      "zh": "接著到真正的 chat 命令，"
+    },
+    {
+      "start": 411,
+      "end": 413,
+      "en": "And where do we want to do this?",
+      "zh": "要在哪裡使用？"
+    },
+    {
+      "start": 413,
+      "end": 416,
+      "en": "So I think we want to do this right here.",
+      "zh": "我想就在這裡，"
+    },
+    {
+      "start": 416,
+      "end": 418,
+      "en": "Right after answer parts.",
+      "zh": "answer_parts 後面，"
+    },
+    {
+      "start": 418,
+      "end": 421,
+      "en": "Before we start streaming the response. Okay?",
+      "zh": "開始串流回覆之前。"
+    },
+    {
+      "start": 421,
+      "end": 424,
+      "en": "So inside of here, all I'm going to say is spinner is equal to.",
+      "zh": "在這裡設定 spinner 等於，"
+    },
+    {
+      "start": 424,
+      "end": 428,
+      "en": "And it's an underscore spinner. Right there. Okay?",
+      "zh": "一個 _Spinner，"
+    },
+    {
+      "start": 428,
+      "end": 429,
+      "en": "With opening and closing parentheses.",
+      "zh": "記得左右括號。"
+    },
+    {
+      "start": 429,
+      "end": 431,
+      "en": "So now I have a spinner.",
+      "zh": "現在有旋轉指示器了，"
+    },
+    {
+      "start": 431,
+      "end": 434,
+      "en": "And I call spinner.start. Okay?",
+      "zh": "呼叫 spinner.start()，"
+    },
+    {
+      "start": 434,
+      "end": 436,
+      "en": "So that starts the spinner.",
+      "zh": "就會開始旋轉。"
+    },
+    {
+      "start": 436,
+      "end": 440,
+      "en": "Now, this for loop here, this needs to be wrapped in a try.",
+      "zh": "這個 for 迴圈需要用 try 包住，"
+    },
+    {
+      "start": 440,
+      "end": 442,
+      "en": "So we'll put a try.",
+      "zh": "所以先寫 try，"
+    },
+    {
+      "start": 442,
+      "end": 447,
+      "en": "And then I'll get everything up to and including answer parts right here.",
+      "zh": "接著選取整個迴圈，包含這裡的 answer_parts，"
+    },
+    {
+      "start": 447,
+      "end": 449,
+      "en": "And I'll tab that over.",
+      "zh": "再向內縮排。"
+    },
+    {
+      "start": 449,
+      "end": 451,
+      "en": "And then I'll come down here.",
+      "zh": "接著到下面，"
+    },
+    {
+      "start": 451,
+      "end": 452,
+      "en": "Before typer echo.",
+      "zh": "在 typer.echo 之前，"
+    },
+    {
+      "start": 452,
+      "end": 454,
+      "en": "At the same level as try.",
+      "zh": "與 try 同一縮排層級，"
+    },
+    {
+      "start": 454,
+      "end": 456,
+      "en": "And I'll put a finally.",
+      "zh": "寫 finally，"
+    },
+    {
+      "start": 456,
+      "end": 459,
+      "en": "And in here I've just put spinner.stop.",
+      "zh": "裡面只要呼叫 spinner.stop()。"
+    },
+    {
+      "start": 459,
+      "end": 462,
+      "en": "And that should do it. Okay?",
+      "zh": "這樣應該就行了，"
+    },
+    {
+      "start": 462,
+      "end": 463,
+      "en": "Nothing too complex at all.",
+      "zh": "一點也不複雜。"
+    },
+    {
+      "start": 463,
+      "end": 464,
+      "en": "Let's see if we got it right.",
+      "zh": "看看有沒有做對，"
+    },
+    {
+      "start": 464,
+      "end": 465,
+      "en": "So I'll open my terminal.",
+      "zh": "開啟終端機，"
+    },
+    {
+      "start": 465,
+      "end": 469,
+      "en": "And I'll type Pyrag chat.",
+      "zh": "輸入 pyrag chat，"
+    },
+    {
+      "start": 469,
+      "end": 473,
+      "en": "And I'll say what is a vampire. Okay?",
+      "zh": "再問「什麼是吸血鬼？」"
+    },
+    {
+      "start": 473,
+      "end": 476,
+      "en": "And there it's thinking. Perfect.",
+      "zh": "它顯示正在思考，很好，"
+    },
+    {
+      "start": 476,
+      "end": 477,
+      "en": "So it's thinking.",
+      "zh": "所以它正在思考，"
+    },
+    {
+      "start": 477,
+      "end": 479,
+      "en": "And that didn't quite work.",
+      "zh": "不過還沒有完全成功，"
+    },
+    {
+      "start": 479,
+      "end": 482,
+      "en": "Obviously I left something out. Okay?",
+      "zh": "顯然我漏了一點東西。"
+    },
+    {
+      "start": 482,
+      "end": 483,
+      "en": "So our spinner showed up.",
+      "zh": "旋轉指示器有出現，"
+    },
+    {
+      "start": 483,
+      "end": 484,
+      "en": "But then it showed up too many times.",
+      "zh": "但出現太多次。"
+    },
+    {
+      "start": 484,
+      "end": 486,
+      "en": "So let's just exit.",
+      "zh": "所以先退出，"
+    },
+    {
+      "start": 486,
+      "end": 488,
+      "en": "And go back here and see what we left out.",
+      "zh": "回來看看漏掉什麼。"
+    },
+    {
+      "start": 488,
+      "end": 493,
+      "en": "So all we have to add here before typer echo. Okay?",
+      "zh": "只要在 typer.echo 前面加入，"
+    },
+    {
+      "start": 493,
+      "end": 495,
+      "en": "Let's put an if statement in there.",
+      "zh": "一個 if 判斷，"
+    },
+    {
+      "start": 495,
+      "end": 502,
+      "en": "If not answer parts. Okay?",
+      "zh": "if not answer_parts，"
+    },
+    {
+      "start": 502,
+      "end": 505,
+      "en": "We check to see if answer parts is now empty.",
+      "zh": "檢查 answer_parts 是否仍為空。"
+    },
+    {
+      "start": 505,
+      "end": 508,
+      "en": "So our first token has arrived in other words. Okay?",
+      "zh": "換句話說，第一個 token 已經到了，"
+    },
+    {
+      "start": 508,
+      "end": 512,
+      "en": "So what we want to do is to say spinner.stop.",
+      "zh": "所以我們要呼叫 spinner.stop()。"
+    },
+    {
+      "start": 512,
+      "end": 514,
+      "en": "And then just to make this really clear.",
+      "zh": "為了更清楚，"
+    },
+    {
+      "start": 514,
+      "end": 519,
+      "en": "After we stop the spinner, let's echo the assistant. Okay? So typer.echo.",
+      "zh": "停止旋轉後，再顯示 assistant，呼叫 typer.echo，"
+    },
+    {
+      "start": 519,
+      "end": 525,
+      "en": "And we'll just echo with a blank line assistant.",
+      "zh": "先加空白行，再寫 assistant，"
+    },
+    {
+      "start": 525,
+      "end": 526,
+      "en": "And then a greater than symbol.",
+      "zh": "接大於符號，"
+    },
+    {
+      "start": 526,
+      "end": 528,
+      "en": "And then a space.",
+      "zh": "再接空格，"
+    },
+    {
+      "start": 528,
+      "end": 533,
+      "en": "And we'll make sure new line is set to false. Okay?",
+      "zh": "並確定 nl=False。"
+    },
+    {
+      "start": 533,
+      "end": 534,
+      "en": "So we stop the spinner.",
+      "zh": "因此先停止旋轉，"
+    },
+    {
+      "start": 534,
+      "end": 536,
+      "en": "We put in assistant.",
+      "zh": "顯示 assistant，"
+    },
+    {
+      "start": 536,
+      "end": 541,
+      "en": "And then underneath that, outside of the if statement, we say echo each piece. Okay?",
+      "zh": "然後在 if 外面，逐段輸出每個 piece。"
+    },
+    {
+      "start": 541,
+      "end": 545,
+      "en": "So what we're going to do as soon as we get our first token for the response, we'll stop the spinner.",
+      "zh": "也就是回覆的第一個 token 到達時，立刻停止旋轉，"
+    },
+    {
+      "start": 545,
+      "end": 548,
+      "en": "And then we'll print out the assistant prompt.",
+      "zh": "接著印出助理的提示標籤，"
+    },
+    {
+      "start": 548,
+      "end": 551,
+      "en": "Just like we have a you prompt right at the beginning. Okay?",
+      "zh": "就像開始時有使用者的提示標籤一樣。"
+    },
+    {
+      "start": 551,
+      "end": 553,
+      "en": "So let's try that again.",
+      "zh": "再試一次，"
+    },
+    {
+      "start": 553,
+      "end": 554,
+      "en": "I'll open the terminal.",
+      "zh": "開啟終端機，"
+    },
+    {
+      "start": 554,
+      "end": 555,
+      "en": "I'll clear the screen.",
+      "zh": "清除畫面，"
+    },
+    {
+      "start": 555,
+      "end": 557,
+      "en": "I'll hit pyrag chat.",
+      "zh": "執行 pyrag chat，"
+    },
+    {
+      "start": 557,
+      "end": 562,
+      "en": "And I'll ask it, what is a vampire? And there.",
+      "zh": "問「什麼是吸血鬼？」，出來了，"
+    },
+    {
+      "start": 562,
+      "end": 563,
+      "en": "It spun very quickly.",
+      "zh": "轉得很快，"
+    },
+    {
+      "start": 563,
+      "end": 566,
+      "en": "But it did spin. Okay?",
+      "zh": "但確實有旋轉，"
+    },
+    {
+      "start": 566,
+      "end": 569,
+      "en": "And it only showed up the one time that it should have. Perfect.",
+      "zh": "而且只在該出現時出現一次，非常好。"
+    },
+    {
+      "start": 569,
+      "end": 572,
+      "en": "I think that's much cleaner. Okay.",
+      "zh": "我覺得乾淨多了。"
+    },
+    {
+      "start": 572,
+      "end": 573,
+      "en": "That's enough for this time around.",
+      "zh": "這堂課先到這裡，"
+    },
+    {
+      "start": 573,
+      "end": 575,
+      "en": "Let's move on to the next section.",
+      "zh": "繼續下一節，"
+    },
+    {
+      "start": 575,
+      "end": 577,
+      "en": "And what we're going to do in the next section is pretty straightforward.",
+      "zh": "下一節要做的也很直接，"
+    },
+    {
+      "start": 577,
+      "end": 579,
+      "en": "We're going to implement a file watcher.",
+      "zh": "我們會實作檔案監看器。"
+    },
+    {
+      "start": 579,
+      "end": 584,
+      "en": "Rather than forcing people to type pyrag ingest to get a document in the Vector Store,",
+      "zh": "與其要求使用者輸入 pyrag ingest，將文件匯入向量儲存區，"
+    },
+    {
+      "start": 584,
+      "end": 592,
+      "en": "or pyrag scan, we'll implement a simple file watcher that looks for files being dropped into our documents directory.",
+      "zh": "或執行 pyrag scan，不如實作簡單的檔案監看器，偵測放進 documents 目錄的檔案，"
+    },
+    {
+      "start": 592,
+      "end": 594,
+      "en": "And when it finds them, it processes them.",
+      "zh": "發現後就處理它，"
+    },
+    {
+      "start": 594,
+      "end": 596,
+      "en": "And it's pretty straightforward. Okay?",
+      "zh": "做法非常直接。"
+    },
+    {
+      "start": 596,
+      "end": 597,
+      "en": "So let's move on.",
+      "zh": "我們繼續。"
+    }
+  ]
+}

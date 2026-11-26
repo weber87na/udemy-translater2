@@ -1,0 +1,1183 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56330967",
+  "title": "Setting up the ingestor",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "1c3ef7ab5d920ed9689af5bd7f43f49a0121c7ead215125acd11d2353426d203",
+  "cues": [
+    {
+      "start": 0,
+      "end": 3.96,
+      "en": "So now we have our chunker and we have our embedder.",
+      "zh": "現在已經有切塊器，也有嵌入器。"
+    },
+    {
+      "start": 3.96,
+      "end": 9.68,
+      "en": "Of course, the next thing we need to do is to work on the input pipeline and the ingester.",
+      "zh": "接下來當然要實作輸入管線與匯入器。"
+    },
+    {
+      "start": 9.68,
+      "end": 12,
+      "en": "There's a few things we want to do in here.",
+      "zh": "這裡有幾件事想做。"
+    },
+    {
+      "start": 12,
+      "end": 18.76,
+      "en": "We want to embed the document, but we also want to implement something called content hashing and that's for idempotence.",
+      "zh": "除了對文件建立嵌入，還要實作內容雜湊，讓操作具備冪等性。"
+    },
+    {
+      "start": 18.76,
+      "end": 30.739,
+      "en": "We hash the file contents using something like SHA-256, and that'll allow us to skip re-embedding when the path and the hash are already in the store.",
+      "zh": "使用 SHA-256 之類的方法計算檔案內容雜湊，如果同一路徑和雜湊已存在儲存區，就能省略重新嵌入。"
+    },
+    {
+      "start": 30.739,
+      "end": 36.439,
+      "en": "So this means if we try to ingest a document that's already in there and has not changed, we won't do any work.",
+      "zh": "也就是說，如果嘗試匯入已存在且未修改的文件，就不用進行任何工作。"
+    },
+    {
+      "start": 36.439,
+      "end": 38.24,
+      "en": "Now, this is relatively straightforward.",
+      "zh": "這相當直接。"
+    },
+    {
+      "start": 38.24,
+      "end": 41.68,
+      "en": "There's a fair bit of work to do here, but none of it is difficult.",
+      "zh": "雖然要做的事情不少，但都不難。"
+    },
+    {
+      "start": 41.68,
+      "end": 50.24,
+      "en": "So let's go over to source.pyreg, and right-click and create a new file, and I'll call this one ingest.py,",
+      "zh": "到 src/pyrag，按右鍵新增檔案，命名為 ingest.py，"
+    },
+    {
+      "start": 50.24,
+      "end": 54.2,
+      "en": "not intest, ingest.py.",
+      "zh": "不是 intest，而是 ingest.py。"
+    },
+    {
+      "start": 54.2,
+      "end": 62.319,
+      "en": "As usual, I'll do my imports first. So from future, I'm going to import annotations.",
+      "zh": "照例先匯入，從 __future__ 匯入 annotations，"
+    },
+    {
+      "start": 62.319,
+      "end": 63.84,
+      "en": "I'll be using those.",
+      "zh": "之後會用到。"
+    },
+    {
+      "start": 63.84,
+      "end": 69.279,
+      "en": "We're also going to be hashing some content, and there's a nice package right in Python called HashLib.",
+      "zh": "也要計算內容雜湊，而 Python 內建一個很好用的套件 hashlib，"
+    },
+    {
+      "start": 69.279,
+      "end": 71.76,
+      "en": "So let's import HashLib.",
+      "zh": "因此匯入 hashlib，"
+    },
+    {
+      "start": 71.76,
+      "end": 74.03999999999999,
+      "en": "That'll make it very easy for us.",
+      "zh": "這會讓工作容易很多。"
+    },
+    {
+      "start": 74.03999999999999,
+      "end": 76.36,
+      "en": "I'm going to want to put some logging in here as well.",
+      "zh": "另外也想加入一些日誌，"
+    },
+    {
+      "start": 76.36,
+      "end": 81.76,
+      "en": "So I'll import logging, and we'll be working with the file system.",
+      "zh": "所以匯入 logging；也會處理檔案系統，"
+    },
+    {
+      "start": 81.76,
+      "end": 86.839,
+      "en": "So let's from pathlib, we'll import path.",
+      "zh": "因此從 pathlib 匯入 Path。"
+    },
+    {
+      "start": 87.76,
+      "end": 92.519,
+      "en": "Now, from our own code, we're going to need the chunking functionality.",
+      "zh": "接著從自己的程式碼匯入切塊功能。"
+    },
+    {
+      "start": 92.519,
+      "end": 96.63900000000001,
+      "en": "So from, and this is in the same directory, so I'll use.chunking.",
+      "zh": "它在同一個目錄，所以從 .chunking，"
+    },
+    {
+      "start": 96.63900000000001,
+      "end": 100.279,
+      "en": "I'll import chunk underscore text.",
+      "zh": "匯入 chunk_text。"
+    },
+    {
+      "start": 100.279,
+      "end": 107.75999999999999,
+      "en": "We'll want our config, so from.config, I'll import config.",
+      "zh": "也需要設定，因此從 .config 匯入 Config。"
+    },
+    {
+      "start": 107.75999999999999,
+      "end": 110.63900000000001,
+      "en": "What else are we going to need? Well, we need our embedder.",
+      "zh": "還需要什麼？嵌入器，"
+    },
+    {
+      "start": 110.63900000000001,
+      "end": 117.319,
+      "en": "So from embeddings.embeddings, we'll import embedder, the one we worked on last time around.",
+      "zh": "所以從 .embeddings 匯入 Embedder，就是上一堂處理的類別。"
+    },
+    {
+      "start": 117.319,
+      "end": 124.599,
+      "en": "Then in our stores, our vector stores, let's from, try that again,",
+      "zh": "然後是向量儲存區的東西，從——重新輸入——"
+    },
+    {
+      "start": 124.599,
+      "end": 136.32,
+      "en": "from.stores, and I want.base, I'll import, which I have to spell right, I'll import the stored chunk.",
+      "zh": ".stores.base 匯入 StoredChunk，注意拼字。"
+    },
+    {
+      "start": 136.32,
+      "end": 139.32,
+      "en": "We need that for sure, and the vector store.",
+      "zh": "這個一定要有，另外也要 VectorStore，"
+    },
+    {
+      "start": 139.44,
+      "end": 142,
+      "en": "We need that for sure. Okay.",
+      "zh": "同樣是必要的。"
+    },
+    {
+      "start": 142,
+      "end": 143.399,
+      "en": "Now let's set up a simple logger.",
+      "zh": "現在建立簡單的日誌記錄器，"
+    },
+    {
+      "start": 143.399,
+      "end": 148.399,
+      "en": "So log will be equal to logging.getLogger,",
+      "zh": "log 等於 logging.getLogger，"
+    },
+    {
+      "start": 150.8,
+      "end": 154.72,
+      "en": "and we'll hand that underscore underscore name. Okay.",
+      "zh": "傳入 __name__。"
+    },
+    {
+      "start": 154.72,
+      "end": 158.24,
+      "en": "There, so we've done our imports and we have our logger.",
+      "zh": "匯入項目與日誌記錄器都準備好了。"
+    },
+    {
+      "start": 158.24,
+      "end": 160.199,
+      "en": "Now let's think about what we want to import.",
+      "zh": "現在想想要匯入什麼。"
+    },
+    {
+      "start": 160.199,
+      "end": 168.039,
+      "en": "Ultimately, in production, you're going to want to be able to import text files and markdown files and maybe PDFs and things like that, but let's keep it simple.",
+      "zh": "正式環境最終可能要支援文字檔、Markdown，甚至 PDF 等，但先保持簡單。"
+    },
+    {
+      "start": 168.039,
+      "end": 172.119,
+      "en": "We can always add different file format support later on.",
+      "zh": "其他檔案格式之後隨時可以加入。"
+    },
+    {
+      "start": 172.119,
+      "end": 173.52,
+      "en": "Let's just set up a variable.",
+      "zh": "先建立一個變數，"
+    },
+    {
+      "start": 173.52,
+      "end": 178.199,
+      "en": "I'll call it text suffixes. Okay.",
+      "zh": "叫做 TEXT_SUFFIXES。"
+    },
+    {
+      "start": 178.199,
+      "end": 186.679,
+      "en": "For right now, let's just put in, in curly brackets, .txt, we'll handle text files, .md for markdown files,",
+      "zh": "目前用大括號建立集合，包含 .txt，處理文字檔，以及 .md，處理 Markdown。"
+    },
+    {
+      "start": 186.679,
+      "end": 191.679,
+      "en": "and then some people use .markdown, markdown.",
+      "zh": "有些人使用 .markdown，"
+    },
+    {
+      "start": 191.679,
+      "end": 192.679,
+      "en": "So we'll do that.",
+      "zh": "所以也加入它。"
+    },
+    {
+      "start": 192.679,
+      "end": 195.52,
+      "en": "We're just going to worry about text and markdown for right now.",
+      "zh": "目前只處理文字與 Markdown。"
+    },
+    {
+      "start": 195.52,
+      "end": 197.07999999999998,
+      "en": "We can always add something later on.",
+      "zh": "之後隨時可以加入其他格式，"
+    },
+    {
+      "start": 197.07999999999998,
+      "end": 200.839,
+      "en": "It's trivial to add this sort of thing after the fact. Okay.",
+      "zh": "這類擴充日後要做很容易。"
+    },
+    {
+      "start": 200.839,
+      "end": 204.52,
+      "en": "Now, I talked about hashing a little while ago. Okay.",
+      "zh": "稍早有談到雜湊，"
+    },
+    {
+      "start": 204.52,
+      "end": 205.8,
+      "en": "So let's have a helper function.",
+      "zh": "因此需要一個輔助函式。"
+    },
+    {
+      "start": 205.8,
+      "end": 212.24,
+      "en": "I'll call it def, and I'll call it underscore, say, hash underscore bytes. Okay.",
+      "zh": "定義 def _hash_bytes，"
+    },
+    {
+      "start": 212.24,
+      "end": 213.279,
+      "en": "We'll define that function.",
+      "zh": "我們來建立它。"
+    },
+    {
+      "start": 213.279,
+      "end": 218.6,
+      "en": "That's going to take some data and we'll type in it to be bytes. Okay.",
+      "zh": "接收 data，型別標註為 bytes，"
+    },
+    {
+      "start": 218.6,
+      "end": 222.8,
+      "en": "And this is going to return just a string. Okay.",
+      "zh": "回傳值只是 str。"
+    },
+    {
+      "start": 222.8,
+      "end": 231.279,
+      "en": "So we'll return from hashlib right there, dot, we'll use SHA-256.",
+      "zh": "因此回傳 hashlib.sha256，"
+    },
+    {
+      "start": 231.279,
+      "end": 232.24,
+      "en": "That's a good one.",
+      "zh": "這個演算法很好，"
+    },
+    {
+      "start": 232.24,
+      "end": 234.75900000000001,
+      "en": "That's going to absolutely serve our purposes.",
+      "zh": "完全符合我們的需求。"
+    },
+    {
+      "start": 234.75900000000001,
+      "end": 237.44,
+      "en": "And that gets handed data.",
+      "zh": "傳入 data，"
+    },
+    {
+      "start": 237.44,
+      "end": 243.759,
+      "en": "And we call hex digest like that and give it as parentheses. Okay.",
+      "zh": "再呼叫 hexdigest()，記得括號。"
+    },
+    {
+      "start": 243.759,
+      "end": 245.639,
+      "en": "That's a very simple function.",
+      "zh": "這是一個非常簡單的函式。"
+    },
+    {
+      "start": 245.639,
+      "end": 248.639,
+      "en": "Now, let's set up our class.",
+      "zh": "現在建立類別，"
+    },
+    {
+      "start": 248.639,
+      "end": 255.16,
+      "en": "And this class, I'm going to call it ingestor, I-N-G-E-S-T-O-R. Okay.",
+      "zh": "我將它叫做 Ingestor，拼字是 I-N-G-E-S-T-O-R。"
+    },
+    {
+      "start": 255.16,
+      "end": 265.76,
+      "en": "All this class is going to do is to read a document, to chunk it using the chunking we've already set up, to embed it using the embedder we've already set up, and then write it to the vector store,",
+      "zh": "這個類別只會讀取文件，透過既有的切塊器將文件切塊，再透過既有的 Embedder 建立嵌入，最後寫進向量儲存區，"
+    },
+    {
+      "start": 265.76,
+      "end": 268,
+      "en": "Postgres in our case. Okay.",
+      "zh": "這裡就是 Postgres。"
+    },
+    {
+      "start": 268,
+      "end": 269.359,
+      "en": "That's all it's going to do.",
+      "zh": "它要做的就是這些。"
+    },
+    {
+      "start": 269.359,
+      "end": 274.079,
+      "en": "So let's define its init function, underscore, underscore, init, underscore, underscore.",
+      "zh": "所以先定義初始化方法 __init__，"
+    },
+    {
+      "start": 275.079,
+      "end": 276.88,
+      "en": "And that's going to take a few parameters.",
+      "zh": "它會接收幾個參數，"
+    },
+    {
+      "start": 276.88,
+      "end": 279.48,
+      "en": "Self, obviously, because we're in a class.",
+      "zh": "當然有 self，因為位於類別內，"
+    },
+    {
+      "start": 279.55899999999997,
+      "end": 283.32,
+      "en": "The config, which I'll type it to config.",
+      "zh": "以及 config，型別標註為 Config。"
+    },
+    {
+      "start": 283.32,
+      "end": 286.92,
+      "en": "It's going to require the store, which I'll type into vector store.",
+      "zh": "還需要 store，型別標註為 VectorStore，"
+    },
+    {
+      "start": 288.279,
+      "end": 296.92,
+      "en": "And it requires the embedder, which is of course type headed to embedder. Right there. Okay.",
+      "zh": "以及 embedder，型別當然是 Embedder。"
+    },
+    {
+      "start": 296.92,
+      "end": 299.92,
+      "en": "And then down outside of the parentheses, what does it return?",
+      "zh": "在參數右括號外面，標註回傳什麼？"
+    },
+    {
+      "start": 299.92,
+      "end": 302.2,
+      "en": "Well, it doesn't return anything. So none.",
+      "zh": "不回傳任何內容，因此是 None，"
+    },
+    {
+      "start": 302.2,
+      "end": 303.559,
+      "en": "And then a colon.",
+      "zh": "然後加冒號。"
+    },
+    {
+      "start": 303.559,
+      "end": 309.32,
+      "en": "And let's define its members. Okay. Self.config. Set that up. Self.config.",
+      "zh": "接著定義成員，設定 self.config，"
+    },
+    {
+      "start": 311.799,
+      "end": 318.839,
+      "en": "Well, that's equal to config. And self.store. Try that again. Self.store.",
+      "zh": "它等於 config。再設定 self.store，重新輸入一下，"
+    },
+    {
+      "start": 320.2,
+      "end": 322.32,
+      "en": "Well, that's equal to store.",
+      "zh": "它等於 store。"
+    },
+    {
+      "start": 323.399,
+      "end": 325.32,
+      "en": "And finally, self.embedder",
+      "zh": "最後是 self.embedder，"
+    },
+    {
+      "start": 327.279,
+      "end": 328.679,
+      "en": "is equal to embedder.",
+      "zh": "它等於 embedder。"
+    },
+    {
+      "start": 329.72,
+      "end": 332.04,
+      "en": "And that's our init function. Dead simple.",
+      "zh": "初始化方法就完成了，非常簡單。"
+    },
+    {
+      "start": 333.04,
+      "end": 337.679,
+      "en": "Now a method on this type, or on this class, let's call it ingest file.",
+      "zh": "接著在這個類別建立一個方法，叫做 ingest_file。"
+    },
+    {
+      "start": 337.679,
+      "end": 340.679,
+      "en": "So def, we want to ingest a file.",
+      "zh": "定義 def，用來匯入一份檔案，"
+    },
+    {
+      "start": 342.239,
+      "end": 344.839,
+      "en": "That's going to take self as usual.",
+      "zh": "照例接收 self，"
+    },
+    {
+      "start": 344.839,
+      "end": 348.32,
+      "en": "And it's also going to have to know where the file is. So path.",
+      "zh": "也必須知道檔案位置，所以還有 path，"
+    },
+    {
+      "start": 348.32,
+      "end": 352.399,
+      "en": "And let's type into to path, which we just imported. Okay.",
+      "zh": "型別標註為剛匯入的 Path。"
+    },
+    {
+      "start": 352.399,
+      "end": 355.359,
+      "en": "And it doesn't return anything. So none.",
+      "zh": "沒有回傳內容，因此標註 None。"
+    },
+    {
+      "start": 355.359,
+      "end": 360.279,
+      "en": "Now, what we're going to do is run the full pipeline for one file.",
+      "zh": "它要為一份檔案執行完整管線。"
+    },
+    {
+      "start": 360.279,
+      "end": 362.6,
+      "en": "So the first thing we need is some sanity check.",
+      "zh": "首先需要基本檢查，"
+    },
+    {
+      "start": 362.6,
+      "end": 365.48,
+      "en": "Let's check the suffix of the file and make sure it's one that we support.",
+      "zh": "檢查檔案副檔名，確認屬於支援的格式。"
+    },
+    {
+      "start": 365.48,
+      "end": 373.279,
+      "en": "So suffix, a variable name I'm choosing right now, that's equal to path.suffix. Okay.",
+      "zh": "宣告我現在取名為 suffix 的變數，值等於 path.suffix，"
+    },
+    {
+      "start": 373.279,
+      "end": 374.92,
+      "en": "With a lowercase s.",
+      "zh": "suffix 的 s 是小寫。"
+    },
+    {
+      "start": 374.92,
+      "end": 381.799,
+      "en": "And we'll convert everything to lowercase, just to make sure that it doesn't matter whether they used uppercase or lowercase in the file name.",
+      "zh": "再將它轉成小寫，確保檔名不論大小寫都能處理。"
+    },
+    {
+      "start": 381.799,
+      "end": 383.76,
+      "en": "So now I have the suffix of the file.",
+      "zh": "現在取得檔案的副檔名了，"
+    },
+    {
+      "start": 384.959,
+      "end": 386.359,
+      "en": "And we need to do a sanity check.",
+      "zh": "需要做基本檢查。"
+    },
+    {
+      "start": 386.359,
+      "end": 394.519,
+      "en": "If suffix not in, and now we use that variable we set up on line 14, text suffixes right there.",
+      "zh": "如果 suffix 不在第 14 行建立的 TEXT_SUFFIXES 中，"
+    },
+    {
+      "start": 396.48,
+      "end": 405.2,
+      "en": "We'll write to the log, log.info, skipping unsupported file,",
+      "zh": "就寫入日誌，呼叫 log.info，內容是「Skipping unsupported file」，"
+    },
+    {
+      "start": 406.55899999999997,
+      "end": 414.72,
+      "en": "colon, percent s, and then in here, path.name. Okay.",
+      "zh": "接冒號、%s，然後傳入 path.name。"
+    },
+    {
+      "start": 414.72,
+      "end": 415.76,
+      "en": "So we can't have that file.",
+      "zh": "我們無法處理那個檔案，"
+    },
+    {
+      "start": 415.76,
+      "end": 417.04,
+      "en": "We're just going to skip it.",
+      "zh": "所以直接跳過，"
+    },
+    {
+      "start": 417.04,
+      "end": 420.359,
+      "en": "And of course we want to return after that. Return.",
+      "zh": "之後當然要 return。"
+    },
+    {
+      "start": 421.399,
+      "end": 424.559,
+      "en": "But if we get past that, what else should we do?",
+      "zh": "若通過這個檢查，接著做什麼？"
+    },
+    {
+      "start": 424.799,
+      "end": 426.2,
+      "en": "Well, let's have a try except.",
+      "zh": "加上 try/except。"
+    },
+    {
+      "start": 426.2,
+      "end": 431.32,
+      "en": "So try, and I'll write my except right now so I don't forget to do it, which I often do.",
+      "zh": "先寫 try；我現在就先寫 except，免得又忘記，我很常忘。"
+    },
+    {
+      "start": 431.32,
+      "end": 436.119,
+      "en": "Except, and we'll say file not found error. Okay.",
+      "zh": "except 捕捉 FileNotFoundError。"
+    },
+    {
+      "start": 436.119,
+      "end": 440.6,
+      "en": "Now let's get up and do the try first, and then we'll handle the except next. This is simple.",
+      "zh": "現在先回頭寫 try 的內容，稍後再處理 except。這很簡單，"
+    },
+    {
+      "start": 440.6,
+      "end": 445.76,
+      "en": "Data equals path.read underscore bytes. Okay.",
+      "zh": "data = path.read_bytes()。"
+    },
+    {
+      "start": 445.76,
+      "end": 447.48,
+      "en": "And down here, file not found error.",
+      "zh": "下面則處理 FileNotFoundError，"
+    },
+    {
+      "start": 447.48,
+      "end": 449.799,
+      "en": "Well, let's just handle that.",
+      "zh": "我們直接處理它。"
+    },
+    {
+      "start": 449.799,
+      "end": 452.92,
+      "en": "We'll say log.warning right there.",
+      "zh": "呼叫 log.warning，"
+    },
+    {
+      "start": 453.92,
+      "end": 463.399,
+      "en": "File vanished before read, which can happen, percent s, and then just path. Okay.",
+      "zh": "訊息是「File vanished before read」，這確實可能發生，接 %s，再傳入 path。"
+    },
+    {
+      "start": 463.399,
+      "end": 464.679,
+      "en": "And of course, return.",
+      "zh": "當然還要 return。"
+    },
+    {
+      "start": 466.519,
+      "end": 469.119,
+      "en": "But if we get past that, now we have some data.",
+      "zh": "若通過這些檢查，就已經取得資料。"
+    },
+    {
+      "start": 469.119,
+      "end": 472.279,
+      "en": "So let's create a content hash, and that's really easy now.",
+      "zh": "接著建立內容雜湊，現在非常容易，"
+    },
+    {
+      "start": 472.279,
+      "end": 476.359,
+      "en": "We just set up that little function, underscore hash, underscore bytes.",
+      "zh": "剛才已經寫好 _hash_bytes 這個小函式。"
+    },
+    {
+      "start": 476.359,
+      "end": 486.6,
+      "en": "So we'll say content hash, a variable name I'm choosing right now, equals underscore hash, underscore bytes, and hand that data.",
+      "zh": "所以將我現在取名的 content_hash 設為 _hash_bytes(data)。"
+    },
+    {
+      "start": 487.64,
+      "end": 490.32,
+      "en": "So now we have the content hash. Okay.",
+      "zh": "現在有內容雜湊了。"
+    },
+    {
+      "start": 490.32,
+      "end": 493.16,
+      "en": "Now let's get the source path. Easy enough.",
+      "zh": "接著取得來源路徑，也很簡單。"
+    },
+    {
+      "start": 493.16,
+      "end": 495.399,
+      "en": "We want the absolute path name to the file.",
+      "zh": "要的是檔案的絕對路徑，"
+    },
+    {
+      "start": 495.399,
+      "end": 497.239,
+      "en": "Source underscore path.",
+      "zh": "變數叫 source_path。"
+    },
+    {
+      "start": 497.239,
+      "end": 500.2,
+      "en": "Python makes that ridiculously easy.",
+      "zh": "Python 讓這件事變得非常容易，"
+    },
+    {
+      "start": 500.2,
+      "end": 507.359,
+      "en": "We just use str for path.resolve right there. Okay.",
+      "zh": "只要使用 str(path.resolve())。"
+    },
+    {
+      "start": 507.359,
+      "end": 513.84,
+      "en": "So now I have the content hash, and I have the source path, and down here's where we check for idempotence.",
+      "zh": "現在有 content_hash，也有 source_path，接下來檢查冪等性。"
+    },
+    {
+      "start": 513.84,
+      "end": 520,
+      "en": "If we already have ingested this document at this path, skip embedding entirely.",
+      "zh": "如果這個路徑的文件已經匯入，就完全省略嵌入。"
+    },
+    {
+      "start": 520,
+      "end": 529.52,
+      "en": "So we'll just say if self.store, and we call that function, has document, has document, and that requires the source path,",
+      "zh": "因此判斷 self.store.has_document，傳入 source_path，"
+    },
+    {
+      "start": 532.679,
+      "end": 534.479,
+      "en": "and it also requires the content hash.",
+      "zh": "以及 content_hash。"
+    },
+    {
+      "start": 534.479,
+      "end": 538.4,
+      "en": "Well, we just got that content hash right there. Okay.",
+      "zh": "這個雜湊值剛才已經取得。"
+    },
+    {
+      "start": 541.64,
+      "end": 544.559,
+      "en": "So what do we do here? Log.info.",
+      "zh": "這裡要做什麼？呼叫 log.info，"
+    },
+    {
+      "start": 546.64,
+      "end": 551.08,
+      "en": "We'll just say unchanged. Skipping embed.",
+      "zh": "內容是「Unchanged. Skipping embed」，"
+    },
+    {
+      "start": 554.039,
+      "end": 558.799,
+      "en": "Percent s, and then path.name. Okay.",
+      "zh": "接 %s，再傳入 path.name。"
+    },
+    {
+      "start": 558.799,
+      "end": 561.039,
+      "en": "And we'll return. We're done.",
+      "zh": "然後 return，完成了。"
+    },
+    {
+      "start": 561.039,
+      "end": 561.88,
+      "en": "There's no work to do.",
+      "zh": "因為沒有事情要做，"
+    },
+    {
+      "start": 561.88,
+      "end": 563.32,
+      "en": "Nothing has changed.",
+      "zh": "內容完全沒變。"
+    },
+    {
+      "start": 563.32,
+      "end": 573.44,
+      "en": "Now, let's get from data, let's get that to something that will actually work, and something that won't crash on a stray byte, and it's very simple. Okay.",
+      "zh": "現在把 data 轉成可以實際使用的內容，也確保遇到特殊位元組不會崩潰，做法很簡單。"
+    },
+    {
+      "start": 573.44,
+      "end": 582.88,
+      "en": "So I'll declare a variable text, and that's equal to from data, we'll decode, okay, and we're gonna decode using UTF-8, which is safe.",
+      "zh": "宣告 text，值來自 data.decode，使用 UTF-8 解碼，這樣很安全。"
+    },
+    {
+      "start": 582.88,
+      "end": 589.559,
+      "en": "That way we can handle multiple character sets, and error equals replace. Okay.",
+      "zh": "因此可以處理多種字元內容，並設定 errors=\"replace\"。"
+    },
+    {
+      "start": 589.559,
+      "end": 595.96,
+      "en": "So it just puts a question mark for anything it can't decode, and that way it won't just die if it runs into a byte that's causing it problems.",
+      "zh": "無法解碼的內容就用替代字元表示，所以遇到有問題的位元組也不會直接終止。"
+    },
+    {
+      "start": 595.96,
+      "end": 599.28,
+      "en": "Very simple sanity checking here. Okay.",
+      "zh": "這是很簡單的基本防護。"
+    },
+    {
+      "start": 599.28,
+      "end": 603.28,
+      "en": "So now I have text, and now I'll get my chunks.",
+      "zh": "有文字後，接著取得區塊。"
+    },
+    {
+      "start": 603.28,
+      "end": 604.44,
+      "en": "We know how to do that.",
+      "zh": "這個我們已經知道怎麼做。"
+    },
+    {
+      "start": 604.44,
+      "end": 609,
+      "en": "Chunks, variable name I'm choosing right now, we just call chunk text, right there.",
+      "zh": "宣告我現在取名的 chunks，直接呼叫 chunk_text。"
+    },
+    {
+      "start": 609,
+      "end": 614.039,
+      "en": "And that requires as its parameters, the text, well, we just got that on line 51.",
+      "zh": "它需要 text，這個在第 51 行剛取得，"
+    },
+    {
+      "start": 614.039,
+      "end": 615.799,
+      "en": "It also requires the chunk size.",
+      "zh": "也需要 chunk_size，"
+    },
+    {
+      "start": 615.799,
+      "end": 622.599,
+      "en": "We can get that from the config, self.config.chunksize, right there. Okay.",
+      "zh": "可從設定取得，也就是 self.config.chunk_size。"
+    },
+    {
+      "start": 622.599,
+      "end": 624.52,
+      "en": "And what's the last thing it needs? The overlap.",
+      "zh": "最後還需要什麼？重疊長度，"
+    },
+    {
+      "start": 624.559,
+      "end": 628.799,
+      "en": "And self.config.chunkoverlap, right there.",
+      "zh": "也就是 self.config.chunk_overlap。"
+    },
+    {
+      "start": 629.88,
+      "end": 633.159,
+      "en": "And if all goes according to plan, now I have my chunks.",
+      "zh": "如果一切順利，現在就有區塊了。"
+    },
+    {
+      "start": 634.08,
+      "end": 637.44,
+      "en": "But let's make sure. If not chunks,",
+      "zh": "但先確認一下，如果 not chunks，"
+    },
+    {
+      "start": 639.44,
+      "end": 641.32,
+      "en": "okay, and something went wrong.",
+      "zh": "表示沒有取得內容，"
+    },
+    {
+      "start": 641.32,
+      "end": 649,
+      "en": "Log.warning, we'll just log that, and we'll say no content to ingest in %s,",
+      "zh": "就呼叫 log.warning，寫入「No content to ingest in %s」，"
+    },
+    {
+      "start": 650.32,
+      "end": 655.559,
+      "en": "and my substitution for that is simply path.name. Okay.",
+      "zh": "代入值很簡單，就是 path.name。"
+    },
+    {
+      "start": 655.559,
+      "end": 658.599,
+      "en": "And we'll return no work to do if we don't have any chunks.",
+      "zh": "若沒有區塊就 return，因為無事可做。"
+    },
+    {
+      "start": 658.599,
+      "end": 660.919,
+      "en": "Let's give ourselves some room.",
+      "zh": "多留一點空間。"
+    },
+    {
+      "start": 660.919,
+      "end": 664.599,
+      "en": "If we get past that, then we actually have some chunks. Okay.",
+      "zh": "若通過檢查，就真的有一些區塊。"
+    },
+    {
+      "start": 664.599,
+      "end": 669.119,
+      "en": "So let's just write to the log so we can see what's going on. Log.info.",
+      "zh": "先寫日誌，讓我們知道正在做什麼，呼叫 log.info，"
+    },
+    {
+      "start": 669.119,
+      "end": 675.88,
+      "en": "And I'll write, say, embedding %dchunks from %s.",
+      "zh": "例如寫「Embedding %d chunks from %s」。"
+    },
+    {
+      "start": 678.32,
+      "end": 684.599,
+      "en": "And my substitutions are the length of chunks and path.name.",
+      "zh": "代入值是 len(chunks) 和 path.name。"
+    },
+    {
+      "start": 685.599,
+      "end": 686.52,
+      "en": "Now we know what's going on.",
+      "zh": "現在就知道進度，"
+    },
+    {
+      "start": 686.52,
+      "end": 689.119,
+      "en": "We know how many chunks there are. Okay.",
+      "zh": "也知道總共有多少區塊。"
+    },
+    {
+      "start": 689.119,
+      "end": 693.28,
+      "en": "Now we'll embed all the chunks in one API call, a batch embed.",
+      "zh": "接著用一次 API 呼叫對全部區塊建立嵌入，也就是批次嵌入。"
+    },
+    {
+      "start": 693.28,
+      "end": 697.88,
+      "en": "It's much faster, particularly for long documents or a lot of chunks. Okay.",
+      "zh": "這樣快得多，尤其文件很長或區塊很多時。"
+    },
+    {
+      "start": 697.88,
+      "end": 708.2,
+      "en": "So embeddings, a variable name I'm choosing right now, that's going to be equal to, and all I have to do is to call self.embedder.embed, that method we set up.",
+      "zh": "宣告我現在取名的 embeddings，只要呼叫之前建立的 self.embedder.embed。"
+    },
+    {
+      "start": 708.2,
+      "end": 711.08,
+      "en": "And all that needs, we'll put it in square brackets.",
+      "zh": "它需要的參數用方括號建立串列，"
+    },
+    {
+      "start": 711.119,
+      "end": 713.479,
+      "en": "We'll say c.text.",
+      "zh": "內容是 c.text。"
+    },
+    {
+      "start": 713.479,
+      "end": 714.88,
+      "en": "Where do we get c?",
+      "zh": "c 從哪裡來？"
+    },
+    {
+      "start": 714.88,
+      "end": 718.039,
+      "en": "Well, for c in chunks.",
+      "zh": "就是 for c in chunks。"
+    },
+    {
+      "start": 718.039,
+      "end": 720.599,
+      "en": "Much faster to do it this way. Okay.",
+      "zh": "這樣做快很多。"
+    },
+    {
+      "start": 720.599,
+      "end": 721.96,
+      "en": "And now we have some embeddings.",
+      "zh": "現在有一些嵌入向量了。"
+    },
+    {
+      "start": 721.96,
+      "end": 723.479,
+      "en": "So we come down here.",
+      "zh": "接著到下面，"
+    },
+    {
+      "start": 723.479,
+      "end": 730.039,
+      "en": "Let's declare a variable, stored, and we'll make that equal to in square brackets. Okay.",
+      "zh": "宣告 stored，值是一個串列。"
+    },
+    {
+      "start": 730.039,
+      "end": 735.2,
+      "en": "We'll set up a stored chunk, which we imported just a little while ago. Okay.",
+      "zh": "裡面建立剛才匯入的 StoredChunk，"
+    },
+    {
+      "start": 735.2,
+      "end": 738.96,
+      "en": "And then in parentheses, and then a multiple line so it's more readable.",
+      "zh": "加上括號，分成多行提高可讀性。"
+    },
+    {
+      "start": 738.96,
+      "end": 742.479,
+      "en": "We'll say index equals c.index.",
+      "zh": "設定 index=c.index，"
+    },
+    {
+      "start": 742.479,
+      "end": 744.679,
+      "en": "We'll get c just in a minute. Okay.",
+      "zh": "c 等一下就會取得。"
+    },
+    {
+      "start": 744.679,
+      "end": 747.159,
+      "en": "And then text is equal to c.text.",
+      "zh": "接著 text=c.text，"
+    },
+    {
+      "start": 749.28,
+      "end": 754.719,
+      "en": "I mean, make this uniform. That's better.",
+      "zh": "讓排版一致一些，這樣好看多了。"
+    },
+    {
+      "start": 756.719,
+      "end": 760.719,
+      "en": "And the third thing we want in here is the embedding, E-M-B-E-D.",
+      "zh": "第三項是 embedding，E-M-B-E-D，"
+    },
+    {
+      "start": 760.719,
+      "end": 768.4,
+      "en": "Embedding is equal to E-M-B. Okay. And metadata.",
+      "zh": "embedding 等於 emb，再來是 metadata，"
+    },
+    {
+      "start": 768.4,
+      "end": 769.559,
+      "en": "But we'll leave that empty for now.",
+      "zh": "目前先留空。"
+    },
+    {
+      "start": 769.559,
+      "end": 775.88,
+      "en": "Metadata equals, we'll just make it opening and closing curly brackets.",
+      "zh": "metadata 等於一對大括號，"
+    },
+    {
+      "start": 775.88,
+      "end": 777.919,
+      "en": "And that's valid JSON. Okay.",
+      "zh": "這是有效的 JSON 物件。"
+    },
+    {
+      "start": 777.919,
+      "end": 779.359,
+      "en": "Now we need to get our c.",
+      "zh": "現在需要取得 c，"
+    },
+    {
+      "start": 779.359,
+      "end": 788.2,
+      "en": "So down one more line, and then hit return for c, E-M-B, in, and we'll call zip. Okay.",
+      "zh": "下一行寫 for c, emb in，並呼叫 zip，"
+    },
+    {
+      "start": 788.2,
+      "end": 790.44,
+      "en": "That's available right in Python.",
+      "zh": "這是 Python 內建功能。"
+    },
+    {
+      "start": 790.44,
+      "end": 799.88,
+      "en": "And we give that chunks, and we give it embeddings, and we say strict equals true. Okay.",
+      "zh": "傳入 chunks 和 embeddings，並設定 strict=True。"
+    },
+    {
+      "start": 799.88,
+      "end": 807,
+      "en": "Now, zipped with strict equals true, that raises an error if two iterables have different lengths.",
+      "zh": "zip 的 strict=True 會在兩個可迭代物件長度不同時拋出錯誤。"
+    },
+    {
+      "start": 807,
+      "end": 812.359,
+      "en": "This is an easy defense against the embedder returning the wrong number of vectors. Okay.",
+      "zh": "這是個簡單的防護，避免嵌入器回傳錯誤數量的向量。"
+    },
+    {
+      "start": 812.359,
+      "end": 815.52,
+      "en": "So if that dies, we'll just raise an exception.",
+      "zh": "如果失敗，就會拋出例外。"
+    },
+    {
+      "start": 815.52,
+      "end": 820.08,
+      "en": "And the next thing we have to do, outside of stored, we have to do something with stored.",
+      "zh": "接著在 stored 的串列定義外面，要對 stored 做些事，"
+    },
+    {
+      "start": 820.08,
+      "end": 826.08,
+      "en": "We just say self.store, and we call upsert document right there.",
+      "zh": "呼叫 self.store.upsert_document。"
+    },
+    {
+      "start": 826.08,
+      "end": 831.76,
+      "en": "And all that requires is the source path, which we have already. Source path,",
+      "zh": "它需要 source_path，這個我們已經有了，"
+    },
+    {
+      "start": 833.119,
+      "end": 838.64,
+      "en": "the content hash, and store. Okay.",
+      "zh": "還有 content_hash 和 stored。"
+    },
+    {
+      "start": 838.64,
+      "end": 843.039,
+      "en": "And now we'll just say log.info, so we know what's going on. Ingested,",
+      "zh": "最後再呼叫 log.info，讓我們知道發生什麼事，訊息是「Ingested」，"
+    },
+    {
+      "start": 846.08,
+      "end": 850.039,
+      "en": "percent s, and then in parentheses, percent d chunks.",
+      "zh": "接著 %s，以及括號中的 %d chunks。"
+    },
+    {
+      "start": 852.84,
+      "end": 860.2,
+      "en": "And my substitutions for those placeholders, well, simple enough, path.name, name of the file we ingested, and the length of stored.",
+      "zh": "這些佔位符的代入值很簡單，就是已匯入檔案的 path.name，以及 len(stored)，"
+    },
+    {
+      "start": 860.2,
+      "end": 861.76,
+      "en": "That's how many chunks.",
+      "zh": "也就是區塊數量。"
+    },
+    {
+      "start": 861.76,
+      "end": 864.159,
+      "en": "And that should be it.",
+      "zh": "這樣應該就完成了，"
+    },
+    {
+      "start": 864.159,
+      "end": 865.52,
+      "en": "Unless we have some mistakes, okay?",
+      "zh": "除非還有錯誤。"
+    },
+    {
+      "start": 865.52,
+      "end": 867.479,
+      "en": "But we'll figure that out soon enough.",
+      "zh": "不過很快就會知道。"
+    },
+    {
+      "start": 868.32,
+      "end": 874.76,
+      "en": "So at this point, now we have our chunker, and we have our embedder, and we have the ingester. Okay?",
+      "zh": "目前已有切塊器、嵌入器，以及匯入器。"
+    },
+    {
+      "start": 874.76,
+      "end": 877.88,
+      "en": "So we're getting very close. Let's move on.",
+      "zh": "距離完成很近了。我們繼續。"
+    }
+  ]
+}

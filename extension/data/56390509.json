@@ -1,0 +1,949 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56390509",
+  "title": "Setting up upsert_document",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "512a389a1fa67bc6ceb45a7722fb51f362fed371c54737e1fc25467c6d0b3e0e",
+  "cues": [
+    {
+      "start": 0,
+      "end": 3.74,
+      "en": "So, we have hasDocument.",
+      "zh": "現在已經有 has_document 了。"
+    },
+    {
+      "start": 3.74,
+      "end": 6.099,
+      "en": "That method's been added to the Weave 8 store type.",
+      "zh": "這個方法已經加入 Weaviate 儲存類型。"
+    },
+    {
+      "start": 6.099,
+      "end": 9.06,
+      "en": "Now, if we go back over to base.py, what else do we need?",
+      "zh": "回到 base.py，看看還需要什麼。"
+    },
+    {
+      "start": 9.06,
+      "end": 16.18,
+      "en": "Well, we need hasDocument, and we also need upsertDocument that must have this exact function signature.",
+      "zh": "除了 has_document，還需要 upsert_document，而且函式簽章必須與這裡完全一致。"
+    },
+    {
+      "start": 16.18,
+      "end": 17.899,
+      "en": "Well, let's set that one up.",
+      "zh": "我們來建立這個方法。"
+    },
+    {
+      "start": 17.899,
+      "end": 20.26,
+      "en": "It's a little bit more code, but it's not difficult, okay?",
+      "zh": "程式碼稍微多一點，但並不困難。"
+    },
+    {
+      "start": 20.26,
+      "end": 23.26,
+      "en": "We're not actually writing SQL or anything comparable to that.",
+      "zh": "我們不需要實際撰寫 SQL 或類似的查詢。"
+    },
+    {
+      "start": 23.26,
+      "end": 25.139,
+      "en": "The client takes care of that for us.",
+      "zh": "用戶端會替我們處理。"
+    },
+    {
+      "start": 25.139,
+      "end": 36.38,
+      "en": "So back over in Weave 8.py, we'll add a new method, and we'll define upsertDocument, and I'm not going to use autocomplete because that will write all sorts of things I don't want, okay?",
+      "zh": "回到 weaviate.py，新增方法並定義 upsert_document。我先不使用自動完成，因為它會產生一些我不需要的內容。"
+    },
+    {
+      "start": 36.38,
+      "end": 39.459,
+      "en": "And then I'll put all the parameters on multiple lines.",
+      "zh": "接著把參數分成多行列出。"
+    },
+    {
+      "start": 39.459,
+      "end": 41.259,
+      "en": "The first one has to be self.",
+      "zh": "第一個必須是 self。"
+    },
+    {
+      "start": 41.259,
+      "end": 47.7,
+      "en": "The second one has to be, once again, source underscore path, and again, that's a string, so I'll type it into a string.",
+      "zh": "第二個同樣是 source_path，型別是字串，所以標註為 str。"
+    },
+    {
+      "start": 47.7,
+      "end": 52.939,
+      "en": "It needs the content hash, which is going to be a string.",
+      "zh": "還需要 content_hash，型別也是字串。"
+    },
+    {
+      "start": 52.939,
+      "end": 54.659,
+      "en": "It also needs the chunks, right?",
+      "zh": "當然也需要 chunks。"
+    },
+    {
+      "start": 54.68,
+      "end": 64.099,
+      "en": "We have to have the chunks to be able to insert things, and that's going to be a list of stored chunk right there, and we already did that import, so that's available to us.",
+      "zh": "要插入資料就必須有這些區塊，型別是 StoredChunk 的串列。我們之前已經匯入，所以可以直接使用。"
+    },
+    {
+      "start": 64.099,
+      "end": 67.5,
+      "en": "So we need the chunks, and the last thing we need is the metadata, okay?",
+      "zh": "需要 chunks，而最後一個參數是 metadata。"
+    },
+    {
+      "start": 67.5,
+      "end": 72.98,
+      "en": "And that's going to be a dictionary of string and any, okay?",
+      "zh": "它是鍵為 str、值為 Any 的字典。"
+    },
+    {
+      "start": 72.98,
+      "end": 80.059,
+      "en": "Or we'll also accept nothing, none equals none, and then a comma, okay?",
+      "zh": "我們也接受 None，預設值設為 None，最後加上逗號。"
+    },
+    {
+      "start": 80.059,
+      "end": 91.339,
+      "en": "And this doesn't return anything, so that must exactly match the function signature that we have in our base.py, so it returns nothing, not name, none, okay?",
+      "zh": "這個方法不回傳任何值，函式簽章必須與 base.py 完全一致，所以回傳型別是 None。不是 name，而是 None。"
+    },
+    {
+      "start": 91.339,
+      "end": 95.8,
+      "en": "Now same exact logic that we had in our Postgres store.",
+      "zh": "邏輯與 Postgres 儲存實作相同。"
+    },
+    {
+      "start": 95.8,
+      "end": 100.059,
+      "en": "We're going to atomically replace this document's chunks, okay?",
+      "zh": "我們要以原子方式替換這份文件的所有區塊。"
+    },
+    {
+      "start": 100.059,
+      "end": 107.22,
+      "en": "Now one of the things to bear in mind here is that Weaviate does not have multi-statement transactions like Postgres does, okay?",
+      "zh": "不過這裡要注意，Weaviate 沒有像 Postgres 那樣支援多陳述式交易。"
+    },
+    {
+      "start": 107.22,
+      "end": 108.97999999999999,
+      "en": "So instead, we'll do it in steps.",
+      "zh": "因此，我們改成分步驟處理。"
+    },
+    {
+      "start": 108.97999999999999,
+      "end": 114.97999999999999,
+      "en": "We'll delete all the existing objects for source path, and we'll batch insert the new chunks, okay?",
+      "zh": "先刪除 source_path 對應的所有既有物件，再以批次方式插入新區塊。"
+    },
+    {
+      "start": 114.97999999999999,
+      "end": 121.62,
+      "en": "Now if we did have a crash between steps, that would leave the document missing, which is a recoverable state.",
+      "zh": "如果兩個步驟之間發生當機，文件就會暫時缺失，但這種狀態可以復原。"
+    },
+    {
+      "start": 121.62,
+      "end": 125.019,
+      "en": "Rerunning ingest from the source file will restore it, okay?",
+      "zh": "只要從來源檔案重新執行資料匯入，就能還原。"
+    },
+    {
+      "start": 125.019,
+      "end": 127.08,
+      "en": "So we're going to have to keep that in mind.",
+      "zh": "這一點必須記住。"
+    },
+    {
+      "start": 127.08,
+      "end": 129.699,
+      "en": "So once again, let's get a collection. So call.",
+      "zh": "首先再次取得集合，變數命名為 col。"
+    },
+    {
+      "start": 129.699,
+      "end": 131.82,
+      "en": "I called it that in the last one, so let's be consistent.",
+      "zh": "上一個方法也是這樣命名，所以保持一致。"
+    },
+    {
+      "start": 131.82,
+      "end": 142.46,
+      "en": "And again, it's self.underscore connect, and again, we're going to do it on collections, and this time, we're going to, again, call get, and it's self.underscore the name of",
+      "zh": "同樣呼叫 self._connect()，再透過 collections 呼叫 get，並傳入 self 底下的"
+    },
+    {
+      "start": 142.46,
+      "end": 144.86,
+      "en": "our collection, collection name, okay?",
+      "zh": "集合名稱，也就是 _collection_name。"
+    },
+    {
+      "start": 144.86,
+      "end": 146.3,
+      "en": "So now we have our collection.",
+      "zh": "這樣就取得集合了。"
+    },
+    {
+      "start": 146.3,
+      "end": 149.539,
+      "en": "And once again, if it didn't exist, it would create it for us.",
+      "zh": "同樣地，如果集合不存在，就會替我們建立。"
+    },
+    {
+      "start": 149.539,
+      "end": 153.46,
+      "en": "So step one, wipe out all the old chunks for this document.",
+      "zh": "第一步，清除這份文件的所有舊區塊。"
+    },
+    {
+      "start": 153.46,
+      "end": 160.059,
+      "en": "So we'll say call, and here's how you delete things, .data, ., and we're going to call deleteMany right there.",
+      "zh": "使用 col.data，然後呼叫 delete_many。"
+    },
+    {
+      "start": 160.059,
+      "end": 164.94,
+      "en": "Not deleteById, but we're going to deleteMany, because we have lots of chunks to remove, possibly, okay?",
+      "zh": "不是 delete_by_id，而是 delete_many，因為可能需要刪除許多區塊。"
+    },
+    {
+      "start": 164.94,
+      "end": 168.22,
+      "en": "So we'll have at least one if this document exists.",
+      "zh": "如果文件已經存在，至少會有一個區塊。"
+    },
+    {
+      "start": 168.22,
+      "end": 173.38,
+      "en": "And then I'll make this readable by putting the parameter on the next line, where equals.",
+      "zh": "為了方便閱讀，把參數放到下一行，使用 where=。"
+    },
+    {
+      "start": 173.38,
+      "end": 176.41899999999998,
+      "en": "So this is like a where clause in Postgres.",
+      "zh": "這就像 Postgres 的 WHERE 子句。"
+    },
+    {
+      "start": 176.41899999999998,
+      "end": 183.539,
+      "en": "We're going to filter, once again, by property, once again, right there, and our property",
+      "zh": "同樣使用 Filter.by_property，指定的屬性"
+    },
+    {
+      "start": 183.539,
+      "end": 188.619,
+      "en": "comes from self.p.underscore sourcePath, right there, okay?",
+      "zh": "來自 self.p_source_path，就是這個。"
+    },
+    {
+      "start": 188.619,
+      "end": 196.179,
+      "en": "And we're going to make that equal to, this is our condition, sourcePath, right there, then down here.",
+      "zh": "再以 equal(source_path) 設定比對條件，接著繼續往下寫。"
+    },
+    {
+      "start": 196.179,
+      "end": 200.699,
+      "en": "Now, let's make sure we actually have chunks to insert, okay?",
+      "zh": "現在確認是否真的有區塊要插入。"
+    },
+    {
+      "start": 200.699,
+      "end": 209.38,
+      "en": "So if not, and this is the parameter chunks, which we get as a call to this method, well, if there's no chunks, we'll just return, okay?",
+      "zh": "如果沒有 chunks，也就是呼叫這個方法時傳入的區塊參數為空，就直接 return。"
+    },
+    {
+      "start": 209.38,
+      "end": 210.779,
+      "en": "There's nothing to do.",
+      "zh": "因為沒有其他事情要做。"
+    },
+    {
+      "start": 210.779,
+      "end": 218.339,
+      "en": "Now, let's set up a few variables, ingestedAt, we're going to need that, ingestedAt, a variable name I'm choosing right now.",
+      "zh": "接著設定幾個變數。首先需要 ingested_at，這是我現在選用的變數名稱。"
+    },
+    {
+      "start": 218.5,
+      "end": 224.38,
+      "en": "We'll just get that from dateTime, not dataTime, dateTime.now.",
+      "zh": "從 datetime 取得。不是 datatime，而是 datetime.now。"
+    },
+    {
+      "start": 224.38,
+      "end": 228.059,
+      "en": "And we're going to use timeZone, and this is important.",
+      "zh": "這裡要使用時區，而且這很重要。"
+    },
+    {
+      "start": 228.059,
+      "end": 229.66,
+      "en": "We're going to use the UTC timeZone.",
+      "zh": "使用 UTC 時區。"
+    },
+    {
+      "start": 229.66,
+      "end": 237.5,
+      "en": "You don't want to use your local timeZone because that will cause problems if you have people accessing this from multiple locations around the planet.",
+      "zh": "不要使用本地時區，否則全球不同地點的人存取資料時，可能產生問題。"
+    },
+    {
+      "start": 237.5,
+      "end": 244.02,
+      "en": "So everything is going to be UTC, just for consistency and to make things as simple as we possibly can.",
+      "zh": "因此全部採用 UTC，保持一致，也盡量簡化處理。"
+    },
+    {
+      "start": 244.02,
+      "end": 252.66,
+      "en": "Now, let's set up some metadata, doc underscore, and this is the metadata for the document, metadata underscore JSON, okay?",
+      "zh": "接著設定文件的中繼資料，變數名稱是 doc_metadata_json。"
+    },
+    {
+      "start": 252.66,
+      "end": 260.38,
+      "en": "That's going to be equal to, and we'll use from the JSON package, part of the standard library, dumpS, dump to a string.",
+      "zh": "它的值使用標準函式庫 json 套件中的 dumps，也就是序列化成字串。"
+    },
+    {
+      "start": 260.38,
+      "end": 268.22,
+      "en": "And we're going to dump metadata, okay, which we get as a call to this function, or we'll just use an empty value like that, okay?",
+      "zh": "把呼叫此函式時傳入的 metadata 序列化；若沒有，就使用空字典。"
+    },
+    {
+      "start": 268.22,
+      "end": 271.14,
+      "en": "So it's something valid we can actually store.",
+      "zh": "這樣就能得到可實際儲存的有效資料。"
+    },
+    {
+      "start": 271.14,
+      "end": 274.92,
+      "en": "So now I have ingestedAt, and I have the document metadata, and now we want chunkCount.",
+      "zh": "現在有 ingested_at 和文件中繼資料，接下來需要 chunk_count。"
+    },
+    {
+      "start": 274.92,
+      "end": 278.019,
+      "en": "We know we have chunks because we got past line 93, right?",
+      "zh": "執行到第 93 行之後，就表示確實有區塊，對吧？"
+    },
+    {
+      "start": 278.019,
+      "end": 285.5,
+      "en": "So chunk underscore count, that will be equal to the length of chunks. Simple enough. There.",
+      "zh": "所以 chunk_count 就等於 len(chunks)，很簡單。"
+    },
+    {
+      "start": 285.5,
+      "end": 287.98,
+      "en": "I have those three values, okay?",
+      "zh": "這三個值就準備好了。"
+    },
+    {
+      "start": 287.98,
+      "end": 291.339,
+      "en": "So step one was wipe out all the old chunks for this document.",
+      "zh": "第一步是清除這份文件的所有舊區塊。"
+    },
+    {
+      "start": 291.339,
+      "end": 296.899,
+      "en": "And we did that, and we initialized some variables, ingestedAt, doc, metadata, JSON, and chunkCount.",
+      "zh": "我們已完成，並初始化 ingested_at、doc_metadata_json 和 chunk_count。"
+    },
+    {
+      "start": 296.899,
+      "end": 301.019,
+      "en": "Step two, batch insert the new chunks, okay?",
+      "zh": "第二步是批次插入新區塊。"
+    },
+    {
+      "start": 301.019,
+      "end": 307.859,
+      "en": "Now this is one of the helpful things about using Weaviate, is we're going to use a method called batch.dynamic.",
+      "zh": "使用 Weaviate 的一個便利之處，就是可以呼叫 batch.dynamic。"
+    },
+    {
+      "start": 307.859,
+      "end": 313.079,
+      "en": "And that will automatically choose a batch size for us based upon server feedback.",
+      "zh": "它會依照伺服器回饋，自動替我們選擇批次大小。"
+    },
+    {
+      "start": 313.079,
+      "end": 316.7,
+      "en": "We don't have to tune it ourselves, okay? So it's simple.",
+      "zh": "不用自己調整，所以很簡單。"
+    },
+    {
+      "start": 316.7,
+      "end": 318.579,
+      "en": "It's a bit of code, but it's not complex.",
+      "zh": "雖然程式碼有一點多，但並不複雜。"
+    },
+    {
+      "start": 318.579,
+      "end": 326.66,
+      "en": "With, if I spell with right, with from our collection call, we'll call batch.dynamic, okay?",
+      "zh": "使用 with，先把 with 拼對，再對集合 col 呼叫 batch.dynamic。"
+    },
+    {
+      "start": 327.42,
+      "end": 333.859,
+      "en": "With opening and closing parentheses, and then we'll say as batch, okay?",
+      "zh": "加上左右括號，接著寫 as batch。"
+    },
+    {
+      "start": 333.859,
+      "end": 335.019,
+      "en": "And we just have a for loop.",
+      "zh": "然後加上一個 for 迴圈。"
+    },
+    {
+      "start": 335.019,
+      "end": 337.5,
+      "en": "For C and chunks, we go through all our chunks, okay?",
+      "zh": "用 for c in chunks 走訪所有區塊。"
+    },
+    {
+      "start": 337.5,
+      "end": 339.22,
+      "en": "And what do we do inside of here?",
+      "zh": "迴圈裡面要做什麼？"
+    },
+    {
+      "start": 339.22,
+      "end": 345.339,
+      "en": "Well, we're going to say batch dot, and we'll call add object, and we're going to add an object.",
+      "zh": "呼叫 batch.add_object，加入一個物件。"
+    },
+    {
+      "start": 345.339,
+      "end": 348.299,
+      "en": "And that object must have properties, okay?",
+      "zh": "這個物件必須具有屬性。"
+    },
+    {
+      "start": 348.299,
+      "end": 355.14,
+      "en": "So we'll say properties equals, and then in curly brackets, we set up its properties.",
+      "zh": "因此傳入 properties=，再用大括號建立屬性字典。"
+    },
+    {
+      "start": 355.14,
+      "end": 358.779,
+      "en": "Self dot p underscore source path, that's the first one, okay?",
+      "zh": "第一個鍵是 self.p_source_path。"
+    },
+    {
+      "start": 358.779,
+      "end": 361.82,
+      "en": "And then a colon, that's going to be source path.",
+      "zh": "冒號後面的值是 source_path。"
+    },
+    {
+      "start": 361.82,
+      "end": 363.64,
+      "en": "And the second one is content hash.",
+      "zh": "第二個是 content_hash。"
+    },
+    {
+      "start": 363.64,
+      "end": 367.779,
+      "en": "Self dot p underscore content hash, right there.",
+      "zh": "鍵是 self.p_content_hash。"
+    },
+    {
+      "start": 367.779,
+      "end": 371.6,
+      "en": "That will be content hash, which we get as a call to this, okay?",
+      "zh": "值則是呼叫此方法時傳入的 content_hash。"
+    },
+    {
+      "start": 371.6,
+      "end": 378.14,
+      "en": "And then self dot p underscore chunk index, right there, well, what's that going to be?",
+      "zh": "接著是 self.p_chunk_index，它的值應該是什麼？"
+    },
+    {
+      "start": 378.14,
+      "end": 380.38,
+      "en": "That's going to be the index of our for loop.",
+      "zh": "就是迴圈目前區塊的索引。"
+    },
+    {
+      "start": 380.38,
+      "end": 385.119,
+      "en": "So C dot index, okay?",
+      "zh": "也就是 c.index。"
+    },
+    {
+      "start": 385.119,
+      "end": 393.839,
+      "en": "So we have source path, we have content hash, we have chunk index, well, there's the actual content, self dot p underscore content, right there.",
+      "zh": "已有 source_path、content_hash 和 chunk_index，接下來是實際內容，鍵是 self.p_content。"
+    },
+    {
+      "start": 393.839,
+      "end": 402.399,
+      "en": "And of course, that's just going to be whatever's in C dot text for the current chunk, okay?",
+      "zh": "值當然是目前區塊的 c.text。"
+    },
+    {
+      "start": 402.399,
+      "end": 407.6,
+      "en": "And then we need the metadata, self dot p underscore chunk metadata, right there.",
+      "zh": "接著需要區塊的中繼資料，鍵是 self.p_chunk_metadata。"
+    },
+    {
+      "start": 407.6,
+      "end": 409.519,
+      "en": "Well, what's that going to be?",
+      "zh": "它的值是什麼呢？"
+    },
+    {
+      "start": 409.839,
+      "end": 415.679,
+      "en": "Well, here, we just say JSON, once again, it's JSON dot dump as, we dump as a string.",
+      "zh": "同樣使用 json.dumps，序列化成字串。"
+    },
+    {
+      "start": 415.679,
+      "end": 422.76,
+      "en": "And it's C dot metadata, if we have any, or an empty value, okay?",
+      "zh": "如果 c.metadata 有值，就使用它，否則使用空字典。"
+    },
+    {
+      "start": 422.76,
+      "end": 423.76,
+      "en": "That's the metadata.",
+      "zh": "這就是區塊中繼資料。"
+    },
+    {
+      "start": 423.76,
+      "end": 424.839,
+      "en": "There's only a few left.",
+      "zh": "只剩下幾個屬性。"
+    },
+    {
+      "start": 424.839,
+      "end": 437.279,
+      "en": "There's the document metadata, self dot p underscore document metadata, colon, doc metadata JSON. Try that again.",
+      "zh": "接著是文件中繼資料，self.p_document_metadata，冒號後面放 doc_metadata_json。再輸入一次。"
+    },
+    {
+      "start": 437.279,
+      "end": 439.279,
+      "en": "Doc metadata JSON, right there, okay?",
+      "zh": "就是 doc_metadata_json。"
+    },
+    {
+      "start": 440.04,
+      "end": 441.04,
+      "en": "And we just set that up.",
+      "zh": "這是剛剛設定好的。"
+    },
+    {
+      "start": 441.04,
+      "end": 445.559,
+      "en": "And it might be empty, but it's a valid content load, in any case, okay?",
+      "zh": "它可能是空的，但無論如何都是有效的資料內容。"
+    },
+    {
+      "start": 445.559,
+      "end": 452.15999999999997,
+      "en": "Then we need ingested at, self dot p underscore ingested at, and we just set that up.",
+      "zh": "接著需要 self.p_ingested_at，這個值也已經準備好了。"
+    },
+    {
+      "start": 452.15999999999997,
+      "end": 454.92,
+      "en": "That's just ingested at, okay?",
+      "zh": "直接使用 ingested_at。"
+    },
+    {
+      "start": 454.92,
+      "end": 461.799,
+      "en": "And I think the last one is the chunk count, self dot p underscore chunk count, and again, we just set that up.",
+      "zh": "我想最後一個就是區塊數量 self.p_chunk_count，同樣已經準備好。"
+    },
+    {
+      "start": 461.799,
+      "end": 465.04,
+      "en": "That's chunk count, right there, okay?",
+      "zh": "它的值是 chunk_count。"
+    },
+    {
+      "start": 465.04,
+      "end": 468.079,
+      "en": "So that's our batch add properties.",
+      "zh": "以上就是批次加入物件時的屬性。"
+    },
+    {
+      "start": 469.04,
+      "end": 474.359,
+      "en": "Now, the one thing missing, of course, is the most critical thing, and that's the vector embedding.",
+      "zh": "不過還缺少最重要的部分，也就是嵌入向量。"
+    },
+    {
+      "start": 474.359,
+      "end": 477.48,
+      "en": "And as I said a while ago, we're going to do that ourselves.",
+      "zh": "正如我剛才所說，這部分由我們自己處理。"
+    },
+    {
+      "start": 477.48,
+      "end": 481,
+      "en": "Weave8 will actually do this for us, but I want to do it manually.",
+      "zh": "Weaviate 其實可以代勞，但我想手動完成。"
+    },
+    {
+      "start": 481,
+      "end": 487.959,
+      "en": "So I'll put a comma here, and the next line is just vector, which is right there, equals, and that's just C dot embedding.",
+      "zh": "所以這裡加上逗號，下一行傳入 vector=，它的值就是 c.embedding。"
+    },
+    {
+      "start": 487.959,
+      "end": 491.32,
+      "en": "We already have it by the time we get here, okay?",
+      "zh": "執行到這裡時，我們已經有這個嵌入向量了。"
+    },
+    {
+      "start": 491.32,
+      "end": 495.079,
+      "en": "So that will take care of the batch insert.",
+      "zh": "這樣就能完成批次插入。"
+    },
+    {
+      "start": 495.079,
+      "end": 497.04,
+      "en": "But we have one more thing to worry about.",
+      "zh": "但還有一件事情需要處理。"
+    },
+    {
+      "start": 497.04,
+      "end": 498.399,
+      "en": "What if we have a failure?",
+      "zh": "如果發生失敗怎麼辦？"
+    },
+    {
+      "start": 498.399,
+      "end": 505.399,
+      "en": "So down here, at the same level as with, so back over one and back over one more, okay?",
+      "zh": "在下面，縮排退回與 with 相同的層級，再退回一層。"
+    },
+    {
+      "start": 505.399,
+      "end": 509.359,
+      "en": "We need to see if any individual add object failed, okay?",
+      "zh": "必須檢查是否有個別的 add_object 操作失敗。"
+    },
+    {
+      "start": 509.359,
+      "end": 510.76,
+      "en": "So that would be a bit of problem.",
+      "zh": "因為這會造成問題。"
+    },
+    {
+      "start": 510.76,
+      "end": 513.599,
+      "en": "So what we'll do is just raise an error loudly.",
+      "zh": "我們要明確地拋出錯誤。"
+    },
+    {
+      "start": 513.599,
+      "end": 525.52,
+      "en": "We'll say, failed, we'll make that equal to call, which is our collection, batch, and then failed objects, okay?",
+      "zh": "建立 failed 變數，值設為集合 col 的 batch.failed_objects。"
+    },
+    {
+      "start": 525.52,
+      "end": 529.96,
+      "en": "That's available to us right from our client, and we just check to see if that's true.",
+      "zh": "用戶端直接提供這個資訊，我們只要檢查它是否為真值。"
+    },
+    {
+      "start": 529.96,
+      "end": 538.479,
+      "en": "If failed, then something went wrong, and all we'll do is raise a runtime error.",
+      "zh": "如果 failed 為真，就代表出了問題，接著拋出 RuntimeError。"
+    },
+    {
+      "start": 538.479,
+      "end": 541.119,
+      "en": "Runtime error, not a warning, but an error, okay?",
+      "zh": "是 RuntimeError，不是警告，而是錯誤。"
+    },
+    {
+      "start": 541.119,
+      "end": 544.599,
+      "en": "We'll raise that, and we'll use a couple of format strings.",
+      "zh": "拋出例外，訊息使用兩個格式化字串。"
+    },
+    {
+      "start": 544.599,
+      "end": 554.76,
+      "en": "So the first one, F and then quotes, weaviate, batch, insert, failed, for, and then in curly",
+      "zh": "第一個先輸入 f 和引號，寫上 Weaviate batch insert failed for，再以大括號"
+    },
+    {
+      "start": 554.76,
+      "end": 563.08,
+      "en": "brackets, the length of failed, and then outside of curly brackets, we can say, objects.",
+      "zh": "放入 len(failed)，大括號後面加上 objects。"
+    },
+    {
+      "start": 563.08,
+      "end": 566.119,
+      "en": "And we'll put it like that, because there might just be one, okay?",
+      "zh": "用這種寫法，因為也可能只有一個物件失敗。"
+    },
+    {
+      "start": 566.119,
+      "end": 571.78,
+      "en": "And then a semicolon outside of the curly brackets, and then a space.",
+      "zh": "然後在大括號外面加上分號，再加一個空格。"
+    },
+    {
+      "start": 571.78,
+      "end": 577.059,
+      "en": "And then on the next line, and I think I have the curly bracket in the wrong spot. I do.",
+      "zh": "下一行，我想這裡的大括號放錯位置了，確實如此。"
+    },
+    {
+      "start": 577.059,
+      "end": 582.219,
+      "en": "We'll close this one and get rid of that one, which we don't need.",
+      "zh": "在這邊關閉括號，並刪掉不需要的那一個。"
+    },
+    {
+      "start": 582.219,
+      "end": 584.26,
+      "en": "That's better, okay?",
+      "zh": "這樣就對了。"
+    },
+    {
+      "start": 584.26,
+      "end": 589.059,
+      "en": "And the second line, after the semicolon, we'll just say, first error.",
+      "zh": "第二行，也就是分號後面，寫 first error。"
+    },
+    {
+      "start": 589.059,
+      "end": 591.099,
+      "en": "We'll just give the first error, okay?",
+      "zh": "只列出第一個錯誤即可。"
+    },
+    {
+      "start": 591.099,
+      "end": 601.46,
+      "en": "And in curly brackets, we'll just say, failed, at index zero, and it has a property called message, okay?",
+      "zh": "大括號裡面寫 failed[0]，它有一個 message 屬性。"
+    },
+    {
+      "start": 601.46,
+      "end": 607.539,
+      "en": "So that should be our entire upsert document method.",
+      "zh": "這應該就是完整的 upsert_document 方法了。"
+    },
+    {
+      "start": 607.539,
+      "end": 609.58,
+      "en": "Now let's make sure we don't have any typos in here.",
+      "zh": "現在確認一下有沒有打錯字。"
+    },
+    {
+      "start": 609.58,
+      "end": 613.26,
+      "en": "I haven't had a coffee yet, and it's first thing in the morning, and I tend to make mistakes.",
+      "zh": "一大早我還沒喝咖啡，容易出錯。"
+    },
+    {
+      "start": 613.26,
+      "end": 615.619,
+      "en": "So let's just go through this.",
+      "zh": "所以我們再檢查一次。"
+    },
+    {
+      "start": 615.619,
+      "end": 617.099,
+      "en": "So that looks okay.",
+      "zh": "這裡看起來沒問題。"
+    },
+    {
+      "start": 617.099,
+      "end": 618.659,
+      "en": "We get our collection.",
+      "zh": "首先取得集合。"
+    },
+    {
+      "start": 618.659,
+      "end": 622.14,
+      "en": "We delete many, and all of that looks okay.",
+      "zh": "呼叫 delete_many，這部分看起來也沒問題。"
+    },
+    {
+      "start": 622.14,
+      "end": 627.34,
+      "en": "We check for chunks being zero, and return if it is. Good.",
+      "zh": "檢查區塊數量是否為零，若為零就回傳，沒問題。"
+    },
+    {
+      "start": 627.34,
+      "end": 629.979,
+      "en": "We set up these three values. No problem.",
+      "zh": "接著設定這三個值，也沒問題。"
+    },
+    {
+      "start": 629.979,
+      "end": 634.739,
+      "en": "We have our with call.batch.dynamic to do the insert of the chunks.",
+      "zh": "使用 with col.batch.dynamic 來插入區塊。"
+    },
+    {
+      "start": 634.739,
+      "end": 636.46,
+      "en": "We have a for loop.",
+      "zh": "裡面有一個 for 迴圈。"
+    },
+    {
+      "start": 636.46,
+      "end": 641.099,
+      "en": "We have source path, content hash, index, T-E-X-T.",
+      "zh": "有 source_path、content_hash、index，以及 text，拼成 T-E-X-T。"
+    },
+    {
+      "start": 641.099,
+      "end": 644.78,
+      "en": "That should be T-E-X-T, not T-X-T. Okay.",
+      "zh": "應該是 T-E-X-T，不是 T-X-T。"
+    },
+    {
+      "start": 644.78,
+      "end": 647.419,
+      "en": "So there's one mistake.",
+      "zh": "這裡就有一個錯字。"
+    },
+    {
+      "start": 647.419,
+      "end": 650.859,
+      "en": "Then we have JSON dump S. That's good.",
+      "zh": "接著是 json.dumps，沒問題。"
+    },
+    {
+      "start": 650.859,
+      "end": 656.7,
+      "en": "Then we have document metadata. That's good. All right.",
+      "zh": "再來是文件中繼資料，也沒問題。"
+    },
+    {
+      "start": 656.7,
+      "end": 657.979,
+      "en": "That looks okay.",
+      "zh": "這裡看起來沒問題。"
+    },
+    {
+      "start": 657.979,
+      "end": 663.14,
+      "en": "Then here, call.bath, call.batch.",
+      "zh": "然後這裡的 col.bath，應該改成 col.batch。"
+    },
+    {
+      "start": 663.14,
+      "end": 664.14,
+      "en": "That's two typos.",
+      "zh": "這是第二個錯字。"
+    },
+    {
+      "start": 664.14,
+      "end": 666.659,
+      "en": "I definitely need more caffeine.",
+      "zh": "我真的需要再補充一些咖啡因。"
+    },
+    {
+      "start": 666.659,
+      "end": 670.099,
+      "en": "And then if failed, we don't want to raise a one runtime warning.",
+      "zh": "接著在 if failed 裡面，不是要拋出 RuntimeWarning。"
+    },
+    {
+      "start": 670.099,
+      "end": 676.179,
+      "en": "We want a runtime error, and I think I said that as I typed it. Runtime error. Okay.",
+      "zh": "我們要的是 RuntimeError。我想剛剛輸入時也是這樣說的，RuntimeError。"
+    },
+    {
+      "start": 676.179,
+      "end": 679.82,
+      "en": "Hopefully, that's all the typos that we had. Perfect.",
+      "zh": "希望這就是全部的錯字了，很好。"
+    },
+    {
+      "start": 679.82,
+      "end": 686.9,
+      "en": "So at this point, we have two of the required methods to satisfy base.py for our Weave8 store.",
+      "zh": "到目前為止，Weaviate 儲存實作已經有兩個符合 base.py 要求的方法。"
+    },
+    {
+      "start": 686.9,
+      "end": 689.26,
+      "en": "We have hasDocument and we have upsertDocument.",
+      "zh": "也就是 has_document 和 upsert_document。"
+    },
+    {
+      "start": 689.26,
+      "end": 691.299,
+      "en": "Let's see what else we have over in base.py.",
+      "zh": "來看看 base.py 還要求哪些方法。"
+    },
+    {
+      "start": 691.299,
+      "end": 696.34,
+      "en": "Well, we have hasDocument, upsertDocument, and deleteDocument.",
+      "zh": "這裡有 has_document、upsert_document 和 delete_document。"
+    },
+    {
+      "start": 696.34,
+      "end": 697.34,
+      "en": "That's an easy one.",
+      "zh": "下一個很簡單。"
+    },
+    {
+      "start": 697.34,
+      "end": 700.059,
+      "en": "We'll take care of that one in the next lecture.",
+      "zh": "我們在下一堂課實作它。"
+    },
+    {
+      "start": 700.059,
+      "end": 700.659,
+      "en": "So let's move on.",
+      "zh": "繼續往下吧。"
+    }
+  ]
+}

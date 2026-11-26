@@ -1,0 +1,469 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56343301",
+  "title": "Setting up the query",
+  "section": 5,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "f668320141994bd9b0b9445059330836a0342c066f3f5260bc32988bbffdf4e5",
+  "cues": [
+    {
+      "start": 0,
+      "end": 5.719,
+      "en": "So, this time around, we want to turn our attention to setting up the query, OK?",
+      "zh": "這堂課要開始設定查詢。"
+    },
+    {
+      "start": 5.719,
+      "end": 15.88,
+      "en": "But before we do that, you might have been asking yourself why, here in Postgres.py, in this search that we just set up, you notice that we have this parameter queryText that's",
+      "zh": "不過在開始前，你可能會想問：在 postgres.py 剛建立的 search 裡，為什麼 query_text 這個參數"
+    },
+    {
+      "start": 15.88,
+      "end": 18,
+      "en": "not actually used.",
+      "zh": "實際上沒有使用？"
+    },
+    {
+      "start": 18,
+      "end": 19.5,
+      "en": "And there's a reason for that.",
+      "zh": "這是有原因的。"
+    },
+    {
+      "start": 19.5,
+      "end": 27.18,
+      "en": "We have that parameter because this is part of the abstract VectorStore.search contract, the one we set up over in Base.py.",
+      "zh": "因為它是抽象 VectorStore.search 契約的一部分，也就是 base.py 裡定義的契約。"
+    },
+    {
+      "start": 27.18,
+      "end": 30.559,
+      "en": "And it's not something that this implementation needs yet.",
+      "zh": "目前這個實作還不需要使用它。"
+    },
+    {
+      "start": 30.559,
+      "end": 41.9,
+      "en": "So the interface has to accept both queryText, a raw string, and queryEmbedding, which is a vector, so that any concrete backend is free to do any kind of search it wants.",
+      "zh": "介面必須同時接受原始字串 query_text，以及向量 query_embedding，讓任何具體後端都能自由選擇搜尋方式，"
+    },
+    {
+      "start": 41.9,
+      "end": 44.779,
+      "en": "Dense only, lexical only, so on and so forth, OK?",
+      "zh": "例如只使用稠密向量、只使用詞彙搜尋等等。"
+    },
+    {
+      "start": 44.779,
+      "end": 47.459,
+      "en": "There's lots of ways of querying a VectorStore.",
+      "zh": "查詢向量儲存區的方法有很多。"
+    },
+    {
+      "start": 47.459,
+      "end": 54.919,
+      "en": "So at the end of this section, PostgresStore, the one that we're defining right here in Postgres.py, it does a pure dense search.",
+      "zh": "在這一節結束時，我們於 postgres.py 定義的 PostgresStore 只會執行純稠密向量搜尋，"
+    },
+    {
+      "start": 54.919,
+      "end": 56.619,
+      "en": "So it really only needs the vector.",
+      "zh": "所以它只需要向量，"
+    },
+    {
+      "start": 56.619,
+      "end": 59.619,
+      "en": "The text would get ignored in any case.",
+      "zh": "文字不管怎樣都會被忽略。"
+    },
+    {
+      "start": 59.619,
+      "end": 70.419,
+      "en": "Now this contract, the one that accepts queryText, we have that in place because later on we're going to implement hybrid search, and we'll need that at that point, OK?",
+      "zh": "契約預先接受 query_text，是因為稍後會實作混合搜尋，到時就需要它。"
+    },
+    {
+      "start": 70.419,
+      "end": 73.059,
+      "en": "So for right now, just ignore that parameter.",
+      "zh": "所以現在先忽略這個參數，"
+    },
+    {
+      "start": 73.059,
+      "end": 76.5,
+      "en": "It needs to be there to satisfy the contract, but we're not using it yet.",
+      "zh": "它為了滿足契約而必須存在，但目前尚未使用。"
+    },
+    {
+      "start": 76.5,
+      "end": 77.959,
+      "en": "So don't worry about that.",
+      "zh": "不用擔心。"
+    },
+    {
+      "start": 77.959,
+      "end": 80.879,
+      "en": "So now let's get started setting up the query, OK?",
+      "zh": "現在開始設定查詢。"
+    },
+    {
+      "start": 80.879,
+      "end": 85.739,
+      "en": "So we're going to come over here and right-click on source.pyreg and create a new file.",
+      "zh": "到 src/pyrag 按右鍵，新增一個檔案，"
+    },
+    {
+      "start": 85.739,
+      "end": 91.339,
+      "en": "And I'll call that one query.py, Q-U-E-R-Y dot P-Y, OK?",
+      "zh": "命名為 query.py，Q-U-E-R-Y dot P-Y。"
+    },
+    {
+      "start": 91.339,
+      "end": 93.58,
+      "en": "And as usual, I'll set up my imports first.",
+      "zh": "一如往常，先設定匯入項目。"
+    },
+    {
+      "start": 93.58,
+      "end": 96.699,
+      "en": "And I'm going to want annotations, as I almost always do.",
+      "zh": "幾乎每次都會使用 annotations，"
+    },
+    {
+      "start": 96.699,
+      "end": 101.319,
+      "en": "So from future, we'll import annotations.",
+      "zh": "所以從 __future__ 匯入 annotations。"
+    },
+    {
+      "start": 101.319,
+      "end": 102.97999999999999,
+      "en": "And we're also going to need data classes.",
+      "zh": "另外還需要資料類別，"
+    },
+    {
+      "start": 102.97999999999999,
+      "end": 108.94,
+      "en": "So from data classes, we'll import data class.",
+      "zh": "從 dataclasses 匯入 dataclass。"
+    },
+    {
+      "start": 108.94,
+      "end": 118.18,
+      "en": "And then from our own files, from.embeddings, because it's in the current directory, we'll import embedder.",
+      "zh": "再從自己的檔案匯入，.embeddings 在目前目錄，從裡面匯入 Embedder。"
+    },
+    {
+      "start": 118.18,
+      "end": 123.66,
+      "en": "And from .stores, .base, we'll import search hit.",
+      "zh": "接著從 .stores.base 匯入 SearchHit，"
+    },
+    {
+      "start": 123.66,
+      "end": 126.019,
+      "en": "I had to spell that right.",
+      "zh": "得把它拼對。"
+    },
+    {
+      "start": 126.019,
+      "end": 131.279,
+      "en": "Import search hit and vector store, OK?",
+      "zh": "匯入 SearchHit 與 VectorStore。"
+    },
+    {
+      "start": 131.279,
+      "end": 133.059,
+      "en": "Now let's set up a data class.",
+      "zh": "現在建立一個資料類別。"
+    },
+    {
+      "start": 133.059,
+      "end": 138.339,
+      "en": "We'll use the annotation data class, and we'll set up one called, well, what are we doing here?",
+      "zh": "使用 @dataclass 裝飾器，名稱該叫什麼？我們要做的事情是"
+    },
+    {
+      "start": 138.339,
+      "end": 140.46,
+      "en": "We're going to be retrieving the context, OK?",
+      "zh": "檢索上下文，"
+    },
+    {
+      "start": 140.46,
+      "end": 147.5,
+      "en": "So retrieve retrieved context, OK?",
+      "zh": "所以叫做 RetrievedContext。"
+    },
+    {
+      "start": 147.5,
+      "end": 149.24,
+      "en": "And this is very simple.",
+      "zh": "這非常簡單，"
+    },
+    {
+      "start": 149.24,
+      "end": 153.5,
+      "en": "This is the output of retrieval call, just a list of hits for now, OK?",
+      "zh": "它是檢索呼叫的輸出，目前只是一個結果串列。"
+    },
+    {
+      "start": 153.5,
+      "end": 159.679,
+      "en": "And we're going to wrap it in a class instead of just passing a list of type search hit",
+      "zh": "我們用類別包裝，而不是直接傳遞 list[SearchHit]，"
+    },
+    {
+      "start": 159.679,
+      "end": 165.88,
+      "en": "so that later on, we can attach helper methods, formatting hits into a prompt block, all kinds of things, OK?",
+      "zh": "是為了之後能加入輔助方法，例如將結果格式化為提示詞區塊等功能。"
+    },
+    {
+      "start": 165.88,
+      "end": 167.6,
+      "en": "So we're just going to be extending this later on.",
+      "zh": "因此，稍後會擴充這個類別。"
+    },
+    {
+      "start": 167.6,
+      "end": 176.24,
+      "en": "So right now, all we need is hits, and that's of type list of search hits right there, OK?",
+      "zh": "現在只需要 hits，型別為 list[SearchHit]。"
+    },
+    {
+      "start": 176.24,
+      "end": 180.759,
+      "en": "So we'll be coming back to this later on and giving it methods and extending it somewhat.",
+      "zh": "之後會回來加方法，並進一步擴充。"
+    },
+    {
+      "start": 180.759,
+      "end": 184.699,
+      "en": "And we're also going to have one function, OK, not part of the class.",
+      "zh": "另外還需要一個函式，它不屬於這個類別。"
+    },
+    {
+      "start": 184.699,
+      "end": 189.679,
+      "en": "We'll define a function called retrieve, OK?",
+      "zh": "定義一個叫做 retrieve 的函式，"
+    },
+    {
+      "start": 189.679,
+      "end": 196.16,
+      "en": "And that's going to take as parameters a store of type vector store, and it's also going to take an embedder.",
+      "zh": "參數包含 VectorStore 型別的 store，以及一個 embedder，"
+    },
+    {
+      "start": 196.16,
+      "end": 201.44,
+      "en": "We'll need one of those of type embedder right there.",
+      "zh": "型別為 Embedder，我們需要它。"
+    },
+    {
+      "start": 201.44,
+      "end": 203.72,
+      "en": "And a question, what is the user asking?",
+      "zh": "還有 question，也就是使用者在問什麼，"
+    },
+    {
+      "start": 203.72,
+      "end": 205.6,
+      "en": "That's a string.",
+      "zh": "它是一個字串。"
+    },
+    {
+      "start": 205.6,
+      "end": 208,
+      "en": "And k, how many things are we going to return?",
+      "zh": "以及 k，表示要回傳幾筆結果，"
+    },
+    {
+      "start": 208,
+      "end": 209.36,
+      "en": "That'll just be an integer.",
+      "zh": "它就是整數。"
+    },
+    {
+      "start": 209.36,
+      "end": 214.86,
+      "en": "So when we do our retrieval, how many returns do we want?",
+      "zh": "也就是檢索時，希望取得多少筆結果。"
+    },
+    {
+      "start": 214.86,
+      "end": 223.679,
+      "en": "And this returns the type we just set up, a retrieved context right there, OK?",
+      "zh": "回傳型別是剛建立的 RetrievedContext。"
+    },
+    {
+      "start": 223.679,
+      "end": 225.039,
+      "en": "And I got too many parentheses there.",
+      "zh": "這裡多了一個括號，"
+    },
+    {
+      "start": 225.039,
+      "end": 229.52,
+      "en": "Let's get rid of this one.",
+      "zh": "刪掉這個。"
+    },
+    {
+      "start": 229.52,
+      "end": 232,
+      "en": "So what are we going to do in here?",
+      "zh": "那函式裡要做什麼？"
+    },
+    {
+      "start": 232,
+      "end": 237.179,
+      "en": "We're going to embed the question and ask the store for the top k hits. That's it, OK?",
+      "zh": "將問題轉成嵌入，並要求儲存區回傳前 k 筆結果，就這樣。"
+    },
+    {
+      "start": 237.179,
+      "end": 248.039,
+      "en": "So question is going to be passed as both the raw text, which we're not using over in our search method in our Postgres data store, but it will also be passed as an embedding.",
+      "zh": "因此 question 會以原始文字傳入，雖然目前 Postgres 儲存區的 search 還不使用它，同時也會以嵌入形式傳入，"
+    },
+    {
+      "start": 248.039,
+      "end": 250.279,
+      "en": "In other words, as a dense vector.",
+      "zh": "換句話說，就是稠密向量。"
+    },
+    {
+      "start": 250.279,
+      "end": 251.75900000000001,
+      "en": "That's the technical name for it, OK?",
+      "zh": "這是它的技術名稱。"
+    },
+    {
+      "start": 251.75900000000001,
+      "end": 254.6,
+      "en": "But we're only going to use this dense vector right now.",
+      "zh": "目前只使用這個稠密向量，"
+    },
+    {
+      "start": 254.6,
+      "end": 257.359,
+      "en": "Later on, we'll also use the question text.",
+      "zh": "稍後也會使用問題文字。"
+    },
+    {
+      "start": 257.359,
+      "end": 261.88,
+      "en": "So what we're going to do here is set up vec, like this, in square brackets, OK?",
+      "zh": "所以這裡用方括號包住 vec，"
+    },
+    {
+      "start": 261.88,
+      "end": 268.2,
+      "en": "And we'll make that equal to an embedder, which we get as a call to this function.",
+      "zh": "將它設為呼叫時傳入的 embedder，"
+    },
+    {
+      "start": 268.2,
+      "end": 270.179,
+      "en": "And we call embed, OK?",
+      "zh": "執行 embed 的結果。"
+    },
+    {
+      "start": 270.179,
+      "end": 273.799,
+      "en": "And all that requires is a question.",
+      "zh": "它只需要一個 question。"
+    },
+    {
+      "start": 273.799,
+      "end": 277.42,
+      "en": "And then we just return a retrieved context.",
+      "zh": "接著直接回傳 RetrievedContext，"
+    },
+    {
+      "start": 277.42,
+      "end": 289.26,
+      "en": "And we set it up with hits equal to store.search, question, vec, and k. And that's it. OK?",
+      "zh": "其中 hits 設為 store.search(question, vec, k)。就這樣。"
+    },
+    {
+      "start": 289.26,
+      "end": 292,
+      "en": "So that's our entire, for now, query.py file.",
+      "zh": "目前 query.py 的完整內容就是這些。"
+    },
+    {
+      "start": 292,
+      "end": 293.76,
+      "en": "It's very, very simple.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 293.76,
+      "end": 296.98,
+      "en": "We set up a data class that's a thin wrapper over this type.",
+      "zh": "我們建立一個資料類別，為這個型別加上一層簡單包裝，"
+    },
+    {
+      "start": 296.98,
+      "end": 303.42,
+      "en": "We define one function, retrieve, that takes a store, an embedder, the question, and how many things to return.",
+      "zh": "再定義 retrieve 函式，接收 store、embedder、question，以及要回傳的筆數。"
+    },
+    {
+      "start": 303.42,
+      "end": 308.42,
+      "en": "And then we return a retrieved context, OK, with the list of hits.",
+      "zh": "最後回傳包含結果串列的 RetrievedContext。"
+    },
+    {
+      "start": 308.42,
+      "end": 310.779,
+      "en": "So that's all this has to do.",
+      "zh": "它需要做的就是這些，"
+    },
+    {
+      "start": 310.779,
+      "end": 312.179,
+      "en": "And it's really simple.",
+      "zh": "而且非常簡單。"
+    },
+    {
+      "start": 312.179,
+      "end": 319.66,
+      "en": "Now, we have enough code set up that in the next lecture, we should be able to try to run this in the Python interpreter, OK?",
+      "zh": "現在程式碼已經足夠，下一堂應該就能在 Python 直譯器裡執行測試。"
+    },
+    {
+      "start": 319.66,
+      "end": 324.92,
+      "en": "So we'll just fire up Python-I and give this a try and find out what typos we made.",
+      "zh": "我們會啟動 python -i，實際試用並找出打字錯誤，"
+    },
+    {
+      "start": 324.92,
+      "end": 327.019,
+      "en": "Because there's almost certainly a mistake in here somewhere.",
+      "zh": "因為裡面幾乎肯定有某處寫錯，"
+    },
+    {
+      "start": 327.019,
+      "end": 330.26,
+      "en": "We've written a fair bit of code before we tried anything, OK?",
+      "zh": "畢竟已經寫了不少程式，卻還沒測試。"
+    },
+    {
+      "start": 330.26,
+      "end": 332.42,
+      "en": "So let's do that in the next lecture.",
+      "zh": "下一堂就來做。"
+    }
+  ]
+}

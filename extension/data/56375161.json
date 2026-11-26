@@ -1,0 +1,1573 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56375161",
+  "title": "Getting started: making the Postgres search method hybrid",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "359fcbaf26037da385bcda9049ff0a0edeee28ef72989da7c09288091e9885e7",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6.48,
+      "en": "So, in this section, we want to improve our retrieval process from the RAG store from",
+      "zh": "這一節要改善從 RAG 儲存區檢索資訊的流程，從"
+    },
+    {
+      "start": 6.48,
+      "end": 13.1,
+      "en": "a pure dense search, which does work, but has problems, as we saw at the end of the last lecture.",
+      "zh": "純稠密向量搜尋開始。它雖然能用，但如上一堂結尾所見，仍有問題。"
+    },
+    {
+      "start": 13.1,
+      "end": 20.52,
+      "en": "And we want to replace it with something called hybrid retrieval, which has all the benefits of dense search, plus some additional benefits.",
+      "zh": "我們要改成所謂混合檢索，保留稠密向量搜尋的優點，再增加其他優勢。"
+    },
+    {
+      "start": 20.52,
+      "end": 27.86,
+      "en": "So what we're going to be changing initially is here in the file postgres.py, which is over in stores, okay?",
+      "zh": "首先要修改的是 stores 裡的 postgres.py。"
+    },
+    {
+      "start": 27.86,
+      "end": 31.52,
+      "en": "This search function, this is the SQL we have right now.",
+      "zh": "這個 search 函式就是目前的 SQL，"
+    },
+    {
+      "start": 31.52,
+      "end": 34.439,
+      "en": "And that's a pure dense search, and it does work very well.",
+      "zh": "它是純稠密向量搜尋，而且效果很好。"
+    },
+    {
+      "start": 34.439,
+      "end": 39.139,
+      "en": "But let me go over to my Postgres client for a minute, okay?",
+      "zh": "不過先到 Postgres 用戶端，"
+    },
+    {
+      "start": 39.139,
+      "end": 40.72,
+      "en": "And look at this SQL, okay?",
+      "zh": "看看這段 SQL，"
+    },
+    {
+      "start": 40.72,
+      "end": 42.279,
+      "en": "It's not that much different.",
+      "zh": "其實差異沒有那麼大。"
+    },
+    {
+      "start": 42.279,
+      "end": 54.24,
+      "en": "Select DSourcePath, CChunkIndex, and then something called TSRank2TSVector in English with some content, and then plain 2TSQuery.",
+      "zh": "選取 d.source_path、c.chunk_index，再使用 ts_rank、英文的 to_tsvector 與內容，還有 plainto_tsquery。"
+    },
+    {
+      "start": 54.24,
+      "end": 55.52,
+      "en": "All of this is new, okay?",
+      "zh": "這些都是新的。"
+    },
+    {
+      "start": 55.54,
+      "end": 64.94,
+      "en": "Now, we can go through this in detail later on, but for right now, what we're going to do is search our existing vector store, which has two documents, one about vampires and",
+      "zh": "稍後可以仔細說明，但目前先搜尋既有向量儲存區，裡面有兩份文件，一份關於吸血鬼，"
+    },
+    {
+      "start": 64.94,
+      "end": 68.779,
+      "en": "one about that fictional creature called the Quirexel, okay?",
+      "zh": "另一份關於虛構生物 Quirexal。"
+    },
+    {
+      "start": 68.779,
+      "end": 74.459,
+      "en": "So we're changing it, and there's more work to do than just changing the SQL query, as you'll see in a moment, but it's not that hard.",
+      "zh": "因此我們要修改，不只更改 SQL，等一下會看到還有其他工作，但並不難。"
+    },
+    {
+      "start": 74.459,
+      "end": 76.779,
+      "en": "But let me just execute this statement.",
+      "zh": "先執行這段敘述，"
+    },
+    {
+      "start": 76.779,
+      "end": 82.18,
+      "en": "And you can see it did, in fact, find five results from Guardian.txt.",
+      "zh": "可以看到，確實找到五筆來自 guardian.txt 的結果。"
+    },
+    {
+      "start": 82.18,
+      "end": 90.379,
+      "en": "It found that text in five different locations and gave me those chunks all properly ordered with good scoring, okay?",
+      "zh": "在五個不同位置找到文字，回傳這些區塊，而且順序與分數都很合理。"
+    },
+    {
+      "start": 90.379,
+      "end": 93.08,
+      "en": "So that's what we want to turn our attention to this time around.",
+      "zh": "所以這堂課就要專注處理它。"
+    },
+    {
+      "start": 93.08,
+      "end": 101.319,
+      "en": "Okay, so let's go back over to Postgres.py and look at the function defsearch, okay? That method.",
+      "zh": "回到 postgres.py，看看 def search 這個方法，"
+    },
+    {
+      "start": 101.319,
+      "end": 104.839,
+      "en": "And we're going to rewrite this, and we're going to rewrite it using hybrid retrieval.",
+      "zh": "我們會用混合檢索重寫它。"
+    },
+    {
+      "start": 104.839,
+      "end": 111.75999999999999,
+      "en": "Technically, it's called dense vector plus lexical TS vector fused with RRF, which is",
+      "zh": "技術上稱為將稠密向量與詞彙 tsvector 透過 RRF 融合，RRF 就是"
+    },
+    {
+      "start": 111.86,
+      "end": 119.5,
+      "en": "reciprocal rank fusion, if you care about the actual terminology that's used by computer scientists, okay?",
+      "zh": "Reciprocal Rank Fusion，倒數排名融合，如果你想知道電腦科學家的正式用語。"
+    },
+    {
+      "start": 119.5,
+      "end": 123.739,
+      "en": "So what we're going to do here to start with is right here, okay?",
+      "zh": "首先要在這裡，"
+    },
+    {
+      "start": 123.739,
+      "end": 128.46,
+      "en": "After our function signature, we get our connection, self.connect, okay?",
+      "zh": "函式簽章後，透過 self._connect() 取得連線，"
+    },
+    {
+      "start": 128.46,
+      "end": 131.3,
+      "en": "So after that, I want to add a couple of things.",
+      "zh": "在它後面新增幾項設定。"
+    },
+    {
+      "start": 131.3,
+      "end": 134.02,
+      "en": "And to start with, I'm going to use something called candidates.",
+      "zh": "一開始使用一個叫 candidates 的變數，"
+    },
+    {
+      "start": 134.02,
+      "end": 137.25900000000001,
+      "en": "This is a variable we'll be using shortly. Candidates.",
+      "zh": "這個變數很快就會用到，candidates，"
+    },
+    {
+      "start": 137.25900000000001,
+      "end": 140.179,
+      "en": "I think I spelled that right, okay?",
+      "zh": "我想拼對了。"
+    },
+    {
+      "start": 140.6,
+      "end": 151.559,
+      "en": "And that's going to be equal to the max of either 20 or whatever our top k is set to, k times 4, okay?",
+      "zh": "它等於 max(20, k * 4)，也就是 20 與 top_k 乘以 4 的較大值。"
+    },
+    {
+      "start": 151.559,
+      "end": 153.52,
+      "en": "We'll take the greater of those two numbers.",
+      "zh": "我們取這兩個數字中較大的。"
+    },
+    {
+      "start": 153.52,
+      "end": 156.46,
+      "en": "Now there's a reason we're actually using more candidates.",
+      "zh": "多取一些候選結果是有原因的，"
+    },
+    {
+      "start": 156.46,
+      "end": 160.559,
+      "en": "We're doing this to make sure there's enough material to find genuine overlaps.",
+      "zh": "這是為了有足夠材料找出真正重疊的結果。"
+    },
+    {
+      "start": 160.559,
+      "end": 166.119,
+      "en": "So fusing two top 5k lists often produces really bad results.",
+      "zh": "只融合兩份各前五筆的清單，結果通常很糟。"
+    },
+    {
+      "start": 166.119,
+      "end": 172.22,
+      "en": "So what we're doing is taking either a maximum of 20 or a maximum of whatever k is set to times 4.",
+      "zh": "所以取 20 或 k 乘以 4 的較大值。"
+    },
+    {
+      "start": 172.22,
+      "end": 175.57999999999998,
+      "en": "So in our case, k is 5 by default, so it's the max of 20, 20.",
+      "zh": "這裡 k 預設為 5，所以是 max(20, 20)，"
+    },
+    {
+      "start": 175.57999999999998,
+      "end": 178.02,
+      "en": "We're going to be getting up to 20 candidates, okay?",
+      "zh": "最多會取得 20 個候選結果。"
+    },
+    {
+      "start": 178.02,
+      "end": 179.66,
+      "en": "So that's what that's for.",
+      "zh": "用途就是如此。"
+    },
+    {
+      "start": 179.66,
+      "end": 188.179,
+      "en": "And then we're going to set another variable to a default value, RRF, which stands for reciprocal rank fusion.",
+      "zh": "再設定另一個預設變數 RRF，代表倒數排名融合，"
+    },
+    {
+      "start": 188.179,
+      "end": 190.339,
+      "en": "We're going to set RRF underscore k.",
+      "zh": "名稱是 rrf_k，"
+    },
+    {
+      "start": 190.339,
+      "end": 192.38,
+      "en": "We're going to make that equal to 60, okay?",
+      "zh": "把它設為 60。"
+    },
+    {
+      "start": 192.38,
+      "end": 194.699,
+      "en": "So these are just some starting values.",
+      "zh": "這些只是起始設定。"
+    },
+    {
+      "start": 194.75900000000001,
+      "end": 201.96,
+      "en": "We're going to have 10 candidates, which will default to 20 in our case, and RRF underscore k, that will be 60.",
+      "zh": "我們有 candidates，這裡預設為 20，以及 rrf_k，值是 60。"
+    },
+    {
+      "start": 201.96,
+      "end": 207.839,
+      "en": "So what we're going to do, inside this with statement, let's just put a blank line here so it's a little more readable, okay?",
+      "zh": "接著在 with 敘述中先留個空白行，讓內容更好讀，"
+    },
+    {
+      "start": 207.839,
+      "end": 214.399,
+      "en": "Inside this with statement, we're still going to set our local HNSWEF search equal to 100, okay?",
+      "zh": "仍然將區域設定 hnsw.ef_search 設為 100，"
+    },
+    {
+      "start": 214.399,
+      "end": 216.8,
+      "en": "We're just widening the candidate list there is all we're doing.",
+      "zh": "只是擴大候選清單。"
+    },
+    {
+      "start": 216.8,
+      "end": 218.74,
+      "en": "Then we're going to have a statement here.",
+      "zh": "然後在這裡放入一段敘述，"
+    },
+    {
+      "start": 218.74,
+      "end": 221.16,
+      "en": "So I'm going to just get rid of this one altogether.",
+      "zh": "所以先把原本這段移除，"
+    },
+    {
+      "start": 221.16,
+      "end": 224,
+      "en": "We'll just delete all of this, okay?",
+      "zh": "整個刪掉，"
+    },
+    {
+      "start": 224,
+      "end": 225.74,
+      "en": "Just leave that empty for the moment.",
+      "zh": "暫時留空。"
+    },
+    {
+      "start": 225.74,
+      "end": 229.82,
+      "en": "So let me give it back its closing three quotation marks, okay?",
+      "zh": "先補回結尾的三個引號，"
+    },
+    {
+      "start": 229.82,
+      "end": 231.66,
+      "en": "We want to execute some SQL.",
+      "zh": "我們要執行 SQL。"
+    },
+    {
+      "start": 231.66,
+      "end": 236.339,
+      "en": "Now this is the dense semantic ranker.",
+      "zh": "這是稠密語意排序器，"
+    },
+    {
+      "start": 236.339,
+      "end": 238.86,
+      "en": "All we want to do here is to order the chunks.",
+      "zh": "要做的只是將區塊排序，"
+    },
+    {
+      "start": 238.86,
+      "end": 246.1,
+      "en": "All we want to do here is to order the chunks by their cosine distance to the query vector and take the top end results, okay?",
+      "zh": "依查詢向量的餘弦距離排序，再取前 N 筆結果。"
+    },
+    {
+      "start": 246.1,
+      "end": 247.58,
+      "en": "So it's a very simple thing here.",
+      "zh": "這很簡單。"
+    },
+    {
+      "start": 247.58,
+      "end": 250.74,
+      "en": "I'm going to change this from what it was.",
+      "zh": "我要把原本內容改掉，"
+    },
+    {
+      "start": 250.96,
+      "end": 260.559,
+      "en": "Let me click in here and we'll say, let me get over to the right location with semantic as and then opening and closing parentheses, okay?",
+      "zh": "點這裡，移到正確位置，寫 WITH semantic AS，再加左右括號。"
+    },
+    {
+      "start": 260.559,
+      "end": 264,
+      "en": "And I'll give myself a blank line and get into the correct location.",
+      "zh": "留個空白行，調整到正確位置。"
+    },
+    {
+      "start": 264,
+      "end": 266.48,
+      "en": "I'm going to select.",
+      "zh": "我要 SELECT，"
+    },
+    {
+      "start": 266.48,
+      "end": 269.76,
+      "en": "I want ID and dist comma.",
+      "zh": "選取 id 和 dist，再加逗號。"
+    },
+    {
+      "start": 269.76,
+      "end": 274.679,
+      "en": "And then on the next line, I'm going to say row underscore number.",
+      "zh": "下一行寫 ROW_NUMBER，"
+    },
+    {
+      "start": 274.679,
+      "end": 275.679,
+      "en": "I better spell row right.",
+      "zh": "row 得拼對，"
+    },
+    {
+      "start": 275.679,
+      "end": 284.14,
+      "en": "Row underscore number with opening and closing parentheses over and then parentheses order.",
+      "zh": "ROW_NUMBER() OVER，括號裡寫 ORDER，"
+    },
+    {
+      "start": 284.14,
+      "end": 286.5,
+      "en": "I have trouble spelling order today.",
+      "zh": "今天 order 老是拼錯，"
+    },
+    {
+      "start": 286.5,
+      "end": 292.899,
+      "en": "Order by dist as rank, okay?",
+      "zh": "ORDER BY dist，別名是 rank。"
+    },
+    {
+      "start": 292.899,
+      "end": 294.26,
+      "en": "So we're getting that.",
+      "zh": "所以取得這些內容。"
+    },
+    {
+      "start": 294.26,
+      "end": 297.7,
+      "en": "And then down here, we'll go over here and say from.",
+      "zh": "接著在下面寫 FROM，"
+    },
+    {
+      "start": 297.7,
+      "end": 298.7,
+      "en": "What are we selecting from?",
+      "zh": "要從哪裡選取？"
+    },
+    {
+      "start": 298.7,
+      "end": 302.98,
+      "en": "And in parentheses, and again, I'll give myself a blank line.",
+      "zh": "用括號包住，再留空白行。"
+    },
+    {
+      "start": 303,
+      "end": 312.48,
+      "en": "I'm going to select from, select, subselect, select c.id comma, c.embedding, and then we",
+      "zh": "這是子查詢，SELECT c.id、c.embedding，接著"
+    },
+    {
+      "start": 312.48,
+      "end": 321.44,
+      "en": "use that less than, equal sign, greater than, and then percent, VEC in parentheses, and",
+      "zh": "使用 <=>，再寫百分比、括號裡的 vec，"
+    },
+    {
+      "start": 321.44,
+      "end": 329.399,
+      "en": "then S colon colon, cast it to a vector as dist, okay?",
+      "zh": "後接 s，再用 ::vector 轉型，命名為 dist。"
+    },
+    {
+      "start": 329.399,
+      "end": 332.959,
+      "en": "And then underneath that for a subselect, well, what are we selecting from?",
+      "zh": "子查詢下一行，要從哪裡選取？"
+    },
+    {
+      "start": 332.959,
+      "end": 345.42,
+      "en": "From chunks c, and then on the next line, order by, and we want to order it by c.embedding,",
+      "zh": "FROM chunks c，接著下一行 ORDER BY，依 c.embedding，"
+    },
+    {
+      "start": 345.42,
+      "end": 353.7,
+      "en": "and then our operator, and then percent VEC S, cast to a vector.",
+      "zh": "使用相同運算子，再接 %(vec)s，轉為 vector。"
+    },
+    {
+      "start": 353.7,
+      "end": 362.94,
+      "en": "And we'll limit by, we'll limit, and we'll limit by percent CAND S, okay?",
+      "zh": "然後 LIMIT，限制為 %(cand)s。"
+    },
+    {
+      "start": 362.94,
+      "end": 366.839,
+      "en": "And then down here, don't forget this, or nothing will work.",
+      "zh": "接著下面別忘了這個，否則不會運作，"
+    },
+    {
+      "start": 366.839,
+      "end": 373.019,
+      "en": "After the second to last closing parentheses, put an S in there, okay?",
+      "zh": "在倒數第二個右括號後加上 s，"
+    },
+    {
+      "start": 373.019,
+      "end": 375.839,
+      "en": "So that is our first query, okay?",
+      "zh": "這就是第一個查詢。"
+    },
+    {
+      "start": 375.839,
+      "end": 377.16,
+      "en": "So we're selecting all of that.",
+      "zh": "我們選取全部這些資料。"
+    },
+    {
+      "start": 377.16,
+      "end": 379.799,
+      "en": "Then down here, after this one, we're not done yet.",
+      "zh": "下面還沒完成，"
+    },
+    {
+      "start": 379.799,
+      "end": 382.519,
+      "en": "We have another step to make, so that's our first step.",
+      "zh": "還有下一步，所以這是第一步。"
+    },
+    {
+      "start": 382.519,
+      "end": 388.2,
+      "en": "So put a comma, and then I'll put a blank line to make sure that I have enough to make this as readable as possible.",
+      "zh": "加上逗號，再留空白行，盡量提高可讀性。"
+    },
+    {
+      "start": 388.2,
+      "end": 389.799,
+      "en": "Now we want our lexical ranker.",
+      "zh": "現在需要詞彙排序器。"
+    },
+    {
+      "start": 389.799,
+      "end": 399.859,
+      "en": "So the first one was the dense slash semantic ranker, ordering chunks by cosine distance to the query vector, and this is called the lexical ranker, okay?",
+      "zh": "第一個是稠密向量／語意排序器，依與查詢向量的餘弦距離排序區塊；這個則是詞彙排序器。"
+    },
+    {
+      "start": 399.859,
+      "end": 404.779,
+      "en": "This is another way of getting some content, and it's very, very fast.",
+      "zh": "這是另一種取得內容的方法，而且非常快。"
+    },
+    {
+      "start": 404.779,
+      "end": 407.859,
+      "en": "So it uses something called content underscore TSV.",
+      "zh": "它會使用 content_tsv。"
+    },
+    {
+      "start": 407.859,
+      "end": 410.54,
+      "en": "Now, before we write the SQL, let's go look at that.",
+      "zh": "在寫 SQL 前，先去看看它，"
+    },
+    {
+      "start": 410.54,
+      "end": 415.5,
+      "en": "We can go back to my Postgres client, and we can look at the chunks.",
+      "zh": "回到 Postgres 用戶端，查看 chunks，"
+    },
+    {
+      "start": 415.5,
+      "end": 417.14,
+      "en": "So let me look at the chunks.",
+      "zh": "讓我看看 chunks，"
+    },
+    {
+      "start": 417.2,
+      "end": 419.279,
+      "en": "We saw this a long time ago.",
+      "zh": "之前已經看過它，"
+    },
+    {
+      "start": 419.279,
+      "end": 428.6,
+      "en": "Right here, content TSV, you'll notice this is populated with human-readable information that comes from this textual content, okay?",
+      "zh": "這裡的 content_tsv，可以看到填入了從原始文字內容抽出的、可供人閱讀的資訊。"
+    },
+    {
+      "start": 428.6,
+      "end": 432,
+      "en": "So this is automatically generated by our indices.",
+      "zh": "這些內容會由我們的索引自動產生，"
+    },
+    {
+      "start": 432,
+      "end": 434.64,
+      "en": "So this is what we're going to be taking advantage of right now.",
+      "zh": "現在就要利用它。"
+    },
+    {
+      "start": 434.64,
+      "end": 439.48,
+      "en": "So let's go back to our code and get back down to the right spot right here.",
+      "zh": "回到程式碼，來到這裡的正確位置，"
+    },
+    {
+      "start": 439.48,
+      "end": 446.48,
+      "en": "So we're now going to define lexical as, and then in parentheses, let me go to another",
+      "zh": "接著定義 lexical AS，括號裡面，我先再換到"
+    },
+    {
+      "start": 446.5,
+      "end": 451.98,
+      "en": "blank line and give ourselves a blank line, and we'll go up in between those parentheses.",
+      "zh": "空白行，再回到括號中間。"
+    },
+    {
+      "start": 451.98,
+      "end": 459.339,
+      "en": "We're going to select ID, comma, and then I'll put it on the next line just to make it as readable as possible.",
+      "zh": "選取 id，加逗號，下一行再寫，讓它盡可能好讀。"
+    },
+    {
+      "start": 459.339,
+      "end": 471.339,
+      "en": "Row underscore number with parentheses, over, and then in parentheses, order by score DESC, okay?",
+      "zh": "ROW_NUMBER() OVER，括號裡 ORDER BY score DESC，"
+    },
+    {
+      "start": 471.339,
+      "end": 475.38,
+      "en": "And we're going to call that as rank.",
+      "zh": "命名為 rank，"
+    },
+    {
+      "start": 475.38,
+      "end": 477.799,
+      "en": "Same as we did in the first step, okay?",
+      "zh": "和第一步一樣。"
+    },
+    {
+      "start": 477.799,
+      "end": 478.959,
+      "en": "And what are we selecting from?",
+      "zh": "從哪裡選取？"
+    },
+    {
+      "start": 478.959,
+      "end": 484.279,
+      "en": "Well, let's come down to the next line and get back over to the correct indentation to keep things readable.",
+      "zh": "下一行，回到正確縮排以維持可讀性，"
+    },
+    {
+      "start": 484.279,
+      "end": 488.76,
+      "en": "From, and again, parentheses, and again, I'll go up between those parentheses.",
+      "zh": "FROM，再用括號包住，回到括號中間。"
+    },
+    {
+      "start": 488.76,
+      "end": 497.059,
+      "en": "We're selecting from, that's another subselect, select C.ID, TS underscore rank, okay, built",
+      "zh": "這又是子查詢，SELECT c.id、Postgres 內建的 ts_rank，"
+    },
+    {
+      "start": 497.059,
+      "end": 506.079,
+      "en": "into Postgres now, C.content underscore TSV, that column we just looked at, Q.query, okay?",
+      "zh": "傳入 c.content_tsv，也就是剛才看的欄位，以及 q.query，"
+    },
+    {
+      "start": 506.079,
+      "end": 509.799,
+      "en": "And we're going to do that as score.",
+      "zh": "將它命名為 score。"
+    },
+    {
+      "start": 509.799,
+      "end": 514.159,
+      "en": "So all of that is returned as one value named score.",
+      "zh": "整個運算結果會以名為 score 的值回傳。"
+    },
+    {
+      "start": 514.159,
+      "end": 520.599,
+      "en": "And of course, we need to have from, and we're going to get, again, from chunks.",
+      "zh": "當然還需要 FROM，同樣從 chunks 取得，"
+    },
+    {
+      "start": 520.599,
+      "end": 525.7,
+      "en": "And I'm going to call that C, so I'll give it an alias C, okay, comma, and then on the",
+      "zh": "我將別名設為 c，後接逗號，然後"
+    },
+    {
+      "start": 525.7,
+      "end": 534.4,
+      "en": "next line, and I'll tab in, and now I call web search to TS query, which is available",
+      "zh": "下一行向內縮排，呼叫 websearch_to_tsquery；這個功能可以"
+    },
+    {
+      "start": 534.4,
+      "end": 537.76,
+      "en": "to us in Postgres because we have that PG vector installed, okay?",
+      "zh": "在 Postgres 裡使用，因為我們已安裝 pgvector。"
+    },
+    {
+      "start": 537.76,
+      "end": 540.32,
+      "en": "Did I spell that right? Looks good.",
+      "zh": "拼字對嗎？看起來對。"
+    },
+    {
+      "start": 540.32,
+      "end": 541.32,
+      "en": "And that takes parameters.",
+      "zh": "它需要參數，"
+    },
+    {
+      "start": 541.32,
+      "end": 542.679,
+      "en": "We're going to do this in English.",
+      "zh": "使用 english，"
+    },
+    {
+      "start": 542.679,
+      "end": 544.76,
+      "en": "That's what my content is in, okay?",
+      "zh": "因為我的內容是英文。"
+    },
+    {
+      "start": 544.76,
+      "end": 553.28,
+      "en": "And a percent, and then Q text, and then an S, and then outside the closing parentheses,",
+      "zh": "再使用百分比、括號中的 qtext、後接 s。在右括號外面，"
+    },
+    {
+      "start": 553.28,
+      "end": 561.34,
+      "en": "we have another S, S, and this is Q query, which I have to spell right or it won't work, okay?",
+      "zh": "還要加別名，指定為 q(query)，query 也要拼對，否則不會運作。"
+    },
+    {
+      "start": 561.34,
+      "end": 562.58,
+      "en": "And then we have our where clause.",
+      "zh": "接著是 WHERE 子句，"
+    },
+    {
+      "start": 562.58,
+      "end": 570.9,
+      "en": "So back over here, where, C.content underscore TSV, and now we use a special app operator,",
+      "zh": "回到這裡，WHERE c.content_tsv，使用特殊的"
+    },
+    {
+      "start": 570.9,
+      "end": 575.539,
+      "en": "two at signs, okay, Q.query.",
+      "zh": "兩個 @ 符號運算子，再接 q.query。"
+    },
+    {
+      "start": 575.539,
+      "end": 581.539,
+      "en": "And now we have our order, order by, and we want to order by TS underscore rank.",
+      "zh": "現在是排序，ORDER BY，要依 ts_rank，"
+    },
+    {
+      "start": 581.539,
+      "end": 591.479,
+      "en": "We're calling a function built into Postgres now, C.content underscore TSV, comma, Q.query,",
+      "zh": "也就是 Postgres 內建函式，傳入 c.content_tsv 與 q.query，"
+    },
+    {
+      "start": 591.479,
+      "end": 598.88,
+      "en": "and then DESC to have it descending, okay, and our limit, limit, and we want to use a",
+      "zh": "再用 DESC 降冪排序，接著 LIMIT，這裡要使用"
+    },
+    {
+      "start": 598.88,
+      "end": 604.32,
+      "en": "variable here, so percent, C-A-N-D-S, okay?",
+      "zh": "變數，所以是百分比、cand，再接 s。"
+    },
+    {
+      "start": 604.32,
+      "end": 610.919,
+      "en": "And then down here, you need to alias this, so give it an L. The first one was S. This one is L, and we're still not done.",
+      "zh": "下面要為子查詢取別名，給它 l。第一個是 s，這個是 l，而且還沒完成，"
+    },
+    {
+      "start": 610.919,
+      "end": 617.38,
+      "en": "We have a third step to go, so put a comma after this one, okay, and a couple of returns.",
+      "zh": "還有第三步，所以在這裡加逗號，再換幾行。"
+    },
+    {
+      "start": 617.38,
+      "end": 623.059,
+      "en": "So we have two more things to do, and that is the fusion and the final projection.",
+      "zh": "剩下兩件事：融合，以及最後的欄位投影。"
+    },
+    {
+      "start": 623.059,
+      "end": 626.7,
+      "en": "Let's do the fusion first because we can't do final projection without that.",
+      "zh": "先做融合，沒有它就無法做最後投影。"
+    },
+    {
+      "start": 626.7,
+      "end": 628.179,
+      "en": "So this is some basic math.",
+      "zh": "這只是基本數學，"
+    },
+    {
+      "start": 628.179,
+      "end": 635.38,
+      "en": "There is a formula, and it is the sum, if you care, it's the sum of one divided by the",
+      "zh": "有一個公式，如果你想知道，就是對每個排序器計算 1 除以"
+    },
+    {
+      "start": 635.38,
+      "end": 643.32,
+      "en": "sum of RRF underscore K, the number of candidates we're getting back, plus the rank, okay, and we do that across each ranker.",
+      "zh": "rrf_k 加上 rank 的總和，再把各排序器的結果相加。"
+    },
+    {
+      "start": 643.32,
+      "end": 644.32,
+      "en": "That's all we're doing.",
+      "zh": "我們只做這件事，"
+    },
+    {
+      "start": 644.32,
+      "end": 645.32,
+      "en": "It's just some math.",
+      "zh": "只是一些數學運算。"
+    },
+    {
+      "start": 645.32,
+      "end": 650.88,
+      "en": "There's a simple formula we have to follow, so I'm going to call this one fused as.",
+      "zh": "有一個簡單公式需要遵循，所以我將這個子查詢叫 fused AS。"
+    },
+    {
+      "start": 650.88,
+      "end": 653.2,
+      "en": "So the first one is semantic.",
+      "zh": "第一個是 semantic，"
+    },
+    {
+      "start": 653.2,
+      "end": 654.619,
+      "en": "The second one is lexical.",
+      "zh": "第二個是 lexical，"
+    },
+    {
+      "start": 654.619,
+      "end": 656.539,
+      "en": "The third one is fused, okay?",
+      "zh": "第三個則是 fused。"
+    },
+    {
+      "start": 656.539,
+      "end": 660.539,
+      "en": "So fused as, and I may as well put it in all caps to be consistent.",
+      "zh": "fused AS，為了保持一致，我也把 AS 大寫。"
+    },
+    {
+      "start": 660.539,
+      "end": 669.239,
+      "en": "So fused as, in parentheses, return, return, hit the up arrow, tab in to get to the correct location so it's readable, and another select.",
+      "zh": "在 fused AS 後加括號，換行兩次，按上箭頭、向內縮排到好讀的位置，再寫 SELECT。"
+    },
+    {
+      "start": 669.239,
+      "end": 675.08,
+      "en": "Again we're selecting ID, and this time we're implementing that formula I just told you about.",
+      "zh": "同樣選取 id，這次要實作剛才說的公式。"
+    },
+    {
+      "start": 675.08,
+      "end": 685.28,
+      "en": "It's the sum, S-U-M, of, in parentheses, 1.0 because it has to be a float, divided by, and then in parentheses, and here I need a variable, okay?",
+      "zh": "使用 SUM，裡面先放 1.0，因為必須是浮點數，再除以括號裡的值，這裡需要變數。"
+    },
+    {
+      "start": 685.539,
+      "end": 694.979,
+      "en": "The first one is percent, RRF, and then an S outside of it, plus rank, okay?",
+      "zh": "首先是百分比、rrf、外面再接 s，然後加 rank，"
+    },
+    {
+      "start": 694.979,
+      "end": 702.679,
+      "en": "And outside of both of those closing parentheses, we're going to call this as RRF underscore score, okay?",
+      "zh": "在兩個右括號外，命名為 rrf_score。"
+    },
+    {
+      "start": 702.679,
+      "end": 707.859,
+      "en": "This is what we're going to get for that first one, and we're getting that from, and again",
+      "zh": "這就是第一項要取得的資料。接著 FROM，同樣"
+    },
+    {
+      "start": 707.859,
+      "end": 716.08,
+      "en": "with parentheses, and get up to the next previous line, tab over 1, and another subselect.",
+      "zh": "用括號包住，回到上一行，再向內縮排，建立另一個子查詢。"
+    },
+    {
+      "start": 716.08,
+      "end": 724.239,
+      "en": "We're going to select, which I have to spell right, select ID rank from semantic, okay?",
+      "zh": "SELECT，注意拼字，選取 id、rank，FROM semantic。"
+    },
+    {
+      "start": 724.239,
+      "end": 735.419,
+      "en": "So we're referring back to a result we got from a previous query, and then on the next line, again to make it readable, union all, we're going to join these together, refusing",
+      "zh": "所以參照先前查詢的結果，下一行為了好讀，寫 UNION ALL，把兩者合併，也就是融合，"
+    },
+    {
+      "start": 735.419,
+      "end": 743.78,
+      "en": "them in other words, and then on the next line, we'll say select ID comma rank from",
+      "zh": "再下一行，SELECT id, rank FROM，"
+    },
+    {
+      "start": 743.78,
+      "end": 748.76,
+      "en": "lexical, from in all caps, from lexical.",
+      "zh": "lexical，FROM 要大寫，FROM lexical。"
+    },
+    {
+      "start": 748.76,
+      "end": 752.659,
+      "en": "So we're taking the result of the previous two, and we're fusing them.",
+      "zh": "我們把前兩個結果拿來融合，"
+    },
+    {
+      "start": 752.659,
+      "end": 754.76,
+      "en": "That's all we're doing here, okay?",
+      "zh": "這裡只做這件事。"
+    },
+    {
+      "start": 754.76,
+      "end": 762.46,
+      "en": "Now outside the closing parentheses, this needs a name too, so we'll call this ranks, okay?",
+      "zh": "在右括號外，這個子查詢也需要名稱，就叫 ranks。"
+    },
+    {
+      "start": 762.5,
+      "end": 772.599,
+      "en": "And then on the next line, to get it in the correct order, I'll group by ID, okay?",
+      "zh": "下一行為了正確分組，寫 GROUP BY id。"
+    },
+    {
+      "start": 772.599,
+      "end": 776.919,
+      "en": "Now the final thing we want to do, there's no comma required after this one, okay?",
+      "zh": "最後一個部分，這後面不需要逗號。"
+    },
+    {
+      "start": 776.919,
+      "end": 781.84,
+      "en": "The final thing we want to do, and I'll go back up one line, that's too many.",
+      "zh": "最後要做的事，我回到上一行，這裡太多了，"
+    },
+    {
+      "start": 781.84,
+      "end": 783.599,
+      "en": "That's better, okay?",
+      "zh": "現在好一些。"
+    },
+    {
+      "start": 783.599,
+      "end": 788.679,
+      "en": "This one's a little longer, but it's not complex at all.",
+      "zh": "這段稍長，但完全不複雜。"
+    },
+    {
+      "start": 788.679,
+      "end": 796.58,
+      "en": "We're going to join those fused IDs back to the chunks and the documents, and return everything the caller needs in order to build search hits.",
+      "zh": "將融合後的 ID 重新聯結 chunks 與 documents，回傳呼叫端建立 SearchHit 所需的全部資訊。"
+    },
+    {
+      "start": 796.58,
+      "end": 798.94,
+      "en": "That's all we're going to do, okay?",
+      "zh": "只要做這件事。"
+    },
+    {
+      "start": 798.94,
+      "end": 801.38,
+      "en": "And there's a fair bit of SQL here, but it's not difficult.",
+      "zh": "雖然 SQL 不少，但不難，"
+    },
+    {
+      "start": 801.38,
+      "end": 803.179,
+      "en": "It's just a select statement.",
+      "zh": "只是一個 SELECT 敘述。"
+    },
+    {
+      "start": 803.179,
+      "end": 809.099,
+      "en": "Select D dot source path, okay?",
+      "zh": "SELECT d.source_path，"
+    },
+    {
+      "start": 809.099,
+      "end": 812.099,
+      "en": "And then on the next line, and I'll tab over so it's at the correct location.",
+      "zh": "下一行向內縮排到適當位置，"
+    },
+    {
+      "start": 812.099,
+      "end": 814.219,
+      "en": "Well, this is close enough.",
+      "zh": "這樣差不多，"
+    },
+    {
+      "start": 814.219,
+      "end": 819.32,
+      "en": "C dot chunk underscore index, and then on the next line.",
+      "zh": "c.chunk_index，再下一行，"
+    },
+    {
+      "start": 819.32,
+      "end": 822.659,
+      "en": "C dot content, and then on the next line.",
+      "zh": "c.content，再下一行，"
+    },
+    {
+      "start": 822.659,
+      "end": 826.4,
+      "en": "C dot metadata, and then on the next line.",
+      "zh": "c.metadata，再下一行，"
+    },
+    {
+      "start": 826.4,
+      "end": 832.02,
+      "en": "F dot RRF underscore score, which we just calculated up above there, right?",
+      "zh": "f.rrf_score，就是上面剛算出的值，"
+    },
+    {
+      "start": 832.02,
+      "end": 833.82,
+      "en": "And then on the next line.",
+      "zh": "然後換行。"
+    },
+    {
+      "start": 833.82,
+      "end": 835.34,
+      "en": "Here we have a case statement.",
+      "zh": "這裡使用 CASE 敘述，"
+    },
+    {
+      "start": 835.34,
+      "end": 837.539,
+      "en": "Let's give ourselves some room, okay?",
+      "zh": "多留一些空間。"
+    },
+    {
+      "start": 837.539,
+      "end": 847.7,
+      "en": "So a case statement, case when S dot dist is not null, okay?",
+      "zh": "CASE WHEN s.dist IS NOT NULL，"
+    },
+    {
+      "start": 847.7,
+      "end": 851.419,
+      "en": "Then one minus S dot dist, okay?",
+      "zh": "THEN 1 - s.dist，"
+    },
+    {
+      "start": 851.419,
+      "end": 854.58,
+      "en": "We're just implementing the necessary math here.",
+      "zh": "這只是實作必要的數學運算。"
+    },
+    {
+      "start": 854.58,
+      "end": 863.299,
+      "en": "Else, if it is null, one minus, and then in parentheses, C dot embedding, and then our",
+      "zh": "ELSE，也就是值為 NULL 時，1 減去括號中的 c.embedding，接上"
+    },
+    {
+      "start": 863.299,
+      "end": 870.179,
+      "en": "operator, less than, equal, greater than, and a variable, percent, and in parentheses,",
+      "zh": "<=> 運算子，以及一個變數，百分比與括號裡的"
+    },
+    {
+      "start": 870.179,
+      "end": 875.9,
+      "en": "vec, with an S at the end, cast to a vector, okay?",
+      "zh": "vec，外面接 s，並轉型成 vector。"
+    },
+    {
+      "start": 875.9,
+      "end": 883.739,
+      "en": "And then we end our case, end as cosine.",
+      "zh": "然後結束 CASE，END AS cosine。"
+    },
+    {
+      "start": 883.739,
+      "end": 888.94,
+      "en": "So we're getting a reasonable value even if we get a null value, okay?",
+      "zh": "如此即使得到 NULL，也能計算合理的值。"
+    },
+    {
+      "start": 888.94,
+      "end": 890.26,
+      "en": "And we're not finished with the select.",
+      "zh": "SELECT 還沒完成，"
+    },
+    {
+      "start": 890.26,
+      "end": 897.34,
+      "en": "We also want S dot rank as sem rank.",
+      "zh": "也要取得 s.rank AS sem_rank，"
+    },
+    {
+      "start": 897.34,
+      "end": 906.979,
+      "en": "And the last thing we're selecting is L dot rank as lex rank, okay?",
+      "zh": "最後是 l.rank AS lex_rank。"
+    },
+    {
+      "start": 906.979,
+      "end": 908.14,
+      "en": "And what are we selecting from?",
+      "zh": "從哪裡取得？"
+    },
+    {
+      "start": 908.14,
+      "end": 912.9,
+      "en": "Well, let's come down here and get back to the correct location, which would be way over here.",
+      "zh": "到下面，回到正確位置，應該在這裡，"
+    },
+    {
+      "start": 912.9,
+      "end": 921.099,
+      "en": "So we're going to get from fused, alias to F, and we're going to join chunks C, that's",
+      "zh": "從 fused，別名為 f，並 JOIN chunks c，"
+    },
+    {
+      "start": 921.099,
+      "end": 927.659,
+      "en": "our alias for it, and we're joining on C dot ID is equal to F dot ID, okay?",
+      "zh": "c 是它的別名，聯結條件是 c.id = f.id。"
+    },
+    {
+      "start": 927.659,
+      "end": 932.26,
+      "en": "So the same ID for fused that we have in chunks, we're matching them that way.",
+      "zh": "就是以 fused 和 chunks 相同的 ID 配對。"
+    },
+    {
+      "start": 932.26,
+      "end": 938.9,
+      "en": "We also need to join documents, and we'll alias that to D, and we're joining on D dot",
+      "zh": "也需要 JOIN documents，別名 d，聯結條件是 d."
+    },
+    {
+      "start": 938.9,
+      "end": 945.26,
+      "en": "ID equals C dot document ID, because that's how it is in our database, right?",
+      "zh": "id = c.document_id，因為資料庫就是這樣關聯。"
+    },
+    {
+      "start": 945.26,
+      "end": 952.299,
+      "en": "So every document has an ID, and all the chunks associated with that have a foreign key called document underscore ID.",
+      "zh": "每份文件有 ID，它的所有區塊則有名為 document_id 的外鍵。"
+    },
+    {
+      "start": 952.299,
+      "end": 959.14,
+      "en": "Then left join, and we're going to left join semantic, which we built up above, semantic,",
+      "zh": "接著 LEFT JOIN semantic，就是上面建立的 semantic，"
+    },
+    {
+      "start": 959.14,
+      "end": 969.58,
+      "en": "which we wrote up above, we'll call that S, and we're joining on S dot ID equals C dot ID, the chunk ID.",
+      "zh": "別名設為 s，條件是 s.id = c.id，也就是區塊 ID。"
+    },
+    {
+      "start": 969.58,
+      "end": 976.26,
+      "en": "And then we're going to left join lexical, which we built up above, and we'll alias that",
+      "zh": "再 LEFT JOIN 上面建立的 lexical，別名設為"
+    },
+    {
+      "start": 976.26,
+      "end": 983.099,
+      "en": "to L, and we're joining on L dot ID equals the chunks ID, C ID, okay?",
+      "zh": "l，條件是 l.id = c.id。"
+    },
+    {
+      "start": 983.099,
+      "end": 995.059,
+      "en": "And we order by, order by F dot RRF underscore score descending, okay?",
+      "zh": "接著 ORDER BY f.rrf_score DESC，"
+    },
+    {
+      "start": 995.059,
+      "end": 1004.739,
+      "en": "And of course we have a reasonable limit, limit, and that comes from one of our variables, so we use percent K with an S, okay?",
+      "zh": "當然也要合理限制筆數，LIMIT 來自其中一個變數，也就是 %(k)s。"
+    },
+    {
+      "start": 1004.739,
+      "end": 1006.7,
+      "en": "So that's where our top K gets used.",
+      "zh": "這裡就用到了 top_k。"
+    },
+    {
+      "start": 1006.7,
+      "end": 1015.979,
+      "en": "We're using a much wider search up above, we want to set the 20, and that sort of thing, but ultimately we only want top K chunks returned, okay?",
+      "zh": "前面搜尋範圍較大，例如 20 筆，但最終只希望回傳前 k 個區塊。"
+    },
+    {
+      "start": 1015.979,
+      "end": 1019.299,
+      "en": "Now outside of these parentheses, we have some substitutions to put in there.",
+      "zh": "在括號外面，需要提供代入值，"
+    },
+    {
+      "start": 1019.299,
+      "end": 1029.699,
+      "en": "So a comma after the, not the parentheses, the three quotation marks, and then on the next line in curly brackets, we'll just put Vec, which is one of the variables we're using,",
+      "zh": "所以在三個引號後面，不是括號後面，加逗號，下一行用字典放入 vec，這是使用的變數之一，"
+    },
+    {
+      "start": 1029.699,
+      "end": 1033.42,
+      "en": "and that's query embedding, okay?",
+      "zh": "值是 query_embedding。"
+    },
+    {
+      "start": 1033.42,
+      "end": 1041.739,
+      "en": "And Qtext is one of the variables we referred to in our SQL, and of course that's query underscore text.",
+      "zh": "qtext 也是 SQL 用到的變數，當然對應 query_text。"
+    },
+    {
+      "start": 1041.739,
+      "end": 1050.42,
+      "en": "And we also had CN, and of course that is the candidates, which we specified right at the beginning of this lecture, okay?",
+      "zh": "還有 cand，當然就是這堂課一開始指定的 candidates。"
+    },
+    {
+      "start": 1050.42,
+      "end": 1057.14,
+      "en": "And RRF, well, that one is the other one we specified, RRF underscore K, okay?",
+      "zh": "rrf 則是另一個設定值 rrf_k，"
+    },
+    {
+      "start": 1057.14,
+      "end": 1061.5,
+      "en": "And then K is just K, our top K variable with a comma.",
+      "zh": "最後 k 就是 k，也就是 top_k，後面加逗號。"
+    },
+    {
+      "start": 1061.5,
+      "end": 1063.14,
+      "en": "Now we're almost done here.",
+      "zh": "現在快完成了。"
+    },
+    {
+      "start": 1063.14,
+      "end": 1064.9,
+      "en": "Let's go down to where we have the hits.",
+      "zh": "往下到建立 hits 的地方，"
+    },
+    {
+      "start": 1064.9,
+      "end": 1066.579,
+      "en": "Are there any changes here?",
+      "zh": "這裡需要改動嗎？"
+    },
+    {
+      "start": 1066.579,
+      "end": 1068.26,
+      "en": "Well, there is, okay?",
+      "zh": "需要，"
+    },
+    {
+      "start": 1068.26,
+      "end": 1069.939,
+      "en": "There's a few changes.",
+      "zh": "有幾項變更。"
+    },
+    {
+      "start": 1069.939,
+      "end": 1073.219,
+      "en": "First of all, let's do something more with metadata.",
+      "zh": "首先，對 metadata 多做一些處理。"
+    },
+    {
+      "start": 1073.219,
+      "end": 1076.939,
+      "en": "Down here we have dictRMetadata, we never actually did this.",
+      "zh": "下面原本的 dict(r[\"metadata\"])，我們其實沒正確使用它，"
+    },
+    {
+      "start": 1076.939,
+      "end": 1080.54,
+      "en": "We have the or clause always being executed.",
+      "zh": "or 子句一直在被採用。"
+    },
+    {
+      "start": 1080.54,
+      "end": 1089.78,
+      "en": "So let's make hits initially equal to just an empty string like that, or an empty list like this, okay?",
+      "zh": "所以把 hits 初始值改成空串列，不是空字串，是這樣的空串列。"
+    },
+    {
+      "start": 1089.78,
+      "end": 1092.16,
+      "en": "We'll get rid of the other one in a minute.",
+      "zh": "原本那一段等一下刪掉。"
+    },
+    {
+      "start": 1092.16,
+      "end": 1099.859,
+      "en": "Now we'll have a for, and the forR in, and this time we're saying cur.fetchAll, okay?",
+      "zh": "再寫 for r in，這次呼叫 cur.fetchall()，"
+    },
+    {
+      "start": 1099.859,
+      "end": 1102.579,
+      "en": "So we fetch all, and then we have a colon.",
+      "zh": "取得全部資料，再加冒號。"
+    },
+    {
+      "start": 1102.579,
+      "end": 1106.66,
+      "en": "And now I'll just get rid of all this, because we don't need any of this at all.",
+      "zh": "現在直接把這整段刪掉，因為完全不需要了。"
+    },
+    {
+      "start": 1106.66,
+      "end": 1113.06,
+      "en": "And I'll give myself a blank line and go back up under the for statement and tab over once.",
+      "zh": "留空白行，回到 for 下面，向內縮排一層。"
+    },
+    {
+      "start": 1113.06,
+      "end": 1114.06,
+      "en": "So now we're in the for loop.",
+      "zh": "現在位於 for 迴圈裡。"
+    },
+    {
+      "start": 1114.06,
+      "end": 1119.26,
+      "en": "Now let's set up some metadata, meta equals, and it's going to be a dictionary.",
+      "zh": "設定 meta，讓它成為字典，"
+    },
+    {
+      "start": 1119.26,
+      "end": 1129.3,
+      "en": "So dict here, and then we'll start it with an R, and we'll use metadata, and R of course is the value we're getting each time we go through this loop.",
+      "zh": "呼叫 dict，先取 r 裡的 metadata；r 是每一輪迴圈取得的資料列。"
+    },
+    {
+      "start": 1129.3,
+      "end": 1134.66,
+      "en": "And we want metadata in quotation marks, okay?",
+      "zh": "鍵是引號中的 \"metadata\"，"
+    },
+    {
+      "start": 1134.66,
+      "end": 1139.3,
+      "en": "And now we'll say or this.",
+      "zh": "再用 or 空字典作為備援。"
+    },
+    {
+      "start": 1139.3,
+      "end": 1146.5,
+      "en": "And then on the next line, we'll say meta at RRF underscore score.",
+      "zh": "下一行，設定 meta[\"rrf_score\"]，"
+    },
+    {
+      "start": 1146.5,
+      "end": 1148.9,
+      "en": "Well that now has a value, okay?",
+      "zh": "現在有這個值了，"
+    },
+    {
+      "start": 1148.9,
+      "end": 1158.339,
+      "en": "And that's going to be equal to, as a float, whatever's in R, RRF underscore score.",
+      "zh": "把它設為 r[\"rrf_score\"] 轉成 float 的結果。"
+    },
+    {
+      "start": 1158.38,
+      "end": 1162.979,
+      "en": "And the next meta we want, meta, is semantic rank.",
+      "zh": "下一個 meta 要存的是語意排名，"
+    },
+    {
+      "start": 1162.979,
+      "end": 1165.979,
+      "en": "Because this is a dictionary, I can put whatever I want in for keys, right?",
+      "zh": "因為它是字典，鍵可以自己取，對吧？"
+    },
+    {
+      "start": 1165.979,
+      "end": 1168.26,
+      "en": "So semantic underscore rank.",
+      "zh": "所以叫 \"semantic_rank\"，"
+    },
+    {
+      "start": 1168.26,
+      "end": 1175.14,
+      "en": "And that's going to be equal to whatever's in R, sem underscore rank, okay?",
+      "zh": "值等於 r[\"sem_rank\"]。"
+    },
+    {
+      "start": 1175.14,
+      "end": 1176.14,
+      "en": "So we have that.",
+      "zh": "這項完成了。"
+    },
+    {
+      "start": 1176.14,
+      "end": 1179.459,
+      "en": "Next, let me also keep track of its lexical rank.",
+      "zh": "接著也保留詞彙排名，"
+    },
+    {
+      "start": 1179.459,
+      "end": 1190.979,
+      "en": "So meta lexical rank, that's going to be equal to whatever's currently stored in R lex rank.",
+      "zh": "meta[\"lexical_rank\"] 等於 r[\"lex_rank\"]。"
+    },
+    {
+      "start": 1190.979,
+      "end": 1196.859,
+      "en": "And then now we append our hit, hits dot append.",
+      "zh": "現在加入結果，呼叫 hits.append，"
+    },
+    {
+      "start": 1196.859,
+      "end": 1200.9,
+      "en": "And we'll append using parentheses.",
+      "zh": "使用括號傳入，"
+    },
+    {
+      "start": 1200.9,
+      "end": 1206.06,
+      "en": "It has to be a search hit, so search hit.",
+      "zh": "必須是 SearchHit，所以建立 SearchHit，"
+    },
+    {
+      "start": 1206.06,
+      "end": 1209.979,
+      "en": "And then in parentheses, we'll put in multiple lines to make it readable.",
+      "zh": "括號內分成多行提高可讀性。"
+    },
+    {
+      "start": 1209.979,
+      "end": 1218.18,
+      "en": "Source path equals whatever's in R source path, okay?",
+      "zh": "source_path 等於 r[\"source_path\"]，"
+    },
+    {
+      "start": 1218.18,
+      "end": 1219.66,
+      "en": "And then a comma.",
+      "zh": "後面加逗號。"
+    },
+    {
+      "start": 1219.66,
+      "end": 1229.459,
+      "en": "And then chunk index, that's going to be equal to whatever's in R chunk index.",
+      "zh": "chunk_index 則等於 r[\"chunk_index\"]，"
+    },
+    {
+      "start": 1229.459,
+      "end": 1231.18,
+      "en": "And then a comma.",
+      "zh": "再加逗號。"
+    },
+    {
+      "start": 1231.18,
+      "end": 1234.219,
+      "en": "And the next one, well the text.",
+      "zh": "下一個是 text，"
+    },
+    {
+      "start": 1234.219,
+      "end": 1239.06,
+      "en": "Well the text equals R content.",
+      "zh": "text 等於 r[\"content\"]，"
+    },
+    {
+      "start": 1239.06,
+      "end": 1240.699,
+      "en": "That's what we specified in a query.",
+      "zh": "這是查詢裡指定的欄位，"
+    },
+    {
+      "start": 1240.699,
+      "end": 1243.26,
+      "en": "And then a comma.",
+      "zh": "後面加逗號。"
+    },
+    {
+      "start": 1243.26,
+      "end": 1245.099,
+      "en": "And the next one, what's its score?",
+      "zh": "下一個是 score，"
+    },
+    {
+      "start": 1245.099,
+      "end": 1246.26,
+      "en": "That's important.",
+      "zh": "這很重要，"
+    },
+    {
+      "start": 1246.26,
+      "end": 1251.939,
+      "en": "That's equal to, and it has to be a float, so we'll cast it to a float, whatever's in R cosine.",
+      "zh": "它必須是 float，因此將 r[\"cosine\"] 轉成 float。"
+    },
+    {
+      "start": 1251.939,
+      "end": 1252.939,
+      "en": "Not cosine, cosine.",
+      "zh": "不是剛才那個拼法，是 cosine。"
+    },
+    {
+      "start": 1252.939,
+      "end": 1258.939,
+      "en": "I know I've got some typos in here somewhere, but we'll find those sooner or later, okay?",
+      "zh": "我知道裡面一定有錯字，不過遲早會找到。"
+    },
+    {
+      "start": 1258.939,
+      "end": 1262.339,
+      "en": "And the last one is metadata.",
+      "zh": "最後是 metadata，"
+    },
+    {
+      "start": 1262.339,
+      "end": 1264.38,
+      "en": "And that's equal to meta, okay?",
+      "zh": "值等於 meta，"
+    },
+    {
+      "start": 1264.38,
+      "end": 1270.099,
+      "en": "We just set up some entries in it right there from lines 167 down to 170.",
+      "zh": "也就是第 167 到 170 行剛設定好那些內容。"
+    },
+    {
+      "start": 1270.099,
+      "end": 1276.459,
+      "en": "So down here, we still have our con commit, and we still return our hits.",
+      "zh": "下面仍然呼叫 conn.commit()，也仍回傳 hits。"
+    },
+    {
+      "start": 1276.459,
+      "end": 1280.579,
+      "en": "Now I'm absolutely certain there's a typo in here somewhere, but don't worry about that.",
+      "zh": "我非常確定某處有打字錯誤，不過別擔心，"
+    },
+    {
+      "start": 1280.579,
+      "end": 1283.38,
+      "en": "We'll find it when we try to execute this code.",
+      "zh": "實際執行程式時就會發現。"
+    },
+    {
+      "start": 1283.38,
+      "end": 1286.739,
+      "en": "And this lecture is getting fairly long, and this is a logical place to stop it.",
+      "zh": "這堂課有點長，而這裡正好適合暫停，"
+    },
+    {
+      "start": 1286.739,
+      "end": 1289.739,
+      "en": "So let's stop here and pick it up in the next lecture.",
+      "zh": "所以先到這裡，下一堂接著做。"
+    }
+  ]
+}

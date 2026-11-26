@@ -1,0 +1,853 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56281523",
+  "title": "Getting started with the Vector Store",
+  "section": 3,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d07c0c1352b92455749b69afcc95786f5cead17fbf8171fad04798774842ff01",
+  "cues": [
+    {
+      "start": 0,
+      "end": 7.32,
+      "en": "So at this point, we can successfully connect to an LLM and have a conversation, and the logic is pretty simple.",
+      "zh": "目前已經能成功連接 LLM 並進行對話，邏輯相當簡單。"
+    },
+    {
+      "start": 7.32,
+      "end": 14.52,
+      "en": "Over here in config.py, we set up our configuration for our application, and we control everything from the dot on.",
+      "zh": "config.py 裡設定應用程式的組態，所有內容都由 .env 控制。"
+    },
+    {
+      "start": 14.52,
+      "end": 16.76,
+      "en": "So we load the dot on file.",
+      "zh": "所以先載入 .env 檔，"
+    },
+    {
+      "start": 16.76,
+      "end": 25.959,
+      "en": "We have a little function here that allows us to get a value from the environment, and we have this class config, which is our overall application config.",
+      "zh": "再透過這個小函式取得環境中的值；Config 類別則代表整個應用程式的設定。"
+    },
+    {
+      "start": 25.959,
+      "end": 28.04,
+      "en": "So we have the config all set up.",
+      "zh": "目前設定部分都已完成。"
+    },
+    {
+      "start": 28.44,
+      "end": 36.479,
+      "en": "And over in LLM, we've defined a message, the things that are sent to and received from the LLM, and we have our chat client, okay?",
+      "zh": "在 llm.py 裡，我們定義了 Message，也就是與 LLM 來往的訊息，以及 ChatClient。"
+    },
+    {
+      "start": 36.479,
+      "end": 43.68,
+      "en": "And our chat client, the most important method here, of course, is the stream, the one that actually handles the conversation.",
+      "zh": "ChatClient 裡最重要的方法，當然是實際處理對話的 stream。"
+    },
+    {
+      "start": 43.68,
+      "end": 48.36,
+      "en": "And then over in CLI.py, we have our default system prompt.",
+      "zh": "cli.py 裡則有預設的系統提示詞。"
+    },
+    {
+      "start": 48.36,
+      "end": 58.36,
+      "en": "And then here in this chat command, we actually have what we call a read evaluate print loop, a little loop, this while loop, that reads the user's message,",
+      "zh": "而 chat 命令實際實作了所謂的讀取、求值、輸出迴圈，也就是這個 while 迴圈，讀取使用者訊息、"
+    },
+    {
+      "start": 58.36,
+      "end": 65.08,
+      "en": "communicates with the LLM, gets the information back, and prints it to the console, all very straightforward.",
+      "zh": "與 LLM 溝通、取得回覆，再輸出到主控台，全都很直接。"
+    },
+    {
+      "start": 65.08,
+      "end": 76.16,
+      "en": "But of course, our goal is to give more intelligence to the LLM, to give it a body of knowledge it might not have, a series of documents it can search and find relevant information from,",
+      "zh": "但目標當然是讓 LLM 更有智慧，給它可能原本沒有的知識，也就是一系列文件，讓它搜尋、找出相關資訊，"
+    },
+    {
+      "start": 76.16,
+      "end": 78.8,
+      "en": "and use that when formulating its response.",
+      "zh": "並用這些資訊組織回覆。"
+    },
+    {
+      "start": 78.8,
+      "end": 82.4,
+      "en": "And of course, this means we need somewhere to store that information.",
+      "zh": "這也代表我們得有地方儲存資料。"
+    },
+    {
+      "start": 83.279,
+      "end": 90.319,
+      "en": "And where we're gonna store it initially is in Postgres, which is pretty straightforward and works really, really well, okay?",
+      "zh": "一開始會存進 Postgres，它很容易使用，效果也非常好。"
+    },
+    {
+      "start": 90.319,
+      "end": 91.519,
+      "en": "So let's get started.",
+      "zh": "我們開始吧。"
+    },
+    {
+      "start": 91.519,
+      "end": 96.4,
+      "en": "The first thing I'm gonna have to do is add some dependencies over here in pyproject.toml.",
+      "zh": "首先需要到 pyproject.toml 新增一些相依套件。"
+    },
+    {
+      "start": 96.4,
+      "end": 98.72,
+      "en": "So let's open that up, okay?",
+      "zh": "把它打開。"
+    },
+    {
+      "start": 98.72,
+      "end": 104.199,
+      "en": "And I'm gonna add one here in the project block after the open AI.",
+      "zh": "我要在 project 區塊的 openai 後面新增一項，"
+    },
+    {
+      "start": 104.199,
+      "end": 105.59899999999999,
+      "en": "We'll get another couple that we need.",
+      "zh": "再加入另外幾個需要的套件。"
+    },
+    {
+      "start": 105.59899999999999,
+      "end": 115.44,
+      "en": "So we need something called PSY, PSY, COPG, and then in square brackets, binary,",
+      "zh": "首先需要 psycopg，後面接方括號中的 binary，"
+    },
+    {
+      "start": 115.47999999999999,
+      "end": 118.08,
+      "en": "and close the square brackets, okay?",
+      "zh": "再關閉方括號。"
+    },
+    {
+      "start": 118.08,
+      "end": 121,
+      "en": "And that must be greater than or equal to 3.2, okay?",
+      "zh": "版本必須大於等於 3.2。"
+    },
+    {
+      "start": 121,
+      "end": 125.48,
+      "en": "We're gonna be talking to Postgres, and this will make our lives ever so much easier.",
+      "zh": "我們要連接 Postgres，這個套件能讓操作方便許多。"
+    },
+    {
+      "start": 125.48,
+      "end": 131.47899999999998,
+      "en": "And we also need pgVector, because Postgres by default doesn't support a vector database.",
+      "zh": "另外還需要 pgvector，因為 Postgres 預設不支援向量資料庫。"
+    },
+    {
+      "start": 131.47899999999998,
+      "end": 136.039,
+      "en": "There's an extension we need that actually uses that, and this package will help us work with that.",
+      "zh": "必須安裝擴充功能，而這個套件會協助我們使用它。"
+    },
+    {
+      "start": 136.039,
+      "end": 141.039,
+      "en": "And that must be greater than or equal to 0.3.6, okay?",
+      "zh": "版本必須大於等於 0.3.6。"
+    },
+    {
+      "start": 141.07999999999998,
+      "end": 143.119,
+      "en": "And then my closing comma.",
+      "zh": "最後加上逗號。"
+    },
+    {
+      "start": 143.119,
+      "end": 145.199,
+      "en": "And that's the only change there.",
+      "zh": "這裡只需要這些變更。"
+    },
+    {
+      "start": 145.96,
+      "end": 153.039,
+      "en": "Now, let's open our terminal and clear the screen and type pip install dash e dot.",
+      "zh": "現在開啟終端機，清除畫面，輸入 pip install -e .。"
+    },
+    {
+      "start": 153.199,
+      "end": 155.559,
+      "en": "And that should go get the things for us, okay?",
+      "zh": "它應該會替我們取得需要的套件。"
+    },
+    {
+      "start": 158.52,
+      "end": 161.36,
+      "en": "And it's all installed. Perfect.",
+      "zh": "都安裝好了，很好。"
+    },
+    {
+      "start": 161.36,
+      "end": 163.279,
+      "en": "So I'll close my terminal.",
+      "zh": "把終端機關掉。"
+    },
+    {
+      "start": 163.279,
+      "end": 166.91899999999998,
+      "en": "Now, we're also gonna need some entries in our .onv.",
+      "zh": ".env 裡也需要新增一些設定，"
+    },
+    {
+      "start": 166.91899999999998,
+      "end": 168.72,
+      "en": "So let's go open that file up.",
+      "zh": "所以開啟那個檔案。"
+    },
+    {
+      "start": 169.679,
+      "end": 174.039,
+      "en": "And here, let's add some entries for Postgres, okay?",
+      "zh": "在這裡加入 Postgres 的設定值。"
+    },
+    {
+      "start": 174.039,
+      "end": 178.039,
+      "en": "So to start with, let's say vector store. Vector store.",
+      "zh": "首先是 VECTOR_STORE，"
+    },
+    {
+      "start": 179.36,
+      "end": 181.479,
+      "en": "And we'll make that equal to Postgres, okay?",
+      "zh": "把它設為 postgres。"
+    },
+    {
+      "start": 181.479,
+      "end": 183.919,
+      "en": "And that'll be the only option for right now.",
+      "zh": "目前先只支援這個選項。"
+    },
+    {
+      "start": 183.919,
+      "end": 188.32,
+      "en": "But later on, we'll swap out the vector store for Postgres and replace it with one for Weaviate.",
+      "zh": "不過稍後會替換 Postgres 向量儲存區，改用 Weaviate。"
+    },
+    {
+      "start": 188.32,
+      "end": 191.279,
+      "en": "So we may as well set up this environment variable right now.",
+      "zh": "所以現在就先建立這個環境變數。"
+    },
+    {
+      "start": 192.679,
+      "end": 194.88,
+      "en": "We're also gonna need Postgres specific things.",
+      "zh": "也需要 Postgres 專用的設定，"
+    },
+    {
+      "start": 194.88,
+      "end": 197.399,
+      "en": "Postgres underscore host.",
+      "zh": "也就是 POSTGRES_HOST，"
+    },
+    {
+      "start": 197.399,
+      "end": 199.8,
+      "en": "And we'll make that equal to local host, okay?",
+      "zh": "將它設為 localhost。"
+    },
+    {
+      "start": 199.8,
+      "end": 201.8,
+      "en": "We're gonna run this in Docker.",
+      "zh": "我們會用 Docker 執行資料庫。"
+    },
+    {
+      "start": 201.839,
+      "end": 204.75900000000001,
+      "en": "And then Postgres port.",
+      "zh": "接著是 POSTGRES_PORT，"
+    },
+    {
+      "start": 204.75900000000001,
+      "end": 207.24,
+      "en": "And we'll use the default, 5, 4, 3, 2.",
+      "zh": "使用預設值 5432。"
+    },
+    {
+      "start": 208.839,
+      "end": 210.47899999999998,
+      "en": "And Postgres user.",
+      "zh": "再來是 POSTGRES_USER，"
+    },
+    {
+      "start": 212.72,
+      "end": 216,
+      "en": "We'll make that equal to, say, Pyreg, okay?",
+      "zh": "我把它設為 pyrag。"
+    },
+    {
+      "start": 216,
+      "end": 217.52,
+      "en": "Great for development.",
+      "zh": "這樣很適合開發使用。"
+    },
+    {
+      "start": 217.52,
+      "end": 219.91899999999998,
+      "en": "Postgres password.",
+      "zh": "再來是 POSTGRES_PASSWORD，"
+    },
+    {
+      "start": 221,
+      "end": 221.91899999999998,
+      "en": "And I'll keep it simple.",
+      "zh": "我保持簡單，"
+    },
+    {
+      "start": 221.91899999999998,
+      "end": 223.399,
+      "en": "I'll make that Pyreg as well.",
+      "zh": "也設為 pyrag。"
+    },
+    {
+      "start": 224.679,
+      "end": 228.839,
+      "en": "And then finally, Postgres underscore db.",
+      "zh": "最後是 POSTGRES_DB，"
+    },
+    {
+      "start": 228.839,
+      "end": 231.399,
+      "en": "And we'll make that equal to Pyreg as well.",
+      "zh": "同樣設為 pyrag。"
+    },
+    {
+      "start": 232.32,
+      "end": 233.32,
+      "en": "Easy to remember.",
+      "zh": "這樣很好記。"
+    },
+    {
+      "start": 233.32,
+      "end": 237.119,
+      "en": "And of course, we'd use a much more secure password in production.",
+      "zh": "正式環境當然應該使用更安全的密碼，"
+    },
+    {
+      "start": 237.119,
+      "end": 239.839,
+      "en": "But we're in development, so this is just fine.",
+      "zh": "不過我們現在做開發，這樣就可以了。"
+    },
+    {
+      "start": 239.839,
+      "end": 241.72,
+      "en": "Now, these exist in our .onv.",
+      "zh": "這些值都放在 .env 裡，"
+    },
+    {
+      "start": 241.72,
+      "end": 243.559,
+      "en": "So clearly, we need to be able to read them.",
+      "zh": "所以顯然需要讀取它們。"
+    },
+    {
+      "start": 243.559,
+      "end": 246.16,
+      "en": "So let's go over to config.py.",
+      "zh": "到 config.py，"
+    },
+    {
+      "start": 246.16,
+      "end": 248.08,
+      "en": "And let's put some changes in here.",
+      "zh": "在這裡做些修改。"
+    },
+    {
+      "start": 248.08,
+      "end": 251.88,
+      "en": "So right now, we have this function underscore onv.",
+      "zh": "目前有 _env 這個函式，"
+    },
+    {
+      "start": 251.88,
+      "end": 252.96,
+      "en": "And we're gonna create another one.",
+      "zh": "現在再建立另一個。"
+    },
+    {
+      "start": 252.96,
+      "end": 254.52,
+      "en": "That only returns a string value.",
+      "zh": "原本的函式只會回傳字串，"
+    },
+    {
+      "start": 254.52,
+      "end": 258.839,
+      "en": "We actually want an int value for some things like the port for Postgres.",
+      "zh": "但像 Postgres 連接埠這類設定，我們實際需要整數。"
+    },
+    {
+      "start": 258.839,
+      "end": 263.839,
+      "en": "So we'll define underscore onv underscore int, okay?",
+      "zh": "因此定義 _env_int。"
+    },
+    {
+      "start": 264.72,
+      "end": 267.519,
+      "en": "And that will take a key, which will be the string.",
+      "zh": "它接收 key，型別是 str，"
+    },
+    {
+      "start": 268.799,
+      "end": 271.92,
+      "en": "And it will be a default, which is an int.",
+      "zh": "以及 default，型別是 int。"
+    },
+    {
+      "start": 271.92,
+      "end": 277.279,
+      "en": "And it's going to return an int as well. Okay?",
+      "zh": "回傳值也是 int。"
+    },
+    {
+      "start": 277.279,
+      "end": 278.92,
+      "en": "And this is a very simple function.",
+      "zh": "這個函式很簡單，"
+    },
+    {
+      "start": 278.92,
+      "end": 282.88,
+      "en": "Return int of onv.",
+      "zh": "回傳 int(_env(...))，"
+    },
+    {
+      "start": 282.88,
+      "end": 284.2,
+      "en": "We'll call the onv function.",
+      "zh": "也就是先呼叫 _env，"
+    },
+    {
+      "start": 284.2,
+      "end": 285.55899999999997,
+      "en": "And hand that a key.",
+      "zh": "傳入 key，"
+    },
+    {
+      "start": 286.88,
+      "end": 291.44,
+      "en": "And hand that string default. Like that.",
+      "zh": "並把 default 轉成字串後傳入。"
+    },
+    {
+      "start": 291.44,
+      "end": 293.55899999999997,
+      "en": "So this function actually calls this function.",
+      "zh": "所以這個函式其實是呼叫另一個函式，"
+    },
+    {
+      "start": 293.55899999999997,
+      "end": 297.279,
+      "en": "The only real difference is it returns an integer value. Okay?",
+      "zh": "唯一真正的差別是最後回傳整數。"
+    },
+    {
+      "start": 297.279,
+      "end": 301.32,
+      "en": "And now we need to come down here to config and add some more attributes.",
+      "zh": "接著到下面的 Config，增加一些屬性。"
+    },
+    {
+      "start": 301.32,
+      "end": 303.679,
+      "en": "So obviously, we're gonna have to have vector store.",
+      "zh": "顯然需要 vector_store，"
+    },
+    {
+      "start": 303.679,
+      "end": 306,
+      "en": "Vector underscore store.",
+      "zh": "也就是 vector_store，"
+    },
+    {
+      "start": 306,
+      "end": 307.399,
+      "en": "And we'll make that a string.",
+      "zh": "型別設為 str。"
+    },
+    {
+      "start": 308.32,
+      "end": 310.76,
+      "en": "And pghost, which is on the next line.",
+      "zh": "下一行則是 pg_host，"
+    },
+    {
+      "start": 310.76,
+      "end": 312.399,
+      "en": "Pg underscore host.",
+      "zh": "名稱是 pg_host，"
+    },
+    {
+      "start": 312.399,
+      "end": 316.119,
+      "en": "That'll be a string. And pgport.",
+      "zh": "它是 str；接著是 pg_port，"
+    },
+    {
+      "start": 317.6,
+      "end": 321.519,
+      "en": "And that'll be an integer. Pguser.",
+      "zh": "型別為 int。再來是 pg_user，"
+    },
+    {
+      "start": 321.519,
+      "end": 324.72,
+      "en": "That'll be a string. Pgpassword.",
+      "zh": "型別為 str。然後是 pg_password，"
+    },
+    {
+      "start": 325.76,
+      "end": 326.76,
+      "en": "That'll be a string.",
+      "zh": "也是 str。"
+    },
+    {
+      "start": 328.399,
+      "end": 329.92,
+      "en": "And pg underscore db.",
+      "zh": "最後是 pg_db，"
+    },
+    {
+      "start": 329.92,
+      "end": 331.559,
+      "en": "What database do we connect to?",
+      "zh": "用來指定要連接哪個資料庫，"
+    },
+    {
+      "start": 331.559,
+      "end": 334,
+      "en": "That'll be a string as well. Okay?",
+      "zh": "同樣是 str。"
+    },
+    {
+      "start": 334,
+      "end": 338.119,
+      "en": "And we're also gonna need another method on this class. Okay?",
+      "zh": "另外還需要在這個類別上新增一個方法。"
+    },
+    {
+      "start": 338.119,
+      "end": 340.239,
+      "en": "So we'll use the annotation property.",
+      "zh": "使用 @property 裝飾器，"
+    },
+    {
+      "start": 341.2,
+      "end": 344.92,
+      "en": "And we'll define this as pg underscore dsn.",
+      "zh": "將它定義為 pg_dsn，"
+    },
+    {
+      "start": 344.92,
+      "end": 346.72,
+      "en": "What's our postgres dsn?",
+      "zh": "也就是 Postgres 的 DSN。"
+    },
+    {
+      "start": 346.72,
+      "end": 348.64,
+      "en": "And that takes self. Okay?",
+      "zh": "它接收 self，"
+    },
+    {
+      "start": 348.64,
+      "end": 350.04,
+      "en": "And it returns a string.",
+      "zh": "回傳字串。"
+    },
+    {
+      "start": 351.6,
+      "end": 355.15999999999997,
+      "en": "And we'll use this just to build connection string. Okay?",
+      "zh": "我們會用它來建立連線字串。"
+    },
+    {
+      "start": 355.15999999999997,
+      "end": 360.559,
+      "en": "So this is as simple as saying, return, and then we'll build a format string.",
+      "zh": "所以只要寫 return，然後建立格式化字串，"
+    },
+    {
+      "start": 360.559,
+      "end": 362.48,
+      "en": "So f and double quotes.",
+      "zh": "也就是 f 加雙引號，"
+    },
+    {
+      "start": 362.48,
+      "end": 366.64,
+      "en": "And postgresql colon slash slash.",
+      "zh": "字首是 postgresql://。"
+    },
+    {
+      "start": 367,
+      "end": 370.799,
+      "en": "And then in curly brackets, self.pg underscore user.",
+      "zh": "大括號裡放入 self.pg_user，"
+    },
+    {
+      "start": 372.359,
+      "end": 382.359,
+      "en": "And then outside of the curly brackets, a colon, then more curly brackets, self.pg password, then outside of the curly brackets.",
+      "zh": "大括號外面接冒號，再加大括號中的 self.pg_password，然後回到大括號外面。"
+    },
+    {
+      "start": 382.359,
+      "end": 385.72,
+      "en": "And I'll go to the next line just to make this more readable. Okay?",
+      "zh": "為了方便閱讀，我換到下一行。"
+    },
+    {
+      "start": 385.72,
+      "end": 386.64,
+      "en": "So another format string.",
+      "zh": "再接一段格式化字串，"
+    },
+    {
+      "start": 387.959,
+      "end": 396.88,
+      "en": "At, and then in curly brackets, self.pg underscore host, and outside of the curly brackets, another colon.",
+      "zh": "先是 @，再放入大括號中的 self.pg_host，外面接另一個冒號。"
+    },
+    {
+      "start": 398.519,
+      "end": 403.76,
+      "en": "And then self in curly brackets, self.pg underscore port.",
+      "zh": "然後大括號裡放入 self.pg_port，"
+    },
+    {
+      "start": 405.44,
+      "end": 413.799,
+      "en": "And then outside of the curly brackets, a slash, and in curly brackets, self.pg underscore db.",
+      "zh": "接著在外面加斜線，再加入大括號中的 self.pg_db。"
+    },
+    {
+      "start": 413.799,
+      "end": 417.959,
+      "en": "And that should build our connection string for postgres. Okay?",
+      "zh": "這樣應該就能建立 Postgres 連線字串。"
+    },
+    {
+      "start": 417.959,
+      "end": 421.88,
+      "en": "So the next thing we have to do is come down here and load config.",
+      "zh": "接著到下面的 load_config，"
+    },
+    {
+      "start": 421.88,
+      "end": 426.92,
+      "en": "And after chat model, we'll put in vector store.",
+      "zh": "在 chat_model 後面加入 vector_store，"
+    },
+    {
+      "start": 430.119,
+      "end": 434.359,
+      "en": "And that's going to be equal to using the dot or the dash underscore onv.",
+      "zh": "用 _env 函式來取得它的值。"
+    },
+    {
+      "start": 434.359,
+      "end": 436.079,
+      "en": "Get that right eventually.",
+      "zh": "我終於會把名字輸入正確的。"
+    },
+    {
+      "start": 436.079,
+      "end": 437.64,
+      "en": "We're looking for vector store.",
+      "zh": "我們尋找的是 VECTOR_STORE，"
+    },
+    {
+      "start": 440.839,
+      "end": 444.64,
+      "en": "And we'll hand it a default of postgres. Okay?",
+      "zh": "預設值給 postgres。"
+    },
+    {
+      "start": 444.64,
+      "end": 446.359,
+      "en": "So we need that.",
+      "zh": "所以需要這項設定，"
+    },
+    {
+      "start": 446.359,
+      "end": 447.399,
+      "en": "And then a comma.",
+      "zh": "後面加逗號。"
+    },
+    {
+      "start": 448.279,
+      "end": 450.279,
+      "en": "Then we want pg underscore host.",
+      "zh": "接著是 pg_host，"
+    },
+    {
+      "start": 450.279,
+      "end": 453,
+      "en": "And that will be equal to onv.",
+      "zh": "同樣透過 _env，"
+    },
+    {
+      "start": 453,
+      "end": 458.359,
+      "en": "And we're going to look for the environment variable postgres underscore host.",
+      "zh": "尋找環境變數 POSTGRES_HOST，"
+    },
+    {
+      "start": 458.359,
+      "end": 460.44,
+      "en": "And we use the default localhost.",
+      "zh": "預設值使用 localhost，"
+    },
+    {
+      "start": 462.76,
+      "end": 464.44,
+      "en": "And then a comma.",
+      "zh": "然後加逗號。"
+    },
+    {
+      "start": 464.44,
+      "end": 466.079,
+      "en": "pg underscore port.",
+      "zh": "接著是 pg_port，"
+    },
+    {
+      "start": 466.079,
+      "end": 471.6,
+      "en": "That will be equal to underscore onv underscore int because we want an integer.",
+      "zh": "它使用 _env_int，因為我們要的是整數。"
+    },
+    {
+      "start": 471.6,
+      "end": 481.399,
+      "en": "And we're looking for postgres underscore port with the default of 5432. And a comma.",
+      "zh": "尋找 POSTGRES_PORT，預設值是 5432，後面加逗號。"
+    },
+    {
+      "start": 482.359,
+      "end": 484.359,
+      "en": "Then pg underscore user.",
+      "zh": "然後是 pg_user，"
+    },
+    {
+      "start": 484.359,
+      "end": 487.04,
+      "en": "And that'll be equal to from underscore onv.",
+      "zh": "它的值來自 _env，"
+    },
+    {
+      "start": 488.04,
+      "end": 492.839,
+      "en": "We're looking for postgres underscore user with a default of pyreg.",
+      "zh": "尋找 POSTGRES_USER，預設值是 pyrag。"
+    },
+    {
+      "start": 495.399,
+      "end": 499.239,
+      "en": "And then a comma. pg password.",
+      "zh": "接著加逗號，再設定 pg_password，"
+    },
+    {
+      "start": 499.239,
+      "end": 504,
+      "en": "That'll be equal to postgres underscore password",
+      "zh": "讀取 POSTGRES_PASSWORD，"
+    },
+    {
+      "start": 505.959,
+      "end": 507.44,
+      "en": "with a default of pyreg.",
+      "zh": "預設值是 pyrag，"
+    },
+    {
+      "start": 508.279,
+      "end": 509.799,
+      "en": "And then a comma.",
+      "zh": "後面加逗號。"
+    },
+    {
+      "start": 509.799,
+      "end": 512,
+      "en": "And lastly, pg underscore db.",
+      "zh": "最後是 pg_db，"
+    },
+    {
+      "start": 512,
+      "end": 514.28,
+      "en": "And that will be equal to using onv",
+      "zh": "同樣使用 _env，"
+    },
+    {
+      "start": 516.359,
+      "end": 521.76,
+      "en": "postgres underscore db with the default of pyreg.",
+      "zh": "讀取 POSTGRES_DB，預設值是 pyrag。"
+    },
+    {
+      "start": 522.88,
+      "end": 531.32,
+      "en": "And of course, because we've set these defaults, we don't need to have those entries in our .on file, but they absolutely do not hurt anything. Okay?",
+      "zh": "因為已經設定預設值，所以 .env 裡其實可以省略這些項目，但明確寫上完全沒有壞處。"
+    },
+    {
+      "start": 531.32,
+      "end": 532.359,
+      "en": "So let's save to format.",
+      "zh": "儲存檔案，順便進行格式化。"
+    },
+    {
+      "start": 533.44,
+      "end": 534.359,
+      "en": "That looks better.",
+      "zh": "這樣好看多了。"
+    },
+    {
+      "start": 534.359,
+      "end": 536.159,
+      "en": "And we're going to go ahead and save it.",
+      "zh": "接著把它儲存。"
+    },
+    {
+      "start": 536.799,
+      "end": 537.919,
+      "en": "That looks better.",
+      "zh": "現在看起來更整齊了。"
+    },
+    {
+      "start": 537.919,
+      "end": 542.559,
+      "en": "So the next thing we want to do is actually get postgres up and running in Docker.",
+      "zh": "下一步要在 Docker 中真正啟動 Postgres，"
+    },
+    {
+      "start": 542.559,
+      "end": 545.2,
+      "en": "And we'll get started on that in the next lecture.",
+      "zh": "下一堂課就開始處理。"
+    }
+  ]
+}

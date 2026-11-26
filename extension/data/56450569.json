@@ -1,0 +1,1159 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56450569",
+  "title": "Setting up the chat endpoint",
+  "section": 11,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "dec64ef845efb2b8ce7862666e9a6e8e68b82a6f9dcb2112ed63605c08e803de",
+  "cues": [
+    {
+      "start": 0,
+      "end": 10,
+      "en": "So, this time around, what we want to work on is that slash API slash chat endpoint that we need in order to have a conversation with the LLM.",
+      "zh": "這次要實作 /api/chat 端點，讓使用者能與 LLM 對話。"
+    },
+    {
+      "start": 10,
+      "end": 13.279,
+      "en": "And obviously, that's going to go over here in web.py.",
+      "zh": "這當然會放在 web.py 裡。"
+    },
+    {
+      "start": 13.279,
+      "end": 22.079,
+      "en": "And here in the create app function, we're going to add another at app directive, okay, one for slash API slash chat.",
+      "zh": "在 create_app 函式中，新增一個 @app 路由，處理 /api/chat。"
+    },
+    {
+      "start": 22.079,
+      "end": 25.6,
+      "en": "But before we do that, I'm going to write a couple of helper functions.",
+      "zh": "不過在這之前，我先寫幾個輔助函式。"
+    },
+    {
+      "start": 25.6,
+      "end": 29.62,
+      "en": "Quite often, I don't do this, I actually write the helper functions when I need them.",
+      "zh": "平常我不一定這樣做，通常是需要時才寫。"
+    },
+    {
+      "start": 29.62,
+      "end": 34.02,
+      "en": "But just to get them out of the way right now, these are very short, we're going to need two functions.",
+      "zh": "但這次先把它們完成，總共需要兩個很短的函式。"
+    },
+    {
+      "start": 34.02,
+      "end": 44.22,
+      "en": "The first one I'll define, I'm going to call that underscore because I'm only using it here in web.py, underscore SSE for server sent events, okay.",
+      "zh": "第一個命名為 _sse，SSE 代表伺服器傳送事件。前面加底線，因為只會在 web.py 裡使用。"
+    },
+    {
+      "start": 44.22,
+      "end": 47.06,
+      "en": "And that's going to take an event, which will type into a string.",
+      "zh": "它接受 event，型別標註為 str。"
+    },
+    {
+      "start": 47.06,
+      "end": 56.939,
+      "en": "And it's also going to take the payload for that event, which will type into a dict of string and holding any, okay.",
+      "zh": "還有這個事件的 payload，型別是鍵為 str、值為 Any 的字典。"
+    },
+    {
+      "start": 56.939,
+      "end": 63.419,
+      "en": "And this is always going to return a string, str, okay.",
+      "zh": "回傳值一定是字串，也就是 str。"
+    },
+    {
+      "start": 63.419,
+      "end": 67.379,
+      "en": "Now, this is basically one line of code.",
+      "zh": "基本上只需要一行程式碼。"
+    },
+    {
+      "start": 67.379,
+      "end": 75.059,
+      "en": "All we're going to do here, remember, we're streaming the events back to the end user, the web page, we're streaming them one event at a time.",
+      "zh": "記得，我們要逐個事件串流回傳給終端使用者，也就是網頁。"
+    },
+    {
+      "start": 75.059,
+      "end": 77.72,
+      "en": "And a frame, well, we're going to call that an event.",
+      "zh": "每個訊息框架，在這裡就叫作事件。"
+    },
+    {
+      "start": 77.72,
+      "end": 82.5,
+      "en": "And the event will actually be in a particular syntax, okay.",
+      "zh": "事件必須使用特定的語法。"
+    },
+    {
+      "start": 82.5,
+      "end": 91.86,
+      "en": "It'll be something like event colon, then the name of the event, then a carriage return, and then the data for the event, and that will be in JSON.",
+      "zh": "格式像是 event:，後面接事件名稱，換行後再放入 JSON 格式的事件資料。"
+    },
+    {
+      "start": 91.86,
+      "end": 93.739,
+      "en": "And then two carriage returns, okay.",
+      "zh": "最後再加兩個換行。"
+    },
+    {
+      "start": 93.739,
+      "end": 98.339,
+      "en": "So a blank line at the end, and that blank line at the end will be required.",
+      "zh": "也就是結尾要有一個空白行，而且這個空白行不可省略。"
+    },
+    {
+      "start": 98.339,
+      "end": 102.18,
+      "en": "That's what tells the browser that the frame is complete, okay.",
+      "zh": "瀏覽器會用它來判斷訊息框架已經完整。"
+    },
+    {
+      "start": 102.18,
+      "end": 103.86,
+      "en": "So that's one line of code.",
+      "zh": "所以只需要一行程式碼。"
+    },
+    {
+      "start": 103.86,
+      "end": 111.66,
+      "en": "We'll return a format string, and the format string will be the word event, followed by a colon, followed by a space.",
+      "zh": "回傳格式化字串，先寫 event，後面接冒號與空格。"
+    },
+    {
+      "start": 111.66,
+      "end": 114.779,
+      "en": "And then in curly brackets, event, okay.",
+      "zh": "再以大括號放入 event。"
+    },
+    {
+      "start": 114.779,
+      "end": 122.559,
+      "en": "And then outside of the curly brackets, we're going to put a carriage return, and then we're going to put data colon and a space.",
+      "zh": "在大括號外加上換行，接著寫 data: 和一個空格。"
+    },
+    {
+      "start": 122.559,
+      "end": 130.559,
+      "en": "And then we'll just use from the JSON package, we'll dump to a string, so dump s, whatever payload is, okay.",
+      "zh": "再使用 json 套件的 dumps，把 payload 序列化成字串。"
+    },
+    {
+      "start": 130.559,
+      "end": 135.25900000000001,
+      "en": "And then outside of the curly brackets, backslash n, backslash n.",
+      "zh": "大括號後面加上 \\n\\n。"
+    },
+    {
+      "start": 135.25900000000001,
+      "end": 136.5,
+      "en": "The frame is complete.",
+      "zh": "這個訊息框架就完成了。"
+    },
+    {
+      "start": 136.5,
+      "end": 142.619,
+      "en": "That blank line will tell the JavaScript on the client side that you've got the entire frame, okay.",
+      "zh": "最後的空白行會告訴用戶端 JavaScript，已經收到完整的訊息框架。"
+    },
+    {
+      "start": 142.619,
+      "end": 145.25900000000001,
+      "en": "So we need that def sse.",
+      "zh": "因此需要這個 _sse 函式。"
+    },
+    {
+      "start": 145.25900000000001,
+      "end": 151.779,
+      "en": "And the other thing we're going to need, and this is very simple, okay, we're going to define another function, starting with an underscore once again.",
+      "zh": "另一個也很簡單，同樣定義一個名稱以底線開頭的函式。"
+    },
+    {
+      "start": 151.779,
+      "end": 154.97899999999998,
+      "en": "This is called hits underscore payload, okay.",
+      "zh": "它叫 _hits_payload。"
+    },
+    {
+      "start": 154.97899999999998,
+      "end": 160.46,
+      "en": "And hits, of course, are what we get back from the LLM, the documents that it consulted in the vector store.",
+      "zh": "hits 就是 LLM 取得的搜尋結果，也就是它在向量儲存中參考的文件。"
+    },
+    {
+      "start": 160.46,
+      "end": 163.57999999999998,
+      "en": "So that'll just be called hits, and I'll type in that to a list.",
+      "zh": "參數就叫 hits，型別標註為 list。"
+    },
+    {
+      "start": 163.66,
+      "end": 165.02,
+      "en": "It's one parameter.",
+      "zh": "只有這一個參數。"
+    },
+    {
+      "start": 165.02,
+      "end": 174.46,
+      "en": "And it's going to return a list of dict, holding, str, and any, okay, and our colon.",
+      "zh": "回傳型別則是由 dict[str, Any] 組成的串列，最後加上冒號。"
+    },
+    {
+      "start": 174.46,
+      "end": 179.02,
+      "en": "So what this is going to do, well, we need to have the sources that it actually used.",
+      "zh": "它的用途是提供實際使用過的來源。"
+    },
+    {
+      "start": 179.02,
+      "end": 184.899,
+      "en": "We need to get search hits and flatten it into a JSON-friendly dict for the sources panel.",
+      "zh": "把 SearchHit 攤平成方便 JSON 序列化的字典，供來源面板使用。"
+    },
+    {
+      "start": 184.899,
+      "end": 185.899,
+      "en": "That's all that it's doing, okay.",
+      "zh": "就只是做這件事。"
+    },
+    {
+      "start": 185.899,
+      "end": 187.979,
+      "en": "And again, it's just a return statement.",
+      "zh": "同樣只需要一個 return 陳述式。"
+    },
+    {
+      "start": 187.979,
+      "end": 198.5,
+      "en": "So simple helper function will return in square brackets, and then in curly brackets, we're going to return the file name and a colon.",
+      "zh": "這個簡單的輔助函式會回傳串列，在中括號內用大括號建立字典，先放 filename 這個鍵。"
+    },
+    {
+      "start": 198.5,
+      "end": 207.86,
+      "en": "That will be from path, using path from pathlib, h.sourcepath, source path.",
+      "zh": "值使用 pathlib 的 Path，傳入 h.source_path。"
+    },
+    {
+      "start": 207.86,
+      "end": 210.86,
+      "en": "And we'll figure out what h is in just a minute, okay.",
+      "zh": "等一下就會知道 h 是什麼。"
+    },
+    {
+      "start": 210.86,
+      "end": 213.059,
+      "en": "And we want the dot name.",
+      "zh": "然後取它的 .name。"
+    },
+    {
+      "start": 213.059,
+      "end": 216.66,
+      "en": "And then we want chunk index.",
+      "zh": "接著需要 chunk_index。"
+    },
+    {
+      "start": 216.66,
+      "end": 223.02,
+      "en": "And of course, that's just going to be h, chunk underscore index.",
+      "zh": "值當然就是 h.chunk_index。"
+    },
+    {
+      "start": 223.02,
+      "end": 226.3,
+      "en": "And the third thing we want is the score.",
+      "zh": "第三個需要的是 score。"
+    },
+    {
+      "start": 226.3,
+      "end": 235.779,
+      "en": "And that will round as a float, whatever is in h.score, to three decimal places, okay.",
+      "zh": "把 h.score 轉成浮點數，再四捨五入到小數點後三位。"
+    },
+    {
+      "start": 235.779,
+      "end": 243.1,
+      "en": "And then down here, outside of the curly brackets, we have our for statement for h in hits, okay.",
+      "zh": "在大括號外面寫 for h in hits。"
+    },
+    {
+      "start": 243.1,
+      "end": 244.779,
+      "en": "So those are our two helper functions.",
+      "zh": "這就是兩個輔助函式。"
+    },
+    {
+      "start": 244.82,
+      "end": 248.66,
+      "en": "And we need both of these in order to write the route I want to write next.",
+      "zh": "接下來要寫的路由，兩個函式都會用到。"
+    },
+    {
+      "start": 248.66,
+      "end": 251.82,
+      "en": "So let's go back up to the create app function, okay.",
+      "zh": "回到上方的 create_app 函式。"
+    },
+    {
+      "start": 251.82,
+      "end": 256.22,
+      "en": "And in here, we're going to add another annotation and describe another route.",
+      "zh": "在這裡再加一個裝飾器，定義另一個路由。"
+    },
+    {
+      "start": 256.22,
+      "end": 259.839,
+      "en": "And this will be an app dot, and we're going to be posting to this.",
+      "zh": "從 @app. 開始，這次會向端點送出 POST 請求。"
+    },
+    {
+      "start": 259.839,
+      "end": 261.459,
+      "en": "So it's a post route, okay.",
+      "zh": "所以是 POST 路由。"
+    },
+    {
+      "start": 261.459,
+      "end": 264.7,
+      "en": "And it has to be slash API slash chat, okay.",
+      "zh": "路徑必須是 /api/chat。"
+    },
+    {
+      "start": 264.7,
+      "end": 266.299,
+      "en": "So that's our annotation.",
+      "zh": "裝飾器就寫好了。"
+    },
+    {
+      "start": 266.299,
+      "end": 271.82,
+      "en": "Now we'll define it, def, and I'll call it chat underscore endpoint.",
+      "zh": "接著定義函式，命名為 chat_endpoint。"
+    },
+    {
+      "start": 271.82,
+      "end": 278.299,
+      "en": "And that will take a request, and that's of type chat request, okay, which we defined a little while ago.",
+      "zh": "它接受請求，型別是前面定義的 ChatRequest。"
+    },
+    {
+      "start": 278.299,
+      "end": 284.359,
+      "en": "And it's going to return not a file response this time, but a streaming response right at a fast API, okay.",
+      "zh": "這次回傳的不是 FileResponse，而是 FastAPI 的 StreamingResponse。"
+    },
+    {
+      "start": 284.359,
+      "end": 287.7,
+      "en": "So we're streaming this response to the user.",
+      "zh": "也就是把回應串流傳給使用者。"
+    },
+    {
+      "start": 287.7,
+      "end": 290.54,
+      "en": "Now let's figure out what the user's question is.",
+      "zh": "先取得使用者的問題。"
+    },
+    {
+      "start": 290.54,
+      "end": 294.859,
+      "en": "I'll define a variable question that comes from the request, obviously.",
+      "zh": "定義 question 變數，內容當然來自請求。"
+    },
+    {
+      "start": 294.859,
+      "end": 297.019,
+      "en": "And it's coming from something called message.",
+      "zh": "取出其中的 message。"
+    },
+    {
+      "start": 297.019,
+      "end": 298.579,
+      "en": "That's what's being sent.",
+      "zh": "這就是使用者送來的內容。"
+    },
+    {
+      "start": 298.579,
+      "end": 301,
+      "en": "And we're going to strip the spaces from that.",
+      "zh": "再用 strip 移除前後空白。"
+    },
+    {
+      "start": 301,
+      "end": 303.079,
+      "en": "So now we have the user's question, okay.",
+      "zh": "現在就有使用者的問題了。"
+    },
+    {
+      "start": 303.079,
+      "end": 308,
+      "en": "Let's make sure there is a user question, if not question.",
+      "zh": "確認問題確實有內容，使用 if not question。"
+    },
+    {
+      "start": 308,
+      "end": 310.239,
+      "en": "Maybe they just hit return or something like that.",
+      "zh": "使用者可能只是按下 Enter。"
+    },
+    {
+      "start": 310.239,
+      "end": 312.16,
+      "en": "We'll just raise an exception, raise.",
+      "zh": "這時直接拋出例外。"
+    },
+    {
+      "start": 312.16,
+      "end": 316.959,
+      "en": "And here we're going to use the HTTP exception package that we imported, okay.",
+      "zh": "使用先前匯入的 HTTPException。"
+    },
+    {
+      "start": 316.959,
+      "end": 318.399,
+      "en": "We'll give it a status code.",
+      "zh": "提供狀態碼。"
+    },
+    {
+      "start": 318.399,
+      "end": 323.839,
+      "en": "Status code, well, we'll make that equal to 400, okay, bad request.",
+      "zh": "status_code 設為 400，代表請求有誤。"
+    },
+    {
+      "start": 323.839,
+      "end": 327.559,
+      "en": "And detail will be just say empty message.",
+      "zh": "detail 就寫 Empty message。"
+    },
+    {
+      "start": 327.559,
+      "end": 332.88,
+      "en": "We just hit the submit button with nothing in the chat input area, okay.",
+      "zh": "也就是聊天輸入區沒有內容，卻直接按了送出。"
+    },
+    {
+      "start": 332.88,
+      "end": 338.839,
+      "en": "Now if we get past that, of course, we need to figure out how many things to consult from the vector store.",
+      "zh": "如果通過這項檢查，接著要決定從向量儲存參考多少個結果。"
+    },
+    {
+      "start": 338.839,
+      "end": 339.839,
+      "en": "We call that top K.",
+      "zh": "這個數量叫 top_k。"
+    },
+    {
+      "start": 339.839,
+      "end": 342.079,
+      "en": "So we'll declare a variable top K.",
+      "zh": "所以宣告 top_k 變數。"
+    },
+    {
+      "start": 342.079,
+      "end": 345.72,
+      "en": "And that's from the request.k, okay.",
+      "zh": "值來自 req.k。"
+    },
+    {
+      "start": 345.72,
+      "end": 349.839,
+      "en": "And we'll say if req.k is not none.",
+      "zh": "前提是 req.k 不是 None。"
+    },
+    {
+      "start": 349.839,
+      "end": 357.15999999999997,
+      "en": "Otherwise, else, we'll just use what's in the config, cfg.top underscore k, okay.",
+      "zh": "否則就使用設定裡的 cfg.top_k。"
+    },
+    {
+      "start": 357.15999999999997,
+      "end": 360,
+      "en": "So now we have top K.",
+      "zh": "現在 top_k 就決定好了。"
+    },
+    {
+      "start": 360,
+      "end": 362.959,
+      "en": "Now we want our event stream, okay.",
+      "zh": "接著處理事件串流。"
+    },
+    {
+      "start": 362.959,
+      "end": 368.6,
+      "en": "And this will yield one server sent event frame at a time, okay.",
+      "zh": "它每次 yield 一個 SSE 訊息框架。"
+    },
+    {
+      "start": 368.6,
+      "end": 375.399,
+      "en": "And our fast API server will stream each frame to the client as soon as we yield it, okay.",
+      "zh": "一旦 yield，FastAPI 伺服器就會立即把這個訊息框架串流傳給用戶端。"
+    },
+    {
+      "start": 375.399,
+      "end": 376.959,
+      "en": "So there's no buffering.",
+      "zh": "不會等資料累積後才傳送。"
+    },
+    {
+      "start": 376.959,
+      "end": 379.119,
+      "en": "That's what makes the tokens appear live.",
+      "zh": "這樣 token 才能即時出現。"
+    },
+    {
+      "start": 379.119,
+      "end": 381.32,
+      "en": "It makes the chat seem real, in other words.",
+      "zh": "換句話說，聊天才會有即時互動感。"
+    },
+    {
+      "start": 381.32,
+      "end": 388.5,
+      "en": "So we'll define the event stream, okay, like that with no parameters.",
+      "zh": "定義不接受任何參數的 event_stream。"
+    },
+    {
+      "start": 388.5,
+      "end": 390.959,
+      "en": "And inside of that, we'll have a try statement, okay.",
+      "zh": "裡面放一個 try 陳述式。"
+    },
+    {
+      "start": 390.959,
+      "end": 396.6,
+      "en": "And I'm going to put my except in there right now, except.",
+      "zh": "我現在就先把 except 寫好。"
+    },
+    {
+      "start": 396.6,
+      "end": 403.279,
+      "en": "And that'll just be any exception, as exe, okay.",
+      "zh": "捕捉任何 Exception，命名為 exc。"
+    },
+    {
+      "start": 403.279,
+      "end": 406.55899999999997,
+      "en": "Now if there's an exception, let's log it.",
+      "zh": "如果發生例外，就把它記錄下來。"
+    },
+    {
+      "start": 407.55899999999997,
+      "end": 411.6,
+      "en": "chat.exception, chat endpoint failed.",
+      "zh": "呼叫 exception 記錄方法，訊息寫 Chat endpoint failed。"
+    },
+    {
+      "start": 411.6,
+      "end": 413.88,
+      "en": "So we know what the error was, okay.",
+      "zh": "這樣就知道發生什麼錯誤。"
+    },
+    {
+      "start": 413.88,
+      "end": 420.88,
+      "en": "And we'll say yield sse, underscore sse, that helper function we just wrote, okay.",
+      "zh": "再 yield 剛才寫好的 _sse 輔助函式結果。"
+    },
+    {
+      "start": 420.88,
+      "end": 424.239,
+      "en": "And what that requires is error.",
+      "zh": "第一個參數是 error。"
+    },
+    {
+      "start": 424.239,
+      "end": 428.72,
+      "en": "And the second parameter will be in curly brackets, because it has to be JSON, message.",
+      "zh": "第二個參數使用字典，因為需要 JSON，裡面有 message 這個鍵。"
+    },
+    {
+      "start": 428.72,
+      "end": 434.839,
+      "en": "And then outside the quotes, as a string, whatever the exception is, okay.",
+      "zh": "它的值是轉成字串的例外內容。"
+    },
+    {
+      "start": 434.839,
+      "end": 438.239,
+      "en": "So, now back to the try statement.",
+      "zh": "現在回到 try 區塊。"
+    },
+    {
+      "start": 438.239,
+      "end": 440.92,
+      "en": "Let's give ourselves some room here, okay.",
+      "zh": "先留一些空間。"
+    },
+    {
+      "start": 440.92,
+      "end": 442.2,
+      "en": "Nothing too complex in here.",
+      "zh": "這裡沒有太複雜的內容。"
+    },
+    {
+      "start": 442.2,
+      "end": 445.119,
+      "en": "To start with, remember, we want to get the lock.",
+      "zh": "首先記得要取得鎖定。"
+    },
+    {
+      "start": 445.119,
+      "end": 449.239,
+      "en": "We need to lock the store while we do our retrieval.",
+      "zh": "執行檢索時，必須鎖定向量儲存。"
+    },
+    {
+      "start": 449.239,
+      "end": 452.519,
+      "en": "So we'll say with lock, okay.",
+      "zh": "所以寫 with lock。"
+    },
+    {
+      "start": 452.519,
+      "end": 460.519,
+      "en": "ctx equals retrieve store embedded.",
+      "zh": "ctx 等於呼叫 retrieve 的結果，先傳入 store 和 embedder。"
+    },
+    {
+      "start": 460.519,
+      "end": 465.15999999999997,
+      "en": "And the third parameter's question, and top K, okay.",
+      "zh": "第三個參數是 question，還有 top_k。"
+    },
+    {
+      "start": 465.15999999999997,
+      "end": 468.88,
+      "en": "We're retrieving just like we did in the console-based application.",
+      "zh": "檢索方式和終端機版應用程式完全相同。"
+    },
+    {
+      "start": 468.88,
+      "end": 473.519,
+      "en": "And remember lock, well, we set that variable right up here above, okay.",
+      "zh": "記得 lock 是上方已經設定好的變數。"
+    },
+    {
+      "start": 473.519,
+      "end": 477.079,
+      "en": "So it's stored in app.state.lock, and it's the variable lock.",
+      "zh": "它儲存在 app.state.lock，同時也是這裡的區域變數 lock。"
+    },
+    {
+      "start": 477.079,
+      "end": 479,
+      "en": "That's where lock comes from.",
+      "zh": "這就是 lock 的來源。"
+    },
+    {
+      "start": 479,
+      "end": 482.72,
+      "en": "So we have our lock, okay.",
+      "zh": "現在鎖定的部分處理好了。"
+    },
+    {
+      "start": 482.72,
+      "end": 486.44,
+      "en": "Next, we don't keep server-side conversation state.",
+      "zh": "接著，伺服器端不會保存對話狀態。"
+    },
+    {
+      "start": 486.44,
+      "end": 492.119,
+      "en": "So every request reconstructs the full message list from the raw history that the browser sent, okay.",
+      "zh": "因此每次請求，都會從瀏覽器送來的原始歷史資料重建完整訊息串列。"
+    },
+    {
+      "start": 492.119,
+      "end": 495.799,
+      "en": "So we'll just declare a variable raw history.",
+      "zh": "先宣告 raw_history 變數。"
+    },
+    {
+      "start": 495.799,
+      "end": 500.16,
+      "en": "That's going to be a list of messages, okay.",
+      "zh": "它是一個訊息串列。"
+    },
+    {
+      "start": 500.16,
+      "end": 510.04,
+      "en": "And that's going to be equal to, inside of this, we'll have role in curly brackets and quotes, and of course, that's T.role, okay.",
+      "zh": "在裡面建立字典，role 的值當然是 t.role。"
+    },
+    {
+      "start": 510.04,
+      "end": 512.559,
+      "en": "And we'll get T in just a second.",
+      "zh": "等一下就會知道 t 從哪裡來。"
+    },
+    {
+      "start": 512.599,
+      "end": 517.52,
+      "en": "And content, well, that'll be T.content, okay.",
+      "zh": "content 的值則是 t.content。"
+    },
+    {
+      "start": 517.52,
+      "end": 526.4,
+      "en": "And outside of the curly brackets, we just get T for T in from the request.history, okay.",
+      "zh": "在大括號外寫 for t in req.history。"
+    },
+    {
+      "start": 526.4,
+      "end": 529,
+      "en": "So there, now we have our raw history.",
+      "zh": "這樣就有 raw_history 了。"
+    },
+    {
+      "start": 529,
+      "end": 531.559,
+      "en": "Next, let's get our initial messages.",
+      "zh": "接著取得初始訊息。"
+    },
+    {
+      "start": 531.559,
+      "end": 541.479,
+      "en": "So we'll declare the variable messages, and we'll type into to a list of message, that type we set up a long time ago, and we'll make that equal",
+      "zh": "宣告 messages，型別標註為之前定義的 Message 串列，並將它設為"
+    },
+    {
+      "start": 541.479,
+      "end": 548,
+      "en": "to we'll call initial messages with cfg.system prompt, okay.",
+      "zh": "呼叫 initial_messages 的結果，傳入 cfg.system_prompt。"
+    },
+    {
+      "start": 548,
+      "end": 551.479,
+      "en": "Just like we did in the other application, the console-based one.",
+      "zh": "和另一個終端機版應用程式一樣。"
+    },
+    {
+      "start": 551.479,
+      "end": 562.2,
+      "en": "Now, we'll take messages and we'll extend it with raw history, messages.extend, and we're going to extend it with raw underscore history, okay.",
+      "zh": "接著呼叫 messages.extend，將 raw_history 加入。"
+    },
+    {
+      "start": 562.2,
+      "end": 566.599,
+      "en": "So now we have our messages, and at the very beginning, we have our system prompt.",
+      "zh": "現在有完整的 messages，而且最前面是系統提示。"
+    },
+    {
+      "start": 566.599,
+      "end": 571.799,
+      "en": "And then we append the current message, messages.append.",
+      "zh": "然後呼叫 messages.append，加入目前這則訊息。"
+    },
+    {
+      "start": 571.799,
+      "end": 572.919,
+      "en": "And what are we going to append here?",
+      "zh": "這裡要加入什麼呢？"
+    },
+    {
+      "start": 572.919,
+      "end": 579.96,
+      "en": "Once again, it's going to be the role of user because it's a user message.",
+      "zh": "角色同樣是 user，因為這是使用者訊息。"
+    },
+    {
+      "start": 579.96,
+      "end": 582.64,
+      "en": "And the content, well, we do the same thing we did before.",
+      "zh": "content 則沿用之前的做法。"
+    },
+    {
+      "start": 582.64,
+      "end": 584.799,
+      "en": "We build the user message.",
+      "zh": "呼叫 build_user_message。"
+    },
+    {
+      "start": 584.799,
+      "end": 589.64,
+      "en": "And all that requires is the question and the context.",
+      "zh": "它只需要 question 和 context。"
+    },
+    {
+      "start": 589.64,
+      "end": 593.64,
+      "en": "And remember, we got that context with that with lock statement, okay.",
+      "zh": "記得 context 是剛才在 with lock 區塊中取得的。"
+    },
+    {
+      "start": 593.64,
+      "end": 597,
+      "en": "So once we do that, we come down here.",
+      "zh": "完成之後，繼續往下。"
+    },
+    {
+      "start": 597,
+      "end": 601.08,
+      "en": "Now, we get each piece in the chat stream and we send it to the user.",
+      "zh": "現在逐段取得聊天串流內容，再傳給使用者。"
+    },
+    {
+      "start": 601.08,
+      "end": 611.44,
+      "en": "For piece, variable name I'm choosing right now, in from the chat client, we call stream and we stream messages, okay.",
+      "zh": "使用 for piece in chat.stream(messages)，piece 是我現在選的變數名稱。"
+    },
+    {
+      "start": 611.44,
+      "end": 612.96,
+      "en": "And what do we do in that for loop?",
+      "zh": "那這個 for 迴圈裡面要做什麼？"
+    },
+    {
+      "start": 612.96,
+      "end": 619.679,
+      "en": "We just yield using that helper function, SSE, that we just built a moment ago.",
+      "zh": "直接 yield 剛剛建立的 _sse 輔助函式結果。"
+    },
+    {
+      "start": 619.679,
+      "end": 627.719,
+      "en": "And that requires token as the first thing and whatever the text is, text.",
+      "zh": "第一個參數是 token，第二個字典裡的鍵是 text。"
+    },
+    {
+      "start": 627.719,
+      "end": 631.479,
+      "en": "And that's just going to be piece, okay.",
+      "zh": "text 的值就是 piece。"
+    },
+    {
+      "start": 631.479,
+      "end": 635,
+      "en": "Now, after we've done that, we send the sources.",
+      "zh": "完成串流後，再傳送來源。"
+    },
+    {
+      "start": 635,
+      "end": 637.52,
+      "en": "And of course, sources arrive after the answer.",
+      "zh": "所以來源會在答案之後抵達。"
+    },
+    {
+      "start": 637.52,
+      "end": 641.119,
+      "en": "The client renders them in a sources panel under the assistance reply.",
+      "zh": "用戶端會把它們顯示在助理回覆下方的來源面板。"
+    },
+    {
+      "start": 641.119,
+      "end": 648.4,
+      "en": "So now we just say yield, once again, and we call SSE.",
+      "zh": "所以再寫 yield，並呼叫 _sse。"
+    },
+    {
+      "start": 648.4,
+      "end": 652.64,
+      "en": "And this one's going to be sources with a lowercase s.",
+      "zh": "這次事件名稱是 sources，s 要小寫。"
+    },
+    {
+      "start": 652.64,
+      "end": 655.919,
+      "en": "And the content is in curly bracket, hits.",
+      "zh": "內容使用字典，裡面有 hits。"
+    },
+    {
+      "start": 655.919,
+      "end": 659.679,
+      "en": "And from here, we call hits payload, that one we just wrote a moment ago, okay.",
+      "zh": "值則呼叫剛才寫的 _hits_payload。"
+    },
+    {
+      "start": 659.679,
+      "end": 664.52,
+      "en": "And we give it ctx.hits, okay.",
+      "zh": "傳入 ctx.hits。"
+    },
+    {
+      "start": 664.52,
+      "end": 670.479,
+      "en": "So that should take care of the sources, attributions, where it found the information to formulate its answer.",
+      "zh": "這樣就處理好了來源歸屬，也就是用來形成答案的資訊來自哪裡。"
+    },
+    {
+      "start": 670.479,
+      "end": 671.799,
+      "en": "And then we say we're done.",
+      "zh": "最後通知用戶端已完成。"
+    },
+    {
+      "start": 671.799,
+      "end": 677.96,
+      "en": "Yield, SSE, we're just going to say done.",
+      "zh": "yield _sse，事件名稱寫 done。"
+    },
+    {
+      "start": 677.96,
+      "end": 680.64,
+      "en": "And the second thing can just be empty.",
+      "zh": "第二個參數可以是空字典。"
+    },
+    {
+      "start": 680.64,
+      "end": 683.239,
+      "en": "That has to be there, of course, okay.",
+      "zh": "但仍然必須提供這個參數。"
+    },
+    {
+      "start": 683.239,
+      "end": 691.719,
+      "en": "And of course, the last thing we have to do after all of this, after our except down here, we go down, I'll give it one more blank line.",
+      "zh": "當然，全部處理完之後，還需要回傳回應。在下面的 except 之後，再留一個空行。"
+    },
+    {
+      "start": 691.719,
+      "end": 697.599,
+      "en": "We go back to the same level as except, back one more, okay, for the def event stream.",
+      "zh": "先退回與 except 相同的層級，再退一層，離開 def event_stream。"
+    },
+    {
+      "start": 697.599,
+      "end": 700.88,
+      "en": "Here, we return for the chat endpoint.",
+      "zh": "現在是在 chat_endpoint 中回傳結果。"
+    },
+    {
+      "start": 700.88,
+      "end": 705.52,
+      "en": "We return streaming response right there.",
+      "zh": "回傳 StreamingResponse。"
+    },
+    {
+      "start": 705.52,
+      "end": 710.039,
+      "en": "And we give that the event underscore stream, which is the function.",
+      "zh": "把 event_stream 這個函式的產生器傳進去。"
+    },
+    {
+      "start": 710.039,
+      "end": 712.919,
+      "en": "We just have the inline function that's part of this function.",
+      "zh": "它就是定義在目前函式內的那個函式。"
+    },
+    {
+      "start": 712.919,
+      "end": 715.64,
+      "en": "And we define the media type, media type right there.",
+      "zh": "接著指定 media_type。"
+    },
+    {
+      "start": 715.64,
+      "end": 723,
+      "en": "That's going to be equal to text slash event dash stream, okay. Okay.",
+      "zh": "值設為 text/event-stream。"
+    },
+    {
+      "start": 723,
+      "end": 732.719,
+      "en": "Now, if all goes according to plan, I should be able to open my terminal, to quit the application, control C, clear the screen, run pyreg serve again,",
+      "zh": "如果一切順利，現在可以開啟終端機，以 Ctrl+C 結束應用程式、清除畫面，再次執行 pyrag serve，"
+    },
+    {
+      "start": 732.719,
+      "end": 735.4,
+      "en": "and see what I got wrong.",
+      "zh": "看看哪裡寫錯。"
+    },
+    {
+      "start": 735.4,
+      "end": 737.4,
+      "en": "Well, it started up, that's a good sign.",
+      "zh": "程式啟動了，這是個好現象。"
+    },
+    {
+      "start": 737.4,
+      "end": 740.84,
+      "en": "Let's go back to our web page, okay.",
+      "zh": "回到網頁。"
+    },
+    {
+      "start": 740.84,
+      "end": 743.119,
+      "en": "I'm going to reload it to make sure it's current.",
+      "zh": "重新載入，確認使用最新版本。"
+    },
+    {
+      "start": 743.119,
+      "end": 745.239,
+      "en": "And let's ask it a question, okay.",
+      "zh": "然後問一個問題。"
+    },
+    {
+      "start": 745.239,
+      "end": 750.84,
+      "en": "So down here in the chat, I will say, what is a vampire?",
+      "zh": "在聊天欄位裡輸入：「吸血鬼是什麼？」"
+    },
+    {
+      "start": 750.84,
+      "end": 753.84,
+      "en": "And there, the question showed up.",
+      "zh": "問題出現了。"
+    },
+    {
+      "start": 753.84,
+      "end": 758.119,
+      "en": "We've got three bouncing dots.",
+      "zh": "可以看到三個跳動的圓點。"
+    },
+    {
+      "start": 758.119,
+      "end": 760.64,
+      "en": "And we have our answer.",
+      "zh": "答案也出現了。"
+    },
+    {
+      "start": 760.64,
+      "end": 765.119,
+      "en": "And then we have error, search hit object has no attribute source.",
+      "zh": "不過接著出現錯誤：SearchHit 物件沒有 source 屬性。"
+    },
+    {
+      "start": 765.119,
+      "end": 768.32,
+      "en": "Okay, so there is a mistake, but it's not a big one.",
+      "zh": "確實有一個錯誤，但不是大問題。"
+    },
+    {
+      "start": 768.32,
+      "end": 770.52,
+      "en": "We should be able to fix that pretty quickly.",
+      "zh": "應該可以很快修好。"
+    },
+    {
+      "start": 770.52,
+      "end": 774.4,
+      "en": "Let's come back to our code.",
+      "zh": "回到程式碼。"
+    },
+    {
+      "start": 774.4,
+      "end": 779.919,
+      "en": "So first one is hits, sources hits, that's okay.",
+      "zh": "先看 hits，來源的 hits 沒問題。"
+    },
+    {
+      "start": 779.919,
+      "end": 782.799,
+      "en": "Ah, here it is, path h.source.",
+      "zh": "找到了，這裡是 Path(h.source)。"
+    },
+    {
+      "start": 782.799,
+      "end": 791.84,
+      "en": "So line 110, line 110, that should be source path. There, okay.",
+      "zh": "第 110 行應該改成 source_path，這樣就對了。"
+    },
+    {
+      "start": 791.84,
+      "end": 800.239,
+      "en": "So let's open the terminal, quit the application, clear the screen, hit the up arrow, pyreg serve, and this time it should work, okay.",
+      "zh": "開啟終端機、結束應用程式、清除畫面，按向上箭頭再執行 pyrag serve，這次應該就能正常運作。"
+    },
+    {
+      "start": 800.239,
+      "end": 802.88,
+      "en": "So let's go back to our web browser.",
+      "zh": "回到瀏覽器。"
+    },
+    {
+      "start": 802.88,
+      "end": 805.08,
+      "en": "I'll reload this page to make it current.",
+      "zh": "重新載入，確保頁面是最新版本。"
+    },
+    {
+      "start": 805.08,
+      "end": 807.559,
+      "en": "And I'll say, what is a vampire?",
+      "zh": "再問：「吸血鬼是什麼？」"
+    },
+    {
+      "start": 807.559,
+      "end": 812,
+      "en": "What is a vampire?",
+      "zh": "吸血鬼是什麼？"
+    },
+    {
+      "start": 812,
+      "end": 815.479,
+      "en": "And it thinks, it gives me the response, and now it should show me the sources.",
+      "zh": "它開始思考，回傳答案，現在應該也會顯示來源。"
+    },
+    {
+      "start": 815.479,
+      "end": 816.32,
+      "en": "And there they are.",
+      "zh": "來源出現了。"
+    },
+    {
+      "start": 816.32,
+      "end": 817.84,
+      "en": "So it found the sources.",
+      "zh": "它確實找到了來源。"
+    },
+    {
+      "start": 817.84,
+      "end": 819.599,
+      "en": "Now let's try the chyrexal.",
+      "zh": "現在試試 Quirexal。"
+    },
+    {
+      "start": 819.599,
+      "end": 821.359,
+      "en": "What is a chyrexal?",
+      "zh": "Quirexal 是什麼？"
+    },
+    {
+      "start": 825.719,
+      "end": 828.679,
+      "en": "And it found that as well.",
+      "zh": "這個問題也找到了答案。"
+    },
+    {
+      "start": 828.679,
+      "end": 831.32,
+      "en": "Okay, so that chat is actually working.",
+      "zh": "所以聊天功能確實能運作。"
+    },
+    {
+      "start": 831.32,
+      "end": 840.359,
+      "en": "Now obviously the next thing I want to do is I want to be able to add to the vector store by clicking on this little button down here, choosing a text or markdown document",
+      "zh": "接下來，當然希望能按下面這個小按鈕，選擇文字或 Markdown 文件，"
+    },
+    {
+      "start": 840.359,
+      "end": 842.559,
+      "en": "and adding it to the vector store.",
+      "zh": "再將它加入向量儲存。"
+    },
+    {
+      "start": 842.559,
+      "end": 844.719,
+      "en": "Perfect, let's move on.",
+      "zh": "很好，繼續往下吧。"
+    }
+  ]
+}

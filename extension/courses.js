@@ -1,0 +1,1 @@
+globalThis.UdemyZhCourses = Object.freeze(["ai-in-c-sharp-using-the-microsoft-agent-framework","mastering-microsoft-agent-framework-in-c","fraud-detection-using-python","detect-fake-news-with-machine-learning-feature-engineering","building-a-rag-application-in-python"]);

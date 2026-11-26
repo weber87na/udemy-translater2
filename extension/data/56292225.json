@@ -1,0 +1,1183 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56292225",
+  "title": "Define the vector store contract",
+  "section": 3,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d484feb3dc3436d636a0a18a23fbc4c6744a21e22fc644b5dd6657ec92ed9c85",
+  "cues": [
+    {
+      "start": 0,
+      "end": 10.399,
+      "en": "So, at this point, we have Postgres up and running with the pgvector installed, and we have a database for our documents, and two tables in that database, one for documents",
+      "zh": "目前已啟動安裝了 pgvector 的 Postgres，也有儲存文件的資料庫，其中有兩張表，一張存放文件"
+    },
+    {
+      "start": 10.399,
+      "end": 15.239,
+      "en": "themselves, and one for individual chunks for each document.",
+      "zh": "本身，另一張存放各份文件的個別區塊。"
+    },
+    {
+      "start": 15.239,
+      "end": 23.059,
+      "en": "And we also have our config.py setup to read the information from our .on file and use reasonable defaults if they're not specified.",
+      "zh": "config.py 也設定好了，會從 .env 讀取資訊；沒有指定時則使用合理的預設值。"
+    },
+    {
+      "start": 23.059,
+      "end": 31.92,
+      "en": "But as you probably noticed, I had a couple of typos here in my file config.py, and I need to fix those before anything will actually work.",
+      "zh": "不過你大概有注意到，我的 config.py 有幾個打字錯誤，必須先修正才能正常運作。"
+    },
+    {
+      "start": 31.92,
+      "end": 34,
+      "en": "And the first one is here on line 24 in my code.",
+      "zh": "第一個在我這裡的第 24 行。"
+    },
+    {
+      "start": 34,
+      "end": 44.36,
+      "en": "I have an extra e in vector, and when I delete that, then the highlighted warning that I blissfully ignored here on line 45, that goes away.",
+      "zh": "vector 裡多打一個 e。刪掉之後，第 45 行我先前毫不在意而忽略的醒目警告也消失了。"
+    },
+    {
+      "start": 44.36,
+      "end": 50.599,
+      "en": "And the other problem I have is here on line 49 in my code, I left out the call to underscore env.",
+      "zh": "另一個問題在第 49 行，我漏掉了對 _env 的呼叫。"
+    },
+    {
+      "start": 50.599,
+      "end": 53.919,
+      "en": "Okay, so that's out of the way.",
+      "zh": "好了，這些問題已經解決。"
+    },
+    {
+      "start": 54.04,
+      "end": 58.88,
+      "en": "Now, what I want to do in this lecture is to set up the contract for our vector store.",
+      "zh": "這堂課要建立向量儲存區的契約。"
+    },
+    {
+      "start": 58.88,
+      "end": 61.04,
+      "en": "We're implementing a swappable vector store.",
+      "zh": "我們要實作的是可替換的向量儲存區。"
+    },
+    {
+      "start": 61.04,
+      "end": 63.36,
+      "en": "Initially, we're going to use Postgres.",
+      "zh": "一開始使用 Postgres，"
+    },
+    {
+      "start": 63.36,
+      "end": 65.48,
+      "en": "Later on, we're going to try Weaviate, okay?",
+      "zh": "稍後會試用 Weaviate。"
+    },
+    {
+      "start": 65.48,
+      "end": 67.44,
+      "en": "And both of them are really good solutions.",
+      "zh": "它們都是很好的解決方案，"
+    },
+    {
+      "start": 67.44,
+      "end": 73.279,
+      "en": "Both are used at scale in production in lots and lots of places, but we'll cover both.",
+      "zh": "很多地方都在大型正式環境使用這兩者，而我們兩種都會介紹。"
+    },
+    {
+      "start": 73.279,
+      "end": 82.879,
+      "en": "So to make that happen, to set up our store, what I'm going to do is come over here to source Pyreg, and I'll right-click on Pyreg and create a new directory.",
+      "zh": "為了建立儲存區，先到 src/pyrag，在 pyrag 上按右鍵，新增目錄。"
+    },
+    {
+      "start": 82.879,
+      "end": 87.44,
+      "en": "And I'm going to call that stores, okay?",
+      "zh": "將它命名為 stores。"
+    },
+    {
+      "start": 87.44,
+      "end": 92,
+      "en": "And inside of the stores directory, I'm going to create one file.",
+      "zh": "在 stores 目錄裡建立一個檔案，"
+    },
+    {
+      "start": 92,
+      "end": 95.919,
+      "en": "And that file is going to be called base.py, okay?",
+      "zh": "名稱是 base.py。"
+    },
+    {
+      "start": 95.919,
+      "end": 100.75999999999999,
+      "en": "Now this will be an abstract interface for vector store backends.",
+      "zh": "它會定義向量儲存區後端的抽象介面。"
+    },
+    {
+      "start": 100.75999999999999,
+      "end": 103.08,
+      "en": "And all we do in here is we set up the contract.",
+      "zh": "這裡只負責建立契約。"
+    },
+    {
+      "start": 103.08,
+      "end": 113.739,
+      "en": "In order to be a viable vector store backend for this particular project, you must satisfy the requirements specified in this document, okay?",
+      "zh": "要成為本專案可使用的向量儲存後端，就必須滿足這個檔案所列的要求。"
+    },
+    {
+      "start": 113.739,
+      "end": 123.98,
+      "en": "And the nice thing about this, the whole point of this file is to define a contract that the rest of the app can rely on without caring what kind of database or service is behind it.",
+      "zh": "這個檔案的重點，就是定義應用程式其他部分可以依賴的契約，不必在意背後究竟是哪種資料庫或服務。"
+    },
+    {
+      "start": 123.98,
+      "end": 128.02,
+      "en": "So for today, or for right now, we're going to use Postgres store, okay?",
+      "zh": "現在先使用 PostgresStore，"
+    },
+    {
+      "start": 128.02,
+      "end": 130.899,
+      "en": "Later on, we're going to add the Weaviate backend.",
+      "zh": "稍後加入 Weaviate 後端。"
+    },
+    {
+      "start": 130.899,
+      "end": 139.339,
+      "en": "And as long as both of those things satisfy the contract that we specify in this document, in this file, they're both going to work just fine, okay?",
+      "zh": "只要兩者都滿足此檔案定義的契約，就都能正常運作。"
+    },
+    {
+      "start": 139.339,
+      "end": 142.82,
+      "en": "So as I usually do, let's do some imports first.",
+      "zh": "一如往常，先匯入需要的項目。"
+    },
+    {
+      "start": 142.82,
+      "end": 150.899,
+      "en": "So from future, as usual, I'm going to import annotations, which are really helpful, okay?",
+      "zh": "照例從 __future__ 匯入 annotations，這些型別標註很有幫助。"
+    },
+    {
+      "start": 150.899,
+      "end": 153.32,
+      "en": "And then we're going to use something called ABC.",
+      "zh": "接著會使用 ABC，"
+    },
+    {
+      "start": 153.32,
+      "end": 159.94,
+      "en": "From ABC, we're going to import, in all caps, ABC.",
+      "zh": "從 abc 匯入全大寫的 ABC，"
+    },
+    {
+      "start": 159.94,
+      "end": 164.82,
+      "en": "And we're going to import abstract method right there, okay?",
+      "zh": "再匯入 abstractmethod。"
+    },
+    {
+      "start": 164.82,
+      "end": 173.899,
+      "en": "And then from data classes, which I'm sure you've used many times before, we're going to import data class right there.",
+      "zh": "接著從 dataclasses 匯入 dataclass，你應該已經用過很多次。"
+    },
+    {
+      "start": 173.899,
+      "end": 175.059,
+      "en": "And then we're going to use typing.",
+      "zh": "然後使用 typing，"
+    },
+    {
+      "start": 175.059,
+      "end": 182.74,
+      "en": "So from typing, import any with a capital A, okay?",
+      "zh": "從 typing 匯入首字母大寫的 Any。"
+    },
+    {
+      "start": 182.74,
+      "end": 185.38,
+      "en": "And that's our imports, very straightforward.",
+      "zh": "匯入部分就完成了，很直接。"
+    },
+    {
+      "start": 185.38,
+      "end": 187.82,
+      "en": "Now let's set up some data classes.",
+      "zh": "現在建立幾個資料類別。"
+    },
+    {
+      "start": 187.82,
+      "end": 192.059,
+      "en": "So we'll use the annotation data class, which just makes a lot less typing.",
+      "zh": "使用 @dataclass 裝飾器，能少寫很多程式碼。"
+    },
+    {
+      "start": 192.059,
+      "end": 198.82,
+      "en": "And we'll have a class named StoredChunk, okay?",
+      "zh": "建立一個叫 StoredChunk 的類別。"
+    },
+    {
+      "start": 198.82,
+      "end": 208.22,
+      "en": "Now StoredChunk is just a chunk that's ready to be saved into some kind of database, Postgres, Weaviate, whatever it may be, okay?",
+      "zh": "StoredChunk 就是準備存入某種資料庫的區塊，不論是 Postgres、Weaviate 或其他儲存區。"
+    },
+    {
+      "start": 208.22,
+      "end": 217.899,
+      "en": "And a chunk is the text plus the embedding for the text, which we'll be talking about later on, and then some metadata about that chunk, okay?",
+      "zh": "區塊包含文字、文字的嵌入向量，稍後會介紹，以及該區塊的中繼資料。"
+    },
+    {
+      "start": 217.899,
+      "end": 219.94,
+      "en": "So what do we have here for entries?",
+      "zh": "那麼有哪些欄位？"
+    },
+    {
+      "start": 219.94,
+      "end": 222.1,
+      "en": "Well, we have index, okay?",
+      "zh": "首先是 index，"
+    },
+    {
+      "start": 222.1,
+      "end": 223.1,
+      "en": "And that's going to be an integer.",
+      "zh": "它是一個整數。"
+    },
+    {
+      "start": 223.1,
+      "end": 226.02,
+      "en": "And of course, that corresponds to what we have in the database.",
+      "zh": "當然也對應資料庫裡的欄位。"
+    },
+    {
+      "start": 226.02,
+      "end": 229.1,
+      "en": "We have text, which is going to be a string.",
+      "zh": "接著是 text，型別為 str，"
+    },
+    {
+      "start": 229.1,
+      "end": 233.039,
+      "en": "That's the content of the chunk in human readable format.",
+      "zh": "也就是人類可讀的區塊內容。"
+    },
+    {
+      "start": 233.039,
+      "end": 235.24,
+      "en": "Then we have the embedding, okay?",
+      "zh": "然後是 embedding，"
+    },
+    {
+      "start": 235.24,
+      "end": 238.139,
+      "en": "Which I'll embedding, singular.",
+      "zh": "名稱用單數 embedding。"
+    },
+    {
+      "start": 238.139,
+      "end": 243.02,
+      "en": "That's going to be a list of floats because computers don't really read text.",
+      "zh": "型別是浮點數串列，因為電腦並不真的閱讀文字，"
+    },
+    {
+      "start": 243.02,
+      "end": 245.88,
+      "en": "Computers can just do math.",
+      "zh": "電腦能做的是數學運算。"
+    },
+    {
+      "start": 245.88,
+      "end": 251.75900000000001,
+      "en": "So an embedding takes that textual content of the chunk, a bunch of characters, okay?",
+      "zh": "嵌入會將區塊中的文字內容，也就是一串字元，"
+    },
+    {
+      "start": 251.75900000000001,
+      "end": 254.399,
+      "en": "Just regular letters, numbers, so on and so forth.",
+      "zh": "像一般字母、數字等，"
+    },
+    {
+      "start": 254.399,
+      "end": 264.279,
+      "en": "And it converts it into a mathematical representation that the PG vector extension in Postgres and other stores have their own approach to it.",
+      "zh": "轉換成數學表示，讓 Postgres 的 pgvector 擴充功能，或其他儲存區自己的實作方式，"
+    },
+    {
+      "start": 264.279,
+      "end": 267.32,
+      "en": "Something they can actually look at and do something with, okay?",
+      "zh": "能夠理解並進行處理。"
+    },
+    {
+      "start": 267.32,
+      "end": 269.6,
+      "en": "And it happens to be a list of floats.",
+      "zh": "這個表示恰好就是浮點數串列。"
+    },
+    {
+      "start": 269.6,
+      "end": 276.6,
+      "en": "Then we'll have metadata, which we'll be using to be able to search metadata, to be able to search for various things, okay?",
+      "zh": "接著是 metadata，用來搜尋中繼資料及各種資訊。"
+    },
+    {
+      "start": 276.6,
+      "end": 278.32,
+      "en": "It describes the data, in other words.",
+      "zh": "換句話說，它描述的是資料本身。"
+    },
+    {
+      "start": 278.32,
+      "end": 286.899,
+      "en": "And that's just a dictionary, a dictionary with string, try that again, str, and any with a capital A, okay?",
+      "zh": "它就是一個字典，鍵為 str，值為首字母大寫的 Any。"
+    },
+    {
+      "start": 286.899,
+      "end": 292.14,
+      "en": "So that takes care of the first data class, the one that we called stored chunk.",
+      "zh": "第一個資料類別 StoredChunk 就完成了。"
+    },
+    {
+      "start": 292.14,
+      "end": 297.119,
+      "en": "Now we need another one, data class, which I have to spell right, okay?",
+      "zh": "接著需要另一個 @dataclass，注意拼字。"
+    },
+    {
+      "start": 297.119,
+      "end": 298.48,
+      "en": "There's the annotation.",
+      "zh": "裝飾器寫好了。"
+    },
+    {
+      "start": 298.48,
+      "end": 305.679,
+      "en": "And this one's a class, and the name is going to be search hit, like that, okay?",
+      "zh": "這個類別叫做 SearchHit。"
+    },
+    {
+      "start": 305.679,
+      "end": 309.579,
+      "en": "And this will be a single retrieval result.",
+      "zh": "它代表一次檢索得到的單筆結果。"
+    },
+    {
+      "start": 309.579,
+      "end": 317.079,
+      "en": "So we search the vector store, we get some kind of result, and it's stored in a search hit, okay?",
+      "zh": "搜尋向量儲存區後取得的結果，就放在 SearchHit 裡。"
+    },
+    {
+      "start": 317.079,
+      "end": 320.559,
+      "en": "This also has some basic entries, very simple stuff.",
+      "zh": "它也只有一些很基本的欄位。"
+    },
+    {
+      "start": 320.559,
+      "end": 322.359,
+      "en": "Source path, okay?",
+      "zh": "第一個是 source_path，"
+    },
+    {
+      "start": 322.359,
+      "end": 324.519,
+      "en": "Where does this information exist?",
+      "zh": "也就是資訊存放的位置。"
+    },
+    {
+      "start": 324.519,
+      "end": 326.119,
+      "en": "That's just a string, okay?",
+      "zh": "它只是一個字串。"
+    },
+    {
+      "start": 326.119,
+      "end": 330.679,
+      "en": "Where's the data? Chunk index.",
+      "zh": "資料在哪裡？接著是 chunk_index。"
+    },
+    {
+      "start": 330.679,
+      "end": 338.399,
+      "en": "When we query the vector store, we're not returning the entire document, we're returning a chunk or chunks of information, okay?",
+      "zh": "查詢向量儲存區時，不會回傳整份文件，而是回傳一個或多個資訊區塊。"
+    },
+    {
+      "start": 338.399,
+      "end": 340.65999999999997,
+      "en": "And those exist in a particular order.",
+      "zh": "這些區塊有特定順序。"
+    },
+    {
+      "start": 340.65999999999997,
+      "end": 344.839,
+      "en": "And all the chunk index is, is it tells us what index, what number this chunk is.",
+      "zh": "chunk_index 就是用來表示這個區塊的索引或編號。"
+    },
+    {
+      "start": 344.839,
+      "end": 350.359,
+      "en": "There might be 100, and this one is number 77 in the 100 available chunks, okay?",
+      "zh": "例如共有 100 個區塊，而這個是其中第 77 個。"
+    },
+    {
+      "start": 350.359,
+      "end": 354.98,
+      "en": "And that, of course, is going to be an integer, an int.",
+      "zh": "型別當然是整數 int。"
+    },
+    {
+      "start": 354.98,
+      "end": 358.179,
+      "en": "We also want text, which is a string.",
+      "zh": "也需要 text，型別為 str，"
+    },
+    {
+      "start": 358.179,
+      "end": 364.38,
+      "en": "The textual representation of the actual embedding data, something that's human readable.",
+      "zh": "是實際嵌入資料所對應的文字，也就是人類可以閱讀的內容。"
+    },
+    {
+      "start": 364.38,
+      "end": 366.579,
+      "en": "Easy enough, okay?",
+      "zh": "很容易理解。"
+    },
+    {
+      "start": 366.579,
+      "end": 368.7,
+      "en": "And we also want the score.",
+      "zh": "另外還需要 score，"
+    },
+    {
+      "start": 368.7,
+      "end": 374.179,
+      "en": "How closely does this retrieved chunk match what the user was looking for?",
+      "zh": "用來表示找到的區塊與使用者想找的內容有多接近。"
+    },
+    {
+      "start": 374.179,
+      "end": 377.82,
+      "en": "That'll be a float, floating number.",
+      "zh": "它是 float，也就是浮點數。"
+    },
+    {
+      "start": 377.82,
+      "end": 380.299,
+      "en": "And what's the metadata?",
+      "zh": "最後還有 metadata，"
+    },
+    {
+      "start": 380.299,
+      "end": 387.38,
+      "en": "And again, that's just a dict of str and any, okay?",
+      "zh": "同樣是鍵為 str、值為 Any 的字典。"
+    },
+    {
+      "start": 387.38,
+      "end": 390.019,
+      "en": "So that's our second data class.",
+      "zh": "這就是第二個資料類別。"
+    },
+    {
+      "start": 390.019,
+      "end": 392.26,
+      "en": "And we need another one.",
+      "zh": "還需要再建立一個類別。"
+    },
+    {
+      "start": 392.26,
+      "end": 399.98,
+      "en": "This one is just a class, doesn't require an annotation, and it's called vector store. Okay?",
+      "zh": "這次只是一般類別，不需要裝飾器，名稱是 VectorStore。"
+    },
+    {
+      "start": 399.98,
+      "end": 405.339,
+      "en": "And it takes as its parameter an ABC, that type we just imported a little while ago.",
+      "zh": "它繼承 ABC，就是剛才匯入的型別。"
+    },
+    {
+      "start": 405.339,
+      "end": 410.179,
+      "en": "This describes the storage backend for embedded document chunks.",
+      "zh": "這個類別描述文件嵌入區塊的儲存後端，"
+    },
+    {
+      "start": 410.179,
+      "end": 411.779,
+      "en": "And this describes the contract, okay?",
+      "zh": "也定義儲存區契約。"
+    },
+    {
+      "start": 411.779,
+      "end": 413.7,
+      "en": "And the contract is pretty simple.",
+      "zh": "契約相當簡單。"
+    },
+    {
+      "start": 413.7,
+      "end": 418.899,
+      "en": "We have a document, and that's identified by its absolute file system path.",
+      "zh": "每份文件以檔案系統的絕對路徑識別，"
+    },
+    {
+      "start": 418.899,
+      "end": 420.7,
+      "en": "Where does the document exist?",
+      "zh": "也就是文件實際存放的位置。"
+    },
+    {
+      "start": 420.7,
+      "end": 423.179,
+      "en": "And this acts as a stable primary key, okay?",
+      "zh": "它會充當穩定的主鍵。"
+    },
+    {
+      "start": 423.179,
+      "end": 426.98,
+      "en": "We're going to use that to keep track of documents in our vector store.",
+      "zh": "我們用這個鍵追蹤向量儲存區裡的文件。"
+    },
+    {
+      "start": 426.98,
+      "end": 430.739,
+      "en": "The document is our primary key.",
+      "zh": "文件路徑就是我們的主鍵。"
+    },
+    {
+      "start": 430.739,
+      "end": 432.82,
+      "en": "So why is that useful?",
+      "zh": "這為什麼有用？"
+    },
+    {
+      "start": 432.82,
+      "end": 436.42,
+      "en": "Let's say you have a document called horses.txt.",
+      "zh": "假設有一份文件叫 horses.txt，"
+    },
+    {
+      "start": 436.42,
+      "end": 440.459,
+      "en": "And then you upload another document named horses.txt.",
+      "zh": "接著又上傳另一份同名 horses.txt 文件，"
+    },
+    {
+      "start": 440.459,
+      "end": 444.98,
+      "en": "This allows us to re-ingest the document with a new content hash, okay?",
+      "zh": "這樣就可以使用新的內容雜湊值，重新匯入這份文件。"
+    },
+    {
+      "start": 444.98,
+      "end": 452.22,
+      "en": "So when we save the document, we're going to store a content hash that says this is what the document looks like when it was first ingested.",
+      "zh": "所以儲存文件時，會一併存下內容雜湊值，表示第一次匯入時文件的內容狀態。"
+    },
+    {
+      "start": 452.22,
+      "end": 457.22,
+      "en": "If we re-ingest a newer version of that document, we compare the content hash.",
+      "zh": "重新匯入新版文件時，就比較內容雜湊值。"
+    },
+    {
+      "start": 457.22,
+      "end": 462.1,
+      "en": "And if they differ, we're going to replace all of the chunks atomically, okay?",
+      "zh": "如果不同，就以原子操作替換所有區塊。"
+    },
+    {
+      "start": 462.1,
+      "end": 467.26,
+      "en": "In other words, either the new chunks fully replace the old ones, or nothing changes.",
+      "zh": "也就是說，要嘛新區塊完整取代舊區塊，要嘛什麼都不變。"
+    },
+    {
+      "start": 467.26,
+      "end": 470.859,
+      "en": "We never have a document that's in a kind of half state.",
+      "zh": "文件絕對不會處於只更新一半的狀態。"
+    },
+    {
+      "start": 470.859,
+      "end": 473.88,
+      "en": "And we also are going to have to have a search function, okay?",
+      "zh": "此外，還必須有搜尋功能。"
+    },
+    {
+      "start": 473.88,
+      "end": 474.88,
+      "en": "So let's describe this.",
+      "zh": "我們來定義它們。"
+    },
+    {
+      "start": 474.88,
+      "end": 481.339,
+      "en": "And we're going to start with an abstract method, which we just imported a little while ago.",
+      "zh": "首先從剛才匯入的 abstractmethod 開始。"
+    },
+    {
+      "start": 481.339,
+      "end": 484.059,
+      "en": "So we give it an annotation, and we define it.",
+      "zh": "加上裝飾器，再定義方法。"
+    },
+    {
+      "start": 484.059,
+      "end": 488.399,
+      "en": "We define has underscore document, okay?",
+      "zh": "名稱是 has_document。"
+    },
+    {
+      "start": 488.399,
+      "end": 494,
+      "en": "And this requires, and this is common when you're using classes, the first parameter is usually self.",
+      "zh": "參數方面，和使用類別時的慣例一樣，第一個通常是 self。"
+    },
+    {
+      "start": 494,
+      "end": 499.48,
+      "en": "The second one is source underscore path, and then we'll type in that to a string.",
+      "zh": "第二個是 source_path，型別標註為 str。"
+    },
+    {
+      "start": 499.48,
+      "end": 504.779,
+      "en": "And the content hash, which again, we'll type in to a string.",
+      "zh": "還有 content_hash，同樣標註為 str。"
+    },
+    {
+      "start": 504.779,
+      "end": 509.16,
+      "en": "And this returns a boolean, okay?",
+      "zh": "它回傳布林值。"
+    },
+    {
+      "start": 509.16,
+      "end": 513.4,
+      "en": "So as you might expect, has document will check to see if the document exists.",
+      "zh": "如你所想，has_document 會檢查文件是否存在。"
+    },
+    {
+      "start": 513.4,
+      "end": 519.96,
+      "en": "It will return true if this exact path, the path and the hash, is already stored in our vector store, okay?",
+      "zh": "如果完全相同的路徑與雜湊值已經存放在向量儲存區，就回傳 True。"
+    },
+    {
+      "start": 519.96,
+      "end": 522.78,
+      "en": "So let's put some comments in here.",
+      "zh": "在這裡加上註解，"
+    },
+    {
+      "start": 522.78,
+      "end": 537.96,
+      "en": "So return true if this exact, and that will be path and hash, is already stored, okay?",
+      "zh": "寫明：如果這個完全相同的路徑與雜湊已存在，就回傳 True。"
+    },
+    {
+      "start": 537.96,
+      "end": 544.099,
+      "en": "And we could put more comments in there, but that's enough to get rid of the error that shows up if there's nothing under the def entry.",
+      "zh": "還可以寫更多註解，但目前這樣已足以消除 def 下方空白造成的錯誤。"
+    },
+    {
+      "start": 544.099,
+      "end": 548.739,
+      "en": "Okay, we're going to have another abstract method.",
+      "zh": "接著再建立一個抽象方法。"
+    },
+    {
+      "start": 548.739,
+      "end": 550.02,
+      "en": "And let's define this one.",
+      "zh": "來定義它，"
+    },
+    {
+      "start": 550.02,
+      "end": 554.38,
+      "en": "We'll define upsert document, okay?",
+      "zh": "名稱叫 upsert_document。"
+    },
+    {
+      "start": 554.38,
+      "end": 559.979,
+      "en": "So upsert will replace any existing chunks for source path if that exists.",
+      "zh": "如果 source_path 已存在，upsert 會替換它目前的所有區塊；"
+    },
+    {
+      "start": 559.979,
+      "end": 562.419,
+      "en": "Otherwise, it'll just insert a new one, okay?",
+      "zh": "否則就插入新文件。"
+    },
+    {
+      "start": 562.419,
+      "end": 564,
+      "en": "Pretty straightforward.",
+      "zh": "很直接。"
+    },
+    {
+      "start": 564,
+      "end": 567.179,
+      "en": "And it has several parameters, and I'll put these on multiple lines to make it more readable.",
+      "zh": "參數有好幾個，我分成多行，讓內容更好讀。"
+    },
+    {
+      "start": 567.179,
+      "end": 569.94,
+      "en": "Again, self, we're going to have that.",
+      "zh": "第一個同樣是 self。"
+    },
+    {
+      "start": 569.94,
+      "end": 575.78,
+      "en": "And then we'll have source path, which is a string, so I'll type int it.",
+      "zh": "接著是 source_path，型別標註為 str。"
+    },
+    {
+      "start": 575.78,
+      "end": 580.979,
+      "en": "And we'll have a content hash, which is a string.",
+      "zh": "還有 content_hash，也是 str。"
+    },
+    {
+      "start": 580.979,
+      "end": 584.059,
+      "en": "And we'll have chunks.",
+      "zh": "再來是 chunks，"
+    },
+    {
+      "start": 584.059,
+      "end": 592.239,
+      "en": "And chunks will be a list of stored chunk, okay, which we just defined right up there on line 8.",
+      "zh": "型別為 list[StoredChunk]，StoredChunk 就是上面第 8 行定義的類別。"
+    },
+    {
+      "start": 592.239,
+      "end": 594.94,
+      "en": "So that's the function signature.",
+      "zh": "這就是函式簽章。"
+    },
+    {
+      "start": 594.94,
+      "end": 595.94,
+      "en": "What does it return?",
+      "zh": "它回傳什麼？"
+    },
+    {
+      "start": 595.94,
+      "end": 599.94,
+      "en": "It doesn't return anything. None. Okay?",
+      "zh": "不回傳任何內容，標註 None。"
+    },
+    {
+      "start": 599.94,
+      "end": 603.82,
+      "en": "And then a colon and comments so we don't have an error.",
+      "zh": "加上冒號，再加一些註解，避免出錯。"
+    },
+    {
+      "start": 603.82,
+      "end": 619.08,
+      "en": "And we'll just say replace any existing chunks for source path with the given ones, okay?",
+      "zh": "就寫：使用提供的區塊，替換 source_path 對應的所有既有區塊。"
+    },
+    {
+      "start": 619.08,
+      "end": 621.179,
+      "en": "And that's enough that we won't have an error.",
+      "zh": "這樣就不會出現空白函式內容的錯誤。"
+    },
+    {
+      "start": 621.179,
+      "end": 623.34,
+      "en": "So let's go down a little further.",
+      "zh": "繼續往下。"
+    },
+    {
+      "start": 623.34,
+      "end": 624.9,
+      "en": "We're going to have another abstract method.",
+      "zh": "再建立另一個抽象方法。"
+    },
+    {
+      "start": 624.9,
+      "end": 626.9,
+      "en": "We have a method of getting data in there.",
+      "zh": "既然已有加入資料的方法，"
+    },
+    {
+      "start": 626.9,
+      "end": 634.679,
+      "en": "So let's just put it in our tag here, our annotation abstract method right there.",
+      "zh": "就先在這裡加上 @abstractmethod 裝飾器。"
+    },
+    {
+      "start": 634.679,
+      "end": 637.179,
+      "en": "We also need to be able to delete things, okay?",
+      "zh": "也需要能刪除資料。"
+    },
+    {
+      "start": 637.179,
+      "end": 642.9,
+      "en": "So we'll define delete document.",
+      "zh": "所以定義 delete_document。"
+    },
+    {
+      "start": 642.9,
+      "end": 649.02,
+      "en": "And for parameters, we just need self and source path, which will be a string.",
+      "zh": "參數只需要 self 和字串型別的 source_path。"
+    },
+    {
+      "start": 649.02,
+      "end": 652.34,
+      "en": "And this returns nothing. Returns none.",
+      "zh": "它不回傳內容，標註 None。"
+    },
+    {
+      "start": 652.34,
+      "end": 655.979,
+      "en": "And we give some comments for that.",
+      "zh": "再寫上說明註解："
+    },
+    {
+      "start": 655.979,
+      "end": 665.46,
+      "en": "Remove a document and all of its chunks from the store, okay?",
+      "zh": "從儲存區移除一份文件及其所有區塊。"
+    },
+    {
+      "start": 665.46,
+      "end": 668.059,
+      "en": "So now we can check to see if a document exists.",
+      "zh": "目前已經可以檢查文件是否存在、"
+    },
+    {
+      "start": 668.059,
+      "end": 669.9,
+      "en": "We can add a document to the store.",
+      "zh": "將文件加入儲存區，"
+    },
+    {
+      "start": 669.9,
+      "end": 671.539,
+      "en": "We can delete a document from the store.",
+      "zh": "以及從儲存區刪除文件。"
+    },
+    {
+      "start": 671.539,
+      "end": 672.539,
+      "en": "That's a good start.",
+      "zh": "這是個很好的開始，"
+    },
+    {
+      "start": 672.539,
+      "end": 675.26,
+      "en": "But we still have more things we need to be able to do.",
+      "zh": "但還有一些事情必須能做到。"
+    },
+    {
+      "start": 675.26,
+      "end": 678.78,
+      "en": "Obviously, if we can't search this store, it's not very useful.",
+      "zh": "顯然，如果無法搜尋，這個儲存區就沒什麼用。"
+    },
+    {
+      "start": 678.78,
+      "end": 681.26,
+      "en": "So let's have another abstract method.",
+      "zh": "所以再建立一個抽象方法。"
+    },
+    {
+      "start": 681.26,
+      "end": 682.26,
+      "en": "And we'll define this.",
+      "zh": "來定義它，"
+    },
+    {
+      "start": 682.26,
+      "end": 684.5,
+      "en": "And we'll call it search, okay?",
+      "zh": "命名為 search。"
+    },
+    {
+      "start": 684.5,
+      "end": 689.14,
+      "en": "And it'll have some parameters, self and query text.",
+      "zh": "它接收幾個參數：self 和 query_text。"
+    },
+    {
+      "start": 689.14,
+      "end": 690.14,
+      "en": "What's the user looking for?",
+      "zh": "query_text 是使用者想找的內容，"
+    },
+    {
+      "start": 690.14,
+      "end": 692.619,
+      "en": "That'll be a string.",
+      "zh": "型別是 str。"
+    },
+    {
+      "start": 692.619,
+      "end": 694.619,
+      "en": "Query embedding.",
+      "zh": "接著是 query_embedding。"
+    },
+    {
+      "start": 694.619,
+      "end": 701.4,
+      "en": "We also need to convert what the user is looking for into a mathematical representation that we can actually use to search the store.",
+      "zh": "也要將使用者想找的內容轉成數學表示，才能真正拿來搜尋儲存區。"
+    },
+    {
+      "start": 701.4,
+      "end": 705.919,
+      "en": "So that will be a list of floats, okay?",
+      "zh": "所以它的型別是浮點數串列。"
+    },
+    {
+      "start": 705.919,
+      "end": 709.02,
+      "en": "And we also want to know how many things should we return.",
+      "zh": "還要知道應該回傳幾筆結果，"
+    },
+    {
+      "start": 709.02,
+      "end": 711.9,
+      "en": "I'm going to call that k, okay?",
+      "zh": "我將它命名為 k。"
+    },
+    {
+      "start": 711.9,
+      "end": 714.859,
+      "en": "And k is just an int.",
+      "zh": "k 就是一個 int。"
+    },
+    {
+      "start": 714.859,
+      "end": 726.659,
+      "en": "So if k is set to five, for example, we'll search the vector store for query text and return five things, the five things that are most likely related to what the user is looking for.",
+      "zh": "例如 k 設為 5，就搜尋向量儲存區，找出與 query_text 最相關的五筆內容回傳。"
+    },
+    {
+      "start": 726.659,
+      "end": 733.5,
+      "en": "And this returns a list of search hit, which we just defined a little while ago, okay?",
+      "zh": "回傳型別是 list[SearchHit]，SearchHit 是稍早剛定義的。"
+    },
+    {
+      "start": 733.5,
+      "end": 734.7,
+      "en": "And then a colon.",
+      "zh": "然後加上冒號。"
+    },
+    {
+      "start": 734.7,
+      "end": 739.94,
+      "en": "And then we need some comments here to make sure that this will actually not give us an error.",
+      "zh": "再加上註解，確保不會因為內容空白而出錯。"
+    },
+    {
+      "start": 739.979,
+      "end": 746.419,
+      "en": "So we return top k chunks for the query, okay? That's enough.",
+      "zh": "寫：回傳查詢結果中前 k 個區塊。這樣就夠了。"
+    },
+    {
+      "start": 746.419,
+      "end": 747.419,
+      "en": "So there's search.",
+      "zh": "search 就完成了。"
+    },
+    {
+      "start": 747.419,
+      "end": 748.659,
+      "en": "Now, do we need anything else?",
+      "zh": "還需要其他東西嗎？"
+    },
+    {
+      "start": 748.659,
+      "end": 750.539,
+      "en": "Yeah, we need a couple more things, okay?",
+      "zh": "是的，還有幾項。"
+    },
+    {
+      "start": 750.539,
+      "end": 754.82,
+      "en": "So we're going to have another abstract method, which I have to spell right.",
+      "zh": "因此再加上一個 @abstractmethod，注意拼字，"
+    },
+    {
+      "start": 754.82,
+      "end": 756.38,
+      "en": "Abstract method.",
+      "zh": "就是 abstractmethod。"
+    },
+    {
+      "start": 756.38,
+      "end": 759.78,
+      "en": "And this one's going to be called close, def close.",
+      "zh": "這次方法叫做 close，寫 def close。"
+    },
+    {
+      "start": 759.78,
+      "end": 762.099,
+      "en": "And for parameters, it just takes self, okay?",
+      "zh": "參數只需要 self。"
+    },
+    {
+      "start": 762.099,
+      "end": 767.419,
+      "en": "We need to be able to close the vector store to release any underlying resources.",
+      "zh": "我們得能關閉向量儲存區，以釋放底層資源。"
+    },
+    {
+      "start": 767.419,
+      "end": 772.58,
+      "en": "And that might be database connections or sockets or whatever, but you don't want to have a resource leak, okay?",
+      "zh": "可能是資料庫連線、socket 等，總之不能讓資源洩漏。"
+    },
+    {
+      "start": 772.58,
+      "end": 775.26,
+      "en": "This returns nothing, so none.",
+      "zh": "這個方法不回傳內容，標註 None。"
+    },
+    {
+      "start": 775.26,
+      "end": 777.78,
+      "en": "And again, comments.",
+      "zh": "同樣加上註解，"
+    },
+    {
+      "start": 777.78,
+      "end": 783.539,
+      "en": "And all we say is release any underlying resources, okay?",
+      "zh": "只要寫釋放所有底層資源即可。"
+    },
+    {
+      "start": 783.539,
+      "end": 785.219,
+      "en": "So we have to have that.",
+      "zh": "所以需要這個方法。"
+    },
+    {
+      "start": 785.219,
+      "end": 791.38,
+      "en": "And then we just have a couple of helper methods that will allow us to write less code after the fact, okay?",
+      "zh": "接著還有兩個輔助方法，能讓後續少寫一些程式碼。"
+    },
+    {
+      "start": 791.38,
+      "end": 795.539,
+      "en": "So we'll define underscore underscore enter, another magic function name.",
+      "zh": "首先定義 __enter__，又是一個特殊方法名稱。"
+    },
+    {
+      "start": 795.539,
+      "end": 801.979,
+      "en": "Again, it takes one parameter, self, and it returns a vector store, like this.",
+      "zh": "同樣只接收 self，並回傳 VectorStore。"
+    },
+    {
+      "start": 801.979,
+      "end": 806.14,
+      "en": "Vector store, in quotes, okay?",
+      "zh": "VectorStore 放在引號裡。"
+    },
+    {
+      "start": 806.14,
+      "end": 809.34,
+      "en": "And just return self, just a helper function.",
+      "zh": "內容直接 return self，只是個輔助方法。"
+    },
+    {
+      "start": 809.34,
+      "end": 814.5,
+      "en": "And then we'll have another one, def underscore underscore exit, underscore underscore.",
+      "zh": "接著定義另一個特殊方法 __exit__。"
+    },
+    {
+      "start": 814.5,
+      "end": 823.58,
+      "en": "And that takes self, and it also takes a star EXC colon object.",
+      "zh": "它接收 self，還有 *exc: object。"
+    },
+    {
+      "start": 823.58,
+      "end": 827.7,
+      "en": "And it returns nothing, none, okay?",
+      "zh": "回傳型別是 None。"
+    },
+    {
+      "start": 827.7,
+      "end": 831.94,
+      "en": "And all we do in here is say self.close.",
+      "zh": "裡面只要呼叫 self.close()。"
+    },
+    {
+      "start": 831.94,
+      "end": 839.859,
+      "en": "And again, these are just shorthand, and they save callers from having to wrap every use in a try or finally catch just to be sure closed runs.",
+      "zh": "這些都是簡便寫法，讓呼叫端不必每次使用時都包在 try/finally，才能確保執行 close。"
+    },
+    {
+      "start": 839.859,
+      "end": 842.78,
+      "en": "That's the only reason we have those, okay?",
+      "zh": "我們加上這兩個方法的原因就是如此。"
+    },
+    {
+      "start": 842.78,
+      "end": 848.9,
+      "en": "So that defines our contract, and that means that any store we want to implement must have",
+      "zh": "契約到此定義完成。也就是說，任何要實作的儲存區都必須提供"
+    },
+    {
+      "start": 848.9,
+      "end": 855.659,
+      "en": "these methods, as document, upsert document, delete document, search, and close.",
+      "zh": "has_document、upsert_document、delete_document、search 和 close 這些方法。"
+    },
+    {
+      "start": 855.659,
+      "end": 860.659,
+      "en": "And any store that implements those methods is perfectly fine to use with our system.",
+      "zh": "只要實作這些方法，就完全可以搭配我們的系統使用。"
+    },
+    {
+      "start": 860.659,
+      "end": 865.419,
+      "en": "So we're going to implement this in Postgres, and we'll get started on that in the next lecture.",
+      "zh": "接下來要在 Postgres 實作這些功能，下一堂課就開始。"
+    }
+  ]
+}

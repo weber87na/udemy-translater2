@@ -1,0 +1,1165 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56464421",
+  "title": "Implementing the vision call and the format-conversion",
+  "section": 13,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "965d9b7c69fd45e16141d90fb8272fc69e73b7101b79cfc3e56992751ec75543",
+  "cues": [
+    {
+      "start": 0,
+      "end": 7.48,
+      "en": "So we have our config setup, and now our config is aware of the vision model when we're ready to use that. Okay?",
+      "zh": "設定已經完成，等到需要使用時，config 就能提供視覺模型設定。"
+    },
+    {
+      "start": 7.48,
+      "end": 8.84,
+      "en": "And now we need to do some other work here.",
+      "zh": "現在還需要處理其他部分。"
+    },
+    {
+      "start": 8.84,
+      "end": 17.239,
+      "en": "And the first thing I need to do is to go over to llm.py, and we need to make this aware of images. Okay?",
+      "zh": "首先到 llm.py，讓這個模組支援圖片。"
+    },
+    {
+      "start": 17.239,
+      "end": 18.68,
+      "en": "And that means we need some imports.",
+      "zh": "因此需要新增一些匯入項目。"
+    },
+    {
+      "start": 18.68,
+      "end": 27.399,
+      "en": "So right at the top here, after from future import annotations, I'm going to come down here, give myself another blank line, and I'm going to import right from the standard",
+      "zh": "在最上方 from __future__ import annotations 後面，再留一個空行，從 Python 標準"
+    },
+    {
+      "start": 27.399,
+      "end": 32.639,
+      "en": "library in Python, base64, okay, base64 encoding.",
+      "zh": "函式庫匯入 base64，也就是 Base64 編碼功能。"
+    },
+    {
+      "start": 32.639,
+      "end": 37.08,
+      "en": "Because when we send the image to our vision model, it needs to be base64 encoded.",
+      "zh": "因為傳給視覺模型的圖片，需要先經過 Base64 編碼。"
+    },
+    {
+      "start": 37.08,
+      "end": 39.759,
+      "en": "And that's the only reason that's there. Okay?",
+      "zh": "這就是匯入它的原因。"
+    },
+    {
+      "start": 39.759,
+      "end": 43.88,
+      "en": "And we're also going to need to use something called tempfile, import tempfile, right there.",
+      "zh": "也需要 tempfile，所以匯入 tempfile。"
+    },
+    {
+      "start": 43.88,
+      "end": 47.639,
+      "en": "We'll have temporary files when we're working with images, okay?",
+      "zh": "處理圖片時會使用暫存檔。"
+    },
+    {
+      "start": 47.639,
+      "end": 52.959,
+      "en": "And then just to keep things in correct order, after collections.abc, I'm going to import",
+      "zh": "接著為了保持正確的排列順序，在 collections.abc 後面，"
+    },
+    {
+      "start": 53.479,
+      "end": 61,
+      "en": "from contextlib, okay, which we used before, I'm going to import the context manager, okay?",
+      "zh": "從之前也用過的 contextlib 匯入 contextmanager。"
+    },
+    {
+      "start": 61,
+      "end": 64.48,
+      "en": "And the last thing I need to add for imports, of course, is pathlib.",
+      "zh": "最後還要匯入 pathlib 的功能。"
+    },
+    {
+      "start": 64.48,
+      "end": 65.48,
+      "en": "We'll be working with files.",
+      "zh": "我們會處理檔案。"
+    },
+    {
+      "start": 65.48,
+      "end": 68.62,
+      "en": "They're going to be in the file system, and I want that path command.",
+      "zh": "檔案存放在檔案系統中，所以需要 Path。"
+    },
+    {
+      "start": 68.62,
+      "end": 74.76,
+      "en": "So from pathlib, I'll import path, okay?",
+      "zh": "從 pathlib 匯入 Path。"
+    },
+    {
+      "start": 74.76,
+      "end": 76.76,
+      "en": "And we've used that before as well.",
+      "zh": "之前也用過它。"
+    },
+    {
+      "start": 76.76,
+      "end": 84.559,
+      "en": "Now, after this call for if type checking, we need to add some additional code here for image support, okay?",
+      "zh": "在 if TYPE_CHECKING 這段之後，需要新增圖片支援的程式碼。"
+    },
+    {
+      "start": 84.559,
+      "end": 88.68,
+      "en": "And I'm just going to put a couple of constants in, constants that are only used here.",
+      "zh": "先加入幾個只會在此檔案使用的常數。"
+    },
+    {
+      "start": 88.68,
+      "end": 90.419,
+      "en": "So I'll start them with an underscore.",
+      "zh": "所以名稱都以底線開頭。"
+    },
+    {
+      "start": 90.419,
+      "end": 98,
+      "en": "The first one is portable image suffixes, okay?",
+      "zh": "第一個是 _PORTABLE_IMAGE_SUFFIXES。"
+    },
+    {
+      "start": 98,
+      "end": 100.8,
+      "en": "And I'll talk about it in a minute, but let me just put in the things that we need.",
+      "zh": "等一下再說明用途，先加入需要的項目。"
+    },
+    {
+      "start": 100.8,
+      "end": 104.47999999999999,
+      "en": "So it'll be in curly quotes, okay?",
+      "zh": "使用大括號建立集合。"
+    },
+    {
+      "start": 104.47999999999999,
+      "end": 112.559,
+      "en": "And we're going to have .png and .jpg, and then some people still use .jpeg.",
+      "zh": "包含 .png、.jpg，以及仍有人使用的 .jpeg。"
+    },
+    {
+      "start": 113.239,
+      "end": 114.239,
+      "en": "I don't know why, but they do, okay?",
+      "zh": "我不知道為什麼，不過確實有人這樣用。"
+    },
+    {
+      "start": 114.239,
+      "end": 118.199,
+      "en": "Now, what's a portable image suffix?",
+      "zh": "那什麼叫可攜的圖片副檔名？"
+    },
+    {
+      "start": 118.199,
+      "end": 122.879,
+      "en": "Vision backends, Olama builds, OpenAI's image pipeline.",
+      "zh": "像 Ollama 的視覺後端，以及 OpenAI 的圖片處理流程，"
+    },
+    {
+      "start": 122.879,
+      "end": 126.959,
+      "en": "These ones reliably decode .png and .jpeg, and that's it.",
+      "zh": "能可靠解碼的是 PNG 和 JPEG，就這些。"
+    },
+    {
+      "start": 126.959,
+      "end": 132.619,
+      "en": "They don't know anything about WebP or GIF or GIF, if you prefer, or BMP files, okay?",
+      "zh": "它們不一定能處理 WebP、GIF，或你習慣另一種念法的 GIF，以及 BMP 檔案。"
+    },
+    {
+      "start": 132.619,
+      "end": 142.16,
+      "en": "And lots of people are going to use those images, and we want to support those, but we need to know which ones are actually supported by our vision model, whatever it may be.",
+      "zh": "很多人會用這些圖片，我們也想支援，但必須知道實際使用的視覺模型支援哪些格式。"
+    },
+    {
+      "start": 142.16,
+      "end": 145.44,
+      "en": "That's what this constant is for, okay?",
+      "zh": "這就是這個常數的用途。"
+    },
+    {
+      "start": 145.44,
+      "end": 151.72,
+      "en": "And the second one is mime by suffix, okay?",
+      "zh": "第二個是 _MIME_BY_SUFFIX。"
+    },
+    {
+      "start": 151.72,
+      "end": 161.119,
+      "en": "And that's going to be equal to, again, in curly brackets, we'll have .png and then colon, and that's image png.",
+      "zh": "它是一個字典，先放 .png，冒號後面的值是 image/png。"
+    },
+    {
+      "start": 161.119,
+      "end": 163.07999999999998,
+      "en": "That's the mime type for ping files, okay?",
+      "zh": "這就是 PNG 檔案的 MIME 類型。"
+    },
+    {
+      "start": 163.07999999999998,
+      "end": 165.72,
+      "en": "And the same thing for jpgs, .jpg.",
+      "zh": "JPG 也用相同方式處理，鍵是 .jpg。"
+    },
+    {
+      "start": 165.72,
+      "end": 170.25900000000001,
+      "en": "The mime type for that is image slash jpeg.",
+      "zh": "它的 MIME 類型是 image/jpeg。"
+    },
+    {
+      "start": 170.25900000000001,
+      "end": 174.539,
+      "en": "And then the last one, which is still used, .jpeg, same thing.",
+      "zh": "最後是仍有人使用的 .jpeg，做法相同。"
+    },
+    {
+      "start": 174.539,
+      "end": 178.839,
+      "en": "That's also image slash jpeg, okay?",
+      "zh": "它的 MIME 類型也是 image/jpeg。"
+    },
+    {
+      "start": 178.839,
+      "end": 188.66,
+      "en": "So there's two constants, and what we'll do, if we get something that's not a ping or a jpeg, we'll convert it into a temp file ping before sending it to the model.",
+      "zh": "這就是兩個常數。如果收到的不是 PNG 或 JPEG，就先轉成 PNG 暫存檔，再傳給模型。"
+    },
+    {
+      "start": 188.66,
+      "end": 190.58,
+      "en": "That's why we have temp file, okay?",
+      "zh": "這就是需要 tempfile 的原因。"
+    },
+    {
+      "start": 190.58,
+      "end": 193.779,
+      "en": "The original uploaded file remains untouched.",
+      "zh": "使用者原本上傳的檔案保持原樣。"
+    },
+    {
+      "start": 193.779,
+      "end": 201.25900000000001,
+      "en": "Only the information, the bytes that we're sending to the vision model, those are going to be normalized to ping files, okay?",
+      "zh": "只有傳給視覺模型的位元組內容，會先統一轉成 PNG。"
+    },
+    {
+      "start": 201.25900000000001,
+      "end": 203.699,
+      "en": "So there's my constants. So what's next?",
+      "zh": "常數設定好了，接下來呢？"
+    },
+    {
+      "start": 203.699,
+      "end": 208.139,
+      "en": "Well, let's give ourselves a couple of blank lines.",
+      "zh": "先留兩個空行。"
+    },
+    {
+      "start": 208.139,
+      "end": 211.059,
+      "en": "Now I'm going to use an annotation, okay?",
+      "zh": "現在要使用裝飾器。"
+    },
+    {
+      "start": 211.059,
+      "end": 212.86,
+      "en": "Context manager, right there, okay?",
+      "zh": "也就是 contextmanager。"
+    },
+    {
+      "start": 212.86,
+      "end": 221.339,
+      "en": "This is going to be a context manager, and we're going to define a function, underscore as underscore portable underscore image, okay?",
+      "zh": "這會是一個內容管理器，定義名為 _as_portable_image 的函式。"
+    },
+    {
+      "start": 221.339,
+      "end": 223.57999999999998,
+      "en": "We're going to take care of that image conversion.",
+      "zh": "它負責圖片格式轉換。"
+    },
+    {
+      "start": 223.57999999999998,
+      "end": 225.5,
+      "en": "And that needs to know what we're dealing with.",
+      "zh": "必須知道要處理哪個檔案。"
+    },
+    {
+      "start": 225.5,
+      "end": 231.5,
+      "en": "So the path, that is going to be of type path, okay, that one we just imported.",
+      "zh": "所以接受 path，型別是剛匯入的 Path。"
+    },
+    {
+      "start": 231.5,
+      "end": 236.86,
+      "en": "And this is going to return an iterator of paths, okay?",
+      "zh": "回傳型別是由 Path 組成的 Iterator。"
+    },
+    {
+      "start": 236.86,
+      "end": 237.86,
+      "en": "And then a colon.",
+      "zh": "最後加上冒號。"
+    },
+    {
+      "start": 237.86,
+      "end": 245.619,
+      "en": "So what we're going to do is just make sure that what we send to the LLM, to the vision model, that is going to be something that it's able to read.",
+      "zh": "這個函式只負責確保傳給 LLM，也就是視覺模型的內容，是它能讀取的格式。"
+    },
+    {
+      "start": 245.619,
+      "end": 248.279,
+      "en": "That's the only purpose of this function, okay?",
+      "zh": "用途就只有這個。"
+    },
+    {
+      "start": 248.279,
+      "end": 250.66,
+      "en": "So let's have a check to see what we're dealing with.",
+      "zh": "先檢查目前是哪種格式。"
+    },
+    {
+      "start": 250.66,
+      "end": 259.339,
+      "en": "If path, which we get as a call to this function, dot suffix, dot lower, we'll convert everything into lowercase so it's less code, okay?",
+      "zh": "取得傳入 path 的 suffix，再呼叫 lower，把副檔名都轉成小寫，能少寫一些程式。"
+    },
+    {
+      "start": 259.339,
+      "end": 268.5,
+      "en": "If that's in portable image suffixes that we just set up, okay, then we'll yield, which I had to spell right, yield path, okay? We're done.",
+      "zh": "如果它在剛建立的 _PORTABLE_IMAGE_SUFFIXES 中，就 yield path，先把 yield 拼對，然後就完成了。"
+    },
+    {
+      "start": 268.5,
+      "end": 271.339,
+      "en": "Return on the next line. Return.",
+      "zh": "下一行寫 return。"
+    },
+    {
+      "start": 271.339,
+      "end": 277.94,
+      "en": "It's already in one of the formats that we support, ping, jpeg, or jpeg, okay?",
+      "zh": "因為原本就是我們支援的 PNG、JPG 或 JPEG。"
+    },
+    {
+      "start": 277.94,
+      "end": 281.05899999999997,
+      "en": "But if it's not, then we need to work with the actual image.",
+      "zh": "否則，就需要處理實際的圖片內容。"
+    },
+    {
+      "start": 281.05899999999997,
+      "end": 286.22,
+      "en": "Now remember that over here in our pyproject.toml file, we imported pillow.",
+      "zh": "記得在 pyproject.toml 中已經加入 Pillow。"
+    },
+    {
+      "start": 286.22,
+      "end": 289.019,
+      "en": "And that's how we work with images in Python.",
+      "zh": "它能用來在 Python 裡處理圖片。"
+    },
+    {
+      "start": 289.019,
+      "end": 291.05899999999997,
+      "en": "One of the ways, and one of the most common ways, okay?",
+      "zh": "這是其中一種，而且是最常見的方法之一。"
+    },
+    {
+      "start": 291.05899999999997,
+      "end": 294.05899999999997,
+      "en": "So we already have pillow available to us.",
+      "zh": "所以 Pillow 已經可以使用。"
+    },
+    {
+      "start": 294.05899999999997,
+      "end": 302.459,
+      "en": "Now if we're going to be working with images, we need to have the import, but we'll keep that right here in this function and only import it when we actually need it, okay?",
+      "zh": "但要操作圖片，仍需要 import。我們把它放在函式內，只有真正需要時才匯入。"
+    },
+    {
+      "start": 302.459,
+      "end": 307.7,
+      "en": "So from pil, which is pillow, we'll import image, okay?",
+      "zh": "所以從 PIL，也就是 Pillow，匯入 Image。"
+    },
+    {
+      "start": 307.7,
+      "end": 310.82,
+      "en": "Now we can work with images.",
+      "zh": "現在就能處理圖片了。"
+    },
+    {
+      "start": 310.82,
+      "end": 313.54,
+      "en": "Now here's where we're going to use tempfile.",
+      "zh": "這裡要用到 tempfile。"
+    },
+    {
+      "start": 313.54,
+      "end": 317.7,
+      "en": "With tempfile, which we just imported, tempfile, okay?",
+      "zh": "透過 with，使用剛匯入的 tempfile，"
+    },
+    {
+      "start": 317.7,
+      "end": 324.82,
+      "en": "With tempfile.namedTemporaryFile, which is available right from that package.",
+      "zh": "呼叫套件提供的 tempfile.NamedTemporaryFile。"
+    },
+    {
+      "start": 324.82,
+      "end": 328.739,
+      "en": "We're going to use the suffix equal to .png.",
+      "zh": "suffix 設為 .png。"
+    },
+    {
+      "start": 328.739,
+      "end": 331.14,
+      "en": "We'll convert it to a ping, okay?",
+      "zh": "我們要把它轉成 PNG。"
+    },
+    {
+      "start": 331.14,
+      "end": 333.14,
+      "en": "And delete equals false.",
+      "zh": "delete 設為 False。"
+    },
+    {
+      "start": 333.14,
+      "end": 334.179,
+      "en": "Don't delete it.",
+      "zh": "不要刪除它。"
+    },
+    {
+      "start": 334.179,
+      "end": 335.82,
+      "en": "Not right away anyway, okay?",
+      "zh": "至少不是現在立刻刪除。"
+    },
+    {
+      "start": 335.82,
+      "end": 337.899,
+      "en": "We're going to use that as tmp.",
+      "zh": "並使用 as tmp。"
+    },
+    {
+      "start": 337.899,
+      "end": 340.459,
+      "en": "We're working with a temporary file, okay?",
+      "zh": "我們正在處理暫存檔。"
+    },
+    {
+      "start": 340.459,
+      "end": 346.899,
+      "en": "And we'll have temp underscore path, a variable name I'm choosing right now, that's going to be equal to path.",
+      "zh": "建立名為 temp_path 的變數，值等於 Path。"
+    },
+    {
+      "start": 346.899,
+      "end": 349.859,
+      "en": "And we just hand that, we got as a call to this function, okay?",
+      "zh": "這裡傳入呼叫此函式時取得的路徑。"
+    },
+    {
+      "start": 349.859,
+      "end": 353.019,
+      "en": "So now we have the temporary file's path name.",
+      "zh": "現在就有暫存檔的路徑名稱。"
+    },
+    {
+      "start": 353.019,
+      "end": 354.739,
+      "en": "And now we just try, okay?",
+      "zh": "接著使用 try。"
+    },
+    {
+      "start": 354.739,
+      "end": 359.65999999999997,
+      "en": "So we'll back over to the same level as with. We'll try.",
+      "zh": "縮排退回與 with 相同的層級，再寫 try。"
+    },
+    {
+      "start": 359.65999999999997,
+      "end": 367.82,
+      "en": "And what we're going to try is with image, which we just imported from pillow, image.open We're going to open the one that was uploaded.",
+      "zh": "要嘗試的操作是 with Image.open，使用剛才從 Pillow 匯入的 Image，開啟上傳的檔案。"
+    },
+    {
+      "start": 367.82,
+      "end": 373.42,
+      "en": "We'll open the path as img.",
+      "zh": "開啟 path，命名為 img。"
+    },
+    {
+      "start": 373.42,
+      "end": 377.899,
+      "en": "We'll say image.convert, dead simple, okay?",
+      "zh": "接著呼叫圖片的 convert，非常簡單。"
+    },
+    {
+      "start": 377.899,
+      "end": 381.579,
+      "en": "Using RGB, which will work fine.",
+      "zh": "轉成 RGB，這樣就可以了。"
+    },
+    {
+      "start": 381.579,
+      "end": 386.299,
+      "en": "And we'll save that to temp path right there.",
+      "zh": "再儲存到 temp_path。"
+    },
+    {
+      "start": 386.299,
+      "end": 390.779,
+      "en": "And the format will be equal to png, okay?",
+      "zh": "format 設為 PNG。"
+    },
+    {
+      "start": 390.779,
+      "end": 396.94,
+      "en": "And then down here, we just yield temp path right there, okay?",
+      "zh": "然後在下面 yield temp_path。"
+    },
+    {
+      "start": 396.94,
+      "end": 401.1,
+      "en": "And then our try, we'll finish with a finally.",
+      "zh": "try 最後加上 finally。"
+    },
+    {
+      "start": 401.1,
+      "end": 408.299,
+      "en": "Finally, temp underscore path dot unlink. Get rid of it.",
+      "zh": "在 finally 呼叫 temp_path.unlink，把檔案刪除。"
+    },
+    {
+      "start": 408.299,
+      "end": 411.65999999999997,
+      "en": "Missing okay equals true.",
+      "zh": "missing_ok 設為 True。"
+    },
+    {
+      "start": 411.65999999999997,
+      "end": 416.5,
+      "en": "Just so we don't have an exception thrown if the file is gone for some reason, okay?",
+      "zh": "這樣即使檔案因某種原因已經不存在，也不會拋出例外。"
+    },
+    {
+      "start": 416.5,
+      "end": 419.05899999999997,
+      "en": "So that is our as portable image.",
+      "zh": "這就是 _as_portable_image。"
+    },
+    {
+      "start": 419.05899999999997,
+      "end": 427.54,
+      "en": "And all that does is take something like a WebP, for example, or a BMP file and convert it to a ping so we can send that to the LLM.",
+      "zh": "它會把 WebP 或 BMP 之類的圖片轉成 PNG，讓我們能傳給 LLM。"
+    },
+    {
+      "start": 427.54,
+      "end": 428.54,
+      "en": "That's easy enough.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 428.54,
+      "end": 431.339,
+      "en": "Now, we're going to need another helper function, okay?",
+      "zh": "現在還需要另一個輔助函式。"
+    },
+    {
+      "start": 431.339,
+      "end": 442.38,
+      "en": "So back over here at the same level as def as portable image, we'll def underscore image underscore data underscore URL, okay?",
+      "zh": "在與 def _as_portable_image 相同的層級，定義 _image_data_url。"
+    },
+    {
+      "start": 442.38,
+      "end": 445.7,
+      "en": "This will encode an image file as a base 64.",
+      "zh": "它會將圖片檔案編碼成 Base64。"
+    },
+    {
+      "start": 445.7,
+      "end": 447.339,
+      "en": "That's all that it does, okay?",
+      "zh": "用途就只有這個。"
+    },
+    {
+      "start": 447.339,
+      "end": 451.579,
+      "en": "So path is our one required parameter of type path.",
+      "zh": "唯一必要的參數是 path，型別是 Path。"
+    },
+    {
+      "start": 451.579,
+      "end": 455.019,
+      "en": "And this is going to return nothing more than a string, okay?",
+      "zh": "回傳值只是字串。"
+    },
+    {
+      "start": 455.019,
+      "end": 461.1,
+      "en": "So all this is going to do is take some image data and encode it using base 64.",
+      "zh": "它會取得圖片資料，並使用 Base64 編碼。"
+    },
+    {
+      "start": 461.1,
+      "end": 465.899,
+      "en": "So we can send that to the LLM because the LLM really doesn't want binary data.",
+      "zh": "這樣才能傳給 LLM，因為 LLM 不希望直接收到二進位資料。"
+    },
+    {
+      "start": 465.899,
+      "end": 466.899,
+      "en": "It wants text, okay?",
+      "zh": "它需要文字。"
+    },
+    {
+      "start": 466.899,
+      "end": 468.94,
+      "en": "So we'll just convert the text.",
+      "zh": "所以轉成文字表示。"
+    },
+    {
+      "start": 468.94,
+      "end": 470.1,
+      "en": "And this is simple.",
+      "zh": "做法很簡單。"
+    },
+    {
+      "start": 470.1,
+      "end": 472.579,
+      "en": "So I'll declare a variable mime, okay?",
+      "zh": "宣告一個 mime 變數。"
+    },
+    {
+      "start": 472.579,
+      "end": 479.339,
+      "en": "And that's going to be equal to mime by suffix constantly set up dot get.",
+      "zh": "值是呼叫剛建立的 _MIME_BY_SUFFIX 常數的 get 方法。"
+    },
+    {
+      "start": 479.339,
+      "end": 486.22,
+      "en": "And we'll get whatever's in path dot suffix dot lower, okay?",
+      "zh": "取得 path.suffix.lower() 對應的值。"
+    },
+    {
+      "start": 486.22,
+      "end": 492.059,
+      "en": "And the second parameter is just image dot png, okay?",
+      "zh": "第二個參數，也就是預設值，使用 image/png。"
+    },
+    {
+      "start": 492.059,
+      "end": 493.339,
+      "en": "So that's simple enough.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 493.339,
+      "end": 500.779,
+      "en": "Now, I'll declare another variable, b64, for base 64 and make that equal to base 64, which",
+      "zh": "接著宣告 b64，代表 Base64，值來自"
+    },
+    {
+      "start": 500.779,
+      "end": 507.94,
+      "en": "we just imported a little while ago, dot b64 encode, encode, not decode.",
+      "zh": "剛剛匯入的 base64.b64encode，注意是 encode，不是 decode。"
+    },
+    {
+      "start": 507.94,
+      "end": 510.119,
+      "en": "Make sure you get the right one, okay?",
+      "zh": "一定要選對方法。"
+    },
+    {
+      "start": 510.119,
+      "end": 516.78,
+      "en": "And that comes from path dot, and we'll just get its bytes, read underscore bytes with opening and closing parentheses.",
+      "zh": "資料來自 path.read_bytes()，讀取檔案的位元組內容。"
+    },
+    {
+      "start": 516.78,
+      "end": 519.419,
+      "en": "And then we decode that.",
+      "zh": "再把編碼結果解碼成字串。"
+    },
+    {
+      "start": 519.419,
+      "end": 524.9,
+      "en": "And the one parameter required there, ASCII, A-S-C-I-I, all lowercase, okay?",
+      "zh": "decode 的參數是 ascii，拼成 A-S-C-I-I，全部小寫。"
+    },
+    {
+      "start": 524.9,
+      "end": 527.58,
+      "en": "So now I have b64.",
+      "zh": "現在就有 b64 了。"
+    },
+    {
+      "start": 527.58,
+      "end": 532.58,
+      "en": "But I return, as a format string, something that can be used by the LLM.",
+      "zh": "最後以格式化字串，回傳 LLM 可以使用的內容。"
+    },
+    {
+      "start": 532.58,
+      "end": 533.58,
+      "en": "And that's really simple.",
+      "zh": "這非常簡單。"
+    },
+    {
+      "start": 533.58,
+      "end": 539.5,
+      "en": "We just use the embedding for base 64 that OpenAI-compatible LLMs expect.",
+      "zh": "使用相容於 OpenAI 的 LLM 預期的 Base64 內嵌格式。"
+    },
+    {
+      "start": 539.5,
+      "end": 545.78,
+      "en": "And that's the word data followed by a column, followed by the mime type, which we just got, okay?",
+      "zh": "也就是先寫 data，接冒號，再放剛取得的 MIME 類型。"
+    },
+    {
+      "start": 545.78,
+      "end": 549.619,
+      "en": "And then outside of the curly brackets, a semicolon.",
+      "zh": "在大括號之外加上一個分號。"
+    },
+    {
+      "start": 549.619,
+      "end": 550.619,
+      "en": "How's it encoded?",
+      "zh": "接著說明編碼方式。"
+    },
+    {
+      "start": 550.619,
+      "end": 556.34,
+      "en": "Base 64, and then a comma, and then the base 64 encoding, b64.",
+      "zh": "寫 base64，再加逗號，後面放 Base64 編碼內容 b64。"
+    },
+    {
+      "start": 556.34,
+      "end": 559.619,
+      "en": "So we're returning a string that the LLM will be able to work with.",
+      "zh": "所以回傳的是 LLM 能處理的字串。"
+    },
+    {
+      "start": 559.619,
+      "end": 561.94,
+      "en": "That's all that this does.",
+      "zh": "這個函式就只做這件事。"
+    },
+    {
+      "start": 561.94,
+      "end": 565.78,
+      "en": "Now, let's make a change to the chat client, okay?",
+      "zh": "現在修改 ChatClient。"
+    },
+    {
+      "start": 565.78,
+      "end": 569.46,
+      "en": "We're going to use these things now, and we'll actually try this out in a few minutes.",
+      "zh": "要開始使用這些功能，幾分鐘後也會實際測試。"
+    },
+    {
+      "start": 569.46,
+      "end": 572.539,
+      "en": "So down here, in the chat client, okay?",
+      "zh": "到下面的 ChatClient。"
+    },
+    {
+      "start": 572.539,
+      "end": 582.539,
+      "en": "After def stream, and at the same level as def stream, let's get a blank line and get back over to the correct indentation, one tab space in.",
+      "zh": "在 def stream 之後留一個空行，縮排調回與 stream 相同的層級，也就是內縮一層。"
+    },
+    {
+      "start": 582.539,
+      "end": 586.14,
+      "en": "Let's define something called describe.",
+      "zh": "定義名為 describe 的方法。"
+    },
+    {
+      "start": 586.14,
+      "end": 587.739,
+      "en": "Describe an image, okay?",
+      "zh": "用來描述圖片。"
+    },
+    {
+      "start": 587.739,
+      "end": 590.02,
+      "en": "And this will take self, as usual.",
+      "zh": "照常需要 self。"
+    },
+    {
+      "start": 590.02,
+      "end": 591.58,
+      "en": "It's also going to take the model.",
+      "zh": "也需要 model。"
+    },
+    {
+      "start": 591.58,
+      "end": 593.02,
+      "en": "What vision model are we going to use?",
+      "zh": "我們要使用哪個視覺模型？"
+    },
+    {
+      "start": 593.02,
+      "end": 594.739,
+      "en": "Of course, that's a string.",
+      "zh": "這當然是字串。"
+    },
+    {
+      "start": 594.739,
+      "end": 597.219,
+      "en": "It's going to take some prompt, okay?",
+      "zh": "還需要 prompt，"
+    },
+    {
+      "start": 597.219,
+      "end": 599.299,
+      "en": "Which is also a string.",
+      "zh": "型別同樣是字串。"
+    },
+    {
+      "start": 599.299,
+      "end": 602.34,
+      "en": "And it's going to take an image underscore path.",
+      "zh": "以及 image_path。"
+    },
+    {
+      "start": 602.34,
+      "end": 603.34,
+      "en": "Where is the image?",
+      "zh": "圖片位於哪裡？"
+    },
+    {
+      "start": 603.34,
+      "end": 608.82,
+      "en": "Well, that's just a type path, and this is just going to return string, okay?",
+      "zh": "這個參數型別就是 Path，而方法回傳字串。"
+    },
+    {
+      "start": 608.82,
+      "end": 611.859,
+      "en": "So this is a one-shot vision call.",
+      "zh": "這是一次性的視覺模型呼叫。"
+    },
+    {
+      "start": 611.859,
+      "end": 615.26,
+      "en": "We'll send a prompt and an image and return the reply.",
+      "zh": "送出提示與圖片，再回傳回覆。"
+    },
+    {
+      "start": 615.26,
+      "end": 616.5,
+      "en": "That's it, okay?",
+      "zh": "就這樣。"
+    },
+    {
+      "start": 616.5,
+      "end": 617.82,
+      "en": "So this is very simple.",
+      "zh": "所以非常簡單。"
+    },
+    {
+      "start": 617.82,
+      "end": 625.82,
+      "en": "All we have to do is to say, with, and we'll call as portable image, right there, the one we just wrote, giving that image path, okay?",
+      "zh": "使用 with，呼叫剛寫好的 _as_portable_image，傳入 image_path。"
+    },
+    {
+      "start": 625.82,
+      "end": 635.099,
+      "en": "Which we get is a call to this function, and we'll call this as, I'll call it, say, readable path, okay?",
+      "zh": "也就是呼叫此方法時傳入的路徑，再用 as readable_path 命名。"
+    },
+    {
+      "start": 635.099,
+      "end": 638.099,
+      "en": "Then I get the data URL, the encoded image.",
+      "zh": "接著取得資料 URL，也就是編碼後的圖片。"
+    },
+    {
+      "start": 638.099,
+      "end": 647.38,
+      "en": "Data underscore URL equals, and I just call image data URL right there, and of course, all that requires is the readable path, that variable I just got, okay?",
+      "zh": "data_url 等於呼叫 _image_data_url 的結果，它只需要剛取得的 readable_path。"
+    },
+    {
+      "start": 647.38,
+      "end": 651.219,
+      "en": "And now, I get a response.",
+      "zh": "接著取得 response。"
+    },
+    {
+      "start": 651.219,
+      "end": 662.179,
+      "en": "When I call from self dot underscore client, okay, our LLM client, our chat client, dot chat dot completions, okay?",
+      "zh": "從 self._client，也就是 LLM 聊天用戶端，呼叫 chat.completions，"
+    },
+    {
+      "start": 662.179,
+      "end": 663.7,
+      "en": "And I'm going to create one.",
+      "zh": "再呼叫 create。"
+    },
+    {
+      "start": 663.7,
+      "end": 667.419,
+      "en": "And then in parentheses, and I'll put this in multiple lines so it's more readable.",
+      "zh": "括號裡的參數分成多行，方便閱讀。"
+    },
+    {
+      "start": 667.419,
+      "end": 668.419,
+      "en": "What's the model?",
+      "zh": "首先 model 是什麼？"
+    },
+    {
+      "start": 668.419,
+      "end": 669.9,
+      "en": "Well, we got that as a call to this function.",
+      "zh": "就是呼叫此方法時傳入的值。"
+    },
+    {
+      "start": 669.9,
+      "end": 673.619,
+      "en": "That's going to be equal to model, okay?",
+      "zh": "所以設為 model。"
+    },
+    {
+      "start": 673.619,
+      "end": 676.82,
+      "en": "And the second one is, what are the messages?",
+      "zh": "第二個參數是 messages。"
+    },
+    {
+      "start": 676.82,
+      "end": 686.099,
+      "en": "And the messages are going to be equal to, using square brackets, then using curly brackets, and we'll make it as readable as we can.",
+      "zh": "messages 使用串列，裡面放字典，盡量排版得容易閱讀。"
+    },
+    {
+      "start": 686.099,
+      "end": 687.099,
+      "en": "What's the role?",
+      "zh": "role 是什麼？"
+    },
+    {
+      "start": 687.099,
+      "end": 691.02,
+      "en": "Well, this is a user message, okay, user.",
+      "zh": "這是使用者訊息，所以是 user。"
+    },
+    {
+      "start": 691.02,
+      "end": 694.26,
+      "en": "And what's the content, okay?",
+      "zh": "content 是什麼呢？"
+    },
+    {
+      "start": 694.26,
+      "end": 698.859,
+      "en": "The content will be, and I'm going to put this in square brackets, and then the first",
+      "zh": "content 也要使用串列，第一個"
+    },
+    {
+      "start": 698.859,
+      "end": 707.619,
+      "en": "entry is going to be in curly brackets, type, that's going to be text, text, that's going",
+      "zh": "項目是一個字典，type 設為 text，而 text"
+    },
+    {
+      "start": 707.619,
+      "end": 712.5,
+      "en": "to be whatever's in prompt, the instructions we're sending to the LLM, okay?",
+      "zh": "設為 prompt，也就是要送給 LLM 的指示。"
+    },
+    {
+      "start": 712.5,
+      "end": 719.179,
+      "en": "And then outside the curly brackets, I'll close that one off with a comma, and we'll go to the next one, which is also in curly brackets.",
+      "zh": "關閉大括號，加上逗號，再寫下一個同樣是字典的項目。"
+    },
+    {
+      "start": 719.179,
+      "end": 723.659,
+      "en": "I need to add a type, and this time, it's an image underscore URL.",
+      "zh": "需要 type，這次值是 image_url。"
+    },
+    {
+      "start": 723.659,
+      "end": 726.84,
+      "en": "It has to be exactly that, okay?",
+      "zh": "拼法必須完全一致。"
+    },
+    {
+      "start": 726.84,
+      "end": 733.64,
+      "en": "And then the comma, and then image underscore URL again, with a colon, and then in curly",
+      "zh": "接著加上逗號，再寫 image_url，冒號後面是一個字典，"
+    },
+    {
+      "start": 733.64,
+      "end": 741.719,
+      "en": "brackets, URL, and a colon, and data underscore URL, okay?",
+      "zh": "裡面的 url 對應 data_url。"
+    },
+    {
+      "start": 741.719,
+      "end": 743.32,
+      "en": "And then a trailing comma.",
+      "zh": "最後加上逗號。"
+    },
+    {
+      "start": 743.32,
+      "end": 752.119,
+      "en": "Now, OpenAI's vision format, the user's message content becomes a list of typed parts, instead of a plain string, okay?",
+      "zh": "在 OpenAI 的視覺格式中，使用者訊息的 content 會是帶有型別的內容片段串列，而非單一字串。"
+    },
+    {
+      "start": 752.119,
+      "end": 756.82,
+      "en": "So the model sees the text and the image as one combined term.",
+      "zh": "因此模型會把文字與圖片視為同一輪輸入。"
+    },
+    {
+      "start": 756.82,
+      "end": 762.539,
+      "en": "Notice that the same format works against OpenAI and OLAMA, our local models, okay?",
+      "zh": "注意，同一種格式能同時用於 OpenAI 和本機 Ollama 模型。"
+    },
+    {
+      "start": 762.539,
+      "end": 767.859,
+      "en": "So the first entry, here's my it's of type text, and it consists of the instructions in prompt.",
+      "zh": "第一個項目的型別是 text，內容是 prompt 裡的指示。"
+    },
+    {
+      "start": 767.859,
+      "end": 775.179,
+      "en": "And the second one says the type is an image URL, and the image URL is of URL with whatever the data URL is.",
+      "zh": "第二個項目的型別是 image_url，並在 url 欄位裡放入資料 URL。"
+    },
+    {
+      "start": 775.179,
+      "end": 778.7,
+      "en": "In our case, it's a base64 encoded ping, okay?",
+      "zh": "這裡使用的是經過 Base64 編碼的 PNG。"
+    },
+    {
+      "start": 778.7,
+      "end": 780.5,
+      "en": "Now let's give ourselves some room.",
+      "zh": "再留一些空間。"
+    },
+    {
+      "start": 780.5,
+      "end": 786.539,
+      "en": "So in our call to create, to get response, we've included the model, we've included the messages.",
+      "zh": "呼叫 create 取得 response 時，已經提供 model 與 messages。"
+    },
+    {
+      "start": 786.539,
+      "end": 788.219,
+      "en": "We need one more thing, okay?",
+      "zh": "還需要一個設定。"
+    },
+    {
+      "start": 788.219,
+      "end": 795.46,
+      "en": "After the closing square bracket for messages, we're going to put stream equals false, okay?",
+      "zh": "在 messages 串列的右中括號之後，加上 stream=False。"
+    },
+    {
+      "start": 795.46,
+      "end": 797.739,
+      "en": "We don't need to stream this response.",
+      "zh": "這個回應不需要串流。"
+    },
+    {
+      "start": 797.739,
+      "end": 806.739,
+      "en": "And then, outside of the entire response block, back one level, at the same level as with,",
+      "zh": "然後離開整個 response 區塊，退回一層，與 with 相同的縮排，"
+    },
+    {
+      "start": 806.739,
+      "end": 812.94,
+      "en": "content is going to be equal to, well, we'll get response.choices at index zero, we'll",
+      "zh": "將 content 設為 response.choices[0]，取第一個結果，"
+    },
+    {
+      "start": 812.94,
+      "end": 821.419,
+      "en": "take the first value, .message, .content, or, if we get nothing back, an empty string.",
+      "zh": "再取得 .message.content；如果沒有內容，就使用空字串。"
+    },
+    {
+      "start": 821.419,
+      "end": 823.419,
+      "en": "We want to be safe, okay?",
+      "zh": "這樣比較保險。"
+    },
+    {
+      "start": 823.419,
+      "end": 830.299,
+      "en": "And we'll return content and strip off any extra spaces. And that is it.",
+      "zh": "最後回傳 content，並用 strip 移除多餘空白，完成了。"
+    },
+    {
+      "start": 830.299,
+      "end": 833.38,
+      "en": "Now at this point, we actually have enough to give this a try.",
+      "zh": "到這裡，其實已經足夠進行測試。"
+    },
+    {
+      "start": 833.38,
+      "end": 836.14,
+      "en": "But first we have to get a vision model, okay?",
+      "zh": "不過得先取得視覺模型。"
+    },
+    {
+      "start": 836.14,
+      "end": 842.099,
+      "en": "So in the next lecture, we'll get a vision model, and we'll see if this works the way that we think it should, okay?",
+      "zh": "所以下一堂課先下載視覺模型，再看看實際效果是否符合預期。"
+    },
+    {
+      "start": 842.099,
+      "end": 842.82,
+      "en": "So let's move on.",
+      "zh": "繼續往下吧。"
+    }
+  ]
+}

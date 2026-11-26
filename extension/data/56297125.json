@@ -1,0 +1,997 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56297125",
+  "title": "Setting up our chunking logic",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "8dd4e45286b8a466c1cf26d7f70585202ab69d13fd6e3ee0923e29c57047e1cb",
+  "cues": [
+    {
+      "start": 0,
+      "end": 6,
+      "en": "So we have our config all set up, and we're ready to start chunking our data.",
+      "zh": "設定都準備好了，可以開始將資料切成區塊。"
+    },
+    {
+      "start": 6,
+      "end": 8,
+      "en": "And why are we going to chunk this?",
+      "zh": "為什麼要切塊？"
+    },
+    {
+      "start": 8,
+      "end": 15,
+      "en": "Well, if you think it through, let's say we had a 50-page document we wanted to ingest into our RAG store.",
+      "zh": "仔細想想，假設有一份 50 頁的文件要匯入 RAG 儲存區，"
+    },
+    {
+      "start": 15,
+      "end": 27,
+      "en": "If we had one set of vectors or one entry in the vector store for that 50-page document, we're not going to get great search results because it'll kind of average all of the content in those 50 pages.",
+      "zh": "如果整份 50 頁文件只對應一組向量，或向量儲存區裡只占一筆資料，搜尋結果就不會太好，因為它會把這 50 頁的內容概括在一起。"
+    },
+    {
+      "start": 27,
+      "end": 32,
+      "en": "And if we're looking for a specific thing, and it's in those 50 pages, we might not find it.",
+      "zh": "若要找的特定資訊就在這 50 頁裡，可能反而找不到。"
+    },
+    {
+      "start": 32,
+      "end": 35,
+      "en": "So what we do instead is we embed many small chunks.",
+      "zh": "所以我們改為對許多小區塊分別建立嵌入，"
+    },
+    {
+      "start": 35,
+      "end": 40,
+      "en": "We break that 50 pages up into, say, around 1,000 characters per chunk.",
+      "zh": "將這 50 頁切成例如每個約 1000 字元的區塊。"
+    },
+    {
+      "start": 40,
+      "end": 51,
+      "en": "So the goal of chunking is to break a document into pieces that are small enough to embed well and will fit comfortably in the LLM's context window when several are put together.",
+      "zh": "切塊的目標，是讓每塊足夠小，能產生好的嵌入，而且多塊放在一起也能輕鬆放進 LLM 的上下文視窗，"
+    },
+    {
+      "start": 51,
+      "end": 54,
+      "en": "They're large enough to carry standalone meaning.",
+      "zh": "同時又夠大，能保有獨立的意義。"
+    },
+    {
+      "start": 54,
+      "end": 57,
+      "en": "For example, a sentence by itself is often too short.",
+      "zh": "例如單獨一句話往往太短，"
+    },
+    {
+      "start": 57,
+      "end": 64,
+      "en": "We might have pronouns that reference previous sentences, things like that, and we have no idea what that one sentence actually means.",
+      "zh": "裡面可能有指向前文的代名詞，導致我們不知道這句究竟在說什麼。"
+    },
+    {
+      "start": 64,
+      "end": 73,
+      "en": "So what we're going to do is take a large document and break it up into many smaller documents, ones that will work well with an LLM.",
+      "zh": "因此要將大型文件切成許多較小的文件單位，讓它們能有效搭配 LLM。"
+    },
+    {
+      "start": 73,
+      "end": 75,
+      "en": "So let's get started.",
+      "zh": "我們開始吧。"
+    },
+    {
+      "start": 75,
+      "end": 79,
+      "en": "I'm going to create a new file, and I'm going to put it in source.pyreg.",
+      "zh": "我要在 src/pyrag 建立新檔案，"
+    },
+    {
+      "start": 79,
+      "end": 83,
+      "en": "I'll create a new file in there, and I'll call it chunking.py.",
+      "zh": "命名為 chunking.py。"
+    },
+    {
+      "start": 84,
+      "end": 87,
+      "en": "And as I usually do, I'll do my imports first.",
+      "zh": "照例先處理匯入。"
+    },
+    {
+      "start": 87,
+      "end": 92,
+      "en": "I'm going to use annotations, so from future import annotations.",
+      "zh": "會用到 annotations，所以從 __future__ 匯入 annotations，"
+    },
+    {
+      "start": 92,
+      "end": 94,
+      "en": "We're going to need that for sure.",
+      "zh": "這個一定需要。"
+    },
+    {
+      "start": 94,
+      "end": 101,
+      "en": "We're also going to use regular expressions, so we'll import our E right from Python standard library.",
+      "zh": "也會使用正規表示式，因此匯入標準函式庫裡的 re。"
+    },
+    {
+      "start": 101,
+      "end": 109,
+      "en": "And we're going to use data classes, so from data classes we'll import data class.",
+      "zh": "另外要使用資料類別，所以從 dataclasses 匯入 dataclass。"
+    },
+    {
+      "start": 110,
+      "end": 113,
+      "en": "And that should be all that we need for our imports, at least for right now.",
+      "zh": "目前匯入這些應該就夠了，"
+    },
+    {
+      "start": 113,
+      "end": 116,
+      "en": "We might come back to this later on.",
+      "zh": "之後可能會再回來修改。"
+    },
+    {
+      "start": 116,
+      "end": 119,
+      "en": "Now, let's set up a class, and let's make it a data class.",
+      "zh": "現在建立類別，並讓它成為資料類別。"
+    },
+    {
+      "start": 119,
+      "end": 127,
+      "en": "So we'll use the annotation data class, and we'll set frozen equal to true.",
+      "zh": "使用 @dataclass 裝飾器，設定 frozen=True，"
+    },
+    {
+      "start": 127,
+      "end": 130,
+      "en": "And we'll call this class chunk.",
+      "zh": "類別叫做 Chunk。"
+    },
+    {
+      "start": 130,
+      "end": 132,
+      "en": "That seems like a reasonable name.",
+      "zh": "這是很合理的名稱。"
+    },
+    {
+      "start": 132,
+      "end": 138,
+      "en": "And this chunk is going to be nothing more than a single chunk that we produce by calling some function.",
+      "zh": "Chunk 代表呼叫某個函式所產生的一個區塊，僅此而已。"
+    },
+    {
+      "start": 138,
+      "end": 140,
+      "en": "And we'll have two entries.",
+      "zh": "它有兩個欄位。"
+    },
+    {
+      "start": 140,
+      "end": 143,
+      "en": "So the first one will be index.",
+      "zh": "第一個是 index，"
+    },
+    {
+      "start": 143,
+      "end": 147,
+      "en": "Where does this exist? It's positioned within the source document.",
+      "zh": "表示它在來源文件中的位置。"
+    },
+    {
+      "start": 147,
+      "end": 149,
+      "en": "That'll be an integer.",
+      "zh": "型別是 int。"
+    },
+    {
+      "start": 149,
+      "end": 152,
+      "en": "And then we'll have the text that's in that chunk.",
+      "zh": "接著是區塊裡的 text，"
+    },
+    {
+      "start": 152,
+      "end": 154,
+      "en": "And of course, that's just a string.",
+      "zh": "當然就是 str。"
+    },
+    {
+      "start": 154,
+      "end": 156,
+      "en": "That's easy. So we have that.",
+      "zh": "很簡單，這部分完成了。"
+    },
+    {
+      "start": 156,
+      "end": 160,
+      "en": "Now, when we break things up, we want to make it as logical as possible.",
+      "zh": "切分時要盡量符合邏輯，"
+    },
+    {
+      "start": 160,
+      "end": 164,
+      "en": "So we'll try to watch for paragraph breaks.",
+      "zh": "因此會辨識段落分界。"
+    },
+    {
+      "start": 164,
+      "end": 172,
+      "en": "So we'll set up a variable, and I'll call it paragraph underscore re for regular expressions.",
+      "zh": "先建立變數 paragraph_re，re 代表正規表示式。"
+    },
+    {
+      "start": 172,
+      "end": 179,
+      "en": "And that's going to be equal to, by calling re, which we just imported, compile.",
+      "zh": "它等於剛匯入的 re.compile 的結果，"
+    },
+    {
+      "start": 179,
+      "end": 192,
+      "en": "And we'll look for, with an r flag, slash n, slash s, and then a star, and then slash n.",
+      "zh": "使用原始字串標記 r，內容為反斜線 n、反斜線 s、星號，再接反斜線 n。"
+    },
+    {
+      "start": 193,
+      "end": 197,
+      "en": "So a paragraph break is basically one or more blank lines.",
+      "zh": "段落分界基本上就是一個或多個空白行，"
+    },
+    {
+      "start": 197,
+      "end": 200,
+      "en": "A new line, optional whitespace, then another new line.",
+      "zh": "也就是換行、可有可無的空白，再另一個換行。"
+    },
+    {
+      "start": 200,
+      "end": 203,
+      "en": "And this is the same convention used in Markdown.",
+      "zh": "這與 Markdown 使用的慣例相同，"
+    },
+    {
+      "start": 203,
+      "end": 205,
+      "en": "And it works just as well for plain text.",
+      "zh": "純文字也一樣適用。"
+    },
+    {
+      "start": 205,
+      "end": 209,
+      "en": "So this allows us to look for paragraph breaks. That's all that's for.",
+      "zh": "這個設定只是讓我們能找到段落分界。"
+    },
+    {
+      "start": 209,
+      "end": 218,
+      "en": "And then we'll define a function, and I'll call it underscore split underscore paragraphs.",
+      "zh": "接著定義函式，命名為 _split_paragraphs，"
+    },
+    {
+      "start": 218,
+      "end": 221,
+      "en": "And that'll just take text, which we'll type into string.",
+      "zh": "只接受 text，型別標註為 str，"
+    },
+    {
+      "start": 221,
+      "end": 225,
+      "en": "And it's going to return a list of strings.",
+      "zh": "回傳字串串列。"
+    },
+    {
+      "start": 226,
+      "end": 228,
+      "en": "And this is dead simple.",
+      "zh": "內容非常簡單，"
+    },
+    {
+      "start": 228,
+      "end": 232,
+      "en": "All this really does is split on blank lines and drop any empties.",
+      "zh": "只要在空白行切分，並移除空項目，"
+    },
+    {
+      "start": 232,
+      "end": 235,
+      "en": "And we'll trim whitespace for every paragraph.",
+      "zh": "再清除每段前後的空白。"
+    },
+    {
+      "start": 235,
+      "end": 242,
+      "en": "So we'll return in square brackets, and we'll have p dot strip, and we'll get p in a minute.",
+      "zh": "因此回傳一個串列，裡面是 p.strip()；p 等一下就會定義。"
+    },
+    {
+      "start": 243,
+      "end": 253,
+      "en": "For p, there's our p, in underscore, paragraph underscore re for regular expression, dot split.",
+      "zh": "for p，就是這裡的 p，in _paragraph_re.split，"
+    },
+    {
+      "start": 253,
+      "end": 258,
+      "en": "And we're going to split text. If p, strip.",
+      "zh": "把 text 拿來切分，後面再加 if p.strip()。"
+    },
+    {
+      "start": 260,
+      "end": 262,
+      "en": "And that's the whole function.",
+      "zh": "整個函式就這樣。"
+    },
+    {
+      "start": 262,
+      "end": 266,
+      "en": "So all that does is split on blank lines and drop any empties.",
+      "zh": "它只是依空白行切分，丟掉空白項目，"
+    },
+    {
+      "start": 266,
+      "end": 270,
+      "en": "And we trim the whitespace. Very simple.",
+      "zh": "並清除前後空白，非常簡單。"
+    },
+    {
+      "start": 271,
+      "end": 274,
+      "en": "Then we'll define another function.",
+      "zh": "接著再定義一個函式，"
+    },
+    {
+      "start": 274,
+      "end": 277,
+      "en": "And we'll call this one chunk underscore text.",
+      "zh": "叫做 chunk_text。"
+    },
+    {
+      "start": 278,
+      "end": 280,
+      "en": "And this will take the text.",
+      "zh": "它接收 text，"
+    },
+    {
+      "start": 280,
+      "end": 282,
+      "en": "That's a string.",
+      "zh": "型別是 str；"
+    },
+    {
+      "start": 282,
+      "end": 284,
+      "en": "It'll take chunk size.",
+      "zh": "也接收 chunk_size，"
+    },
+    {
+      "start": 284,
+      "end": 286,
+      "en": "How big are our chunks?",
+      "zh": "也就是區塊有多大，"
+    },
+    {
+      "start": 286,
+      "end": 288,
+      "en": "That's an integer.",
+      "zh": "型別是 int；"
+    },
+    {
+      "start": 288,
+      "end": 289,
+      "en": "And the overlap.",
+      "zh": "還有 overlap，"
+    },
+    {
+      "start": 289,
+      "end": 291,
+      "en": "We want chunks to overlap a bit.",
+      "zh": "因為希望區塊之間有部分重疊，"
+    },
+    {
+      "start": 291,
+      "end": 293,
+      "en": "Again, just an integer.",
+      "zh": "同樣是 int。"
+    },
+    {
+      "start": 293,
+      "end": 298,
+      "en": "And this will return a list of chunks.",
+      "zh": "回傳值是 Chunk 串列。"
+    },
+    {
+      "start": 301,
+      "end": 304,
+      "en": "Now, this is a slightly longer function.",
+      "zh": "這個函式稍微長一些，"
+    },
+    {
+      "start": 304,
+      "end": 310,
+      "en": "But this is nothing more than paragraph-aware chunking with some kind of character window fallback.",
+      "zh": "但也只是能辨識段落的切塊邏輯，必要時退回使用字元視窗。"
+    },
+    {
+      "start": 310,
+      "end": 314,
+      "en": "So the text, the first parameter, that's the raw document content.",
+      "zh": "第一個參數 text 是原始文件內容。"
+    },
+    {
+      "start": 314,
+      "end": 318,
+      "en": "If that's a 50-page document, we want to break it up into chunks.",
+      "zh": "如果那是一份 50 頁文件，我們就要切成區塊。"
+    },
+    {
+      "start": 318,
+      "end": 324,
+      "en": "Chunk size, the second parameter, that's the soft upper bound on chunk size in characters.",
+      "zh": "第二個參數 chunk_size，是以字元計算的區塊大小軟性上限。"
+    },
+    {
+      "start": 324,
+      "end": 328,
+      "en": "And the overlap is how many characters to overlap between chunks.",
+      "zh": "overlap 則是區塊間重疊多少字元。"
+    },
+    {
+      "start": 328,
+      "end": 334,
+      "en": "And, of course, it's only used when a single paragraph is longer than chunk underscore size.",
+      "zh": "當然，只有單一段落比 chunk_size 還長時才會用到。"
+    },
+    {
+      "start": 334,
+      "end": 339,
+      "en": "So, first of all, let's put a safety check in.",
+      "zh": "首先加上安全檢查。"
+    },
+    {
+      "start": 339,
+      "end": 347,
+      "en": "So I'll say if overlap is greater than chunk size, well, of course, that shouldn't happen.",
+      "zh": "如果 overlap 大於 chunk_size，這當然不應該發生，"
+    },
+    {
+      "start": 347,
+      "end": 349,
+      "en": "We'll raise an error.",
+      "zh": "就拋出錯誤，"
+    },
+    {
+      "start": 349,
+      "end": 351,
+      "en": "We'll raise a value error.",
+      "zh": "也就是 ValueError，"
+    },
+    {
+      "start": 352,
+      "end": 359,
+      "en": "And we'll pass overlap must be smaller than chunk size.",
+      "zh": "並傳入「overlap must be smaller than chunk size」。"
+    },
+    {
+      "start": 359,
+      "end": 365,
+      "en": "You can't have an overlap that's bigger than chunk size. Very simple. Okay?",
+      "zh": "重疊不能比區塊大小還大，非常簡單。"
+    },
+    {
+      "start": 365,
+      "end": 368,
+      "en": "So if we get past that, let's set chunks.",
+      "zh": "通過檢查後，建立 chunks，"
+    },
+    {
+      "start": 368,
+      "end": 372,
+      "en": "And we'll type in that to a list of strings.",
+      "zh": "型別標註為字串串列，"
+    },
+    {
+      "start": 372,
+      "end": 377,
+      "en": "And we'll make it equal to empty. Okay?",
+      "zh": "初始值設為空串列。"
+    },
+    {
+      "start": 377,
+      "end": 380,
+      "en": "And then we'll have a variable called buff for buffer.",
+      "zh": "再建立一個叫 buf 的變數，代表 buffer，"
+    },
+    {
+      "start": 380,
+      "end": 384,
+      "en": "This is the chunk we're currently going to be working on. Okay?",
+      "zh": "也就是目前正在處理的區塊，"
+    },
+    {
+      "start": 384,
+      "end": 388,
+      "en": "So the chunk we're currently packing paragraphs into.",
+      "zh": "用來逐段累積內容。"
+    },
+    {
+      "start": 388,
+      "end": 396,
+      "en": "Now, inside of this function, we'll define another function, def flush, which I have to spell right.",
+      "zh": "在這個函式裡再定義一個函式 def flush，注意拼字。"
+    },
+    {
+      "start": 396,
+      "end": 399,
+      "en": "And it doesn't return anything.",
+      "zh": "它不回傳內容，"
+    },
+    {
+      "start": 399,
+      "end": 407,
+      "en": "So all we're going to do in here is push the current buffer onto chunks and reset it. Okay?",
+      "zh": "只把目前緩衝區加入 chunks，然後重設。"
+    },
+    {
+      "start": 407,
+      "end": 413,
+      "en": "So we'll use the keyword non-local, as you often do in Python, buff.",
+      "zh": "使用 Python 常見的 nonlocal 關鍵字，指定 buf。"
+    },
+    {
+      "start": 413,
+      "end": 419,
+      "en": "And if buff.strip, we'll try getting rid of its whitespace.",
+      "zh": "如果 buf.strip() 有內容，也就是去除前後空白後不為空，"
+    },
+    {
+      "start": 419,
+      "end": 426,
+      "en": "All we're going to do in here is say chunks.append buff.strip. Okay?",
+      "zh": "就呼叫 chunks.append(buf.strip())。"
+    },
+    {
+      "start": 426,
+      "end": 435,
+      "en": "And then after that, not part of the if statement, we'll set buff back to zero or to an empty string. Okay?",
+      "zh": "接著在 if 外面，將 buf 重設為空字串。"
+    },
+    {
+      "start": 435,
+      "end": 446.913,
+      "en": "And after that, outside of that function definition, but part of chunk text, we'll have a for loop for para in underscore split paragraphs.",
+      "zh": "然後離開這個內部函式定義，但仍在 chunk_text 裡，建立 for 迴圈：for para in _split_paragraphs，"
+    },
+    {
+      "start": 447,
+      "end": 451,
+      "en": "That function we just defined for each paragraph in text. Okay?",
+      "zh": "呼叫剛才定義的函式，逐段處理 text。"
+    },
+    {
+      "start": 451,
+      "end": 452,
+      "en": "That's our for loop.",
+      "zh": "這就是我們的 for 迴圈。"
+    },
+    {
+      "start": 452,
+      "end": 454,
+      "en": "We have a couple of cases.",
+      "zh": "有幾種情況要處理，"
+    },
+    {
+      "start": 454,
+      "end": 457,
+      "en": "The first one, the paragraph is too big.",
+      "zh": "第一種是段落太大。"
+    },
+    {
+      "start": 457,
+      "end": 462,
+      "en": "So we're going to, and what it's typically called is, we're going to window it. Okay?",
+      "zh": "這時要做通常所謂的視窗化切分，"
+    },
+    {
+      "start": 462,
+      "end": 464,
+      "en": "And it's very straightforward.",
+      "zh": "非常直接。"
+    },
+    {
+      "start": 464,
+      "end": 466,
+      "en": "We'll first of all check for the case.",
+      "zh": "先檢查這種情況，"
+    },
+    {
+      "start": 466,
+      "end": 474.94,
+      "en": "If the length of para, our current iteration through this for loop, if it's greater than chunk size, okay, then we, of course, we have to handle that.",
+      "zh": "如果目前這輪迴圈的 para 長度大於 chunk_size，當然就要處理。"
+    },
+    {
+      "start": 475,
+      "end": 479,
+      "en": "So first, we'll flush whatever was already buffered. Okay?",
+      "zh": "首先將已在緩衝區的內容輸出，"
+    },
+    {
+      "start": 479,
+      "end": 485,
+      "en": "So we just call flush, that function we defined right there on line 26. Okay?",
+      "zh": "直接呼叫第 26 行定義的 flush。"
+    },
+    {
+      "start": 485,
+      "end": 487,
+      "en": "And then we'll set a variable start.",
+      "zh": "接著建立 start 變數，"
+    },
+    {
+      "start": 487,
+      "end": 490,
+      "en": "We'll make that default to zero.",
+      "zh": "初始值設為 0。"
+    },
+    {
+      "start": 490,
+      "end": 491,
+      "en": "And then we'll have a while loop.",
+      "zh": "再建立 while 迴圈，"
+    },
+    {
+      "start": 491,
+      "end": 497,
+      "en": "While start is less than the length of the current paragraph, we're going to do something.",
+      "zh": "只要 start 小於目前段落長度，就持續處理。"
+    },
+    {
+      "start": 497,
+      "end": 500,
+      "en": "And all we do is here, we have a start, so let's set the end.",
+      "zh": "現在已經有 start，所以接著設定 end。"
+    },
+    {
+      "start": 500,
+      "end": 507.103,
+      "en": "End is going to be equal to, and this is simple math, we use the built-in function min, and we pass",
+      "zh": "end 的計算只是簡單數學，使用內建 min，傳入"
+    },
+    {
+      "start": 507.103,
+      "end": 515.856,
+      "en": "it start, which is currently zero on the first pass through, plus chunk size for the length of the current paragraph. Okay?",
+      "zh": "start 加上 chunk_size，以及目前段落長度；第一輪 start 是 0。"
+    },
+    {
+      "start": 516,
+      "end": 518,
+      "en": "So now we know what the end is going to be.",
+      "zh": "這樣就知道 end 是多少。"
+    },
+    {
+      "start": 518,
+      "end": 523,
+      "en": "And we'll say chunks, chunks plural, dot append.",
+      "zh": "接著對複數的 chunks 呼叫 append，"
+    },
+    {
+      "start": 523,
+      "end": 534.917,
+      "en": "We're going to append to that para, beginning at start, going to end, which we just calculated, and we'll get rid of any white space. Strip. Okay?",
+      "zh": "加入 para 從 start 到剛算出的 end 的內容，並用 strip 清除前後空白。"
+    },
+    {
+      "start": 535,
+      "end": 537,
+      "en": "So we've done that.",
+      "zh": "這樣就加入了。"
+    },
+    {
+      "start": 537,
+      "end": 539,
+      "en": "And then we just check to see if we're at the end.",
+      "zh": "接著檢查是否已到結尾，"
+    },
+    {
+      "start": 539,
+      "end": 544,
+      "en": "If end is equal to the length of para.",
+      "zh": "如果 end 等於 para 的長度，"
+    },
+    {
+      "start": 544,
+      "end": 550,
+      "en": "Well, what do we do in here? We break. We get out. We're finished. Okay?",
+      "zh": "要做什麼？break，跳出，已經完成了。"
+    },
+    {
+      "start": 550,
+      "end": 557,
+      "en": "Otherwise, if we get past that if statement, we slide the window forward by chunk size minus overlap.",
+      "zh": "否則通過這個 if 後，就將視窗向前移動 chunk_size 減 overlap。"
+    },
+    {
+      "start": 557,
+      "end": 563,
+      "en": "And this allows consecutive windows to overlap by however many characters is stored in the variable overlap.",
+      "zh": "如此相鄰視窗就會重疊 overlap 指定的字元數。"
+    },
+    {
+      "start": 563,
+      "end": 573,
+      "en": "So it's just start is now equal to, try that again, is now equal to end minus overlap. Okay?",
+      "zh": "也就是將 start 設為 end - overlap，重新輸入一下。"
+    },
+    {
+      "start": 573,
+      "end": 574,
+      "en": "So that's our first case.",
+      "zh": "這就是第一種情況。"
+    },
+    {
+      "start": 574,
+      "end": 579.958,
+      "en": "And when we're finished with that while loop, make sure you're back at the correct indentation level, right at the beginning of the while loop.",
+      "zh": "while 迴圈結束後，確認回到正確縮排層級，與 while 開頭相同。"
+    },
+    {
+      "start": 580,
+      "end": 581,
+      "en": "We just continue.",
+      "zh": "接著直接 continue，"
+    },
+    {
+      "start": 581,
+      "end": 583,
+      "en": "Go back to the beginning of this loop and continue.",
+      "zh": "回到這個迴圈的起點繼續處理，"
+    },
+    {
+      "start": 583,
+      "end": 586,
+      "en": "If there's anything else to do, work on that.",
+      "zh": "若還有其他內容，就繼續。"
+    },
+    {
+      "start": 586,
+      "end": 588,
+      "en": "So that's our first case.",
+      "zh": "這是第一種情況。"
+    },
+    {
+      "start": 588,
+      "end": 591,
+      "en": "Our second case is the paragraph actually fits.",
+      "zh": "第二種情況是段落本身放得下，"
+    },
+    {
+      "start": 591,
+      "end": 594,
+      "en": "So we just pack it into the current buffer. Okay?",
+      "zh": "因此直接將它放進目前緩衝區。"
+    },
+    {
+      "start": 594,
+      "end": 604,
+      "en": "So we say if the length of buff plus the length of the paragraph, and then we add two. Okay?",
+      "zh": "判斷 buf 的長度加上段落長度，再加 2。"
+    },
+    {
+      "start": 604,
+      "end": 605,
+      "en": "And why am I adding two?",
+      "zh": "為什麼加 2？"
+    },
+    {
+      "start": 605,
+      "end": 610,
+      "en": "I'm adding two to account for the slash end slash end separator.",
+      "zh": "因為要把反斜線 n、反斜線 n 這個分隔符算進去，"
+    },
+    {
+      "start": 610,
+      "end": 614,
+      "en": "So we insert between paragraphs when we're joining them together. Okay?",
+      "zh": "合併段落時，會在段落之間插入它。"
+    },
+    {
+      "start": 614,
+      "end": 616,
+      "en": "That's the only reason that exists.",
+      "zh": "存在這個加 2 的原因就是如此。"
+    },
+    {
+      "start": 616,
+      "end": 625,
+      "en": "If all of that is less than or equal to chunk size and then a colon, well, what do we do in here?",
+      "zh": "如果總長度小於等於 chunk_size，就加上冒號，裡面要做什麼？"
+    },
+    {
+      "start": 625,
+      "end": 626,
+      "en": "It's very simple.",
+      "zh": "很簡單，"
+    },
+    {
+      "start": 626,
+      "end": 630,
+      "en": "Buff is equal to, and we'll use a format string.",
+      "zh": "將 buf 設為一段格式化字串，"
+    },
+    {
+      "start": 630,
+      "end": 639,
+      "en": "And in here we'll put buff, which I have to spell right, and then two blank lines. Okay?",
+      "zh": "其中放入 buf，注意拼字，再加兩個換行字元，"
+    },
+    {
+      "start": 639,
+      "end": 641,
+      "en": "And then the paragraph.",
+      "zh": "然後接上目前段落。"
+    },
+    {
+      "start": 641,
+      "end": 646,
+      "en": "And then one of the nice things we can do in Python is add an if statement right here.",
+      "zh": "Python 有個方便的寫法，可以直接在這裡加條件運算式，"
+    },
+    {
+      "start": 646,
+      "end": 650,
+      "en": "If buff else para. Okay?",
+      "zh": "if buf else para。"
+    },
+    {
+      "start": 650,
+      "end": 656,
+      "en": "And then we have an else statement. Else. The other case.",
+      "zh": "然後還有 else，處理另一種情況。"
+    },
+    {
+      "start": 656,
+      "end": 660,
+      "en": "Adding this paragraph would overflow it, so start a fresh chunk.",
+      "zh": "加入此段會超過上限，因此開始一個新區塊。"
+    },
+    {
+      "start": 660,
+      "end": 662,
+      "en": "We'll just flush.",
+      "zh": "先 flush，"
+    },
+    {
+      "start": 662,
+      "end": 667,
+      "en": "Call that helpful method we built right up there on line 26.",
+      "zh": "呼叫上面第 26 行寫好的便利方法，"
+    },
+    {
+      "start": 667,
+      "end": 671,
+      "en": "And buff is now equal to para. Okay?",
+      "zh": "再將 buf 設為 para。"
+    },
+    {
+      "start": 671,
+      "end": 678,
+      "en": "Now, of course, when we're finished all of this, we need to go to the next line and give ourselves a blank line.",
+      "zh": "所有這些操作完成後，換到下一行，留一個空白行，"
+    },
+    {
+      "start": 678,
+      "end": 682,
+      "en": "And then go back to the same level as the overall for loop.",
+      "zh": "再回到與整個 for 迴圈相同的縮排層級，"
+    },
+    {
+      "start": 682,
+      "end": 684,
+      "en": "So it's not inside the for loop.",
+      "zh": "也就是不在 for 裡面。"
+    },
+    {
+      "start": 684,
+      "end": 687,
+      "en": "We can't forget the final partial chunk. Okay?",
+      "zh": "不能忘記最後那個不滿一個區塊的剩餘內容。"
+    },
+    {
+      "start": 687,
+      "end": 691,
+      "en": "We don't want to leave any of our document out. We'll flush.",
+      "zh": "我們不能漏掉任何文件內容，所以再呼叫 flush。"
+    },
+    {
+      "start": 691,
+      "end": 697,
+      "en": "And then we return, in square brackets, chunk.",
+      "zh": "然後回傳一個串列，裡面建立 Chunk，"
+    },
+    {
+      "start": 697,
+      "end": 705,
+      "en": "And then in parentheses, index equals i. Text equals t.",
+      "zh": "括號中指定 index=i、text=t，"
+    },
+    {
+      "start": 705,
+      "end": 722,
+      "en": "And then outside of the parentheses, but inside the square brackets, for i, t, in enumerate chunks. If t. Okay?",
+      "zh": "括號外、方括號內，接 for i, t in enumerate(chunks) if t。"
+    },
+    {
+      "start": 722,
+      "end": 727,
+      "en": "So, that should be our entire chunking logic.",
+      "zh": "這樣應該就是完整的切塊邏輯了。"
+    },
+    {
+      "start": 727,
+      "end": 733,
+      "en": "So we can hand it a document of pretty much any size, anything that will fit comfortably into memory anyway.",
+      "zh": "幾乎任何大小的文件都能交給它，只要能輕鬆放進記憶體，"
+    },
+    {
+      "start": 733,
+      "end": 735,
+      "en": "And we can break it up into chunks.",
+      "zh": "就可以切成區塊。"
+    },
+    {
+      "start": 735,
+      "end": 738,
+      "en": "Now, chunking is a critical step, and we absolutely have to have it.",
+      "zh": "切塊是非常重要而且必要的步驟，"
+    },
+    {
+      "start": 738,
+      "end": 740,
+      "en": "But, of course, we have to do something with those chunks.",
+      "zh": "但當然還得對這些區塊做些事，"
+    },
+    {
+      "start": 740,
+      "end": 742,
+      "en": "We need to be able to put them in our vector store.",
+      "zh": "需要將它們放進向量儲存區。"
+    },
+    {
+      "start": 742,
+      "end": 747,
+      "en": "Which means we need to create the embeddings that will be stored in our vector store.",
+      "zh": "也就是要產生存放在向量儲存區的嵌入向量，"
+    },
+    {
+      "start": 747,
+      "end": 751,
+      "en": "Along with the actual chunk itself, so it's human readable, of course.",
+      "zh": "並保留人類可讀的原始區塊內容。"
+    },
+    {
+      "start": 751,
+      "end": 753,
+      "en": "But we need to get started on embeddings.",
+      "zh": "接下來該處理嵌入了，"
+    },
+    {
+      "start": 753,
+      "end": 756,
+      "en": "And we'll take care of that in the next lecture.",
+      "zh": "下一堂課就來做。"
+    }
+  ]
+}

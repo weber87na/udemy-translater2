@@ -1,0 +1,973 @@
+{
+  "courseId": "7176862",
+  "lectureId": "56345803",
+  "title": "Wrapping retrieval into a user message",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "6754476e570154085f67a68f89bc379541b179804c6b0d2ff4b17798705c1aaf",
+  "cues": [
+    {
+      "start": 0,
+      "end": 5,
+      "en": "So now, at this point, we have a new default system prompt.",
+      "zh": "現在有了新的預設系統提示詞。"
+    },
+    {
+      "start": 5,
+      "end": 11,
+      "en": "Eventually, we'll have the ability to override that with a file specified in .onv.",
+      "zh": "最後會允許用 .env 指定的檔案覆寫它，"
+    },
+    {
+      "start": 11,
+      "end": 14,
+      "en": "And we've written the initial messages function.",
+      "zh": "也已經寫好 initial_messages 函式。"
+    },
+    {
+      "start": 14,
+      "end": 19,
+      "en": "And what I want to do now is to come back here to the data class RetrievedContext.",
+      "zh": "現在回到 RetrievedContext 資料類別。"
+    },
+    {
+      "start": 19,
+      "end": 21,
+      "en": "And remember I said we'd be extending this?",
+      "zh": "還記得我說過會擴充它嗎？"
+    },
+    {
+      "start": 21,
+      "end": 23,
+      "en": "Well, we're going to add something here.",
+      "zh": "現在就加上一些內容。"
+    },
+    {
+      "start": 23,
+      "end": 28,
+      "en": "And what we're going to do is write a function, and I'll call it toPromptBlock or something like that.",
+      "zh": "要寫一個函式，就叫 to_prompt_block 之類的名字。"
+    },
+    {
+      "start": 28,
+      "end": 35,
+      "en": "And all this is going to do is we're going to take the retrieved information from the vector store, and we're going to paste it into the prompt.",
+      "zh": "它只是把向量儲存區檢索出的資訊，放進提示詞。"
+    },
+    {
+      "start": 35,
+      "end": 44,
+      "en": "Much of what we do in this section is all about taking the user's prompt, what is a vampire, for example, and rewriting it.",
+      "zh": "這一節大部分工作，都是取得使用者提示詞，例如「什麼是吸血鬼？」，再將它改寫。"
+    },
+    {
+      "start": 44,
+      "end": 55,
+      "en": "We're going to rewrite it, give additional instructions to the LLM, we're going to paste in the retrieved chunks that we get from our vector store that are related to the user's question, and we'll send that to the LLM.",
+      "zh": "我們會改寫它、給 LLM 額外指示，並貼入向量儲存區裡與問題相關的區塊，然後送給 LLM。"
+    },
+    {
+      "start": 55,
+      "end": 59,
+      "en": "The user never sees the rewritten prompt, but we're going to rewrite it.",
+      "zh": "使用者看不到改寫後的提示詞，但我們會做這件事。"
+    },
+    {
+      "start": 59,
+      "end": 70,
+      "en": "So the first thing I'm going to do is add a method to this, toRetrievedContext, and I'll call it toPromptBlock.",
+      "zh": "首先在 RetrievedContext 加上一個方法，叫做 to_prompt_block。"
+    },
+    {
+      "start": 70,
+      "end": 75,
+      "en": "And that's just going to take self, and we're going to return a string.",
+      "zh": "只接收 self，回傳 str。"
+    },
+    {
+      "start": 75,
+      "end": 76,
+      "en": "It's very simple.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 76,
+      "end": 79,
+      "en": "First of all, we'll actually see if we have any hits.",
+      "zh": "先檢查有沒有搜尋結果，"
+    },
+    {
+      "start": 79,
+      "end": 81,
+      "en": "If not, self.hits.",
+      "zh": "也就是 if not self.hits，"
+    },
+    {
+      "start": 81,
+      "end": 84,
+      "en": "We have that available right from self.",
+      "zh": "它可以直接從 self 取得。"
+    },
+    {
+      "start": 84,
+      "end": 87,
+      "en": "We still have to send something to the LLM.",
+      "zh": "就算沒有結果，仍得傳點內容給 LLM。"
+    },
+    {
+      "start": 87,
+      "end": 92,
+      "en": "We don't want to say, here are some documents, and then not include anything, because that might be confusing.",
+      "zh": "我們不想說「這裡有一些文件」，卻什麼都沒附上，這可能造成混淆。"
+    },
+    {
+      "start": 92,
+      "end": 94,
+      "en": "So we'll just return a string.",
+      "zh": "因此直接回傳字串，"
+    },
+    {
+      "start": 94,
+      "end": 102,
+      "en": "We'll just return, say, in parentheses, no relevant context found.",
+      "zh": "例如括號中的「No relevant context found」。"
+    },
+    {
+      "start": 102,
+      "end": 103,
+      "en": "So we're going to send that.",
+      "zh": "把這個內容送出去。"
+    },
+    {
+      "start": 103,
+      "end": 107,
+      "en": "But assuming we do get something from our search, we'll just say parse.",
+      "zh": "但假設搜尋有取得結果，就設定 parts，"
+    },
+    {
+      "start": 107,
+      "end": 110,
+      "en": "We'll initialize a variable, an empty one.",
+      "zh": "初始化為空串列。"
+    },
+    {
+      "start": 110,
+      "end": 117,
+      "en": "And then we'll say for h in self.hits, h meaning hit, of course.",
+      "zh": "接著寫 for h in self.hits，h 當然代表 hit。"
+    },
+    {
+      "start": 117,
+      "end": 128,
+      "en": "So for each individual hit in self.hits, we'll get the name, and that comes from path, which we imported a little while ago, h.source underscore path.",
+      "zh": "針對每個結果，從 Path(h.source_path) 取得名稱，Path 是稍早匯入的。"
+    },
+    {
+      "start": 128,
+      "end": 129,
+      "en": "We'll just get the name.",
+      "zh": "我們只要檔名。"
+    },
+    {
+      "start": 129,
+      "end": 135,
+      "en": "And then on the next line, we'll say parts, that variable we just declared right there on line 35.",
+      "zh": "下一行使用 parts，就是第 35 行剛宣告的變數，"
+    },
+    {
+      "start": 135,
+      "end": 139,
+      "en": "We'll append to that, and we'll put it on multiple lines so it's more readable.",
+      "zh": "對它呼叫 append，並分行寫以增加可讀性。"
+    },
+    {
+      "start": 139,
+      "end": 147,
+      "en": "We'll use a format string, and we'll say source name,",
+      "zh": "使用格式化字串，先寫 source 和 name，"
+    },
+    {
+      "start": 147,
+      "end": 157,
+      "en": "and then we'll put something like chunk, just so we can see what's going on, h.chunk index, which chunk did it come from?",
+      "zh": "再加上 chunk，方便知道發生什麼事，放入 h.chunk_index，表示來自哪個區塊。"
+    },
+    {
+      "start": 157,
+      "end": 162,
+      "en": "And then outside of that, over here, we'll put another pipe and just say score.",
+      "zh": "在外面這裡再加一個直線分隔符，接著寫 score，"
+    },
+    {
+      "start": 162,
+      "end": 164,
+      "en": "What did it score?",
+      "zh": "也就是它的分數，"
+    },
+    {
+      "start": 164,
+      "end": 170,
+      "en": "And that's just h.score and a colon, and we'll go to two decimal places, 2f.",
+      "zh": "使用 h.score，接冒號，顯示小數兩位，所以是 .2f。"
+    },
+    {
+      "start": 170,
+      "end": 173,
+      "en": "And then it carries return, so it formats nicely.",
+      "zh": "接著加換行，讓排版好看。"
+    },
+    {
+      "start": 173,
+      "end": 176,
+      "en": "So that's my first thing I'm going to add there.",
+      "zh": "這就是我要加入的第一部分。"
+    },
+    {
+      "start": 176,
+      "end": 178,
+      "en": "And then underneath that, we'll actually put the chunk itself.",
+      "zh": "下面再放入區塊本身，"
+    },
+    {
+      "start": 178,
+      "end": 182,
+      "en": "So another format string, and we just say h.text.",
+      "zh": "再用格式化字串，放入 h.text，"
+    },
+    {
+      "start": 182,
+      "end": 184,
+      "en": "What's the content of that?",
+      "zh": "也就是它的內容。"
+    },
+    {
+      "start": 184,
+      "end": 193,
+      "en": "And then outside of parts, we get to the right indentation level outside of the for loop, and we return, and we'll add a couple of blank lines.",
+      "zh": "然後離開 parts 的 append，回到 for 迴圈外的正確縮排，return，並加兩個換行，"
+    },
+    {
+      "start": 193,
+      "end": 199,
+      "en": "And then dash, dash, dash, and a couple of blank lines. Okay?",
+      "zh": "再放 ---，接著又加兩個換行。"
+    },
+    {
+      "start": 199,
+      "end": 206,
+      "en": "And after that, we just use join parts. Okay?",
+      "zh": "之後直接 join(parts)。"
+    },
+    {
+      "start": 206,
+      "end": 210,
+      "en": "And that returns all of the chunks, and it returns the chunks with some information.",
+      "zh": "這會回傳全部區塊，並為各區塊附上資訊，"
+    },
+    {
+      "start": 210,
+      "end": 215,
+      "en": "What's the source, what chunk index, and what's the score? Okay?",
+      "zh": "包括來源、區塊索引與分數。"
+    },
+    {
+      "start": 215,
+      "end": 218,
+      "en": "Now, why do we have these two parts for each chunk?",
+      "zh": "為什麼每個區塊要分這兩部分？"
+    },
+    {
+      "start": 218,
+      "end": 225,
+      "en": "Well, the first one, the header, that gives the LLM strong cues, and it's also human-readable when we're debugging. Okay?",
+      "zh": "第一部分是標頭，給 LLM 明確線索，也方便我們除錯時閱讀。"
+    },
+    {
+      "start": 225,
+      "end": 227,
+      "en": "So we have that, that function.",
+      "zh": "這個函式完成了。"
+    },
+    {
+      "start": 227,
+      "end": 231,
+      "en": "Now, let's add another one, buildUserMessage.",
+      "zh": "現在再加一個 build_user_message。"
+    },
+    {
+      "start": 231,
+      "end": 233,
+      "en": "Now, this doesn't have to be a method on retrieve context.",
+      "zh": "它不一定要當 RetrievedContext 的方法，"
+    },
+    {
+      "start": 233,
+      "end": 237,
+      "en": "We can just come down here right after, say, retrieve. Okay?",
+      "zh": "可以直接放在 retrieve 後面，"
+    },
+    {
+      "start": 237,
+      "end": 239,
+      "en": "And we'll put another function in here.",
+      "zh": "在這裡加一個函式。"
+    },
+    {
+      "start": 239,
+      "end": 245,
+      "en": "I'll define one called buildUserMessage, and this does exactly what the name implies.",
+      "zh": "定義 build_user_message，功能正如名稱所示，"
+    },
+    {
+      "start": 245,
+      "end": 247,
+      "en": "It builds the user's message.",
+      "zh": "用來建立使用者訊息。"
+    },
+    {
+      "start": 247,
+      "end": 250,
+      "en": "And, of course, we have to have the original question.",
+      "zh": "當然需要原始問題，"
+    },
+    {
+      "start": 250,
+      "end": 251,
+      "en": "What did the user actually ask?",
+      "zh": "也就是使用者實際問了什麼，"
+    },
+    {
+      "start": 251,
+      "end": 254,
+      "en": "That's really important, and that's just going to be a string.",
+      "zh": "這點很重要，型別是 str。"
+    },
+    {
+      "start": 254,
+      "end": 261,
+      "en": "And then we want our context, which is the retrieved context right there. Okay?",
+      "zh": "接著需要上下文 ctx，型別是 RetrievedContext。"
+    },
+    {
+      "start": 261,
+      "end": 264,
+      "en": "And what this returns is a string.",
+      "zh": "它回傳 str。"
+    },
+    {
+      "start": 264,
+      "end": 267,
+      "en": "We're basically rewriting the user's message.",
+      "zh": "我們基本上是在改寫使用者訊息，"
+    },
+    {
+      "start": 267,
+      "end": 269,
+      "en": "So it returns a string.",
+      "zh": "所以回傳字串。"
+    },
+    {
+      "start": 269,
+      "end": 272,
+      "en": "And this is dead simple. Okay?",
+      "zh": "內容非常簡單。"
+    },
+    {
+      "start": 272,
+      "end": 280,
+      "en": "We're going to build the per-turn user message, and we're going to use the user's original question plus the retrieved context. Okay?",
+      "zh": "建立每一輪對話的使用者訊息，使用原始問題加上檢索上下文。"
+    },
+    {
+      "start": 280,
+      "end": 285,
+      "en": "Now, the exact format, how we build this, it matters much less than being consistent.",
+      "zh": "實際如何排版，遠不如保持一致重要。"
+    },
+    {
+      "start": 285,
+      "end": 292,
+      "en": "The LLM does a much better job when every single turn in the conversation uses the same format.",
+      "zh": "每一輪對話都用相同格式，LLM 的表現就會更好。"
+    },
+    {
+      "start": 292,
+      "end": 300,
+      "en": "So we use some plain labels so the model has some cues for what is reference material versus what is the question it's supposed to answer.",
+      "zh": "所以加上清楚的標籤，提示模型哪些是參考資料，哪些是應回答的問題。"
+    },
+    {
+      "start": 300,
+      "end": 302,
+      "en": "And it's just a return. Okay?",
+      "zh": "只需要一個 return，"
+    },
+    {
+      "start": 302,
+      "end": 311,
+      "en": "So return, and we'll use parentheses, and we'll build a string, context, and then a carriage return.",
+      "zh": "用括號包住並組合字串，先寫 Context，再接換行。"
+    },
+    {
+      "start": 311,
+      "end": 320,
+      "en": "And then on the next line, I'll put in a format string and say ctx, our context, okay, to prompt block.",
+      "zh": "下一行用格式化字串，放入 ctx.to_prompt_block()，"
+    },
+    {
+      "start": 320,
+      "end": 324,
+      "en": "We call that function we just wrote or that method we just wrote. Okay?",
+      "zh": "呼叫剛寫好的函式，或者說方法。"
+    },
+    {
+      "start": 324,
+      "end": 327,
+      "en": "And, of course, we need our parentheses, which I often forget.",
+      "zh": "當然要記得括號，我很常忘。"
+    },
+    {
+      "start": 327,
+      "end": 337,
+      "en": "And then outside the curly brackets, we just put in a couple of blank lines just for formatting purposes to make it look good and make it easy for the humans to read it and for the LLM to understand it.",
+      "zh": "大括號外面再加兩個換行，只是為了排版，讓人類容易閱讀，也讓 LLM 容易理解。"
+    },
+    {
+      "start": 337,
+      "end": 344,
+      "en": "And then we put in another label, question, and a carriage return. Okay?",
+      "zh": "接著加另一個標籤 Question，再接換行。"
+    },
+    {
+      "start": 344,
+      "end": 347,
+      "en": "And on the next line, the last bit, well, what's the question?",
+      "zh": "最後一行是問題，"
+    },
+    {
+      "start": 347,
+      "end": 351,
+      "en": "So a format string and just a question like that.",
+      "zh": "使用格式化字串放入 question。"
+    },
+    {
+      "start": 351,
+      "end": 354,
+      "en": "And that's all that we have to return.",
+      "zh": "需要回傳的就這些。"
+    },
+    {
+      "start": 354,
+      "end": 361,
+      "en": "So that is our build user message function, which does nothing more than take the original user's question, add some context,",
+      "zh": "這就是 build_user_message，它只是取得原始問題，加上一些上下文，"
+    },
+    {
+      "start": 361,
+      "end": 367,
+      "en": "rewrite the prompt, and now we have something that's ready to send to the LLM pretty much. Okay?",
+      "zh": "改寫提示詞，現在基本上就準備好送給 LLM 了。"
+    },
+    {
+      "start": 367,
+      "end": 371,
+      "en": "So let's try this out just to make sure that it's going to work the way that I expect it to work.",
+      "zh": "我們測試一下，確認它符合預期。"
+    },
+    {
+      "start": 371,
+      "end": 373,
+      "en": "And we can do that at the Python interpreter.",
+      "zh": "可以在 Python 直譯器裡做，"
+    },
+    {
+      "start": 373,
+      "end": 380,
+      "en": "So I'll open my terminal and I'll invoke the interpreter, python-i. Okay?",
+      "zh": "所以開啟終端機，輸入 python -i。"
+    },
+    {
+      "start": 380,
+      "end": 382,
+      "en": "And now we need to do a couple of imports.",
+      "zh": "現在需要幾項匯入。"
+    },
+    {
+      "start": 382,
+      "end": 388,
+      "en": "We need from stores, pyreg, from pyreg.stores.base.",
+      "zh": "從 stores，應該是 pyrag，from pyrag.stores.base，"
+    },
+    {
+      "start": 388,
+      "end": 390,
+      "en": "We'll import search hit.",
+      "zh": "匯入 SearchHit。"
+    },
+    {
+      "start": 390,
+      "end": 396,
+      "en": "I have to simulate actually getting values back from the vector store. Okay? So that worked.",
+      "zh": "我要模擬從向量儲存區取得回傳值。匯入成功。"
+    },
+    {
+      "start": 396,
+      "end": 399,
+      "en": "And we also need retrieved context and build user message.",
+      "zh": "另外還需要 RetrievedContext 與 build_user_message，"
+    },
+    {
+      "start": 399,
+      "end": 405,
+      "en": "And those are in from pyreg, the file we just worked on, query. Okay?",
+      "zh": "它們在剛處理的 pyrag.query 裡，"
+    },
+    {
+      "start": 405,
+      "end": 414,
+      "en": "We're going to import retrieved context and build user message.",
+      "zh": "所以匯入 RetrievedContext 與 build_user_message，"
+    },
+    {
+      "start": 414,
+      "end": 416,
+      "en": "And that worked. Okay?",
+      "zh": "成功了。"
+    },
+    {
+      "start": 416,
+      "end": 418,
+      "en": "Now, let's set up a search hit.",
+      "zh": "現在建立一個 SearchHit，"
+    },
+    {
+      "start": 418,
+      "end": 422,
+      "en": "So I'll declare a variable, h1, and I'll make that a search hit.",
+      "zh": "宣告 h1，值設為 SearchHit，"
+    },
+    {
+      "start": 422,
+      "end": 427,
+      "en": "And then an opening parentheses, and then I'll hit shift-return to get to the next line. Okay?",
+      "zh": "加左括號，再按 Shift+Enter 換到下一行。"
+    },
+    {
+      "start": 427,
+      "end": 428,
+      "en": "And we need a source path.",
+      "zh": "需要 source_path，"
+    },
+    {
+      "start": 428,
+      "end": 430,
+      "en": "Where does this document exist?",
+      "zh": "這份文件在哪裡？"
+    },
+    {
+      "start": 430,
+      "end": 437,
+      "en": "And we're just faking it, so I can just put ./.documents/.vampire.txt.",
+      "zh": "反正只是模擬，就填 ./documents/vampire.txt。"
+    },
+    {
+      "start": 437,
+      "end": 440,
+      "en": "And then a comma and a shift-return.",
+      "zh": "加逗號，再按 Shift+Enter。"
+    },
+    {
+      "start": 440,
+      "end": 443,
+      "en": "And we also need a chunk index. So chunk index.",
+      "zh": "還需要 chunk_index，"
+    },
+    {
+      "start": 443,
+      "end": 444,
+      "en": "And that's just an integer.",
+      "zh": "它是一個整數，"
+    },
+    {
+      "start": 444,
+      "end": 445,
+      "en": "I'll make it two.",
+      "zh": "我設為 2，"
+    },
+    {
+      "start": 445,
+      "end": 447,
+      "en": "I'm just making that up. Okay?",
+      "zh": "這是隨便取的。"
+    },
+    {
+      "start": 447,
+      "end": 449,
+      "en": "Now, what's the text that we retrieved?",
+      "zh": "檢索到的文字是什麼？"
+    },
+    {
+      "start": 449,
+      "end": 452,
+      "en": "Well, here I'll put in something useful. Okay?",
+      "zh": "這裡放一點有用的內容，"
+    },
+    {
+      "start": 452,
+      "end": 466,
+      "en": "Vampires, which I have to spell right, vampires, are weakened by sunlight, garlic, and running water.",
+      "zh": "「吸血鬼會因陽光、大蒜與流動的水而變弱。」注意 vampires 的拼字。"
+    },
+    {
+      "start": 466,
+      "end": 470,
+      "en": "And then a comma and then a shift-return. Okay?",
+      "zh": "再加逗號，按 Shift+Enter。"
+    },
+    {
+      "start": 470,
+      "end": 472,
+      "en": "And now we want a score.",
+      "zh": "接著是 score，"
+    },
+    {
+      "start": 472,
+      "end": 477,
+      "en": "And we'll make that equal to 0.7123. Okay?",
+      "zh": "設為 0.7123。"
+    },
+    {
+      "start": 477,
+      "end": 480,
+      "en": "And a comma and a shift-return.",
+      "zh": "加逗號，再按 Shift+Enter。"
+    },
+    {
+      "start": 480,
+      "end": 483,
+      "en": "And the last thing we need is metadata.",
+      "zh": "最後需要 metadata，"
+    },
+    {
+      "start": 483,
+      "end": 491.937,
+      "en": "And we'll make that equal to opening and closing curly brackets, comma, shift-return, then my closing parentheses, and then I hit return. Okay.",
+      "zh": "設為一對大括號，加逗號、Shift+Enter，再關閉括號，按 Enter。"
+    },
+    {
+      "start": 492,
+      "end": 493,
+      "en": "So I've set H1 up.",
+      "zh": "h1 就設定好了，"
+    },
+    {
+      "start": 493,
+      "end": 495,
+      "en": "Now I have a search hit.",
+      "zh": "現在有一個 SearchHit。"
+    },
+    {
+      "start": 495,
+      "end": 507.25,
+      "en": "Now, let's declare a variable CTX and make that equal to calling retrieved context with hits equal",
+      "zh": "接著宣告 ctx，值等於 RetrievedContext，其中 hits 設為"
+    },
+    {
+      "start": 507.25,
+      "end": 511.875,
+      "en": "to in square brackets, just H1. Okay?",
+      "zh": "方括號裡只有 h1 的串列。"
+    },
+    {
+      "start": 512,
+      "end": 517,
+      "en": "Closing square brackets, closing parentheses, and hit return. Okay.",
+      "zh": "關閉方括號與括號，再按 Enter。"
+    },
+    {
+      "start": 517,
+      "end": 518,
+      "en": "And let's see what's in there.",
+      "zh": "看看裡面有什麼。"
+    },
+    {
+      "start": 518,
+      "end": 529.906,
+      "en": "Print CTX dot to underscore prompt underscore block with opening and closing parentheses and one last closing parentheses. Okay?",
+      "zh": "輸入 print(ctx.to_prompt_block())，方法有左右括號，最後再關閉 print 的括號。"
+    },
+    {
+      "start": 530,
+      "end": 535,
+      "en": "So let's see what we get from there by calling the method to prompt block.",
+      "zh": "看看呼叫 to_prompt_block 會得到什麼。"
+    },
+    {
+      "start": 535,
+      "end": 538,
+      "en": "And I have an unmatched parentheses.",
+      "zh": "括號不匹配，"
+    },
+    {
+      "start": 538,
+      "end": 539,
+      "en": "Made a mistake there.",
+      "zh": "我這裡寫錯了。"
+    },
+    {
+      "start": 539,
+      "end": 541,
+      "en": "Well, let's just try that again.",
+      "zh": "再試一次，"
+    },
+    {
+      "start": 541,
+      "end": 551,
+      "en": "Print CTX dot to underscore prompt underscore block like that with this. There we are. Okay.",
+      "zh": "輸入 print(ctx.to_prompt_block())，像這樣，出來了。"
+    },
+    {
+      "start": 551,
+      "end": 553,
+      "en": "So the source is vampire dot text.",
+      "zh": "來源是 vampire.txt，"
+    },
+    {
+      "start": 553,
+      "end": 554,
+      "en": "That's the header that we want.",
+      "zh": "這就是我們要的標頭。"
+    },
+    {
+      "start": 554,
+      "end": 555,
+      "en": "The chunk is number two.",
+      "zh": "區塊編號是 2，"
+    },
+    {
+      "start": 555,
+      "end": 557,
+      "en": "The score is 0.71.",
+      "zh": "分數是 0.71，"
+    },
+    {
+      "start": 557,
+      "end": 559,
+      "en": "We rounded it down when printing it out.",
+      "zh": "輸出時只保留兩位小數。"
+    },
+    {
+      "start": 559,
+      "end": 563,
+      "en": "Vampires are weakened by sunlight, garlic, and running water.",
+      "zh": "「吸血鬼會因陽光、大蒜與流動的水而變弱。」"
+    },
+    {
+      "start": 563,
+      "end": 567,
+      "en": "So that's exactly the sort of thing that will get added to the user's message. Okay?",
+      "zh": "這正是會加入使用者訊息的內容。"
+    },
+    {
+      "start": 567,
+      "end": 570,
+      "en": "Now let's add a second one just to see what the separator is working.",
+      "zh": "現在再加第二筆，確認分隔符正常。"
+    },
+    {
+      "start": 570,
+      "end": 574,
+      "en": "So we'll say H2 is equal to.",
+      "zh": "設定 h2 等於，"
+    },
+    {
+      "start": 574,
+      "end": 576,
+      "en": "And this is, again, going to be a search hit.",
+      "zh": "同樣是一個 SearchHit。"
+    },
+    {
+      "start": 576,
+      "end": 579,
+      "en": "First one was H1. This one's H2.",
+      "zh": "第一筆是 h1，這筆是 h2。"
+    },
+    {
+      "start": 579,
+      "end": 580,
+      "en": "Opening parentheses.",
+      "zh": "加上左括號，"
+    },
+    {
+      "start": 580,
+      "end": 583,
+      "en": "And then I'll press shift return.",
+      "zh": "再按 Shift+Enter，"
+    },
+    {
+      "start": 583,
+      "end": 589,
+      "en": "And then I'll say source path is equal to, in quotes.",
+      "zh": "將 source_path 設為引號中的路徑，"
+    },
+    {
+      "start": 589,
+      "end": 593,
+      "en": "And I'll make it, say, dot slash documents slash.",
+      "zh": "例如 ./documents/，"
+    },
+    {
+      "start": 593,
+      "end": 597,
+      "en": "And I'll call this one strigoi dot txt.",
+      "zh": "檔案叫 strigoi.txt，"
+    },
+    {
+      "start": 597,
+      "end": 605,
+      "en": "A different file. Okay? Shift return. Chunk index.",
+      "zh": "這是另一份檔案。按 Shift+Enter，再寫 chunk_index，"
+    },
+    {
+      "start": 605,
+      "end": 608,
+      "en": "That's going to be equal to zero. Comma. Shift return.",
+      "zh": "設為 0，加逗號、Shift+Enter。"
+    },
+    {
+      "start": 608,
+      "end": 611,
+      "en": "Text is equal to.",
+      "zh": "text 等於，"
+    },
+    {
+      "start": 611,
+      "end": 623,
+      "en": "And here I'll say strigoi are Romanian undead who rise from the grave to feed. Okay?",
+      "zh": "這裡寫「Strigoi 是從墳墓復起、為了覓食而活動的羅馬尼亞不死生物」。"
+    },
+    {
+      "start": 623,
+      "end": 626,
+      "en": "And a comma and a shift return. And the score.",
+      "zh": "加逗號、Shift+Enter，再設定 score，"
+    },
+    {
+      "start": 626,
+      "end": 629,
+      "en": "We'll make that equal to, say, 0.5.",
+      "zh": "設為例如 0.5，"
+    },
+    {
+      "start": 629,
+      "end": 635,
+      "en": "Oh, it doesn't matter. 821. Okay? Comma. Shift return.",
+      "zh": "其實沒關係，就用 0.5821。加逗號、Shift+Enter。"
+    },
+    {
+      "start": 635,
+      "end": 641,
+      "en": "And metadata is equal to opening and closing curly brackets. Comma. Shift return.",
+      "zh": "metadata 設為一對大括號，加逗號、Shift+Enter，"
+    },
+    {
+      "start": 641,
+      "end": 643,
+      "en": "Closing parentheses. Return.",
+      "zh": "關閉括號，再按 Enter。"
+    },
+    {
+      "start": 643,
+      "end": 645,
+      "en": "Now I have an H2. Okay?",
+      "zh": "現在有 h2 了。"
+    },
+    {
+      "start": 645,
+      "end": 651,
+      "en": "Now let's reset context to be equal to retrieved context.",
+      "zh": "接著將 ctx 重設為 RetrievedContext，"
+    },
+    {
+      "start": 651,
+      "end": 653,
+      "en": "And we'll add that to it. Okay?",
+      "zh": "把這筆也加進去，"
+    },
+    {
+      "start": 653,
+      "end": 657,
+      "en": "And we'll say hits is equal to in square brackets H1 and H2.",
+      "zh": "指定 hits 為方括號中的 h1 和 h2。"
+    },
+    {
+      "start": 657,
+      "end": 659,
+      "en": "Closing square brackets.",
+      "zh": "關閉方括號，"
+    },
+    {
+      "start": 659,
+      "end": 661,
+      "en": "Closing parentheses. Okay?",
+      "zh": "再關閉括號。"
+    },
+    {
+      "start": 661,
+      "end": 670,
+      "en": "And now we'll say print ctx dot to underscore prompt underscore block.",
+      "zh": "接著輸入 print(ctx.to_prompt_block，"
+    },
+    {
+      "start": 670,
+      "end": 671,
+      "en": "Opening and closing parentheses.",
+      "zh": "加上方法的左右括號，"
+    },
+    {
+      "start": 671,
+      "end": 672,
+      "en": "Closing parentheses.",
+      "zh": "再加最後一個右括號。"
+    },
+    {
+      "start": 672,
+      "end": 674,
+      "en": "Let's see what we get this time.",
+      "zh": "看看這次結果，"
+    },
+    {
+      "start": 674,
+      "end": 676,
+      "en": "And we have the separator.",
+      "zh": "分隔符出現了，"
+    },
+    {
+      "start": 676,
+      "end": 680,
+      "en": "That works exactly as it should. Okay.",
+      "zh": "完全符合預期。"
+    },
+    {
+      "start": 680,
+      "end": 682,
+      "en": "So that's pretty straightforward.",
+      "zh": "這相當簡單，"
+    },
+    {
+      "start": 682,
+      "end": 684,
+      "en": "Everything seems to work as it should.",
+      "zh": "一切看起來都正常運作。"
+    },
+    {
+      "start": 684,
+      "end": 688,
+      "en": "And I think that's enough for this time around. Let's move on.",
+      "zh": "我想這堂課到這裡就夠了，我們繼續。"
+    }
+  ]
+}
