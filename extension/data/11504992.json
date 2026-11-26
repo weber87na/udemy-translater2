@@ -1,0 +1,337 @@
+{
+  "courseId": "1726410",
+  "lectureId": "11504992",
+  "title": "[Activity] Movie Recommendations with Spark, Matrix Factorization, and ALS",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "80a4165e524950c1b0c2a3e0e998ed369643446f61641829937520a1052f485a",
+  "cues": [
+    {
+      "start": 0.4,
+      "end": 3.223,
+      "en": "So, open up Spyder inside your RecSys environment,",
+      "zh": "在 RecSys 環境開啟 Spyder，"
+    },
+    {
+      "start": 8.4,
+      "end": 10.38,
+      "en": "and from your course materials",
+      "zh": "到課程教材，"
+    },
+    {
+      "start": 14.1,
+      "end": 16.83,
+      "en": "go to the ScalingUp folder and open SparkALS.py.",
+      "zh": "進 ScalingUp，開 SparkALS.py。"
+    },
+    {
+      "start": 20.96,
+      "end": 27.28,
+      "en": "This is adapted from one of the examples that comes with Apache Spark, they actually use MovieLens as an example as well.",
+      "zh": "改編自 Apache Spark 範例，它也用 MovieLens。"
+    },
+    {
+      "start": 27.28,
+      "end": 34.05,
+      "en": "But, I made some modifications to get it to work with our specific dataset and to generate top-N recommendations at the end.",
+      "zh": "我修改，配合特定資料集，最後產生 Top-N。"
+    },
+    {
+      "start": 34.05,
+      "end": 36.4,
+      "en": "It's surprisingly small, right?",
+      "zh": "短得令人驚訝，對吧？"
+    },
+    {
+      "start": 36.4,
+      "end": 41.71,
+      "en": "One reason Spark is so fun to work with is because you can do really powerful things with very little code.",
+      "zh": "Spark 有趣，是因為程式很少，能做很強的事。"
+    },
+    {
+      "start": 41.71,
+      "end": 42.623,
+      "en": "Let's dive in.",
+      "zh": "深入看看。"
+    },
+    {
+      "start": 43.64,
+      "end": 47.33,
+      "en": "First, we start by importing the packages we need from pyspark itself.",
+      "zh": "先從 pyspark 匯入所需套件。"
+    },
+    {
+      "start": 47.33,
+      "end": 56.55,
+      "en": "As we mentioned, modern Spark scripts use Spark SQL as their primary interface, and that means we need to set up something called a SparkSession for our driver script.",
+      "zh": "現代 Spark 指令碼，主要用 Spark SQL，因此要為驅動指令碼建立 SparkSession。"
+    },
+    {
+      "start": 56.55,
+      "end": 61.7,
+      "en": "It's similar to a database session in spirit, but we're not going to use it as a database.",
+      "zh": "概念像資料庫工作階段，但不當資料庫用。"
+    },
+    {
+      "start": 61.7,
+      "end": 70.98,
+      "en": "We're also going to import RegressionEvaluator which will let us measure RMSE on our results, and most importantly ALS from pyspark.ml.recommendation.",
+      "zh": "也匯入 RegressionEvaluator，衡量 RMSE，最重要是 pyspark.ml.recommendation 的 ALS。"
+    },
+    {
+      "start": 70.98,
+      "end": 77.39,
+      "en": "This allows us to perform matrix factorization using ALS, alternating least squares, as its optimization function.",
+      "zh": "用 ALS 交替最小平方法，作為最佳化函數，做矩陣分解。"
+    },
+    {
+      "start": 77.39,
+      "end": 84.563,
+      "en": "But the amazing thing is that it's written such that the work can be distributed across a cluster without us even having to think about how it works!",
+      "zh": "驚人之處是，不必思考細節，工作就能分散叢集。"
+    },
+    {
+      "start": 85.58,
+      "end": 91.84,
+      "en": "We also import our MovieLens class, just as a convenience to let us print out movie names from movie IDs.",
+      "zh": "也匯入 MovieLens，只為方便以 ID 印電影名稱。"
+    },
+    {
+      "start": 91.84,
+      "end": 94.44,
+      "en": "Now we get into the driver script itself.",
+      "zh": "現在，驅動指令碼本身。"
+    },
+    {
+      "start": 94.44,
+      "end": 100.13,
+      "en": "First, we create a SparkSession object, this contains all of the Spark commands we want to issue.",
+      "zh": "先建 SparkSession，包含想下的所有 Spark 命令。"
+    },
+    {
+      "start": 100.13,
+      "end": 105.05,
+      "en": "All we're doing is giving it a name, and letting everything else go with the default settings for the session.",
+      "zh": "只給名稱，其餘用預設。"
+    },
+    {
+      "start": 105.05,
+      "end": 109.69,
+      "en": "But, you could have finer grain control of how Spark distributes the work if you wanted to here.",
+      "zh": "想要的話，也能更細控制，Spark 如何分散工作。"
+    },
+    {
+      "start": 110.77000000000001,
+      "end": 118.453,
+      "en": "Next we load up our ratings data into Spark using the read function on our SparkSession, which has a handy CSV parsing ability built in.",
+      "zh": "接著，用 SparkSession 的 read 載入評分，內建方便的 CSV 解析。"
+    },
+    {
+      "start": 119.41,
+      "end": 125.643,
+      "en": "We then call RDD on that, to retrieve a resilient distributed dataset that contains all of that data we can operate on.",
+      "zh": "再呼叫 rdd，取得包含所有待操作資料的 RDD。"
+    },
+    {
+      "start": 126.66,
+      "end": 135.263,
+      "en": "We'll store that RDD in a variable called lines, since at this point it contains the raw inputs read in directly from ratings.csv.",
+      "zh": "存成 lines，因為此時是從 ratings.csv 讀的原始輸入。"
+    },
+    {
+      "start": 136.34,
+      "end": 141.97,
+      "en": "It's important to remember that at this point, lines isn't really a structure that contains all of our data.",
+      "zh": "記得，此時 lines 不是實際包含全部資料的結構。"
+    },
+    {
+      "start": 141.97,
+      "end": 146.34,
+      "en": "That would defeat the purpose if we had to read and store everything on a single PC.",
+      "zh": "若必須在單一電腦讀取、儲存全部，反而違背目的。"
+    },
+    {
+      "start": 146.34,
+      "end": 157.21,
+      "en": "Creating the lines RDD just creates a placeholder for reading that data in, spark.read didn't really read in the data right there, it just told the RDD where it will read the data from",
+      "zh": "建立 lines RDD，只是建立讀取資料的描述；spark.read 不在那時真正讀，而是告訴 RDD 來源，"
+    },
+    {
+      "start": 157.21,
+      "end": 164.163,
+      "en": "but that reading may happen from many different machines in parallel, each reading in their own little piece of the input data that they want to process.",
+      "zh": "實際可能多台機器平行讀，各自讀取想處理的一小部分。"
+    },
+    {
+      "start": 165.39,
+      "end": 169.03,
+      "en": "Next, we'll transform the raw data into something more structured.",
+      "zh": "再把原始資料，轉更有結構。"
+    },
+    {
+      "start": 169.03,
+      "end": 175.873,
+      "en": "We call the map function on our lines RDD to transform each individual line using the lambda function provided.",
+      "zh": "對 lines RDD 呼叫 map，以提供的 lambda，轉換每行。"
+    },
+    {
+      "start": 176.85,
+      "end": 185.943,
+      "en": "This lambda function converts each line into a Row object, that consists of four columns named userId, movieId, rating, and timestamp.",
+      "zh": "lambda 將每行轉 Row，有四欄：userId、movieId、rating、timestamp。"
+    },
+    {
+      "start": 186.96,
+      "end": 195.09,
+      "en": "We did this because all modern Spark code operates on DataSets, not RDDs, so we want to convert our RDD into a DataSet.",
+      "zh": "因現代 Spark 都操作 Dataset，不是 RDD，所以要轉 Dataset。"
+    },
+    {
+      "start": 195.09,
+      "end": 199.59,
+      "en": "One form of DataSet is a DataFrame, which consists of Row objects.",
+      "zh": "DataFrame 就是 Dataset 的一種，由 Row 組成。"
+    },
+    {
+      "start": 199.59,
+      "end": 209.193,
+      "en": "It's a little confusing, but all that's happening here really is that we're converting our data into a form that Spark's ML library can work with and it wants a DataFrame, not a RDD.",
+      "zh": "有點混淆，但只是轉成 Spark ML 能使用的格式，它要 DataFrame，不是 RDD。"
+    },
+    {
+      "start": 210.32,
+      "end": 218.49,
+      "en": "Now that we have our dataframe called ratings, we can split it into a training set and a test set using the randomSplit operation.",
+      "zh": "有 ratings DataFrame，就用 randomSplit，分訓練、測試。"
+    },
+    {
+      "start": 218.49,
+      "end": 227.793,
+      "en": "Again, remember nothing is actually happening yet when this line executes, we're just defining what we want Spark to do, all in a distributed manner, once we request our results.",
+      "zh": "同樣，這行還不真正做事，只定義要求結果時，Spark 要如何分散執行。"
+    },
+    {
+      "start": 229.84,
+      "end": 234.57999999999998,
+      "en": "Now we train our ALS model across a cluster with a whopping two lines of code!",
+      "zh": "現在，只用兩行，在叢集訓練 ALS。"
+    },
+    {
+      "start": 234.57999999999998,
+      "end": 244.37,
+      "en": "As you can see there are a few hyperparameters you can fiddle with if you want to try and improve the results, and you just need to pass in the column names that correspond to the users, items, and ratings.",
+      "zh": "有幾個超參數可調，改善結果，只要傳對應使用者、項目、評分的欄名。"
+    },
+    {
+      "start": 244.37,
+      "end": 247.7,
+      "en": "Then it's just a matter of calling fit on it with our training dataframe.",
+      "zh": "再用訓練 DataFrame，呼叫 fit。"
+    },
+    {
+      "start": 249.02,
+      "end": 258.36,
+      "en": "To generate predictions from this trained model, we use the transform function with our test set, and the RegressionEvaluator class lets us easily compute RMSE from the test set",
+      "zh": "產生預測，對測試集用 transform，再用 RegressionEvaluator，比較預測與實際評分，"
+    },
+    {
+      "start": 258.36,
+      "end": 261.8,
+      "en": "by comparing the predicted ratings to the actual ones.",
+      "zh": "輕鬆計算 RMSE。"
+    },
+    {
+      "start": 261.8,
+      "end": 265.43,
+      "en": "We retrieve the RMSE score from it and print it out.",
+      "zh": "取得 RMSE，印出。"
+    },
+    {
+      "start": 265.43,
+      "end": 273.81,
+      "en": "As we're finally asking for some output that the driver script needs to retrieve, this is the point where Spark will actually kick off the actual processing now that it can optimize",
+      "zh": "因為終於要求驅動指令碼取得輸出，這時 Spark 才真正開始處理，已能最佳化"
+    },
+    {
+      "start": 273.81,
+      "end": 276.21,
+      "en": "the operations it needs to generate that output.",
+      "zh": "產生輸出所需運算。"
+    },
+    {
+      "start": 277.18,
+      "end": 283.08,
+      "en": "As a sanity check, we'll also attain top-N recommendations since RMSE doesn't tell the whole story.",
+      "zh": "也取得 Top-N，檢查合理性，因 RMSE 不代表全部。"
+    },
+    {
+      "start": 283.08,
+      "end": 290.703,
+      "en": "The recommendForAllUsers will generate top-N recommendations for any value of N we want, for everyone, again, in a distributed manner.",
+      "zh": "recommendForAllUsers，能為所有人，分散產生任意 N 的 Top-N。"
+    },
+    {
+      "start": 291.99,
+      "end": 296.97,
+      "en": "We'll extract the results for our good friend, user number 85, using the filter function.",
+      "zh": "用 filter，取出朋友使用者 85 的結果。"
+    },
+    {
+      "start": 296.97,
+      "end": 305.39,
+      "en": "And then we use collect to retrieve those final results that we're interested in from the cluster and back to our driver script, where we can then print them out.",
+      "zh": "再用 collect，從叢集把關注的結果帶回驅動指令碼，印出。"
+    },
+    {
+      "start": 305.39,
+      "end": 307.49,
+      "en": "Let's run it and see what happens!",
+      "zh": "執行看看。"
+    },
+    {
+      "start": 307.49,
+      "end": 314.553,
+      "en": "If you installed Spark as instructed, it should work but there's a lot that can go wrong, so don't sweat it too much if you just have to watch my own results.",
+      "zh": "照指示安裝，應該有效，但可能出錯很多；如果只能看我的結果，也別太在意。"
+    },
+    {
+      "start": 321.11,
+      "end": 330.36,
+      "en": "Okay, so the RMSE score is 1.12, which isn't that great, some hyperparameter tuning may be in order, or the dataset may just be too small.",
+      "zh": "RMSE 1.12，不算很好，也許要調超參數，或資料太小。"
+    },
+    {
+      "start": 330.36,
+      "end": 334.62,
+      "en": "I've tinkered with Spark's ALS a lot in the past and I suspect it's the latter.",
+      "zh": "我以前調過很多 Spark ALS，懷疑是後者。"
+    },
+    {
+      "start": 334.62,
+      "end": 341.56,
+      "en": "The top N recommendations we got back look pretty weird as well, so maybe this isn't the best algorithm to use for this data.",
+      "zh": "Top-N 也很奇怪，也許不適合這份資料。"
+    },
+    {
+      "start": 341.56,
+      "end": 351.74,
+      "en": "But the important point is that it could be distributed even though we're running this on a single PC, you could run this same exact script on a cluster and Spark would distribute it all for you automatically.",
+      "zh": "重點是，能分散；雖在單機跑，相同指令碼也能在叢集，Spark 自動分散。"
+    },
+    {
+      "start": 351.74,
+      "end": 357.9,
+      "en": "Even on a single PC, it can use the different cores of your CPU to do parallel processing if it's beneficial.",
+      "zh": "即使單機，也能在有利時，用 CPU 不同核心平行處理。"
+    },
+    {
+      "start": 357.9,
+      "end": 362.043,
+      "en": "So even if the results aren't too exciting, the capability we've uncovered here is!",
+      "zh": "結果雖不太興奮，但發現的能力很令人興奮。"
+    }
+  ]
+}

@@ -1,0 +1,397 @@
+{
+  "courseId": "1726410",
+  "lectureId": "11505096",
+  "title": "SageMaker in Action: Factorization Machines on one million ratings, in the cloud",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e9fe8b069347f80efb3eb78b1dedd4f6f8ae3abf6229bcbddc6cb96beb7b4b73",
+  "cues": [
+    {
+      "start": 0.92,
+      "end": 11.36,
+      "en": "For this activity, just watch, doing this yourself would involve spending real money, and it's a little too easy to forget to shut things down when you're done and end up with a huge AWS bill you didn't expect.",
+      "zh": "這個活動只要觀看就好。自己操作會真的花錢，而且很容易做完後忘記關閉資源，最後收到意料之外的龐大 AWS 帳單。"
+    },
+    {
+      "start": 11.36,
+      "end": 18.037,
+      "en": "I've already created a SageMaker notebook, and I've started that in the SageMaker console in AWS so we can take a look at it.",
+      "zh": "我已經建立一個 SageMaker notebook，並在 AWS 的 SageMaker 主控台啟動，現在可以看看。"
+    },
+    {
+      "start": 18.037,
+      "end": 21.59,
+      "en": "It will take a minute or so for the notebook environment to spin up before we can launch it.",
+      "zh": "notebook 環境啟動大約需要一分鐘，之後才能開啟它。"
+    },
+    {
+      "start": 24.33,
+      "end": 29.76,
+      "en": "Once the notebook environment is up, we can create new notebooks or open up ones we created earlier.",
+      "zh": "notebook 環境就緒後，可以建立新的 notebook，或開啟先前建立的。"
+    },
+    {
+      "start": 31.27,
+      "end": 34.77,
+      "en": "Let's open up my MovieLens-1m notebook here.",
+      "zh": "這裡開啟我的 MovieLens-1m notebook。"
+    },
+    {
+      "start": 40.67,
+      "end": 48.21,
+      "en": "This is loosely based on a similar example in the AWS blog, but I've simplified it a bit and modified it to work with the one-million-rating data set.",
+      "zh": "它大致以 AWS Blog 的類似範例為基礎，但我做了一些簡化，並修改成適用於一百萬筆評分資料集。"
+    },
+    {
+      "start": 48.21,
+      "end": 50.94,
+      "en": "Let's restart the kernel so we have a clean slate to run with.",
+      "zh": "重新啟動核心，讓我們從乾淨的狀態開始執行。"
+    },
+    {
+      "start": 56.43,
+      "end": 66.71,
+      "en": "Alright, the first thing we need to do is download the MovieLens data set and decompress it, so we'll use a little trick in notebooks where you can use the exclamation mark to execute shell commands.",
+      "zh": "首先要下載 MovieLens 資料集並解壓縮，這裡用 notebook 的一個小技巧：加上驚嘆號，就能執行 shell 命令。"
+    },
+    {
+      "start": 66.71,
+      "end": 72.21000000000001,
+      "en": "We'll use wget to download the data, and unzip to decompress it into an ml-1m folder.",
+      "zh": "用 wget 下載資料，再用 unzip 解壓縮到 ml-1m 資料夾。"
+    },
+    {
+      "start": 75.85,
+      "end": 81.45,
+      "en": "Let's change into that folder, and take a peek at the ratings.dat file to remind ourselves what format it is in.",
+      "zh": "切換到那個資料夾，看看 ratings.dat 檔案，回顧一下它的格式。"
+    },
+    {
+      "start": 84.4,
+      "end": 88.99,
+      "en": "Looks like it's delimited by double-colons, and there is no header row of column names.",
+      "zh": "看起來用雙冒號分隔，而且沒有包含欄名的標頭列。"
+    },
+    {
+      "start": 88.99,
+      "end": 91.24,
+      "en": "So that will tell us how to import this data.",
+      "zh": "這就告訴我們該如何匯入資料。"
+    },
+    {
+      "start": 92.2,
+      "end": 96.61,
+      "en": "I'm going to use the Pandas library to make life a little bit easier in manipulating this data.",
+      "zh": "我要使用 Pandas 程式庫，讓操作資料更方便一點。"
+    },
+    {
+      "start": 96.61,
+      "end": 105.31,
+      "en": "We use the read_csv command to load it up into a Pandas DataFrame object, with given column names and using that double-colon separator.",
+      "zh": "使用 read_csv 命令，把資料載入 Pandas DataFrame 物件，指定欄名，並採用雙冒號分隔符號。"
+    },
+    {
+      "start": 105.31,
+      "end": 108.69,
+      "en": "We then peek at the beginning of the resulting DataFrame to make sure it looks okay.",
+      "zh": "接著看一下產生的 DataFrame 開頭，確認看起來正常。"
+    },
+    {
+      "start": 122.84,
+      "end": 123.673,
+      "en": "And, it does.",
+      "zh": "確實正常。"
+    },
+    {
+      "start": 127.61,
+      "end": 132.75,
+      "en": "Next, we need to create a train/test split on the data so we can train and evaluate our model.",
+      "zh": "接著要把資料分成訓練集與測試集，才能訓練與評估模型。"
+    },
+    {
+      "start": 132.75,
+      "end": 135.63,
+      "en": "Scikit_learn's train_test_split function makes that easy.",
+      "zh": "Scikit-learn 的 train_test_split 函式讓這件事很容易。"
+    },
+    {
+      "start": 135.63,
+      "end": 140.87,
+      "en": "We'll reserve 20% for the test set, and save the resulting DataFrames with the names train and test.",
+      "zh": "保留 20% 作為測試集，產生的 DataFrame 分別命名為 train 與 test。"
+    },
+    {
+      "start": 155.07999999999998,
+      "end": 159.11,
+      "en": "Let's peek at the train DataFrame just to make sure it still looks okay, it does.",
+      "zh": "看一下 train DataFrame，確認仍然正常。沒錯。"
+    },
+    {
+      "start": 160.14,
+      "end": 167.95,
+      "en": "Now, in order to set up the sparse one-hot matrix we discussed earlier, we need to know how many features exist in each row.",
+      "zh": "現在，為了建立先前談過的稀疏獨熱矩陣，需要知道每一列有多少個特徵。"
+    },
+    {
+      "start": 167.95,
+      "end": 172.42000000000002,
+      "en": "Remember we'll have one feature per user ID, and one per movie ID.",
+      "zh": "記得，每個使用者 ID 有一個特徵，每個電影 ID 也有一個特徵。"
+    },
+    {
+      "start": 172.42000000000002,
+      "end": 180.06,
+      "en": "So, we need to get the maximum user ID and item ID, and add those together to figure out how many features we need in our training data.",
+      "zh": "因此要取得最大的使用者 ID 與項目 ID，再將兩者相加，就知道訓練資料需要多少個特徵。"
+    },
+    {
+      "start": 180.06,
+      "end": 183.06,
+      "en": "Fortunately, Pandas makes those numbers easy to come by",
+      "zh": "幸好 Pandas 很容易取得這些數字，"
+    },
+    {
+      "start": 185.06,
+      "end": 191.83,
+      "en": "and we end up with a total of 6,040 users and 3,952 movies in this particular data set.",
+      "zh": "最後得到這個資料集共有 6,040 位使用者與 3,952 部電影。"
+    },
+    {
+      "start": 193.36,
+      "end": 197.36,
+      "en": "Now we need to build up the feature and label tensors for each rating.",
+      "zh": "現在要為每筆評分建立特徵與標籤張量。"
+    },
+    {
+      "start": 197.36,
+      "end": 202.59,
+      "en": "Since the feature data is mostly zeros, we're going to use a sparse matrix called lil_matrix here.",
+      "zh": "由於特徵資料大多是 0，這裡使用一種叫做 lil_matrix 的稀疏矩陣。"
+    },
+    {
+      "start": 203.68,
+      "end": 205.07,
+      "en": "Let's walk through this code.",
+      "zh": "一起看這段程式碼。"
+    },
+    {
+      "start": 205.07,
+      "end": 212.82999999999998,
+      "en": "It's a function that takes in either our training or test DataFrame, and converts it into a feature matrix called X, and a label matrix called Y.",
+      "zh": "這個函式接收訓練或測試 DataFrame，轉換成名為 X 的特徵矩陣，以及名為 Y 的標籤矩陣。"
+    },
+    {
+      "start": 213.74,
+      "end": 216.35,
+      "en": "We iterate through every row of the DataFrame.",
+      "zh": "我們逐一走訪 DataFrame 的每一列。"
+    },
+    {
+      "start": 216.35,
+      "end": 225.36,
+      "en": "First we set a one in the column of the feature matrix that corresponds to this rating's user ID, and we also set a one in the column that corresponds to this rating's movie ID.",
+      "zh": "首先，在特徵矩陣中對應這筆評分使用者 ID 的欄位設為 1，也把對應電影 ID 的欄位設為 1。"
+    },
+    {
+      "start": 225.36,
+      "end": 233.54,
+      "en": "If the rating is four or better, we set the corresponding label to one indicating that the user liked this movie, otherwise we leave it as zero.",
+      "zh": "如果評分為四或以上，就把對應標籤設為 1，表示使用者喜歡這部電影，否則維持 0。"
+    },
+    {
+      "start": 234.61,
+      "end": 239.68,
+      "en": "Finally we convert the labels to float32 format, since that's what SageMaker requires.",
+      "zh": "最後把標籤轉成 float32 格式，因為這是 SageMaker 的要求。"
+    },
+    {
+      "start": 243.68,
+      "end": 247.99,
+      "en": "Let's go ahead and call this function for both our train and test DataFrames.",
+      "zh": "對 train 與 test 兩個 DataFrame 呼叫這個函式吧。"
+    },
+    {
+      "start": 247.99,
+      "end": 254.51,
+      "en": "This may take a few minutes and it's worth noting that this particular part of our notebook doesn't really scale very well.",
+      "zh": "這可能要花幾分鐘。另外要注意，notebook 的這一部分，擴展能力其實不太好。"
+    },
+    {
+      "start": 254.51,
+      "end": 259.78,
+      "en": "It requires us to keep all of our training data in memory on the one host that's running this notebook.",
+      "zh": "它要求所有訓練資料都放在執行 notebook 的那一台主機的記憶體中。"
+    },
+    {
+      "start": 259.78,
+      "end": 268.75,
+      "en": "SageMaker makes it easy to distribute the training and predictions of your machine learning models, but distributing the pre-processing of your data is still kind of up to you.",
+      "zh": "SageMaker 讓機器學習模型的訓練與預測很容易分散進行，但資料前處理的分散工作，仍然得自己想辦法。"
+    },
+    {
+      "start": 268.75,
+      "end": 278.94,
+      "en": "Maybe it would make more sense to use Spark or something to do pre-processing at a large scale as long as your data ends up in S3 in the format SageMaker expects, it doesn't really matter how it gets there.",
+      "zh": "或許使用 Spark 之類的工具來大規模前處理更合理。只要資料最終以 SageMaker 要求的格式存放到 S3，如何放過去其實無所謂。"
+    },
+    {
+      "start": 280.98,
+      "end": 285.94,
+      "en": "So, now we need to convert this data into protobuf format, and write it into S3.",
+      "zh": "現在要把資料轉成 protobuf 格式，再寫入 S3。"
+    },
+    {
+      "start": 285.94,
+      "end": 288.78,
+      "en": "That's what this writeDatasetToProtobuf function does.",
+      "zh": "這就是 writeDatasetToProtobuf 函式的工作。"
+    },
+    {
+      "start": 288.78,
+      "end": 290.71,
+      "en": "You can see it's pretty simple.",
+      "zh": "可以看到，它很簡單。"
+    },
+    {
+      "start": 290.71,
+      "end": 294.89,
+      "en": "I created an S3 bucket of my own called sundog-sagemaker for this.",
+      "zh": "我為此建立了一個自己的 S3 儲存貯體，叫做 sundog-sagemaker。"
+    },
+    {
+      "start": 294.89,
+      "end": 300.11,
+      "en": "Obviously, you would substitute in your own S3 bucket that you have access to if you were doing this yourself.",
+      "zh": "如果自己操作，當然要換成你自己有存取權的 S3 儲存貯體。"
+    },
+    {
+      "start": 300.11,
+      "end": 306.87,
+      "en": "We'll call this for the feature and label data for both the training and test dataset, and once this runs, SageMaker will have all it needs to work with.",
+      "zh": "對訓練與測試資料集的特徵與標籤資料呼叫這個函式，執行完後，SageMaker 就有了所有需要的資料。"
+    },
+    {
+      "start": 308.45,
+      "end": 311.83,
+      "en": "So now we will create a factorization machine model in SageMaker.",
+      "zh": "現在要在 SageMaker 建立分解機模型。"
+    },
+    {
+      "start": 313.2,
+      "end": 322.49,
+      "en": "First, we need to tell it where to find the container for the factorization machine model in our AWS region, and we'll set up a key in Amazon S3 under which to store the resulting model.",
+      "zh": "首先要告訴它，在我們的 AWS 區域，到哪裡找分解機模型的容器，並在 Amazon S3 設定一個索引鍵，用來儲存產生的模型。"
+    },
+    {
+      "start": 324.19,
+      "end": 333.85,
+      "en": "We create our factorization machine model by creating an Estimator with the factorization machine container, and because we're cheap, we'll train it on a single c4.xlarge machine.",
+      "zh": "建立使用分解機容器的 Estimator，藉此建立分解機模型。為了省錢，只使用一台 c4.xlarge 機器進行訓練。"
+    },
+    {
+      "start": 335.14,
+      "end": 337.4,
+      "en": "We also need to set the hyperparameters.",
+      "zh": "也要設定超參數。"
+    },
+    {
+      "start": 337.4,
+      "end": 345.22,
+      "en": "We'll jut pick some arbitrarily here, but again SageMaker does have the capability to tune these for you with hyperparameter tuning jobs.",
+      "zh": "這裡先任意選一些值。不過再提醒一次，SageMaker 有超參數調校工作，可以替你調整它們。"
+    },
+    {
+      "start": 345.22,
+      "end": 348.89,
+      "en": "They take a lot of time and resources though, so we're going to skip that step here.",
+      "zh": "但這些工作會花很多時間與資源，所以這裡跳過。"
+    },
+    {
+      "start": 349.90999999999997,
+      "end": 355.3,
+      "en": "Finally, we call fit on our model, passing in the S3 keys for our training data and test data.",
+      "zh": "最後對模型呼叫 fit，傳入訓練與測試資料的 S3 索引鍵。"
+    },
+    {
+      "start": 355.3,
+      "end": 362.48,
+      "en": "At this point, SageMaker will spin up the hardware we requested and start training our model and again, this will take a few minutes.",
+      "zh": "這時 SageMaker 會啟動要求的硬體，開始訓練模型。同樣需要幾分鐘。"
+    },
+    {
+      "start": 366.22,
+      "end": 372.91,
+      "en": "Once our model has been trained and stored, we can deploy it so we can start querying our model to make predictions.",
+      "zh": "模型訓練並儲存完成後，就能部署它，開始查詢模型以進行預測。"
+    },
+    {
+      "start": 375.43,
+      "end": 380.71,
+      "en": "Let's spin up a single instance to host this model, since we're not going to be calling it at massive transaction rates or anything.",
+      "zh": "只啟動一個執行個體來託管模型，因為我們不會以非常龐大的交易頻率呼叫它。"
+    },
+    {
+      "start": 381.82,
+      "end": 385.4,
+      "en": "This will take a few minutes for the requested hardware to be allocated and set up.",
+      "zh": "配置並設定要求的硬體需要幾分鐘。"
+    },
+    {
+      "start": 387.98,
+      "end": 392.76,
+      "en": "Now that our model is deployed, we can use it to make predictions on whether a given user will like a give movie.",
+      "zh": "模型部署好之後，就能用它預測某位使用者是否會喜歡某部電影。"
+    },
+    {
+      "start": 395.45,
+      "end": 404.38,
+      "en": "The factorization machine model produces output in JSON format, so we need a little bit of code to unpack that JSON data and print out the results inside of it here.",
+      "zh": "分解機模型會輸出 JSON 格式，因此這裡需要一點程式碼，解開 JSON 資料，列印其中的結果。"
+    },
+    {
+      "start": 404.38,
+      "end": 411.43,
+      "en": "We need to explicitly tell the predictor we deployed that it is in JSON format, and how to serialize and deserialize that JSON data.",
+      "zh": "要明確告訴已部署的預測器，它使用 JSON 格式，以及如何序列化與反序列化這些 JSON 資料。"
+    },
+    {
+      "start": 412.27,
+      "end": 422.01,
+      "en": "But with that out of the way, we can just call the predict function on our factorization machine predictor for some set of data from our test feature set, and then compare it to the labels in our test data.",
+      "zh": "處理完之後，只要對分解機預測器呼叫 predict 函式，傳入測試特徵集中的一部分資料，再與測試資料中的標籤比較。"
+    },
+    {
+      "start": 426.4,
+      "end": 430.89,
+      "en": "If you walk through each prediction and actual value, the results are pretty hit and miss.",
+      "zh": "逐一查看預測與實際值，會發現結果時好時壞。"
+    },
+    {
+      "start": 431.83,
+      "end": 438.74,
+      "en": "I would hope for something better given a million ratings to work with, so this doesn't make me super excited about factorization machines.",
+      "zh": "有一百萬筆評分可用，我原本希望結果更好，所以這沒有讓我對分解機特別興奮。"
+    },
+    {
+      "start": 438.74,
+      "end": 447.2,
+      "en": "Still, they've been shown to work as good or better than SVD in many situations and you've seen how you can use Amazon SageMaker to train a factorization-machine-based",
+      "zh": "不過，許多情況已證明，它的表現與 SVD 一樣好，甚至更好。你也已經看到如何使用 Amazon SageMaker，訓練以分解機為基礎的，"
+    },
+    {
+      "start": 447.2,
+      "end": 451.34,
+      "en": "recommender system and predict user ratings at large scale.",
+      "zh": "推薦系統，並大規模預測使用者評分。"
+    },
+    {
+      "start": 451.34,
+      "end": 458.19,
+      "en": "SageMaker is just another tool in your toolchest for doing machine learning at scale, and I'm sure its capabilities will only expand over time.",
+      "zh": "SageMaker 是用來大規模進行機器學習的另一項工具，我相信它的功能會隨時間持續擴充。"
+    }
+  ]
+}

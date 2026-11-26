@@ -11,7 +11,8 @@ Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 | [Building a RAG application in Python](https://www.udemy.com/course/building-a-rag-application-in-python/) | 75 | 6,970 |
 | [Machine Learning A-Z [2026]: ML, DL, AI with AWS, Python & R](https://www.udemy.com/course/machinelearning/) | 429 | 34,781 |
 | [Python for Data Science and Machine Learning Bootcamp](https://www.udemy.com/course/python-for-data-science-and-machine-learning-bootcamp/) | 152 | 16,037 |
-| 合計 | **873** | **80,318** |
+| [Building Recommender Systems with Machine Learning and AI](https://www.udemy.com/course/building-recommender-systems-with-machine-learning-and-ai/) | 126 | 8,173 |
+| 合計 | **999** | **88,491** |
 
 譯文由 Codex 直接依英文字幕製作，不使用 Google、iAI 或其他翻譯 API。程式識別字與影片敘述的版本、日期保留原文語意。
 

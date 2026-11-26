@@ -1,0 +1,541 @@
+{
+  "courseId": "1726410",
+  "lectureId": "11481714",
+  "title": "[Activity] Handwriting Recognition with Convolutional Neural Networks (CNNs)",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "23b24caa90b535a561eb0818b4872c8a596fce5a18bcb6288528942de29cda11",
+  "cues": [
+    {
+      "start": 0.45,
+      "end": 2.08,
+      "en": "So with that, let's give it a shot!",
+      "zh": "那就實際試試。"
+    },
+    {
+      "start": 2.08,
+      "end": 7.69,
+      "en": "Let's actually use a CNN and see if we can do a better job at image classification than we've done before using one.",
+      "zh": "真正使用 CNN，看看影像分類能否比之前更好。"
+    },
+    {
+      "start": 9.08,
+      "end": 12.21,
+      "en": "Let's actually run a Convolutional Neural Network using Keras.",
+      "zh": "用 Keras 執行卷積神經網路。"
+    },
+    {
+      "start": 12.21,
+      "end": 18.7,
+      "en": "As before, make sure you have your RecSys environment selected in Anaconda Navigator, then launch the Jupyter Notebook if you haven't already.",
+      "zh": "和之前一樣，確認 Anaconda Navigator 選取 RecSys 環境，再啟動 Jupyter Notebook，如果還沒開。"
+    },
+    {
+      "start": 18.7,
+      "end": 28.463,
+      "en": "Upload the Keras-CNN notebook file in your course materials' DeepLearningIntro folder, and then click on it once it has been uploaded to open it up.",
+      "zh": "上傳課程教材 DeepLearningIntro 資料夾中的 Keras-CNN Notebook，上傳後點選開啟。"
+    },
+    {
+      "start": 36.15,
+      "end": 46.17,
+      "en": "We're going to revisit the MNIST handwriting recognition problem here where we try to classify a bunch of images of people drawing the numbers zero through nine, and see if we can do a better job of it using CNNs.",
+      "zh": "再回到 MNIST 手寫辨識問題，分類人們寫零到九的影像，看看 CNN 能否做得更好。"
+    },
+    {
+      "start": 46.17,
+      "end": 56.35,
+      "en": "Again, CNNs are better suited to image data in general, especially if you don't know exactly where the feature you're looking for is within your image, so we should expect to get better results here.",
+      "zh": "同樣，CNN 一般更適合影像資料，尤其不知道特徵在影像的確切位置時，因此預期結果應該更好。"
+    },
+    {
+      "start": 56.35,
+      "end": 64.22,
+      "en": "Let's start by importing all the stuff we need from Keras: we'll import the MNIST data set that we're playing with, the Sequential model so we can assemble our neural network,",
+      "zh": "先從 Keras 匯入所需內容：要實驗的 MNIST 資料集、組合神經網路的 Sequential 模型，"
+    },
+    {
+      "start": 64.22,
+      "end": 74.95,
+      "en": "and then we'll import all these different layer types that we talked about in the slides: the Dense, Dropout, Conv2D, MaxPooling2D, and Flatten layer types, and in this example",
+      "zh": "再匯入投影片談過的各種層：Dense、Dropout、Conv2D、MaxPooling2D、Flatten，這個範例，"
+    },
+    {
+      "start": 74.95,
+      "end": 77.2,
+      "en": "we'll use the RMSprop optimizer.",
+      "zh": "使用 RMSprop 最佳化器。"
+    },
+    {
+      "start": 77.2,
+      "end": 78.57,
+      "en": "Go ahead and kick that off.",
+      "zh": "先執行。"
+    },
+    {
+      "start": 78.57,
+      "end": 82.92,
+      "en": "The rest of the code for loading up the training and test data is going to look just like it did before.",
+      "zh": "其餘載入訓練與測試資料的程式碼，與之前相同。"
+    },
+    {
+      "start": 85.23,
+      "end": 88.02,
+      "en": "We're going to shape the data a little bit differently.",
+      "zh": "但會以稍微不同方式，調整資料形狀。"
+    },
+    {
+      "start": 88.02,
+      "end": 98,
+      "en": "So since Convolutional Neural Networks can process 2D data in all their 2D glory, we're not going to reshape that data into flat 1D arrays of 768 pixels.",
+      "zh": "因為卷積神經網路能完整處理二維資料，所以不再把資料重塑成平坦的一維 784 像素陣列。"
+    },
+    {
+      "start": 98,
+      "end": 102.71000000000001,
+      "en": "Instead we're going to shape it into the width times the length times the number of color channels.",
+      "zh": "而是調成寬乘長乘色彩通道數。"
+    },
+    {
+      "start": 102.71000000000001,
+      "end": 110.75999999999999,
+      "en": "So in this case, our data is grayscale in nature, so there is only a single color channel that just defines how light or dark the image is at a specific pixel.",
+      "zh": "這裡的資料是灰階，所以只有一個通道，定義特定像素的明暗。"
+    },
+    {
+      "start": 110.75999999999999,
+      "end": 115.77000000000001,
+      "en": "There are a couple of different ways that data can be stored, and we need to handle both cases.",
+      "zh": "資料可能以幾種方式儲存，兩種情況都需要處理。"
+    },
+    {
+      "start": 115.77000000000001,
+      "end": 122.82,
+      "en": "It might be organized as color channels by width times length, or it might be width times length times color channels.",
+      "zh": "可能是色彩通道乘寬乘長，也可能是寬乘長乘色彩通道。"
+    },
+    {
+      "start": 122.82,
+      "end": 127.58,
+      "en": "That's what this section of code does that checks the \"channels_first\" flag on the data.",
+      "zh": "這段程式碼，會檢查資料的 channels_first 旗標。"
+    },
+    {
+      "start": 127.58,
+      "end": 132.73,
+      "en": "We check if it's the \"channels first\" format or not, and reshape the data accordingly.",
+      "zh": "檢查是否為 channels_first 格式，再依此重塑。"
+    },
+    {
+      "start": 132.73,
+      "end": 135.99,
+      "en": "We store the resulting shape in this thing called input_shape.",
+      "zh": "把結果形狀，存進 input_shape。"
+    },
+    {
+      "start": 135.99,
+      "end": 138.773,
+      "en": "That's the shape of our input testing data and training data.",
+      "zh": "就是輸入測試與訓練資料的形狀。"
+    },
+    {
+      "start": 139.61,
+      "end": 141.82999999999998,
+      "en": "As before, we are going to scale this data down.",
+      "zh": "和之前一樣，要縮放資料。"
+    },
+    {
+      "start": 141.82999999999998,
+      "end": 145.42000000000002,
+      "en": "It comes in as 8-bit data that ranges from 0-255.",
+      "zh": "來源是八位元，範圍零到 255。"
+    },
+    {
+      "start": 145.42000000000002,
+      "end": 155.34,
+      "en": "We need to convert that into normalized floating point data instead, so we'll convert that data to floating point 32 bit values and then divide each pixel by 255 to transform that",
+      "zh": "要轉成正規化浮點資料，因此先轉 32 位元浮點數，再把每個像素除以 255，轉成"
+    },
+    {
+      "start": 155.34,
+      "end": 157.72,
+      "en": "into some number between 0 and 1.",
+      "zh": "零到一之間的數值。"
+    },
+    {
+      "start": 157.72,
+      "end": 160.323,
+      "en": "Go ahead and hit shift enter to kick that off.",
+      "zh": "按 Shift+Enter 執行。"
+    },
+    {
+      "start": 163.18,
+      "end": 170.37,
+      "en": "As before, we will convert the label data into one-hot categorical format because that will match up nicely with the output of our neural network.",
+      "zh": "和之前一樣，將標籤轉成獨熱類別格式，與神經網路輸出匹配。"
+    },
+    {
+      "start": 175.32,
+      "end": 178.88,
+      "en": "We'll again do a sanity check to make sure that we successfully imported our data.",
+      "zh": "再次做合理性檢查，確認成功匯入資料。"
+    },
+    {
+      "start": 178.88,
+      "end": 182.37,
+      "en": "So we'll pick a random training sample to print out here and display it.",
+      "zh": "隨機挑一個訓練樣本，印出並顯示。"
+    },
+    {
+      "start": 182.37,
+      "end": 187.96,
+      "en": "Run this block, and you'll see the one-hot format of the three label.",
+      "zh": "執行區塊，就看到標籤三的獨熱格式。"
+    },
+    {
+      "start": 187.96,
+      "end": 190.76,
+      "en": "Zero, one, two, three, that's correct.",
+      "zh": "零、一、二、三，正確。"
+    },
+    {
+      "start": 190.76,
+      "end": 194.85,
+      "en": "Our code came up with a human-readable label of 3, and sure enough, that looks like the number three.",
+      "zh": "程式得到人類易讀標籤三，果然，看起來像數字三。"
+    },
+    {
+      "start": 194.85,
+      "end": 197.75,
+      "en": "So, it looks like our data's in good shape for processing.",
+      "zh": "因此，資料看來已準備好處理。"
+    },
+    {
+      "start": 199.79,
+      "end": 202.59,
+      "en": "Now we'll actually set up a CNN and see how that works.",
+      "zh": "現在真正設定 CNN，看看如何運作。"
+    },
+    {
+      "start": 202.59,
+      "end": 205.15,
+      "en": "Let's walk through what's going on in this next code block here.",
+      "zh": "走一遍下一個程式碼區塊。"
+    },
+    {
+      "start": 206.46,
+      "end": 213.32,
+      "en": "As before, we start off with a Sequential model that just allows us to very easily build up layers that build up our neural network.",
+      "zh": "和之前一樣，以 Sequential 模型開始，讓我們很容易逐層建立神經網路。"
+    },
+    {
+      "start": 213.32,
+      "end": 215.71,
+      "en": "We will start with a Conv2D layer.",
+      "zh": "先使用 Conv2D 層。"
+    },
+    {
+      "start": 215.71,
+      "end": 225.64,
+      "en": "So what this syntax means is that our convolutional 2D layer is going to have 32 windows, or 32 regional fields if you will, that it will use to sample that image with.",
+      "zh": "這個語法表示，二維卷積層有 32 個視窗，或說區域感受野，用來對影像取樣。"
+    },
+    {
+      "start": 225.64,
+      "end": 229.8,
+      "en": "And each one of those samples will be of a three by three kernel size.",
+      "zh": "每個樣本的核心大小，都是 3×3。"
+    },
+    {
+      "start": 229.8,
+      "end": 238.16,
+      "en": "It also needs to know the shape of your input data, which we stored previously, that's 1x28x28, or 28x28x1, depending on the input format.",
+      "zh": "也需要知道前面儲存的輸入資料形狀，依格式，是 1×28×28 或 28×28×1。"
+    },
+    {
+      "start": 239.42000000000002,
+      "end": 244.53,
+      "en": "We then add a second convolutional filter on top of that to identify higher level features.",
+      "zh": "上面再加第二個卷積濾波器，識別更高階特徵。"
+    },
+    {
+      "start": 244.53,
+      "end": 252.09,
+      "en": "This one will have 64 kernels also of three by three size, and we are going to use a Relu activation function on that.",
+      "zh": "這次有 64 個核心，同樣是 3×3，使用 ReLU 激活函數。"
+    },
+    {
+      "start": 252.09,
+      "end": 254.563,
+      "en": "So we built up two convolution layers here.",
+      "zh": "因此，建立了兩個卷積層。"
+    },
+    {
+      "start": 255.52,
+      "end": 259.8,
+      "en": "Again, you want to just reuse any previous research you can for a given problem.",
+      "zh": "同樣，盡可能重用特定問題的既有研究。"
+    },
+    {
+      "start": 259.8,
+      "end": 269.56,
+      "en": "There are so many ways to configure CNNs that if you start from scratch you're going to have a very hard time to tune it, especially when we consider how long it takes to iterate between each run.",
+      "zh": "CNN 設定方式太多，從零開始會很難調整，尤其每次執行之間的迭代，都很耗時。"
+    },
+    {
+      "start": 269.56,
+      "end": 277.113,
+      "en": "These are very resource intensive, so I have just taken this from the CNN example that comes with the Keras library, and drawn my initial topology from it.",
+      "zh": "資源需求非常高，因此我直接從 Keras 函式庫的 CNN 範例，取得初始拓樸。"
+    },
+    {
+      "start": 278.21,
+      "end": 284.83,
+      "en": "So now we've done our convolution layers, and we'll next do a MaxPooling2D step, to actually reduce that data a little bit.",
+      "zh": "卷積層做好後，下一步用 MaxPooling2D，稍微縮減資料。"
+    },
+    {
+      "start": 284.83,
+      "end": 294.6,
+      "en": "This takes a 2x2 pool size, so for each 2x2 pixel block at this stage we'll reduce that down to a single pixel that represents the maximum pixel found within that pool.",
+      "zh": "池化大小是 2×2，因此每個 2×2 像素區塊，會縮成單一像素，代表池化區域中的最大像素值。"
+    },
+    {
+      "start": 294.6,
+      "end": 299.81,
+      "en": "Note that the pool size can be different from the underlying kernel size from the convolution you did.",
+      "zh": "注意，池化大小，可以與之前卷積的核心大小不同。"
+    },
+    {
+      "start": 299.81,
+      "end": 303.76,
+      "en": "This is just a technique for shrinking your data down into something that's more manageable.",
+      "zh": "這只是把資料縮成更易管理形式的方法。"
+    },
+    {
+      "start": 305.16,
+      "end": 310.82,
+      "en": "At this point we'll do a Dropout pass to prevent overfitting, we will then flatten what we have so far.",
+      "zh": "此時做 Dropout，防止過度擬合，再把目前的結果攤平。"
+    },
+    {
+      "start": 310.82,
+      "end": 319.55,
+      "en": "That will take our 2D data and flatten it to a 1D layer, and from this point it's just going to look like any other multilayer perceptron, just like we used before.",
+      "zh": "將二維資料攤平成一維層，從這裡開始，就像之前用過的其他多層感知器。"
+    },
+    {
+      "start": 319.55,
+      "end": 326.98,
+      "en": "So all the magic of CNNs has happened at this point, and now we're just going to convert it down to a flat layer that we input into a hidden layer of neurons.",
+      "zh": "因此，到這裡，CNN 的神奇工作都已完成，接著轉成平坦層，輸入神經元隱藏層。"
+    },
+    {
+      "start": 326.98,
+      "end": 332.65,
+      "en": "In this case, we have 128 neurons in that layer, again with the Relu activation function.",
+      "zh": "這裡該層有 128 個神經元，同樣使用 ReLU。"
+    },
+    {
+      "start": 332.65,
+      "end": 341.71,
+      "en": "We'll do one more Dropout pass to prevent overfitting, and finally choose our final categorization of the numbers zero through nine by building one final output layer of ten neurons",
+      "zh": "再做一次 Dropout，防止過度擬合，最後建立十個神經元的輸出層，選擇零到九的最終分類，"
+    },
+    {
+      "start": 341.71,
+      "end": 344.223,
+      "en": "with the softmax activation function on it.",
+      "zh": "使用 softmax 激活函數。"
+    },
+    {
+      "start": 345.42,
+      "end": 348.43,
+      "en": "Alright, so let's go ahead and let that run.",
+      "zh": "好，讓它執行。"
+    },
+    {
+      "start": 348.43,
+      "end": 354.02,
+      "en": "Again nothing's really happening until we actually kick off the model, so that doesn't take any time at all.",
+      "zh": "同樣，真正啟動模型前，還沒有發生什麼事，所以這不花時間。"
+    },
+    {
+      "start": 354.02,
+      "end": 359.96,
+      "en": "We can do a model.summary() just to double check that everything is the way that we intended it to be.",
+      "zh": "可以用 model.summary()，再次確認設定符合原意。"
+    },
+    {
+      "start": 362.94,
+      "end": 372.85,
+      "en": "And you can see that we have our two convolution layers here, followed by a pooling layer, followed by a dropout, a flatten, and from there we have a dense, dropout, and dense multilayer perceptron to actually",
+      "zh": "這裡有兩個卷積層，接著池化層，再 Dropout、Flatten，之後是 Dense、Dropout、Dense 多層感知器，真正"
+    },
+    {
+      "start": 372.85,
+      "end": 374.633,
+      "en": "do our final classification.",
+      "zh": "做最終分類。"
+    },
+    {
+      "start": 375.74,
+      "end": 379.633,
+      "en": "Finally we need to compile that model with a specific optimizer and loss function.",
+      "zh": "最後，要用特定最佳化器與損失函數，編譯模型。"
+    },
+    {
+      "start": 381.15,
+      "end": 389.79,
+      "en": "In this case, we're going to use the Adam optimizer and categorical cross entropy because that's the appropriate loss function for a multiple category classification problem.",
+      "zh": "這裡用 Adam，以及 categorical_crossentropy，因為這是多類別分類合適的損失函數。"
+    },
+    {
+      "start": 389.79,
+      "end": 391.64,
+      "en": "And finally, we will actually run it.",
+      "zh": "最後，實際執行。"
+    },
+    {
+      "start": 395.49,
+      "end": 402.04,
+      "en": "Now, like I said, CNNs are very expensive to run, so let me talk about what this command does first of all.",
+      "zh": "如前所說，CNN 執行成本很高，所以先談這個命令。"
+    },
+    {
+      "start": 402.04,
+      "end": 410.33,
+      "en": "Nothing unusual here, just says that we're going to run batches of 32, which is smaller than before, because there is a much higher computational cost to this.",
+      "zh": "沒什麼特別，每批 32，比之前小，因為運算成本高很多。"
+    },
+    {
+      "start": 410.33,
+      "end": 414.34000000000003,
+      "en": "We're only going to run 10 epochs this time because, again, it takes a long time.",
+      "zh": "這次只執行十個訓練週期，因為同樣很耗時。"
+    },
+    {
+      "start": 414.34000000000003,
+      "end": 419.04,
+      "en": "More would be better, but you don't want to tie up your computer for a whole day just for this activity.",
+      "zh": "更多會更好，但不想只為這個活動，讓電腦忙一整天。"
+    },
+    {
+      "start": 419.04,
+      "end": 426.98,
+      "en": "The verbosity is set to 2, which is the best choice for running within a notebook, and we will pass in our validation test data for it to work with as well.",
+      "zh": "verbose 設為二，最適合 Notebook，也傳入驗證用測試資料。"
+    },
+    {
+      "start": 426.98,
+      "end": 432.11,
+      "en": "Now, I am not going to actually run this within the lecture, because it could actually take about an hour to run.",
+      "zh": "這堂講座不會真的執行，因為可能要大約一小時。"
+    },
+    {
+      "start": 432.11,
+      "end": 436.99,
+      "en": "If you don't have a beefy machine, it might not finish at all if you don't have enough RAM or enough CPU power.",
+      "zh": "如果機器不夠強，RAM 或 CPU 不夠，甚至可能無法完成。"
+    },
+    {
+      "start": 436.99,
+      "end": 439.83,
+      "en": "This might even be too much for one system.",
+      "zh": "也許已超過單一系統負荷。"
+    },
+    {
+      "start": 439.83,
+      "end": 443.03,
+      "en": "So I'll skip ahead here, as I actually ran this earlier myself.",
+      "zh": "因此跳過，我之前其實自己執行過。"
+    },
+    {
+      "start": 443.03,
+      "end": 452.84000000000003,
+      "en": "You can see that it very quickly converges to a very good accuracy value and it was still increasing, so there probably would have been improvements to be had going beyond 10 iterations of the training here.",
+      "zh": "可以看到，很快收斂到非常好的準確率，而且還在提升，因此訓練超過十次迭代，可能仍會改善。"
+    },
+    {
+      "start": 452.84000000000003,
+      "end": 458.92,
+      "en": "But even after just 10 epochs, or 10 iterations, we ended up with an accuracy of over 99%.",
+      "zh": "但即使只有十個訓練週期，也就是十次迭代，準確率已超過 99%。"
+    },
+    {
+      "start": 458.92,
+      "end": 464.453,
+      "en": "We can actually evaluate that based on our test data and recreate that 99% accuracy, so that's pretty awesome.",
+      "zh": "以測試資料評估，也能得到 99% 準確率，非常棒。"
+    },
+    {
+      "start": 466.31,
+      "end": 475.26,
+      "en": "So CNNs are definitely worth doing if the accuracy is key, and for applications where lives are at stake, such as a self-driving car, that's obviously worth the effort!",
+      "zh": "因此，準確程度重要時，CNN 絕對值得使用；像自駕車這種攸關生命的應用，顯然值得付出心力。"
+    },
+    {
+      "start": 475.26,
+      "end": 479.05,
+      "en": "You want complete accuracy of detecting if there is a stop sign in front of you.",
+      "zh": "你會希望，完全準確偵測前方是否有停車標誌。"
+    },
+    {
+      "start": 479.05,
+      "end": 483.143,
+      "en": "Even 0.1% error would be unacceptable in a situation like that.",
+      "zh": "這種情況，即使 0.1% 誤差，也無法接受。"
+    },
+    {
+      "start": 484.06,
+      "end": 485.89,
+      "en": "That's the power of CNNs.",
+      "zh": "這就是 CNN 的能力。"
+    },
+    {
+      "start": 485.89,
+      "end": 496.03,
+      "en": "They are more complicated and they take a lot more time to run, but as we said the power of Tensorflow, which Keras is running on top of, means you can distribute this work across an entire cloud of computers,",
+      "zh": "更複雜、更耗時，但如前所述，Keras 底下的 TensorFlow，讓你能把工作分散到整片雲端電腦，"
+    },
+    {
+      "start": 496.03,
+      "end": 499.64,
+      "en": "and an entire array of GPUs that are on each computer.",
+      "zh": "以及每台電腦上的整組 GPU。"
+    },
+    {
+      "start": 499.64,
+      "end": 504.39,
+      "en": "So there are ways to accelerate this; we're just not taking advantage of that in this little example here.",
+      "zh": "因此，有方法加速，只是這個小範例沒有利用。"
+    },
+    {
+      "start": 504.39,
+      "end": 506.14,
+      "en": "It's just illustrative.",
+      "zh": "只是用來說明。"
+    },
+    {
+      "start": 506.14,
+      "end": 508.93,
+      "en": "So there you have it, your first Convolutional Neural Network.",
+      "zh": "這就是你的第一個卷積神經網路。"
+    },
+    {
+      "start": 508.93,
+      "end": 514.11,
+      "en": "You can see how powerful it is for successfully doing image classification among other things.",
+      "zh": "可以看到，它成功做影像分類等工作，有多強大。"
+    },
+    {
+      "start": 514.11,
+      "end": 517.023,
+      "en": "Let's move on to another interesting type of neural network next.",
+      "zh": "接著，介紹另一種有趣的神經網路。"
+    }
+  ]
+}

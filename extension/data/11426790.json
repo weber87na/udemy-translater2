@@ -1,0 +1,469 @@
+{
+  "courseId": "1726410",
+  "lectureId": "11426790",
+  "title": "User-based Collaborative Filtering",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "0915e79e62b7f3b48e1a0ca4e9c215ed1fc0c8b97426a90d44e7f74ab0a8b922",
+  "cues": [
+    {
+      "start": 0.72,
+      "end": 6.51,
+      "en": "Let's talk about one specific implementation of neighborhood-based collaborative filtering, user-based collaborative filtering.",
+      "zh": "來談一種具體的鄰域式協同過濾實作：使用者式協同過濾。"
+    },
+    {
+      "start": 6.51,
+      "end": 10.123,
+      "en": "It's the easiest one to wrap your head around, so it seems like a good place to start.",
+      "zh": "它最容易理解，適合作為起點。"
+    },
+    {
+      "start": 12.87,
+      "end": 16.48,
+      "en": "The idea behind user-based collaborative filtering is pretty simple.",
+      "zh": "使用者式協同過濾的概念很簡單。"
+    },
+    {
+      "start": 16.48,
+      "end": 24.21,
+      "en": "Start by finding other users similar to yourself, based on their ratings history, and then recommend stuff they liked that you haven't seen yet.",
+      "zh": "先根據評分歷史，找出與你相似的其他使用者，再推薦他們喜歡、你卻還沒看過的東西。"
+    },
+    {
+      "start": 24.21,
+      "end": 28.65,
+      "en": "So, let's say that Ann and Bob here both loved the first Star Wars movie.",
+      "zh": "假設這裡的 Ann 與 Bob，都非常喜歡第一部《星際大戰》。"
+    },
+    {
+      "start": 28.65,
+      "end": 34.583,
+      "en": "And also watch the next Star Wars movie, The Empire Strikes Back, but Bob lives under a rock and hasn't seen that yet.",
+      "zh": "Ann 也看過下一部《帝國大反擊》，但 Bob 與世隔絕，還沒看過。"
+    },
+    {
+      "start": 37.6,
+      "end": 41.46,
+      "en": "So it seems kind of obvious to recommend The Empire Strikes Back to Bob.",
+      "zh": "因此，向 Bob 推薦《帝國大反擊》，似乎很明顯。"
+    },
+    {
+      "start": 41.46,
+      "end": 47.673,
+      "en": "If Ann loved the same movies Bob loves, and Ann loves The Empire Strikes Back, then there's a good chance that Bob will love it too.",
+      "zh": "如果 Ann 喜歡 Bob 喜歡的相同電影，而 Ann 又喜歡《帝國大反擊》，那 Bob 很可能也會喜歡。"
+    },
+    {
+      "start": 51.18,
+      "end": 52.39,
+      "en": "So how do we do this?",
+      "zh": "要怎麼做呢？"
+    },
+    {
+      "start": 52.39,
+      "end": 54.81,
+      "en": "Well, the first step is to collect the data we need.",
+      "zh": "第一步，是收集所需資料。"
+    },
+    {
+      "start": 54.81,
+      "end": 58.31,
+      "en": "That is, a table of all of the ratings for everyone in our system.",
+      "zh": "也就是系統中所有人、所有評分的表格。"
+    },
+    {
+      "start": 58.31,
+      "end": 65.11,
+      "en": "We can think of this as a 2D array, with movies on one axis, users on the other, and rating values in each cell.",
+      "zh": "可以把它想成二維陣列，一軸是電影，另一軸是使用者，每個儲存格放評分。"
+    },
+    {
+      "start": 65.11,
+      "end": 74.11,
+      "en": "So we can see here that Ann loved both of the first Star Wars films, Bob only saw the first one and loved it, and they each saw other stuff as well that they don't have in common.",
+      "zh": "這裡可以看到，Ann 喜歡前兩部《星際大戰》，Bob 只看過第一部且很喜歡；他們也各自看過其他彼此沒有共同評分的電影。"
+    },
+    {
+      "start": 74.11,
+      "end": 79.91,
+      "en": "Ann might enjoy Indiana Jones by the looks of it, since she has that connection to Bob through Star Wars.",
+      "zh": "看來 Ann 可能會喜歡《印第安納瓊斯》，因為她透過《星際大戰》與 Bob 有連結。"
+    },
+    {
+      "start": 79.91,
+      "end": 85.97,
+      "en": "So now, it's not too much of a stretch to imagine the state as, describing vectors for each user and item space.",
+      "zh": "因此，可以進一步把資料想成，在項目空間中描述每位使用者的向量。"
+    },
+    {
+      "start": 85.97,
+      "end": 96.71000000000001,
+      "en": "If these were the only five movies in existence, we could describe Bob with a five-dimensional vector of four, five, zero, zero, zero, and Ann with zero, five, five, five, zero,",
+      "zh": "如果世上只有這五部電影，就可以用五維向量 (4, 5, 0, 0, 0) 描述 Bob，用 (0, 5, 5, 5, 0) 描述 Ann，"
+    },
+    {
+      "start": 96.71000000000001,
+      "end": 99.53999999999999,
+      "en": "where zero indicates a missing value.",
+      "zh": "其中零表示缺失值。"
+    },
+    {
+      "start": 99.53999999999999,
+      "end": 105.09,
+      "en": "So that gives us what we need in order to compute the cosine similarity score between any two users.",
+      "zh": "這樣就有所需資訊，可以計算任意兩位使用者的餘弦相似度。"
+    },
+    {
+      "start": 105.09,
+      "end": 109.253,
+      "en": "Of course, we can experiment with different similarity metrics too, but let's start with cosine.",
+      "zh": "當然，也能實驗不同相似度指標，但先從餘弦開始。"
+    },
+    {
+      "start": 113.00999999999999,
+      "end": 120.07,
+      "en": "So now, we can build up another 2D matrix, one that maps the cosine similarity score between any two users in our system.",
+      "zh": "接著建立另一個二維矩陣，記錄系統中任意兩位使用者的餘弦相似度。"
+    },
+    {
+      "start": 120.07,
+      "end": 124.52,
+      "en": "If our only three users are Bob, Ted, and Ann, it might look like this.",
+      "zh": "如果只有 Bob、Ted 與 Ann 三位使用者，可能像這樣。"
+    },
+    {
+      "start": 124.52,
+      "end": 128,
+      "en": "Take a close look so you can understand what's going on here.",
+      "zh": "仔細看看，理解這裡發生什麼事。"
+    },
+    {
+      "start": 128,
+      "end": 134.97,
+      "en": "This will all just fall out of the algorithm for measuring cosine similarity, but you can see that it makes intuitive sense, looking at the results.",
+      "zh": "這些數字會由餘弦相似度演算法自然算出，但從結果也能看出，直覺上合理。"
+    },
+    {
+      "start": 134.97,
+      "end": 141.15,
+      "en": "Everyone is 100% similar to themselves, so if we look up Bob similarity to Bob for example, we get 1.0.",
+      "zh": "每個人與自己都是 100% 相似，例如查詢 Bob 與 Bob 的相似度，就得到 1.0。"
+    },
+    {
+      "start": 141.15,
+      "end": 144.46,
+      "en": "And that's true for anyone who has rated at least one thing.",
+      "zh": "只要至少評分過一個項目，每個人都如此。"
+    },
+    {
+      "start": 144.46,
+      "end": 150.04,
+      "en": "Bob and Ted have no movies in common at all that they both rated, so they end up with a similarity score of zero.",
+      "zh": "Bob 與 Ted 完全沒有共同評分的電影，因此相似度是零。"
+    },
+    {
+      "start": 150.04,
+      "end": 151.7,
+      "en": "Note there is some symmetry here.",
+      "zh": "注意，這裡有對稱性。"
+    },
+    {
+      "start": 151.7,
+      "end": 158.22,
+      "en": "The combination of Bob and Ted can be looked at separately from Ted and Bob, but it's the same score either way.",
+      "zh": "Bob 與 Ted 的組合，雖然可以和 Ted 與 Bob 分開看，但分數一樣。"
+    },
+    {
+      "start": 158.22,
+      "end": 162.65,
+      "en": "We can exploit that symmetry to avoid computing half of the values in this table.",
+      "zh": "可以利用這項對稱性，避免計算表格中一半的數值。"
+    },
+    {
+      "start": 162.65,
+      "end": 164.67000000000002,
+      "en": "Bob and Ann are the more interesting example.",
+      "zh": "Bob 與 Ann 是比較有趣的例子。"
+    },
+    {
+      "start": 164.67000000000002,
+      "end": 170.69,
+      "en": "While they have different sets of movies that they rated, when we measure similarity, we only look at the movies they have in common.",
+      "zh": "雖然他們評分的電影集合不同，但衡量相似度時，只看共同評分的電影。"
+    },
+    {
+      "start": 170.69,
+      "end": 180.99,
+      "en": "In this case, they only have one movie in common, Star Wars, and since they both gave it the same rating of five stars, they too get a similarity score of 1.0, or 100%.",
+      "zh": "這裡只有一部共同電影《星際大戰》，因為兩人都給五顆星，因此相似度也是 1.0，也就是 100%。"
+    },
+    {
+      "start": 180.99,
+      "end": 187.08,
+      "en": "I'd like to point out that saying two users are 100% similar doesn't necessarily mean they love the same things.",
+      "zh": "我要指出，兩位使用者 100% 相似，不一定表示喜歡相同東西。"
+    },
+    {
+      "start": 187.08,
+      "end": 189.59,
+      "en": "It can also mean that they hate the same things.",
+      "zh": "也可能表示討厭相同東西。"
+    },
+    {
+      "start": 189.59,
+      "end": 194.6,
+      "en": "If Bob and Ann both rated Star Wars one star, they would still be 100% similar.",
+      "zh": "如果 Bob 與 Ann 都給《星際大戰》一顆星，仍然是 100% 相似。"
+    },
+    {
+      "start": 194.6,
+      "end": 202.57999999999998,
+      "en": "In fact, the math behind cosine similarity works out such that if you only have one movie in common, you end up with 100% similarity no matter what.",
+      "zh": "事實上，餘弦相似度的數學特性是，只要只有一部共同電影，不管怎樣，最後都是 100% 相似。"
+    },
+    {
+      "start": 202.57999999999998,
+      "end": 209.61,
+      "en": "Even if Bob loved Star Wars and Ann hated it, in a sparse data situation, they both end up 100% similar.",
+      "zh": "即使 Bob 喜歡《星際大戰》、Ann 討厭它，在稀疏資料情況下，仍會得到 100% 相似。"
+    },
+    {
+      "start": 209.61,
+      "end": 215.64,
+      "en": "I'm just reinforcing that sparse data is a huge problem with collaborative filtering in general, and it can lead to weird results.",
+      "zh": "這只是再次強調，資料稀疏是協同過濾普遍存在的大問題，可能導致奇怪結果。"
+    },
+    {
+      "start": 215.64,
+      "end": 223.803,
+      "en": "And sometimes, you need to enforce a minimum threshold on how many movies users have in common before you consider them at all, to avoid weird stuff like that.",
+      "zh": "有時需要設定共同電影數量的最低門檻，達到後才考慮那些使用者，避免這類奇怪情況。"
+    },
+    {
+      "start": 228.53,
+      "end": 231.28,
+      "en": "So let's say we want to generate recommendations for Bob now.",
+      "zh": "現在假設要替 Bob 產生推薦。"
+    },
+    {
+      "start": 231.28,
+      "end": 237.003,
+      "en": "We can use this handy matrix that we precomputed to quickly look up how similar he is to everybody else.",
+      "zh": "可以用預先計算的矩陣，快速查詢他與其他每個人有多相似。"
+    },
+    {
+      "start": 237.91,
+      "end": 243.42,
+      "en": "Then we can sort that list by similarity scores and pick off the top end neighbors from that list.",
+      "zh": "接著依相似度排序，取出清單最前面的鄰居。"
+    },
+    {
+      "start": 243.42,
+      "end": 250.74,
+      "en": "In this case, we end up with Ann at the top of the list, and we probably discard Ted by enforcing some minimum similarity score threshold at this stage.",
+      "zh": "這裡，Ann 會排在最前面，而這個階段可以設定最低相似度門檻，把 Ted 排除。"
+    },
+    {
+      "start": 250.74,
+      "end": 254.06,
+      "en": "We also skip over the case of comparing Bob with himself.",
+      "zh": "也略過 Bob 與自己比較的情況。"
+    },
+    {
+      "start": 254.06,
+      "end": 258.943,
+      "en": "In a less sparse data situation, you'd have more good results to work with, besides just Ann of course.",
+      "zh": "如果資料沒那麼稀疏，當然會有 Ann 以外更多好的結果可用。"
+    },
+    {
+      "start": 263.04,
+      "end": 270.61,
+      "en": "So now, we can pull all of the movies Ann and everybody else from Bob's top end user similarity results, and consider these recommendation candidates.",
+      "zh": "接著，取出 Ann，以及 Bob 相似使用者結果中其他人的所有電影，作為推薦候選項目。"
+    },
+    {
+      "start": 270.61,
+      "end": 272.01,
+      "en": "Still with me?",
+      "zh": "還跟得上嗎？"
+    },
+    {
+      "start": 272.01,
+      "end": 279.12,
+      "en": "In this simple example, Ann is the only user who is similar to Bob, but if there were other users that we found, we throw their ratings into this pile as well.",
+      "zh": "這個簡單例子裡，只有 Ann 與 Bob 相似；如果找到其他使用者，也把他們的評分一起加進來。"
+    },
+    {
+      "start": 283.86,
+      "end": 290.43,
+      "en": "Next, we need to figure out which of these recommendation candidates are the best ones to present to Bob, so we need to score them somehow.",
+      "zh": "下一步，要找出哪些候選最適合呈現給 Bob，因此需要用某種方式評分。"
+    },
+    {
+      "start": 290.43,
+      "end": 295.75,
+      "en": "There are different ways to do this, but it seems reasonable to take the rating assigned to each candidate as part of it.",
+      "zh": "有很多做法，但把候選項目得到的評分納入，似乎合理。"
+    },
+    {
+      "start": 295.75,
+      "end": 300.4,
+      "en": "We want to recommend things that similar users love, not things that similar users hated.",
+      "zh": "我們要推薦相似使用者喜歡的東西，不是他們討厭的東西。"
+    },
+    {
+      "start": 300.4,
+      "end": 304.45,
+      "en": "So one component could be some sort of normalized rating score here.",
+      "zh": "因此，其中一個成分，可以是某種正規化後的評分。"
+    },
+    {
+      "start": 304.45,
+      "end": 309.25,
+      "en": "Maybe we translate a five star rating to 1.0, just to keep everything on the same scale.",
+      "zh": "例如，將五星評分轉成 1.0，讓所有數值維持相同尺度。"
+    },
+    {
+      "start": 309.25,
+      "end": 319.33,
+      "en": "We should probably also take the similarity with the user who generated these ratings into account, so maybe we can multiply that rating score of 1.0 by Ann's similarity score to Bob, which is also 1.0.",
+      "zh": "也應該考慮產生這些評分的使用者與 Bob 的相似度，因此可以把評分 1.0，乘以 Ann 與 Bob 的相似度 1.0。"
+    },
+    {
+      "start": 321.29,
+      "end": 325.273,
+      "en": "So we end up assigning a candidate score of 1.0 to both of these items.",
+      "zh": "最後，這兩個項目的候選分數，都是 1.0。"
+    },
+    {
+      "start": 326.84,
+      "end": 331.59,
+      "en": "You might also encounter the same movie more than once, if more than one similar user rated it.",
+      "zh": "如果不只一位相似使用者評分過同一部電影，可能會遇到重複電影。"
+    },
+    {
+      "start": 331.59,
+      "end": 337.82,
+      "en": "In this case, you'd probably want to strengthen the relationship to that movie by adding it in again to the final score for that movie.",
+      "zh": "這時，也許應該再次加進那部電影的最終分數，加強與它的關係。"
+    },
+    {
+      "start": 337.82,
+      "end": 340.09000000000003,
+      "en": "Again, there are variants on how to do this.",
+      "zh": "同樣地，有不同變形。"
+    },
+    {
+      "start": 340.09000000000003,
+      "end": 350.06,
+      "en": "Maybe instead of normalizing rating scores on a zero to one scale, you can actually assign negative scores to things rated one or two stars, to actively push them down in the final results.",
+      "zh": "也許不把評分正規化到零到一，而是把一星、二星項目設為負分，主動壓低它們在最終結果中的位置。"
+    },
+    {
+      "start": 350.06,
+      "end": 354.57,
+      "en": "There are a lot of different ways to score recommendation candidates, and there's no standard way of doing it.",
+      "zh": "有很多為推薦候選項目評分的方法，並沒有標準做法。"
+    },
+    {
+      "start": 354.57,
+      "end": 358.59000000000003,
+      "en": "It's another case of where you need to experiment to see what works best for the data you have.",
+      "zh": "這又是需要實驗，找出對手上資料最有效方法的例子。"
+    },
+    {
+      "start": 361.98,
+      "end": 365.28,
+      "en": "Next, we just sort the recommendation candidates by their final scores.",
+      "zh": "接著，只要依最終分數排序推薦候選項目。"
+    },
+    {
+      "start": 365.28,
+      "end": 368.36,
+      "en": "In our simple example, we have a two-way tie of 1.0.",
+      "zh": "這個簡單例子中，有兩個同為 1.0 的項目。"
+    },
+    {
+      "start": 371.46,
+      "end": 377.61,
+      "en": "The last step is to filter out stuff Bob already rated, since there's no point in recommending movies he's already seen.",
+      "zh": "最後一步，是排除 Bob 已評分的東西，因為推薦已看過的電影沒有意義。"
+    },
+    {
+      "start": 377.61,
+      "end": 379.41,
+      "en": "You might filter things out in other ways, too.",
+      "zh": "也可以用其他方式過濾。"
+    },
+    {
+      "start": 379.41,
+      "end": 384.4,
+      "en": "Maybe there's some minimum candidate score below which you won't present a result to a user no matter what.",
+      "zh": "例如設定最低候選分數，不論如何，低於門檻就不呈現給使用者。"
+    },
+    {
+      "start": 384.4,
+      "end": 388.79,
+      "en": "Or maybe you want to filter out results that might be offensive based on their content.",
+      "zh": "或根據內容，排除可能令人反感的結果。"
+    },
+    {
+      "start": 388.79,
+      "end": 395.253,
+      "en": "That leaves us with The Empire Strikes Back, which hopefully, makes Bob a happy user of our user-based collaborative filtering system.",
+      "zh": "最後留下《帝國大反擊》，希望讓 Bob 成為滿意的使用者式協同過濾使用者。"
+    },
+    {
+      "start": 399.53,
+      "end": 404.07,
+      "en": "So to recap, the steps involved in user-based collaborative filtering are these.",
+      "zh": "總結一下，使用者式協同過濾的步驟如下。"
+    },
+    {
+      "start": 404.07,
+      "end": 409.81,
+      "en": "Start by building up a lookup table of users to all of the items they rated and those rating values.",
+      "zh": "先建立查找表，將使用者對應到所有評分過的項目與評分值。"
+    },
+    {
+      "start": 409.81,
+      "end": 414.58,
+      "en": "Then, build up another 2D matrix of similarity scores between every pair of users.",
+      "zh": "再建立另一個二維矩陣，存放每對使用者的相似度。"
+    },
+    {
+      "start": 414.58,
+      "end": 422.22,
+      "en": "At this point, you've done all of the computationally intensive stuff and can just reuse these tables to generate recommendations quickly for anybody.",
+      "zh": "到這裡，運算密集的部分都完成了，之後可重複使用這些表，快速為任何人產生推薦。"
+    },
+    {
+      "start": 422.22,
+      "end": 427.223,
+      "en": "When we want recommendations for a specific user, we can look up all the top similar users to that user.",
+      "zh": "要替特定使用者推薦時，查出最相似的使用者。"
+    },
+    {
+      "start": 428.19,
+      "end": 433.55,
+      "en": "Next, we generate recommendation candidates by pooling together all of the stuff those similar users rated.",
+      "zh": "接著，集合這些相似使用者評分過的所有項目，產生推薦候選。"
+    },
+    {
+      "start": 433.55,
+      "end": 440.87,
+      "en": "We then score all of those candidates by looking at how the similar users rated them, how similar the user rating them was to you, and whatever else you want.",
+      "zh": "再根據相似使用者給的評分、評分者與你的相似度，以及其他想用的資訊，替候選評分。"
+    },
+    {
+      "start": 440.87,
+      "end": 444.293,
+      "en": "Finally, we filter out stuff the user has already seen, and we're done.",
+      "zh": "最後，排除使用者已看過的東西，就完成了。"
+    }
+  ]
+}

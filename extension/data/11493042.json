@@ -1,0 +1,391 @@
+{
+  "courseId": "1726410",
+  "lectureId": "11493042",
+  "title": "[Activity] Recommendations with RBM's, part 2",
+  "section": 9,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "f0ac00d1274be445bff3d15cf92d61d823f218496bbd31a95fcd10fca8ae1c09",
+  "cues": [
+    {
+      "start": 1.06,
+      "end": 4.223,
+      "en": "Let's peek next at the RBMAlgorithm.py file.",
+      "zh": "接著看看 RBMAlgorithm.py。"
+    },
+    {
+      "start": 6.37,
+      "end": 13.093,
+      "en": "It's basically a wrapper around the RBM module that we just looked at, which makes it easier to use and ties it into our recommendation framework.",
+      "zh": "基本上，是剛才 RBM 模組的包裝，讓它更容易使用，並接到推薦框架。"
+    },
+    {
+      "start": 14.05,
+      "end": 21.183,
+      "en": "The initializer just takes the same hyperparameters the underlying RBM module needs, and stores them for when that RBM class gets instantiated.",
+      "zh": "初始化函數，接受與底層 RBM 相同的超參數，儲存起來，供實例化 RBM 類別時使用。"
+    },
+    {
+      "start": 22.14,
+      "end": 24.98,
+      "en": "Next we have a little utility function called softmax.",
+      "zh": "接著，有個叫 softmax 的小工具函數。"
+    },
+    {
+      "start": 24.98,
+      "end": 32.81,
+      "en": "If you remember from RBM.py, our GetRecommendations function returns raw results from the backward pass of the RBM in the visible layer.",
+      "zh": "記得 RBM.py 的 GetRecommendations，會傳回 RBM 反向在可見層的原始結果。"
+    },
+    {
+      "start": 32.81,
+      "end": 39.71,
+      "en": "While you can sort of think of these as probabilities for each rating classification for each item, they aren't really probabilities.",
+      "zh": "雖然可以有點像機率那樣理解，每個項目的各種評分類別，但其實不是機率。"
+    },
+    {
+      "start": 39.71,
+      "end": 47.09,
+      "en": "The softmax function allows us to convert them into values that all add up to one, and can be treated mathematically like probabilities.",
+      "zh": "softmax 能轉成加總為一的值，數學上視為機率。"
+    },
+    {
+      "start": 47.09,
+      "end": 54.38,
+      "en": "This is sort of the normal thing to do when dealing with classifications in neural networks, but as you'll see in a bit it allows us to do another handy trick as well.",
+      "zh": "神經網路分類通常都這樣，但稍後會看到，也能做另一個實用技巧。"
+    },
+    {
+      "start": 57.08,
+      "end": 63.33,
+      "en": "The fit function is what our framework calls when it wants to train our recommendation model, and it takes in our training data.",
+      "zh": "框架想訓練推薦模型時，呼叫 fit，傳入訓練資料。"
+    },
+    {
+      "start": 63.33,
+      "end": 74.96000000000001,
+      "en": "After calling the base class, we extract the number of users and number of movies in our training data, and then we use that to build up a new matrix called trainingMatrix that is in the shape our RBM class expects.",
+      "zh": "呼叫基底類別後，取出訓練資料的使用者數與電影數，建立 RBM 預期形狀的新矩陣 trainingMatrix。"
+    },
+    {
+      "start": 74.96000000000001,
+      "end": 82.16,
+      "en": "It's a 3D array of users, items, and binary arrays of 10 items that represent a specific rating classification.",
+      "zh": "是三維陣列：使用者、項目，以及十個元素的二元陣列，代表特定評分類別。"
+    },
+    {
+      "start": 82.16,
+      "end": 86.863,
+      "en": "We initialize the training data to contain all zeroes, so we can identify missing ratings later on.",
+      "zh": "先把訓練資料全初始化為零，之後能識別缺失評分。"
+    },
+    {
+      "start": 88.53999999999999,
+      "end": 94.58,
+      "en": "Again, the reason we have 10 rating types is because our ratings data is a five-star scale with half-star increments.",
+      "zh": "再次提醒，有十種評分，因為資料是五星量表，每半星一級。"
+    },
+    {
+      "start": 94.58,
+      "end": 102.25999999999999,
+      "en": "So those ten binary fields that represent each rating correspond to 0.5 stars, one star, 1.5 stars, etc.",
+      "zh": "十個二元欄位，分別對應 0.5 星、一星、1.5 星，依此類推。"
+    },
+    {
+      "start": 102.25999999999999,
+      "end": 108.69,
+      "en": "A five star rating would be representing by the values zero zero zero zero zero zero zero zero zero one, for example.",
+      "zh": "例如，五星表示為零、零、零、零、零、零、零、零、零、一。"
+    },
+    {
+      "start": 108.69,
+      "end": 113.413,
+      "en": "That's nine zeroes and a one at the end, in the slot that corresponds to 5.0 stars.",
+      "zh": "就是九個零，最後在 5.0 星的位置放一。"
+    },
+    {
+      "start": 114.46000000000001,
+      "end": 118.56,
+      "en": "So now we need to populate this training matrix with the training data we actually have.",
+      "zh": "現在，要以實際訓練資料，填入訓練矩陣。"
+    },
+    {
+      "start": 118.56,
+      "end": 129.03,
+      "en": "Again, most of this matrix will remain unfilled, and when dealing with very large scale data you'd probably want to investigate ways of storing this matrix in a sparse representation to save space.",
+      "zh": "同樣，矩陣大部分仍未填入；大型資料時，可能應研究稀疏表示，節省空間。"
+    },
+    {
+      "start": 129.03,
+      "end": 134.95,
+      "en": "We go through every rating in our training set, which consists of a user ID, item ID, and actual rating score.",
+      "zh": "走訪訓練集每筆評分，包含使用者 ID、項目 ID、實際評分。"
+    },
+    {
+      "start": 134.95,
+      "end": 144.07,
+      "en": "We then convert the rating into an index into our binary array, this math just translates values that range from one to five into integers that range from zero to nine.",
+      "zh": "再把評分轉成二元陣列索引，這個數學運算，把一到五的值，轉成零到九的整數。"
+    },
+    {
+      "start": 144.07,
+      "end": 153.583,
+      "en": "The converted rating is then used as an index into the final dimension of our training matrix, where we set a one to indicate that particular rating score for this particular user item pair exists.",
+      "zh": "以轉換後評分，索引訓練矩陣最後一維，設為一，表示這個使用者／項目配對，存在這個評分。"
+    },
+    {
+      "start": 154.44,
+      "end": 161.75,
+      "en": "Our RBM however wants to work with 2D data, so we flatten the items and ratings out into a single dimension, with users left as the first dimension.",
+      "zh": "但 RBM 要二維資料，因此，把項目與評分攤成單一維度，第一維保留使用者。"
+    },
+    {
+      "start": 162.73,
+      "end": 166.12,
+      "en": "That's what this reshape call does on line 38.",
+      "zh": "第 38 行 reshape，就是這件事。"
+    },
+    {
+      "start": 166.12,
+      "end": 171.68,
+      "en": "Negative one is a special value in reshape, and it just means divide everything else equally throughout that dimension.",
+      "zh": "reshape 的負一，是特殊值，表示將其餘元素平均分配到那個維度。"
+    },
+    {
+      "start": 173.14,
+      "end": 177.2,
+      "en": "Next we're ready to create our underlying RBM object on line 41.",
+      "zh": "接著，第 41 行，準備建立底層 RBM 物件。"
+    },
+    {
+      "start": 177.2,
+      "end": 186.29,
+      "en": "The size of that flattened second dimension determines the number of visible nodes we need to process each individual user, and we pass along the hyperparameters we captured when",
+      "zh": "攤平後的第二維大小，決定處理每位使用者所需的可見節點數，同時傳入初始化"
+    },
+    {
+      "start": 186.29,
+      "end": 187.963,
+      "en": "initializing the RBMAlgorithm.",
+      "zh": "RBMAlgorithm 時，記錄的超參數。"
+    },
+    {
+      "start": 189.127,
+      "end": 199.603,
+      "en": "Now to train our RBM, we just call the Train function, which does all the complicated work of setting up the RBM's graphs in Tensorflow and running learning on it over however many batches and epochs we specified.",
+      "zh": "訓練時，只要呼叫 Train，就會完成在 TensorFlow 設定 RBM 計算圖，以及按照指定批次與週期執行學習的所有複雜工作。"
+    },
+    {
+      "start": 200.49,
+      "end": 210.363,
+      "en": "Next, we need to build up rating predictions for all of the missing user movie pairs using the RBM we have trained, or specifically the weights and biases our RBM has learned from the training data.",
+      "zh": "接著，利用訓練好的 RBM，更精確地說，它學到的權重與偏差，為所有缺失使用者／電影配對，建立評分預測。"
+    },
+    {
+      "start": 211.3,
+      "end": 217.573,
+      "en": "That will let us very quickly access those rating predictions when the framework calls the estimate function like a gazillion times.",
+      "zh": "讓框架無數次呼叫 estimate 時，都能很快取得。"
+    },
+    {
+      "start": 218.552,
+      "end": 226.61,
+      "en": "We start by creating the predictedRatings array, it's just a 2D array that maps user item combinations to their predicted rating scores.",
+      "zh": "先建立 predictedRatings 二維陣列，把使用者／項目組合，對應到預測評分。"
+    },
+    {
+      "start": 226.61,
+      "end": 233.793,
+      "en": "We iterate through every user in our training set on line 45, and print out status updates once we've processed every 50 users.",
+      "zh": "第 45 行，走訪訓練集每位使用者，每處理 50 人，印出狀態。"
+    },
+    {
+      "start": 234.82999999999998,
+      "end": 241.91,
+      "en": "As you might recall, we wrote the GetRecommendations function in RBM.py to produce recommendations for an entire user at a time.",
+      "zh": "記得，RBM.py 的 GetRecommendations，一次產生整位使用者的推薦。"
+    },
+    {
+      "start": 241.91,
+      "end": 244.13,
+      "en": "This is what the RBM does naturally.",
+      "zh": "這是 RBM 自然的運作。"
+    },
+    {
+      "start": 244.13,
+      "end": 254.433,
+      "en": "We trained it using ratings from individual users as inputs on the visible nodes, and now we are using that trained RBM by feeding it the ratings of a user we're interested in as the new inputs on its visible nodes.",
+      "zh": "訓練時，以個別使用者評分，作為可見節點輸入；現在，再把目標使用者評分，送進訓練好 RBM 的可見節點。"
+    },
+    {
+      "start": 255.48,
+      "end": 264.68,
+      "en": "Our trainingMatrix is already organized the way our RBM needs it, so we just pull off the ratings for the user in question, and pass them in on line 48.",
+      "zh": "trainingMatrix 已經是需要的格式，只要取出該使用者評分，在第 48 行傳入。"
+    },
+    {
+      "start": 264.68,
+      "end": 273.82,
+      "en": "The RBM then runs a forward pass using these ratings, and a backwards pass where it reconstructs the missing ones using the weights and biases it learned during training.",
+      "zh": "RBM 先前向，再反向，以訓練學到的權重與偏差，重建缺失評分。"
+    },
+    {
+      "start": 273.82,
+      "end": 280.57,
+      "en": "We now want to un-flatten the results, so we have our binary rating category data arranged nicely by item rating.",
+      "zh": "現在，要將結果還原未攤平狀態，讓二元評分類別資料，按項目評分整齊排列。"
+    },
+    {
+      "start": 280.57,
+      "end": 283.243,
+      "en": "That's all this reshape function is doing on line 49.",
+      "zh": "第 49 行 reshape，只做這件事。"
+    },
+    {
+      "start": 284.38,
+      "end": 286.52,
+      "en": "Now things get a little bit interesting.",
+      "zh": "接著有點有趣。"
+    },
+    {
+      "start": 286.52,
+      "end": 297.13,
+      "en": "The raw, reconstructed results in those ratings categories aren't nice zeros and ones like we want, they are numbers that are all over the place, and we need to convert them into an actual usable rating.",
+      "zh": "原始重建的評分類別結果，不是理想的零與一，而是各種數字，需要轉成真正可用評分。"
+    },
+    {
+      "start": 297.13,
+      "end": 302.89,
+      "en": "We could just pick the rating category with the highest value in it, and that would be a perfectly reasonable thing to do.",
+      "zh": "可以直接選值最大的評分類別，完全合理。"
+    },
+    {
+      "start": 302.89,
+      "end": 309.871,
+      "en": "The only problem is that this restricts you to the specific rating values that actually exist as categories, you can end up with a rating prediction of four, 4.5, or 5.0,",
+      "zh": "唯一問題，是限制在實際存在的分類值，例如只能預測四、4.5 或 5.0，"
+    },
+    {
+      "start": 309.871,
+      "end": 316.93,
+      "en": "for example, but there's no way to get a prediction of say 4.92 with that approach.",
+      "zh": "不能得到 4.92 之類的預測。"
+    },
+    {
+      "start": 316.93,
+      "end": 328.06,
+      "en": "We're losing some nuance into just how confident the RBM is in a given rating category by just picking the one with the biggest score, and as a result we end up with a huge multi-way tie for movies where its best",
+      "zh": "只挑最高分，會失去 RBM 對某評分類別信心程度的細節，結果很多電影的最佳"
+    },
+    {
+      "start": 328.06,
+      "end": 330.16,
+      "en": "guess is a 5.0 rating.",
+      "zh": "猜測都是 5.0，形成大量同分。"
+    },
+    {
+      "start": 330.16,
+      "end": 335.09000000000003,
+      "en": "We then have to arbitrarily pick top-N results from that tie, which doesn't work well.",
+      "zh": "再隨意從同分中挑 Top-N，效果不好。"
+    },
+    {
+      "start": 335.09000000000003,
+      "end": 343.013,
+      "en": "It's yet another example of where an algorithm designed to maximize prediction accuracy runs into real-world trouble when you apply it to top-N recommendations.",
+      "zh": "這又是一個，演算法為最大化預測準確程度而設計，實際用在 Top-N 推薦時，遇到問題的例子。"
+    },
+    {
+      "start": 343.96,
+      "end": 349.72,
+      "en": "What we do instead in the loop between lines 51 and 59 is an alternative approach suggested in the paper.",
+      "zh": "因此，第 51 到 59 行迴圈，改用論文建議的另一種方法。"
+    },
+    {
+      "start": 349.72,
+      "end": 359.29,
+      "en": "We first normalize the values in all of the ratings categories from the reconstructed data, and since this isn't 2007 we'll use the softmax function for this, which is sort of the standard way to do that",
+      "zh": "先正規化重建資料中所有評分類別的值；因為現在不是 2007 年，使用 softmax，這是現在處理"
+    },
+    {
+      "start": 359.29,
+      "end": 361.77,
+      "en": "with categorical data these days.",
+      "zh": "類別資料的標準方式。"
+    },
+    {
+      "start": 361.77,
+      "end": 366.73,
+      "en": "So now we can treat this set of 10 rating categories as probabilities for each rating score.",
+      "zh": "因此，能把十個評分類別，視為各評分的機率。"
+    },
+    {
+      "start": 366.73,
+      "end": 371.49,
+      "en": "Given that, we can compute the expectation from that probability distribution.",
+      "zh": "有了機率分布，就能計算期望值。"
+    },
+    {
+      "start": 371.49,
+      "end": 378.81,
+      "en": "Expectation is a statistical term, and it's equivalent to a weighted average of those rating scores, weighted by their probabilities.",
+      "zh": "期望值，是統計術語，等於以各自機率加權的評分平均值。"
+    },
+    {
+      "start": 378.81,
+      "end": 380.62,
+      "en": "That's what's going on in line 58.",
+      "zh": "第 58 行，就是這件事。"
+    },
+    {
+      "start": 380.62,
+      "end": 386.08,
+      "en": "We're using Numpy's average function, which lets us compute a weighted average in one line.",
+      "zh": "用 NumPy 的 average，一行計算加權平均。"
+    },
+    {
+      "start": 386.08,
+      "end": 393.79,
+      "en": "This approach has its own problem, in that it tends to guess rather low ratings overall, but we're more interested in the top-N results than prediction accuracy here.",
+      "zh": "這也有問題，整體往往猜得比較低，但這裡更在意 Top-N 結果，而不是預測準確程度。"
+    },
+    {
+      "start": 393.79,
+      "end": 395.863,
+      "en": "It's the rankings that matter for us.",
+      "zh": "排名才重要。"
+    },
+    {
+      "start": 396.73,
+      "end": 406.343,
+      "en": "Finally we convert the zero to nine rating index into a one to five rating score on line 59, and store it in our predictedRatings array for use in the estimate function, which is next.",
+      "zh": "最後，第 59 行把零到九索引，轉成一到五評分，存入 predictedRatings，供接下來的 estimate 使用。"
+    },
+    {
+      "start": 408.18,
+      "end": 412.8,
+      "en": "We want estimate to be as fast as possible, so not much is going on here.",
+      "zh": "希望 estimate 越快越好，所以做的事不多。"
+    },
+    {
+      "start": 412.8,
+      "end": 422.24,
+      "en": "We just check that the user and item for which a rating estimate is being requested actually exists in our data, look up the predicted rating we computed and stored within the fit function, and just check that it's",
+      "zh": "只檢查要求估計的使用者與項目，真的存在於資料，查出 fit 時計算、儲存的預測，再確認不是"
+    },
+    {
+      "start": 422.24,
+      "end": 425.59,
+      "en": "not some ridiculously low value that should just be discarded.",
+      "zh": "低到不合理、應該丟棄的值。"
+    },
+    {
+      "start": 425.59,
+      "end": 430.693,
+      "en": "And that's it, So we're about ready to run this now, and see what happens.",
+      "zh": "就是這樣，現在差不多能執行，看看結果。"
+    }
+  ]
+}
