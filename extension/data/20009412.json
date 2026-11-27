@@ -1,0 +1,961 @@
+{
+  "courseId": "3160664",
+  "lectureId": "20009412",
+  "title": "Code: IQR",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b98ddaba79d16fbc7d9a5bd40b867dbee33f03d1ba8250ce6be1923b2d032bb4",
+  "cues": [
+    {
+      "start": 2.34,
+      "end": 9.87,
+      "en": "Mike: In this video, I'm going to show you how to compute inter-quartile range in MATLAB and in Python.",
+      "zh": "這部影片示範用MATLAB與Python計算四分位距。"
+    },
+    {
+      "start": 9.87,
+      "end": 17.82,
+      "en": "We're going to first do this manually, so to speak, and then I will show you that there's a MATLAB function that will compute it automatically for you.",
+      "zh": "先所謂手動計算，再展示MATLAB自動計算的函式。"
+    },
+    {
+      "start": 17.82,
+      "end": 26.82,
+      "en": "Nonetheless, I think it's worth going through the mechanics at least once during this course to make sure that you understand, really understand conceptually",
+      "zh": "不過，課程至少一次走過運算機制，值得，確保真正從概念上理解，"
+    },
+    {
+      "start": 26.82,
+      "end": 30.87,
+      "en": "how the inter-quartile range is computed and what it means.",
+      "zh": "四分位距如何計算、代表什麼。"
+    },
+    {
+      "start": 30.87,
+      "end": 36.9,
+      "en": "All right, so we are gonna start the way we always start, of course, by creating some random data.",
+      "zh": "照慣例，先建立隨機資料。"
+    },
+    {
+      "start": 36.9,
+      "end": 41.58,
+      "en": "So I'm creating normally distributed random numbers and then squaring them.",
+      "zh": "產生常態隨機數，再平方。"
+    },
+    {
+      "start": 41.58,
+      "end": 43.35,
+      "en": "So let's see what these things look like.",
+      "zh": "看看樣子。"
+    },
+    {
+      "start": 43.35,
+      "end": 50.55,
+      "en": "So I'm gonna say plot data, and now we could plot lines here, we could make a line plot.",
+      "zh": "畫data，可以用線，畫成折線圖。"
+    },
+    {
+      "start": 50.55,
+      "end": 57.24,
+      "en": "And this isn't really wrong per se, except that there isn't really anything that's connecting the points.",
+      "zh": "本身不算錯，但這些點其實沒有任何連結。"
+    },
+    {
+      "start": 57.24,
+      "end": 59.01,
+      "en": "There's no connection between these points.",
+      "zh": "彼此沒有關係。"
+    },
+    {
+      "start": 59.01,
+      "end": 60.69,
+      "en": "These are just random numbers.",
+      "zh": "只是隨機數。"
+    },
+    {
+      "start": 60.69,
+      "end": 72.15,
+      "en": "So I think this is a little bit misleading because this line plot implies that if we were to have a measurement between data point 179 and 180,",
+      "zh": "所以有點誤導，因為線圖暗示，在第179與180點之間測量，"
+    },
+    {
+      "start": 72.15,
+      "end": 76.92,
+      "en": "that we would know that that data point what had a value of 0.5.",
+      "zh": "就會知道那個資料點的值是0.5。"
+    },
+    {
+      "start": 76.92,
+      "end": 81.53999999999999,
+      "en": "But that doesn't even make any sense because these are unconnected random numbers.",
+      "zh": "但完全沒意義，因為它們是不相連的隨機數。"
+    },
+    {
+      "start": 81.53999999999999,
+      "end": 85.02,
+      "en": "So therefore I'm gonna plot about squares like this.",
+      "zh": "所以改畫方形標記。"
+    },
+    {
+      "start": 85.02,
+      "end": 86.88,
+      "en": "All right, so here you see what the numbers look like.",
+      "zh": "這是數字樣貌。"
+    },
+    {
+      "start": 86.88,
+      "end": 96.63,
+      "en": "They're all positive, not surprisingly because we're squaring all these numbers and there's more concentration here towards the bottom and less concentration towards the top.",
+      "zh": "全為正，不意外，因為都平方，底部較密、頂部較稀。"
+    },
+    {
+      "start": 96.63,
+      "end": 101.82,
+      "en": "Also exactly what you'd expect for squared random Gaussian noise.",
+      "zh": "正如平方高斯雜訊的預期。"
+    },
+    {
+      "start": 101.82,
+      "end": 105.36,
+      "en": "We can make a histogram, that should also be interesting.",
+      "zh": "也能畫直方圖，應該有意思。"
+    },
+    {
+      "start": 105.36,
+      "end": 109.983,
+      "en": "And let's go for 30 bins just as a kind of arbitrary selection.",
+      "zh": "任意選30個區間。"
+    },
+    {
+      "start": 110.82,
+      "end": 115.53,
+      "en": "Now there's nothing particularly important about the visualization that we are doing here.",
+      "zh": "這裡的視覺化，沒什麼特別重要。"
+    },
+    {
+      "start": 115.53,
+      "end": 124.95,
+      "en": "I just want to get you into the habit of visualizing your results as much as you can, as often as you can, and in multiple different ways.",
+      "zh": "只是讓你養成習慣，盡可能、經常，用多種方式視覺化結果。"
+    },
+    {
+      "start": 124.95,
+      "end": 135.6,
+      "en": "Okay, so what we're going to do, just looking ahead here, what we're gonna do is rank transform the data, scale them to go have a maximum value of one,",
+      "zh": "先預告，會對資料做秩轉換，縮放到最大值1，"
+    },
+    {
+      "start": 135.6,
+      "end": 142.29,
+      "en": "and then find the data points that are closest to 25 and 75% of the data, and then subtract those.",
+      "zh": "再找最接近25%與75%的資料點，相減。"
+    },
+    {
+      "start": 142.29,
+      "end": 145.53,
+      "en": "So let's walk through each of those steps individually.",
+      "zh": "逐一步驟來看。"
+    },
+    {
+      "start": 145.53,
+      "end": 147.63,
+      "en": "So here I rank transform the data.",
+      "zh": "這裡做秩轉換。"
+    },
+    {
+      "start": 147.63,
+      "end": 151.563,
+      "en": "I'm using the function tiedrank to get the ranks of the data.",
+      "zh": "用tiedrank取得資料的秩。"
+    },
+    {
+      "start": 152.88,
+      "end": 157.07999999999998,
+      "en": "And so it was interesting to see what that looked like.",
+      "zh": "看看轉換後長什麼樣，很有意思。"
+    },
+    {
+      "start": 157.07999999999998,
+      "end": 160.5,
+      "en": "So again, here was the original data, the raw data.",
+      "zh": "這是原始資料。"
+    },
+    {
+      "start": 160.5,
+      "end": 162.6,
+      "en": "And now here are the rank transform data.",
+      "zh": "這是秩轉換後。"
+    },
+    {
+      "start": 162.6,
+      "end": 168.03,
+      "en": "And you can see that these are uniformly distributed between zero and one.",
+      "zh": "可以看到，均勻分布在0到1。"
+    },
+    {
+      "start": 168.03,
+      "end": 176.01,
+      "en": "So they actually are first distributed from zero up to, or actually one up to 1000.",
+      "zh": "其實先是從0，或者是1到1000。"
+    },
+    {
+      "start": 176.01,
+      "end": 181.92,
+      "en": "And then I divide by 1000 to get them to be scaled down to between zero and one.",
+      "zh": "再除1000，縮放到0到1。"
+    },
+    {
+      "start": 181.92,
+      "end": 184.23,
+      "en": "Technically it's a little bit above zero.",
+      "zh": "技術上略高於0。"
+    },
+    {
+      "start": 184.23,
+      "end": 187.17,
+      "en": "We can say, see what the minimum value is.",
+      "zh": "可以看最小值。"
+    },
+    {
+      "start": 187.17,
+      "end": 191.88,
+      "en": "It's 0.001, we could have computed that just based on this.",
+      "zh": "是0.001，光看這裡也能算出。"
+    },
+    {
+      "start": 191.88,
+      "end": 198.03,
+      "en": "So the first result from tiedrank is going to be the number one, that's the lowest rank.",
+      "zh": "tiedrank第一個結果是1，最低的秩。"
+    },
+    {
+      "start": 198.03,
+      "end": 199.5,
+      "en": "And then we divide by a thousand.",
+      "zh": "再除1000。"
+    },
+    {
+      "start": 199.5,
+      "end": 207.57,
+      "en": "So we get numbers scaled between one divided by a thousand, which is 0.001, which is this number, and one.",
+      "zh": "所以範圍從1/1000，也就是0.001，這個數，一直到1。"
+    },
+    {
+      "start": 207.57,
+      "end": 215.46,
+      "en": "Okay, and then out of curiosity, so you remember I discussed that tiedrank is a non-linear transform so we lose information.",
+      "zh": "好奇一下，記得tiedrank是非線性轉換，會損失資訊。"
+    },
+    {
+      "start": 215.46,
+      "end": 222.27,
+      "en": "So I'm just curious to see what it would look like if we make a scatterplot of data by data R.",
+      "zh": "我好奇，畫data對dataR的散佈圖，會怎樣。"
+    },
+    {
+      "start": 222.27,
+      "end": 224.25,
+      "en": "Let's make these circles.",
+      "zh": "用圓圈。"
+    },
+    {
+      "start": 224.25,
+      "end": 225.39,
+      "en": "So this is pretty interesting.",
+      "zh": "很有意思。"
+    },
+    {
+      "start": 225.39,
+      "end": 229.44,
+      "en": "You see that they are non-linearly related to each other.",
+      "zh": "兩者是非線性關係。"
+    },
+    {
+      "start": 229.44,
+      "end": 240.09,
+      "en": "So they're monotonically related to each other of course because the ordinal position in the original data defines the ordinal position in the rank transform data.",
+      "zh": "當然是單調關係，因為原資料序位，決定秩轉換後的序位。"
+    },
+    {
+      "start": 240.09,
+      "end": 248.82,
+      "en": "But you can see there's this bend here and that shows you the non-linear transformation, or from the original data to rank.",
+      "zh": "但這裡彎曲，顯示原資料轉到秩，是非線性的。"
+    },
+    {
+      "start": 248.82,
+      "end": 256.53,
+      "en": "Now there's nothing intrinsic about the tiedrank transformation that makes this look a little bit like a logarithm.",
+      "zh": "tiedrank本身，沒有什麼內在特性讓它看起來像對數。"
+    },
+    {
+      "start": 256.53,
+      "end": 262.29,
+      "en": "It just happens to look like that because of the way that I created the data with this squared term here.",
+      "zh": "只是因為我用這裡的平方項產生資料。"
+    },
+    {
+      "start": 262.29,
+      "end": 270.69,
+      "en": "All right, now that we've explored the data visually a little bit and gained some intuition, what we're gonna do is find the values closest to",
+      "zh": "視覺探索並建立直覺後，要找最接近，"
+    },
+    {
+      "start": 270.69,
+      "end": 274.92,
+      "en": "25% to the data and 75% to the data.",
+      "zh": "資料25%與75%的值。"
+    },
+    {
+      "start": 274.92,
+      "end": 279.63,
+      "en": "So that's why I rank transform and divide by N to scale up to one.",
+      "zh": "這就是做秩轉換，再除N縮放到1的原因。"
+    },
+    {
+      "start": 279.63,
+      "end": 291.15,
+      "en": "So now the idea is that the data value or the data index that has the value closest to 0.25, this is 25% of the the way through the data.",
+      "zh": "最接近0.25的資料值、索引，位於資料的25%位置。"
+    },
+    {
+      "start": 291.15,
+      "end": 300.786,
+      "en": "And likewise, 75, the index of the data value closest to 0.75 is 75% of the way through the data.",
+      "zh": "同樣，最接近0.75的資料索引，是75%位置。"
+    },
+    {
+      "start": 301.05,
+      "end": 305.79,
+      "en": "In other words, 25% of the data are larger than this value.",
+      "zh": "換句話說，25%的資料大於這個值。"
+    },
+    {
+      "start": 305.79,
+      "end": 307.95,
+      "en": "So that's what I do here.",
+      "zh": "這裡就在做這件事。"
+    },
+    {
+      "start": 307.95,
+      "end": 311.58,
+      "en": "And then here I get the inter-quartile values.",
+      "zh": "接著取得四分位值。"
+    },
+    {
+      "start": 311.58,
+      "end": 320.7,
+      "en": "Notice now here I'm indexing the original data, I'm not indexing the rank data because ultimately we don't really care about the rank transform data.",
+      "zh": "注意，索引原始資料，不是秩資料，因為最終不在乎秩轉換資料。"
+    },
+    {
+      "start": 320.7,
+      "end": 328.31,
+      "en": "We're only using the rank transform data in order to obtain the 25 and 75 percentile indices.",
+      "zh": "只用它取得第25與75百分位的索引。"
+    },
+    {
+      "start": 330.09,
+      "end": 335.09000000000003,
+      "en": "So those happen to be data number 366 and 136.",
+      "zh": "剛好是第366與136個資料。"
+    },
+    {
+      "start": 335.13,
+      "end": 344.79,
+      "en": "And just to make sure we're clear about what this means, so data, and so this tells us that the data value",
+      "zh": "確保清楚這代表什麼，data，告訴我們資料值，"
+    },
+    {
+      "start": 344.79,
+      "end": 351.69,
+      "en": "that happens to be at 366, so wherever that is, it's around here, that is the 25th percentile.",
+      "zh": "剛好在366的位置，大約這裡，是第25百分位。"
+    },
+    {
+      "start": 351.69,
+      "end": 363.303,
+      "en": "Now, that's not 25th percentile here because this ordering is arbitrary, that means that 25% of the data are below the value of the data point at 366.",
+      "zh": "不是指畫面這裡的第25百分位，因為順序任意；是25%的資料，低於第366點的值。"
+    },
+    {
+      "start": 364.17,
+      "end": 371.37,
+      "en": "Okay, so here we have our two quartile values and what we want for the IQR is the difference between them.",
+      "zh": "有兩個四分位值，IQR就是兩者之差。"
+    },
+    {
+      "start": 371.37,
+      "end": 376.37,
+      "en": "So we want basically the difference between 75% and 25%.",
+      "zh": "基本上，75%位置與25%位置的差。"
+    },
+    {
+      "start": 377.91,
+      "end": 382.91,
+      "en": "So the inter-quartile range here is computed to be 1.5194.",
+      "zh": "這裡四分位距算出1.5194。"
+    },
+    {
+      "start": 383.16,
+      "end": 394.077,
+      "en": "So the only advantage of computing inter-quartile range manually this way with tiedrank and dsearchn and so on, is that you can also get the values of",
+      "zh": "用tiedrank、dsearchn等手算，唯一好處，是也能取得，"
+    },
+    {
+      "start": 394.077,
+      "end": 397.44,
+      "en": "the 25th percentile and 75th percentile.",
+      "zh": "第25與75百分位的值。"
+    },
+    {
+      "start": 397.44,
+      "end": 399.87,
+      "en": "Maybe that's useful, maybe not.",
+      "zh": "也許有用，也許沒有。"
+    },
+    {
+      "start": 399.87,
+      "end": 403.92,
+      "en": "But if you want those values, then you can compute this manually.",
+      "zh": "想要這些值，就能手動算。"
+    },
+    {
+      "start": 403.92,
+      "end": 409.56,
+      "en": "Okay, so then there's also a MATLAB function which is called IQR, inter-quartile range, of course.",
+      "zh": "MATLAB也有iqr函式，當然就是四分位距。"
+    },
+    {
+      "start": 409.56,
+      "end": 413.73,
+      "en": "And it's kind of interesting to see that these do not match perfectly.",
+      "zh": "有趣的是，兩者沒有完全相同。"
+    },
+    {
+      "start": 413.73,
+      "end": 420.39,
+      "en": "So our manual method that I specified here and the MATLAB function gives slightly different results.",
+      "zh": "手動方法與MATLAB函式，結果稍有不同。"
+    },
+    {
+      "start": 420.39,
+      "end": 428.88,
+      "en": "You can see they're the same for, in this particular dataset, they're the same for the first three significant digits after the decimal point.",
+      "zh": "這個資料集中，小數點後前三位相同。"
+    },
+    {
+      "start": 428.88,
+      "end": 432.99,
+      "en": "And they are two 10 thousandths of a data point off.",
+      "zh": "相差萬分之二個資料單位。"
+    },
+    {
+      "start": 432.99,
+      "end": 443.67,
+      "en": "And if you're curious, you can dig deeper, open up the IQR function, and look through MATLAB's implementation and you'll see it's slightly different,",
+      "zh": "好奇的話，開啟iqr函式，深入看MATLAB實作，會看到稍微不同，"
+    },
+    {
+      "start": 443.67,
+      "end": 445.17,
+      "en": "it's a little bit more complicated.",
+      "zh": "稍複雜一些。"
+    },
+    {
+      "start": 445.17,
+      "end": 455.52,
+      "en": "Basically, MATLAB is using percentile, which has a slightly different way of getting the 25th and 75th percentiles compared to what I'm doing here.",
+      "zh": "基本上，MATLAB用百分位方法，取得第25與75百分位的方式，和這裡稍不同。"
+    },
+    {
+      "start": 455.52,
+      "end": 462.543,
+      "en": "Nonetheless, this is an insignificant difference, just a tiny difference in algorithm implementation.",
+      "zh": "但差異微不足道，只是演算法實作的小差異。"
+    },
+    {
+      "start": 464.4,
+      "end": 467.67,
+      "en": "All right, so here we are in Python.",
+      "zh": "現在來到Python。"
+    },
+    {
+      "start": 467.67,
+      "end": 470.7,
+      "en": "And what I'm going to do is start off by creating data.",
+      "zh": "先建立資料。"
+    },
+    {
+      "start": 470.7,
+      "end": 472.47,
+      "en": "It's always a good place to start.",
+      "zh": "總是好的起點。"
+    },
+    {
+      "start": 472.47,
+      "end": 479.19,
+      "en": "And you can see I'm creating normally distributed random numbers, 1000 of them, and then I am squaring them.",
+      "zh": "建立1000個常態隨機數，再平方。"
+    },
+    {
+      "start": 479.19,
+      "end": 482.04,
+      "en": "So now we create the data, but we don't see what it looks like.",
+      "zh": "資料建立好了，但還看不到樣子。"
+    },
+    {
+      "start": 482.04,
+      "end": 484.35,
+      "en": "So let's start generating some plots.",
+      "zh": "先畫一些圖。"
+    },
+    {
+      "start": 484.35,
+      "end": 486.9,
+      "en": "I would like to see what this looks like.",
+      "zh": "我想看樣貌。"
+    },
+    {
+      "start": 486.9,
+      "end": 490.47,
+      "en": "So plt.plot and data.",
+      "zh": "用plt.plot畫data。"
+    },
+    {
+      "start": 490.47,
+      "end": 499.2,
+      "en": "Now we could draw lines here except that this isn't really a valid way, a useful way to plot these data.",
+      "zh": "可以畫線，但其實不是有效、有用的呈現方式。"
+    },
+    {
+      "start": 499.2,
+      "end": 508.82,
+      "en": "And that's because when we have lines like this, we are making an assumption that if we would measure data between points 399 and 400",
+      "zh": "因為線圖假設，在第399與400點間測量，"
+    },
+    {
+      "start": 510.63,
+      "end": 520.08,
+      "en": "that we would know that that value or we would guess that that value corresponds to 1.7 or whatever would be in between 399 and 400.",
+      "zh": "會知道、或猜測，值對應1.7，或399與400之間的位置。"
+    },
+    {
+      "start": 520.08,
+      "end": 526.2,
+      "en": "But these are just randomly drawn numbers from a normal distribution.",
+      "zh": "但只是從常態分布隨機抽出的數。"
+    },
+    {
+      "start": 526.2,
+      "end": 534.03,
+      "en": "So there actually is no relationship between successive data points and therefore line plots are actually not appropriate.",
+      "zh": "相鄰資料點其實沒有關係，折線圖不適合。"
+    },
+    {
+      "start": 534.03,
+      "end": 537.84,
+      "en": "So we can do, let's try making these pentagons.",
+      "zh": "試著用五角形。"
+    },
+    {
+      "start": 537.84,
+      "end": 540.66,
+      "en": "You don't really see these, but these are little stars here.",
+      "zh": "可能看不清，但這裡是小星形。"
+    },
+    {
+      "start": 540.66,
+      "end": 544.41,
+      "en": "Okay, so we can see that this dataset is all positive.",
+      "zh": "資料集全為正。"
+    },
+    {
+      "start": 544.41,
+      "end": 552.39,
+      "en": "So it's all numbers greater than zero and there's more clustering for this towards zero and less clustering as you get further away.",
+      "zh": "都大於0，接近0處較密，越遠越稀。"
+    },
+    {
+      "start": 552.39,
+      "end": 558.78,
+      "en": "It's not surprising because we generated this data set by squaring random numbers.",
+      "zh": "不意外，因為是把隨機數平方。"
+    },
+    {
+      "start": 558.78,
+      "end": 562.35,
+      "en": "Okay, now I'm also curious to see what a histogram looks like.",
+      "zh": "也好奇直方圖樣子。"
+    },
+    {
+      "start": 562.35,
+      "end": 570.39,
+      "en": "So I'm gonna say plt.hist, and here we see a histogram with the default number of 10 bins.",
+      "zh": "用plt.hist，看到預設十個區間。"
+    },
+    {
+      "start": 570.39,
+      "end": 571.62,
+      "en": "Maybe that's too few.",
+      "zh": "可能太少。"
+    },
+    {
+      "start": 571.62,
+      "end": 576.42,
+      "en": "Let's try bins equals, how about 30?",
+      "zh": "試bins=30如何？"
+    },
+    {
+      "start": 576.42,
+      "end": 585.51,
+      "en": "Okay, so, and then we see that there's a high concentration at low numbers and we get this kind of decrease in the frequency of numbers",
+      "zh": "看到小數值處集中很多，出現頻率，"
+    },
+    {
+      "start": 585.51,
+      "end": 587.79,
+      "en": "as we get to higher and higher values.",
+      "zh": "隨數值增大而下降。"
+    },
+    {
+      "start": 587.79,
+      "end": 597.54,
+      "en": "Now, there's nothing particularly important in this exercise about visualizing these data, but I want to instill in you a practice,",
+      "zh": "這個練習，視覺化本身沒特別重要，但想建立一種實踐，"
+    },
+    {
+      "start": 597.54,
+      "end": 604.98,
+      "en": "a habit of visualizing data whenever you can, as often as you can, and in at least two different ways.",
+      "zh": "習慣，只要可能，經常且至少用兩種方式視覺化。"
+    },
+    {
+      "start": 604.98,
+      "end": 611.25,
+      "en": "This is just good practice in general for working with data to visualize as much as possible.",
+      "zh": "處理資料時，盡可能視覺化，通常是好做法。"
+    },
+    {
+      "start": 611.25,
+      "end": 615.84,
+      "en": "Okay, so now I'm gonna compute the inter-quartile range in two different ways.",
+      "zh": "現在用兩種方式算四分位距。"
+    },
+    {
+      "start": 615.84,
+      "end": 625.35,
+      "en": "One is kind of a manual way where what I'll do is rank transform the data and then scale it down so it has a maximum value of one",
+      "zh": "一種手動，做秩轉換，再縮放到最大1，"
+    },
+    {
+      "start": 625.35,
+      "end": 633.29,
+      "en": "and then find the indices corresponding to 0.25 and 0.75 in the rank transform data",
+      "zh": "找出秩資料中對應0.25與0.75的索引，"
+    },
+    {
+      "start": 634.05,
+      "end": 639.87,
+      "en": "and then get those indices in the raw data and then compute the inter-quartilee range from there.",
+      "zh": "再取原始資料的對應索引，算四分位距。"
+    },
+    {
+      "start": 639.87,
+      "end": 645.39,
+      "en": "And then I'm gonna use python's built-in IQR function in these stats toolbox.",
+      "zh": "接著用stats工具箱的iqr函式。"
+    },
+    {
+      "start": 645.39,
+      "end": 651.96,
+      "en": "And well, you'll see that this number gives basically the same answer as what we compute all the way up here.",
+      "zh": "會看到，與前面手算基本相同。"
+    },
+    {
+      "start": 651.96,
+      "end": 660,
+      "en": "But in fact, first I want to, let me see, I'm gonna split this cell again because I would like to spend a moment exploring these rank data.",
+      "zh": "但先把儲存格再拆開，花點時間探索秩資料。"
+    },
+    {
+      "start": 660,
+      "end": 664.89,
+      "en": "So we rank transform the data, tiedrank transform, and then scale by N.",
+      "zh": "對資料做同秩轉換，再除N縮放。"
+    },
+    {
+      "start": 664.89,
+      "end": 667.32,
+      "en": "So let's see what these new data look like.",
+      "zh": "看看新資料。"
+    },
+    {
+      "start": 667.32,
+      "end": 672,
+      "en": "So plt.plot, dataR, make these squares.",
+      "zh": "plt.plot畫dataR，用方形標記。"
+    },
+    {
+      "start": 672,
+      "end": 682.17,
+      "en": "Now, unlike the original data, which were distributed in a way that had a lot of clustering towards zero and more sparsely sample data as we got higher up,",
+      "zh": "原始資料在0附近聚很多，往上變稀疏，"
+    },
+    {
+      "start": 682.17,
+      "end": 686.64,
+      "en": "here we see uniform distribution between zero and one.",
+      "zh": "這裡卻均勻分布在0到1。"
+    },
+    {
+      "start": 686.64,
+      "end": 689.823,
+      "en": "Of course it goes up to one because we divide by N.",
+      "zh": "除以N，所以最大到1。"
+    },
+    {
+      "start": 690.66,
+      "end": 701.43,
+      "en": "Now you'll remember when I introduced you to the tiedrank transform, that was in the section on math prerequisites, that I discussed that the rank transform is a non-linear",
+      "zh": "記得數學先備知識那一節介紹tiedrank時，談過秩轉換是非線性，"
+    },
+    {
+      "start": 701.43,
+      "end": 704.46,
+      "en": "and also lossy function of the data.",
+      "zh": "也是有損的資料函數。"
+    },
+    {
+      "start": 704.46,
+      "end": 710.25,
+      "en": "So I'm curious to see what the original data looked like against the rank transform data.",
+      "zh": "所以好奇原資料對秩資料，長什麼樣。"
+    },
+    {
+      "start": 710.25,
+      "end": 715.8,
+      "en": "So I'm gonna write data,dataR, data rank, and then we can just see what it looks like.",
+      "zh": "寫data、dataR，也就是秩資料，看看結果。"
+    },
+    {
+      "start": 715.8,
+      "end": 727.38,
+      "en": "So it's not surprising that there's a monotonic relationship and that's because the ordinal position of the data, of the original data, defines the ordinal position of the rank,",
+      "zh": "不意外，有單調關係，因為原資料序位，決定秩的序位，"
+    },
+    {
+      "start": 727.38,
+      "end": 730.26,
+      "en": "or in fact defines exactly the rank.",
+      "zh": "或者說，恰好定義了秩。"
+    },
+    {
+      "start": 730.26,
+      "end": 735.54,
+      "en": "And it is interesting to see that this has kind of a logarithm shape.",
+      "zh": "這看起來有點像對數，很有意思。"
+    },
+    {
+      "start": 735.54,
+      "end": 746.25,
+      "en": "And that shape the fact that we get a shape that looks like this is not something that's fundamental, it's not intrinsic to the rank transform, it actually just has to do with the nature of the data",
+      "zh": "但這形狀不是秩轉換的根本、內在特性，而是資料性質，"
+    },
+    {
+      "start": 746.25,
+      "end": 750.09,
+      "en": "that we simulated the data as the data points squared.",
+      "zh": "因為用資料點平方來模擬。"
+    },
+    {
+      "start": 750.09,
+      "end": 753.18,
+      "en": "So that's why we get this relationship like this.",
+      "zh": "所以得到這個關係。"
+    },
+    {
+      "start": 753.18,
+      "end": 762.66,
+      "en": "Okay, so now we rank transform the data and then what we do here is find the point in the data that is closest to 0.25 and 0.75.",
+      "zh": "秩轉換後，找出最接近0.25與0.75的點。"
+    },
+    {
+      "start": 762.66,
+      "end": 773.28,
+      "en": "And so the idea is that in the rank transform data, the data value corresponding to 0.25 is 25% of the way through the data values.",
+      "zh": "概念是，秩資料中對應0.25的值，位於資料值的25%位置。"
+    },
+    {
+      "start": 773.28,
+      "end": 780.03,
+      "en": "And then likewise for 0.75, this is 75% of the way through the data values.",
+      "zh": "同樣，0.75是75%位置。"
+    },
+    {
+      "start": 780.03,
+      "end": 786.6,
+      "en": "So 25% of the data is above whatever this point is going to be, which I'm calling Q3.",
+      "zh": "25%的資料高於這個點，我把它叫Q3。"
+    },
+    {
+      "start": 786.6,
+      "end": 792.39,
+      "en": "And the way that I'm implementing this is using this argmin syntax here.",
+      "zh": "用argmin語法實作。"
+    },
+    {
+      "start": 792.39,
+      "end": 799.59,
+      "en": "So basically what we're doing is taking the rank transform data, subtracting 0.25, and then squaring it.",
+      "zh": "基本上，秩資料減0.25，再平方。"
+    },
+    {
+      "start": 799.59,
+      "end": 806.61,
+      "en": "So what that means is that the data value that is closest to 0.25 is going to be closest to zero.",
+      "zh": "最接近0.25的資料值，就會最接近0。"
+    },
+    {
+      "start": 806.61,
+      "end": 809.7,
+      "en": "And then when we square it, that gets rid of all the negative signs.",
+      "zh": "平方後，去掉所有負號。"
+    },
+    {
+      "start": 809.7,
+      "end": 819.18,
+      "en": "So it flips all of the negative signs, and then we find the point that is closest to zero, which is the point in the rank transform data",
+      "zh": "把負號翻過來，再找最接近0的點，也就是秩資料裡，"
+    },
+    {
+      "start": 819.18,
+      "end": 821.46,
+      "en": "that's closest to 0.25.",
+      "zh": "最接近0.25的點。"
+    },
+    {
+      "start": 821.46,
+      "end": 832.68,
+      "en": "Okay, and then once we get these indices here, then we identify the two data points in the original dataset that are at those two indices.",
+      "zh": "取得索引後，找出原始資料集，那兩個索引的資料點。"
+    },
+    {
+      "start": 832.68,
+      "end": 835.89,
+      "en": "That gives us our inter-quartile values.",
+      "zh": "得到四分位值。"
+    },
+    {
+      "start": 835.89,
+      "end": 843.75,
+      "en": "So that gives us the quartile value of 75% of the data and the quartile value of 25% of the data.",
+      "zh": "也就是75%與25%資料位置的四分位值。"
+    },
+    {
+      "start": 843.75,
+      "end": 848.1,
+      "en": "And then the inner quartile range is just the difference between them.",
+      "zh": "四分位距只是兩者之差。"
+    },
+    {
+      "start": 848.1,
+      "end": 858.42,
+      "en": "Okay, and then here I'm also using python's built-in function, IQR, in the statistics toolbox for the inter-quartile range.",
+      "zh": "這裡也用統計工具箱的iqr函式計算。"
+    },
+    {
+      "start": 858.42,
+      "end": 867.6,
+      "en": "Now, in general, I don't really recommend going through all of this code just to compute the inter-quartile range, you can just use the IQR function,",
+      "zh": "一般不建議只為算IQR，寫這麼多程式，直接用iqr即可。"
+    },
+    {
+      "start": 867.6,
+      "end": 877.47,
+      "en": "but I'd like to spell this out mechanistically at least once during teaching so that you understand conceptually where the inter-quartile range is coming from.",
+      "zh": "但教學至少一次，詳細展示機制，讓你從概念理解四分位距來源。"
+    },
+    {
+      "start": 877.47,
+      "end": 883.08,
+      "en": "That said, there is one reason to compute inter-quartile range manually like this.",
+      "zh": "不過，手動算確實有一個理由。"
+    },
+    {
+      "start": 883.08,
+      "end": 894.45,
+      "en": "And that's if you want the actual values for the 25 percentile and the 75 percentile, then you'll actually need to run this code like this.",
+      "zh": "想取得第25與75百分位的實際值，就需要這樣執行。"
+    },
+    {
+      "start": 894.45,
+      "end": 904.62,
+      "en": "Okay, now if you look at these two numbers carefully, so this first number is my implementation of the inter-quartile range, and this number is python's implementation.",
+      "zh": "仔細比較這兩個數，第一個是我的實作，第二個是Python的實作。"
+    },
+    {
+      "start": 904.62,
+      "end": 908.73,
+      "en": "You can see that they're really close to each other, but they're not exactly the same.",
+      "zh": "非常接近，但不完全相同。"
+    },
+    {
+      "start": 908.73,
+      "end": 916.2,
+      "en": "So in fact, 1.19 is the same, and then this is seven and this is eight.",
+      "zh": "1.19相同，接著這裡7、那裡8。"
+    },
+    {
+      "start": 916.2,
+      "end": 922.92,
+      "en": "So essentially they're different from each other in this particular data set by one 1000th.",
+      "zh": "這個特定資料集，基本上相差千分之一。"
+    },
+    {
+      "start": 922.92,
+      "end": 924.72,
+      "en": "So that's a really tiny difference.",
+      "zh": "差異很小。"
+    },
+    {
+      "start": 924.72,
+      "end": 927.93,
+      "en": "It's not something I would get concerned about.",
+      "zh": "我不會擔心。"
+    },
+    {
+      "start": 927.93,
+      "end": 932.25,
+      "en": "And it's basically just due to differences in implementation of the algorithm.",
+      "zh": "基本上只是演算法實作不同。"
+    },
+    {
+      "start": 932.25,
+      "end": 943.41,
+      "en": "In particular here, I compute the exact 25th and 75th percentile and the stats implementation, so the stats module implementation of the IQR",
+      "zh": "特別是，我這裡算確切第25與75百分位，stats模組的IQR實作，"
+    },
+    {
+      "start": 943.41,
+      "end": 946.02,
+      "en": "is estimating these based on the distribution.",
+      "zh": "則根據分布估計。"
+    },
+    {
+      "start": 946.02,
+      "end": 949.83,
+      "en": "So tiny, tiny differences in implementation of algorithm.",
+      "zh": "只是非常細微的實作差異。"
+    },
+    {
+      "start": 949.83,
+      "end": 957.003,
+      "en": "But you can see that that's not gonna have any practical implications for any kind of interpretation.",
+      "zh": "不會對任何解讀有實際影響。"
+    }
+  ]
+}

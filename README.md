@@ -15,7 +15,8 @@ Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 | [FastAPI & Machine Learning: Build a Banking Fraud Detection](https://www.udemy.com/course/fastapi-banking-with-ai-ml-fraud-detection/) | 295 | 30,184 |
 | [Master Math by Coding in Python](https://www.udemy.com/course/math-with-python/) | 162 | 25,838 |
 | [Master calculus 1 using Python: derivatives and applications](https://www.udemy.com/course/pycalc1_x/) | 176 | 29,478 |
-| 合計 | **1632** | **173,991** |
+| [Master statistics & machine learning: intuition, math, code](https://www.udemy.com/course/statsml_x/) | 221 | 24,174 |
+| 合計 | **1853** | **198,165** |
 
 譯文由 Codex 直接依英文字幕製作，不使用 Google、iAI 或其他翻譯 API。程式識別字與影片敘述的版本、日期保留原文語意。
 
@@ -53,4 +54,4 @@ node --test tests/subtitles.test.mjs
 
 測試依 index 與 coverage 動態核對每門課、所有影片字幕、時間軸、課程作用範圍及字幕查找。結構檢查不能代替翻譯語意校對。
 
-來源字幕中無法確認的數值與教材原說法，請參閱[校譯註記](extension/review-notes/)。
+[校譯註記](extension/review-notes/)：原字幕疑點與講師原有說法的校譯紀錄。
