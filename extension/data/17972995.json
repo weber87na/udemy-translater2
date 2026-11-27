@@ -1,0 +1,1447 @@
+{
+  "courseId": "2511476",
+  "lectureId": "17972995",
+  "title": "Making Predictions On Test Images",
+  "section": 14,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e47c928b5ada45cfddbb4479cc4ffa7911da34f6fc06d1197da4b220063523e9",
+  "cues": [
+    {
+      "start": 0.8,
+      "end": 9.08,
+      "en": "So now we've got a fully trained model on the full training dataset, aka 10,000 images because if we look at X.",
+      "zh": "現在模型已在完整訓練集，也就是約 10,000 張影像上訓練；查看 X。"
+    },
+    {
+      "start": 11,
+      "end": 13.05,
+      "en": "We've got 10,000 images and labels.",
+      "zh": "有這些影像與標籤。"
+    },
+    {
+      "start": 13.07,
+      "end": 17.51,
+      "en": "Now let's use our fully trained model to make some predictions.",
+      "zh": "用完整訓練好的模型做預測，"
+    },
+    {
+      "start": 18.52,
+      "end": 22.09,
+      "en": "On the test data set, which is also about 10,000 images.",
+      "zh": "對測試資料集，也大約 10,000 張。"
+    },
+    {
+      "start": 22.09,
+      "end": 23.65,
+      "en": "We'll have a look at that in a second.",
+      "zh": "稍後確認。"
+    },
+    {
+      "start": 23.74,
+      "end": 27.04,
+      "en": "But let's come up to Kaggle and see how.",
+      "zh": "先到 Kaggle，看看，"
+    },
+    {
+      "start": 27.92,
+      "end": 31.07,
+      "en": "They want our predictions to look.",
+      "zh": "要求的預測格式。"
+    },
+    {
+      "start": 31.07,
+      "end": 37.64,
+      "en": "So a submission file for each image in the test set, you must predict a probability for each of the different breeds.",
+      "zh": "提交檔案必須對每張測試影像，預測各種品種的機率。"
+    },
+    {
+      "start": 37.76,
+      "end": 41.3,
+      "en": "The file should contain a header and have the following format.",
+      "zh": "需要標頭，並符合以下格式。"
+    },
+    {
+      "start": 41.6,
+      "end": 44.3,
+      "en": "So we need ID dog breed one.",
+      "zh": "有 id、第一個狗品種。"
+    },
+    {
+      "start": 44.3,
+      "end": 53.12,
+      "en": "I'm not even going to pretend I'm going to try to pronounce that once again, Afghan hound, Yorkshire terrier and then the prediction probabilities for all of those.",
+      "zh": "第一個名字我就不再假裝會念；接著 Afghan hound、Yorkshire terrier，還有全部品種的預測機率。"
+    },
+    {
+      "start": 53.72,
+      "end": 54.38,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 54.38,
+      "end": 56.99,
+      "en": "Now it says multiclass log loss.",
+      "zh": "這裡說 multiclass log loss。"
+    },
+    {
+      "start": 56.99,
+      "end": 60.11,
+      "en": "That's just the prediction probabilities for each dog breed.",
+      "zh": "要提供的就是每個狗品種的預測機率。"
+    },
+    {
+      "start": 61.67,
+      "end": 67.37,
+      "en": "Create another header section making predictions on the test data set.",
+      "zh": "建立新標題：對測試集預測。"
+    },
+    {
+      "start": 67.7,
+      "end": 71.6,
+      "en": "Now I want you to have a think before we go through the code.",
+      "zh": "寫程式前先想一想。"
+    },
+    {
+      "start": 72.39,
+      "end": 76.59,
+      "en": "What did we have to do to train our model on the training images?",
+      "zh": "為了訓練影像模型，做過什麼？"
+    },
+    {
+      "start": 77.6,
+      "end": 80.39,
+      "en": "Again, pretend this is data agnostic.",
+      "zh": "同樣先不限定資料類型。"
+    },
+    {
+      "start": 80.99,
+      "end": 87.83,
+      "en": "Whatever data you're working with, whether it's text or audio or images or video or something like that.",
+      "zh": "無論文字、音訊、影像、影片或其他資料。"
+    },
+    {
+      "start": 87.95,
+      "end": 92.33,
+      "en": "What is our rule before we can use it with a machine learning model?",
+      "zh": "交給機器學習模型之前，有什麼規則？"
+    },
+    {
+      "start": 93.2,
+      "end": 95.6,
+      "en": "Or in our case, a deep learning neural network.",
+      "zh": "這裡是深度神經網路。"
+    },
+    {
+      "start": 96.25999999999999,
+      "end": 98.69,
+      "en": "We've got to convert it into numbers.",
+      "zh": "要轉成數字。"
+    },
+    {
+      "start": 98.69,
+      "end": 103.85,
+      "en": "So that's what we have to do, the exact same data type that our model was trained on.",
+      "zh": "而且資料型態、格式，要和訓練時一樣。"
+    },
+    {
+      "start": 104.12,
+      "end": 114.92,
+      "en": "So the data batch up here, the data batch of images, we need to create one of those out of the test images so that we can make predictions on those images.",
+      "zh": "前面有影像批次，所以需要把測試影像也轉成同樣的批次，才能預測。"
+    },
+    {
+      "start": 115.03999999999999,
+      "end": 124.64,
+      "en": "So we'll write ourselves a little note since our model has been trained on images in the form of tens of batches.",
+      "zh": "給自己寫個註記：模型是在影像張量批次上訓練，"
+    },
+    {
+      "start": 126.27,
+      "end": 129.45,
+      "en": "To make predictions on the test data.",
+      "zh": "要對測試資料預測，"
+    },
+    {
+      "start": 131,
+      "end": 135.17,
+      "en": "We'll have to get it into the same format.",
+      "zh": "必須轉成相同格式。"
+    },
+    {
+      "start": 135.74,
+      "end": 141.23,
+      "en": "So if we come back to our graphic and keynote, I remember how I always said we're focusing on the inputs.",
+      "zh": "回簡報，記得一直強調輸入。"
+    },
+    {
+      "start": 141.23,
+      "end": 148.07,
+      "en": "So getting our data into the right shape for our machine learning algorithm and then making sure the outputs are correct.",
+      "zh": "讓資料形狀適合演算法，再確認輸出正確。"
+    },
+    {
+      "start": 148.07,
+      "end": 149.87,
+      "en": "This is what we focus on in the beginning.",
+      "zh": "初期著重這兩點。"
+    },
+    {
+      "start": 150.29,
+      "end": 153.47,
+      "en": "This has already been implemented for us in quite a large way.",
+      "zh": "中間的演算法，已有很大部分替我們實作好。"
+    },
+    {
+      "start": 153.77,
+      "end": 159.11,
+      "en": "As we get deeper and deeper, as you get into further projects, then you might want to start diving into this.",
+      "zh": "之後專案越深入，可能想研究中間細節。"
+    },
+    {
+      "start": 159.11,
+      "end": 166.52,
+      "en": "But for the time being and for approaching your first projects like we're doing now, you're going to be focused on inputs and outputs.",
+      "zh": "但目前處理第一批專案，先著重輸入與輸出。"
+    },
+    {
+      "start": 168.13,
+      "end": 172.72,
+      "en": "Now, a little tidbit here is, again, our function's coming in handy.",
+      "zh": "小提醒，函式又派上用場。"
+    },
+    {
+      "start": 172.75,
+      "end": 184.76,
+      "en": "Luckily, we created create data batches earlier, which can take a list of file names as input.",
+      "zh": "幸好先前建立 create_data_batches，能接收檔名串列。"
+    },
+    {
+      "start": 184.78,
+      "end": 192.43,
+      "en": "If you don't remember, go back up to where we create data batches and convert them into tensor batches.",
+      "zh": "不記得可以回頭看，把資料轉成張量批次。"
+    },
+    {
+      "start": 194.08,
+      "end": 198.19,
+      "en": "So what steps do we have to do to make predictions on the test data?",
+      "zh": "測試集預測有哪些步驟？"
+    },
+    {
+      "start": 198.61,
+      "end": 203.89,
+      "en": "Let's write those down to make predictions on the test data.",
+      "zh": "寫下來。"
+    },
+    {
+      "start": 204.13,
+      "end": 210.75,
+      "en": "Well, now, this is kind of what I do with a lot of my projects is just talk to myself, talk myself through it.",
+      "zh": "很多專案我都會這樣，對自己逐步說明。"
+    },
+    {
+      "start": 210.76,
+      "end": 212.23,
+      "en": "The rubber ducky technique.",
+      "zh": "橡皮鴨技巧。"
+    },
+    {
+      "start": 212.68,
+      "end": 215.21,
+      "en": "So get the test image file names.",
+      "zh": "取得測試影像檔名。"
+    },
+    {
+      "start": 215.23,
+      "end": 219.73,
+      "en": "That'll involve us writing just a little list comprehension like we've done before.",
+      "zh": "寫個像前面一樣的小串列生成式。"
+    },
+    {
+      "start": 220.03,
+      "end": 225.57999999999998,
+      "en": "To access the test, go through all the files in here and save the file names to some sort of list.",
+      "zh": "存取 test，走過所有檔案，把檔名存成串列。"
+    },
+    {
+      "start": 226.7,
+      "end": 228.05,
+      "en": "Yeah, we can do that.",
+      "zh": "可以。"
+    },
+    {
+      "start": 228.26,
+      "end": 239.36,
+      "en": "And then we got to convert the file names into test data batches using create data batches.",
+      "zh": "再用 create_data_batches，把檔名轉成測試批次。"
+    },
+    {
+      "start": 240.91,
+      "end": 242.77,
+      "en": "And setting.",
+      "zh": "並設定。"
+    },
+    {
+      "start": 244.95,
+      "end": 246.54,
+      "en": "The test data.",
+      "zh": "test_data。"
+    },
+    {
+      "start": 246.96,
+      "end": 249.99,
+      "en": "Remember how we created parameters to create data batches?",
+      "zh": "記得 create_data_batches 的參數嗎？"
+    },
+    {
+      "start": 249.99,
+      "end": 250.83,
+      "en": "If you don't, that's okay.",
+      "zh": "不記得沒關係。"
+    },
+    {
+      "start": 250.83,
+      "end": 254.77,
+      "en": "We're going to see in a second parameter to true because why?",
+      "zh": "等一下會看，把它設為 True。為什麼？"
+    },
+    {
+      "start": 254.79,
+      "end": 258.48,
+      "en": "What's different about our test data to our training data?",
+      "zh": "測試和訓練資料有什麼不同？"
+    },
+    {
+      "start": 258.93,
+      "end": 261.12,
+      "en": "There's no labels with the test data.",
+      "zh": "測試資料沒有標籤。"
+    },
+    {
+      "start": 261.12,
+      "end": 272.88,
+      "en": "So since the test data doesn't have labels and then finally we make a predictions, a predictions array",
+      "zh": "因為沒有標籤，最後產生預測陣列，"
+    },
+    {
+      "start": 272.88,
+      "end": 279.18,
+      "en": "by passing the test data batches to the predict.",
+      "zh": "把測試批次傳入模型的 predict，"
+    },
+    {
+      "start": 281.19,
+      "end": 284.58,
+      "en": "Method called on our model.",
+      "zh": "方法。"
+    },
+    {
+      "start": 285.15,
+      "end": 285.77,
+      "en": "Woo!",
+      "zh": "呼。"
+    },
+    {
+      "start": 286.05,
+      "end": 287.34000000000003,
+      "en": "We got three steps there.",
+      "zh": "三個步驟。"
+    },
+    {
+      "start": 287.34000000000003,
+      "end": 288.03,
+      "en": "But we can do them.",
+      "zh": "做得到。"
+    },
+    {
+      "start": 288.03,
+      "end": 289.37,
+      "en": "We can tackle them one by one.",
+      "zh": "逐一處理。"
+    },
+    {
+      "start": 289.38,
+      "end": 291.18,
+      "en": "How about we start with the first one?",
+      "zh": "從第一個開始，如何？"
+    },
+    {
+      "start": 291.18,
+      "end": 292.23,
+      "en": "That's pretty logical.",
+      "zh": "很合理。"
+    },
+    {
+      "start": 292.56,
+      "end": 296.01,
+      "en": "Load test image file names.",
+      "zh": "載入測試影像檔名。"
+    },
+    {
+      "start": 298.85,
+      "end": 299.69,
+      "en": "What could we do?",
+      "zh": "怎麼做？"
+    },
+    {
+      "start": 299.72,
+      "end": 301.2,
+      "en": "We could go test file names.",
+      "zh": "使用 test_filenames。"
+    },
+    {
+      "start": 301.22,
+      "end": 303.68,
+      "en": "Nice and simple equals.",
+      "zh": "簡單，令它等於。"
+    },
+    {
+      "start": 303.86,
+      "end": 306.08,
+      "en": "Actually, you might set up the test path.",
+      "zh": "其實可以先建立 test_path。"
+    },
+    {
+      "start": 306.29,
+      "end": 307.07,
+      "en": "How about we do that?",
+      "zh": "這樣做吧。"
+    },
+    {
+      "start": 307.07,
+      "end": 309.23,
+      "en": "Test path equals.",
+      "zh": "令 test_path 等於。"
+    },
+    {
+      "start": 310.07,
+      "end": 313.01,
+      "en": "And we'll just copy it here to save us writing it out twice.",
+      "zh": "直接複製，避免打兩遍。"
+    },
+    {
+      "start": 314.61,
+      "end": 315.6,
+      "en": "Copy path.",
+      "zh": "Copy path。"
+    },
+    {
+      "start": 316.46,
+      "end": 317.81,
+      "en": "That's a little handy tip.",
+      "zh": "實用的小技巧。"
+    },
+    {
+      "start": 317.81,
+      "end": 318.74,
+      "en": "You can do that.",
+      "zh": "可以這樣。"
+    },
+    {
+      "start": 319.07,
+      "end": 320.79,
+      "en": "You can paste.",
+      "zh": "貼上。"
+    },
+    {
+      "start": 320.81,
+      "end": 322.34,
+      "en": "We don't need content.",
+      "zh": "前面不需要 content。"
+    },
+    {
+      "start": 323.36,
+      "end": 326.42,
+      "en": "We could just keep it there if we wanted to, but I'm going to remove it.",
+      "zh": "想保留也可以，但我移除。"
+    },
+    {
+      "start": 326.42,
+      "end": 328.76,
+      "en": "So it's consistent with the other paths that we have.",
+      "zh": "和其他路徑一致。"
+    },
+    {
+      "start": 328.85,
+      "end": 331.37,
+      "en": "And I'm going to put this one here.",
+      "zh": "放在這裡。"
+    },
+    {
+      "start": 332.38,
+      "end": 334.6,
+      "en": "So that's my path to the test folder.",
+      "zh": "這就是測試資料夾路徑。"
+    },
+    {
+      "start": 335.14,
+      "end": 337.93,
+      "en": "So now we're going to go create a little list.",
+      "zh": "再建立串列，"
+    },
+    {
+      "start": 337.93,
+      "end": 348.31,
+      "en": "Comprehension equals test path plus f name file name for f name in o's dot list dir.",
+      "zh": "生成式：test_path + fname，遍歷 os.listdir(test_path) 裡每個 fname。"
+    },
+    {
+      "start": 349.35,
+      "end": 350.7,
+      "en": "Test path.",
+      "zh": "傳入 test_path。"
+    },
+    {
+      "start": 351.71,
+      "end": 359.65999999999997,
+      "en": "Now we've seen this before when recreating the original training file names, but let's just remind ourselves what it's doing.",
+      "zh": "建立原始訓練檔名時看過，再複習。"
+    },
+    {
+      "start": 359.65999999999997,
+      "end": 363.5,
+      "en": "So O's dot lister is just going through or this directory.",
+      "zh": "os.listdir 就是走到這個目錄。"
+    },
+    {
+      "start": 363.5,
+      "end": 364.58,
+      "en": "That's what it's short for.",
+      "zh": "就是列出目錄的意思。"
+    },
+    {
+      "start": 364.76,
+      "end": 373.25,
+      "en": "It's just saying, Hey, Python, get me all of the file names in this folder and then we're creating",
+      "zh": "告訴 Python，取得資料夾裡全部檔名，再建立，"
+    },
+    {
+      "start": 373.25,
+      "end": 383.78,
+      "en": "a list which appends the test path, which is this or adds together the test path, plus every single file name in.",
+      "zh": "串列，把 test_path 與每個檔名相加。"
+    },
+    {
+      "start": 385.76,
+      "end": 386.75,
+      "en": "The test folder.",
+      "zh": "都是 test 資料夾裡的檔名。"
+    },
+    {
+      "start": 388.17,
+      "end": 389.1,
+      "en": "Let's have a look.",
+      "zh": "看看。"
+    },
+    {
+      "start": 389.13,
+      "end": 390.72,
+      "en": "If in doubt, run the code.",
+      "zh": "有疑問就執行程式。"
+    },
+    {
+      "start": 392.67,
+      "end": 393.62,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 393.63,
+      "end": 397.83,
+      "en": "So now we've got the file names towards our test data.",
+      "zh": "現在有測試資料的檔案路徑。"
+    },
+    {
+      "start": 398.04,
+      "end": 399.33,
+      "en": "We can take that off.",
+      "zh": "這項可以打勾。"
+    },
+    {
+      "start": 401.61,
+      "end": 403.09000000000003,
+      "en": "Get out green tick emoji.",
+      "zh": "拿出綠色勾勾表情。"
+    },
+    {
+      "start": 403.11,
+      "end": 405.75,
+      "en": "This notebook is going to be filled with them by the end.",
+      "zh": "結束前 Notebook 會充滿勾勾。"
+    },
+    {
+      "start": 406.29,
+      "end": 407.88,
+      "en": "Okay, now we've got it.",
+      "zh": "好，有了。"
+    },
+    {
+      "start": 407.90999999999997,
+      "end": 408.9,
+      "en": "What's our next step?",
+      "zh": "下一步？"
+    },
+    {
+      "start": 408.93,
+      "end": 414.8,
+      "en": "Convert the file names into test data batches using create data batches.",
+      "zh": "用 create_data_batches，把檔名轉成測試批次。"
+    },
+    {
+      "start": 414.88,
+      "end": 417.07,
+      "en": "Oh, I said date there.",
+      "zh": "喔，剛才寫成 date。"
+    },
+    {
+      "start": 417.69,
+      "end": 418.56,
+      "en": "That's wrong.",
+      "zh": "錯了。"
+    },
+    {
+      "start": 418.95,
+      "end": 419.35,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 419.37,
+      "end": 420.06,
+      "en": "Fix it up.",
+      "zh": "修正。"
+    },
+    {
+      "start": 420.48,
+      "end": 425.25,
+      "en": "First of all, let's just do a little length check of our test file name, see how many images we have.",
+      "zh": "先檢查 test_filenames 長度，看看有幾張影像。"
+    },
+    {
+      "start": 428.92,
+      "end": 430.79,
+      "en": "10,357.",
+      "zh": "10,357。"
+    },
+    {
+      "start": 430.81,
+      "end": 431.78,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 431.8,
+      "end": 435.94,
+      "en": "So now to create a data batch, it's pretty simple.",
+      "zh": "接著建立批次，很簡單。"
+    },
+    {
+      "start": 436.24,
+      "end": 437.65,
+      "en": "We just bring in our function.",
+      "zh": "直接用函式。"
+    },
+    {
+      "start": 437.65,
+      "end": 439.12,
+      "en": "We go test data.",
+      "zh": "設定 test_data。"
+    },
+    {
+      "start": 440.17,
+      "end": 442.3,
+      "en": "We'll write a comment here before we get started.",
+      "zh": "開始前先寫註解。"
+    },
+    {
+      "start": 442.3,
+      "end": 444.97,
+      "en": "So create test data.",
+      "zh": "建立測試資料，"
+    },
+    {
+      "start": 444.97,
+      "end": 445.54,
+      "en": "Batch.",
+      "zh": "批次。"
+    },
+    {
+      "start": 447.23,
+      "end": 451.07,
+      "en": "And we're going to go create data batches.",
+      "zh": "呼叫 create_data_batches。"
+    },
+    {
+      "start": 451.07,
+      "end": 455.24,
+      "en": "Oh, it knows what we're talking about and then we're going to pass it the test file names.",
+      "zh": "它知道我們要什麼，再傳入 test_filenames。"
+    },
+    {
+      "start": 456.6,
+      "end": 460.62,
+      "en": "And we're also going to see there's our test data plane.",
+      "zh": "這裡可以看到 test_data 參數。"
+    },
+    {
+      "start": 460.62,
+      "end": 463.59000000000003,
+      "en": "So we go test data equals true.",
+      "zh": "設為 test_data=True。"
+    },
+    {
+      "start": 464.52,
+      "end": 465.57,
+      "en": "And we'll run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 467.12,
+      "end": 468.02,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 468.05,
+      "end": 471.74,
+      "en": "We get a little print out saying creating test data batches.",
+      "zh": "印出 Creating test data batches。"
+    },
+    {
+      "start": 471.74,
+      "end": 473.63,
+      "en": "Such a great function that we wrote.",
+      "zh": "這個函式真棒。"
+    },
+    {
+      "start": 473.9,
+      "end": 475.97,
+      "en": "Let's come up here and have a look at it again.",
+      "zh": "回上面再看看。"
+    },
+    {
+      "start": 476.84000000000003,
+      "end": 478.52,
+      "en": "Turning our data into batches.",
+      "zh": "把資料轉成批次。"
+    },
+    {
+      "start": 479.44,
+      "end": 484.03,
+      "en": "So we've got a function create data batch or create data batches.",
+      "zh": "這裡有 create_data_batches。"
+    },
+    {
+      "start": 485.41,
+      "end": 490.9,
+      "en": "And what does it do if it's test data, which it is, it prints out this little statement and then it",
+      "zh": "如果是測試資料，就印出這段，然後，"
+    },
+    {
+      "start": 490.9,
+      "end": 499.51,
+      "en": "goes, Hey, turn our file names into tenses and then use from tens of slices to convert it into a tensor",
+      "zh": "將檔名轉成張量，用 from_tensor_slices 轉成，"
+    },
+    {
+      "start": 499.51,
+      "end": 505.45,
+      "en": "data set and then create a data batch by mapping the process image function.",
+      "zh": "TensorFlow Dataset，再映射 process_image 建立資料批次。"
+    },
+    {
+      "start": 505.84,
+      "end": 512.11,
+      "en": "Remember, we don't pass get image label to the test data set because there's no labels with the test data set.",
+      "zh": "測試集沒有標籤，所以不使用 get_image_label。"
+    },
+    {
+      "start": 512.23,
+      "end": 517.69,
+      "en": "So we process our images just like we did on the training data, and then we turn it into a batch,",
+      "zh": "和訓練資料一樣處理影像，再轉成批次。"
+    },
+    {
+      "start": 518.02,
+      "end": 525.43,
+      "en": "in our case, batches of size 32 so that it can be computed really fast on with our GPU.",
+      "zh": "這裡大小 32，讓 GPU 快速運算。"
+    },
+    {
+      "start": 525.55,
+      "end": 528.25,
+      "en": "So let's come back to where we were.",
+      "zh": "回剛才的位置。"
+    },
+    {
+      "start": 529.34,
+      "end": 530.33,
+      "en": "That's what we've got.",
+      "zh": "這就是目前有的。"
+    },
+    {
+      "start": 531.68,
+      "end": 533.81,
+      "en": "And if we go test data.",
+      "zh": "查看 test_data。"
+    },
+    {
+      "start": 536.71,
+      "end": 539.14,
+      "en": "It's a bad data set of shapes.",
+      "zh": "BatchDataset 的形狀。"
+    },
+    {
+      "start": 539.14,
+      "end": 540.55,
+      "en": "So there's no labels here.",
+      "zh": "沒有標籤。"
+    },
+    {
+      "start": 540.55,
+      "end": 547.12,
+      "en": "These are just images of 2 to 4 by 2 to 4 by three for the color channels of type TensorFlow float.",
+      "zh": "只有 224×224×3 的影像，三個色彩通道，TensorFlow 浮點數型別。"
+    },
+    {
+      "start": 547.57,
+      "end": 549.52,
+      "en": "So beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 549.52,
+      "end": 553.9,
+      "en": "We've got our test data in the form of tensor batches.",
+      "zh": "測試資料已是張量批次。"
+    },
+    {
+      "start": 553.9,
+      "end": 554.95,
+      "en": "That's what we're after.",
+      "zh": "正是要的。"
+    },
+    {
+      "start": 555.1,
+      "end": 564.34,
+      "en": "And now the finale, we can come up here, see how handy writing our functions to begin with has helped us out.",
+      "zh": "最後，先寫函式的好處又展現了。"
+    },
+    {
+      "start": 564.34,
+      "end": 568.03,
+      "en": "We've created a form model, we've created a data batch in one hit.",
+      "zh": "已建立完整模型，也能一次建立資料批次。"
+    },
+    {
+      "start": 568.03,
+      "end": 570.07,
+      "en": "Now we're going to make a predictions array.",
+      "zh": "現在產生預測陣列。"
+    },
+    {
+      "start": 570.7,
+      "end": 572.65,
+      "en": "So how can we do that?",
+      "zh": "怎麼做？"
+    },
+    {
+      "start": 573.04,
+      "end": 582.61,
+      "en": "Make predictions on test data batch using the loaded full model.",
+      "zh": "使用載入的完整模型，對測試批次預測。"
+    },
+    {
+      "start": 583.21,
+      "end": 583.66,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 583.66,
+      "end": 585.04,
+      "en": "So test predictions.",
+      "zh": "令 test_predictions，"
+    },
+    {
+      "start": 587.14,
+      "end": 592.27,
+      "en": "Equals loaded full model dot predict.",
+      "zh": "等於 loaded_full_model.predict。"
+    },
+    {
+      "start": 594.13,
+      "end": 595.54,
+      "en": "Test data.",
+      "zh": "傳入 test_data。"
+    },
+    {
+      "start": 596.47,
+      "end": 600.28,
+      "en": "We're going to set this to four bows equals one.",
+      "zh": "verbose=1。"
+    },
+    {
+      "start": 601.18,
+      "end": 602.2,
+      "en": "Excellent.",
+      "zh": "很好。"
+    },
+    {
+      "start": 602.23,
+      "end": 609.04,
+      "en": "Now, I kind of have to warn you that this is going to take a fairly long time.",
+      "zh": "不過先提醒，會花相當久。"
+    },
+    {
+      "start": 610.14,
+      "end": 618.78,
+      "en": "Reason being is because let's put a little note here before we run this cell note calling.",
+      "zh": "執行前加個註記。"
+    },
+    {
+      "start": 619.56,
+      "end": 621.45,
+      "en": "Even though we're running on a CPU.",
+      "zh": "雖然在 GPU 上執行，原字幕此處寫 CPU，"
+    },
+    {
+      "start": 621.75,
+      "end": 623.52,
+      "en": "This is just like training our phone model.",
+      "zh": "這和訓練完整模型類似。"
+    },
+    {
+      "start": 623.52,
+      "end": 630.06,
+      "en": "So calling predict on our full model and passing it.",
+      "zh": "呼叫完整模型的 predict，傳入，"
+    },
+    {
+      "start": 631.56,
+      "end": 637.59,
+      "en": "The test data batch will take a long time to run.",
+      "zh": "測試批次，會執行很久。"
+    },
+    {
+      "start": 638.66,
+      "end": 642.41,
+      "en": "And then it's going to be something like about an hour.",
+      "zh": "大約一小時。"
+    },
+    {
+      "start": 644.03,
+      "end": 645.65,
+      "en": "We'll just go about one hour.",
+      "zh": "先寫大約一小時。"
+    },
+    {
+      "start": 647.4,
+      "end": 648.72,
+      "en": "That's what I found anyway.",
+      "zh": "至少我之前是這樣。"
+    },
+    {
+      "start": 648.75,
+      "end": 651.78,
+      "en": "Reason being is because we have another 10,000 images here.",
+      "zh": "因為又有另外 10,000 多張影像。"
+    },
+    {
+      "start": 652.38,
+      "end": 655.02,
+      "en": "And what we have to do is get our loaded four models.",
+      "zh": "需要載入的完整模型，"
+    },
+    {
+      "start": 655.02,
+      "end": 659.4,
+      "en": "So all of the patterns that our loaded full model has learned in the training data set.",
+      "zh": "用在訓練集學到的全部模式，"
+    },
+    {
+      "start": 659.46,
+      "end": 661.86,
+      "en": "It has to go through those process.",
+      "zh": "處理，"
+    },
+    {
+      "start": 661.86,
+      "end": 666.78,
+      "en": "The 10,000 images in our test file names or our test data batch.",
+      "zh": "這 10,000 多張測試影像。"
+    },
+    {
+      "start": 667.54,
+      "end": 672.58,
+      "en": "And then make predictions on those based on the patterns it finds in that test data.",
+      "zh": "找出測試影像中的模式，據以預測。"
+    },
+    {
+      "start": 673.12,
+      "end": 682.15,
+      "en": "So we've set verbose equal to one so that when we run this, it's going to give us another little time step to update us about what's going on.",
+      "zh": "verbose=1，執行時就會顯示時間進度。"
+    },
+    {
+      "start": 682.69,
+      "end": 686.8,
+      "en": "So without any further ado, let's run this.",
+      "zh": "不多說，執行。"
+    },
+    {
+      "start": 688.92,
+      "end": 692.28,
+      "en": "And wait for it to load and then we'll do the same thing again.",
+      "zh": "等它載入，再一樣。"
+    },
+    {
+      "start": 692.58,
+      "end": 698.03,
+      "en": "All speed up the video so it'll be like instantaneously loaded for you.",
+      "zh": "加速影片，對你看起來像立刻完成。"
+    },
+    {
+      "start": 698.04,
+      "end": 700.89,
+      "en": "In reality, it'll take you a while to run this cell.",
+      "zh": "實際上，你執行這個儲存格要等。"
+    },
+    {
+      "start": 700.89,
+      "end": 703.38,
+      "en": "In reality, it'll take me a while to run this cell.",
+      "zh": "我這裡也要等。"
+    },
+    {
+      "start": 703.38,
+      "end": 705.75,
+      "en": "But I'm just doing it to show you it.",
+      "zh": "只是想示範。"
+    },
+    {
+      "start": 705.75,
+      "end": 712.14,
+      "en": "Loading up, creating an ETA message, and then going through making some predictions on the test data.",
+      "zh": "開始載入、顯示 ETA，再逐步預測測試資料。"
+    },
+    {
+      "start": 714.04,
+      "end": 715.12,
+      "en": "So we'll just wait a little while.",
+      "zh": "先等一下。"
+    },
+    {
+      "start": 715.12,
+      "end": 715.99,
+      "en": "This is going to go up.",
+      "zh": "這裡會更新。"
+    },
+    {
+      "start": 715.99,
+      "end": 716.74,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 716.77,
+      "end": 718.71,
+      "en": "So, ETA, about 38 minutes.",
+      "zh": "ETA 大約 38 分鐘。"
+    },
+    {
+      "start": 718.72,
+      "end": 723.73,
+      "en": "It has to go through 324 batches.",
+      "zh": "要處理 324 個批次。"
+    },
+    {
+      "start": 724.03,
+      "end": 730.51,
+      "en": "And so that is because if you go 10,357 divided by 32.",
+      "zh": "因為 10,357 除以 32，"
+    },
+    {
+      "start": 731.56,
+      "end": 733.57,
+      "en": "It's going to round that up to 324.",
+      "zh": "向上取整就是 324。"
+    },
+    {
+      "start": 733.6,
+      "end": 735.01,
+      "en": "That's where that number comes from.",
+      "zh": "這個數字就是這樣來。"
+    },
+    {
+      "start": 738.55,
+      "end": 739.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 739.18,
+      "end": 742.96,
+      "en": "So I'm going to wait for this to go through.",
+      "zh": "等它跑完。"
+    },
+    {
+      "start": 742.99,
+      "end": 744.82,
+      "en": "You might have to wait for it to go through as well.",
+      "zh": "你可能也得等。"
+    },
+    {
+      "start": 744.82,
+      "end": 747.48,
+      "en": "You don't actually have to wait.",
+      "zh": "不過影片不用等。"
+    },
+    {
+      "start": 747.49,
+      "end": 755.59,
+      "en": "I'll be back in a few seconds, so I'm going to pause my video here and I'll be back in three, two, one, and we're back.",
+      "zh": "幾秒就回來，先暫停，三、二、一，回來了。"
+    },
+    {
+      "start": 755.62,
+      "end": 759.1,
+      "en": "Now, I've gone and done something a little bit cheeky here.",
+      "zh": "其實做了個小技巧。"
+    },
+    {
+      "start": 759.13,
+      "end": 765.52,
+      "en": "As you see, we've got about an hour left, but I figured you'd rather me sit here and wait for this.",
+      "zh": "你看，還剩大約一小時，但與其坐在這裡等，"
+    },
+    {
+      "start": 765.52,
+      "end": 768.73,
+      "en": "I've actually, like any good chef has done.",
+      "zh": "我像好廚師一樣，"
+    },
+    {
+      "start": 768.89,
+      "end": 775.42,
+      "en": "I've prepared a dish earlier, so I've actually gone through this process and waited the full one hour to go through.",
+      "zh": "已先做好一道菜。也就是先前已跑過完整流程，等過一小時。"
+    },
+    {
+      "start": 775.42,
+      "end": 777.94,
+      "en": "And now you could wait for yours to go through.",
+      "zh": "你可以等自己的執行完。"
+    },
+    {
+      "start": 777.94,
+      "end": 787.27,
+      "en": "But if you'd like to download a pre-made CSV of the test predictions, I'll attach that in the resource section so you don't have to wait that full hour to go through.",
+      "zh": "也可以下載我預先產生的測試預測 CSV，會放在資源區，就不必等整整一小時。"
+    },
+    {
+      "start": 787.27,
+      "end": 796.96,
+      "en": "And now I probably should have told you this before running this cell, but it's a good thing to sort of just get your feet wet and then figure out a better way of doing things.",
+      "zh": "可能應該在執行前說，但先親自試試，再找更好方法，也很好。"
+    },
+    {
+      "start": 797.29,
+      "end": 805.78,
+      "en": "If we wanted this to save test predictions to a CSV file after it runs through because if we waited",
+      "zh": "如果希望執行完成後，把 test_predictions 存成 CSV，因為等了，"
+    },
+    {
+      "start": 805.78,
+      "end": 813.43,
+      "en": "a full hour for it to go through and then we somehow our runtime disconnected and it didn't save, that'd be pretty disappointing.",
+      "zh": "一小時，卻因執行階段中斷沒存到，會很失望。"
+    },
+    {
+      "start": 813.97,
+      "end": 821.5,
+      "en": "So what we can do is use np save text this function here to save.",
+      "zh": "可以用 np.savetxt。"
+    },
+    {
+      "start": 821.5,
+      "end": 825.4,
+      "en": "Will this load a docstring while this is running?",
+      "zh": "現在執行中，會載入 docstring 嗎？"
+    },
+    {
+      "start": 825.4,
+      "end": 826.51,
+      "en": "I don't think it will.",
+      "zh": "我想不會。"
+    },
+    {
+      "start": 826.81,
+      "end": 831.7,
+      "en": "But what this is going to do, we forgot this spreads array.",
+      "zh": "不過如果已有 test_predictions 陣列，"
+    },
+    {
+      "start": 831.94,
+      "end": 833.83,
+      "en": "So let's just say that this finished.",
+      "zh": "假設已經完成。"
+    },
+    {
+      "start": 834.88,
+      "end": 838.81,
+      "en": "If I ran this cell after it, it's going to save test predictions.",
+      "zh": "接著執行這個儲存格，就會保存 test_predictions。"
+    },
+    {
+      "start": 838.81,
+      "end": 849.85,
+      "en": "So this numpy array, which is a prediction probabilities array to this file as a CSV with the delimiter comma four, comma, separated values.",
+      "zh": "也就是預測機率 NumPy 陣列，存成 CSV，delimiter 設為逗號，也就是逗號分隔值。"
+    },
+    {
+      "start": 849.97,
+      "end": 852.97,
+      "en": "And then once it was saved, it's going to appear.",
+      "zh": "儲存後，就會出現，"
+    },
+    {
+      "start": 853.75,
+      "end": 864.64,
+      "en": "In our files as a producer, a CSV, because that's the file name we gave it and then we can use NP load text to load it back in.",
+      "zh": "在檔案裡的預測 CSV；檔名是自己指定的，再用 np.loadtxt 讀回。"
+    },
+    {
+      "start": 865.47,
+      "end": 866.79,
+      "en": "So what we'll do?",
+      "zh": "接著怎麼做？"
+    },
+    {
+      "start": 868.11,
+      "end": 870.86,
+      "en": "Rather than wait for this to finish, I'll just show you that in action.",
+      "zh": "不等它完成，直接示範。"
+    },
+    {
+      "start": 870.87,
+      "end": 875.1,
+      "en": "So these are some prediction probabilities that I've made in the past with a full model.",
+      "zh": "這是以前完整模型產生的預測機率。"
+    },
+    {
+      "start": 875.16,
+      "end": 878.85,
+      "en": "So I'm going to stop this had about an hour to go.",
+      "zh": "停止目前的執行，還剩約一小時。"
+    },
+    {
+      "start": 879.36,
+      "end": 883.98,
+      "en": "So again, my estimation is going to take about an hour is incorrect.",
+      "zh": "所以原先說總共一小時的預估不對。"
+    },
+    {
+      "start": 884.52,
+      "end": 886.47,
+      "en": "So keyboard interrupt.",
+      "zh": "KeyboardInterrupt。"
+    },
+    {
+      "start": 886.5,
+      "end": 887.46,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 887.55,
+      "end": 893.37,
+      "en": "So we're not going to run that because I've already I've already saved this to press array, but I am going to run this.",
+      "zh": "不執行儲存這段，因為先前已保存預測陣列，但要執行讀取。"
+    },
+    {
+      "start": 893.37,
+      "end": 897.45,
+      "en": "So let's pretend I've run this after this cell has completed.",
+      "zh": "假設前面完成後，已跑過儲存。"
+    },
+    {
+      "start": 897.45,
+      "end": 899.31,
+      "en": "So this ETA has reached zero.",
+      "zh": "也就是 ETA 已到 0。"
+    },
+    {
+      "start": 900.18,
+      "end": 902.85,
+      "en": "So I'm going to load in this array from a CSV file.",
+      "zh": "現在從 CSV 載入陣列。"
+    },
+    {
+      "start": 905.55,
+      "end": 906.48,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 906.87,
+      "end": 909.57,
+      "en": "Now let's have a look at the first ten.",
+      "zh": "看看前十筆。"
+    },
+    {
+      "start": 915.11,
+      "end": 916.11,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 916.13,
+      "end": 919.79,
+      "en": "So these are all prediction probabilities for the 10,000 images.",
+      "zh": "這些全是那 10,000 多張影像的預測機率。"
+    },
+    {
+      "start": 919.79,
+      "end": 922.58,
+      "en": "So let's have a look at the shape of test predictions.",
+      "zh": "查看 test_predictions.shape。"
+    },
+    {
+      "start": 928.16,
+      "end": 929.9,
+      "en": "10,357.",
+      "zh": "10,357。"
+    },
+    {
+      "start": 929.9,
+      "end": 931.94,
+      "en": "So that's how many test images we have.",
+      "zh": "就是測試影像數。"
+    },
+    {
+      "start": 931.94,
+      "end": 936.22,
+      "en": "And each one of them has 120 different prediction probabilities.",
+      "zh": "每張都有 120 個預測機率。"
+    },
+    {
+      "start": 936.23,
+      "end": 938.24,
+      "en": "Now, we've seen these values before.",
+      "zh": "這些值前面看過。"
+    },
+    {
+      "start": 938.48,
+      "end": 947.21,
+      "en": "And so remember, I've just taken this, let it run to its extent, save the CSV to a file that I've",
+      "zh": "記得，這是先前已完成預測、另存 CSV 的結果，"
+    },
+    {
+      "start": 947.21,
+      "end": 953.48,
+      "en": "done earlier, as if we've cooked something earlier and then I've just reloaded it in here.",
+      "zh": "就像預先煮好一道菜，現在只是重新載入。"
+    },
+    {
+      "start": 953.48,
+      "end": 960.23,
+      "en": "If my runtime disconnected, I'd want this file to be saved somewhere that I can access it later.",
+      "zh": "執行階段中斷時，希望仍能從某處讀到這個檔案。"
+    },
+    {
+      "start": 961.05,
+      "end": 963.06,
+      "en": "And so what's our next mission?",
+      "zh": "下一個任務？"
+    },
+    {
+      "start": 963.06,
+      "end": 966.51,
+      "en": "If we wanted to submit this predictions array to Kaggle, what would it have to look like?",
+      "zh": "如果想提交 Kaggle，預測陣列應該長什麼樣？"
+    },
+    {
+      "start": 966.51,
+      "end": 969,
+      "en": "So the sample submission is here.",
+      "zh": "sample_submission 在這裡。"
+    },
+    {
+      "start": 970.52,
+      "end": 971.99,
+      "en": "Oh, something went wrong.",
+      "zh": "喔，有問題。"
+    },
+    {
+      "start": 972.02,
+      "end": 973.13,
+      "en": "You're letting your data.",
+      "zh": "載入資料時出了錯。"
+    },
+    {
+      "start": 973.19,
+      "end": 974.18,
+      "en": "That's not very fun.",
+      "zh": "不太好。"
+    },
+    {
+      "start": 974.18,
+      "end": 977.96,
+      "en": "But luckily, I've got this file in dog vision.",
+      "zh": "幸好 Dog Vision 裡也有這個檔。"
+    },
+    {
+      "start": 979.21,
+      "end": 980.78,
+      "en": "And it's the same way.",
+      "zh": "同樣的內容。"
+    },
+    {
+      "start": 980.8,
+      "end": 985.03,
+      "en": "And so all I've done is I've just downloaded it and opened it in Google sheets.",
+      "zh": "只是下載後，用 Google 試算表開啟。"
+    },
+    {
+      "start": 985.03,
+      "end": 986.05,
+      "en": "So this is what it looks like.",
+      "zh": "長這樣。"
+    },
+    {
+      "start": 986.05,
+      "end": 990.76,
+      "en": "This is the, the sample submission we need to get our predictions array into something like this.",
+      "zh": "這是提交範例，要把預測陣列整理成相同格式。"
+    },
+    {
+      "start": 990.76,
+      "end": 997.84,
+      "en": "So an ID column and then a column for each of the different dog breeds and then their prediction probabilities.",
+      "zh": "一個 id 欄，再加上每個狗品種的欄，裡面放預測機率。"
+    },
+    {
+      "start": 998.14,
+      "end": 1000.45,
+      "en": "So that's what we'll work towards in the next video.",
+      "zh": "下一支影片朝這個方向做。"
+    },
+    {
+      "start": 1000.48,
+      "end": 1009.15,
+      "en": "We'll get our prediction probabilities array for dog vision or we're actually going back to the Kaggle dog breed identification format.",
+      "zh": "將 Dog Vision 的預測機率陣列，轉回 Kaggle Dog Breed Identification 所需格式。"
+    },
+    {
+      "start": 1009.57,
+      "end": 1014.52,
+      "en": "So we'll get it set up like that so we can make a submission to Kaggle with our predictions.",
+      "zh": "整理好，就能提交預測。"
+    }
+  ]
+}
