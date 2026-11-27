@@ -1,0 +1,931 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51888185",
+  "title": "CodeChallenge: soft-coded analogies in word2vec",
+  "section": 17,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "5087c178b697bc91863d71a623389648ec3918eb5869bc78c0138b8bf1aa9b0d",
+  "cues": [
+    {
+      "start": 2.04,
+      "end": 10.16,
+      "en": "This is part two in the three part series of linear semantic axes with word embeddings.",
+      "zh": "這是單字嵌入線性語意軸三部系列的第二部。"
+    },
+    {
+      "start": 10.76,
+      "end": 17.4,
+      "en": "The goal here is to continue with what we started in the previous video, and also seeing if we can",
+      "zh": "目標是延續上一部影片開始的內容，也看看"
+    },
+    {
+      "start": 17.4,
+      "end": 23.68,
+      "en": "get better results if we use the word two vec embeddings instead of the glove embeddings.",
+      "zh": "改用 Word2vec 嵌入，而不是 GloVe，能否得到更好的結果。"
+    },
+    {
+      "start": 24.4,
+      "end": 32.2,
+      "en": "So I will begin with a brief reminder of the difference between how these two embeddings matrices were trained.",
+      "zh": "所以，先簡單複習這兩種嵌入矩陣訓練方式的差別。"
+    },
+    {
+      "start": 32.2,
+      "end": 34.44,
+      "en": "And then we'll get to the exercises.",
+      "zh": "接著進入練習。"
+    },
+    {
+      "start": 35.24,
+      "end": 42,
+      "en": "So the glove model comes from a very large matrix of word co-occurrences in text.",
+      "zh": "GloVe 模型來自一個很大的文字中單字共現矩陣。"
+    },
+    {
+      "start": 42.4,
+      "end": 53.96,
+      "en": "Basically, it's just counting how often words appeared next to each other in lots of data, and then factorizing that matrix to get a reduced dimensional representation.",
+      "zh": "基本上，就是在大量資料中，計算單字相鄰出現的次數，再對矩陣做分解，取得低維表示。"
+    },
+    {
+      "start": 54.56,
+      "end": 62.6,
+      "en": "And that means that glove is really good at capturing more kind of global word frequency See characteristics and word pairs.",
+      "zh": "因此，GloVe 很擅長捕捉比較全域的詞頻特徵與單字配對。"
+    },
+    {
+      "start": 63.24,
+      "end": 74.6,
+      "en": "Now word two vec, on the other hand, is trained from neural networks and is designed to predict a word given a context of surrounding words.",
+      "zh": "另一方面，Word2vec 透過神經網路訓練，設計目的是根據周圍單字的上下文，預測某個單字。"
+    },
+    {
+      "start": 75.24,
+      "end": 81.36,
+      "en": "In fact, it's basically like what we trained our embeddings model to do a few sections ago.",
+      "zh": "事實上，基本上就像前幾節訓練嵌入模型所做的事。"
+    },
+    {
+      "start": 82,
+      "end": 90.84,
+      "en": "So this difference in training means that word two vec is actually better at learning semantic relations across words.",
+      "zh": "這個訓練差異，表示 Word2vec 其實更擅長學習單字之間的語意關係。"
+    },
+    {
+      "start": 91,
+      "end": 97.68,
+      "en": "So therefore word two vec is likely to be better at analogies compared to glove.",
+      "zh": "所以，相較於 GloVe，Word2vec 可能更擅長類比。"
+    },
+    {
+      "start": 98.88,
+      "end": 101.32,
+      "en": "And this brings us to exercise one.",
+      "zh": "這就進入練習一。"
+    },
+    {
+      "start": 101.75999999999999,
+      "end": 107.47999999999999,
+      "en": "Start by importing the word two vec 300 dimensional embeddings matrix.",
+      "zh": "先匯入 Word2vec 的 300 維嵌入矩陣。"
+    },
+    {
+      "start": 108.03999999999999,
+      "end": 115.03999999999999,
+      "en": "And then you want to create variables for three words and check if those three words are in the vocab.",
+      "zh": "接著，為三個單字建立變數，檢查它們是否在詞彙表中。"
+    },
+    {
+      "start": 115.68,
+      "end": 119.44,
+      "en": "And then you can print out a message that looks something like this.",
+      "zh": "再印出類似這樣的訊息。"
+    },
+    {
+      "start": 119.75999999999999,
+      "end": 125.92,
+      "en": "So the idea is that you will define these three words king, man and woman.",
+      "zh": "概念是，定義 king、man、woman 這三個單字。"
+    },
+    {
+      "start": 126.32,
+      "end": 136.8,
+      "en": "And then our goal over the next several exercises is to write code to find the candidate words that would go in here into this blank space here.",
+      "zh": "接下來幾個練習的目標，是寫程式找出能填進這裡空格的候選詞。"
+    },
+    {
+      "start": 137.6,
+      "end": 138.07999999999998,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 138.12,
+      "end": 147.4,
+      "en": "And here you see an example of what should happen when you define a word or try to use a word that is not in the vocab.",
+      "zh": "這裡的例子顯示，如果定義或嘗試使用不在詞彙表中的單字，應該發生什麼。"
+    },
+    {
+      "start": 147.76,
+      "end": 157,
+      "en": "So basically you need to search through the vocab to make sure that the words we are going to use for analysis analogies really are in the embeddings.",
+      "zh": "基本上，需要搜尋詞彙表，確保用來分析、做類比的單字，真的存在於嵌入中。"
+    },
+    {
+      "start": 157.36,
+      "end": 166.68,
+      "en": "So that's going to be useful for writing a function later on in this code challenge that will solve these analogies problems.",
+      "zh": "這對本次挑戰稍後撰寫解決類比問題的函式，會有幫助。"
+    },
+    {
+      "start": 167.16,
+      "end": 167.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 167.64,
+      "end": 175.04,
+      "en": "Then the final step for this exercise is to plot the embeddings for the three words that you've selected.",
+      "zh": "這個練習最後一步，是畫出選定三個單字的嵌入。"
+    },
+    {
+      "start": 175.16,
+      "end": 181.61,
+      "en": "And for the analogy vector, very similar to what we did in the previous video.",
+      "zh": "以及類比向量，和上一部影片的做法非常類似。"
+    },
+    {
+      "start": 182.25,
+      "end": 185.53,
+      "en": "Okay, I hope you enjoy working through this exercise.",
+      "zh": "希望你喜歡完成這個練習。"
+    },
+    {
+      "start": 185.53,
+      "end": 188.69,
+      "en": "And now I will switch to Python and show my solution.",
+      "zh": "現在切換到 Python，展示我的解法。"
+    },
+    {
+      "start": 189.69,
+      "end": 197.05,
+      "en": "So here we import some libraries and also import the word to vec embeddings matrix.",
+      "zh": "匯入一些函式庫，也匯入 Word2vec 嵌入矩陣。"
+    },
+    {
+      "start": 197.05,
+      "end": 201.45,
+      "en": "In this case I'm using the one from Google News and 300 dimensional.",
+      "zh": "這次使用 Google News 訓練的 300 維版本。"
+    },
+    {
+      "start": 201.89,
+      "end": 206.37,
+      "en": "Okay so here I'm getting a list of all of the words.",
+      "zh": "這裡取得所有單字的清單。"
+    },
+    {
+      "start": 206.37,
+      "end": 209.32999999999998,
+      "en": "So basically the vocab in word two vec.",
+      "zh": "基本上，就是 Word2vec 的詞彙表。"
+    },
+    {
+      "start": 209.32999999999998,
+      "end": 217.97,
+      "en": "And I'm doing that using all of the keys from key to index and then converting that into a list okay.",
+      "zh": "做法是取得 key_to_index 的所有鍵，再轉成串列。"
+    },
+    {
+      "start": 218.01,
+      "end": 221.49,
+      "en": "Here is where I soft code the three words.",
+      "zh": "這裡把三個單字設成可替換的變數。"
+    },
+    {
+      "start": 221.49,
+      "end": 223.97,
+      "en": "So king man and woman.",
+      "zh": "也就是 king、man 與 woman。"
+    },
+    {
+      "start": 224.45,
+      "end": 232.85,
+      "en": "And soft coding of course is useful because that is going to allow us to change some of these words without having to redefine the code later on.",
+      "zh": "這種參數化寫法很有用，之後就能改變單字，而不必重新定義程式。"
+    },
+    {
+      "start": 233.32999999999998,
+      "end": 233.77,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 233.93,
+      "end": 240.65,
+      "en": "And then yeah, here is the code where I say loop through all of these words that I have specified here,",
+      "zh": "這段程式用迴圈走過這裡指定的所有單字，"
+    },
+    {
+      "start": 241.61,
+      "end": 249.93,
+      "en": "and if any of those is not in the vocab from word two vec, then we print out this warning.",
+      "zh": "如果任何一個不在 Word2vec 詞彙表中，就印出警告。"
+    },
+    {
+      "start": 249.93,
+      "end": 255.33,
+      "en": "So again this code will be useful for later on in this code challenge.",
+      "zh": "同樣地，這段程式稍後會用到。"
+    },
+    {
+      "start": 255.81,
+      "end": 256.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 256.09,
+      "end": 257.73,
+      "en": "And then here I'm printing out the analogy.",
+      "zh": "這裡印出類比題目。"
+    },
+    {
+      "start": 257.73,
+      "end": 264.97,
+      "en": "So now the goal of the next few exercises is going to be right to write code to fill in the blank here.",
+      "zh": "接下來幾個練習的目標，就是寫程式填入空格。"
+    },
+    {
+      "start": 264.97,
+      "end": 268.53,
+      "en": "And of course hopefully what we get is the word queen.",
+      "zh": "當然，希望得到 queen 這個詞。"
+    },
+    {
+      "start": 269.17,
+      "end": 269.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 269.85,
+      "end": 280.05,
+      "en": "So then here I'm just extracting the three vectors, creating the analogy vector, just like what I did in the previous video and plotting them all.",
+      "zh": "接著，只是擷取三個向量，像上一部影片一樣，建立類比向量，再全部畫出來。"
+    },
+    {
+      "start": 280.05,
+      "end": 282.65,
+      "en": "Also just like in the previous video.",
+      "zh": "也和上一部影片一樣。"
+    },
+    {
+      "start": 283.73,
+      "end": 292.25,
+      "en": "The next exercise is to calculate the cosine similarity between the analogy vector and all the words",
+      "zh": "下一個練習，是計算類比向量，與嵌入空間中所有單字之間的"
+    },
+    {
+      "start": 292.25,
+      "end": 296.53,
+      "en": "in the embeddings space, just like in the previous video.",
+      "zh": "餘弦相似度，就像上一部影片。"
+    },
+    {
+      "start": 296.81,
+      "end": 300.25,
+      "en": "Also similar to the visualization in the previous video.",
+      "zh": "視覺化也和上一部影片類似。"
+    },
+    {
+      "start": 300.29,
+      "end": 307.13,
+      "en": "I'm not actually plotting all of the words here just because there's 400,000 words in total.",
+      "zh": "這裡其實沒有畫所有單字，因為總共有 400,000 個。"
+    },
+    {
+      "start": 307.29,
+      "end": 313.29,
+      "en": "Of course, you do want to calculate cosine similarity with every single word embedding, but you can.",
+      "zh": "當然，要和每個單字嵌入計算餘弦相似度，但可以，"
+    },
+    {
+      "start": 313.33,
+      "end": 316.33,
+      "en": "You don't need to plot all 400,000 circles.",
+      "zh": "不需要畫出全部 400,000 個圓圈。"
+    },
+    {
+      "start": 316.77,
+      "end": 317.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 317.09,
+      "end": 323.37,
+      "en": "So then you want to plot and the sorted top 1000 cosine similarities.",
+      "zh": "接著，畫出排序後最高的 1,000 個餘弦相似度。"
+    },
+    {
+      "start": 323.73,
+      "end": 334.53,
+      "en": "Then you find the top ten from these sorted cosine similarities, find those corresponding words in the vocab and then print them out.",
+      "zh": "從排序結果找出前十個，在詞彙表中找出對應單字，再印出來。"
+    },
+    {
+      "start": 334.53,
+      "end": 343.21,
+      "en": "So this is a really similar, not identical, but similar set of results to what we saw in the previous video.",
+      "zh": "這組結果和上一部影片很類似，不完全相同，但相似。"
+    },
+    {
+      "start": 343.21,
+      "end": 347.69,
+      "en": "But the previous video was using the 50 dimensional glove embeddings.",
+      "zh": "不過，上一部使用 50 維 GloVe 嵌入。"
+    },
+    {
+      "start": 347.69,
+      "end": 351.81,
+      "en": "And here we have 300 dimensional word to vec embeddings.",
+      "zh": "這裡則是 300 維 Word2vec 嵌入。"
+    },
+    {
+      "start": 352.33,
+      "end": 355.25,
+      "en": "I hope you enjoy working through this exercise.",
+      "zh": "希望你喜歡這個練習。"
+    },
+    {
+      "start": 355.40999999999997,
+      "end": 367.29,
+      "en": "And now I will switch to Python So you can complete a lot of this exercise just by copy pasting from the code file from the previous exercise, previous video.",
+      "zh": "現在切換到 Python。大部分內容可以從上一個練習、上一部影片的程式檔複製貼上。"
+    },
+    {
+      "start": 367.73,
+      "end": 373.77,
+      "en": "Although of course, if you want to challenge yourself a little bit more, you can write this code again from scratch.",
+      "zh": "當然，如果想更有挑戰，也可以從零重寫。"
+    },
+    {
+      "start": 374.25,
+      "end": 376.93,
+      "en": "Okay, so I'm not really going to talk much about this.",
+      "zh": "這裡我不會多談。"
+    },
+    {
+      "start": 376.93,
+      "end": 385.77,
+      "en": "I'm using the method cosine similarities in the word two vec object to calculate all of the similarities",
+      "zh": "使用 Word2vec 物件的 cosine_similarities 方法，計算所有相似度，"
+    },
+    {
+      "start": 385.77,
+      "end": 393.53,
+      "en": "between this seed vector, which is the analogy vector and all the other embeddings vectors, and then",
+      "zh": "也就是種子向量、類比向量，與其他所有嵌入向量之間的相似度，"
+    },
+    {
+      "start": 393.53,
+      "end": 399.37,
+      "en": "plotting, sorting, plotting again, and then finding the top ten closest words.",
+      "zh": "再畫圖、排序、再畫圖，最後找出最接近的十個單字。"
+    },
+    {
+      "start": 399.53,
+      "end": 402.85,
+      "en": "Okay, so yeah, this is overall fairly similar.",
+      "zh": "整體而言，相當類似。"
+    },
+    {
+      "start": 402.85,
+      "end": 407.13,
+      "en": "If you remember from the previous video we did get the top word was King.",
+      "zh": "如果記得，上一部影片中，第一個詞是 king。"
+    },
+    {
+      "start": 407.29,
+      "end": 409.45,
+      "en": "And then the second top word was Queen.",
+      "zh": "第二個是 queen。"
+    },
+    {
+      "start": 409.97,
+      "end": 412.17,
+      "en": "Then we also saw Prince.",
+      "zh": "也看到 prince。"
+    },
+    {
+      "start": 412.37,
+      "end": 416.77,
+      "en": "Uh, we saw Woman and Mother from when we used, uh, glove.",
+      "zh": "使用 GloVe 時，還有 woman 與 mother。"
+    },
+    {
+      "start": 417.13,
+      "end": 419.29,
+      "en": "And yeah, we also saw prints.",
+      "zh": "對，也看到 prince。"
+    },
+    {
+      "start": 419.29,
+      "end": 424.29,
+      "en": "So here we have some different words monarch, Queen consort that's interesting.",
+      "zh": "這裡有一些不同的詞，monarch、Queen consort，很有意思。"
+    },
+    {
+      "start": 424.49,
+      "end": 426.13,
+      "en": "Queens and so on.",
+      "zh": "Queens 等等。"
+    },
+    {
+      "start": 426.45,
+      "end": 427.01,
+      "en": "Kings.",
+      "zh": "Kings。"
+    },
+    {
+      "start": 427.01,
+      "end": 434.69,
+      "en": "But so so of course some of the words that we get are different, but they are kind of all related semantically to king.",
+      "zh": "當然，有些詞不同，但在語意上，全部都與 king 相關。"
+    },
+    {
+      "start": 435.57,
+      "end": 443.29,
+      "en": "Exercise three is basically to gather up the code that you've written from the previous two exercises,",
+      "zh": "練習三，基本上是整理前兩個練習寫的程式，"
+    },
+    {
+      "start": 443.77,
+      "end": 450.29,
+      "en": "maybe also from the previous video, and organize all of that into a Python function.",
+      "zh": "也許包括上一部影片，把它們組成 Python 函式。"
+    },
+    {
+      "start": 451.21,
+      "end": 458.49,
+      "en": "So the idea is that you want to have a function that you can call where you input three words the word",
+      "zh": "概念是，要有一個可呼叫的函式，輸入三個單字："
+    },
+    {
+      "start": 458.49,
+      "end": 463.93,
+      "en": "to start with, the word to subtract away, and the word to add back.",
+      "zh": "起始單字、要減去的單字，以及要加回的單字。"
+    },
+    {
+      "start": 464.29,
+      "end": 473.45,
+      "en": "So going back to our analogy from before, this word would be king, this word would be man, and this word would be woman.",
+      "zh": "回到先前類比，這個詞是 king，這個是 man，這個是 woman。"
+    },
+    {
+      "start": 474.01,
+      "end": 482.1,
+      "en": "So what you see here in the comments is a list of the actions that need to be taken inside your function.",
+      "zh": "註解中列出函式內需要執行的動作。"
+    },
+    {
+      "start": 482.38,
+      "end": 488.94,
+      "en": "So first you want to check whether all the words are that you've inputted here are really in the dictionary.",
+      "zh": "首先，檢查輸入的所有單字是否真的在字典中。"
+    },
+    {
+      "start": 489.5,
+      "end": 496.78,
+      "en": "Then print out the analogy with the blank space with the underlines as we did before, and then calculate",
+      "zh": "接著，像先前一樣，用底線空格印出類比題，再計算"
+    },
+    {
+      "start": 496.78,
+      "end": 502.42,
+      "en": "the cosine similarity of the analogy word to all the other words.",
+      "zh": "類比單字與其他所有單字的餘弦相似度。"
+    },
+    {
+      "start": 502.62,
+      "end": 506.3,
+      "en": "Find the top ten with the cosine and then print them out.",
+      "zh": "找出餘弦相似度最高的十個，再印出來。"
+    },
+    {
+      "start": 506.9,
+      "end": 515.5,
+      "en": "Once you have this function, you can start exploring whether you get meaningful results for other triplets of words.",
+      "zh": "有了函式，就能探索其他三詞組合，是否得到有意義的結果。"
+    },
+    {
+      "start": 515.86,
+      "end": 519.58,
+      "en": "So here you see just a couple of the examples that I tried.",
+      "zh": "這裡只是我試過的幾個例子。"
+    },
+    {
+      "start": 519.86,
+      "end": 525.14,
+      "en": "So for example tree is to leaf as what is to pedal.",
+      "zh": "例如，tree 對 leaf，如同什麼對 petal？"
+    },
+    {
+      "start": 525.58,
+      "end": 528.62,
+      "en": "So I think the answer here should be flower.",
+      "zh": "我認為答案應該是 flower。"
+    },
+    {
+      "start": 528.9,
+      "end": 534.18,
+      "en": "So it will be interesting to see what we get from our analogy calculator.",
+      "zh": "看看類比計算器會得到什麼，會很有意思。"
+    },
+    {
+      "start": 534.78,
+      "end": 537.02,
+      "en": "This second example I just turned it around.",
+      "zh": "第二個例子，只是把方向反過來。"
+    },
+    {
+      "start": 537.02,
+      "end": 540.54,
+      "en": "So leaf is to tree as what is to flower.",
+      "zh": "leaf 對 tree，如同什麼對 flower？"
+    },
+    {
+      "start": 540.78,
+      "end": 544.14,
+      "en": "And of course, the answer I'm expecting is petal.",
+      "zh": "當然，我預期答案是 petal。"
+    },
+    {
+      "start": 544.78,
+      "end": 547.42,
+      "en": "So you can try these examples.",
+      "zh": "你可以試試這些例子。"
+    },
+    {
+      "start": 547.42,
+      "end": 552.1,
+      "en": "And of course I encourage you to come up with your own examples to explore.",
+      "zh": "也鼓勵你自己想例子探索。"
+    },
+    {
+      "start": 552.86,
+      "end": 557.42,
+      "en": "So I hope you enjoy working through this one and testing out a bunch of analogies.",
+      "zh": "希望你喜歡完成練習，測試許多類比。"
+    },
+    {
+      "start": 557.62,
+      "end": 559.86,
+      "en": "And now I will switch to Python.",
+      "zh": "現在切換到 Python。"
+    },
+    {
+      "start": 561.1,
+      "end": 565.06,
+      "en": "There is no new code in this function.",
+      "zh": "這個函式沒有新程式。"
+    },
+    {
+      "start": 565.5,
+      "end": 571.74,
+      "en": "It's all copied and just slightly reorganized from earlier in this code file.",
+      "zh": "全部都是從這個程式檔前面複製過來，稍微重新組織。"
+    },
+    {
+      "start": 572.14,
+      "end": 572.42,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 572.46,
+      "end": 584.18,
+      "en": "So therefore I want to spend more time, uh, looking at the output of this function, these two cells here, I'm just checking the, uh, confirming the accuracy of the function.",
+      "zh": "因此，想多花點時間看看函式輸出；這兩個程式區塊，只是在檢查、確認函式的正確性。"
+    },
+    {
+      "start": 584.46,
+      "end": 590.62,
+      "en": "So what I should get here is literally exactly this same list over here.",
+      "zh": "這裡應該得到的，就是和這邊完全相同的清單。"
+    },
+    {
+      "start": 590.78,
+      "end": 594.18,
+      "en": "These are not probabilistic analyses that we're working with.",
+      "zh": "這裡處理的不是機率性分析。"
+    },
+    {
+      "start": 594.18,
+      "end": 599.22,
+      "en": "So this function should reproduce exactly all of these results.",
+      "zh": "所以，函式應該精確重現所有結果。"
+    },
+    {
+      "start": 599.22,
+      "end": 600.1,
+      "en": "And yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 600.1,
+      "end": 602.06,
+      "en": "So hopefully it does.",
+      "zh": "希望確實如此。"
+    },
+    {
+      "start": 602.1,
+      "end": 606.54,
+      "en": "Of course it takes a minute because it has to calculate this.",
+      "zh": "當然，需要一點時間，因為必須計算這個。"
+    },
+    {
+      "start": 606.94,
+      "end": 607.46,
+      "en": "What is it.",
+      "zh": "是哪個來著？"
+    },
+    {
+      "start": 607.5,
+      "end": 612.42,
+      "en": "This is the line of code that takes around 3 or 4 seconds.",
+      "zh": "就是這行程式，大約需要三、四秒。"
+    },
+    {
+      "start": 612.42,
+      "end": 614.86,
+      "en": "All the rest of the code happens very quickly.",
+      "zh": "其餘程式都很快。"
+    },
+    {
+      "start": 615.3,
+      "end": 615.58,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 615.62,
+      "end": 615.86,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 615.86,
+      "end": 620.26,
+      "en": "So we get all of these other words including queens consort in here and now here.",
+      "zh": "得到所有這些詞，包括這裡的 queens consort，接著這裡，"
+    },
+    {
+      "start": 620.26,
+      "end": 621.98,
+      "en": "I'm just checking the error message.",
+      "zh": "只是檢查錯誤訊息。"
+    },
+    {
+      "start": 621.98,
+      "end": 628.5,
+      "en": "So I'm intentionally misspelling a word, which I'm pretty sure does not appear in the vocab.",
+      "zh": "我刻意拼錯一個詞，相當確定它不在詞彙表中。"
+    },
+    {
+      "start": 628.74,
+      "end": 631.9,
+      "en": "And indeed, we get an error message over here.",
+      "zh": "確實，這裡得到錯誤訊息。"
+    },
+    {
+      "start": 632.46,
+      "end": 636.06,
+      "en": "Okay, so here are some other analogies that I tried.",
+      "zh": "這裡還有我試過的其他類比。"
+    },
+    {
+      "start": 636.42,
+      "end": 638.06,
+      "en": "So let's start with this.",
+      "zh": "先看這個。"
+    },
+    {
+      "start": 638.06,
+      "end": 643.26,
+      "en": "One tree is to tree is to leaf as blank is to petal.",
+      "zh": "tree 對 leaf，如同空格對 petal。"
+    },
+    {
+      "start": 643.5,
+      "end": 647.58,
+      "en": "And again what I expect is flower something like that.",
+      "zh": "我仍然預期是 flower 之類。"
+    },
+    {
+      "start": 647.62,
+      "end": 649.78,
+      "en": "But we don't see that anywhere in here.",
+      "zh": "但這裡完全看不到。"
+    },
+    {
+      "start": 649.78,
+      "end": 650.58,
+      "en": "Willow tree.",
+      "zh": "Willow tree。"
+    },
+    {
+      "start": 650.62,
+      "end": 654.34,
+      "en": "So tree is to leaf as willow tree is to petal.",
+      "zh": "所以，tree 對 leaf，如同 willow tree 對 petal。"
+    },
+    {
+      "start": 654.34,
+      "end": 655.46,
+      "en": "I don't think so.",
+      "zh": "我不這麼認為。"
+    },
+    {
+      "start": 656.14,
+      "end": 665.38,
+      "en": "So we can see that, you know, all of these words that it picked do have strong semantic similarity",
+      "zh": "可以看到，它挑選的所有單字，確實與"
+    },
+    {
+      "start": 665.58,
+      "end": 667.54,
+      "en": "to these three words here.",
+      "zh": "這裡三個單字有很強的語意相似性。"
+    },
+    {
+      "start": 667.54,
+      "end": 670.34,
+      "en": "So it's not that this method is doing nothing.",
+      "zh": "不是說這個方法什麼都沒做。"
+    },
+    {
+      "start": 670.58,
+      "end": 679.34,
+      "en": "It's not completely, you know, random bogus crap, but it's also not giving me a result that I think should be sensible.",
+      "zh": "並非完全隨機、毫無意義的爛結果，但也沒有給出我認為應該合理的答案。"
+    },
+    {
+      "start": 679.78,
+      "end": 681.54,
+      "en": "Okay, let's try it the other way around.",
+      "zh": "反過來試試。"
+    },
+    {
+      "start": 681.94,
+      "end": 686.7,
+      "en": "So leaf is to tree as petal is to flower.",
+      "zh": "leaf 對 tree，如同 petal 對 flower。"
+    },
+    {
+      "start": 686.98,
+      "end": 689.98,
+      "en": "And again here we do get a lot of related words.",
+      "zh": "這裡一樣得到很多相關詞。"
+    },
+    {
+      "start": 690.18,
+      "end": 693.1,
+      "en": "But in the top ten we don't get anything.",
+      "zh": "但前十個裡，沒有任何"
+    },
+    {
+      "start": 693.14,
+      "end": 695.9,
+      "en": "You know that I would think is the correct answer.",
+      "zh": "我認為的正確答案。"
+    },
+    {
+      "start": 696.46,
+      "end": 697.74,
+      "en": "Okay I'll just show one more.",
+      "zh": "再展示一個。"
+    },
+    {
+      "start": 697.98,
+      "end": 698.82,
+      "en": "Uh, let's do this.",
+      "zh": "看這個。"
+    },
+    {
+      "start": 698.82,
+      "end": 704.42,
+      "en": "One finger is to hand as blank is to foot.",
+      "zh": "finger 對 hand，如同空格對 foot。"
+    },
+    {
+      "start": 704.42,
+      "end": 710.06,
+      "en": "So again, I think we can all agree that the right word should be toe here.",
+      "zh": "我想大家都同意，正確單字應該是 toe。"
+    },
+    {
+      "start": 710.22,
+      "end": 711.82,
+      "en": "So we do get pinky.",
+      "zh": "確實有 pinky。"
+    },
+    {
+      "start": 712.62,
+      "end": 721.27,
+      "en": "So, you know, you kind of like a pinky toe, But I don't think these are really solving this analogy problem the way that I would want it to.",
+      "zh": "你知道，可以是 pinky toe，但我不認為這些真正在以我希望的方式，解決類比問題。"
+    },
+    {
+      "start": 721.31,
+      "end": 727.51,
+      "en": "Certainly not as beautifully as this example where we get Queen is the top answer.",
+      "zh": "當然，不像那個例子那麼漂亮，可以得到 queen 作為首選答案，"
+    },
+    {
+      "start": 727.67,
+      "end": 738.71,
+      "en": "If we would ignore the trivial result of King because that already appears in the analogy, I wonder what you think of the results from the previous video and this one.",
+      "zh": "前提是忽略 king 這個平凡結果，因為它已出現在類比中。不知道你如何看待這部與上一部影片的結果。"
+    },
+    {
+      "start": 739.23,
+      "end": 743.47,
+      "en": "I have several thoughts that are not entirely consistent with each other.",
+      "zh": "我有幾個不完全一致的想法。"
+    },
+    {
+      "start": 744.03,
+      "end": 751.79,
+      "en": "For one thing, I do find it annoying and disappointing that people online and also science journalists",
+      "zh": "一方面，我確實很煩惱、失望，因為網路上的人，以及科學記者，"
+    },
+    {
+      "start": 751.79,
+      "end": 756.79,
+      "en": "have made such a big deal out of these analogies and embeddings vectors.",
+      "zh": "把這些類比與嵌入向量講得如此了不起。"
+    },
+    {
+      "start": 757.47,
+      "end": 760.99,
+      "en": "It just really doesn't work as well as you might think.",
+      "zh": "它真的沒有你想像中那麼好用，"
+    },
+    {
+      "start": 760.99,
+      "end": 764.55,
+      "en": "From looking at a meme or a tweet with a hand-picked example.",
+      "zh": "如果你只是看過用手挑例子做成的迷因或推文。"
+    },
+    {
+      "start": 765.43,
+      "end": 775.27,
+      "en": "On the other hand, there clearly are meaningful relationships that we can extract from doing very simple arithmetic with these embeddings vectors.",
+      "zh": "另一方面，透過這些嵌入向量的簡單算術，顯然能萃取一些有意義的關係。"
+    },
+    {
+      "start": 775.63,
+      "end": 786.59,
+      "en": "So even though the arithmetic may seem crude and simplistic, it still is able to capture something intrinsic and meaningful to language.",
+      "zh": "即使算術看起來粗糙、簡化，仍能捕捉語言中一些內在而有意義的東西。"
+    },
+    {
+      "start": 788.11,
+      "end": 799.27,
+      "en": "On the other hand, it is kind of remarkable that this approach works at all, given that we're not working with a real language model, but just a very simple embeddings matrix.",
+      "zh": "再換個角度，只用非常簡單的嵌入矩陣，而不是真正的語言模型，這種方法竟然能有效，本身就很驚人。"
+    },
+    {
+      "start": 799.91,
+      "end": 807.79,
+      "en": "And it really is the case that simple addition, subtraction, and scaling of embeddings vectors is",
+      "zh": "而嵌入向量的簡單加法、減法與縮放，確實是"
+    },
+    {
+      "start": 807.79,
+      "end": 816.23,
+      "en": "the basis of everything else in these really complicated language models, like frontier GPT transformer models.",
+      "zh": "那些非常複雜的語言模型，例如最前沿 GPT Transformer 模型，其他所有操作的基礎。"
+    },
+    {
+      "start": 816.83,
+      "end": 822.71,
+      "en": "It's just that those models, the models that you actually interact with, like ChatGPT or Claude,",
+      "zh": "只是你真正互動的模型，例如 ChatGPT 或 Claude，"
+    },
+    {
+      "start": 823.39,
+      "end": 833.51,
+      "en": "they are doing these kinds of vector modifications in ways that are more sophisticated, more mysterious, and more than just once.",
+      "zh": "會以更精密、更神祕的方式修改向量，而且不只做一次。"
+    }
+  ]
+}

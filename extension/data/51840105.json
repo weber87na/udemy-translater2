@@ -1,0 +1,1435 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840105",
+  "title": "Model 4: Multiple Transformer blocks",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ddc9adce0796c35304bbcb6216cd95a70c2ab6c614aff3cbb8b9b6f99fe70bda",
+  "cues": [
+    {
+      "start": 1.72,
+      "end": 6.92,
+      "en": "Model four is only a small extension from model three.",
+      "zh": "模型四只是模型三的小幅延伸。"
+    },
+    {
+      "start": 7.44,
+      "end": 13.56,
+      "en": "So in model three we introduced a single transformer block into the feedforward sweep.",
+      "zh": "模型三在前向傳播裡加入了一個 Transformer 區塊。"
+    },
+    {
+      "start": 13.96,
+      "end": 19.24,
+      "en": "Now in model four we're going to add multiple transformer blocks.",
+      "zh": "現在模型四要加入多個 Transformer 區塊。"
+    },
+    {
+      "start": 19.48,
+      "end": 22.04,
+      "en": "That does require some additional coding.",
+      "zh": "這確實需要額外寫一些程式，"
+    },
+    {
+      "start": 22.08,
+      "end": 31.6,
+      "en": "To make sure that we can flexibly specify the number of blocks without having to hard code a lot of settings and copy paste a lot of code.",
+      "zh": "確保能彈性指定區塊數量，不必把很多設定寫死，也不用大量複製貼上程式碼。"
+    },
+    {
+      "start": 32.28,
+      "end": 40.28,
+      "en": "And also in this video I will introduce some concepts on the hierarchy of information representation",
+      "zh": "這支影片也會介紹語言模型中，資訊表徵的階層"
+    },
+    {
+      "start": 40.44,
+      "end": 47.72,
+      "en": "in language models, although we won't really get deeper into that discussion until a bit later on in the course.",
+      "zh": "概念，不過要到課程稍後才會深入討論。"
+    },
+    {
+      "start": 48.32,
+      "end": 58.76,
+      "en": "On this slide, you can see two different graphical representations of the language model architecture and in particular the transformer block.",
+      "zh": "這張投影片有兩種語言模型架構的圖像表示，尤其聚焦 Transformer 區塊。"
+    },
+    {
+      "start": 59.38,
+      "end": 68.53999999999999,
+      "en": "So this graph on the left here is taken from the attention is all you need paper, which I've cited mentioned several times already.",
+      "zh": "左圖來自已經提過、引用過好幾次的《Attention Is All You Need》論文。"
+    },
+    {
+      "start": 69.34,
+      "end": 75.7,
+      "en": "I've grayed out this little part on the left here because this corresponds to an encoder component.",
+      "zh": "我把左邊這小部分變淡，因為它對應編碼器元件。"
+    },
+    {
+      "start": 75.7,
+      "end": 78.74,
+      "en": "While here we are just dealing with decoders.",
+      "zh": "但這裡只處理解碼器。"
+    },
+    {
+      "start": 79.26,
+      "end": 88.42,
+      "en": "Encoders are used for applications like translating between different languages, and decoder only models are used for text generation.",
+      "zh": "編碼器用於不同語言之間的翻譯等應用，只有解碼器的模型則用來產生文字。"
+    },
+    {
+      "start": 88.74,
+      "end": 92.14,
+      "en": "And that's the main focus of this model.",
+      "zh": "這是這個模型的主要重點。"
+    },
+    {
+      "start": 92.14,
+      "end": 94.42,
+      "en": "And most of the course actually.",
+      "zh": "其實也是這門課大部分的重點。"
+    },
+    {
+      "start": 95.02000000000001,
+      "end": 100.46000000000001,
+      "en": "So in particular I want you to focus on this gray box over here.",
+      "zh": "尤其請注意這裡的灰色框。"
+    },
+    {
+      "start": 101.18,
+      "end": 104.38,
+      "en": "What this shows is the transformer block.",
+      "zh": "這就是 Transformer 區塊。"
+    },
+    {
+      "start": 104.74000000000001,
+      "end": 113.94,
+      "en": "So there is a little orange box here for a multi-head attention and then normalization and then a feed",
+      "zh": "裡面有一個代表多頭注意力的小橘框，接著是正規化，以及這裡的前饋"
+    },
+    {
+      "start": 113.94,
+      "end": 115.53999999999999,
+      "en": "forward box over here.",
+      "zh": "區塊。"
+    },
+    {
+      "start": 115.53999999999999,
+      "end": 119.12,
+      "en": "And then another addition and normalization.",
+      "zh": "然後再做一次相加與正規化。"
+    },
+    {
+      "start": 119.56,
+      "end": 124.56,
+      "en": "Now, we do not actually need this middle attention sublayer here.",
+      "zh": "其實不需要中間這個注意力子層。"
+    },
+    {
+      "start": 124.56,
+      "end": 128.6,
+      "en": "That is what comes in from the encoder which we are not using.",
+      "zh": "那是用來接收我們沒有使用的編碼器資訊。"
+    },
+    {
+      "start": 129.16,
+      "end": 139.04,
+      "en": "Another difference that you'll notice is that they propose here in this paper applying the normalization after the attention and not before.",
+      "zh": "還會注意到另一個差異：這篇論文提出的，是在注意力之後做正規化，而不是之前。"
+    },
+    {
+      "start": 140.2,
+      "end": 147.16,
+      "en": "Now since this paper was first published, there has been other work suggesting that having the layer",
+      "zh": "這篇論文最初發表後，又有其他研究指出，把 LayerNorm"
+    },
+    {
+      "start": 147.16,
+      "end": 153.48,
+      "en": "norm before attention rather than after attention actually does give better results.",
+      "zh": "放在注意力之前，而不是之後，實際上會有更好的結果。"
+    },
+    {
+      "start": 154.28,
+      "end": 158.68,
+      "en": "In general, everything in deep learning is ongoing and improving.",
+      "zh": "一般而言，深度學習的所有東西都在持續發展、改進。"
+    },
+    {
+      "start": 158.68,
+      "end": 166.16,
+      "en": "So if you see papers that are more than 1 or 2 years old, you should not assume that that's necessarily",
+      "zh": "所以看到超過一、兩年的論文，不要直接假設其中的"
+    },
+    {
+      "start": 166.2,
+      "end": 171.52,
+      "en": "still the best current version of the details of the architectural design.",
+      "zh": "架構設計細節，仍然是目前最好的版本。"
+    },
+    {
+      "start": 172.32,
+      "end": 178.66,
+      "en": "Anyway, the point here is that this gray rectangle Here is what I've taught you before.",
+      "zh": "總之，重點是這個灰色長方形，就是之前教過的內容。"
+    },
+    {
+      "start": 178.7,
+      "end": 184.34,
+      "en": "This is the transformer block, and that corresponds to this gray box over here.",
+      "zh": "這是 Transformer 區塊，對應這邊的灰框。"
+    },
+    {
+      "start": 185.02,
+      "end": 195.82,
+      "en": "You can also see that they have this n x over here, which indicates that this exact same transformer block repeats some number of times.",
+      "zh": "也可以看到這裡的 N×，表示完全相同的 Transformer 區塊會重複若干次。"
+    },
+    {
+      "start": 196.1,
+      "end": 199.1,
+      "en": "So that is what we have not yet done.",
+      "zh": "這就是我們還沒做過的部分。"
+    },
+    {
+      "start": 200.02,
+      "end": 203.57999999999998,
+      "en": "And that is what we are going to do in this model in this video.",
+      "zh": "也是這支影片、這個模型要做的事。"
+    },
+    {
+      "start": 204.02,
+      "end": 213.42000000000002,
+      "en": "So if we collapse all of the details of the transformer block into one little box, then we can rewrite this model as something like this.",
+      "zh": "把 Transformer 區塊的細節全部收進一個小方框後，模型就能重畫成這樣。"
+    },
+    {
+      "start": 213.7,
+      "end": 217.38,
+      "en": "So here I'm illustrating two transformer blocks.",
+      "zh": "這裡畫了兩個 Transformer 區塊。"
+    },
+    {
+      "start": 217.38,
+      "end": 224.94,
+      "en": "And the idea is that the token plus position embeddings are sent to the first transformer.",
+      "zh": "概念是，把詞元嵌入加上位置嵌入，送進第一個 Transformer。"
+    },
+    {
+      "start": 225.42000000000002,
+      "end": 231.46,
+      "en": "And then the output of the first transformer is the input into the second transformer.",
+      "zh": "第一個 Transformer 的輸出，再成為第二個的輸入。"
+    },
+    {
+      "start": 231.9,
+      "end": 237.45,
+      "en": "And the output of the second transformer goes through one final layer norm.",
+      "zh": "第二個 Transformer 的輸出，經過最後一個 LayerNorm。"
+    },
+    {
+      "start": 237.45,
+      "end": 239.17000000000002,
+      "en": "So one final normalization.",
+      "zh": "也就是最後一次正規化。"
+    },
+    {
+      "start": 239.57,
+      "end": 245.61,
+      "en": "And then we get to the embeddings and that becomes tokens and then text.",
+      "zh": "再做反嵌入，變成詞元，最後變成文字。"
+    },
+    {
+      "start": 246.65,
+      "end": 253.01,
+      "en": "Now to be clear these two transformers blocks here they have exactly the same architecture.",
+      "zh": "說清楚一點，這兩個 Transformer 區塊的架構完全相同。"
+    },
+    {
+      "start": 253.01,
+      "end": 258.05,
+      "en": "They implement exactly the same calculations in exactly the same order.",
+      "zh": "計算完全一樣，順序也完全一樣。"
+    },
+    {
+      "start": 258.29,
+      "end": 263.45,
+      "en": "But they have different weights matrices with different learned values.",
+      "zh": "但權重矩陣不同，學到的數值也不同。"
+    },
+    {
+      "start": 263.45,
+      "end": 273.97,
+      "en": "So all the parameters inside these two transformer blocks are different from each other, although all the math and the flow of information is the same.",
+      "zh": "所以雖然數學與資訊流動相同，兩個 Transformer 區塊內的所有參數，都彼此不同。"
+    },
+    {
+      "start": 274.85,
+      "end": 281.53,
+      "en": "And also just to make sure this point is clear, inside each transformer block the attention and MLP",
+      "zh": "也再釐清一點：每個 Transformer 區塊內，注意力與 MLP"
+    },
+    {
+      "start": 281.57,
+      "end": 288.65,
+      "en": "Sublayers calculate adjustment factors that get summed back onto the embeddings, but at the end of",
+      "zh": "子層會計算調整量，加回嵌入，但每個"
+    },
+    {
+      "start": 288.65,
+      "end": 296.79,
+      "en": "each transformer block, there's only one set of embeddings, Things, which becomes the input for the next transformer block.",
+      "zh": "Transformer 區塊最後，只會有一組嵌入，成為下一個區塊的輸入。"
+    },
+    {
+      "start": 297.15,
+      "end": 305.39,
+      "en": "So it is not the case that the output from the transformer gets summed back onto an original copy from",
+      "zh": "因此不是把 Transformer 的輸出，一路加回"
+    },
+    {
+      "start": 305.39,
+      "end": 310.19,
+      "en": "the embeddings all the way in the beginning of the model anyway.",
+      "zh": "模型最開頭那份原始嵌入。總之，"
+    },
+    {
+      "start": 310.55,
+      "end": 312.59,
+      "en": "How many transformers do we want?",
+      "zh": "我們想要幾個 Transformer？"
+    },
+    {
+      "start": 313.07,
+      "end": 319.91,
+      "en": "Well, that depends on the depth of the model, which in turn depends on the number of a number of factors,",
+      "zh": "這取決於模型深度，而深度又取決於幾項因素，"
+    },
+    {
+      "start": 319.91,
+      "end": 325.71,
+      "en": "like how how much data is available for training, computational resources, and so on.",
+      "zh": "例如有多少訓練資料、計算資源等等。"
+    },
+    {
+      "start": 326.83,
+      "end": 331.31,
+      "en": "So here in model four we are going to have 12 transformers.",
+      "zh": "這裡的模型四，會有 12 個 Transformer。"
+    },
+    {
+      "start": 331.75,
+      "end": 332.75,
+      "en": "And why 12?",
+      "zh": "為什麼是 12？"
+    },
+    {
+      "start": 333.39,
+      "end": 337.87,
+      "en": "That is what's implemented in the small version of GPT two.",
+      "zh": "因為 GPT-2 的小型版本就是如此。"
+    },
+    {
+      "start": 338.47,
+      "end": 345.35,
+      "en": "So we will explore the sizes of different GPT two variants in a few lectures from now.",
+      "zh": "再過幾堂課，會探索不同 GPT-2 版本的大小。"
+    },
+    {
+      "start": 345.35,
+      "end": 349.35,
+      "en": "But the number of transformers can go up to 48.",
+      "zh": "GPT-2 的 Transformer 數量，最多可以到 48。"
+    },
+    {
+      "start": 349.67,
+      "end": 352.53,
+      "en": "In GPT two and in GPT three.",
+      "zh": "而在 GPT-3 中，"
+    },
+    {
+      "start": 352.85,
+      "end": 364.09,
+      "en": "There are 96 transformers all stacked on top of each other, and I don't know how many transformer blocks are in GPT four, but I guess it's several hundred.",
+      "zh": "則有 96 個 Transformer 堆疊在一起。GPT-4 有幾個區塊，我不知道，但我猜有好幾百個。"
+    },
+    {
+      "start": 364.65,
+      "end": 368.05,
+      "en": "But why even have multiple transformer blocks?",
+      "zh": "但為什麼要有多個 Transformer 區塊？"
+    },
+    {
+      "start": 368.09,
+      "end": 369.25,
+      "en": "Isn't one enough?",
+      "zh": "一個不夠嗎？"
+    },
+    {
+      "start": 369.81,
+      "end": 379.09,
+      "en": "And if one isn't enough, then why don't we just make the attention and MLP layers wider instead of adding more attention blocks?",
+      "zh": "如果不夠，為什麼不直接加寬注意力與 MLP 層，而要增加區塊？"
+    },
+    {
+      "start": 380.17,
+      "end": 384.41,
+      "en": "Well, there are three answers to this question that I can give here.",
+      "zh": "這裡可以給三個答案。"
+    },
+    {
+      "start": 385.21,
+      "end": 387.45,
+      "en": "First of all, natural language.",
+      "zh": "首先，自然語言，"
+    },
+    {
+      "start": 387.45,
+      "end": 395.40999999999997,
+      "en": "Human language is just such a complex and highly non-linear set of transformations and rules, and so",
+      "zh": "人類語言是一組非常複雜、高度非線性的轉換與規則，因此"
+    },
+    {
+      "start": 395.45,
+      "end": 404.25,
+      "en": "just having more parameters in deeper layers enables models to learn more complex features and better representations.",
+      "zh": "更深層裡的更多參數，能讓模型學到更複雜的特徵，以及更好的表徵。"
+    },
+    {
+      "start": 404.77,
+      "end": 407.85,
+      "en": "That is generally true about deep learning models.",
+      "zh": "對深度學習模型而言，通常如此。"
+    },
+    {
+      "start": 407.85,
+      "end": 416.35,
+      "en": "The deeper they are, which means the more layers they have, the more complexity they can represent and process and generate.",
+      "zh": "模型越深，也就是層數越多，能表示、處理與產生的複雜程度就越高。"
+    },
+    {
+      "start": 417.11,
+      "end": 419.87,
+      "en": "My second point here is just empirical.",
+      "zh": "第二點純粹來自實驗。"
+    },
+    {
+      "start": 419.90999999999997,
+      "end": 427.35,
+      "en": "The companies who develop language models go through lots of architectural varieties, and they just",
+      "zh": "開發語言模型的公司，會嘗試很多種架構，"
+    },
+    {
+      "start": 427.35,
+      "end": 437.63,
+      "en": "tend to find that some transformer blocks with multi-head attention is just a really powerful way to improve the accuracy and performance of the models.",
+      "zh": "而通常發現，使用多個包含多頭注意力的 Transformer 區塊，是提升模型準確率與表現的有效方法。"
+    },
+    {
+      "start": 438.07,
+      "end": 445.51,
+      "en": "So part of the answer to why there are so many transformer blocks is just that it seems to work pretty well.",
+      "zh": "因此為什麼有這麼多區塊，部分答案就是它看起來相當有效。"
+    },
+    {
+      "start": 446.63,
+      "end": 455.19,
+      "en": "That said, it does kind of seem to be the case that different transformer blocks tend to learn different kinds of features in text.",
+      "zh": "此外，不同 Transformer 區塊，似乎傾向學習文字的不同特徵。"
+    },
+    {
+      "start": 455.75,
+      "end": 461.31,
+      "en": "So the earlier layers this means closer to the original text, closer to the original token.",
+      "zh": "較早的層，也就是離原始文字、原始詞元"
+    },
+    {
+      "start": 461.31,
+      "end": 470.40999999999997,
+      "en": "Embeddings tend to represent features of text that are a little bit more superficial, like position and word identity.",
+      "zh": "嵌入比較近的層，傾向表示較表面的文字特徵，例如位置與字詞身分。"
+    },
+    {
+      "start": 470.97,
+      "end": 477.65,
+      "en": "Middle layers start learning slightly more complex and abstracted features like syntax and grammar,",
+      "zh": "中間層開始學稍微更複雜、抽象的特徵，例如句法與文法。"
+    },
+    {
+      "start": 478.25,
+      "end": 485.09,
+      "en": "and in the later layers, which are closest to the output of the model, these layers tend to be more",
+      "zh": "後面的層，也就是最接近模型輸出的層，則傾向"
+    },
+    {
+      "start": 485.09,
+      "end": 496.85,
+      "en": "focused on context specific information and predicting the next token, and less processing about the current token and its surrounding tokens.",
+      "zh": "更專注於特定上下文的資訊，以及預測下一個詞元，比較少處理當前詞元與周邊詞元。"
+    },
+    {
+      "start": 498.13,
+      "end": 507.73,
+      "en": "On the other hand, this statement here is not something that is imposed onto the model, it's just something that seems to emerge from research.",
+      "zh": "不過，這個說法不是模型被強制設定成如此，而是研究中觀察到的現象。"
+    },
+    {
+      "start": 508.45,
+      "end": 519.69,
+      "en": "So it seems like an emergent property, but that's more based on like qualitative observations and intuition and not so much based on some mathematically precise theory.",
+      "zh": "所以看起來是一種湧現特性，但比較基於質性觀察與直覺，而不是數學上精確的理論。"
+    },
+    {
+      "start": 520.89,
+      "end": 531.67,
+      "en": "Anyway, as you can imagine, we do not want a situation where we have to manually code 12 separate code sections to have 12 transformer blocks.",
+      "zh": "總之，想必你也不希望，為了有 12 個 Transformer 區塊，就得手動寫 12 段獨立程式。"
+    },
+    {
+      "start": 532.27,
+      "end": 536.99,
+      "en": "So in the code file, you're going to see a lot of code that you've already seen before.",
+      "zh": "所以程式檔裡，很多內容你都已經看過。"
+    },
+    {
+      "start": 537.39,
+      "end": 541.67,
+      "en": "And the primary new code is going to look something like this.",
+      "zh": "主要的新程式會像這樣。"
+    },
+    {
+      "start": 541.75,
+      "end": 551.43,
+      "en": "So I will use sequential to create a callable list of transformer blocks where I can specify with a",
+      "zh": "我會使用 Sequential，建立一串可呼叫的 Transformer 區塊，並用"
+    },
+    {
+      "start": 551.43,
+      "end": 556.71,
+      "en": "parameter the number of transformer blocks that I want to include.",
+      "zh": "參數指定要包含的區塊數量。"
+    },
+    {
+      "start": 557.11,
+      "end": 566.11,
+      "en": "This piece of code here transformer block is the class to create one transformer block that we developed a few videos ago.",
+      "zh": "這裡的 TransformerBlock，就是前幾支影片開發、用來建立一個區塊的類別。"
+    },
+    {
+      "start": 566.67,
+      "end": 569.43,
+      "en": "Anyway, let's switch to code and have a look.",
+      "zh": "切到程式碼看看。"
+    },
+    {
+      "start": 570.31,
+      "end": 573.71,
+      "en": "So import libraries GPT two tokenizer.",
+      "zh": "匯入函式庫，以及 GPT-2 tokenizer。"
+    },
+    {
+      "start": 573.95,
+      "end": 577.07,
+      "en": "Here I'm specifying the parameters for this model.",
+      "zh": "這裡指定模型參數。"
+    },
+    {
+      "start": 577.11,
+      "end": 579.75,
+      "en": "This is now, I believe, correctly specified.",
+      "zh": "現在我想已經正確指定了。"
+    },
+    {
+      "start": 579.91,
+      "end": 588.01,
+      "en": "I also often forget how to name these variables another common source of errors, but easy to fix at least.",
+      "zh": "我也常忘記這些變數的名稱，這也是常見錯誤來源，不過至少很好修。"
+    },
+    {
+      "start": 588.37,
+      "end": 595.41,
+      "en": "Okay, so here we will have 128 embedding dimensions and 12 transformer blocks.",
+      "zh": "好，這裡會有 128 維嵌入，以及 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 595.89,
+      "end": 599.77,
+      "en": "This is the class that creates one attention head.",
+      "zh": "這是建立單一注意力頭的類別。"
+    },
+    {
+      "start": 600.17,
+      "end": 606.45,
+      "en": "And I'm pretty sure I changed absolutely nothing compared to the last time you saw this.",
+      "zh": "我很確定，和上次看到的相比，完全沒有改動。"
+    },
+    {
+      "start": 606.45,
+      "end": 612.69,
+      "en": "So in the initialization step we create all the matrices in the forward step.",
+      "zh": "初始化時，建立所有矩陣；前向傳播時，"
+    },
+    {
+      "start": 612.69,
+      "end": 620.37,
+      "en": "Here I'm no longer implementing attention manually by a direct translation of the formula into code.",
+      "zh": "這裡不再把公式直接轉成程式，手動實作注意力。"
+    },
+    {
+      "start": 620.37,
+      "end": 632.05,
+      "en": "Instead, I'm just extracting the product of the token embeddings and each of these weights matrices, and then calling the PyTorch function here okay.",
+      "zh": "而是取得詞元嵌入與各權重矩陣的乘積，再呼叫這個 PyTorch 函數。"
+    },
+    {
+      "start": 632.09,
+      "end": 637.25,
+      "en": "And then at the end we do the linear mixing across the different attention heads.",
+      "zh": "最後再做不同注意力頭之間的線性混合。"
+    },
+    {
+      "start": 637.25,
+      "end": 638.81,
+      "en": "You will learn more about that soon.",
+      "zh": "很快會學更多。"
+    },
+    {
+      "start": 639.29,
+      "end": 642.69,
+      "en": "Okay so here is the transformer block.",
+      "zh": "好，這是 Transformer 區塊。"
+    },
+    {
+      "start": 642.69,
+      "end": 649.08,
+      "en": "So here you can see we have a tension sublayer and an MLP sublayer.",
+      "zh": "可以看到，包含注意力子層與 MLP 子層。"
+    },
+    {
+      "start": 649.24,
+      "end": 652.16,
+      "en": "So here is the layer norm for attention.",
+      "zh": "這是注意力使用的 LayerNorm。"
+    },
+    {
+      "start": 652.28,
+      "end": 656.72,
+      "en": "And then in the attention sublayer we call one attention head.",
+      "zh": "注意力子層裡，呼叫一個注意力頭。"
+    },
+    {
+      "start": 656.72,
+      "end": 665.64,
+      "en": "So we're just basically getting all of this code or all of this code the initialization to happen in this here.",
+      "zh": "基本上，就是讓這一整段初始化程式，都在這裡發生。"
+    },
+    {
+      "start": 665.64,
+      "end": 668.36,
+      "en": "And then we call that self attention.",
+      "zh": "然後把它命名為 self.attention。"
+    },
+    {
+      "start": 669.68,
+      "end": 671.32,
+      "en": "And then for the feedforward layer.",
+      "zh": "接著是前饋層。"
+    },
+    {
+      "start": 671.32,
+      "end": 676.16,
+      "en": "So here I call this w1 w2 with the glue in the middle.",
+      "zh": "這裡叫 W1、W2，中間有 GELU。"
+    },
+    {
+      "start": 676.32,
+      "end": 680.04,
+      "en": "You can see here that there's the four x expansion.",
+      "zh": "可以看到，這裡做四倍擴張。"
+    },
+    {
+      "start": 680.16,
+      "end": 685.56,
+      "en": "So we go from the embeddings dimensionality to four times the embeddings dimensionality.",
+      "zh": "從嵌入維度，擴張到四倍嵌入維度。"
+    },
+    {
+      "start": 686.08,
+      "end": 691.52,
+      "en": "And then after the non-linearity we contract back to the embeddings dimensionality.",
+      "zh": "經過非線性後，再收縮回嵌入維度。"
+    },
+    {
+      "start": 691.56,
+      "end": 699.72,
+      "en": "Now this of course has to match the embeddings dimensionality because that is the space in which these embeddings vectors live.",
+      "zh": "當然，這必須符合嵌入維度，因為嵌入向量就是位於這個空間。"
+    },
+    {
+      "start": 699.72,
+      "end": 705.22,
+      "en": "So any adjustments we make to the embeddings vectors as they are passing through.",
+      "zh": "所以向量通過模型時，我們對它做的任何調整，"
+    },
+    {
+      "start": 705.22,
+      "end": 709.42,
+      "en": "The model always need to be with embedding dimensionality.",
+      "zh": "都必須具有嵌入維度。"
+    },
+    {
+      "start": 710.02,
+      "end": 710.34,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 710.38,
+      "end": 716.58,
+      "en": "And now because we have these separate classes it's really easy to run the forward model.",
+      "zh": "現在有了獨立類別，執行前向模型就很容易。"
+    },
+    {
+      "start": 716.66,
+      "end": 720.02,
+      "en": "So layernorm and attention.",
+      "zh": "先做 LayerNorm，再做注意力。"
+    },
+    {
+      "start": 720.02,
+      "end": 726.38,
+      "en": "And you know, this little piece of code right here is actually calling all of this code over here.",
+      "zh": "這一小段程式，其實就是呼叫這邊所有內容。"
+    },
+    {
+      "start": 726.94,
+      "end": 733.22,
+      "en": "So now that I've put it all into one line, you can see it's really easy to add back the original copy.",
+      "zh": "既然寫成一行，就能看出加回原始那份資料非常容易。"
+    },
+    {
+      "start": 733.42,
+      "end": 738.42,
+      "en": "So x here is the embeddings that are coming into the forward method.",
+      "zh": "這裡的 X，是傳入 forward 方法的嵌入。"
+    },
+    {
+      "start": 738.66,
+      "end": 741.7,
+      "en": "And we say those this is the original copy.",
+      "zh": "這部分就是原始那份資料。"
+    },
+    {
+      "start": 741.82,
+      "end": 745.7,
+      "en": "And then they get normalized and go through attention.",
+      "zh": "接著做正規化，再經過注意力。"
+    },
+    {
+      "start": 745.7,
+      "end": 746.9,
+      "en": "And they sum back.",
+      "zh": "然後加回去。"
+    },
+    {
+      "start": 746.9,
+      "end": 749.34,
+      "en": "So this is the original embeddings.",
+      "zh": "這是原本的嵌入。"
+    },
+    {
+      "start": 749.34,
+      "end": 754.18,
+      "en": "And this is the adjustment to the embeddings that gets added back on.",
+      "zh": "這是要加回去的嵌入調整量。"
+    },
+    {
+      "start": 755.54,
+      "end": 757.94,
+      "en": "Same story for the MLP sublayer.",
+      "zh": "MLP 子層也是同樣的道理。"
+    },
+    {
+      "start": 757.94,
+      "end": 766.08,
+      "en": "So here yeah I have decided not to create a separate class just for the MLP sublayer.",
+      "zh": "這裡我決定不另外為 MLP 子層建立類別。"
+    },
+    {
+      "start": 766.08,
+      "end": 773.72,
+      "en": "And that's partly just a personal choice, but also because I don't think this code is as involved as the attention code.",
+      "zh": "部分是個人選擇，也因為這段程式沒有注意力那麼複雜。"
+    },
+    {
+      "start": 773.88,
+      "end": 774.88,
+      "en": "But anyway, yeah.",
+      "zh": "總之。"
+    },
+    {
+      "start": 774.88,
+      "end": 776.2,
+      "en": "So we take the data.",
+      "zh": "取得資料。"
+    },
+    {
+      "start": 776.24,
+      "end": 781.36,
+      "en": "This is now the data post attention Layernorm again.",
+      "zh": "現在是注意力之後的資料，再做一次 LayerNorm。"
+    },
+    {
+      "start": 781.36,
+      "end": 788.52,
+      "en": "And then expansion non-linearity contraction and add back to the residual copy.",
+      "zh": "接著擴張、非線性、收縮，再加回保留的殘差。"
+    },
+    {
+      "start": 788.72,
+      "end": 789,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 789.04,
+      "end": 790.6,
+      "en": "So that's the transformer block.",
+      "zh": "這就是 Transformer 區塊。"
+    },
+    {
+      "start": 790.72,
+      "end": 793.96,
+      "en": "Now this right here will create one transformer block.",
+      "zh": "這裡會建立一個區塊。"
+    },
+    {
+      "start": 794.2,
+      "end": 805.88,
+      "en": "So then the idea is that in the full language model class where we're actually creating the GPT model, we can create multiple blocks at the same time.",
+      "zh": "因此在真正建立 GPT 模型的完整語言模型類別中，就能同時建立多個區塊。"
+    },
+    {
+      "start": 805.88,
+      "end": 809.8,
+      "en": "So here I have a list comprehension here.",
+      "zh": "這裡用了串列生成式。"
+    },
+    {
+      "start": 810,
+      "end": 818.24,
+      "en": "So I'm creating multiple transformer blocks and looping over in a range of 12 in this case.",
+      "zh": "建立多個 Transformer 區塊，這次用 range 遍歷 12 次。"
+    },
+    {
+      "start": 818.24,
+      "end": 822.54,
+      "en": "But however many you specify and then that list.",
+      "zh": "但也可以指定任何數量，接著這個串列，"
+    },
+    {
+      "start": 822.54,
+      "end": 824.98,
+      "en": "So this is a list of.",
+      "zh": "也就是一個包含"
+    },
+    {
+      "start": 825.02,
+      "end": 827.38,
+      "en": "Transformer instances.",
+      "zh": "Transformer 實例的串列，"
+    },
+    {
+      "start": 827.62,
+      "end": 832.94,
+      "en": "And then that list becomes separate inputs into n sequential.",
+      "zh": "會拆成分別傳給 nn.Sequential 的輸入。"
+    },
+    {
+      "start": 833.02,
+      "end": 842.22,
+      "en": "And that means that self dot transformer blocks is a PyTorch sequential object that contains 12 of these",
+      "zh": "因此 self.transformerBlocks 是 PyTorch 的 Sequential 物件，包含 12 個"
+    },
+    {
+      "start": 842.22,
+      "end": 844.3,
+      "en": "transformer blocks in a row.",
+      "zh": "依序排列的 Transformer 區塊。"
+    },
+    {
+      "start": 844.46,
+      "end": 847.66,
+      "en": "Every one of those 12 blocks is exactly the same.",
+      "zh": "這 12 個區塊完全相同。"
+    },
+    {
+      "start": 847.98,
+      "end": 850.14,
+      "en": "They're all, you know, they all do this.",
+      "zh": "它們做的都是這些事情。"
+    },
+    {
+      "start": 850.3,
+      "end": 860.94,
+      "en": "The difference is that they all have parameter matrices that are initialized randomly, and therefore will become different from each other as we do the training.",
+      "zh": "差別是，每個區塊的參數矩陣都隨機初始化，因此在訓練中會彼此不同。"
+    },
+    {
+      "start": 862.02,
+      "end": 862.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 862.34,
+      "end": 868.38,
+      "en": "So then after we go through 12 transformer blocks we have a final layer normalization.",
+      "zh": "通過 12 個 Transformer 區塊後，還有最後一次層正規化。"
+    },
+    {
+      "start": 868.38,
+      "end": 873.5,
+      "en": "And then this final linear is the embeddings matrix.",
+      "zh": "接著 finalLinear，就是反嵌入矩陣。"
+    },
+    {
+      "start": 873.78,
+      "end": 876.98,
+      "en": "Here it's initialized to be random numbers.",
+      "zh": "這裡先用隨機數初始化。"
+    },
+    {
+      "start": 876.98,
+      "end": 882.88,
+      "en": "And then here I am tying it to the embeddings, uh, matrix from the beginning.",
+      "zh": "再把它綁定到最開頭的嵌入矩陣。"
+    },
+    {
+      "start": 883.2,
+      "end": 884.68,
+      "en": "Okay, so that's the init thing.",
+      "zh": "好，這就是初始化。"
+    },
+    {
+      "start": 884.96,
+      "end": 889.32,
+      "en": "And now the forward model or the forward method again looks quite simple.",
+      "zh": "前向模型，也就是 forward 方法，現在看起來又很簡單。"
+    },
+    {
+      "start": 889.32,
+      "end": 890.8,
+      "en": "So we have the embeddings.",
+      "zh": "這裡有嵌入。"
+    },
+    {
+      "start": 890.8,
+      "end": 898.52,
+      "en": "The token embeddings where we start from integer embeddings and transform that into a dense vector representations.",
+      "zh": "也就是詞元嵌入，從整數表示轉成稠密向量表示。"
+    },
+    {
+      "start": 898.92,
+      "end": 902.8,
+      "en": "And then we do all 12 transformer blocks in one line of code.",
+      "zh": "接著一行程式，就能跑完全部 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 903.08,
+      "end": 904.56,
+      "en": "It's not really one line of code.",
+      "zh": "其實不是真的只有一行。"
+    },
+    {
+      "start": 904.56,
+      "end": 906.76,
+      "en": "It's actually like hundreds of lines of code.",
+      "zh": "實際上可能有好幾百行。"
+    },
+    {
+      "start": 906.76,
+      "end": 912.64,
+      "en": "But we have set up our code with classes so that we only need to call.",
+      "zh": "但因為我們用類別組織程式，只需要呼叫，"
+    },
+    {
+      "start": 912.96,
+      "end": 916.24,
+      "en": "We only need to write one line of code to get all this to work.",
+      "zh": "只需要寫一行，就能讓這些全都運作。"
+    },
+    {
+      "start": 916.84,
+      "end": 920.76,
+      "en": "And then here we have the embeddings okay.",
+      "zh": "這裡則是反嵌入。"
+    },
+    {
+      "start": 920.76,
+      "end": 929.52,
+      "en": "You'll remember in model three I added some extra outputs here, uh from the forward method of this model.",
+      "zh": "你記得，模型三的 forward 方法多加入了一些額外輸出。"
+    },
+    {
+      "start": 929.64,
+      "end": 931.4,
+      "en": "And here I'm taking that off.",
+      "zh": "這裡把它們移除。"
+    },
+    {
+      "start": 931.4,
+      "end": 941.82,
+      "en": "I mentioned briefly in that video that that is generally not a good way to grab data from inside the model to investigate.",
+      "zh": "那支影片簡單提過，這通常不是取得模型內部資料來研究的好方法。"
+    },
+    {
+      "start": 941.86,
+      "end": 950.14,
+      "en": "It was convenient to do in model three when we get to the section of the course on mechanistic interpretability.",
+      "zh": "模型三裡只是方便；等進入課程的機制可解釋性章節，"
+    },
+    {
+      "start": 950.3,
+      "end": 957.5,
+      "en": "Then I will show you the better way to, uh, to hook into these models so you can actually get, for",
+      "zh": "會展示更好的方式，用 hook 介入這些模型，實際取得，"
+    },
+    {
+      "start": 957.5,
+      "end": 965.42,
+      "en": "example, you know what each of these attention neurons is calculating when you pass each token into the model.",
+      "zh": "例如傳入每個詞元時，各個注意力神經元正在計算什麼。"
+    },
+    {
+      "start": 965.98,
+      "end": 966.34,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 966.38,
+      "end": 968.34,
+      "en": "So we'll get to that in the future.",
+      "zh": "之後會談到。"
+    },
+    {
+      "start": 968.78,
+      "end": 969.02,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 969.06,
+      "end": 972.5,
+      "en": "And then yeah, this is no different from before I'm not going to talk about this.",
+      "zh": "這和之前沒有不同，就不再說明。"
+    },
+    {
+      "start": 972.54,
+      "end": 972.74,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 972.78,
+      "end": 973.86,
+      "en": "So let's run that.",
+      "zh": "執行一下。"
+    },
+    {
+      "start": 974.26,
+      "end": 978.62,
+      "en": "And now here I create an instance of this language model.",
+      "zh": "現在建立語言模型的一個實例。"
+    },
+    {
+      "start": 978.86,
+      "end": 982.98,
+      "en": "I call it the little bit of a stretch to call this a large language model.",
+      "zh": "我這樣命名，要叫它「大型」語言模型，其實有點勉強。"
+    },
+    {
+      "start": 982.98,
+      "end": 985.1,
+      "en": "But I suppose everything is relative.",
+      "zh": "不過一切都是相對的。"
+    },
+    {
+      "start": 985.7,
+      "end": 996.56,
+      "en": "Now when we look at what this model prints out, we see some very nice, uh, structured organization with indentations That helps us see what this model is.",
+      "zh": "查看模型印出的內容，可以看到非常整齊、有縮排的結構，幫助我們了解模型。"
+    },
+    {
+      "start": 996.56,
+      "end": 997.56,
+      "en": "This is one of the.",
+      "zh": "這是"
+    },
+    {
+      "start": 997.68,
+      "end": 1003.2,
+      "en": "Benefits of using classes to define the different parts of the model.",
+      "zh": "用類別定義模型不同部分的一個好處。"
+    },
+    {
+      "start": 1003.52,
+      "end": 1008.84,
+      "en": "So the entire LM variable is an instance of language model.",
+      "zh": "整個 LM 變數，是 LanguageModel 的實例。"
+    },
+    {
+      "start": 1009.2,
+      "end": 1015.48,
+      "en": "And then in language model we have the token embeddings 50,000 by 128.",
+      "zh": "LanguageModel 裡有大小為 50,000 × 128 的詞元嵌入。"
+    },
+    {
+      "start": 1015.52,
+      "end": 1022.16,
+      "en": "Of course you know that that corresponds to 50,000 tokens 128 embeddings dimensions.",
+      "zh": "當然，對應 50,000 個詞元，以及 128 維嵌入。"
+    },
+    {
+      "start": 1022.32,
+      "end": 1024.64,
+      "en": "And then we have the position embeddings.",
+      "zh": "接著有位置嵌入。"
+    },
+    {
+      "start": 1025.12,
+      "end": 1028.36,
+      "en": "And then here is where we start the transformer blocks.",
+      "zh": "從這裡開始是 Transformer 區塊。"
+    },
+    {
+      "start": 1028.36,
+      "end": 1030.68,
+      "en": "You can see that's a sequential object.",
+      "zh": "可以看到，它是 Sequential 物件。"
+    },
+    {
+      "start": 1031.08,
+      "end": 1036.28,
+      "en": "And the first one index zero has layernorm attention.",
+      "zh": "第一個，索引 0，有注意力用的 LayerNorm。"
+    },
+    {
+      "start": 1036.28,
+      "end": 1037.64,
+      "en": "And then we have attention.",
+      "zh": "接著是注意力。"
+    },
+    {
+      "start": 1037.64,
+      "end": 1039.68,
+      "en": "And that is one attention head.",
+      "zh": "也就是一個注意力頭。"
+    },
+    {
+      "start": 1039.92,
+      "end": 1047.56,
+      "en": "And in that class we have the key matrix the query matrix the value matrix and the w0 matrix.",
+      "zh": "在這個類別中，有鍵矩陣、查詢矩陣、值矩陣，以及 Wₒ 矩陣。"
+    },
+    {
+      "start": 1047.68,
+      "end": 1048.2,
+      "en": "Brilliant.",
+      "zh": "太棒了。"
+    },
+    {
+      "start": 1048.2,
+      "end": 1048.92,
+      "en": "Very nice.",
+      "zh": "非常好。"
+    },
+    {
+      "start": 1049.44,
+      "end": 1050.6,
+      "en": "And then uh yeah.",
+      "zh": "接著，對。"
+    },
+    {
+      "start": 1050.64,
+      "end": 1052.48,
+      "en": "Then that's the attention sublayer.",
+      "zh": "這就是注意力子層。"
+    },
+    {
+      "start": 1052.59,
+      "end": 1055.23,
+      "en": "Here we have the MLP sublayer.",
+      "zh": "這裡是 MLP 子層。"
+    },
+    {
+      "start": 1055.47,
+      "end": 1060.23,
+      "en": "So there we have layernorm w1 w2.",
+      "zh": "有 LayerNorm、W1、W2。"
+    },
+    {
+      "start": 1060.23,
+      "end": 1062.27,
+      "en": "And you can also check the sizes.",
+      "zh": "也可以檢查大小。"
+    },
+    {
+      "start": 1062.43,
+      "end": 1069.43,
+      "en": "So we start off going from 128 dimensions into 500 dimensions.",
+      "zh": "從 128 維擴張到 500 維。"
+    },
+    {
+      "start": 1069.43,
+      "end": 1072.23,
+      "en": "And then we compress back to 128.",
+      "zh": "再壓縮回 128 維。"
+    },
+    {
+      "start": 1073.27,
+      "end": 1075.55,
+      "en": "So this is transformer block one.",
+      "zh": "這是第一個 Transformer 區塊。"
+    },
+    {
+      "start": 1075.95,
+      "end": 1078.31,
+      "en": "Here we have transformer block two.",
+      "zh": "這裡是第二個區塊。"
+    },
+    {
+      "start": 1078.47,
+      "end": 1083.51,
+      "en": "And you know text wise this is identical to transformer block zero.",
+      "zh": "文字上看，和索引 0 的區塊一模一樣。"
+    },
+    {
+      "start": 1083.79,
+      "end": 1088.71,
+      "en": "Of course all the numerical values of the weights matrices are not identical.",
+      "zh": "當然，權重矩陣裡的實際數值不同。"
+    },
+    {
+      "start": 1089.03,
+      "end": 1091.23,
+      "en": "And then we scroll down yada yada yada.",
+      "zh": "再往下捲，依此類推。"
+    },
+    {
+      "start": 1091.27,
+      "end": 1092.47,
+      "en": "There's a lot of stuff here.",
+      "zh": "這裡有很多內容。"
+    },
+    {
+      "start": 1092.59,
+      "end": 1094.39,
+      "en": "And it goes to block 11.",
+      "zh": "一直到區塊 11。"
+    },
+    {
+      "start": 1094.43,
+      "end": 1098.47,
+      "en": "Of course that's the 12th block in the transformer sequence.",
+      "zh": "當然，那是 Transformer 序列的第 12 個區塊。"
+    },
+    {
+      "start": 1098.91,
+      "end": 1104.03,
+      "en": "And then finally we have the layernorm and the embeddings matrix over here.",
+      "zh": "最後有 LayerNorm，以及這邊的反嵌入矩陣。"
+    },
+    {
+      "start": 1104.59,
+      "end": 1105.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1105.11,
+      "end": 1109.71,
+      "en": "Now you will see starting later in this section in a couple videos.",
+      "zh": "稍後這一節，再過幾支影片就會看到，"
+    },
+    {
+      "start": 1109.71,
+      "end": 1112.21,
+      "en": "And uh, really a lot.",
+      "zh": "而且之後會大量使用，"
+    },
+    {
+      "start": 1112.25,
+      "end": 1118.25,
+      "en": "When we start getting into the mech Interp sections, we need to access some of these individual components.",
+      "zh": "進入機制可解釋性章節時，需要存取這些個別元件。"
+    },
+    {
+      "start": 1118.25,
+      "end": 1123.01,
+      "en": "So, for example, you know what is going on in transformer block four.",
+      "zh": "例如，第四個 Transformer 區塊發生了什麼？"
+    },
+    {
+      "start": 1123.21,
+      "end": 1125.21,
+      "en": "How do we access this?",
+      "zh": "如何存取這裡？"
+    },
+    {
+      "start": 1125.25,
+      "end": 1128.65,
+      "en": "You know, one, this this particular matrix over here.",
+      "zh": "例如這個特定矩陣。"
+    },
+    {
+      "start": 1129.69,
+      "end": 1134.33,
+      "en": "So we can do that by indexing each of these elements and using dots.",
+      "zh": "可以對每個元素使用索引，再用點號存取。"
+    },
+    {
+      "start": 1134.33,
+      "end": 1138.89,
+      "en": "So transformer blocks let me first show you what that looks like.",
+      "zh": "先展示 transformerBlocks 長什麼樣。"
+    },
+    {
+      "start": 1139.21,
+      "end": 1143.97,
+      "en": "So this is all 11 or all 12 transformer blocks.",
+      "zh": "這是全部 11 個，或者說全部 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 1143.97,
+      "end": 1147.49,
+      "en": "If we just want the fourth block that gives us access to this.",
+      "zh": "如果只想要第四個區塊，就能取得這個。"
+    },
+    {
+      "start": 1147.97,
+      "end": 1151.01,
+      "en": "And now we can say, you know, I want this thing here.",
+      "zh": "接著可以說，我想要這裡的，"
+    },
+    {
+      "start": 1151.05,
+      "end": 1151.85,
+      "en": "Attention.",
+      "zh": "attention。"
+    },
+    {
+      "start": 1152.01,
+      "end": 1154.09,
+      "en": "So then we write dot attention.",
+      "zh": "所以寫 .attention。"
+    },
+    {
+      "start": 1154.85,
+      "end": 1157.93,
+      "en": "And that gives us all the information in there.",
+      "zh": "就能取得裡面的資訊。"
+    },
+    {
+      "start": 1157.93,
+      "end": 1161.61,
+      "en": "And then I want the query and I want to know what are the weights.",
+      "zh": "接著要查詢矩陣，想知道權重是什麼。"
+    },
+    {
+      "start": 1161.77,
+      "end": 1163.65,
+      "en": "And I want to work with these numbers.",
+      "zh": "我想操作這些數字。"
+    },
+    {
+      "start": 1163.65,
+      "end": 1170.67,
+      "en": "So I want to detach them from the gradient and computational graph information.",
+      "zh": "所以要把它們從梯度與計算圖資訊中分離。"
+    },
+    {
+      "start": 1170.67,
+      "end": 1173.23,
+      "en": "And then, you know, these are living on the GPU.",
+      "zh": "而這些數值位於 GPU 上。"
+    },
+    {
+      "start": 1173.23,
+      "end": 1175.39,
+      "en": "So I want to bring these back to the CPU.",
+      "zh": "所以要移回 CPU。"
+    },
+    {
+      "start": 1175.75,
+      "end": 1179.15,
+      "en": "Maybe you need to transform them into numpy.",
+      "zh": "也許還需要轉成 NumPy。"
+    },
+    {
+      "start": 1179.19,
+      "end": 1182.51,
+      "en": "So they are numpy arrays instead of PyTorch tensors.",
+      "zh": "讓它們變成 NumPy 陣列，而不是 PyTorch 張量。"
+    },
+    {
+      "start": 1182.63,
+      "end": 1184.99,
+      "en": "This really gets pretty intense.",
+      "zh": "這些操作確實越來越複雜。"
+    },
+    {
+      "start": 1184.99,
+      "end": 1187.95,
+      "en": "But I hope you see where this all comes from.",
+      "zh": "但希望你看得出來，它們從哪裡來。"
+    },
+    {
+      "start": 1189.23,
+      "end": 1189.75,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 1189.79,
+      "end": 1190.51,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1190.59,
+      "end": 1191.07,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1191.11,
+      "end": 1195.23,
+      "en": "The last thing I want to do is just run a little bit of data through here.",
+      "zh": "最後只是送一點資料進去。"
+    },
+    {
+      "start": 1195.55,
+      "end": 1206.91,
+      "en": "Uh, not going to visualize or interpret or do anything with this, just to do a sanity check and make sure that the model is internally consistent and we're not getting any errors.",
+      "zh": "不會視覺化、解讀或做其他事，只是合理性檢查，確保模型內部相容，不會出錯。"
+    },
+    {
+      "start": 1207.67,
+      "end": 1216.95,
+      "en": "The final component of a GPT decoder language model is to split up the attention mechanism into multiple heads.",
+      "zh": "GPT 解碼器語言模型的最後一個元件，是把注意力機制拆成多個頭。"
+    },
+    {
+      "start": 1217.55,
+      "end": 1226.83,
+      "en": "So let's get to that discussion, and then we will be ready to start thinking about models in their entirety instead of individual components.",
+      "zh": "接著來討論這件事，之後就能開始把模型視為整體，而不是個別元件。"
+    }
+  ]
+}

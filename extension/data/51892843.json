@@ -1,0 +1,1843 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892843",
+  "title": "Mutual information: theory and code",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b2c4e0a5ba62872b3e4a008895809983a4afe596f681bc3aaedae5bbdcf03bbd",
+  "cues": [
+    {
+      "start": 2.44,
+      "end": 12.44,
+      "en": "This is the first video in a collection of several videos on mutual information covariance and mechanistic",
+      "zh": "這是接下來幾支介紹互資訊、共變異數與機制"
+    },
+    {
+      "start": 12.44,
+      "end": 13.64,
+      "en": "interpretability.",
+      "zh": "可解釋性影片中的第一支。"
+    },
+    {
+      "start": 14.28,
+      "end": 22.8,
+      "en": "It is in the section on Examining Layers, but mutual information and covariance are useful and general",
+      "zh": "它放在檢查各層的章節中，但互資訊與共變異數，是實用且通用的"
+    },
+    {
+      "start": 22.8,
+      "end": 31.84,
+      "en": "analysis methods that work for lots of different situations and many different features of the model, and not just layers per se.",
+      "zh": "分析方法，適用於許多不同情境，以及模型的許多不同特徵，不只是層本身。"
+    },
+    {
+      "start": 32.68,
+      "end": 41,
+      "en": "So the purpose of this video is to introduce you to the formula and interpretation of mutual information,",
+      "zh": "這支影片的目的，是介紹互資訊的公式與解讀方式，"
+    },
+    {
+      "start": 41.32,
+      "end": 46.96,
+      "en": "and I'll show you how to implement it using several different approaches in Python.",
+      "zh": "並示範幾種不同的 Python 實作方法。"
+    },
+    {
+      "start": 47.48,
+      "end": 56,
+      "en": "So this video is not really about LX per se, but the methods that you will use in later videos.",
+      "zh": "所以這支影片並不直接談 LLM 本身，而是介紹後續影片會用到的方法。"
+    },
+    {
+      "start": 56.48,
+      "end": 60.78,
+      "en": "Mutual information is based on a quantity called entropy.",
+      "zh": "互資訊以一個叫作熵的量為基礎。"
+    },
+    {
+      "start": 61.1,
+      "end": 66.3,
+      "en": "So let me first introduce you to the math and interpretation of entropy.",
+      "zh": "所以先介紹熵的數學與解讀方式，"
+    },
+    {
+      "start": 66.46,
+      "end": 69.78,
+      "en": "And then we can switch to discussing mutual information.",
+      "zh": "再轉而討論互資訊。"
+    },
+    {
+      "start": 70.58,
+      "end": 77.3,
+      "en": "Actually the word entropy is used in several different contexts and it has several different meanings.",
+      "zh": "其實熵這個字會出現在幾種不同脈絡，也有幾種不同意義。"
+    },
+    {
+      "start": 77.82,
+      "end": 85.46000000000001,
+      "en": "You might be familiar with the concept of entropy in physics and thermodynamics, where that term entropy",
+      "zh": "你可能熟悉物理與熱力學中的熵，在那裡，熵"
+    },
+    {
+      "start": 85.46000000000001,
+      "end": 96.53999999999999,
+      "en": "refers to the fact that order tends to move towards disorder, and things that are neat and organized eventually become chaotic and disorganized.",
+      "zh": "表示有序往往會走向無序，整齊有條理的事物，最終會變得混亂無章。"
+    },
+    {
+      "start": 97.06,
+      "end": 104.5,
+      "en": "Unfortunately, this interpretation of entropy leads to some very difficult existential thoughts about the universe.",
+      "zh": "不幸的是，這種熵的解讀，會引出一些關於宇宙、相當難受的存在性思考。"
+    },
+    {
+      "start": 104.5,
+      "end": 105.46000000000001,
+      "en": "But don't worry.",
+      "zh": "但別擔心。"
+    },
+    {
+      "start": 105.7,
+      "end": 113.58,
+      "en": "The way that we will use entropy here in data analysis is a different interpretation from Claude Shannon,",
+      "zh": "這裡在資料分析中使用熵的方式，來自 Claude Shannon 的另一種解讀，"
+    },
+    {
+      "start": 114.1,
+      "end": 123.67,
+      "en": "and it is much more upbeat and happy than the Then the thermodynamics interpretation in the context of information theory.",
+      "zh": "比熱力學的解讀樂觀、快樂得多。在資訊理論中，"
+    },
+    {
+      "start": 124.11,
+      "end": 130.75,
+      "en": "Entropy is a quantification of the amount of variability or unexpectedness.",
+      "zh": "熵量化的是變異程度或不可預期性，"
+    },
+    {
+      "start": 130.79,
+      "end": 134.75,
+      "en": "It's also usually called surprise in this literature.",
+      "zh": "文獻中通常也稱為驚奇，"
+    },
+    {
+      "start": 135.15,
+      "end": 136.11,
+      "en": "In a data set.",
+      "zh": "也就是資料集中的驚奇程度。"
+    },
+    {
+      "start": 136.99,
+      "end": 146.59,
+      "en": "So this graph over here shows entropy on the y axis and the probability of an event occurring on the x axis.",
+      "zh": "這張圖的 y 軸是熵，x 軸是某事件發生的機率。"
+    },
+    {
+      "start": 147.15,
+      "end": 155.79,
+      "en": "Now when the probabilities are close to zero or close to one, then there isn't much unexpectedness happening.",
+      "zh": "當機率接近零或接近一時，不可預期性就不高。"
+    },
+    {
+      "start": 156.35,
+      "end": 163.71,
+      "en": "For example, if we think about the probability of the sun coming up in the morning, that's a very high probability.",
+      "zh": "例如想想早晨太陽升起的機率，那個機率非常高。"
+    },
+    {
+      "start": 163.99,
+      "end": 168.51,
+      "en": "Therefore, you are not surprised when the sun comes up in the morning.",
+      "zh": "因此早上太陽升起時，你不會感到驚訝。"
+    },
+    {
+      "start": 169.15,
+      "end": 175.79,
+      "en": "On the other hand, something that has a probability of 0.5 has a lot of entropy.",
+      "zh": "另一方面，機率為 0.5 的事情，熵就很高。"
+    },
+    {
+      "start": 176.19,
+      "end": 178.61,
+      "en": "So here you can think about flipping a coin.",
+      "zh": "可以想像擲硬幣。"
+    },
+    {
+      "start": 179.05,
+      "end": 185.85,
+      "en": "The coin has an equal chance of landing on heads or tails, and therefore the outcome is more variable.",
+      "zh": "硬幣出現正面或反面的機率相同，因此結果較具變化性。"
+    },
+    {
+      "start": 186.25,
+      "end": 192.89,
+      "en": "Now, in the context of information theory that probability has a high entropy.",
+      "zh": "在資訊理論的脈絡下，這個機率具有高熵。"
+    },
+    {
+      "start": 193.53,
+      "end": 199.45,
+      "en": "So you can also think of the entropy as being like the predictability of a system.",
+      "zh": "所以也可以把熵，想成系統的可預測性。"
+    },
+    {
+      "start": 199.85,
+      "end": 205.93,
+      "en": "So if you can accurately predict a particular outcome then the entropy will be low.",
+      "zh": "如果可以準確預測某個結果，熵就低；"
+    },
+    {
+      "start": 206.37,
+      "end": 211.32999999999998,
+      "en": "But if you cannot predict an outcome then the entropy is higher.",
+      "zh": "如果無法預測結果，熵就比較高。"
+    },
+    {
+      "start": 211.93,
+      "end": 215.85,
+      "en": "Now these are all somewhat vague and imprecise statements.",
+      "zh": "這些說法都有些模糊、不精確。"
+    },
+    {
+      "start": 215.97,
+      "end": 218.21,
+      "en": "And I'll show you the formula on the next slide.",
+      "zh": "下一張投影片會展示公式。"
+    },
+    {
+      "start": 218.32999999999998,
+      "end": 225.49,
+      "en": "But I do want to lighten the mood a little bit after the previous slide, and say that entropy in information",
+      "zh": "不過，經過上一張投影片，我想稍微輕鬆一下：資訊理論中的熵"
+    },
+    {
+      "start": 225.49,
+      "end": 235.78,
+      "en": "theory states that everything and everyone is great and happy, and we all like being surprised because surprises convey more Information.",
+      "zh": "表示，一切、每個人都很棒很快樂，而且大家都喜歡驚喜，因為驚喜帶來更多資訊。"
+    },
+    {
+      "start": 236.66,
+      "end": 238.38,
+      "en": "Okay, let's do some math.",
+      "zh": "好，來做點數學。"
+    },
+    {
+      "start": 239.62,
+      "end": 243.7,
+      "en": "Here is the formula for entropy in information theory.",
+      "zh": "這是資訊理論中熵的公式，"
+    },
+    {
+      "start": 244.1,
+      "end": 247.54,
+      "en": "It's often indicated using a capital H.",
+      "zh": "經常用大寫 H 表示。"
+    },
+    {
+      "start": 248.3,
+      "end": 251.18,
+      "en": "The formula itself is pretty straightforward.",
+      "zh": "公式本身相當直接。"
+    },
+    {
+      "start": 251.18,
+      "end": 257.18,
+      "en": "You need to know the probability of certain events taking place or being observed.",
+      "zh": "需要知道某些事件發生，或被觀察到的機率，"
+    },
+    {
+      "start": 257.7,
+      "end": 263.18,
+      "en": "And then you simply multiply the probability by the log of the probability.",
+      "zh": "然後將機率乘以該機率的對數，"
+    },
+    {
+      "start": 263.38,
+      "end": 267.66,
+      "en": "And then you sum up over all of the possible data categories.",
+      "zh": "再對所有可能的資料類別加總，"
+    },
+    {
+      "start": 267.66,
+      "end": 270.34,
+      "en": "So that would be n data categories.",
+      "zh": "也就是 n 個資料類別。"
+    },
+    {
+      "start": 270.34,
+      "end": 272.14,
+      "en": "And then you have your entropy.",
+      "zh": "這樣就得到熵。"
+    },
+    {
+      "start": 273.06,
+      "end": 281.26,
+      "en": "Now because probabilities are all between 0 and 1 the log of those probabilities will be negative.",
+      "zh": "因為機率都介於 0 和 1 之間，其對數會是負值，"
+    },
+    {
+      "start": 281.7,
+      "end": 285.18,
+      "en": "And so the sum will necessarily be negative.",
+      "zh": "因此總和必然為負。"
+    },
+    {
+      "start": 285.7,
+      "end": 292.14,
+      "en": "Therefore we add a negative sign out front just so that entropy ends up being positive.",
+      "zh": "所以在前面加上負號，讓熵最後變成正值，"
+    },
+    {
+      "start": 292.38,
+      "end": 295.43,
+      "en": "And that just makes the interpretation a little bit easier.",
+      "zh": "解讀起來也比較容易。"
+    },
+    {
+      "start": 296.23,
+      "end": 302.71,
+      "en": "You can also see that there is a potential problem with this formula when the probability is zero.",
+      "zh": "另外可以看到，機率為零時，這個公式可能有問題。"
+    },
+    {
+      "start": 303.27,
+      "end": 307.23,
+      "en": "So the log of zero is not a finite number.",
+      "zh": "零的對數不是有限數，"
+    },
+    {
+      "start": 307.23,
+      "end": 310.79,
+      "en": "So we can have numerical problems with this calculation.",
+      "zh": "因此計算可能出現數值問題。"
+    },
+    {
+      "start": 311.95,
+      "end": 314.87,
+      "en": "In practice there are a few ways to deal with this.",
+      "zh": "實務上有幾種處理方式。"
+    },
+    {
+      "start": 314.99,
+      "end": 322.47,
+      "en": "One way is to ignore from the analysis any probabilities that are exactly zero.",
+      "zh": "一種是從分析中忽略所有恰好為零的機率。"
+    },
+    {
+      "start": 323.07,
+      "end": 328.43,
+      "en": "And another option is to add a very tiny number inside the log.",
+      "zh": "另一種是在對數裡面加上一個非常微小的數字。"
+    },
+    {
+      "start": 328.71,
+      "end": 335.87,
+      "en": "Now, that number would be so small that it doesn't really impact the analysis for non-zero probabilities.",
+      "zh": "這個數字小到不會真正影響非零機率的分析。"
+    },
+    {
+      "start": 336.19,
+      "end": 344.03,
+      "en": "And if the probability is zero, then the log of that tiny number will be some really large negative number.",
+      "zh": "如果機率為零，那個微小數字的對數，就會是一個很大的負數，"
+    },
+    {
+      "start": 344.15,
+      "end": 349.43,
+      "en": "But then it gets multiplied by the probability out here, which is still zero.",
+      "zh": "但接著會乘上外面的機率，而機率仍然是零。"
+    },
+    {
+      "start": 349.95,
+      "end": 355.81,
+      "en": "Anyway, I'll show you some of these Approaches for numerical stability when I switch to code.",
+      "zh": "切換到程式碼後，我會示範其中一些維持數值穩定的方法。"
+    },
+    {
+      "start": 356.45,
+      "end": 364.29,
+      "en": "Now, one difficulty of using entropy is that this formula is really designed for categorical events,",
+      "zh": "使用熵有個困難，這個公式其實是為類別事件設計的，"
+    },
+    {
+      "start": 364.45,
+      "end": 374.01,
+      "en": "like a coin landing on heads or tails, or a token index, or a grammatical category like noun or verb or adjective.",
+      "zh": "例如硬幣落在正面或反面、token 索引，或名詞、動詞、形容詞等語法類別。"
+    },
+    {
+      "start": 374.65,
+      "end": 384.21,
+      "en": "But we are going to use entropy and mutual information on activation values, which are continuous numbers.",
+      "zh": "但我們要對活化值使用熵與互資訊，而活化值是連續數值。"
+    },
+    {
+      "start": 384.57,
+      "end": 386.65,
+      "en": "So that causes some headaches.",
+      "zh": "所以這會造成一些麻煩。"
+    },
+    {
+      "start": 386.65,
+      "end": 392.33,
+      "en": "And the solution is to use histograms to approximate probabilities.",
+      "zh": "解法是使用直方圖，近似機率。"
+    },
+    {
+      "start": 392.93,
+      "end": 403.25,
+      "en": "And unfortunately that also can lead to some headaches because it means that we need to choose the number of bins and the method of binning the data.",
+      "zh": "不幸的是，這也可能造成麻煩，因為必須選擇分箱數量，以及將資料分箱的方法。"
+    },
+    {
+      "start": 403.89,
+      "end": 408.97,
+      "en": "And these parameter choices can impact the entropy estimation.",
+      "zh": "這些參數選擇，可能影響熵的估計。"
+    },
+    {
+      "start": 409.61,
+      "end": 412.43,
+      "en": "I'll talk about this in more detail in code.",
+      "zh": "程式部分會再詳細說明。"
+    },
+    {
+      "start": 412.71,
+      "end": 419.83,
+      "en": "Although to be honest, a really detailed discussion of this is more for a course on statistics or machine learning.",
+      "zh": "不過老實說，要真正詳細討論，比較適合放在統計或機器學習課程。"
+    },
+    {
+      "start": 419.83,
+      "end": 423.03,
+      "en": "So I'm not going to get into a ton of detail about it here.",
+      "zh": "所以這裡不會深入太多細節。"
+    },
+    {
+      "start": 423.91,
+      "end": 433.07,
+      "en": "Anyway, the upshot of all this math is that when the data set has a lot of variability, then entropy",
+      "zh": "總之，這些數學的結論是，資料集的變異很多時，熵"
+    },
+    {
+      "start": 433.07,
+      "end": 434.07,
+      "en": "is higher.",
+      "zh": "就比較高。"
+    },
+    {
+      "start": 434.71,
+      "end": 443.43,
+      "en": "And the flip side of that interpretation is that when entropy is low, it means that the data has a lot of redundancies.",
+      "zh": "反過來說，熵低就表示資料有很多冗餘，"
+    },
+    {
+      "start": 443.43,
+      "end": 446.07,
+      "en": "That means the data are highly predictable.",
+      "zh": "也就是資料高度可預測。"
+    },
+    {
+      "start": 446.83,
+      "end": 451.43,
+      "en": "In other words, entropy is a measure of the variability of the data.",
+      "zh": "換句話說，熵衡量的是資料的變異程度。"
+    },
+    {
+      "start": 452.75,
+      "end": 460.31,
+      "en": "But you're already familiar with another quantification of variability, which is the standard deviation or variance.",
+      "zh": "但你已經熟悉另一種量化變異程度的方式，也就是標準差或變異數。"
+    },
+    {
+      "start": 460.79,
+      "end": 464.03,
+      "en": "So how does entropy relate to variance.",
+      "zh": "所以熵與變異數有什麼關係？"
+    },
+    {
+      "start": 464.67,
+      "end": 476.6,
+      "en": "Well, the short version of the story is that variance is a linear measure of variability, whereas entropy is a nonlinear measure.",
+      "zh": "簡單來說，變異數是線性的變異程度指標，而熵是非線性指標。"
+    },
+    {
+      "start": 477.24,
+      "end": 486.64,
+      "en": "So entropy also doesn't really make assumptions about the distribution of the data, whereas variance is based on interpreting the mean.",
+      "zh": "熵也不太對資料分布做假設，變異數則是以解讀平均數為基礎。"
+    },
+    {
+      "start": 487.24,
+      "end": 495.2,
+      "en": "And so variance and also standard deviation are mainly interpretable or mainly suitable for data that",
+      "zh": "因此，變異數與標準差，主要適合用於至少有些"
+    },
+    {
+      "start": 495.2,
+      "end": 501.72,
+      "en": "are at least somewhat normally distributed, and that is not the case for entropy with entropy.",
+      "zh": "接近常態分布的資料，也主要在那種情況下才容易解讀；熵則不同。"
+    },
+    {
+      "start": 501.76,
+      "end": 506.2,
+      "en": "You can have any data distribution that happens to be observed.",
+      "zh": "熵可以處理實際觀察到的任何資料分布。"
+    },
+    {
+      "start": 507.24,
+      "end": 514.08,
+      "en": "In the next video, I'm going to talk more about the relationship between mutual information and covariance.",
+      "zh": "下一支影片會進一步討論互資訊與共變異數的關係，"
+    },
+    {
+      "start": 514.08,
+      "end": 519.52,
+      "en": "So I'll also get back to this discussion in later videos.",
+      "zh": "因此後面幾支影片也會再回到這個討論。"
+    },
+    {
+      "start": 519.88,
+      "end": 523.36,
+      "en": "So let's now talk about mutual information.",
+      "zh": "現在來談互資訊。"
+    },
+    {
+      "start": 523.68,
+      "end": 532.61,
+      "en": "If you think of this Venn diagram as the entropy in variable x and this is the entropy in variable y.",
+      "zh": "把這個文氏圖想成變數 x 的熵，這個則是變數 y 的熵，"
+    },
+    {
+      "start": 533.09,
+      "end": 535.57,
+      "en": "Then where they overlap over here.",
+      "zh": "那麼它們在這裡重疊的部分，"
+    },
+    {
+      "start": 535.93,
+      "end": 538.57,
+      "en": "That is the mutual information.",
+      "zh": "就是互資訊。"
+    },
+    {
+      "start": 539.53,
+      "end": 544.81,
+      "en": "I will show two formulas for calculating mutual information on the following slide.",
+      "zh": "下一張投影片會展示兩個計算互資訊的公式。"
+    },
+    {
+      "start": 545.05,
+      "end": 556.77,
+      "en": "But essentially the idea is that mutual information is designed to quantify how much you can know about one variable if you measure another variable.",
+      "zh": "但基本概念是，互資訊用來量化，測量某個變數後，能知道另一個變數多少資訊。"
+    },
+    {
+      "start": 557.33,
+      "end": 559.45,
+      "en": "And we can think about two extremes.",
+      "zh": "可以想像兩個極端。"
+    },
+    {
+      "start": 559.45,
+      "end": 565.37,
+      "en": "Let's say you measure the amount of hydrogen in different stars in the Milky Way galaxy.",
+      "zh": "假設測量銀河系不同恆星中的氫含量，"
+    },
+    {
+      "start": 565.77,
+      "end": 569.69,
+      "en": "And you also measured the price of Bitcoin in the past ten years.",
+      "zh": "同時測量過去十年比特幣的價格。"
+    },
+    {
+      "start": 570.13,
+      "end": 575.13,
+      "en": "Those two variables have literally nothing whatsoever to do with each other.",
+      "zh": "這兩個變數，根本完全沒有任何關係，"
+    },
+    {
+      "start": 575.25,
+      "end": 579.17,
+      "en": "And so the mutual information between them would be zero.",
+      "zh": "所以它們之間的互資訊會是零。"
+    },
+    {
+      "start": 580.01,
+      "end": 587.95,
+      "en": "On the other hand, let's say you measure the price of Bitcoin and the price of Ethereum over the past ten years.",
+      "zh": "另一方面，假設測量過去十年，比特幣與以太幣的價格。"
+    },
+    {
+      "start": 588.51,
+      "end": 592.31,
+      "en": "Now, those two variables are closely related to each other.",
+      "zh": "這兩個變數彼此密切相關。"
+    },
+    {
+      "start": 592.55,
+      "end": 602.43,
+      "en": "They're not identical, but it certainly is the case that knowing the price of Ethereum gives you some indication of the price of Bitcoin.",
+      "zh": "它們並不相同，但確實知道以太幣價格，就能對比特幣價格有些概念。"
+    },
+    {
+      "start": 602.99,
+      "end": 609.99,
+      "en": "So the mutual information between those two variables would be significantly larger than zero.",
+      "zh": "所以這兩個變數之間的互資訊，會明顯大於零。"
+    },
+    {
+      "start": 611.35,
+      "end": 619.39,
+      "en": "And what exactly could you say about the price of Bitcoin if you knew the price of Ethereum using mutual information?",
+      "zh": "那麼，如果知道以太幣價格，用互資訊究竟能對比特幣價格說出什麼？"
+    },
+    {
+      "start": 620.31,
+      "end": 625.23,
+      "en": "Well here mutual information is not so super duper helpful.",
+      "zh": "在這裡，互資訊就沒有那麼有幫助了。"
+    },
+    {
+      "start": 625.63,
+      "end": 632.95,
+      "en": "If you want to make an actual prediction about the value of one variable given the value of another variable.",
+      "zh": "如果想根據某個變數的值，真正預測另一個變數的值，"
+    },
+    {
+      "start": 633.31,
+      "end": 637.27,
+      "en": "Then mutual information is just not the proper analysis.",
+      "zh": "互資訊就不是適當的分析。"
+    },
+    {
+      "start": 637.75,
+      "end": 645.67,
+      "en": "So mutual information tells you about the overlap of predictability of one variable and another, but",
+      "zh": "互資訊告訴你，一個變數與另一個變數的可預測性重疊多少，"
+    },
+    {
+      "start": 645.67,
+      "end": 652.57,
+      "en": "it does not tell you the exact values of one variable, given what you know about another variable.",
+      "zh": "但不會告訴你，已知一個變數時，另一個變數的精確數值。"
+    },
+    {
+      "start": 654.13,
+      "end": 659.21,
+      "en": "Mutual information is often indicated using the capital letter I.",
+      "zh": "互資訊經常用大寫 I 表示。"
+    },
+    {
+      "start": 659.93,
+      "end": 665.81,
+      "en": "So here you see two different but equivalent formulas for mutual information.",
+      "zh": "這裡是兩個不同，但等價的互資訊公式。"
+    },
+    {
+      "start": 666.45,
+      "end": 671.29,
+      "en": "Now mutual information is always calculated between two variables.",
+      "zh": "互資訊永遠是在兩個變數之間計算，"
+    },
+    {
+      "start": 671.29,
+      "end": 675.53,
+      "en": "It's a bivariate measure of statistical dependency.",
+      "zh": "是統計相依性的雙變量指標。"
+    },
+    {
+      "start": 676.17,
+      "end": 680.29,
+      "en": "So x and y would be two different variables.",
+      "zh": "x 與 y 就是兩個不同變數，"
+    },
+    {
+      "start": 680.37,
+      "end": 686.17,
+      "en": "Let's say for example two different neurons in an MLP transformer Subblock.",
+      "zh": "例如 Transformer 的 MLP 子區塊中的兩個不同神經元。"
+    },
+    {
+      "start": 687.05,
+      "end": 695.45,
+      "en": "Now this first formula here looks an awful lot like entropy, except that the joint probability of x",
+      "zh": "第一個公式看起來非常像熵，只是 x"
+    },
+    {
+      "start": 695.45,
+      "end": 700.53,
+      "en": "and Y is normalized by the individual probabilities.",
+      "zh": "與 y 的聯合機率，除以它們各自的機率作正規化。"
+    },
+    {
+      "start": 701.77,
+      "end": 709.14,
+      "en": "This second formula here is more similar to the Venn diagram that I showed in the previous slide, which you also see here.",
+      "zh": "第二個公式，比較像上一張投影片的文氏圖，這裡也可以看到。"
+    },
+    {
+      "start": 709.58,
+      "end": 720.46,
+      "en": "So in other words, you add up the entropies of each of the two variables individually, and then you subtract off what you can learn about the two of them together.",
+      "zh": "換句話說，將兩個變數各自的熵相加，再減去同時觀察兩者能得知的資訊。"
+    },
+    {
+      "start": 721.02,
+      "end": 727.66,
+      "en": "Now, it might initially seem strange that we are adding the individual entropies and then subtracting",
+      "zh": "一開始可能覺得，將各自的熵相加，再減去"
+    },
+    {
+      "start": 727.66,
+      "end": 734.26,
+      "en": "off the joint entropy, but remember that entropy is defined using a minus sign.",
+      "zh": "聯合熵很奇怪，但記住，熵的定義本來就有負號。"
+    },
+    {
+      "start": 734.66,
+      "end": 745.26,
+      "en": "So you can actually think about inverting these signs to say that it's the joint entropy minus the entropies of the two individual variables.",
+      "zh": "所以也可以想成，將這些正負號反轉，變成聯合熵減去兩個個別變數的熵。"
+    },
+    {
+      "start": 746.18,
+      "end": 756.26,
+      "en": "By the way, you might have noticed that the formula I used for entropy had a log two base in a previous slide, whereas here I'm using the natural log.",
+      "zh": "順帶一提，你可能注意到，前面投影片的熵公式使用以 2 為底的對數，這裡卻用自然對數。"
+    },
+    {
+      "start": 756.82,
+      "end": 760.94,
+      "en": "Now in practice you would consistently use one or the other.",
+      "zh": "實際使用時，應該一致採用其中一種，"
+    },
+    {
+      "start": 760.94,
+      "end": 771.19,
+      "en": "So either log base two or the natural log, but the base of the logarithm doesn't actually matter in most applications of mutual information.",
+      "zh": "也就是以 2 為底，或自然對數。但在互資訊的大多數應用中，對數底數其實不重要。"
+    },
+    {
+      "start": 771.71,
+      "end": 778.35,
+      "en": "It does change the units of the results, for example bits versus nats.",
+      "zh": "它確實會改變結果的單位，例如 bit 與 nat，"
+    },
+    {
+      "start": 778.39,
+      "end": 785.91,
+      "en": "In this case, but that doesn't change the relative mutual information between different variables or different conditions.",
+      "zh": "但不會改變不同變數或不同條件之間的相對互資訊。"
+    },
+    {
+      "start": 786.55,
+      "end": 796.67,
+      "en": "I would also like to point out that all of these formulas for entropy and mutual information are not based on the data themselves.",
+      "zh": "也想指出，這些熵與互資訊公式，全部都不是直接基於資料本身，"
+    },
+    {
+      "start": 796.83,
+      "end": 802.55,
+      "en": "They're based on the probabilities of the data values or the data bins.",
+      "zh": "而是基於資料值或資料分箱的機率。"
+    },
+    {
+      "start": 803.27,
+      "end": 809.63,
+      "en": "And that means that the scale of the data has no impact on mutual information.",
+      "zh": "這表示，資料尺度不會影響互資訊。"
+    },
+    {
+      "start": 810.51,
+      "end": 820.03,
+      "en": "So for example, if you would multiply the data values by a billion, that literally has no impact on the mutual information value.",
+      "zh": "例如，將資料值乘以十億，對互資訊的數值完全沒有影響。"
+    },
+    {
+      "start": 820.75,
+      "end": 829.53,
+      "en": "And I mentioned that as a bit of a segue to comparing mutual information to covariance, which you will learn about in the next video.",
+      "zh": "提到這點，是為了銜接下一支影片要學的互資訊與共變異數比較。"
+    },
+    {
+      "start": 829.73,
+      "end": 833.05,
+      "en": "And it will also be relevant a couple of videos thereafter.",
+      "zh": "再後面幾支影片，也會與此有關。"
+    },
+    {
+      "start": 834.29,
+      "end": 841.97,
+      "en": "Anyway, as I mentioned a few slides ago, this formula is pretty straightforward when you have discrete categories.",
+      "zh": "總之，幾張投影片前提過，如果是離散類別，這個公式相當直接。"
+    },
+    {
+      "start": 842.13,
+      "end": 845.97,
+      "en": "But we are working with continuous activation numbers.",
+      "zh": "但我們處理的是連續活化數值，"
+    },
+    {
+      "start": 845.97,
+      "end": 847.53,
+      "en": "So floating point numbers.",
+      "zh": "也就是浮點數。"
+    },
+    {
+      "start": 847.81,
+      "end": 856.29,
+      "en": "And so all of these calculations have to be based on estimating probabilities using histograms and joint histograms.",
+      "zh": "所以這些計算，都必須利用直方圖與聯合直方圖估計機率。"
+    },
+    {
+      "start": 856.73,
+      "end": 859.85,
+      "en": "And that leads me to the Python demo.",
+      "zh": "這就帶到 Python 示範。"
+    },
+    {
+      "start": 860.17,
+      "end": 868.93,
+      "en": "The purpose of the Python demo is to show you the basics of implementing entropy and mutual information.",
+      "zh": "Python 示範的目的，是介紹實作熵與互資訊的基礎。"
+    },
+    {
+      "start": 869.29,
+      "end": 875.97,
+      "en": "I will introduce some additional nuances to mutual information over the next several videos.",
+      "zh": "接下來幾支影片，還會介紹互資訊更多細節。"
+    },
+    {
+      "start": 876.57,
+      "end": 884.67,
+      "en": "So to start with I'm going to generate some bivariate data that has a statistical dependency built in.",
+      "zh": "首先會產生一組雙變量資料，並刻意讓它們有統計相依性，"
+    },
+    {
+      "start": 884.87,
+      "end": 886.11,
+      "en": "And that's what you see here.",
+      "zh": "就是這裡看到的。"
+    },
+    {
+      "start": 886.43,
+      "end": 891.39,
+      "en": "Now it's just two arbitrary variables, and it's clear that they are correlated.",
+      "zh": "它們只是兩個任意變數，但明顯具有相關。"
+    },
+    {
+      "start": 891.39,
+      "end": 893.35,
+      "en": "So they share some information.",
+      "zh": "所以共享某些資訊。"
+    },
+    {
+      "start": 893.87,
+      "end": 901.71,
+      "en": "And the picture you see over here is the discretized joint histogram of these two variables.",
+      "zh": "這裡這張圖，是這兩個變數離散化後的聯合直方圖。"
+    },
+    {
+      "start": 902.79,
+      "end": 910.31,
+      "en": "Entropy and mutual information is not actually calculated from the original full resolution data.",
+      "zh": "熵與互資訊，實際上不是從原始完整解析度資料計算，"
+    },
+    {
+      "start": 910.31,
+      "end": 915.63,
+      "en": "Instead it's calculated from this map of counts.",
+      "zh": "而是從這張計數圖計算。"
+    },
+    {
+      "start": 916.19,
+      "end": 924.15,
+      "en": "Now that is tricky because the number of bins that you use to generate this lower resolution histogram",
+      "zh": "這很棘手，因為用來產生這個低解析度直方圖的分箱數量，"
+    },
+    {
+      "start": 924.75,
+      "end": 935.43,
+      "en": "is a parameter of the analysis, and you will get different results if you use, for example, 15 versus 25 versus 50 bins in the variables.",
+      "zh": "是分析參數；例如每個變數用 15、25 或 50 個區間，就會得到不同結果。"
+    },
+    {
+      "start": 936.43,
+      "end": 941.48,
+      "en": "You can also see that there are a lot of bins with no data points in them.",
+      "zh": "也可以看到，很多區間裡沒有資料點。"
+    },
+    {
+      "start": 941.88,
+      "end": 947.76,
+      "en": "Now that can create fatal numerical errors in the formula with the logarithm.",
+      "zh": "這可能讓含對數的公式產生致命的數值錯誤，"
+    },
+    {
+      "start": 947.92,
+      "end": 950.04,
+      "en": "So we need to address that problem.",
+      "zh": "所以必須處理這個問題。"
+    },
+    {
+      "start": 951.08,
+      "end": 957.12,
+      "en": "Now from this 2D histogram we can calculate the bivariate entropy.",
+      "zh": "從這張二維直方圖，可以計算雙變量熵。"
+    },
+    {
+      "start": 957.48,
+      "end": 964.24,
+      "en": "But to calculate mutual information we also need the entropies of each variable separately.",
+      "zh": "但要算互資訊，還需要兩個變數各自的熵。"
+    },
+    {
+      "start": 964.88,
+      "end": 975.56,
+      "en": "Now it turns out that once we have this 2D histogram, the entropies of the individual variables can be calculated simply by taking the marginal average.",
+      "zh": "其實只要有二維直方圖，透過取邊際平均，就能算出各個變數的熵。"
+    },
+    {
+      "start": 975.56,
+      "end": 982.36,
+      "en": "So basically the projection of this blob onto the x axis and onto the y axis.",
+      "zh": "基本上，就是將這一團資料投影到 x 軸與 y 軸。"
+    },
+    {
+      "start": 982.84,
+      "end": 984.08,
+      "en": "And that's what you see here.",
+      "zh": "這就是這裡看到的。"
+    },
+    {
+      "start": 984.08,
+      "end": 989.24,
+      "en": "These are the entropies the distributions from which entropy is calculated.",
+      "zh": "這些是熵，或者說，用來計算熵的分布，"
+    },
+    {
+      "start": 989.48,
+      "end": 992,
+      "en": "Of the two individual variables.",
+      "zh": "分別對應兩個個別變數。"
+    },
+    {
+      "start": 992.52,
+      "end": 997.2,
+      "en": "And then we can use all of those numbers to calculate mutual information.",
+      "zh": "接著就能用所有這些數值計算互資訊。"
+    },
+    {
+      "start": 998.05,
+      "end": 1004.97,
+      "en": "After showing you this demo of how to calculate mutual information by directly translating the formulas",
+      "zh": "我會先示範直接將公式轉成"
+    },
+    {
+      "start": 1004.97,
+      "end": 1013.97,
+      "en": "into code, I will do another demo where I simulate data that have no relationship whatsoever to each other.",
+      "zh": "程式，計算互資訊，再做另一個示範，模擬彼此完全沒有任何關係的資料，"
+    },
+    {
+      "start": 1013.97,
+      "end": 1017.05,
+      "en": "So two completely independent variables.",
+      "zh": "也就是兩個完全獨立的變數。"
+    },
+    {
+      "start": 1018.17,
+      "end": 1024.17,
+      "en": "Now we know from theory that the expected mutual information should be zero.",
+      "zh": "理論上，我們知道預期互資訊應該是零。"
+    },
+    {
+      "start": 1025.01,
+      "end": 1035.53,
+      "en": "And of course with some sampling variability and small sample sizes, the mutual information might be a little bit above zero, but it should be pretty close to zero.",
+      "zh": "當然，受到抽樣變異與小樣本數影響，互資訊可能略高於零，但應該相當接近零。"
+    },
+    {
+      "start": 1036.09,
+      "end": 1041.57,
+      "en": "However, we are going to get values of around 0.5, maybe even higher.",
+      "zh": "然而，我們會得到大約 0.5，甚至更高的值。"
+    },
+    {
+      "start": 1042.09,
+      "end": 1050.13,
+      "en": "That is much bigger than what we can expect from sampling variability, and it reflects some systematic",
+      "zh": "這遠高於抽樣變異可預期的程度，反映出離散化與直方圖分箱所引入的某些系統性"
+    },
+    {
+      "start": 1050.13,
+      "end": 1055.77,
+      "en": "biases that are introduced by the discretization and histogram binning.",
+      "zh": "偏誤。"
+    },
+    {
+      "start": 1056.45,
+      "end": 1063.35,
+      "en": "So therefore I will then show you another method of calculating entropy, which actually only makes",
+      "zh": "所以接著會展示另一種計算熵的方法，結果其實只會"
+    },
+    {
+      "start": 1063.35,
+      "end": 1068.79,
+      "en": "it worse, although it's still kind of interesting to see this alternative approach.",
+      "zh": "變得更糟，但看看這個替代方式仍然很有意思。"
+    },
+    {
+      "start": 1069.27,
+      "end": 1077.51,
+      "en": "And then finally I will use a method for calculating mutual information from the scikit learn library.",
+      "zh": "最後會使用 scikit-learn 函式庫中的方法，計算互資訊。"
+    },
+    {
+      "start": 1077.71,
+      "end": 1085.07,
+      "en": "This uses a different and more accurate way of estimating the probability distributions, and that gives",
+      "zh": "它用另一種更準確的方式估計機率分布，讓不相關變數的互資訊"
+    },
+    {
+      "start": 1085.07,
+      "end": 1091.39,
+      "en": "us a mutual information value for uncorrelated variables very close to zero.",
+      "zh": "非常接近零。"
+    },
+    {
+      "start": 1091.59,
+      "end": 1098.95,
+      "en": "This little bit above zero is to be expected giving given, you know, noise and sampling variability and so on.",
+      "zh": "因為雜訊與抽樣變異等因素，略高於零是預期中的情況。"
+    },
+    {
+      "start": 1100.11,
+      "end": 1107.43,
+      "en": "Anyway, I will have more to say about this scikit learn function over the next several videos.",
+      "zh": "接下來幾支影片，還會再多介紹這個 scikit-learn 函式。"
+    },
+    {
+      "start": 1107.91,
+      "end": 1109.35,
+      "en": "It is good to use.",
+      "zh": "它很好用，"
+    },
+    {
+      "start": 1109.35,
+      "end": 1115.35,
+      "en": "It can be more accurate than just implementing the formula directly, but it's also quite slow.",
+      "zh": "可能比直接實作公式更準確，但也相當慢。"
+    },
+    {
+      "start": 1115.68,
+      "end": 1124.28,
+      "en": "and the direct implementation here actually still is quite accurate, just with a constant bias that is introduced.",
+      "zh": "而這裡直接實作的方法，其實仍然相當準確，只是多了一個固定偏誤。"
+    },
+    {
+      "start": 1124.88,
+      "end": 1132.52,
+      "en": "So you don't actually always need or maybe even want to use the scikit learn implementation.",
+      "zh": "所以其實不一定總是需要，甚至不一定想使用 scikit-learn 的實作。"
+    },
+    {
+      "start": 1133.16,
+      "end": 1138.44,
+      "en": "Anyway, I will now switch to code and show you how mutual information is calculated.",
+      "zh": "總之，現在切換到程式碼，展示互資訊如何計算。"
+    },
+    {
+      "start": 1138.44,
+      "end": 1141.8,
+      "en": "And of course I encourage you to follow along in the code.",
+      "zh": "當然，也鼓勵你跟著程式一起做。"
+    },
+    {
+      "start": 1143.04,
+      "end": 1150.76,
+      "en": "Mostly I will just calculate entropy and mutual information directly based on the formulas using numpy.",
+      "zh": "大部分時候，會用 NumPy 直接根據公式計算熵與互資訊。"
+    },
+    {
+      "start": 1151,
+      "end": 1155.32,
+      "en": "But then towards the end, as I mentioned, I will use some scikit learn tools.",
+      "zh": "但接近最後時，就像剛才說的，會用一些 scikit-learn 工具。"
+    },
+    {
+      "start": 1155.32,
+      "end": 1164.48,
+      "en": "In particular, this function mutual information regression which is in the sklearn featureselection library.",
+      "zh": "尤其是 sklearn.feature_selection 裡的 mutual_info_regression 函式。"
+    },
+    {
+      "start": 1164.48,
+      "end": 1169.04,
+      "en": "So let's import those here I'm collecting or creating the data.",
+      "zh": "所以先匯入它們。這裡收集，或者說建立資料。"
+    },
+    {
+      "start": 1169.28,
+      "end": 1172.24,
+      "en": "So I'm going to generate 200 data points.",
+      "zh": "會產生 200 個資料點。"
+    },
+    {
+      "start": 1172.4,
+      "end": 1177.06,
+      "en": "Random numbers for x y is also random numbers.",
+      "zh": "x 是隨機數，y 也是隨機數，"
+    },
+    {
+      "start": 1177.06,
+      "end": 1179.86,
+      "en": "However, then I'm adding x onto it.",
+      "zh": "但接著將 x 加到 y 上。"
+    },
+    {
+      "start": 1180.06,
+      "end": 1186.86,
+      "en": "This is just a very simple way of introducing a statistical dependency between two variables.",
+      "zh": "這是一種非常簡單的方法，能讓兩個變數具有統計相依性。"
+    },
+    {
+      "start": 1186.86,
+      "end": 1192.7,
+      "en": "So y equals x plus some innovations if you will, or a bit of noise.",
+      "zh": "所以 y 等於 x，加上一些新擾動，或者說一點雜訊。"
+    },
+    {
+      "start": 1193.22,
+      "end": 1200.26,
+      "en": "Okay here I'm taking the histogram of these two data these two variables using 15 bins.",
+      "zh": "好，這裡使用 15 個區間，對這兩組資料、這兩個變數建立直方圖。"
+    },
+    {
+      "start": 1200.38,
+      "end": 1205.3,
+      "en": "And then the plotting code I encourage you to look over but it's fairly straightforward.",
+      "zh": "繪圖程式鼓勵你自己看過，但相當直接。"
+    },
+    {
+      "start": 1205.3,
+      "end": 1208.26,
+      "en": "So just creating a scatter plot here.",
+      "zh": "這裡只是建立散佈圖，"
+    },
+    {
+      "start": 1208.42,
+      "end": 1213.26,
+      "en": "Here is an image of the 2D histogram data.",
+      "zh": "這裡則是二維直方圖資料的影像。"
+    },
+    {
+      "start": 1213.42,
+      "end": 1217.98,
+      "en": "So this just reproduces a figure that I showed in the slides a moment ago.",
+      "zh": "它重現了剛才投影片展示的圖。"
+    },
+    {
+      "start": 1218.34,
+      "end": 1225.66,
+      "en": "And basically each one of these blocks is color coded according to the count, which you can interpret as probability.",
+      "zh": "基本上，每個區塊依照計數上色，而計數可以解讀為機率。"
+    },
+    {
+      "start": 1225.66,
+      "end": 1231.18,
+      "en": "In fact, if you would normalize this then you would get exactly the probability values.",
+      "zh": "其實，如果將它正規化，就能得到精確的機率值。"
+    },
+    {
+      "start": 1231.5,
+      "end": 1239.4,
+      "en": "And again you also see that lots of values around here around the edges have a count of zero, which",
+      "zh": "同樣也能看到，邊緣附近很多數值的計數是零，"
+    },
+    {
+      "start": 1239.4,
+      "end": 1246.84,
+      "en": "means they will also have a probability of zero, which means we're going to be taking the log of zero, which is illegal in math.",
+      "zh": "表示機率也為零，接著就會取零的對數，而這在數學上不允許。"
+    },
+    {
+      "start": 1246.84,
+      "end": 1250.44,
+      "en": "And so we will need to address that problem somehow.",
+      "zh": "所以必須想辦法處理這個問題。"
+    },
+    {
+      "start": 1251.16,
+      "end": 1251.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1251.52,
+      "end": 1254.96,
+      "en": "So here what I'm doing is scaling by the sum.",
+      "zh": "這裡用總和進行縮放，"
+    },
+    {
+      "start": 1255.16,
+      "end": 1260.28,
+      "en": "This converts this matrix here of counts into probabilities.",
+      "zh": "將這個計數矩陣轉換成機率。"
+    },
+    {
+      "start": 1260.44,
+      "end": 1266.84,
+      "en": "So the sum over all of the p underscore z matrix values will be one.",
+      "zh": "所以 p_z 矩陣中，所有數值的總和會是 1。"
+    },
+    {
+      "start": 1267.28,
+      "end": 1271.08,
+      "en": "And then we get the marginal probability distributions.",
+      "zh": "接著取得邊際機率分布，"
+    },
+    {
+      "start": 1271.08,
+      "end": 1277.16,
+      "en": "So the probability over x and over y simply by calculating the marginal sum.",
+      "zh": "也就是 x 與 y 的機率，只要計算邊際總和即可。"
+    },
+    {
+      "start": 1277.4,
+      "end": 1279.2,
+      "en": "So again we're summing over.",
+      "zh": "所以同樣是沿著某個方向加總，"
+    },
+    {
+      "start": 1279.36,
+      "end": 1282.16,
+      "en": "So all the columns are summing over all the rows.",
+      "zh": "沿所有欄加總，或沿所有列加總。"
+    },
+    {
+      "start": 1282.2,
+      "end": 1290.92,
+      "en": "And that gives us the projection onto the two axes which is the marginal probability distributions for each of the variables.",
+      "zh": "這會得到投影到兩個軸上的結果，也就是各變數的邊際機率分布。"
+    },
+    {
+      "start": 1291.49,
+      "end": 1294.25,
+      "en": "Here I'm calculating mutual information.",
+      "zh": "這裡計算互資訊，"
+    },
+    {
+      "start": 1294.41,
+      "end": 1294.69,
+      "en": "Sorry.",
+      "zh": "抱歉，"
+    },
+    {
+      "start": 1294.73,
+      "end": 1295.13,
+      "en": "Entropy.",
+      "zh": "是熵。"
+    },
+    {
+      "start": 1295.17,
+      "end": 1296.57,
+      "en": "Here I'm calculating entropy.",
+      "zh": "這裡計算的是熵。"
+    },
+    {
+      "start": 1297.21,
+      "end": 1300.37,
+      "en": "So remember there's a minus sign and then a summation.",
+      "zh": "記住，前面有負號，然後是加總。"
+    },
+    {
+      "start": 1300.69,
+      "end": 1308.53,
+      "en": "Inside the summation we multiply the probability values by the log of the probability values.",
+      "zh": "加總裡面，將機率值乘以機率值的對數。"
+    },
+    {
+      "start": 1308.97,
+      "end": 1316.85,
+      "en": "And then because some of these values will be zero I'm adding on epsilon just some very very small number.",
+      "zh": "由於其中一些值為零，所以加上 epsilon，也就是一個非常非常微小的數字。"
+    },
+    {
+      "start": 1317.13,
+      "end": 1327.97,
+      "en": "And as I mentioned in the slides the idea is that when these probabilities are non-zero then adding this tiny number does basically nothing.",
+      "zh": "就像投影片說過的，機率非零時，加上這個微小數字，基本上沒有任何影響。"
+    },
+    {
+      "start": 1328.53,
+      "end": 1339.97,
+      "en": "But when this value is exactly zero, then this log is going to be, I don't know, like minus, you know, -150 or something really large and negative.",
+      "zh": "但如果這個值恰好為零，這個對數就會變成，例如 −150，或某個很大的負數。"
+    },
+    {
+      "start": 1340.01,
+      "end": 1342.09,
+      "en": "But at least it won't crash.",
+      "zh": "但至少不會出錯。"
+    },
+    {
+      "start": 1342.45,
+      "end": 1346.13,
+      "en": "It's not we're not going to get an error because we're taking the log of zero.",
+      "zh": "不會因為取零的對數，而得到錯誤。"
+    },
+    {
+      "start": 1346.41,
+      "end": 1353.99,
+      "en": "And it doesn't matter what this number is because it multiplies this probability here, which is not summed with the EPs.",
+      "zh": "至於這個數字是多少並不重要，因為它會乘上這裡的機率，而這個機率並沒有加上 eps。"
+    },
+    {
+      "start": 1353.99,
+      "end": 1356.47,
+      "en": "So this actually can be zero.",
+      "zh": "所以它確實可以是零。"
+    },
+    {
+      "start": 1357.15,
+      "end": 1357.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1357.51,
+      "end": 1360.39,
+      "en": "So that's the entropy for these two variables.",
+      "zh": "這就是這兩個變數的熵，"
+    },
+    {
+      "start": 1360.67,
+      "end": 1362.71,
+      "en": "It's 3.5 whatever that means.",
+      "zh": "是 3.5，不管這代表什麼。"
+    },
+    {
+      "start": 1362.71,
+      "end": 1367.75,
+      "en": "I can show you very quickly that when we change the number of bins.",
+      "zh": "很快示範一下，改變分箱數量會如何。"
+    },
+    {
+      "start": 1367.91,
+      "end": 1370.03,
+      "en": "So let's make this be 25.",
+      "zh": "把它改成 25。"
+    },
+    {
+      "start": 1370.59,
+      "end": 1373.55,
+      "en": "And now we can calculate this again.",
+      "zh": "現在可以重新計算。"
+    },
+    {
+      "start": 1373.67,
+      "end": 1375.55,
+      "en": "So now just keep this in mind.",
+      "zh": "先記住，"
+    },
+    {
+      "start": 1375.55,
+      "end": 1380.51,
+      "en": "These two entropy values are around 3.5 for each of the variables.",
+      "zh": "這兩個變數的熵，都大約是 3.5，"
+    },
+    {
+      "start": 1380.51,
+      "end": 1383.15,
+      "en": "And now they're around for a little bit above four.",
+      "zh": "現在則略高於 4。"
+    },
+    {
+      "start": 1383.63,
+      "end": 1386.95,
+      "en": "And well I guess I did regenerate the data.",
+      "zh": "不過，我想剛才確實重新產生了資料。"
+    },
+    {
+      "start": 1386.95,
+      "end": 1390.07,
+      "en": "So maybe a better demo would be to comment this out.",
+      "zh": "所以更好的示範，可能是把這裡註解掉，"
+    },
+    {
+      "start": 1390.07,
+      "end": 1392.75,
+      "en": "So I'm not getting new data, but that's okay.",
+      "zh": "不再產生新資料，不過沒關係。"
+    },
+    {
+      "start": 1392.79,
+      "end": 1394.19,
+      "en": "Actually yeah I will do that now.",
+      "zh": "其實，對，我現在就這麼做。"
+    },
+    {
+      "start": 1394.43,
+      "end": 1394.75,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1394.79,
+      "end": 1396.39,
+      "en": "So comment this out.",
+      "zh": "將這裡註解掉。"
+    },
+    {
+      "start": 1397.27,
+      "end": 1399.87,
+      "en": "So now the data are exactly the same.",
+      "zh": "現在資料就完全相同了。"
+    },
+    {
+      "start": 1400.15,
+      "end": 1404.67,
+      "en": "But now I'm going back to 15 bins okay.",
+      "zh": "但現在改回 15 個區間。"
+    },
+    {
+      "start": 1404.71,
+      "end": 1415.88,
+      "en": "And now the entropy is for a little bit above for that was with 25 bins and now with 15 bins, it goes back to being 3.33.4 or so.",
+      "zh": "剛才用 25 個區間時，熵略高於 4，現在改成 15 個區間，又回到大約 3.3、3.4。"
+    },
+    {
+      "start": 1416.32,
+      "end": 1424.52,
+      "en": "This is one of the tricky aspects of calculating entropy and mutual information from continuous variables,",
+      "zh": "這是對連續變數計算熵與互資訊時，一個棘手之處，"
+    },
+    {
+      "start": 1424.52,
+      "end": 1430.96,
+      "en": "which include the activation values that we'll be using over the next several videos.",
+      "zh": "其中也包括接下來幾支影片會使用的活化值。"
+    },
+    {
+      "start": 1430.96,
+      "end": 1434.2,
+      "en": "But that's a level of nuance that I won't get into here.",
+      "zh": "不過，這種程度的細節，這裡就不深入討論。"
+    },
+    {
+      "start": 1434.68,
+      "end": 1439.72,
+      "en": "Okay, so here I'm getting the entropy over Z.",
+      "zh": "好，這裡取得 Z 的熵，"
+    },
+    {
+      "start": 1439.72,
+      "end": 1441.32,
+      "en": "So this is the joint entropy.",
+      "zh": "也就是聯合熵。"
+    },
+    {
+      "start": 1441.48,
+      "end": 1447.52,
+      "en": "You can see the formula is exactly the same as entropy for x and y.",
+      "zh": "可以看到，公式與 x、y 的熵完全相同。"
+    },
+    {
+      "start": 1448,
+      "end": 1453.72,
+      "en": "And here is just the literal implementation of the formula that I showed in the slides.",
+      "zh": "這裡則是直接實作投影片展示的公式，"
+    },
+    {
+      "start": 1453.72,
+      "end": 1460.32,
+      "en": "So the entropy of x plus the entropy of y minus the entropy of Z or the joint entropy.",
+      "zh": "也就是 x 的熵加 y 的熵，再減去 Z 的熵，也就是聯合熵。"
+    },
+    {
+      "start": 1460.36,
+      "end": 1463,
+      "en": "And now we get a value that is close to one.",
+      "zh": "現在得到接近 1 的值，"
+    },
+    {
+      "start": 1463,
+      "end": 1465.04,
+      "en": "So 0.96.",
+      "zh": "是 0.96。"
+    },
+    {
+      "start": 1465.24,
+      "end": 1470.54,
+      "en": "So now what I want to do is go back and uh, let's see.",
+      "zh": "接著想回頭，我看看，"
+    },
+    {
+      "start": 1470.7,
+      "end": 1471.66,
+      "en": "Uncomment that.",
+      "zh": "取消這裡的註解，"
+    },
+    {
+      "start": 1471.66,
+      "end": 1473.18,
+      "en": "So we're generating new data.",
+      "zh": "重新產生資料。"
+    },
+    {
+      "start": 1473.18,
+      "end": 1476.78,
+      "en": "But I'm going to write x times zero.",
+      "zh": "但會寫成 x 乘以 0，"
+    },
+    {
+      "start": 1477.14,
+      "end": 1480.5,
+      "en": "So that means that's the same thing as just deleting this actually okay.",
+      "zh": "所以其實等於直接刪掉這一項。"
+    },
+    {
+      "start": 1480.54,
+      "end": 1484.46,
+      "en": "So now x and y are completely uncorrelated.",
+      "zh": "現在 x 與 y 完全不相關。"
+    },
+    {
+      "start": 1484.62,
+      "end": 1486.3,
+      "en": "You can see that here as well.",
+      "zh": "這裡也可以看到，"
+    },
+    {
+      "start": 1486.3,
+      "end": 1491.74,
+      "en": "You don't see any obvious linear or non-linear relationships between these variables.",
+      "zh": "這些變數之間，看不出任何明顯的線性或非線性關係。"
+    },
+    {
+      "start": 1491.86,
+      "end": 1496.22,
+      "en": "It's just a big isotropic cloud of dust okay.",
+      "zh": "只是一大團各向同性的塵埃雲。"
+    },
+    {
+      "start": 1496.26,
+      "end": 1500.82,
+      "en": "So now what is the uh the entropy is about the same.",
+      "zh": "熵大致相同，"
+    },
+    {
+      "start": 1500.82,
+      "end": 1501.58,
+      "en": "That's fine.",
+      "zh": "這沒問題。"
+    },
+    {
+      "start": 1501.58,
+      "end": 1503.9,
+      "en": "What is the mutual information between these.",
+      "zh": "那它們的互資訊是多少？"
+    },
+    {
+      "start": 1503.94,
+      "end": 1506.58,
+      "en": "Well we expect it to be exactly zero.",
+      "zh": "我們預期應該恰好為零，"
+    },
+    {
+      "start": 1506.62,
+      "end": 1508.7,
+      "en": "That's the theoretical expectation.",
+      "zh": "這是理論上的預期。"
+    },
+    {
+      "start": 1509.38,
+      "end": 1514.9,
+      "en": "In practice when we are sampling data it's never going to be exactly zero.",
+      "zh": "實務上，抽樣資料時，永遠不會恰好為零，"
+    },
+    {
+      "start": 1514.9,
+      "end": 1517.9,
+      "en": "But we do expect it to be pretty close to zero.",
+      "zh": "但確實預期非常接近零。"
+    },
+    {
+      "start": 1518.06,
+      "end": 1526.75,
+      "en": "However here we get a value of 0.43, which is still a pretty respectably high amount of mutual information.",
+      "zh": "然而，這裡得到 0.43，仍然是相當可觀的互資訊。"
+    },
+    {
+      "start": 1527.35,
+      "end": 1534.83,
+      "en": "Okay, so now what I'm going to do is come up with a different way of binning the data.",
+      "zh": "好，現在換一種分箱方法。"
+    },
+    {
+      "start": 1534.99,
+      "end": 1541.63,
+      "en": "So instead of binning the data to create equal sized bins where there may or may not be data values",
+      "zh": "不是將資料範圍切成等寬區間，每個區間可能有，或沒有資料值，"
+    },
+    {
+      "start": 1541.79,
+      "end": 1549.95,
+      "en": "in each bin, here I'm using the percentile function to create equal sized partitions of the data.",
+      "zh": "而是使用 percentile 函式，將資料分成大小相等的部分。"
+    },
+    {
+      "start": 1550.03,
+      "end": 1556.19,
+      "en": "So now I'm not partitioning the range of the data into 15 equal chunks.",
+      "zh": "現在不再把資料的範圍切成 15 個等寬區塊，"
+    },
+    {
+      "start": 1556.31,
+      "end": 1566.23,
+      "en": "Instead, I'm partitioning the actual data values such that there are 15 equal sized bins of data values.",
+      "zh": "而是將實際資料值分成 15 個資料數量相等的區間。"
+    },
+    {
+      "start": 1566.43,
+      "end": 1571.15,
+      "en": "So all the data values are in the same number of bins.",
+      "zh": "所以所有資料值，都分配到同樣數量的區間中。"
+    },
+    {
+      "start": 1571.75,
+      "end": 1571.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1571.99,
+      "end": 1576.95,
+      "en": "And then I basically repeat this calculation here it gets even higher.",
+      "zh": "接著基本上重複這個計算，結果變得更高。"
+    },
+    {
+      "start": 1576.95,
+      "end": 1580.23,
+      "en": "So this is unfortunately not a great solution.",
+      "zh": "所以很遺憾，這不是什麼好解法。"
+    },
+    {
+      "start": 1580.55,
+      "end": 1584.15,
+      "en": "But here I'm using the scikit learn function.",
+      "zh": "但這裡使用 scikit-learn 的函式，"
+    },
+    {
+      "start": 1584.28,
+      "end": 1587.6,
+      "en": "Mutual information regression.",
+      "zh": "mutual_info_regression。"
+    },
+    {
+      "start": 1588,
+      "end": 1594.76,
+      "en": "And now it's a little bit trickier to implement because you cannot just implement your two variables like this.",
+      "zh": "現在實作稍微棘手一些，因為不能直接像這樣輸入兩個變數。"
+    },
+    {
+      "start": 1595.2,
+      "end": 1605.88,
+      "en": "Instead I this function expects one of the matrices to be or one of the inputs to be a matrix a two dimensional NumPy array.",
+      "zh": "這個函式要求其中一個矩陣，或其中一個輸入，必須是矩陣，也就是二維 NumPy 陣列。"
+    },
+    {
+      "start": 1606.16,
+      "end": 1609.48,
+      "en": "Now we don't have two dimensional matrices.",
+      "zh": "但我們沒有二維矩陣。"
+    },
+    {
+      "start": 1609.48,
+      "end": 1611.8,
+      "en": "These are matrices of numbers.",
+      "zh": "這些是數值矩陣，"
+    },
+    {
+      "start": 1611.92,
+      "end": 1613.76,
+      "en": "These are just two vectors.",
+      "zh": "其實只是兩個向量。"
+    },
+    {
+      "start": 1614.12,
+      "end": 1618.04,
+      "en": "So the easiest solution is just to reshape this.",
+      "zh": "所以最簡單的解法，就是重新調整形狀。"
+    },
+    {
+      "start": 1618.04,
+      "end": 1621.2,
+      "en": "And actually let me show you what this does.",
+      "zh": "讓我展示它的作用。"
+    },
+    {
+      "start": 1621.64,
+      "end": 1624.56,
+      "en": "So I can say x dot shape.",
+      "zh": "可以查看 x.shape，"
+    },
+    {
+      "start": 1625.32,
+      "end": 1628.52,
+      "en": "And that is 200 by nothing.",
+      "zh": "它是 200 乘以沒有第二個維度，"
+    },
+    {
+      "start": 1628.52,
+      "end": 1630.84,
+      "en": "So this is a dimensionless array.",
+      "zh": "所以這是一個無維度陣列。"
+    },
+    {
+      "start": 1631.4,
+      "end": 1641,
+      "en": "And now when I reshape this it becomes a 200 by one matrix which is like a yeah it's like a column vector.",
+      "zh": "現在重新調整形狀後，變成 200×1 的矩陣，也就像欄向量。"
+    },
+    {
+      "start": 1641.44,
+      "end": 1641.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1641.8,
+      "end": 1647.42,
+      "en": "So that suddenly works, and now we get a value that is much closer to zero.",
+      "zh": "這樣就能運作，現在取得的數值接近零多了。"
+    },
+    {
+      "start": 1647.66,
+      "end": 1653.14,
+      "en": "And as I mentioned in the slides, this is a numerical value for mutual information.",
+      "zh": "就像投影片提過的，這是一個互資訊數值，"
+    },
+    {
+      "start": 1653.26,
+      "end": 1658.7,
+      "en": "Given a finite sample data set that you can expect to be zero.",
+      "zh": "在有限樣本資料集下，對於預期為零的情況，可以得到這種結果。"
+    },
+    {
+      "start": 1658.7,
+      "end": 1660.86,
+      "en": "So this is just a little bit of sampling error.",
+      "zh": "這只是一點抽樣誤差。"
+    },
+    {
+      "start": 1661.54,
+      "end": 1667.14,
+      "en": "And what is the difference between the code that I wrote above and this function here.",
+      "zh": "那上面自己寫的程式，與這個函式有什麼差異？"
+    },
+    {
+      "start": 1667.18,
+      "end": 1670.58,
+      "en": "Basically this function is a bit more sophisticated.",
+      "zh": "基本上，這個函式更精細一些，"
+    },
+    {
+      "start": 1670.58,
+      "end": 1679.3,
+      "en": "It uses non-parametric kernel density estimators to estimate a probability distribution that is more",
+      "zh": "它使用無母數核密度估計，來估計機率分布，比起單純計算"
+    },
+    {
+      "start": 1679.3,
+      "end": 1685.02,
+      "en": "accurate than simply counting the number of observations in different bins.",
+      "zh": "不同區間中的觀察數量，更加準確。"
+    },
+    {
+      "start": 1685.54,
+      "end": 1687.06,
+      "en": "So it is more accurate.",
+      "zh": "所以它比較準確。"
+    },
+    {
+      "start": 1687.18,
+      "end": 1691.46,
+      "en": "You will see in the next video or two videos for now.",
+      "zh": "下一支，或者兩支影片之後，你會看到，"
+    },
+    {
+      "start": 1691.78,
+      "end": 1698.62,
+      "en": "Over the next several videos, you will see that this method is first of all really slow, so it can",
+      "zh": "在接下來幾支影片中，會看到這個方法首先非常慢，"
+    },
+    {
+      "start": 1698.62,
+      "end": 1704,
+      "en": "be intractably Unusably slow if you have a lot of data to process.",
+      "zh": "如果有大量資料要處理，可能慢到無法處理、根本無法使用。"
+    },
+    {
+      "start": 1704,
+      "end": 1711.6,
+      "en": "And you will also see that the difference here between 0.4 and something very close to zero.",
+      "zh": "也會看到，這裡 0.4 與非常接近零之間的差異，"
+    },
+    {
+      "start": 1711.92,
+      "end": 1713.56,
+      "en": "That's just a constant offset.",
+      "zh": "只是一個固定偏移。"
+    },
+    {
+      "start": 1713.56,
+      "end": 1719.6,
+      "en": "So all of the relative mutual information values are preserved.",
+      "zh": "所以所有相對互資訊值都被保留下來，"
+    },
+    {
+      "start": 1719.72,
+      "end": 1729.52,
+      "en": "And we just have this constant offset due to this estimation difficulty with with bins with values of zero in them.",
+      "zh": "只是因為值為零的區間造成估計困難，而多了這個固定偏移。"
+    },
+    {
+      "start": 1730.84,
+      "end": 1734.76,
+      "en": "So that's the intro to Mutual information.",
+      "zh": "以上就是互資訊的介紹。"
+    },
+    {
+      "start": 1735.04,
+      "end": 1736.76,
+      "en": "It's a good measure to know about.",
+      "zh": "這是很值得認識的指標。"
+    },
+    {
+      "start": 1736.76,
+      "end": 1745.24,
+      "en": "It's used relatively often in science for measuring non-linear statistical dependencies between variables.",
+      "zh": "科學中相當常用它，來衡量變數之間的非線性統計相依性。"
+    },
+    {
+      "start": 1745.92,
+      "end": 1753.88,
+      "en": "In the next video, I will show you how to implement mutual information in an LLM during token processing,",
+      "zh": "下一支影片會示範，在 LLM 處理 token 時，如何實作互資訊，"
+    },
+    {
+      "start": 1754.08,
+      "end": 1760.24,
+      "en": "and then I will discuss the relationship between mutual information and covariance.",
+      "zh": "接著討論互資訊與共變異數的關係。"
+    }
+  ]
+}

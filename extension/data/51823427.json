@@ -1,0 +1,1969 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51823427",
+  "title": "Byte-pair encoding algorithm",
+  "section": 3,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "7f1d43ed2a6a70530a2cb19e106b201c1ba2b41eb64bd0d8862dbef6814b1728",
+  "cues": [
+    {
+      "start": 2.16,
+      "end": 8,
+      "en": "There are several ways to create vocabularies that are used in tokenizers.",
+      "zh": "建立 tokenizer 所用的詞彙表，有幾種方式。"
+    },
+    {
+      "start": 8.56,
+      "end": 16.04,
+      "en": "The most common one is called the byte pair encoding algorithm, and in this video I'm going to teach",
+      "zh": "最常見的是位元組配對編碼演算法。這支影片會教你"
+    },
+    {
+      "start": 16.04,
+      "end": 20.84,
+      "en": "you how it works and then show you how it's implemented in Python.",
+      "zh": "它的運作方式，再示範如何用 Python 實作。"
+    },
+    {
+      "start": 21.52,
+      "end": 30.28,
+      "en": "I hope you will agree with me by the end of this video that this algorithm is not only simple, it is straightforward and sensible.",
+      "zh": "希望看完之後，你會同意，這個演算法不只簡單，也很直接、合理。"
+    },
+    {
+      "start": 30.56,
+      "end": 38.36,
+      "en": "In fact, I'm pretty sure that you would have come up with basically the same algorithm if you started from the same motivation.",
+      "zh": "其實，我相信如果你從同樣的動機出發，也會想出大致相同的演算法。"
+    },
+    {
+      "start": 39.12,
+      "end": 46.4,
+      "en": "Now, that said, the real byte pair encoding algorithms that are used to create tokenizers for companies",
+      "zh": "話雖如此，OpenAI、Meta、Google 等公司用來建立 tokenizer 的"
+    },
+    {
+      "start": 46.4,
+      "end": 54.76,
+      "en": "like OpenAI, meta, Google, and so on are considerably more complicated than what I will show you in this video.",
+      "zh": "實際位元組配對編碼演算法，比這裡要示範的複雜許多。"
+    },
+    {
+      "start": 55.08,
+      "end": 62.62,
+      "en": "But that additional complication is not because the fundamental mental algorithms are more sophisticated.",
+      "zh": "但那些額外複雜度，並不是因為基本演算法更精巧，"
+    },
+    {
+      "start": 63.42,
+      "end": 70.42,
+      "en": "It's because written text has so many additional characters and just weird features that need to be dealt with.",
+      "zh": "而是書面文字有許多額外字元與奇怪特性，需要處理。"
+    },
+    {
+      "start": 70.46000000000001,
+      "end": 75.94,
+      "en": "And we are going to basically ignore a lot of these edge cases in this video.",
+      "zh": "這支影片基本上會忽略許多這類邊界情況。"
+    },
+    {
+      "start": 76.82,
+      "end": 85.46000000000001,
+      "en": "So here is the idea of byte pair encoding algorithm, which is often abbreviated to byte pair encoding.",
+      "zh": "以下是位元組配對編碼，也就是 byte pair encoding 的概念。"
+    },
+    {
+      "start": 86.3,
+      "end": 95.42,
+      "en": "So the idea is that we want to have individual token numbers, token indices that can represent character",
+      "zh": "我們希望用個別的 token 編號、token 索引，表示"
+    },
+    {
+      "start": 95.42,
+      "end": 99.14,
+      "en": "sequences that appear very often in written language.",
+      "zh": "書面語言中經常出現的字元序列。"
+    },
+    {
+      "start": 99.5,
+      "end": 107.74000000000001,
+      "en": "For example, wouldn't it be nice to have one token representing the sequence instead of having to use",
+      "zh": "例如，用一個 token 代表這個序列，豈不是比每次這幾個字母相鄰時，"
+    },
+    {
+      "start": 107.74000000000001,
+      "end": 113.14,
+      "en": "three separate tokens every time these letters appear next to each other?",
+      "zh": "都要用三個獨立 token 更好？"
+    },
+    {
+      "start": 114.14,
+      "end": 123.4,
+      "en": "This would be fantastic, because it would mean that the language model only needs one token instead of three tokens to represent this word.",
+      "zh": "這非常棒，因為語言模型只需要一個 token，而不是三個，就能表示這個字。"
+    },
+    {
+      "start": 123.4,
+      "end": 126.6,
+      "en": "And this is one of the most common words in English.",
+      "zh": "而它是英文中最常見的單字之一。"
+    },
+    {
+      "start": 127.28,
+      "end": 135.72,
+      "en": "And so this idea is that if these letter sequences are important and meaningful, then they probably",
+      "zh": "因此，構想是，如果這些字母序列重要而有意義，"
+    },
+    {
+      "start": 135.72,
+      "end": 139.64,
+      "en": "appear very often in sequence in text.",
+      "zh": "它們應該會在文字中，經常以相同順序出現。"
+    },
+    {
+      "start": 140.16,
+      "end": 150.24,
+      "en": "In other words, character sequences that often appear together in human written text can be merged together to create a single token.",
+      "zh": "換句話說，人類書寫文字中，經常相鄰出現的字元序列，可以合併成單一 token。"
+    },
+    {
+      "start": 150.72,
+      "end": 161.88,
+      "en": "And when I say that they often appear together, I don't mean that someone is sitting in a basement handcrafting these pairs based on what they think would be good sequences.",
+      "zh": "所謂經常一起出現，並不是有人坐在地下室，依照自己認為好的序列，手工製作配對。"
+    },
+    {
+      "start": 162.36,
+      "end": 170.32,
+      "en": "Instead, these decisions to merge text sequences or character sequences and create new tokens out of",
+      "zh": "相反地，合併文字或字元序列，以及把高頻"
+    },
+    {
+      "start": 170.32,
+      "end": 177.8,
+      "en": "high frequency character sequences are calculated based on the measured statistics from a very large",
+      "zh": "字元序列建立成新 token 的決策，是依照"
+    },
+    {
+      "start": 177.8,
+      "end": 182.66,
+      "en": "variety and amount of text that is found online.",
+      "zh": "網路上種類繁多、數量龐大的文字，實際測得的統計量來計算。"
+    },
+    {
+      "start": 183.38,
+      "end": 191.78,
+      "en": "Now in this and the next video, you are going to implement the byte pair encoding algorithm using a very small piece of text.",
+      "zh": "這支與下一支影片，會用非常小的一段文字，實作位元組配對編碼演算法。"
+    },
+    {
+      "start": 191.78,
+      "end": 200.9,
+      "en": "But you will see that several features of real tokenizers already begin to emerge, even with really tiny data sets.",
+      "zh": "但即使資料集很小，你也會看到，真正 tokenizer 的一些特徵已經開始浮現。"
+    },
+    {
+      "start": 202.06,
+      "end": 206.66,
+      "en": "And yeah, as I mentioned, the BPP algorithm is actually pretty simple.",
+      "zh": "如前所述，BPE 演算法其實很簡單，"
+    },
+    {
+      "start": 206.7,
+      "end": 207.82,
+      "en": "Pretty straightforward.",
+      "zh": "相當直接。"
+    },
+    {
+      "start": 208.02,
+      "end": 216.38,
+      "en": "I'm going to talk about why it gets tricky and how to address some of these tricky issues at the end of this lecture.",
+      "zh": "這一講最後會談，為什麼實作會變得棘手，以及如何處理其中一些問題。"
+    },
+    {
+      "start": 216.98,
+      "end": 223.78,
+      "en": "So the decisions for which sequences to merge are purely based on the statistics of the text.",
+      "zh": "所以，決定合併哪些序列，完全以文字統計為依據。"
+    },
+    {
+      "start": 223.9,
+      "end": 233.38,
+      "en": "But there is a key parameter that we need to define which is the final size of the vocab or how many new tokens to create.",
+      "zh": "但需要先定義一個關鍵參數：詞彙表最終大小，也就是要建立多少新 token。"
+    },
+    {
+      "start": 233.94,
+      "end": 241.76,
+      "en": "Okay, now I'm going to explain the algorithm in broad strokes, and then we'll switch to Python and implement it in code.",
+      "zh": "先概略解釋演算法，再切換到 Python，用程式實作。"
+    },
+    {
+      "start": 242.48,
+      "end": 249.92,
+      "en": "Step zero is actually to initialize a vocabulary that contains only characters.",
+      "zh": "步驟零，其實是初始化只包含字元的詞彙表。"
+    },
+    {
+      "start": 250.2,
+      "end": 254.76,
+      "en": "Now, this is not really part of the algorithm per se, it's just something we need to start with.",
+      "zh": "嚴格說，這不算演算法的一部分，只是需要的起點。"
+    },
+    {
+      "start": 254.8,
+      "end": 256.76,
+      "en": "So that's why I call it step zero.",
+      "zh": "所以，我叫它步驟零。"
+    },
+    {
+      "start": 257.32,
+      "end": 263.88,
+      "en": "Okay, so this initial vocabulary only has individual characters that appear in the text.",
+      "zh": "初始詞彙表，只包含文字中出現的個別字元。"
+    },
+    {
+      "start": 264.08,
+      "end": 266.84,
+      "en": "There's no pairs, no merging at this step.",
+      "zh": "這一步還沒有配對，也沒有合併。"
+    },
+    {
+      "start": 267.32,
+      "end": 273.64,
+      "en": "Then we get to step one which is to loop through the text and count the frequencies.",
+      "zh": "接著，步驟一：走訪文字，計算出現頻率，"
+    },
+    {
+      "start": 273.64,
+      "end": 278.04,
+      "en": "So the number of occurrences of all the sequential pairs.",
+      "zh": "也就是所有相鄰配對的出現次數。"
+    },
+    {
+      "start": 278.56,
+      "end": 288.36,
+      "en": "So in this sentence right here for step one, the pairs would be lo o o op space space TI, TI, and",
+      "zh": "以步驟一這個句子為例，配對會是 lo、oo、op、p 加空白、空白加 t、ti，"
+    },
+    {
+      "start": 288.36,
+      "end": 292.28,
+      "en": "so on all throughout the through the end of this sentence.",
+      "zh": "依此類推，直到整個句子結束。"
+    },
+    {
+      "start": 292.92,
+      "end": 299.82,
+      "en": "So then we look through all of the pairs and we find the most frequent pair and whatever is the pair",
+      "zh": "接著查看所有配對，找出出現最頻繁的配對；也就是"
+    },
+    {
+      "start": 299.82,
+      "end": 307.62,
+      "en": "of sequential characters that appears most often in the text is merged to create a new token.",
+      "zh": "文字中最常出現的相鄰字元配對，將它合併成新 token。"
+    },
+    {
+      "start": 308.06,
+      "end": 317.54,
+      "en": "So, for example, working again with this sentence here we can see that space T occurs once, twice three.",
+      "zh": "例如，同樣看這個句子，空白加 t 出現一次、兩次、三次，"
+    },
+    {
+      "start": 317.7,
+      "end": 318.66,
+      "en": "Let me see four.",
+      "zh": "看看，四次。"
+    },
+    {
+      "start": 319.22,
+      "end": 324.34,
+      "en": "So four times we have the character sequential pair space T.",
+      "zh": "所以，空白加 t 這個相鄰字元配對出現四次。"
+    },
+    {
+      "start": 325.26,
+      "end": 330.62,
+      "en": "So that is a character sequence that appears very often in this little data set.",
+      "zh": "這是這個小型資料集中，非常常見的字元序列。"
+    },
+    {
+      "start": 331.06,
+      "end": 337.94,
+      "en": "So now we can make a new token out of those two characters which was previously two tokens okay.",
+      "zh": "現在，就能把原先是兩個 token 的這兩個字元，合成一個新 token。"
+    },
+    {
+      "start": 337.98,
+      "end": 347.06,
+      "en": "And that brings me to step three, which is to add that new token, which is a multi-character token to the vocabulary.",
+      "zh": "接著到步驟三，把這個含有多個字元的新 token，加入詞彙表。"
+    },
+    {
+      "start": 347.58,
+      "end": 356.26,
+      "en": "So now our vocabulary is however, many individual characters we had at step zero plus one and that",
+      "zh": "所以，詞彙表大小就是步驟零的個別字元數，加上 1。"
+    },
+    {
+      "start": 356.26,
+      "end": 360.8,
+      "en": "plus one, that additional token is the space T okay.",
+      "zh": "多出來的這個 token，就是空白加 t。"
+    },
+    {
+      "start": 360.84,
+      "end": 362.36,
+      "en": "And then step four.",
+      "zh": "接著是步驟四，"
+    },
+    {
+      "start": 362.88,
+      "end": 365.4,
+      "en": "And that is where we loop through this text again.",
+      "zh": "再次走訪文字。"
+    },
+    {
+      "start": 365.4,
+      "end": 369.08,
+      "en": "So we already loop through it to identify pairs.",
+      "zh": "之前已經走訪過一次，找出配對，"
+    },
+    {
+      "start": 369.4,
+      "end": 370.76,
+      "en": "Sequential pairs.",
+      "zh": "也就是相鄰配對。"
+    },
+    {
+      "start": 371,
+      "end": 376.4,
+      "en": "But then once we identified a new token we loop through this text a second time.",
+      "zh": "找出新 token 後，再第二次走訪文字，"
+    },
+    {
+      "start": 377.36,
+      "end": 385.64,
+      "en": "Identify all of the locations where this sequence occurs, and then replace those with the new token.",
+      "zh": "找出這個序列出現的所有位置，並以新 token 取代。"
+    },
+    {
+      "start": 386.12,
+      "end": 393.6,
+      "en": "So now again going back up to this sentence here, instead of having space T as two separate characters,",
+      "zh": "所以，回到這個句子，原本空白與 t 是兩個獨立字元，"
+    },
+    {
+      "start": 393.72,
+      "end": 400.48,
+      "en": "we would merge them together and they would get replaced with space T, which is now one token.",
+      "zh": "現在會合併，以空白加 t 取代，成為一個 token。"
+    },
+    {
+      "start": 401.15999999999997,
+      "end": 405.08,
+      "en": "So that actually gives us a new tokenized text.",
+      "zh": "如此，就得到新的斷詞文字。"
+    },
+    {
+      "start": 405.08,
+      "end": 414.12,
+      "en": "And that's going to be shorter than the original text, because several of the two token sequences will become a single token.",
+      "zh": "它會比原始文字短，因為一些由兩個 token 組成的序列，變成單一 token。"
+    },
+    {
+      "start": 414.96,
+      "end": 415.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 415.32,
+      "end": 423.49,
+      "en": "And finally, step five is to repeat steps one through four, over and over and over and over again",
+      "zh": "最後，步驟五：一再重複步驟一到四，"
+    },
+    {
+      "start": 423.73,
+      "end": 428.57,
+      "en": "until the vocab has some number of tokens, which here I'm calling k.",
+      "zh": "直到詞彙表有特定數量的 token，這裡稱為 k。"
+    },
+    {
+      "start": 429.13,
+      "end": 432.53,
+      "en": "So k is some parameter that we can define.",
+      "zh": "k 是可以自行定義的參數。"
+    },
+    {
+      "start": 432.85,
+      "end": 442.49,
+      "en": "For example, GPT four tokenizer has 100,000 tokens and GPT two has 50,000 tokens.",
+      "zh": "例如，GPT-4 的 tokenizer 有 10 萬個 token，GPT-2 有 5 萬個。"
+    },
+    {
+      "start": 443.13,
+      "end": 449.97,
+      "en": "In a moment, I will switch to Python and show you these five steps, or actually six steps in code.",
+      "zh": "稍後切換到 Python，用程式展示這五個，其實是六個步驟。"
+    },
+    {
+      "start": 450.41,
+      "end": 456.49,
+      "en": "But first I'm going to show you some screenshots so you know what are the key things to look for in the code.",
+      "zh": "不過，先看幾張截圖，讓你知道程式裡的重點。"
+    },
+    {
+      "start": 457.01,
+      "end": 461.37,
+      "en": "So first we will create a vocab from this text here.",
+      "zh": "首先，從這段文字建立詞彙表。"
+    },
+    {
+      "start": 461.69,
+      "end": 464.89,
+      "en": "Uh, I just came up with this top of my head.",
+      "zh": "這是我臨時想到的句子。"
+    },
+    {
+      "start": 464.89,
+      "end": 467.97,
+      "en": "I guess I was in a particularly good mood when I wrote this code.",
+      "zh": "我寫程式時，心情應該特別好。"
+    },
+    {
+      "start": 468.37,
+      "end": 475.29,
+      "en": "Anyway, here is the set of unique characters in the in the text numbered.",
+      "zh": "這裡是文字中，不重複字元的編號。"
+    },
+    {
+      "start": 475.29,
+      "end": 477.81,
+      "en": "And this is our vocabulary.",
+      "zh": "這就是詞彙表，"
+    },
+    {
+      "start": 478.21,
+      "end": 481.59,
+      "en": "So this is our initial tokenization scheme.",
+      "zh": "也就是初始的斷詞方案。"
+    },
+    {
+      "start": 481.59,
+      "end": 487.07,
+      "en": "You can see there are 16 tokens in our initial vocabulary.",
+      "zh": "可以看到，初始詞彙表有 16 個 token。"
+    },
+    {
+      "start": 487.23,
+      "end": 488.63,
+      "en": "So we have all of these letters.",
+      "zh": "包含這些字母，"
+    },
+    {
+      "start": 488.63,
+      "end": 490.07,
+      "en": "There's 15 of these letters.",
+      "zh": "總共 15 個字母，"
+    },
+    {
+      "start": 490.07,
+      "end": 493.15,
+      "en": "And then there is a space okay.",
+      "zh": "再加上一個空白。"
+    },
+    {
+      "start": 493.51,
+      "end": 495.43,
+      "en": "Now we get to step one.",
+      "zh": "接著到步驟一。"
+    },
+    {
+      "start": 495.47,
+      "end": 499.87,
+      "en": "Step one is going to produce a result that looks like this.",
+      "zh": "步驟一會產生像這樣的結果。"
+    },
+    {
+      "start": 500.19,
+      "end": 506.87,
+      "en": "So the character sequence Li appears twice in this text here and here.",
+      "zh": "字元序列 ly 在這段文字出現兩次，這裡和這裡。"
+    },
+    {
+      "start": 507.51,
+      "end": 510.79,
+      "en": "And let's see, Li only appears once.",
+      "zh": "看看，li 只出現一次。"
+    },
+    {
+      "start": 510.83,
+      "end": 511.19,
+      "en": "Why?",
+      "zh": "而 y"
+    },
+    {
+      "start": 511.23,
+      "end": 512.83,
+      "en": "Space appears once.",
+      "zh": "加空白，也出現一次。"
+    },
+    {
+      "start": 512.95,
+      "end": 515.03,
+      "en": "And here we have space H.",
+      "zh": "這裡則是空白加 h。"
+    },
+    {
+      "start": 515.07,
+      "end": 525.63,
+      "en": "This appears four times in the text, and this actually happens to be the most frequent character pair that occurs in this text here.",
+      "zh": "它在文字中出現四次，剛好是這段文字出現最頻繁的字元配對。"
+    },
+    {
+      "start": 526.19,
+      "end": 531.07,
+      "en": "So we will consider that to be our new token for step two.",
+      "zh": "因此，步驟二會把它當成新 token。"
+    },
+    {
+      "start": 531.47,
+      "end": 534.91,
+      "en": "And then we add it to the vocab in step three.",
+      "zh": "再於步驟三，加入詞彙表。"
+    },
+    {
+      "start": 536.51,
+      "end": 540.77,
+      "en": "And now you see here is the vocab in step three.",
+      "zh": "這裡就是步驟三的詞彙表。"
+    },
+    {
+      "start": 540.93,
+      "end": 547.57,
+      "en": "So we have the space, all of the individual letters exactly the same as the vocab at step zero.",
+      "zh": "空白，以及所有個別字母，都和步驟零的詞彙表一樣。"
+    },
+    {
+      "start": 547.73,
+      "end": 551.89,
+      "en": "But now we have an additional token for space H.",
+      "zh": "不過，現在多了空白加 h 這個 token。"
+    },
+    {
+      "start": 552.01,
+      "end": 556.33,
+      "en": "So now our vocab has increased in size by one.",
+      "zh": "所以，詞彙表大小增加了 1。"
+    },
+    {
+      "start": 557.33,
+      "end": 565.57,
+      "en": "Then to implement step four, we loop through the text again and identify all of these sequential tokens",
+      "zh": "要實作步驟四，會再次走訪文字，找出依照剛才配對，"
+    },
+    {
+      "start": 565.57,
+      "end": 570.17,
+      "en": "that should be merged according to the pair that we just identified.",
+      "zh": "應該合併的所有相鄰 token。"
+    },
+    {
+      "start": 570.49,
+      "end": 573.49,
+      "en": "And then you can see in these two lists here.",
+      "zh": "接著，看這裡的兩個串列。"
+    },
+    {
+      "start": 573.69,
+      "end": 578.05,
+      "en": "So this first row is the original text separated into a list.",
+      "zh": "第一列是拆成串列的原始文字。"
+    },
+    {
+      "start": 578.37,
+      "end": 580.37,
+      "en": "And notice that there's a space here.",
+      "zh": "注意，這裡有個空白。"
+    },
+    {
+      "start": 580.37,
+      "end": 584.77,
+      "en": "This is a separate list item compared to this list item.",
+      "zh": "它是一個獨立的串列項目，和這個項目不同。"
+    },
+    {
+      "start": 585.05,
+      "end": 586.29,
+      "en": "But here after.",
+      "zh": "但這裡是之後的結果。"
+    },
+    {
+      "start": 586.29,
+      "end": 589.57,
+      "en": "So the second row here this is after step four.",
+      "zh": "第二列是步驟四完成之後。"
+    },
+    {
+      "start": 590.17,
+      "end": 592.81,
+      "en": "And now all of these list items are the same.",
+      "zh": "所有這些串列項目都一樣，"
+    },
+    {
+      "start": 592.85,
+      "end": 601.99,
+      "en": "But now instead of having a space and an H without a space, we have one item in this list that contains two characters, space and H.",
+      "zh": "只是原本獨立的空白與不帶空白的 h，現在變成一個包含兩個字元的項目，也就是空白加 h。"
+    },
+    {
+      "start": 602.23,
+      "end": 605.07,
+      "en": "And then we continue with the U and the G, and so on.",
+      "zh": "後面接著 u、g 等等。"
+    },
+    {
+      "start": 605.47,
+      "end": 605.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 605.95,
+      "end": 610.91,
+      "en": "Then for step five, you're not actually going to see step five in this video.",
+      "zh": "步驟五，這支影片其實不會實作。"
+    },
+    {
+      "start": 611.31,
+      "end": 617.31,
+      "en": "The purpose of the code challenge in the next video is actually to take everything that you've learned",
+      "zh": "下一支影片程式挑戰的目的，就是把這支影片所學"
+    },
+    {
+      "start": 617.31,
+      "end": 625.59,
+      "en": "in this video and put it together in a loop that will create a vocabulary that we can use as a tokenizer.",
+      "zh": "整合到一個迴圈裡，建立可作為 tokenizer 使用的詞彙表。"
+    },
+    {
+      "start": 626.59,
+      "end": 633.95,
+      "en": "Here is the text that we are going to use to train the byte pair encoding algorithm.",
+      "zh": "這是要用來訓練位元組配對編碼演算法的文字。"
+    },
+    {
+      "start": 634.43,
+      "end": 643.11,
+      "en": "Here I am identifying all of the unique characters in the text using the function set and then transforming",
+      "zh": "這裡使用 set，找出文字中所有不重複的字元，再從"
+    },
+    {
+      "start": 643.11,
+      "end": 646.91,
+      "en": "from a set object into a list object.",
+      "zh": "集合物件轉成串列物件。"
+    },
+    {
+      "start": 646.91,
+      "end": 648.47,
+      "en": "So we get a variable list.",
+      "zh": "因此，得到一個串列變數。"
+    },
+    {
+      "start": 648.75,
+      "end": 649.91,
+      "en": "And then here I'm sorting.",
+      "zh": "這裡再進行排序。"
+    },
+    {
+      "start": 649.91,
+      "end": 653.35,
+      "en": "It's very typical for vocabs to be sorted.",
+      "zh": "詞彙表排序非常常見，"
+    },
+    {
+      "start": 653.35,
+      "end": 656.99,
+      "en": "Certainly uh, in uh when they are initialized.",
+      "zh": "尤其是初始化的時候。"
+    },
+    {
+      "start": 657.03,
+      "end": 657.19,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 657.23,
+      "end": 660.81,
+      "en": "Let me also run this to get numpy in okay.",
+      "zh": "也執行一下這裡，匯入 NumPy。"
+    },
+    {
+      "start": 660.85,
+      "end": 664.21,
+      "en": "So now we see the space appears seven times.",
+      "zh": "現在可以看到，空白出現七次，"
+    },
+    {
+      "start": 664.37,
+      "end": 666.25,
+      "en": "E appears five times and so on.",
+      "zh": "e 出現五次，等等。"
+    },
+    {
+      "start": 666.29,
+      "end": 673.85,
+      "en": "We don't actually use this information here to create the or to run the byte pair encoding algorithm.",
+      "zh": "建立或執行位元組配對編碼演算法時，其實不使用這些資訊。"
+    },
+    {
+      "start": 673.93,
+      "end": 678.13,
+      "en": "It doesn't matter how often an individual character occurs.",
+      "zh": "個別字元出現多少次，並不重要。"
+    },
+    {
+      "start": 678.37,
+      "end": 686.57,
+      "en": "What we care about is how often specific pairs sequential pairs of characters are observed.",
+      "zh": "重要的是，特定的相鄰字元配對，被觀察到多少次。"
+    },
+    {
+      "start": 687.05,
+      "end": 687.37,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 687.41,
+      "end": 690.61,
+      "en": "Here I'm making a vocabulary as a Python dictionary.",
+      "zh": "這裡以 Python 字典建立詞彙表。"
+    },
+    {
+      "start": 690.77,
+      "end": 691.77,
+      "en": "Nothing new here.",
+      "zh": "沒有新內容。"
+    },
+    {
+      "start": 691.77,
+      "end": 696.85,
+      "en": "You've seen this kind of code already several times in previous videos.",
+      "zh": "前幾支影片已經看過好幾次這種程式。"
+    },
+    {
+      "start": 697.57,
+      "end": 704.17,
+      "en": "So now it turns out that I have written this text as a as one string.",
+      "zh": "目前，我把文字寫成一個字串。"
+    },
+    {
+      "start": 704.61,
+      "end": 714.17,
+      "en": "But to implement the byte pair encoding algorithm, it's actually much, much easier to represent the text as a list.",
+      "zh": "但實作位元組配對編碼時，用串列表示文字，容易得多。"
+    },
+    {
+      "start": 714.53,
+      "end": 715.97,
+      "en": "Okay, so that's what I'm doing here.",
+      "zh": "所以，這裡就是這麼做。"
+    },
+    {
+      "start": 715.97,
+      "end": 718.39,
+      "en": "I'm just converting it into a list.",
+      "zh": "直接把它轉成串列。"
+    },
+    {
+      "start": 718.67,
+      "end": 725.11,
+      "en": "And now I call this variable a ridge text because we are going to be making modifications to the text.",
+      "zh": "現在，我把變數叫作 orig text，因為之後會修改文字。"
+    },
+    {
+      "start": 725.27,
+      "end": 725.55,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 725.59,
+      "end": 734.71,
+      "en": "So here you see it's just broken up into each individual character, uh, versus the, the text as I wrote it as a string.",
+      "zh": "這裡可以看到，每個字元被拆開；相較之下，原先的文字是一個字串。"
+    },
+    {
+      "start": 735.35,
+      "end": 735.71,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 735.75,
+      "end": 741.55,
+      "en": "So now for the next step, which is to find character pairs and merge the most frequent.",
+      "zh": "下一步，是找出字元配對，合併其中出現最頻繁的。"
+    },
+    {
+      "start": 741.71,
+      "end": 745.23,
+      "en": "So let's start by identifying token pairs.",
+      "zh": "先辨識 token 配對。"
+    },
+    {
+      "start": 745.59,
+      "end": 751.79,
+      "en": "What I do here is loop over all of the characters to the end minus one.",
+      "zh": "這裡走訪所有字元，但只到最後一個的前一個。"
+    },
+    {
+      "start": 751.99,
+      "end": 759.35,
+      "en": "And the reason why we only have a loop going to the end minus one is that inside this for loop we are",
+      "zh": "原因是，在這個 for 迴圈中，"
+    },
+    {
+      "start": 759.35,
+      "end": 764.75,
+      "en": "creating a pair of the current letter plus the next letter.",
+      "zh": "要把目前字母加上下一個字母，建立配對。"
+    },
+    {
+      "start": 764.75,
+      "end": 770.79,
+      "en": "Now a ridge text is a list and each item in the list is a string.",
+      "zh": "orig text 是串列，而其中每個項目都是字串。"
+    },
+    {
+      "start": 770.79,
+      "end": 779.09,
+      "en": "So when I use the plus sign like this, it's going to concatenate those two characters together into a two element string.",
+      "zh": "因此，這樣使用加號，會把兩個字元串接成一個含兩個字元的字串。"
+    },
+    {
+      "start": 779.65,
+      "end": 782.29,
+      "en": "And then what I'm doing is in this dictionary.",
+      "zh": "接著，在這個字典中，"
+    },
+    {
+      "start": 782.33,
+      "end": 783.13,
+      "en": "Token pairs.",
+      "zh": "也就是 token pairs，"
+    },
+    {
+      "start": 783.13,
+      "end": 785.25,
+      "en": "I've initialized an empty dictionary here.",
+      "zh": "這裡先初始化成空字典。"
+    },
+    {
+      "start": 785.57,
+      "end": 795.81,
+      "en": "And then I'm just basically specifying that there should be a new key in the dictionary with the name of that pair, and it is equal to one.",
+      "zh": "基本上，為該配對建立同名的新鍵，並將值設為 1。"
+    },
+    {
+      "start": 795.81,
+      "end": 805.33,
+      "en": "But if that pair already exists in token pairs, so we've already seen this pair at least once, then we increment it by one.",
+      "zh": "但如果 token pairs 已存在該配對，也就是至少看過一次，就把計數加 1。"
+    },
+    {
+      "start": 805.77,
+      "end": 806.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 806.13,
+      "end": 809.85,
+      "en": "So we go through this list and that gives us this dictionary.",
+      "zh": "走訪整個串列後，就得到這個字典。"
+    },
+    {
+      "start": 810.13,
+      "end": 816.77,
+      "en": "And this is a dictionary of the frequency with which each of these letter pairs appears.",
+      "zh": "它記錄各個字母配對出現的頻率。"
+    },
+    {
+      "start": 816.77,
+      "end": 819.73,
+      "en": "So ly appears twice.",
+      "zh": "例如 ly 出現兩次，"
+    },
+    {
+      "start": 819.93,
+      "end": 824.21,
+      "en": "And yeah, uh, let's see who appears three times.",
+      "zh": "看看，hu 出現三次。"
+    },
+    {
+      "start": 824.41,
+      "end": 829.89,
+      "en": "And, you know, a quick scan of this list shows that the most frequent is space H.",
+      "zh": "快速查看，就知道最常見的是空白加 h。"
+    },
+    {
+      "start": 830.21,
+      "end": 836.57,
+      "en": "So this is what we want to pluck out and include in our vocabulary.",
+      "zh": "所以，要把它選出來，加入詞彙表。"
+    },
+    {
+      "start": 837.07,
+      "end": 838.27,
+      "en": "and that's what I do here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 838.27,
+      "end": 843.71,
+      "en": "So basically I just find the maximum of this set of values.",
+      "zh": "基本上，找出這組數值的最大值，"
+    },
+    {
+      "start": 843.71,
+      "end": 848.91,
+      "en": "So all of these numbers over here, uh, find the maximum that is the index.",
+      "zh": "也就是這裡所有數字，找到最大值的位置索引。"
+    },
+    {
+      "start": 848.91,
+      "end": 852.59,
+      "en": "And then I get the uh the keys for that index.",
+      "zh": "再取出該索引對應的鍵。"
+    },
+    {
+      "start": 852.79,
+      "end": 853.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 853.11,
+      "end": 860.51,
+      "en": "And this prints out that the most frequent character is, uh, space H and that has four appearances.",
+      "zh": "印出來顯示，最常見的字元配對是空白加 h，出現四次。"
+    },
+    {
+      "start": 860.51,
+      "end": 865.15,
+      "en": "So that's just exactly what we see from looking at this result over here.",
+      "zh": "這和直接查看這裡的結果完全相同。"
+    },
+    {
+      "start": 865.67,
+      "end": 865.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 865.99,
+      "end": 867.51,
+      "en": "And now here's the important point.",
+      "zh": "現在是重要的部分。"
+    },
+    {
+      "start": 867.51,
+      "end": 869.35,
+      "en": "I am updating the vocabulary.",
+      "zh": "我要更新詞彙表，"
+    },
+    {
+      "start": 869.35,
+      "end": 873.11,
+      "en": "So I'm creating a new element in the vocabulary.",
+      "zh": "也就是在詞彙表建立新元素。"
+    },
+    {
+      "start": 873.43,
+      "end": 875.31,
+      "en": "And I'm assigning it to.",
+      "zh": "並指定它，"
+    },
+    {
+      "start": 875.35,
+      "end": 882.31,
+      "en": "So the key is the most frequent pair in uh in terms of characters uh, or the character of the most frequent pair.",
+      "zh": "鍵是出現最頻繁的字元配對，或者說最頻繁配對的字元內容。"
+    },
+    {
+      "start": 882.51,
+      "end": 889.51,
+      "en": "And uh, then its value in the dictionary corresponds to the length of the dictionary plus one.",
+      "zh": "字典中的值，則對應字典長度加 1。"
+    },
+    {
+      "start": 889.51,
+      "end": 892.55,
+      "en": "So that just gives me, in this case the number 16.",
+      "zh": "在這個例子裡，就得到數字 16。"
+    },
+    {
+      "start": 893.15,
+      "end": 893.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 893.51,
+      "end": 896.85,
+      "en": "So now we have updated the dictionary with a new pair.",
+      "zh": "現在，已經用新配對更新字典。"
+    },
+    {
+      "start": 897.13,
+      "end": 904.73,
+      "en": "Now what we want to do is loop through the text again, and anytime we see that sequence of letters",
+      "zh": "接著再次走訪文字，每當看到"
+    },
+    {
+      "start": 904.73,
+      "end": 915.81,
+      "en": "space H, we replace those two items in the list with one item in a new list that corresponds to that new token that we just created.",
+      "zh": "空白加 h 這個字母序列，就把串列中的兩個項目，換成新串列裡的一個項目，對應剛建立的新 token。"
+    },
+    {
+      "start": 916.81,
+      "end": 920.77,
+      "en": "That's going to go into a new list that I call new text.",
+      "zh": "結果放進一個稱為 new text 的新串列。"
+    },
+    {
+      "start": 920.77,
+      "end": 923.85,
+      "en": "So I initialize this as an empty list.",
+      "zh": "先初始化成空串列。"
+    },
+    {
+      "start": 924.17,
+      "end": 931.05,
+      "en": "And here you can see again I'm looping over all of the elements in the original text list.",
+      "zh": "可以看到，同樣走訪原始文字串列中的所有元素。"
+    },
+    {
+      "start": 931.33,
+      "end": 938.97,
+      "en": "And here I'm testing whether the sequence pair, the character sequence of this character, and the",
+      "zh": "這裡檢查目前字元與"
+    },
+    {
+      "start": 938.97,
+      "end": 943.65,
+      "en": "following character is equal to our most frequent pair.",
+      "zh": "下一個字元的序列配對，是否等於出現最頻繁的配對。"
+    },
+    {
+      "start": 944.13,
+      "end": 953.33,
+      "en": "And if it is, then we merge that pair into our new list, and then I increment the counting variable",
+      "zh": "如果相同，就把該配對合併，加入新串列，再將計數變數"
+    },
+    {
+      "start": 953.33,
+      "end": 954.41,
+      "en": "I by two.",
+      "zh": "i 增加 2。"
+    },
+    {
+      "start": 954.61,
+      "end": 956.47,
+      "en": "And why do we increment by two.",
+      "zh": "為什麼增加 2？"
+    },
+    {
+      "start": 956.67,
+      "end": 968.39,
+      "en": "Well, if we know that, uh, this, uh, element in the list plus the next element in the list together make a pair, then we don't want to include the second element again.",
+      "zh": "因為已知串列中目前元素與下一個元素組成配對，就不希望再包含第二個元素一次。"
+    },
+    {
+      "start": 968.39,
+      "end": 972.83,
+      "en": "We don't want to redundantly tokenize the second element of a pair.",
+      "zh": "不想重複把配對的第二個元素斷詞。"
+    },
+    {
+      "start": 972.83,
+      "end": 975.23,
+      "en": "So we want to skip over that element.",
+      "zh": "因此，要略過那個元素。"
+    },
+    {
+      "start": 975.23,
+      "end": 978.87,
+      "en": "And that's why we say I plus two okay.",
+      "zh": "這就是使用 i 加 2 的原因。"
+    },
+    {
+      "start": 978.91,
+      "end": 980.79,
+      "en": "But we're not always going to see a pair.",
+      "zh": "不過，不是每次都會看到配對。"
+    },
+    {
+      "start": 980.79,
+      "end": 982.99,
+      "en": "Of course this is relatively infrequent.",
+      "zh": "畢竟，符合的情況相對較少。"
+    },
+    {
+      "start": 983.31,
+      "end": 990.03,
+      "en": "Uh, and so uh, if it isn't, uh, our brand new merged pair, then we simply add to the new text,",
+      "zh": "所以，如果不是剛建立的合併配對，就直接把目前項目加入 new text，"
+    },
+    {
+      "start": 990.07,
+      "end": 996.83,
+      "en": "we append this current item from the original text, and then we move over to the next character.",
+      "zh": "也就是附加原始文字的目前項目，再移到下一個字元。"
+    },
+    {
+      "start": 997.51,
+      "end": 997.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 997.91,
+      "end": 1000.63,
+      "en": "So then we can print this out and we can see.",
+      "zh": "接著印出，就能看到，"
+    },
+    {
+      "start": 1000.87,
+      "end": 1001.03,
+      "en": "Yeah.",
+      "zh": "是的，"
+    },
+    {
+      "start": 1001.07,
+      "end": 1005.95,
+      "en": "Here I've, uh, just printed out each time I've added, uh, one of these characters.",
+      "zh": "這裡每次加入這些字元時，"
+    },
+    {
+      "start": 1005.95,
+      "end": 1007.03,
+      "en": "I printed this out.",
+      "zh": "我都印出來。"
+    },
+    {
+      "start": 1007.03,
+      "end": 1009.75,
+      "en": "So we see this four times okay.",
+      "zh": "所以，這裡會看到四次。"
+    },
+    {
+      "start": 1009.79,
+      "end": 1017.21,
+      "en": "And let's see I'll zoom in a little bit, although this will be more clear on your screen, but the original text and the updated text.",
+      "zh": "稍微放大，雖然你的螢幕可能更清楚。這裡是原始文字與更新後的文字。"
+    },
+    {
+      "start": 1017.21,
+      "end": 1025.41,
+      "en": "So you can see, as I showed in the screenshot in the slides, yeah, we have space and then H in the original text.",
+      "zh": "如投影片截圖所示，原始文字中是空白，再接著 h。"
+    },
+    {
+      "start": 1025.41,
+      "end": 1028.21,
+      "en": "And in the updated text we have space H.",
+      "zh": "更新後則是空白加 h。"
+    },
+    {
+      "start": 1029.57,
+      "end": 1029.81,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1029.85,
+      "end": 1032.93,
+      "en": "And then we see the original text had 46 tokens.",
+      "zh": "原始文字有 46 個 token，"
+    },
+    {
+      "start": 1033.17,
+      "end": 1036.09,
+      "en": "The new text has 41 tokens.",
+      "zh": "新文字有 41 個 token。"
+    },
+    {
+      "start": 1036.21,
+      "end": 1040.97,
+      "en": "So we have compressed the text from 46 to 41.",
+      "zh": "因此，文字從 46 壓縮到 41。"
+    },
+    {
+      "start": 1041.65,
+      "end": 1043.41,
+      "en": "So I hope that makes sense.",
+      "zh": "希望這樣說得清楚。"
+    },
+    {
+      "start": 1043.41,
+      "end": 1052.09,
+      "en": "What we have done is one iteration in creating a byte pair encoding based dictionary.",
+      "zh": "我們完成了建立 BPE 字典的一次迭代。"
+    },
+    {
+      "start": 1052.49,
+      "end": 1057.57,
+      "en": "So what we want to do now is basically repeat this over and over again.",
+      "zh": "接下來，基本上就是一再重複。"
+    },
+    {
+      "start": 1057.77,
+      "end": 1058.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1058.09,
+      "end": 1062.13,
+      "en": "So here I literally just copy pasted the code.",
+      "zh": "這裡直接複製貼上程式。"
+    },
+    {
+      "start": 1062.65,
+      "end": 1070.53,
+      "en": "The only thing I changed was uh, so now it's new text before it was let me go back here orange text.",
+      "zh": "唯一修改的地方，是現在用 new text；之前用的是，回去看看，orig text。"
+    },
+    {
+      "start": 1070.89,
+      "end": 1076.59,
+      "en": "So here is the code where we are identifying token pairs based on the original text.",
+      "zh": "這段程式依照原始文字，找出 token 配對。"
+    },
+    {
+      "start": 1076.87,
+      "end": 1084.07,
+      "en": "And now that code is literally exactly copy pasted except for the name of this variable.",
+      "zh": "現在的程式完全是複製貼上，只改變數名稱。"
+    },
+    {
+      "start": 1084.07,
+      "end": 1091.71,
+      "en": "So we are no longer searching for, uh, token sequence pairs in the original text.",
+      "zh": "因此，不再到原始文字中搜尋 token 序列配對，"
+    },
+    {
+      "start": 1091.71,
+      "end": 1093.95,
+      "en": "Instead, we're doing it in the new text.",
+      "zh": "而是到新的文字中搜尋。"
+    },
+    {
+      "start": 1094.23,
+      "end": 1094.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1094.51,
+      "end": 1098.99,
+      "en": "And now you can see we get, uh, so some of these are going to be the same as before.",
+      "zh": "現在可以看到，有些結果會和之前一樣。"
+    },
+    {
+      "start": 1099.19,
+      "end": 1101.11,
+      "en": "But here is something interesting.",
+      "zh": "不過，這裡有個有趣的地方。"
+    },
+    {
+      "start": 1101.11,
+      "end": 1105.99,
+      "en": "We get three tokens appearing, uh, or three characters appearing.",
+      "zh": "我們看到三個 token，或者說三個字元，一起出現。"
+    },
+    {
+      "start": 1106.03,
+      "end": 1108.31,
+      "en": "And why do these three characters appear?",
+      "zh": "為什麼會出現三個字元？"
+    },
+    {
+      "start": 1108.47,
+      "end": 1118.51,
+      "en": "Well, we have Under space H that corresponds to one token in our updated text, and then it's followed",
+      "zh": "因為空白加 h，在更新後的文字中對應一個 token，後面接著"
+    },
+    {
+      "start": 1118.51,
+      "end": 1120.11,
+      "en": "by you three times.",
+      "zh": "u，這個配對出現三次。"
+    },
+    {
+      "start": 1120.51,
+      "end": 1122.27,
+      "en": "Here you see another example.",
+      "zh": "這裡有另一個例子。"
+    },
+    {
+      "start": 1122.27,
+      "end": 1125.91,
+      "en": "We have g space H that appears twice.",
+      "zh": "g 加空白加 h，出現兩次。"
+    },
+    {
+      "start": 1126.23,
+      "end": 1130.87,
+      "en": "Again, from the perspective of tokenization.",
+      "zh": "同樣，從斷詞的角度來看，"
+    },
+    {
+      "start": 1131.03,
+      "end": 1134.51,
+      "en": "These two characters are now one single token.",
+      "zh": "這兩個字元現在是一個 token。"
+    },
+    {
+      "start": 1134.51,
+      "end": 1140.13,
+      "en": "So we can get a sequence of three characters, which is actually only two tokens.",
+      "zh": "所以，可以有三個字元的序列，實際上卻只有兩個 token。"
+    },
+    {
+      "start": 1140.29,
+      "end": 1145.05,
+      "en": "And this sequence of two tokens appears twice in this text.",
+      "zh": "而這個兩 token 的序列，在文字中出現兩次。"
+    },
+    {
+      "start": 1146.25,
+      "end": 1146.49,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1146.53,
+      "end": 1148.09,
+      "en": "And what would you do after this?",
+      "zh": "接下來該怎麼做？"
+    },
+    {
+      "start": 1148.13,
+      "end": 1153.65,
+      "en": "Well, after you do that, then you'd have to copy paste this text.",
+      "zh": "做完之後，可以複製貼上這段程式。"
+    },
+    {
+      "start": 1153.65,
+      "end": 1155.57,
+      "en": "But now you'd need to replace this.",
+      "zh": "不過，現在必須取代這裡。"
+    },
+    {
+      "start": 1155.61,
+      "end": 1158.49,
+      "en": "You know, you can call this like New Text two.",
+      "zh": "例如，把這個叫作 new text 2，"
+    },
+    {
+      "start": 1158.69,
+      "end": 1161.09,
+      "en": "And this would be new text.",
+      "zh": "這裡則是 new text。"
+    },
+    {
+      "start": 1161.13,
+      "end": 1161.33,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1161.37,
+      "end": 1162.93,
+      "en": "But obviously this is terrible.",
+      "zh": "但顯然，這樣很糟。"
+    },
+    {
+      "start": 1162.93,
+      "end": 1170.01,
+      "en": "You don't want to copy and paste and rename variables 50,000 times in different code cells.",
+      "zh": "你不會想在不同程式區塊中，複製貼上並重新命名變數 5 萬次。"
+    },
+    {
+      "start": 1170.21,
+      "end": 1179.41,
+      "en": "So of course the right thing to do here is to take these steps that I have described in the slides and",
+      "zh": "正確的做法，當然是把投影片解釋、"
+    },
+    {
+      "start": 1179.41,
+      "end": 1184.53,
+      "en": "now shown you in code, uh, re-implement them as Python functions.",
+      "zh": "剛才用程式展示的這些步驟，改寫成 Python 函式。"
+    },
+    {
+      "start": 1184.65,
+      "end": 1187.09,
+      "en": "So then you can call them repeatedly.",
+      "zh": "如此，就能反覆呼叫。"
+    },
+    {
+      "start": 1187.33,
+      "end": 1190.13,
+      "en": "And that is what I do down here.",
+      "zh": "這就是下方的做法。"
+    },
+    {
+      "start": 1190.49,
+      "end": 1190.81,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1190.85,
+      "end": 1194.61,
+      "en": "So I create a function called get pair statistics.",
+      "zh": "建立一個叫作 get pair statistics 的函式，"
+    },
+    {
+      "start": 1195.27,
+      "end": 1200.03,
+      "en": "and it takes as an input a list of tokens.",
+      "zh": "輸入是 token 串列。"
+    },
+    {
+      "start": 1200.03,
+      "end": 1202.63,
+      "en": "So I call that variable text a pair.",
+      "zh": "我把這個變數叫作 text a pair。"
+    },
+    {
+      "start": 1203.63,
+      "end": 1208.87,
+      "en": "And of course you will recognize all of this code is literally exactly the same code that you've seen.",
+      "zh": "你當然認得，這些程式和先前看到的完全相同。"
+    },
+    {
+      "start": 1208.91,
+      "end": 1210.31,
+      "en": "Now three times.",
+      "zh": "到現在，已經看過三次。"
+    },
+    {
+      "start": 1210.31,
+      "end": 1214.11,
+      "en": "I'm just changing the variables slightly, but this is the best time.",
+      "zh": "只是變數稍有改變，但這是最後一次"
+    },
+    {
+      "start": 1214.11,
+      "end": 1216.03,
+      "en": "You'll see it because it's a function.",
+      "zh": "這樣看到它，因為現在改成函式了。"
+    },
+    {
+      "start": 1216.07,
+      "end": 1220.67,
+      "en": "So once we have this function, we only need to create the function once.",
+      "zh": "只需要建立函式一次，"
+    },
+    {
+      "start": 1220.67,
+      "end": 1225.03,
+      "en": "And then we can call that function as many times as we want.",
+      "zh": "接著就能想呼叫幾次，就呼叫幾次。"
+    },
+    {
+      "start": 1225.47,
+      "end": 1228.71,
+      "en": "So this function will identify the pairs.",
+      "zh": "這個函式負責找出配對。"
+    },
+    {
+      "start": 1229.15,
+      "end": 1240.19,
+      "en": "And then I have a function that will update the vocabulary it takes as input the token pairs that are outputted from this function and also the existing vocab.",
+      "zh": "另一個函式負責更新詞彙表，輸入是上一個函式輸出的 token 配對，以及現有詞彙表。"
+    },
+    {
+      "start": 1240.51,
+      "end": 1246.35,
+      "en": "And this is also almost copy pasted from the code I showed you previously.",
+      "zh": "這也幾乎是複製先前展示的程式。"
+    },
+    {
+      "start": 1246.35,
+      "end": 1254.47,
+      "en": "I just shortened the variable names a little bit, so this is ID for index and new talk for new token.",
+      "zh": "只是稍微縮短變數名稱；ID 代表索引，new tok 代表新 token。"
+    },
+    {
+      "start": 1254.56,
+      "end": 1256.32,
+      "en": "Otherwise, this code is the same.",
+      "zh": "其他程式相同。"
+    },
+    {
+      "start": 1256.32,
+      "end": 1265.4,
+      "en": "We just identify which pair appears most frequently, which token pair, and then we get the token and we add it to the vocab.",
+      "zh": "找出出現最頻繁的 token 配對，取得 token，再加入詞彙表。"
+    },
+    {
+      "start": 1265.56,
+      "end": 1270.24,
+      "en": "And we increase the max number of items in the vocab.",
+      "zh": "然後增加詞彙表中的最大項目數。"
+    },
+    {
+      "start": 1270.84,
+      "end": 1271.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1271.32,
+      "end": 1280.88,
+      "en": "And then this function down here is to generate a new token sequence that takes in as text, priv text, and new tokens.",
+      "zh": "下方這個函式，負責產生新的 token 序列，輸入為 prev text 與 new tokens。"
+    },
+    {
+      "start": 1280.92,
+      "end": 1285.08,
+      "en": "Now this is what I was previously calling a ridge text.",
+      "zh": "這就是先前叫作 orig text 的東西。"
+    },
+    {
+      "start": 1285.36,
+      "end": 1292.2,
+      "en": "And here we have the new token that we have just identified from this function over here.",
+      "zh": "這裡則是剛從這個函式找出的新 token。"
+    },
+    {
+      "start": 1292.88,
+      "end": 1297.08,
+      "en": "So again yeah, now we have a new text that gets initialized.",
+      "zh": "同樣，先初始化新的文字串列。"
+    },
+    {
+      "start": 1297.32,
+      "end": 1302.96,
+      "en": "We loop through all of the elements in this text or sorry, in this text.",
+      "zh": "逐一走訪這段文字，抱歉，是這段文字的所有元素。"
+    },
+    {
+      "start": 1302.96,
+      "end": 1311.68,
+      "en": "Here priv text determine whether the token sequence is the new token that we just created.",
+      "zh": "也就是 prev text，判斷 token 序列是否為剛建立的新 token。"
+    },
+    {
+      "start": 1311.92,
+      "end": 1316.1,
+      "en": "If it is, we append it and skip to the next character.",
+      "zh": "如果是，就附加到串列，並跳過下一個字元。"
+    },
+    {
+      "start": 1316.14,
+      "end": 1320.86,
+      "en": "Otherwise, we just append that character and skip over one.",
+      "zh": "否則，只附加目前字元，並前進一個位置。"
+    },
+    {
+      "start": 1320.9,
+      "end": 1321.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1321.5,
+      "end": 1322.74,
+      "en": "And that's all we do.",
+      "zh": "只需要做這些。"
+    },
+    {
+      "start": 1322.78,
+      "end": 1323.54,
+      "en": "So let me see.",
+      "zh": "讓我看看。"
+    },
+    {
+      "start": 1323.98,
+      "end": 1328.82,
+      "en": "I want to run this cell so I can create those functions.",
+      "zh": "執行這個區塊，建立那些函式。"
+    },
+    {
+      "start": 1329.22,
+      "end": 1332.82,
+      "en": "And now I'm going to reinitialize the vocabulary.",
+      "zh": "現在重新初始化詞彙表，"
+    },
+    {
+      "start": 1332.82,
+      "end": 1335.86,
+      "en": "This is so that we get a fresh vocabulary.",
+      "zh": "讓我們取得一份全新的詞彙表。"
+    },
+    {
+      "start": 1336.42,
+      "end": 1336.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1336.74,
+      "end": 1340.1,
+      "en": "So now the vocab has 16 tokens.",
+      "zh": "現在，詞彙表有 16 個 token。"
+    },
+    {
+      "start": 1340.38,
+      "end": 1343.74,
+      "en": "Uh, remember it was 15 letters and space.",
+      "zh": "記得，是 15 個字母加上一個空白。"
+    },
+    {
+      "start": 1344.14,
+      "end": 1346.3,
+      "en": "So here I'm doing one iteration.",
+      "zh": "這裡進行一次迭代。"
+    },
+    {
+      "start": 1346.5,
+      "end": 1352.82,
+      "en": "I get the pairs, I update the dictionary and I get a new list of tokens.",
+      "zh": "取得配對、更新字典，再取得新的 token 串列。"
+    },
+    {
+      "start": 1353.1,
+      "end": 1357.06,
+      "en": "And now our vocab, amazingly enough, has 17 pairs.",
+      "zh": "結果，詞彙表竟然就有了 17 個配對。"
+    },
+    {
+      "start": 1357.34,
+      "end": 1360.74,
+      "en": "This right here is exactly what I did.",
+      "zh": "這裡所做的，"
+    },
+    {
+      "start": 1360.98,
+      "end": 1363.02,
+      "en": "Uh, all the way up here.",
+      "zh": "和上面那一整段完全相同。"
+    },
+    {
+      "start": 1363.18,
+      "end": 1370.66,
+      "en": "So here, to get the pair statistics, identify the most frequent pair, and generate a new list of tokens.",
+      "zh": "也就是取得配對統計、找出最常見的配對，再產生新的 token 串列。"
+    },
+    {
+      "start": 1371.9,
+      "end": 1374.24,
+      "en": "And now I'm just calling these functions.",
+      "zh": "現在，只要呼叫這些函式。"
+    },
+    {
+      "start": 1374.28,
+      "end": 1374.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1374.72,
+      "end": 1377.08,
+      "en": "So there's one iteration here.",
+      "zh": "這裡是第一次迭代。"
+    },
+    {
+      "start": 1377.08,
+      "end": 1378.76,
+      "en": "I do a second iteration.",
+      "zh": "再做第二次迭代，"
+    },
+    {
+      "start": 1378.76,
+      "end": 1380.84,
+      "en": "And now we have 18 tokens.",
+      "zh": "現在有 18 個 token。"
+    },
+    {
+      "start": 1381,
+      "end": 1383.68,
+      "en": "And you can see here's the vocab.",
+      "zh": "這裡可以看到詞彙表。"
+    },
+    {
+      "start": 1383.68,
+      "end": 1385.88,
+      "en": "So space H you've already seen this.",
+      "zh": "空白加 h 已經看過。"
+    },
+    {
+      "start": 1386.24,
+      "end": 1394.2,
+      "en": "And then it turns out that space L is the next most frequent pair that gets added to this vocab.",
+      "zh": "接著，空白加 l 是下一個最常見的配對，因此加入詞彙表。"
+    },
+    {
+      "start": 1394.8,
+      "end": 1406.8,
+      "en": "Okay, now needless to say, if you want 100,000 tokens, it is not very efficient to just copy and paste this code cell a hundred thousand times.",
+      "zh": "顯然，若想要 10 萬個 token，把這個程式區塊複製貼上 10 萬次，效率並不好。"
+    },
+    {
+      "start": 1406.8,
+      "end": 1413.92,
+      "en": "So you would do that in a for loop, and that is what you are going to do in the code challenge in the next video.",
+      "zh": "所以，應該使用 for 迴圈；下一支影片的程式挑戰，就要做這件事。"
+    },
+    {
+      "start": 1414.88,
+      "end": 1420.52,
+      "en": "So that was the basic implementation of the byte pair encoding algorithm.",
+      "zh": "以上是位元組配對編碼演算法的基本實作。"
+    },
+    {
+      "start": 1421,
+      "end": 1430.88,
+      "en": "Making a professional grade tokenizer is quite a bit of extra work, but it's not because the algorithm gets any more complicated than what you just saw.",
+      "zh": "製作專業 tokenizer，還需要許多額外工作，但不是因為演算法比剛才更複雜。"
+    },
+    {
+      "start": 1431.28,
+      "end": 1439.54,
+      "en": "Instead, it's because real text online is messy and sloppy and full of formatting, characters and",
+      "zh": "而是網路上的實際文字很雜亂，含有各種格式、字元，"
+    },
+    {
+      "start": 1439.54,
+      "end": 1444.74,
+      "en": "other weird edge cases and spelling errors and so on that need to be dealt with.",
+      "zh": "以及其他奇怪的邊界情況、拼字錯誤等，需要處理。"
+    },
+    {
+      "start": 1445.26,
+      "end": 1454.86,
+      "en": "So what I'm going to do on this slide is just give you a very brief list of the additional steps that are required to make a real tokenizer.",
+      "zh": "這張投影片，只簡短列出製作真正 tokenizer 所需的額外步驟。"
+    },
+    {
+      "start": 1455.3,
+      "end": 1457.18,
+      "en": "This is just so you're aware of them.",
+      "zh": "只是讓你知道有這些事情，"
+    },
+    {
+      "start": 1457.18,
+      "end": 1460.82,
+      "en": "I'm not actually going to cover these steps in this course.",
+      "zh": "本課程不會實際涵蓋這些步驟。"
+    },
+    {
+      "start": 1461.26,
+      "end": 1464.1,
+      "en": "So you need to select the data carefully.",
+      "zh": "首先，必須仔細挑選資料。"
+    },
+    {
+      "start": 1464.22,
+      "end": 1472.14,
+      "en": "You want to include a lot of high quality data without too much redundancy or without too much low quality",
+      "zh": "希望包含大量高品質資料，避免過多重複或低品質"
+    },
+    {
+      "start": 1472.14,
+      "end": 1481.46,
+      "en": "data that is likely to contain, for example, a lot of spelling errors or unusual words that are just going to bias the tokenizer and the vocab.",
+      "zh": "資料；例如大量拼字錯誤或不尋常的單字，都可能使 tokenizer 與詞彙表產生偏差。"
+    },
+    {
+      "start": 1482.62,
+      "end": 1493.1,
+      "en": "There's typically a lot of cleaning and pre-processing to remove formatting characters, excessive whitespaces, non-ascii characters, and so on.",
+      "zh": "通常需要許多清理與前處理，移除格式字元、過多空白、非 ASCII 字元等等。"
+    },
+    {
+      "start": 1493.92,
+      "end": 1500.56,
+      "en": "Uh, in some professional Tokenizers will actually start by initializing common subwords.",
+      "zh": "有些專業 tokenizer，其實會先初始化常見的子詞。"
+    },
+    {
+      "start": 1500.56,
+      "end": 1509.2,
+      "en": "So the uh dictionary, the vocabularies can actually already begin with sequences like ING or ER and so on.",
+      "zh": "也就是字典、詞彙表一開始，就已包含 ING、ER 這類序列。"
+    },
+    {
+      "start": 1509.56,
+      "end": 1517.72,
+      "en": "And there might also be constraints that are built in, for example when processing code or URLs or",
+      "zh": "此外，可能內建一些限制，例如處理程式碼、網址或"
+    },
+    {
+      "start": 1518,
+      "end": 1525.72,
+      "en": "numbers, for example, to prevent really, really excessively long number sequences from being turned into tokens.",
+      "zh": "數字時，避免把過長的數字序列轉成 token。"
+    },
+    {
+      "start": 1526.48,
+      "end": 1529.96,
+      "en": "Uh, in practice, people experiment with vocab size.",
+      "zh": "實務上，也會測試不同的詞彙表大小。"
+    },
+    {
+      "start": 1529.96,
+      "end": 1535.16,
+      "en": "So there are trade offs for having, uh, smaller vocabs versus larger vocabs.",
+      "zh": "較小與較大的詞彙表，各有取捨。"
+    },
+    {
+      "start": 1535.68,
+      "end": 1543,
+      "en": "And what I showed you in this video was actually merging based on character level statistics.",
+      "zh": "這支影片示範的，其實是依照字元層級統計進行合併。"
+    },
+    {
+      "start": 1543.2,
+      "end": 1546.04,
+      "en": "And that's fine for some languages.",
+      "zh": "對某些語言而言，這樣沒問題。"
+    },
+    {
+      "start": 1546.16,
+      "end": 1553.74,
+      "en": "But if you want to also incorporate into your tokenizer things like emojis and Chinese characters,",
+      "zh": "但如果 tokenizer 也要涵蓋表情符號、中文字、"
+    },
+    {
+      "start": 1553.74,
+      "end": 1559.26,
+      "en": "Japanese characters, and a lot of other non-Latin based characters.",
+      "zh": "日文字，以及許多其他非拉丁字元，"
+    },
+    {
+      "start": 1559.58,
+      "end": 1567.38,
+      "en": "It's actually more efficient, and it's a better idea to merge based on bytes and not on characters.",
+      "zh": "依照位元組，而不是字元來合併，其實更有效率，也更合適。"
+    },
+    {
+      "start": 1567.42,
+      "end": 1570.18,
+      "en": "Okay, but the fundamental algorithm is the same.",
+      "zh": "不過，基本演算法相同。"
+    },
+    {
+      "start": 1571.18,
+      "end": 1583.1,
+      "en": "Also, there are special steps taken to handle rare words and misspellings that reduces the out of vocabulary problems and also some post-training adjustments.",
+      "zh": "此外，也有處理罕見單字與拼字錯誤的特殊步驟，減少詞彙表外的問題，以及訓練後的調整。"
+    },
+    {
+      "start": 1583.1,
+      "end": 1589.1,
+      "en": "So there might be some manual tuning to remove or add particular merges.",
+      "zh": "例如，手動調校，移除或加入某些合併規則。"
+    },
+    {
+      "start": 1589.46,
+      "end": 1591.26,
+      "en": "And then there are special tokens.",
+      "zh": "還有特殊 token。"
+    },
+    {
+      "start": 1591.26,
+      "end": 1595.9,
+      "en": "You already learned a little bit about special tokens like Unk or Unknown.",
+      "zh": "你已經稍微學過 unk、unknown 這類特殊 token。"
+    },
+    {
+      "start": 1596.26,
+      "end": 1606.82,
+      "en": "And later on in the course I will tell you about other special tokens that are added to the Tokenizers for specific uses for training language models.",
+      "zh": "課程後面，還會介紹為訓練語言模型的特定用途，而加入 tokenizer 的其他特殊 token。"
+    },
+    {
+      "start": 1607.1,
+      "end": 1613.68,
+      "en": "And finally, you can see that the byte pair encoding algorithm involves a lot of loops.",
+      "zh": "最後，可以看到，位元組配對編碼包含許多迴圈。"
+    },
+    {
+      "start": 1613.68,
+      "end": 1622.76,
+      "en": "There's a lot of for loops and while loops, every time we run through the algorithm, we have to run through the entire text at least twice.",
+      "zh": "有很多 for 與 while 迴圈；每次執行演算法，都至少得走訪整段文字兩次。"
+    },
+    {
+      "start": 1623.16,
+      "end": 1626.4,
+      "en": "And so this can become really time consuming.",
+      "zh": "因此，可能非常耗時。"
+    },
+    {
+      "start": 1626.6,
+      "end": 1633.68,
+      "en": "So there's a lot of just coding tricks that make the code itself a little bit faster and a little bit more efficient.",
+      "zh": "有許多程式技巧，能讓程式執行得更快、更有效率。"
+    },
+    {
+      "start": 1634.08,
+      "end": 1640,
+      "en": "Uh, but you know, what I wanted to do here was write code to be very readable and accessible.",
+      "zh": "但我這裡想寫的是容易閱讀、容易理解的程式，"
+    },
+    {
+      "start": 1640,
+      "end": 1642.12,
+      "en": "So you understand the algorithm.",
+      "zh": "讓你理解演算法。"
+    },
+    {
+      "start": 1642.4,
+      "end": 1645.92,
+      "en": "I hope you found this video interesting and insightful.",
+      "zh": "希望你覺得這支影片有趣，也有啟發。"
+    },
+    {
+      "start": 1646.2,
+      "end": 1653.12,
+      "en": "I have a few more important key take home points about this algorithm and what it means for tokenization,",
+      "zh": "關於這個演算法，以及它對斷詞的意義，還有幾個重要重點，"
+    },
+    {
+      "start": 1653.12,
+      "end": 1659.6,
+      "en": "but I'm going to have that discussion in the next code challenge, where you will already make some",
+      "zh": "不過，我會在下一個程式挑戰中討論。到時候，你自己就會有一些"
+    },
+    {
+      "start": 1659.6,
+      "end": 1666.28,
+      "en": "interesting discussion discoveries on your own about why tokenizers are the way they are.",
+      "zh": "有趣的發現，理解 tokenizer 為什麼會是現在的樣子。"
+    },
+    {
+      "start": 1666.52,
+      "end": 1671.88,
+      "en": "Just based on applying this simple algorithm to a very simple piece of text.",
+      "zh": "只要把這個簡單演算法，用在很簡單的一段文字上，就能發現。"
+    }
+  ]
+}

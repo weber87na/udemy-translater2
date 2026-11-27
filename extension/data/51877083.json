@@ -1,0 +1,787 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51877083",
+  "title": "Masked word prediction accuracy",
+  "section": 11,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "c3eb858ae7cf369e8e4a5ce3a6f159b8f9e96dbb66777017ea9f1fb70e96923b",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 8.16,
+      "en": "Related to perplexity is looking at masked word prediction accuracy.",
+      "zh": "與困惑度相關的另一種方法，是查看遮罩字詞預測準確率。"
+    },
+    {
+      "start": 8.76,
+      "end": 10.64,
+      "en": "The idea is very simple.",
+      "zh": "概念很簡單。"
+    },
+    {
+      "start": 10.64,
+      "end": 22.44,
+      "en": "You start with a sentence or some token sequence, and then mask out a word in the sentence and see whether an LL would predict the missing word.",
+      "zh": "先有一句話或詞元序列，遮掉其中一個字，看看 LLM 能否預測缺字。"
+    },
+    {
+      "start": 23.24,
+      "end": 30.8,
+      "en": "This approach is mainly useful with a Bert type model, because that does not use a causal attention",
+      "zh": "主要適合 BERT 類模型，因為它不使用因果注意力"
+    },
+    {
+      "start": 30.8,
+      "end": 39.08,
+      "en": "mask, which means that these models can use words later in the sequence to predict a missing word earlier in the sequence.",
+      "zh": "遮罩，所以能利用序列後面的字，預測前面缺失的字。"
+    },
+    {
+      "start": 40,
+      "end": 46.04,
+      "en": "On the other hand, when I show you the example on the next slide, it will be pretty obvious that even",
+      "zh": "但下一張的例子會很明顯，即使"
+    },
+    {
+      "start": 46.04,
+      "end": 52.92,
+      "en": "when the model is technically incorrect in the sense that it does not predict the actual target word,",
+      "zh": "模型沒有預測實際目標詞，技術上算錯，"
+    },
+    {
+      "start": 53.36,
+      "end": 59.16,
+      "en": "the words that the model does predict can be closely related to the actual target word.",
+      "zh": "預測的詞仍可能與目標密切相關。"
+    },
+    {
+      "start": 59.68,
+      "end": 70.53999999999999,
+      "en": "So we as humans probably wouldn't really consider it to be fully incorrect and to measure that semantic relatedness, we will use cosine similarity.",
+      "zh": "所以人類也許不會認為完全錯誤。為了衡量語意相關性，會用餘弦相似度。"
+    },
+    {
+      "start": 71.06,
+      "end": 78.42,
+      "en": "Now, there's not a whole lot of theory or math that you need to understand this code demo that you don't already know.",
+      "zh": "這次示範沒有太多你還不知道的理論或數學。"
+    },
+    {
+      "start": 78.42,
+      "end": 86.38,
+      "en": "So let me just give you an overview of the Python demo, and then we'll get started using the Bert tokenizer",
+      "zh": "先簡介 Python 示範，再開始。我們用 BERT tokenizer"
+    },
+    {
+      "start": 86.38,
+      "end": 90.46000000000001,
+      "en": "and model I will tokenize this sentence.",
+      "zh": "與模型，對這句斷詞。"
+    },
+    {
+      "start": 90.78,
+      "end": 96.94,
+      "en": "Cubism is an art movement that sparked innovations in music and architecture.",
+      "zh": "「立體主義是一場藝術運動，激發音樂與建築的創新。」"
+    },
+    {
+      "start": 97.66,
+      "end": 106.14,
+      "en": "Now if we focus just on the word art, we can isolate the logits for that token and see what the model",
+      "zh": "只聚焦 art，可以取出該詞元的 logits，看看模型"
+    },
+    {
+      "start": 106.14,
+      "end": 109.9,
+      "en": "predicts should be this word given its context.",
+      "zh": "根據語境，認為這裡應該是哪個詞。"
+    },
+    {
+      "start": 110.38,
+      "end": 115.97999999999999,
+      "en": "And it turns out that in this case, the model accurately predicted the word art.",
+      "zh": "這個例子，模型正確預測 art。"
+    },
+    {
+      "start": 116.53999999999999,
+      "end": 120.26,
+      "en": "So these are the logits for over the entire vocab.",
+      "zh": "這是整個詞彙表的 logits。"
+    },
+    {
+      "start": 120.62,
+      "end": 125.38,
+      "en": "And the largest logit was the token corresponding to art.",
+      "zh": "最大值對應 art 詞元。"
+    },
+    {
+      "start": 126.02,
+      "end": 132.32,
+      "en": "So in this case the case, the model correctly used the context to predict the missing word.",
+      "zh": "所以模型正確利用語境，預測缺字。"
+    },
+    {
+      "start": 133.08,
+      "end": 139.84,
+      "en": "On the other hand, you can see that there are several other tokens that are also have fairly high logit values.",
+      "zh": "但也可以看到，還有其他詞元的 logit 相當高。"
+    },
+    {
+      "start": 140.24,
+      "end": 149.44,
+      "en": "And if we look at what those tokens are, you can see that of the top ten logits or tokens that could also fit into this sentence.",
+      "zh": "查看前十個候選詞元，"
+    },
+    {
+      "start": 149.72,
+      "end": 156.72,
+      "en": "They are all semantically meaningful, and they could fit into this sentence in place of the word art.",
+      "zh": "全都有語意，也能放進句子裡取代 art。"
+    },
+    {
+      "start": 157.44,
+      "end": 164.28,
+      "en": "So this means that, for example, if the model actually had the highest logit for the word arts, then",
+      "zh": "所以，如果最高 logit 對應 arts，"
+    },
+    {
+      "start": 164.28,
+      "end": 173.28,
+      "en": "technically categorically that is incorrect because art and arts have different tokens, but obviously the meaning would be the same.",
+      "zh": "技術上、類別上就算錯，因為 art 與 arts 是不同詞元，但意思顯然相同。"
+    },
+    {
+      "start": 173.28,
+      "end": 179.68,
+      "en": "So that's not really equivalent to, for example, if the model had predicted the word cantaloupe or something.",
+      "zh": "這與預測成 cantaloupe，哈密瓜之類，並不一樣。"
+    },
+    {
+      "start": 180.4,
+      "end": 192.26,
+      "en": "So one way we can assess the relevance is by calculating the cosine similarity between the token that the model predicted and the actual token in the sentence.",
+      "zh": "可以計算模型預測詞元，與句中真實詞元的餘弦相似度，評估相關性。"
+    },
+    {
+      "start": 192.7,
+      "end": 194.1,
+      "en": "And that's what you see here.",
+      "zh": "就是這裡。"
+    },
+    {
+      "start": 194.22,
+      "end": 201.5,
+      "en": "So what I did was loop through all of the words in this sentence, mask out each individual token.",
+      "zh": "我逐一走訪句中所有字，每次遮掉一個詞元。"
+    },
+    {
+      "start": 201.5,
+      "end": 206.22,
+      "en": "And here in the middle is the token that the Bert model predicted should be there.",
+      "zh": "中間顯示 BERT 預測應該出現的詞元。"
+    },
+    {
+      "start": 206.78,
+      "end": 211.54,
+      "en": "And then over here you see the cosine similarity with the target token.",
+      "zh": "這裡顯示它與目標的餘弦相似度。"
+    },
+    {
+      "start": 212.34,
+      "end": 218.86,
+      "en": "And of course this is the cosine similarity of the embeddings vectors and not the tokens themselves.",
+      "zh": "當然，算的是嵌入向量的相似度，不是詞元索引本身。"
+    },
+    {
+      "start": 218.86,
+      "end": 220.06,
+      "en": "Those are just integers.",
+      "zh": "索引只是整數。"
+    },
+    {
+      "start": 220.54,
+      "end": 227.26,
+      "en": "And that means that the similarity of the representations internally later on in the model is probably",
+      "zh": "這也表示，模型後段內部表徵的相似度，可能"
+    },
+    {
+      "start": 227.26,
+      "end": 235.06,
+      "en": "considerably higher, because the token embeddings do not reflect the influence of the surrounding context.",
+      "zh": "高很多，因為詞元嵌入還沒反映周圍語境的影響。"
+    },
+    {
+      "start": 235.7,
+      "end": 238.7,
+      "en": "Anyway, let's switch to Python and have a look.",
+      "zh": "切到 Python 看看。"
+    },
+    {
+      "start": 239.46,
+      "end": 240.78,
+      "en": "So some libraries here.",
+      "zh": "這裡是函式庫。"
+    },
+    {
+      "start": 240.78,
+      "end": 244.06,
+      "en": "I'm importing the Bert pre-trained model.",
+      "zh": "匯入預訓練 BERT。"
+    },
+    {
+      "start": 244.18,
+      "end": 246.26,
+      "en": "And also here's the model.",
+      "zh": "這是模型，"
+    },
+    {
+      "start": 246.26,
+      "end": 248.54,
+      "en": "And here is its tokenizer.",
+      "zh": "這是 tokenizer。"
+    },
+    {
+      "start": 248.98,
+      "end": 253.18,
+      "en": "Again you know you'll see this lots throughout the rest of this course.",
+      "zh": "後面課程會一直看到。"
+    },
+    {
+      "start": 253.18,
+      "end": 255.08,
+      "en": "Now we're not doing training anymore.",
+      "zh": "現在不再訓練，"
+    },
+    {
+      "start": 255.32,
+      "end": 258.64,
+      "en": "So you always want to switch the model into eval mode.",
+      "zh": "所以記得切到 eval。"
+    },
+    {
+      "start": 259.2,
+      "end": 261.96,
+      "en": "Okay, so here I have this sentence.",
+      "zh": "這裡有一句話。"
+    },
+    {
+      "start": 262.32,
+      "end": 266.36,
+      "en": "Uh, this is uh, from this wiki page about Cubism.",
+      "zh": "來自介紹立體主義的維基頁面。"
+    },
+    {
+      "start": 266.6,
+      "end": 266.92,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 266.96,
+      "end": 269.2,
+      "en": "And now I am just tokenizing it.",
+      "zh": "現在斷詞。"
+    },
+    {
+      "start": 269.24,
+      "end": 277.36,
+      "en": "Most of the words in this sentence are represented by individual tokens, except for Cubism, which",
+      "zh": "句子中大部分字都是一個詞元，但 Cubism"
+    },
+    {
+      "start": 277.4,
+      "end": 282,
+      "en": "got broken up into Cub and uh, hash ism.",
+      "zh": "拆成 cub 與 ##ism。"
+    },
+    {
+      "start": 282.2,
+      "end": 288.64,
+      "en": "That's actually going to be relevant for some of the, uh, tokens that the model might predict would be in here.",
+      "zh": "這點與某些預測詞元有關，稍後會看到。"
+    },
+    {
+      "start": 289.84000000000003,
+      "end": 290.12,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 290.15999999999997,
+      "end": 292.8,
+      "en": "So now I do a forward pass also with torch.",
+      "zh": "接著在 torch，"
+    },
+    {
+      "start": 293,
+      "end": 293.4,
+      "en": "Nograd.",
+      "zh": "no_grad 下做前向傳播。"
+    },
+    {
+      "start": 293.44,
+      "end": 296.2,
+      "en": "And here I'm processing all of the tokens.",
+      "zh": "處理所有詞元。"
+    },
+    {
+      "start": 296.2,
+      "end": 299.76,
+      "en": "Now I'm not masking out any of the tokens yet.",
+      "zh": "目前還沒遮掉任何詞元。"
+    },
+    {
+      "start": 299.76,
+      "end": 306.6,
+      "en": "So in this case, in this example, uh example here the model is getting all of the valid tokens.",
+      "zh": "所以這個例子，模型看到了全部有效詞元。"
+    },
+    {
+      "start": 306.6,
+      "end": 313.72,
+      "en": "And all I'm looking for is to see what is the maximum logit prediction for token five.",
+      "zh": "只是想看索引 5 的詞元，最大 logit 預測是什麼。"
+    },
+    {
+      "start": 314,
+      "end": 320.26,
+      "en": "And of course this is uh referring to the index five here, which is actually the sixth token.",
+      "zh": "這裡索引 5，其實是第六個詞元。"
+    },
+    {
+      "start": 320.46,
+      "end": 322.58,
+      "en": "Okay, so here I get all the logits.",
+      "zh": "好的，取得所有 logits。"
+    },
+    {
+      "start": 322.58,
+      "end": 327.9,
+      "en": "And here I just find what is the token that has the largest logit.",
+      "zh": "找出 logit 最大的詞元。"
+    },
+    {
+      "start": 328.22,
+      "end": 331.86,
+      "en": "And that is what I highlight in green over here.",
+      "zh": "用綠色標示。"
+    },
+    {
+      "start": 332.5,
+      "end": 340.18,
+      "en": "So here you see all the logits over all of the 30,000 tokens in the Bert vocab.",
+      "zh": "這裡是 BERT 詞彙表約三萬個詞元的 logits。"
+    },
+    {
+      "start": 340.3,
+      "end": 345.38,
+      "en": "And this green circle highlights the largest one which corresponds to the word art.",
+      "zh": "綠圈標出最大值，對應 art。"
+    },
+    {
+      "start": 345.7,
+      "end": 348.06,
+      "en": "And yeah, that was also the correct one.",
+      "zh": "也就是正確答案。"
+    },
+    {
+      "start": 348.06,
+      "end": 351.3,
+      "en": "So let's go back and look at this token sequence here.",
+      "zh": "回頭看序列。"
+    },
+    {
+      "start": 351.58,
+      "end": 356.38,
+      "en": "So here we have token 012345.",
+      "zh": "這裡從 0、1、2、3、4，到 5。"
+    },
+    {
+      "start": 356.5,
+      "end": 361.9,
+      "en": "So it really was the word art and the largest token value for that.",
+      "zh": "確實是 art，而最大的詞元值，"
+    },
+    {
+      "start": 361.94,
+      "end": 366.94,
+      "en": "Or the largest logit value for that ordinal position corresponding to the word art.",
+      "zh": "應該說這個位置最大的 logit，對應 art。"
+    },
+    {
+      "start": 367.42,
+      "end": 374.38,
+      "en": "Now maybe you think that that's not very interesting because that is literally the word that the model read.",
+      "zh": "也許你覺得不有趣，因為模型真的讀到了這個字。"
+    },
+    {
+      "start": 374.74,
+      "end": 375.06,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 375.1,
+      "end": 378.14,
+      "en": "So now what we're going to do is use a mask.",
+      "zh": "現在改用遮罩。"
+    },
+    {
+      "start": 378.46,
+      "end": 381.27,
+      "en": "So instead of the actual word art.",
+      "zh": "不再放真正的 art，"
+    },
+    {
+      "start": 381.31,
+      "end": 387.31,
+      "en": "I am putting in the word mask in all caps and surrounded by square brackets.",
+      "zh": "改放全大寫、方括號包住的 [MASK]。"
+    },
+    {
+      "start": 387.47,
+      "end": 391.47,
+      "en": "So let's have a look at the tokenization of this.",
+      "zh": "看看斷詞結果。"
+    },
+    {
+      "start": 391.91,
+      "end": 398.90999999999997,
+      "en": "Now you see that Bert actually recognizes this key, this special character, as an individual token.",
+      "zh": "BERT 能辨認這個特殊標記，視為單一詞元。"
+    },
+    {
+      "start": 399.27,
+      "end": 408.79,
+      "en": "It's token 103 that actually comes right after the CLS token and the one SAF for separator token.",
+      "zh": "它是 103，就在 [CLS] 與代表分隔的 [SEP] 詞元後面。"
+    },
+    {
+      "start": 408.79,
+      "end": 410.71,
+      "en": "So then we have the mask token.",
+      "zh": "接著就是遮罩詞元。"
+    },
+    {
+      "start": 411.07,
+      "end": 419.63,
+      "en": "This is a special reserved token used in Bert that the model will ignore but still try to predict.",
+      "zh": "這是 BERT 的保留特殊詞元，模型會忽略它，但仍嘗試預測。"
+    },
+    {
+      "start": 419.67,
+      "end": 425.91,
+      "en": "Okay, so now the word art does not actually appear anywhere in this sentence.",
+      "zh": "好的，現在句子任何地方都沒有 art。"
+    },
+    {
+      "start": 425.91,
+      "end": 428.83,
+      "en": "So the model never actually sees the word art.",
+      "zh": "模型完全沒看到 art。"
+    },
+    {
+      "start": 429.31,
+      "end": 431.67,
+      "en": "Instead it sees the word mask.",
+      "zh": "看到的是 [MASK]。"
+    },
+    {
+      "start": 431.83,
+      "end": 436.71,
+      "en": "And now we can repeat exactly the same analysis that we did above.",
+      "zh": "再重複剛才完全相同的分析，"
+    },
+    {
+      "start": 437.19,
+      "end": 444.33,
+      "en": "And now we can see what is the token that the model predicts should be in place of mask.",
+      "zh": "看看模型認為哪個詞元應取代 [MASK]。"
+    },
+    {
+      "start": 444.57,
+      "end": 447.45,
+      "en": "So again yeah, this is all just repeated code.",
+      "zh": "對，都是重複程式。"
+    },
+    {
+      "start": 447.45,
+      "end": 451.65,
+      "en": "So mask token ID that's just, uh, up uh, here.",
+      "zh": "mask_token_id，就在上面。"
+    },
+    {
+      "start": 451.65,
+      "end": 457.57,
+      "en": "So here I'm looking for where the tokens equals the mask token ID.",
+      "zh": "找出詞元等於 mask_token_id 的位置。"
+    },
+    {
+      "start": 457.61,
+      "end": 465.69,
+      "en": "That is the special token in the birch tokenizer for exactly this token for the word mask.",
+      "zh": "這是 BERT tokenizer 中，專門代表 [MASK] 的特殊詞元。"
+    },
+    {
+      "start": 466.33,
+      "end": 466.73,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 466.77,
+      "end": 474.09000000000003,
+      "en": "So then yeah you see the model still actually predicted the word art, even though it didn't actually see the word art.",
+      "zh": "可以看到，模型沒看過 art，卻仍預測出 art。"
+    },
+    {
+      "start": 474.13,
+      "end": 483.65,
+      "en": "The model just looked at the context and decided that the thing that best fits here would be the word art, or the token for the word art.",
+      "zh": "只根據語境，就認為最適合的是 art 這個詞元。"
+    },
+    {
+      "start": 484.41,
+      "end": 484.69,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 484.73,
+      "end": 492.33,
+      "en": "And now, yeah, this is what I showed before we can look at the top ten, uh, logit values and print out their words.",
+      "zh": "這就是先前展示的內容，列出 logit 最高的十個詞。"
+    },
+    {
+      "start": 492.53,
+      "end": 502.97,
+      "en": "So the model predicted that the missing word should be art, but it also predicted that it could be artistic, aesthetic, American and so on, intellectual industrial.",
+      "zh": "模型預測缺字應是 art，也可能是 artistic、aesthetic、American、intellectual、industrial 等等。"
+    },
+    {
+      "start": 503.33,
+      "end": 511.59,
+      "en": "And if you go back to the original sentence you can put in any of these words, and the sentence also makes a lot of sense.",
+      "zh": "回到原句，換上這些字，句子也都很有道理。"
+    },
+    {
+      "start": 511.59,
+      "end": 513.63,
+      "en": "So let's try this with architectural.",
+      "zh": "試試 architectural。"
+    },
+    {
+      "start": 515.27,
+      "end": 520.71,
+      "en": "Cubism is an architectural movement that sparked innovations in music and architecture.",
+      "zh": "「立體主義是一場建築運動，激發音樂與建築的創新。」"
+    },
+    {
+      "start": 520.75,
+      "end": 523.75,
+      "en": "Okay, so the word architecture does exist there.",
+      "zh": "好，architecture 本來就出現在後面。"
+    },
+    {
+      "start": 523.87,
+      "end": 528.75,
+      "en": "But you know, we could do intellectual movement over here and that would still work.",
+      "zh": "但也能換成 intellectual movement，思想運動，仍說得通。"
+    },
+    {
+      "start": 529.43,
+      "end": 529.83,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 529.83,
+      "end": 532.67,
+      "en": "So that is masked token prediction.",
+      "zh": "這就是遮罩詞元預測。"
+    },
+    {
+      "start": 532.87,
+      "end": 534.47,
+      "en": "And that was for one token.",
+      "zh": "剛才只看一個詞元。"
+    },
+    {
+      "start": 534.47,
+      "end": 544.51,
+      "en": "And now what I'm doing in this for loop over here is basically repeating this for all of the individual words in that sentence.",
+      "zh": "現在 for 迴圈，基本上對句子裡每個字重複。"
+    },
+    {
+      "start": 544.67,
+      "end": 554.15,
+      "en": "So from that tokenization or tokenized text, I'm going to replace each individual token with the masked",
+      "zh": "從斷詞後文字，每次把一個詞元換成 [MASK]，"
+    },
+    {
+      "start": 554.19,
+      "end": 557.15,
+      "en": "token and then rerun the analysis.",
+      "zh": "再重新分析。"
+    },
+    {
+      "start": 557.15,
+      "end": 562.71,
+      "en": "Just get out the logits which is the model's prediction of that token.",
+      "zh": "取出 logits，也就是模型對該詞元的預測。"
+    },
+    {
+      "start": 563.83,
+      "end": 567.07,
+      "en": "Here you see this is just to show you all the token sequences.",
+      "zh": "這裡顯示所有詞元序列。"
+    },
+    {
+      "start": 567.07,
+      "end": 572.13,
+      "en": "So 103 you can see going down the diagonal that is the masked token.",
+      "zh": "可以看到，103 沿對角線移動，那就是遮罩詞元。"
+    },
+    {
+      "start": 572.41,
+      "end": 575.09,
+      "en": "And that's just illustrating what we are doing here.",
+      "zh": "這只是圖示，說明我們在做什麼，"
+    },
+    {
+      "start": 575.09,
+      "end": 577.17,
+      "en": "What I'm implementing in this for loop.",
+      "zh": "也就是 for 迴圈實作的內容。"
+    },
+    {
+      "start": 577.29,
+      "end": 584.61,
+      "en": "So looping over the entire text and replacing each word individually with the mask.",
+      "zh": "走訪全文，每次把一個字換成遮罩。"
+    },
+    {
+      "start": 584.89,
+      "end": 585.17,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 585.21,
+      "end": 586.89,
+      "en": "And then we can check the results.",
+      "zh": "再檢查結果。"
+    },
+    {
+      "start": 587.37,
+      "end": 589.01,
+      "en": "Here is looking through.",
+      "zh": "看這裡。"
+    },
+    {
+      "start": 589.01,
+      "end": 590.93,
+      "en": "So this is the original text.",
+      "zh": "這是原文。"
+    },
+    {
+      "start": 590.97,
+      "end": 595.45,
+      "en": "Cubism is an art movement that sparked innovations in music and architecture.",
+      "zh": "「立體主義是一場藝術運動，激發音樂與建築的創新。」"
+    },
+    {
+      "start": 595.85,
+      "end": 607.61,
+      "en": "When we replace each individual word with a mask and ask Bert to fill in based on the context, what it thinks that word should be, we get.",
+      "zh": "把每個字分別換成遮罩，請 BERT 依語境填字，得到："
+    },
+    {
+      "start": 607.65,
+      "end": 612.41,
+      "en": "Minimalism was an art form that includes interest in art and period.",
+      "zh": "「極簡主義曾是一種藝術形式，在藝術和句點中包含興趣。」"
+    },
+    {
+      "start": 612.41,
+      "end": 617.17,
+      "en": "So it's not exactly the same, but you can see that it is doing pretty well.",
+      "zh": "不完全相同，但可以看到做得不錯。"
+    },
+    {
+      "start": 617.21,
+      "end": 623.01,
+      "en": "It's certainly semantically closely related to the original text.",
+      "zh": "語意上確實與原文密切相關。"
+    },
+    {
+      "start": 623.53,
+      "end": 623.81,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 623.85,
+      "end": 628.37,
+      "en": "And then here this is just code to print out this table that I showed before.",
+      "zh": "這段只是印出之前的表格。"
+    },
+    {
+      "start": 628.69,
+      "end": 634.35,
+      "en": "Again the point here is that even when Bert is technically categorically incorrect.",
+      "zh": "重點是，即使 BERT 技術上、類別上錯了，"
+    },
+    {
+      "start": 634.35,
+      "end": 637.39,
+      "en": "It's still getting a word that is pretty close.",
+      "zh": "仍得到意思相近的字。"
+    },
+    {
+      "start": 637.51,
+      "end": 644.75,
+      "en": "So movement and form sparked and includes innovations and interest and so on.",
+      "zh": "例如 movement 與 form、sparked 與 includes、innovations 與 interest 等等。"
+    },
+    {
+      "start": 645.75,
+      "end": 652.63,
+      "en": "One of the points that I want to convey in this video, which is a theme that permeates this entire",
+      "zh": "這支想傳達的其中一個重點，也是整章"
+    },
+    {
+      "start": 652.63,
+      "end": 661.51,
+      "en": "section, is that it is surprisingly difficult to evaluate the performance and capabilities of language models.",
+      "zh": "貫穿的主題：評估語言模型表現與能力，意外地困難。"
+    },
+    {
+      "start": 662.07,
+      "end": 668.95,
+      "en": "Quantitative evaluations are great because they are numbers that we can use and we can compare.",
+      "zh": "量化評估很棒，因為有可用、可比較的數字。"
+    },
+    {
+      "start": 669.55,
+      "end": 676.95,
+      "en": "But those numbers rarely really reflect the models abilities and performances and applications.",
+      "zh": "但數字很少真正反映模型的能力、表現與應用。"
+    },
+    {
+      "start": 677.51,
+      "end": 685.43,
+      "en": "So in this case, in this video, you saw that even when a model is technically incorrect on a quantitative",
+      "zh": "所以這次看到，模型即使在量化評估上"
+    },
+    {
+      "start": 685.43,
+      "end": 695.39,
+      "en": "evaluation, you need to dig a little bit deeper and see whether the model is still conveying the right information, but just using different words.",
+      "zh": "技術性答錯，也要深入看看，是否其實傳達了正確資訊，只是用詞不同。"
+    }
+  ]
+}

@@ -1,0 +1,1369 @@
+{
+  "courseId": "4734870",
+  "lectureId": "32820616",
+  "title": "Coding a Training and Testing Optimization Loop for Our Classification Model",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "483d20e94bd84392899139122114b45c247095611d8b91c493dae0839ad26980",
+  "cues": [
+    {
+      "start": 0.21,
+      "end": 1.23,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 1.26,
+      "end": 5.94,
+      "en": "In the last few videos we've been working through creating a model for a classification problem.",
+      "zh": "過去幾部影片，我們一直在建立處理分類問題的模型。"
+    },
+    {
+      "start": 5.94,
+      "end": 7.95,
+      "en": "And now we're up to training a model.",
+      "zh": "現在要訓練模型。"
+    },
+    {
+      "start": 7.98,
+      "end": 9.24,
+      "en": "And we've got some steps here.",
+      "zh": "這裡有一些步驟。"
+    },
+    {
+      "start": 9.24,
+      "end": 14.07,
+      "en": "But we started off by discussing the concept of logics.",
+      "zh": "不過，一開始先討論了 logits 的概念。"
+    },
+    {
+      "start": 14.07,
+      "end": 19.86,
+      "en": "Logics are the raw output of the model, whatever comes out of the forward functions of the layers in our model.",
+      "zh": "logits 是模型的原始輸出，也就是資料通過模型各層的 forward 函式後，得到的東西。"
+    },
+    {
+      "start": 19.95,
+      "end": 31.62,
+      "en": "And then we discussed how we can turn those logics into prediction probabilities using an activation function such as sigmoid for binary classification and SOF max for multiclass classification.",
+      "zh": "接著討論如何透過激活函數，把 logits 轉成預測機率，例如二元分類用 sigmoid，多類別分類用 softmax。"
+    },
+    {
+      "start": 31.62,
+      "end": 42.24,
+      "en": "We haven't seen self max yet, but we're going to stick with sigmoid for now because we have binary classification data and then we can convert that from prediction probabilities to prediction labels.",
+      "zh": "還沒看過 softmax，目前先用 sigmoid，因為資料是二元分類；再把預測機率轉成預測標籤。"
+    },
+    {
+      "start": 42.24,
+      "end": 46.83,
+      "en": "Because remember, when we want to evaluate our model, we want to compare apples to apples.",
+      "zh": "記得，評估模型時，要以相同基準比較。"
+    },
+    {
+      "start": 46.83,
+      "end": 53.43,
+      "en": "We want our models predictions to be in the same format as our test labels.",
+      "zh": "希望模型預測與測試標籤使用相同的格式。"
+    },
+    {
+      "start": 53.43,
+      "end": 59.79,
+      "en": "And so I took a little break after the previous video, so my lab notebook has once again disconnected.",
+      "zh": "上一部影片後我休息了一下，所以 Colab 筆記本又斷線了。"
+    },
+    {
+      "start": 59.79,
+      "end": 62.76,
+      "en": "So I'm just going to run all of the cells before here.",
+      "zh": "先執行這裡之前的所有儲存格。"
+    },
+    {
+      "start": 62.76,
+      "end": 64.65,
+      "en": "It's going to reconnect up here.",
+      "zh": "上面會重新連線。"
+    },
+    {
+      "start": 64.65,
+      "end": 66.87,
+      "en": "We should still have a GPU present.",
+      "zh": "應該仍然有 GPU。"
+    },
+    {
+      "start": 66.87,
+      "end": 74.43,
+      "en": "That's a good thing about Google CoLab is that if you change the runtime type to GPU, it'll save that",
+      "zh": "Google Colab 很棒的一點是，如果把執行階段類型改為 GPU，它會儲存"
+    },
+    {
+      "start": 74.43,
+      "end": 81.87,
+      "en": "wherever it saves the Google CoLab notebook so that when you restart it, it should still have a GPU present.",
+      "zh": "在 Google Colab 筆記本的設定裡，所以重新啟動後，應該仍然有 GPU。"
+    },
+    {
+      "start": 81.87,
+      "end": 82.95,
+      "en": "And how can we check that?",
+      "zh": "怎麼檢查？"
+    },
+    {
+      "start": 82.95,
+      "end": 83.64,
+      "en": "Of course.",
+      "zh": "當然，"
+    },
+    {
+      "start": 83.64,
+      "end": 90.96000000000001,
+      "en": "Well, we can type in device, we can run that cell and we can also check Nvidia semi.",
+      "zh": "輸入 device，執行這個儲存格，也可以檢查 nvidia-smi。"
+    },
+    {
+      "start": 91.05,
+      "end": 95.97,
+      "en": "It'll tell us if we have an nvidia GPU with CUDA enabled ready to go.",
+      "zh": "它會告訴我們，有沒有已啟用 CUDA、可以使用的 NVIDIA GPU。"
+    },
+    {
+      "start": 96.12,
+      "end": 97.62,
+      "en": "So what's our device?",
+      "zh": "所以裝置是什麼？"
+    },
+    {
+      "start": 98.32,
+      "end": 98.83,
+      "en": "Kudos.",
+      "zh": "CUDA。"
+    },
+    {
+      "start": 98.86,
+      "end": 99.72999999999999,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 100.86,
+      "end": 102.69,
+      "en": "And nvidia semi.",
+      "zh": "再用 nvidia-smi。"
+    },
+    {
+      "start": 102.69,
+      "end": 103.28999999999999,
+      "en": "Excellent.",
+      "zh": "很好。"
+    },
+    {
+      "start": 103.28999999999999,
+      "end": 106.75,
+      "en": "I have a tesla P 100 GPU ready to go.",
+      "zh": "我有一張 Tesla P100 GPU 可以使用。"
+    },
+    {
+      "start": 106.77000000000001,
+      "end": 109.82,
+      "en": "So with that being said, let's start to write a training loop.",
+      "zh": "好，開始寫訓練迴圈。"
+    },
+    {
+      "start": 109.83,
+      "end": 109.97999999999999,
+      "en": "Now.",
+      "zh": "現在，"
+    },
+    {
+      "start": 109.97999999999999,
+      "end": 116.1,
+      "en": "We've done this before and we've got the steps up here to do the forward pass, calculate the loss.",
+      "zh": "我們之前做過，上面有步驟，做前向傳遞、計算損失。"
+    },
+    {
+      "start": 116.1,
+      "end": 119.34,
+      "en": "We've spent enough on this, so we're just going to start jumping into write code.",
+      "zh": "已經花夠多時間討論，所以直接開始寫程式。"
+    },
+    {
+      "start": 119.37,
+      "end": 123.51,
+      "en": "There is a little tidbit in this one though, but we'll conquer that when we get to it.",
+      "zh": "不過這次有個小細節，遇到時再解決。"
+    },
+    {
+      "start": 123.81,
+      "end": 126.36,
+      "en": "So I'm going to set a manual seed.",
+      "zh": "設定手動隨機種子。"
+    },
+    {
+      "start": 127.3,
+      "end": 131.59,
+      "en": "Tight stop manual seed, and I'm going to use my favorite number 42.",
+      "zh": "torch.manual_seed()，使用我最喜歡的數字 42。"
+    },
+    {
+      "start": 131.62,
+      "end": 135.1,
+      "en": "This is just to ensure reproducibility if possible.",
+      "zh": "只是盡可能確保結果可重現。"
+    },
+    {
+      "start": 135.13,
+      "end": 143.77,
+      "en": "Now I also want you to be aware of there is also another form of random seed manual seed, which is a CUDA random seed.",
+      "zh": "我也想讓你知道，還有另一種手動隨機種子，也就是 CUDA 隨機種子。"
+    },
+    {
+      "start": 144.19,
+      "end": 146.68,
+      "en": "Do we have the PyTorch?",
+      "zh": "有 PyTorch 的文件嗎？"
+    },
+    {
+      "start": 148.09,
+      "end": 148.32999999999998,
+      "en": "Yeah.",
+      "zh": "有。"
+    },
+    {
+      "start": 148.36,
+      "end": 149.62,
+      "en": "Reproducibility.",
+      "zh": "可重現性。"
+    },
+    {
+      "start": 149.95,
+      "end": 154.75,
+      "en": "So Torch Okuda dot manual succeed.",
+      "zh": "torch.cuda.manual_seed。"
+    },
+    {
+      "start": 155.17000000000002,
+      "end": 155.74,
+      "en": "Hmm.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 157.73,
+      "end": 159.86,
+      "en": "There is a Cuda seed somewhere.",
+      "zh": "某個地方有 CUDA 的種子設定。"
+    },
+    {
+      "start": 160.43,
+      "end": 161.87,
+      "en": "Let's try and find out.",
+      "zh": "找找看。"
+    },
+    {
+      "start": 162.89,
+      "end": 163.49,
+      "en": "De.",
+      "zh": "這裡。"
+    },
+    {
+      "start": 166.57999999999998,
+      "end": 171.86,
+      "en": "I think Pantera have just had an upgrade to their documentation, said.",
+      "zh": "我想 PyTorch 剛更新過文件。"
+    },
+    {
+      "start": 172.91,
+      "end": 173.21,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 173.21,
+      "end": 173.7,
+      "en": "There we go.",
+      "zh": "找到了。"
+    },
+    {
+      "start": 173.72,
+      "end": 174.36,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 174.41,
+      "end": 175.55,
+      "en": "I knew it was there.",
+      "zh": "我就知道有。"
+    },
+    {
+      "start": 175.67000000000002,
+      "end": 177.41,
+      "en": "So torture occurred at manual seed.",
+      "zh": "torch.cuda.manual_seed()。"
+    },
+    {
+      "start": 177.41,
+      "end": 180.95,
+      "en": "So if we're using Cuda, we have a Cuda manual seed as well.",
+      "zh": "如果使用 CUDA，也有 CUDA 的手動隨機種子。"
+    },
+    {
+      "start": 180.95,
+      "end": 185.12,
+      "en": "So let's see what happens if we put that to watch that CUDA dot manual seed.",
+      "zh": "如果寫 torch.cuda.manual_seed()，看看會怎樣。"
+    },
+    {
+      "start": 186.15,
+      "end": 186.88,
+      "en": "42.",
+      "zh": "42。"
+    },
+    {
+      "start": 186.9,
+      "end": 188.87,
+      "en": "We don't necessarily have to put these.",
+      "zh": "不一定要加這些。"
+    },
+    {
+      "start": 188.88,
+      "end": 193.65,
+      "en": "It's just to try and get as reproducible as numbers as possible on your screen and my screen.",
+      "zh": "只是盡可能讓你我畫面上的數字可重現。"
+    },
+    {
+      "start": 193.83,
+      "end": 199.62,
+      "en": "Again, what is more important is not necessarily the numbers exactly being the same lining up between our screens.",
+      "zh": "再提醒一下，重點不是兩邊畫面上的數字完全一致。"
+    },
+    {
+      "start": 199.62,
+      "end": 202.32,
+      "en": "It's more so the direction of which way they're going.",
+      "zh": "而是它們變化的方向。"
+    },
+    {
+      "start": 202.5,
+      "end": 204.78,
+      "en": "So let's set the number of epochs.",
+      "zh": "設定訓練週期數。"
+    },
+    {
+      "start": 205.35,
+      "end": 207.09,
+      "en": "We're going to train for 100 epochs.",
+      "zh": "要訓練 100 個週期。"
+    },
+    {
+      "start": 207.12,
+      "end": 208.5,
+      "en": "Epochs equals 100.",
+      "zh": "epochs = 100。"
+    },
+    {
+      "start": 209.07,
+      "end": 219.66,
+      "en": "But again, as you might have guessed, the Cuda manual seed is for if you're doing operations on a CUDA device, which in our case we are, while then perhaps we'd want them to be as reproducible as",
+      "zh": "同樣你可能猜到了，CUDA 的 manual_seed 是給 CUDA 裝置上的運算用的；這裡正是如此，所以希望它們盡可能"
+    },
+    {
+      "start": 219.66,
+      "end": 220.41,
+      "en": "possible.",
+      "zh": "可重現。"
+    },
+    {
+      "start": 220.56,
+      "end": 229.44,
+      "en": "So speaking of CUDA devices, let's put the data to the target device because we're working with or we're writing data agnostic code here.",
+      "zh": "說到 CUDA 裝置，把資料放到目標裝置，因為我們在寫不依賴特定裝置的程式。"
+    },
+    {
+      "start": 229.47,
+      "end": 237.72,
+      "en": "So I'm going to write X train, Y train equals X train to device, comma, y train to device that'll take care of the training data.",
+      "zh": "寫 X_train、y_train 等於 X_train.to(device)、y_train.to(device)，處理訓練資料。"
+    },
+    {
+      "start": 238.2,
+      "end": 246.48,
+      "en": "And I'm going to do the same for the testing data equals X test two device because if we're going to run our model.",
+      "zh": "測試資料也做相同的事，X_test.to(device)，因為如果模型要在"
+    },
+    {
+      "start": 247.4,
+      "end": 249.2,
+      "en": "On the code of device.",
+      "zh": "CUDA 裝置上執行，"
+    },
+    {
+      "start": 249.2,
+      "end": 251.03,
+      "en": "We want our data to be there too.",
+      "zh": "資料也要在那裡。"
+    },
+    {
+      "start": 251.03,
+      "end": 255.11,
+      "en": "And the way we're writing our code, our code is going to be device agnostic.",
+      "zh": "這樣寫，程式就不依賴特定裝置。"
+    },
+    {
+      "start": 255.14,
+      "end": 256.43,
+      "en": "Have I said that enough yet?",
+      "zh": "我是不是已經講夠多次了？"
+    },
+    {
+      "start": 256.64,
+      "end": 264.74,
+      "en": "So let's also build our training and evaluation loop because we've covered the steps in here before, We're going to start working a little bit faster through here.",
+      "zh": "也建立訓練與評估迴圈。因為前面介紹過步驟，這裡會稍微加快。"
+    },
+    {
+      "start": 264.74,
+      "end": 267.23,
+      "en": "And don't worry, I think you're up to it.",
+      "zh": "別擔心，我想你已經有能力了。"
+    },
+    {
+      "start": 267.23,
+      "end": 271.04,
+      "en": "So for an epoch in a range of epochs, what do we do?",
+      "zh": "for epoch in range(epochs)，做什麼？"
+    },
+    {
+      "start": 271.07,
+      "end": 272.39,
+      "en": "We start with training.",
+      "zh": "先訓練。"
+    },
+    {
+      "start": 272.81,
+      "end": 274.15999999999997,
+      "en": "So let me just write this.",
+      "zh": "寫下來。"
+    },
+    {
+      "start": 275.28,
+      "end": 276.03,
+      "en": "Training.",
+      "zh": "訓練。"
+    },
+    {
+      "start": 276.94,
+      "end": 278.40999999999997,
+      "en": "Model zero train.",
+      "zh": "model_0.train()。"
+    },
+    {
+      "start": 278.40999999999997,
+      "end": 279.52,
+      "en": "That's the model we're working with.",
+      "zh": "這是正在使用的模型。"
+    },
+    {
+      "start": 279.52,
+      "end": 282.65999999999997,
+      "en": "We call the train, which is the default, but we're going to do that anyway.",
+      "zh": "呼叫 train()，雖然預設就是訓練模式，不過還是要呼叫。"
+    },
+    {
+      "start": 282.67,
+      "end": 288.73,
+      "en": "And as you might have guessed, the code that we're writing here is you can function ize this.",
+      "zh": "你可能猜到了，這裡寫的程式可以包成函式。"
+    },
+    {
+      "start": 288.73,
+      "end": 290.08,
+      "en": "So we're going to do this later on.",
+      "zh": "稍後會這麼做。"
+    },
+    {
+      "start": 290.08,
+      "end": 296.44,
+      "en": "But just for now, the next couple of videos, the next module or two, we're going to keep riding out the training loop in full.",
+      "zh": "不過目前接下來幾部影片、再一兩個單元，仍然會把整個訓練迴圈寫出來。"
+    },
+    {
+      "start": 297.01,
+      "end": 307.75,
+      "en": "So this is the part, the forward pass where there's a little bit of a tidbit here compared to what we've done previously, and that is because we're outputting raw logic here.",
+      "zh": "這裡的前向傳遞，與之前有個小差異，就是這裡輸出的是原始 logits，"
+    },
+    {
+      "start": 307.75,
+      "end": 310.24,
+      "en": "If we just pass our data straight to the model.",
+      "zh": "如果直接把資料傳給模型。"
+    },
+    {
+      "start": 310.24,
+      "end": 319.66,
+      "en": "So Model zero X train and we're going to squeeze them here to get rid of an extra dimension, you can try to see what the output sizes look like without squeeze.",
+      "zh": "所以 model_0(X_train)，這裡用 squeeze() 移除額外維度；可以試著看看不加 squeeze 時輸出大小如何。"
+    },
+    {
+      "start": 319.66,
+      "end": 321.64,
+      "en": "But we're just going to call squeeze here.",
+      "zh": "不過我們直接呼叫 squeeze()。"
+    },
+    {
+      "start": 321.64,
+      "end": 327.52,
+      "en": "Remember, squeeze removes an extra one dimension from a tensor and then to convert it into prediction",
+      "zh": "記得，squeeze 會移除張量中額外的大小為 1 的維度；再轉成預測"
+    },
+    {
+      "start": 327.52,
+      "end": 336.34000000000003,
+      "en": "labels, we go torch round and torch sigmoid because torch sigmoid is an activation function which is",
+      "zh": "標籤，用 torch.round() 與 torch.sigmoid()，因為 torch.sigmoid() 是激活函數，"
+    },
+    {
+      "start": 336.34000000000003,
+      "end": 341.65,
+      "en": "going to convert logic into what convert the logics into prediction probabilities.",
+      "zh": "會把 logits 轉成什麼？轉成預測機率。"
+    },
+    {
+      "start": 341.65,
+      "end": 342.79,
+      "en": "So why logic?",
+      "zh": "所以 y_logits。"
+    },
+    {
+      "start": 342.79,
+      "end": 344.35,
+      "en": "And I'm just going to put a node here.",
+      "zh": "在這裡加個註記。"
+    },
+    {
+      "start": 344.35,
+      "end": 349.3,
+      "en": "So this is going to go turn logics into pred probs into.",
+      "zh": "所以這會把 logits 轉成 pred_probs，再轉成"
+    },
+    {
+      "start": 350.44,
+      "end": 351.24,
+      "en": "Pred.",
+      "zh": "pred_"
+    },
+    {
+      "start": 351.79,
+      "end": 352.75,
+      "en": "Labels.",
+      "zh": "labels。"
+    },
+    {
+      "start": 354.54,
+      "end": 355.83,
+      "en": "So we've done the forward pass.",
+      "zh": "前向傳遞完成。"
+    },
+    {
+      "start": 355.83,
+      "end": 357.18,
+      "en": "So that's a little tidbit there.",
+      "zh": "這就是那個小細節。"
+    },
+    {
+      "start": 357.18,
+      "end": 360.99,
+      "en": "We could have done all of this in one step, but I'll show you why we broke this apart.",
+      "zh": "也可以一步做完，但我會示範為什麼把它拆開。"
+    },
+    {
+      "start": 361.44,
+      "end": 365.72,
+      "en": "So now we're going to calculate loss slash accuracy.",
+      "zh": "現在計算損失與準確率。"
+    },
+    {
+      "start": 365.73,
+      "end": 371.58,
+      "en": "We don't necessarily have to calculate the accuracy, but we did make an accuracy function up here.",
+      "zh": "不一定要算準確率，不過上面確實建立了準確率函式，"
+    },
+    {
+      "start": 372.71,
+      "end": 375.58,
+      "en": "So that we can calculate the accuracy during training.",
+      "zh": "所以可以在訓練時一起計算。"
+    },
+    {
+      "start": 375.59,
+      "end": 378.18,
+      "en": "We could just stick with only calculating the loss.",
+      "zh": "也可以只計算損失。"
+    },
+    {
+      "start": 378.2,
+      "end": 384.83,
+      "en": "But sometimes it's cool to visualize different metrics loss plus a few others while your model is training.",
+      "zh": "但有時訓練模型時，看看不同指標也很不錯，例如損失加上幾個其他指標。"
+    },
+    {
+      "start": 385.13,
+      "end": 387.53,
+      "en": "So let's write some code to do that here.",
+      "zh": "寫一些程式。"
+    },
+    {
+      "start": 388.31,
+      "end": 391.85,
+      "en": "So we'll start off by going loss equals loss.",
+      "zh": "先寫 loss 等於 loss_"
+    },
+    {
+      "start": 392,
+      "end": 395.81,
+      "en": "FN and Y logit are.",
+      "zh": "fn()，傳入 y_logits。"
+    },
+    {
+      "start": 395.84000000000003,
+      "end": 398.03,
+      "en": "Here's the difference of what we've done before.",
+      "zh": "這與之前不同。"
+    },
+    {
+      "start": 398.21,
+      "end": 402.92,
+      "en": "Previously in The Notebook zero one we're up to zero two now.",
+      "zh": "之前在 01 筆記本，現在則是 02，"
+    },
+    {
+      "start": 402.92,
+      "end": 406.90999999999997,
+      "en": "We passed in the prediction right here, but because what's our loss function?",
+      "zh": "我們直接在這裡傳入預測；不過現在的損失函數是什麼？"
+    },
+    {
+      "start": 407.63,
+      "end": 409.19,
+      "en": "Let's have a look at our loss function.",
+      "zh": "看看損失函數。"
+    },
+    {
+      "start": 410.32,
+      "end": 412.24,
+      "en": "Let's just call that, see what it returns.",
+      "zh": "呼叫它，看看回傳什麼。"
+    },
+    {
+      "start": 412.27,
+      "end": 414.93,
+      "en": "BCE with Logic's loss.",
+      "zh": "BCEWithLogitsLoss。"
+    },
+    {
+      "start": 414.94,
+      "end": 419.89,
+      "en": "So the BCE with Logitech expects Logitech as input.",
+      "zh": "所以 BCEWithLogitsLoss 預期輸入是 logits。"
+    },
+    {
+      "start": 420.19,
+      "end": 424.09,
+      "en": "So, as you might have guessed, lost function without.",
+      "zh": "如你可能猜到的，沒有"
+    },
+    {
+      "start": 425.46,
+      "end": 429.15,
+      "en": "Blodget If we had an NBC loss.",
+      "zh": "logits 的損失函數，如果使用 nn.BCELoss()，"
+    },
+    {
+      "start": 429.42,
+      "end": 431.83,
+      "en": "Notice how we haven't got with logic.",
+      "zh": "注意這裡沒有 WithLogits。"
+    },
+    {
+      "start": 432.06,
+      "end": 434.55,
+      "en": "And then we called lost FN.",
+      "zh": "再呼叫 loss_fn，"
+    },
+    {
+      "start": 435.36,
+      "end": 438.75,
+      "en": "FN stands for function, by the way, without logit.",
+      "zh": "順帶一提 fn 代表 function，函式，這裡沒有 logits，"
+    },
+    {
+      "start": 439.05,
+      "end": 442.47,
+      "en": "Why do we get so BCE loss?",
+      "zh": "會得到什麼？所以 BCELoss，"
+    },
+    {
+      "start": 442.47,
+      "end": 446.49,
+      "en": "So this loss expects prediction probabilities as input.",
+      "zh": "這種損失預期輸入是預測機率。"
+    },
+    {
+      "start": 446.49,
+      "end": 449.7,
+      "en": "So let's write some code to differentiate between these two.",
+      "zh": "寫一些程式，區分兩者。"
+    },
+    {
+      "start": 449.73,
+      "end": 451.98,
+      "en": "As I said, we're going to be sticking with this one.",
+      "zh": "如同剛才說的，我們會使用這個。"
+    },
+    {
+      "start": 451.98,
+      "end": 452.79,
+      "en": "Why is that?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 452.79,
+      "end": 461.7,
+      "en": "Because if we look up torch BCE with logit loss, the documentation states that it's more numerically stable.",
+      "zh": "因為查 torch.nn.BCEWithLogitsLoss 文件，就會看到它在數值上更穩定。"
+    },
+    {
+      "start": 461.7,
+      "end": 470.52,
+      "en": "So this loss combines a sigmoid layer and the BC loss into one single class and is more numerically stable.",
+      "zh": "它把 sigmoid 層與 BCELoss 結合在同一個類別，在數值上更穩定。"
+    },
+    {
+      "start": 470.76,
+      "end": 471.69,
+      "en": "So let's come back here.",
+      "zh": "回到這裡，"
+    },
+    {
+      "start": 471.69,
+      "end": 473.07,
+      "en": "We'll keep writing some code.",
+      "zh": "繼續寫程式。"
+    },
+    {
+      "start": 473.92,
+      "end": 477.32,
+      "en": "And the accuracy is going to be accuracy.",
+      "zh": "準確率等於 accuracy_"
+    },
+    {
+      "start": 477.34000000000003,
+      "end": 481.09,
+      "en": "Even so, our accuracy function, there's a little bit of a difference here.",
+      "zh": "fn()，我們的準確率函式，這裡有一點差別。"
+    },
+    {
+      "start": 481.09,
+      "end": 484.72,
+      "en": "Is y true equals y trained for the training data.",
+      "zh": "y_true 等於 y_train，使用訓練資料。"
+    },
+    {
+      "start": 485.14,
+      "end": 487.39,
+      "en": "So this will be the training accuracy.",
+      "zh": "所以這是訓練準確率。"
+    },
+    {
+      "start": 487.54,
+      "end": 491.14,
+      "en": "And then we have y pred equals y pred.",
+      "zh": "接著 y_pred 等於 y_pred。"
+    },
+    {
+      "start": 491.87,
+      "end": 497.55,
+      "en": "So this is our own custom accuracy function that we wrote ourselves.",
+      "zh": "這是我們自己寫的自訂準確率函式。"
+    },
+    {
+      "start": 497.57,
+      "end": 500.62,
+      "en": "This is a testament to the python nature of PyTorch as well.",
+      "zh": "這也展現了 PyTorch 具有 Python 的特性。"
+    },
+    {
+      "start": 500.63,
+      "end": 507.83,
+      "en": "We've just got a pure python function that we've slotted into our training loop, which is essentially what the loss function is behind the scenes.",
+      "zh": "只是把純 Python 函式放進訓練迴圈，其實損失函數在幕後也差不多是這樣。"
+    },
+    {
+      "start": 508.28,
+      "end": 515.24,
+      "en": "Now let's write here and then dot B.C.E. with Logic's loss.",
+      "zh": "現在寫下 nn.BCEWithLogitsLoss，"
+    },
+    {
+      "start": 516.22,
+      "end": 521.62,
+      "en": "Expects raw logic so the raw output of our model as input.",
+      "zh": "預期輸入是原始 logits，也就是模型的原始輸出。"
+    },
+    {
+      "start": 521.65,
+      "end": 526.12,
+      "en": "Now, what if we were using a BCI loss on its own here?",
+      "zh": "如果只用這裡的 BCELoss 呢？"
+    },
+    {
+      "start": 526.18,
+      "end": 528.61,
+      "en": "Well, let's just write some code for that.",
+      "zh": "寫一些程式示範。"
+    },
+    {
+      "start": 528.68,
+      "end": 533.98,
+      "en": "So let's call loss function and then we want to pass in y pred.",
+      "zh": "呼叫損失函數，再傳入 y_pred，"
+    },
+    {
+      "start": 534.13,
+      "end": 537.07,
+      "en": "Or we can just go y or torch sigmoid.",
+      "zh": "或者可以直接用 y，或 torch.sigmoid()。"
+    },
+    {
+      "start": 537.07,
+      "end": 540.73,
+      "en": "So why would we pass n torch sigmoid on the logit here?",
+      "zh": "為什麼要在這裡對 logits 使用 torch.sigmoid()？"
+    },
+    {
+      "start": 540.85,
+      "end": 545.08,
+      "en": "Because remember calling torch sigmoid on our logit.",
+      "zh": "因為記得，對 logits 呼叫 torch.sigmoid()，"
+    },
+    {
+      "start": 545.11,
+      "end": 551.41,
+      "en": "Turns out low digits into prediction probabilities and then we would pass in y train here.",
+      "zh": "會把 logits 轉成預測機率，再傳入 y_train。"
+    },
+    {
+      "start": 551.59,
+      "end": 561.76,
+      "en": "So if this was BCA loss expects this expects prediction probabilities as input.",
+      "zh": "所以如果這是 BCELoss，它預期輸入的是預測機率。"
+    },
+    {
+      "start": 563.52,
+      "end": 564.54,
+      "en": "So does that make sense?",
+      "zh": "明白嗎？"
+    },
+    {
+      "start": 564.54,
+      "end": 566.64,
+      "en": "That's the difference between with logics.",
+      "zh": "這就是 WithLogits 的差別。"
+    },
+    {
+      "start": 566.64,
+      "end": 573.54,
+      "en": "So our loss function requires low jets as input, whereas if we just did straight up BCA loss, we need",
+      "zh": "所以我們的損失函數需要 logits 作為輸入；如果直接使用 BCELoss，就要"
+    },
+    {
+      "start": 573.54,
+      "end": 579.79,
+      "en": "to call torch sigmoid on the low jets because it expects prediction probabilities as input.",
+      "zh": "對 logits 呼叫 torch.sigmoid()，因為它預期輸入預測機率。"
+    },
+    {
+      "start": 579.81,
+      "end": 586.77,
+      "en": "Now I'm going to comment that out because our loss function is BCA with low jets loss, but just keep",
+      "zh": "我把這段註解掉，因為我們用的是 BCEWithLogitsLoss。不過"
+    },
+    {
+      "start": 586.77,
+      "end": 598.71,
+      "en": "that in mind for some reason you stumble across some PyTorch code that's using BCA loss, not BCA with Logic's loss and you find that torch dot sigmoid is calling here or you come across some errors because",
+      "zh": "如果哪天遇到使用 BCELoss 而非 BCEWithLogitsLoss 的 PyTorch 程式，看到這裡呼叫 torch.sigmoid()，或因為"
+    },
+    {
+      "start": 598.71,
+      "end": 602.37,
+      "en": "your inputs to your loss function are not what it expects.",
+      "zh": "損失函數輸入不是它預期的內容而出錯，就記得這點。"
+    },
+    {
+      "start": 602.61,
+      "end": 606.45,
+      "en": "So with that being said, we can keep going with our other steps.",
+      "zh": "好，繼續其他步驟。"
+    },
+    {
+      "start": 606.45,
+      "end": 609.21,
+      "en": "So we're up to optimize a zero grad.",
+      "zh": "現在到 optimizer.zero_grad()。"
+    },
+    {
+      "start": 609.48,
+      "end": 612.03,
+      "en": "So optimize our dot zero grad.",
+      "zh": "optimizer.zero_grad()。"
+    },
+    {
+      "start": 613.51,
+      "end": 615.1,
+      "en": "This is step three, by the way.",
+      "zh": "順帶一提，這是第三步。"
+    },
+    {
+      "start": 616.29,
+      "end": 617.85,
+      "en": "And what's after this?",
+      "zh": "接著呢？"
+    },
+    {
+      "start": 618.12,
+      "end": 624.51,
+      "en": "Once we've zero grad the optimizer we do number four which is lost backward.",
+      "zh": "最佳化器的梯度歸零後，第四步是 loss.backward()。"
+    },
+    {
+      "start": 624.96,
+      "end": 628.95,
+      "en": "We can go last backward and then we go What's next?",
+      "zh": "loss.backward()，再來是什麼？"
+    },
+    {
+      "start": 628.95,
+      "end": 631.38,
+      "en": "Optimize a step, step, step.",
+      "zh": "optimizer.step()，step、step。"
+    },
+    {
+      "start": 631.59,
+      "end": 633.75,
+      "en": "So optimize our dot step.",
+      "zh": "所以 optimizer.step()。"
+    },
+    {
+      "start": 633.75,
+      "end": 637.23,
+      "en": "And I'm singing the unofficial PyTorch optimization loop song there.",
+      "zh": "我正在唱非官方 PyTorch 最佳化迴圈之歌。"
+    },
+    {
+      "start": 637.71,
+      "end": 639.69,
+      "en": "This is back propagation.",
+      "zh": "這是反向傳播，"
+    },
+    {
+      "start": 641.22,
+      "end": 644.7,
+      "en": "Calculate the gradients with respect to all of the parameters in the model.",
+      "zh": "計算損失對模型中所有參數的梯度。"
+    },
+    {
+      "start": 644.7,
+      "end": 649.8,
+      "en": "And the optimizer step is update the parameters to reduce the gradients.",
+      "zh": "optimizer.step() 則更新參數，以減少梯度。"
+    },
+    {
+      "start": 650.07,
+      "end": 653.82,
+      "en": "So gradient descent, hence the descent.",
+      "zh": "所以叫梯度下降，這就是「下降」的由來。"
+    },
+    {
+      "start": 654,
+      "end": 658.12,
+      "en": "Now if we want to do testing, well, we know what to do.",
+      "zh": "接著做測試，我們已經知道怎麼做。"
+    },
+    {
+      "start": 658.14,
+      "end": 659.52,
+      "en": "Here now we go.",
+      "zh": "在這裡寫。"
+    },
+    {
+      "start": 659.55,
+      "end": 660.57,
+      "en": "Model zero What do we do?",
+      "zh": "model_0，要做什麼？"
+    },
+    {
+      "start": 660.57,
+      "end": 665.88,
+      "en": "We call model dot val when we're testing and if we're making predictions, That's what we do when we test.",
+      "zh": "測試時呼叫 model.eval()；測試時就是在做預測，"
+    },
+    {
+      "start": 665.88,
+      "end": 671.25,
+      "en": "We make predictions on the test data set using the patterns that our model has learned.",
+      "zh": "用模型從訓練資料集學到的模式，對測試資料集做預測。"
+    },
+    {
+      "start": 671.28,
+      "end": 674.22,
+      "en": "On the training data set, we turn on inference mode.",
+      "zh": "在訓練資料集上學到的模式。啟用 inference_mode，"
+    },
+    {
+      "start": 674.22,
+      "end": 675.54,
+      "en": "Because we're doing inference.",
+      "zh": "因為正在推論。"
+    },
+    {
+      "start": 675.69,
+      "end": 677.43,
+      "en": "We want to do the forward pass.",
+      "zh": "要做前向傳遞。"
+    },
+    {
+      "start": 678.24,
+      "end": 685.68,
+      "en": "And of course, we're going to compute the test logics, because logics are the raw output of our model with no modifications.",
+      "zh": "當然，要計算 test_logits，因為 logits 是模型未經任何修改的原始輸出。"
+    },
+    {
+      "start": 685.92,
+      "end": 688.31,
+      "en": "X test, dot squeeze.",
+      "zh": "X_test，再 .squeeze()。"
+    },
+    {
+      "start": 688.32,
+      "end": 692.25,
+      "en": "We're going to get rid of an extra one dimension there and then we create the test.",
+      "zh": "移除額外的大小為 1 的維度，再建立 test_"
+    },
+    {
+      "start": 692.25,
+      "end": 701.85,
+      "en": "PRED Which is we have to do a similar calculation to what we've done here for the test spread, which is torture round for our binary classification.",
+      "zh": "pred；測試預測要做與這裡類似的計算，二元分類使用 torch.round()。"
+    },
+    {
+      "start": 701.85,
+      "end": 713.37,
+      "en": "We want prediction probabilities which we're going to create by calling the sigmoid function on the test Logic's prediction probabilities that are 0.5 or above to go to one and prediction probabilities",
+      "zh": "我們要預測機率，透過對 test_logits 呼叫 sigmoid；0.5 以上的預測機率，包括 0.5，轉成 1，"
+    },
+    {
+      "start": 713.37,
+      "end": 716.88,
+      "en": "under 0.5 to go to label zero.",
+      "zh": "低於 0.5 的轉成標籤 0。"
+    },
+    {
+      "start": 717.09,
+      "end": 720.15,
+      "en": "So two is calculate the test loss.",
+      "zh": "第二，計算測試損失。"
+    },
+    {
+      "start": 720.99,
+      "end": 724.29,
+      "en": "Test loss slash accuracy.",
+      "zh": "測試損失與準確率。"
+    },
+    {
+      "start": 725.18,
+      "end": 726.13,
+      "en": "How would we do this?",
+      "zh": "怎麼做？"
+    },
+    {
+      "start": 726.14,
+      "end": 734.84,
+      "en": "Well, just if we done before and we're going to go loss from test logics, because our loss function, we're using what we're using.",
+      "zh": "如同前面，使用 loss_fn(test_logits, ...)，因為我們使用的損失函數是什麼？"
+    },
+    {
+      "start": 734.84,
+      "end": 738.44,
+      "en": "BCA with Logic's loss expects Logitech's input.",
+      "zh": "BCEWithLogitsLoss，預期輸入 logits。"
+    },
+    {
+      "start": 738.44,
+      "end": 739.91,
+      "en": "Where do we find that out?",
+      "zh": "在哪裡知道的？"
+    },
+    {
+      "start": 739.91,
+      "end": 741.8,
+      "en": "In the documentation, of course.",
+      "zh": "當然是文件。"
+    },
+    {
+      "start": 741.95,
+      "end": 744.22,
+      "en": "Then we come back here, test logic.",
+      "zh": "回到這裡，test_logits，"
+    },
+    {
+      "start": 744.26,
+      "end": 750.2,
+      "en": "We're going to compare that to the Y test labels and then for the test accuracy, what are we going to do?",
+      "zh": "與 y_test 標籤比較；測試準確率則要做什麼？"
+    },
+    {
+      "start": 750.68,
+      "end": 760.03,
+      "en": "We're going to call accuracy FN on y true equals y test and y pred equals test pre-dinner.",
+      "zh": "呼叫 accuracy_fn()，y_true=y_test，y_pred=test_pred。"
+    },
+    {
+      "start": 760.04,
+      "end": 764.5,
+      "en": "You might be thinking, why did I switch up the order here for these?",
+      "zh": "你可能想，為什麼這裡把順序反過來？"
+    },
+    {
+      "start": 764.51,
+      "end": 768.23,
+      "en": "Oh, and by the way, this is important to know with Logic's loss.",
+      "zh": "對了，這對 WithLogitsLoss 很重要。"
+    },
+    {
+      "start": 770.04,
+      "end": 776.6,
+      "en": "So with these lost functions, the order here matters of which way you put in your parameters.",
+      "zh": "這些損失函數傳入參數的順序很重要。"
+    },
+    {
+      "start": 776.61,
+      "end": 780.31,
+      "en": "So predictions come first and then true labels for our loss function.",
+      "zh": "損失函數是先預測，再放真實標籤。"
+    },
+    {
+      "start": 780.33,
+      "end": 787.65,
+      "en": "You might be wondering why I've done it the reverse for our accuracy function, why true and why PRED That's just because I like to be confusing.",
+      "zh": "你可能想，為什麼準確率函式反過來，先 y_true 再 y_pred？因為我喜歡把事情弄得很混亂。"
+    },
+    {
+      "start": 787.65,
+      "end": 788.91,
+      "en": "Well, not really.",
+      "zh": "其實不是。"
+    },
+    {
+      "start": 788.91,
+      "end": 797.7,
+      "en": "It's because if we go to Psychic Loan, I base a lot of my structured code of how psychic loan structured things.",
+      "zh": "因為我許多程式結構，都是參考 scikit-learn 的寫法。"
+    },
+    {
+      "start": 797.73,
+      "end": 802.77,
+      "en": "The psychic loan metrics accuracy score goes y, true y pred.",
+      "zh": "sklearn.metrics.accuracy_score 的順序是 y_true、y_pred。"
+    },
+    {
+      "start": 802.77,
+      "end": 808.32,
+      "en": "So I base it off of that order because the psychic loan matrix package is very helpful.",
+      "zh": "我參考它的順序，因為 scikit-learn 的 metrics 套件很實用。"
+    },
+    {
+      "start": 808.32,
+      "end": 816.78,
+      "en": "So I've based our metric evaluation metric function off this one, whereas PyTorch is lost function",
+      "zh": "所以我們的評估指標函式參考這個，PyTorch 損失函數的"
+    },
+    {
+      "start": 816.78,
+      "end": 820.47,
+      "en": "does it in the reverse order, and it's important to get these in the right order.",
+      "zh": "順序則相反，正確的順序很重要。"
+    },
+    {
+      "start": 820.53,
+      "end": 822.45,
+      "en": "Exactly why they do it in that order.",
+      "zh": "至於為什麼它們採這個順序，"
+    },
+    {
+      "start": 822.45,
+      "end": 823.74,
+      "en": "I couldn't tell you why.",
+      "zh": "我無法告訴你確切原因。"
+    },
+    {
+      "start": 824.25,
+      "end": 832.35,
+      "en": "And we've got one final step, which is to print out what's happenin happening.",
+      "zh": "最後一步，印出目前的情況。"
+    },
+    {
+      "start": 833.1,
+      "end": 834.36,
+      "en": "So how about we go?",
+      "zh": "不如這樣做，"
+    },
+    {
+      "start": 834.36,
+      "end": 837.09,
+      "en": "We're doing a lot of epochs here, 100 epochs.",
+      "zh": "這裡有很多個週期，100 個。"
+    },
+    {
+      "start": 837.09,
+      "end": 842.7,
+      "en": "So we'll divide the epoch by ten to print out every epoch or every 10th epoch.",
+      "zh": "用 epoch 對 10 取餘數，印出每個週期，或者說每第 10 個週期，"
+    },
+    {
+      "start": 842.7,
+      "end": 843.21,
+      "en": "Sorry.",
+      "zh": "抱歉。"
+    },
+    {
+      "start": 843.51,
+      "end": 848.28,
+      "en": "And we have a couple of different metrics that we can print out this time.",
+      "zh": "這次有幾個不同的指標可以印。"
+    },
+    {
+      "start": 848.28,
+      "end": 855.66,
+      "en": "So we're going to print out the epoch number epoch, and then we're going to print out the loss.",
+      "zh": "先印出週期數 epoch，再印損失。"
+    },
+    {
+      "start": 855.66,
+      "end": 858.21,
+      "en": "So loss how many decimal points?",
+      "zh": "loss，要幾位小數？"
+    },
+    {
+      "start": 858.21,
+      "end": 860.07,
+      "en": "We'll go 0.5 here.",
+      "zh": "這裡用 .5f。"
+    },
+    {
+      "start": 860.1,
+      "end": 861.87,
+      "en": "This is going to be the training loss.",
+      "zh": "這是訓練損失。"
+    },
+    {
+      "start": 861.87,
+      "end": 865.47,
+      "en": "We'll also do the accuracy, which will be the training accuracy.",
+      "zh": "再印準確率，也就是訓練準確率。"
+    },
+    {
+      "start": 865.47,
+      "end": 875.76,
+      "en": "We could write train ack here for our variable to be a little bit, make them a little bit more understandable and then we go here, but we're just going to leave it as loss and accuracy for now because we've got",
+      "zh": "變數可以叫 train_acc，讓意思更清楚，不過目前先用 loss 與 acc，因為已經有"
+    },
+    {
+      "start": 875.76,
+      "end": 877.05,
+      "en": "test loss over here.",
+      "zh": "這裡的 test_loss。"
+    },
+    {
+      "start": 877.2,
+      "end": 878.4,
+      "en": "Test loss.",
+      "zh": "test_loss。"
+    },
+    {
+      "start": 880.64,
+      "end": 887.96,
+      "en": "And we're going to do the same five decimal points here, and then we're going to go test accuracy as well.",
+      "zh": "同樣保留五位小數，再印測試準確率。"
+    },
+    {
+      "start": 888.41,
+      "end": 893,
+      "en": "Test at DOT we'll go to for the accuracy.",
+      "zh": "test_acc，準確率保留兩位小數。"
+    },
+    {
+      "start": 893,
+      "end": 895.67,
+      "en": "And because it's accuracy, we want a percentage.",
+      "zh": "因為是準確率，所以要加百分比。"
+    },
+    {
+      "start": 895.67,
+      "end": 898.19,
+      "en": "This is the percent out of 100 guesses.",
+      "zh": "表示 100 次猜測當中，"
+    },
+    {
+      "start": 898.19,
+      "end": 902.51,
+      "en": "What's the percentage that our model gets right on the training data and the testing data?",
+      "zh": "模型在訓練資料與測試資料上的答對百分比是多少？"
+    },
+    {
+      "start": 902.51,
+      "end": 907.32,
+      "en": "As long as we've coded all the functions correctly now we've got a fair few steps here.",
+      "zh": "前提是所有函式都寫對了。這裡有不少步驟。"
+    },
+    {
+      "start": 907.34,
+      "end": 911.24,
+      "en": "My challenge to you is to run this and if there are any errors, try to fix them.",
+      "zh": "給你的挑戰是執行它，如果有錯誤，試著修正。"
+    },
+    {
+      "start": 911.24,
+      "end": 915.86,
+      "en": "No doubt there's probably one or two or maybe more that we're going to have to fix in the next video.",
+      "zh": "毫無疑問，可能有一兩個，或者更多錯誤，下一部影片需要修正。"
+    },
+    {
+      "start": 915.86,
+      "end": 918.86,
+      "en": "But speaking of next videos, I'll see you there.",
+      "zh": "說到下一部影片，到時見。"
+    },
+    {
+      "start": 918.86,
+      "end": 922.37,
+      "en": "Let's train our first classification model.",
+      "zh": "來訓練第一個分類模型。"
+    },
+    {
+      "start": 922.64,
+      "end": 924.23,
+      "en": "Well, this is very exciting.",
+      "zh": "這非常令人興奮。"
+    },
+    {
+      "start": 924.83,
+      "end": 925.73,
+      "en": "I'll see you soon.",
+      "zh": "很快再見。"
+    }
+  ]
+}

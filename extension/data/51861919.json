@@ -1,0 +1,1483 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51861919",
+  "title": "CodeChallenge: Numerical scaling issues in DL models",
+  "section": 7,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "3f285f4a5f712669cce8751fafbb56654a3c1da806034214301c3c1a08565b48",
+  "cues": [
+    {
+      "start": 1.96,
+      "end": 9.68,
+      "en": "In the previous section, you learned that softmax is a simple and powerful transformation, but that",
+      "zh": "上一節學過，softmax 簡單而強大，"
+    },
+    {
+      "start": 9.68,
+      "end": 14.36,
+      "en": "it's also quite sensitive to the numerical scale of the data.",
+      "zh": "但對資料的數值尺度也很敏感。"
+    },
+    {
+      "start": 15.04,
+      "end": 26.32,
+      "en": "So the purpose of this code challenge is to continue exploring that concept, and also the implications of repeatedly multiplying matrices.",
+      "zh": "這個程式挑戰要繼續探索，還要看反覆相乘矩陣的影響。"
+    },
+    {
+      "start": 27,
+      "end": 35.2,
+      "en": "In this code challenge, you will see exactly why the Q transpose matrix in the attention algorithm",
+      "zh": "你會明確看到，為什麼注意力演算法中的 Q Kᵀ 矩陣，"
+    },
+    {
+      "start": 35.36,
+      "end": 39.64,
+      "en": "needs to be scaled by the square root of the dimensionality.",
+      "zh": "需要以維度的平方根縮放。"
+    },
+    {
+      "start": 40.24,
+      "end": 41.6,
+      "en": "Lots of fun here.",
+      "zh": "有很多樂趣。"
+    },
+    {
+      "start": 41.6,
+      "end": 42.68,
+      "en": "Lots of learning.",
+      "zh": "也會學很多。"
+    },
+    {
+      "start": 42.68,
+      "end": 46.52,
+      "en": "So let's begin in exercise one.",
+      "zh": "先從練習一開始。"
+    },
+    {
+      "start": 46.52,
+      "end": 51.64,
+      "en": "Create 250 by 50 random numbers matrices.",
+      "zh": "建立兩個 50 × 50 的隨機數矩陣。"
+    },
+    {
+      "start": 51.64,
+      "end": 56.4,
+      "en": "So matrices that are created using Numpy's random function.",
+      "zh": "使用 NumPy 的隨機函數建立。"
+    },
+    {
+      "start": 56.8,
+      "end": 63.1,
+      "en": "And you want these to be random numbers drawn from a Gaussian distribution, a normal distribution.",
+      "zh": "要使用高斯，也就是常態分布的隨機數。"
+    },
+    {
+      "start": 63.66,
+      "end": 68.82,
+      "en": "One of these matrices you can call Q and the other one you can call k.",
+      "zh": "一個叫 Q，另一個叫 K。"
+    },
+    {
+      "start": 69.38,
+      "end": 73.82,
+      "en": "And then you can multiply them together to get q k transpose.",
+      "zh": "接著相乘，得到 Q Kᵀ。"
+    },
+    {
+      "start": 75.02,
+      "end": 84.5,
+      "en": "And then from these three matrices you should calculate their standard deviations and the square roots of their dimensionalities.",
+      "zh": "對三個矩陣，計算標準差，以及維度的平方根。"
+    },
+    {
+      "start": 85.02,
+      "end": 90.22,
+      "en": "You can print out that information in your Python notebook like what I have here.",
+      "zh": "像這樣，在 Python 筆記本印出資訊。"
+    },
+    {
+      "start": 90.78,
+      "end": 102.02000000000001,
+      "en": "Now because these are Gaussian distributed numbers, we expect the standard deviation of q and k to be one, or at least very close to one.",
+      "zh": "因為是高斯分布，預期 Q、K 的標準差為 1，或非常接近 1。"
+    },
+    {
+      "start": 102.5,
+      "end": 106.94,
+      "en": "Now this variable dp that is q transpose.",
+      "zh": "這個變數 dp，就是 Q Kᵀ。"
+    },
+    {
+      "start": 107.7,
+      "end": 113.42,
+      "en": "So the question is what will be the standard deviation of QQ transpose.",
+      "zh": "問題是，Q Kᵀ 的標準差會是多少？"
+    },
+    {
+      "start": 114.02000000000001,
+      "end": 119.82,
+      "en": "Next you should plot all of the matrix values in a scatter plot.",
+      "zh": "接著把所有矩陣值畫成散佈圖。"
+    },
+    {
+      "start": 120.38,
+      "end": 129.53,
+      "en": "So here are the numerical values of the matrices on the x axis, and there are three rows in this plot",
+      "zh": "x 軸是矩陣的數值，圖上有三列，"
+    },
+    {
+      "start": 129.57,
+      "end": 133.29,
+      "en": "corresponding to the three matrices that you've created.",
+      "zh": "對應建立的三個矩陣。"
+    },
+    {
+      "start": 133.69,
+      "end": 138.29,
+      "en": "This is a horizontally oriented scatter plot.",
+      "zh": "這是水平方向的散佈圖。"
+    },
+    {
+      "start": 138.53,
+      "end": 145.73,
+      "en": "I've blanked out a lot of the results on this slide, because before you run your code, I want you",
+      "zh": "投影片遮住很多結果，是希望執行程式前，"
+    },
+    {
+      "start": 145.73,
+      "end": 151.13,
+      "en": "to think about what you expect the numbers and the scatter plot to look like.",
+      "zh": "先思考預期的數字與圖形。"
+    },
+    {
+      "start": 151.73,
+      "end": 157.32999999999998,
+      "en": "Now, I can already tell you that the standard deviation of k is going to be one.",
+      "zh": "已經可以告訴你，K 的標準差會是 1。"
+    },
+    {
+      "start": 157.65,
+      "end": 165.85,
+      "en": "The question is, what will be the standard deviation of qk transpose and what will be the square root of 50?",
+      "zh": "問題是 Q Kᵀ 的標準差，以及 50 的平方根會是多少。"
+    },
+    {
+      "start": 166.65,
+      "end": 172.93,
+      "en": "And then what you should think about is what you expect the scatter plots here to look like.",
+      "zh": "也想想散佈圖應該長什麼樣。"
+    },
+    {
+      "start": 173.13,
+      "end": 179.61,
+      "en": "So think about the results, what you expect the results to look like before you actually discover them.",
+      "zh": "實際發現前，先思考預期結果。"
+    },
+    {
+      "start": 180.37,
+      "end": 186.71,
+      "en": "This is a simple exercise in terms of coding, but I think it's going to help you understand why we",
+      "zh": "程式簡單，但能幫你理解，為什麼"
+    },
+    {
+      "start": 186.71,
+      "end": 193.51,
+      "en": "have so many layernorm and scaling parameters floating around inside these big models.",
+      "zh": "大模型裡到處都有 LayerNorm 與縮放參數。"
+    },
+    {
+      "start": 194.03,
+      "end": 199.23,
+      "en": "Okay, now I will switch to Python and show my solution some libraries.",
+      "zh": "現在切到 Python，展示解法，先匯入函式庫。"
+    },
+    {
+      "start": 199.75,
+      "end": 205.82999999999998,
+      "en": "Here I create q and k and here is the simulation of QQ transpose.",
+      "zh": "建立 Q、K，再模擬 Q Kᵀ。"
+    },
+    {
+      "start": 206.15,
+      "end": 211.87,
+      "en": "Now if you're familiar with linear algebra, you might be wondering why we even bother transposing.",
+      "zh": "熟線性代數的話，可能納悶為何還要轉置。"
+    },
+    {
+      "start": 211.91,
+      "end": 216.82999999999998,
+      "en": "These are purely random matrices and their square, so you do not need the transpose.",
+      "zh": "這些是完全隨機的方陣，所以不轉置也能相乘。"
+    },
+    {
+      "start": 216.99,
+      "end": 218.55,
+      "en": "That is absolutely true.",
+      "zh": "完全正確。"
+    },
+    {
+      "start": 218.59,
+      "end": 227.03,
+      "en": "This is just a little reminder of the QQ transpose operation that takes place inside the attention algorithm.",
+      "zh": "只是提醒，注意力演算法裡有 Q Kᵀ 運算。"
+    },
+    {
+      "start": 227.67000000000002,
+      "end": 233.11,
+      "en": "Okay, here we are calculating the standard deviations of these three matrices.",
+      "zh": "這裡計算三個矩陣的標準差。"
+    },
+    {
+      "start": 233.11,
+      "end": 241.39,
+      "en": "I call this one dp for dot product because that is our interpretation of QQ transpose, that it's all",
+      "zh": "dp 代表 dot product，因為我們把 Q Kᵀ 解讀成，"
+    },
+    {
+      "start": 241.39,
+      "end": 251.1,
+      "en": "of the dot products between the, uh, the Q and the keys for the different tokens from the present token and the past tokens.",
+      "zh": "目前與過去不同詞元，其查詢、鍵向量之間的所有內積。"
+    },
+    {
+      "start": 251.5,
+      "end": 251.74,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 251.78,
+      "end": 257.18,
+      "en": "So all the dot products and also, yeah, if you are familiar with statistics, you might be thinking",
+      "zh": "熟統計的話，可能會想，"
+    },
+    {
+      "start": 257.18,
+      "end": 264.9,
+      "en": "that we should, uh, calculate the denominator degrees of freedom as one instead of the default of zero.",
+      "zh": "分母自由度參數應設 1，而非預設的零。"
+    },
+    {
+      "start": 265.38,
+      "end": 267.66,
+      "en": "If you want to do that, it's completely fine.",
+      "zh": "想這樣做也可以。"
+    },
+    {
+      "start": 267.66,
+      "end": 274.58,
+      "en": "It really doesn't matter because we don't care about that level of statistical or numerical precision.",
+      "zh": "沒太大關係，因為這裡不在意那種程度的統計、數值精確度。"
+    },
+    {
+      "start": 274.62,
+      "end": 277.34000000000003,
+      "en": "If you have no idea what I'm talking about, then don't worry about it.",
+      "zh": "如果不知道我在說什麼，不用擔心。"
+    },
+    {
+      "start": 277.38,
+      "end": 284.34000000000003,
+      "en": "It's something it's a subtlety in numpy that you would learn about in a statistics or machine learning course.",
+      "zh": "這是 NumPy 的細節，統計或機器學習課可能會學。"
+    },
+    {
+      "start": 285.65999999999997,
+      "end": 286.78,
+      "en": "Okay, so let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 286.9,
+      "end": 290.74,
+      "en": "We get an error message because I did not run this cell okay.",
+      "zh": "出錯，因為沒執行這個儲存格。"
+    },
+    {
+      "start": 290.78,
+      "end": 298.1,
+      "en": "So we see that the standard deviation of q and k is both one approximately.",
+      "zh": "Q、K 標準差都大約 1。"
+    },
+    {
+      "start": 298.62,
+      "end": 305.56,
+      "en": "Interestingly, the standard deviation of DP which is QQ Transpose is close to seven.",
+      "zh": "有趣的是，dp，也就是 Q Kᵀ 的標準差接近 7。"
+    },
+    {
+      "start": 305.56,
+      "end": 316.68,
+      "en": "And remarkably, that is also very close to the standard deviation of or sorry, the square root of 50, which is the size of the matrix.",
+      "zh": "而且非常接近標準差，抱歉，是 50 的平方根，也就是矩陣維度的平方根。"
+    },
+    {
+      "start": 316.96,
+      "end": 326.04,
+      "en": "So this means that the standard deviation of the product of these two random matrices is not exactly,",
+      "zh": "代表這兩個隨機矩陣乘積的標準差，雖不完全相等，"
+    },
+    {
+      "start": 326.04,
+      "end": 330.12,
+      "en": "but extremely close to the square root of the dimensionality.",
+      "zh": "但非常接近維度的平方根。"
+    },
+    {
+      "start": 330.64,
+      "end": 330.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 330.92,
+      "end": 335.12,
+      "en": "And now we can make this scatter plot here.",
+      "zh": "現在畫散佈圖。"
+    },
+    {
+      "start": 335.2,
+      "end": 342.64,
+      "en": "So yeah, in the code I'm just plotting the matrix values flattened because we don't want a separate",
+      "zh": "只是把矩陣攤平後畫出，因為不希望"
+    },
+    {
+      "start": 342.8,
+      "end": 349.08,
+      "en": "row or column in this plot for each individual row or column in the matrix.",
+      "zh": "矩陣每一列、每一欄，都在圖上各有獨立一列或一欄。"
+    },
+    {
+      "start": 349.76,
+      "end": 354.28,
+      "en": "And then here I am generating some normal numbers.",
+      "zh": "再產生一些常態隨機數。"
+    },
+    {
+      "start": 354.28,
+      "end": 357.72,
+      "en": "So normally distributed numbers with a very small standard deviation.",
+      "zh": "也就是標準差非常小的常態分布數字。"
+    },
+    {
+      "start": 357.92,
+      "end": 362.04,
+      "en": "And that just provides a little bit of jitter on the y axis.",
+      "zh": "只為 y 軸加入一點抖動。"
+    },
+    {
+      "start": 362.04,
+      "end": 367.47,
+      "en": "You can see what happens if we have basically no jitter on the y axis?",
+      "zh": "看看 y 軸幾乎沒有抖動會如何。"
+    },
+    {
+      "start": 368.27,
+      "end": 372.39,
+      "en": "Then you get these flat histograms, which is also fine.",
+      "zh": "就得到這些扁平的直方圖，也可以。"
+    },
+    {
+      "start": 372.43,
+      "end": 383.03,
+      "en": "It's great, but I think when there is a little bit of jitter in these plots, it helps you appreciate the density of the of the data values a little bit.",
+      "zh": "也很好，但這種圖有一點抖動，比較能體會資料值的密度。"
+    },
+    {
+      "start": 383.43,
+      "end": 383.71,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 383.75,
+      "end": 391.71,
+      "en": "But the point is you can also see that q and k are fairly compactly distributed and QQ transpose.",
+      "zh": "重點是，可以看到 Q、K 的分布相當集中，而 Q Kᵀ，"
+    },
+    {
+      "start": 391.75,
+      "end": 398.55,
+      "en": "The product of these two matrices has a much broader distribution of numerical values.",
+      "zh": "也就是兩矩陣的乘積，數值分布寬得多。"
+    },
+    {
+      "start": 399.51,
+      "end": 403.51,
+      "en": "Exercise two is a follow up to exercise one.",
+      "zh": "練習二延續練習一。"
+    },
+    {
+      "start": 403.95,
+      "end": 412.71,
+      "en": "So now you are going to implement an experiment using a for loop and simulated qq and k matrices.",
+      "zh": "用 for 迴圈，以及模擬的 Q、K 矩陣做實驗。"
+    },
+    {
+      "start": 413.27,
+      "end": 418.23,
+      "en": "So in exercise one you created 50 by 50 matrices.",
+      "zh": "練習一建立 50 × 50 矩陣。"
+    },
+    {
+      "start": 418.43,
+      "end": 423.71,
+      "en": "And here in exercise two you want to create a series of matrices.",
+      "zh": "練習二建立一系列矩陣。"
+    },
+    {
+      "start": 423.95,
+      "end": 427.17,
+      "en": "So 50 by n matrices.",
+      "zh": "大小是 50 × n。"
+    },
+    {
+      "start": 427.37,
+      "end": 431.29,
+      "en": "For n varying from two up to 100.",
+      "zh": "n 從 2 到 100。"
+    },
+    {
+      "start": 431.65,
+      "end": 443.49,
+      "en": "So in the first iteration of the for loop in this experiment and exercise two, q and k will both be 50 by two random numbers matrices.",
+      "zh": "所以這個實驗第一次迭代，Q、K 都是 50 × 2 的隨機數矩陣。"
+    },
+    {
+      "start": 443.61,
+      "end": 451.29,
+      "en": "And then in the next iteration they will be 50 by three, 50 by four, and so on up to the last iteration.",
+      "zh": "下一次是 50 × 3、50 × 4，如此直到最後，"
+    },
+    {
+      "start": 451.73,
+      "end": 456.01,
+      "en": "In this for loop where the matrices will be 50 by 100.",
+      "zh": "矩陣為 50 × 100。"
+    },
+    {
+      "start": 456.57,
+      "end": 456.85,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 456.89,
+      "end": 462.25,
+      "en": "And then you can calculate the standard deviation of the QQ transpose.",
+      "zh": "計算 Q Kᵀ 的標準差。"
+    },
+    {
+      "start": 462.40999999999997,
+      "end": 465.65,
+      "en": "And also calculate the square root of n.",
+      "zh": "也計算 n 的平方根。"
+    },
+    {
+      "start": 466.17,
+      "end": 470.05,
+      "en": "And you can plot that in a line in this plot here.",
+      "zh": "畫成這裡的一條線。"
+    },
+    {
+      "start": 470.17,
+      "end": 474.29,
+      "en": "So I have the square root of n drawn as a black line.",
+      "zh": "n 的平方根，我用黑線畫。"
+    },
+    {
+      "start": 474.29,
+      "end": 476.21,
+      "en": "I call that the expectation.",
+      "zh": "叫做預期值。"
+    },
+    {
+      "start": 476.37,
+      "end": 485.32,
+      "en": "And the actual standard deviations of these matrix multiplications is plotted as these gray circles.",
+      "zh": "矩陣乘積實際的標準差，則畫成灰色圓點。"
+    },
+    {
+      "start": 486.16,
+      "end": 488.92,
+      "en": "So enjoy working through this exercise.",
+      "zh": "希望你享受練習。"
+    },
+    {
+      "start": 488.92,
+      "end": 492.36,
+      "en": "And now I will switch to code and discuss my solution.",
+      "zh": "接著切到程式碼，討論解法。"
+    },
+    {
+      "start": 493.4,
+      "end": 495.76,
+      "en": "Here are some initializations.",
+      "zh": "這裡先初始化。"
+    },
+    {
+      "start": 495.76,
+      "end": 498.08,
+      "en": "And here is where I start the for loop.",
+      "zh": "這裡開始 for 迴圈。"
+    },
+    {
+      "start": 498.16,
+      "end": 502.88,
+      "en": "So I go over the number of vector lengths that I have over here.",
+      "zh": "遍歷這些不同向量長度。"
+    },
+    {
+      "start": 503.24,
+      "end": 504.6,
+      "en": "Create the two matrices.",
+      "zh": "建立兩個矩陣。"
+    },
+    {
+      "start": 504.6,
+      "end": 507.6,
+      "en": "Calculate the dot product and their standard deviation.",
+      "zh": "計算內積，以及標準差。"
+    },
+    {
+      "start": 507.64,
+      "end": 510.28,
+      "en": "Nothing super fancy going on in here.",
+      "zh": "沒什麼特別複雜。"
+    },
+    {
+      "start": 510.72,
+      "end": 513.28,
+      "en": "Okay, here's where I plot all the standard deviations.",
+      "zh": "這裡畫所有標準差。"
+    },
+    {
+      "start": 513.28,
+      "end": 519.48,
+      "en": "And here is where I plot the square root of the inner dimensions of these two matrices.",
+      "zh": "這裡畫兩個矩陣內部維度的平方根。"
+    },
+    {
+      "start": 519.92,
+      "end": 530.6,
+      "en": "By the way, for this experiment, because these are not square matrices, you actually do need the transpose to validly multiply these two matrices.",
+      "zh": "這次不是方陣，因此確實需要轉置，才能合法相乘。"
+    },
+    {
+      "start": 530.68,
+      "end": 537.2,
+      "en": "So this is actually a little bit more conceptually similar to what's happening in Multi-head attention.",
+      "zh": "概念上更接近多頭注意力裡的運算。"
+    },
+    {
+      "start": 537.76,
+      "end": 538.04,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 538.08,
+      "end": 548.7,
+      "en": "Anyway, we see that there's a really beautiful match between the theory in the black line and the observed data values in our experiment in these circles.",
+      "zh": "可以看到，黑線的理論與圓點的實驗觀察值，配合得非常漂亮。"
+    },
+    {
+      "start": 549.46,
+      "end": 551.02,
+      "en": "And what does this result mean?",
+      "zh": "結果代表什麼？"
+    },
+    {
+      "start": 551.06,
+      "end": 560.42,
+      "en": "This result means that the larger the matrices that we are multiplying, the larger the standard deviations of their product.",
+      "zh": "相乘矩陣越大，乘積的標準差越大。"
+    },
+    {
+      "start": 560.42,
+      "end": 563.94,
+      "en": "And this has nothing to do with the individual matrices.",
+      "zh": "與個別矩陣本身無關。"
+    },
+    {
+      "start": 564.1,
+      "end": 567.1,
+      "en": "So for example I can just calculate the.",
+      "zh": "例如可以計算，"
+    },
+    {
+      "start": 567.34,
+      "end": 573.02,
+      "en": "Let's do it like this numpy dot standard deviation of q plus the standard deviation of k.",
+      "zh": "用這個寫法，np.std(Q) 加上 K 的標準差。"
+    },
+    {
+      "start": 574.22,
+      "end": 580.26,
+      "en": "And then when I replot this, this is just going to be a flat line at two, and it's a flat line at",
+      "zh": "重新畫圖，會得到值為 2 的平線，"
+    },
+    {
+      "start": 580.3,
+      "end": 588.06,
+      "en": "two, because the standard deviations of each of these matrices individually does not change depending on their size.",
+      "zh": "因為個別矩陣的標準差，不隨大小改變。"
+    },
+    {
+      "start": 588.1,
+      "end": 588.34,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 588.38,
+      "end": 589.62,
+      "en": "So it's constant.",
+      "zh": "所以是常數。"
+    },
+    {
+      "start": 589.82,
+      "end": 593.94,
+      "en": "There's a little bit of noise in there because these are random numbers matrices.",
+      "zh": "因為是隨機矩陣，有一點雜訊。"
+    },
+    {
+      "start": 594.22,
+      "end": 603.14,
+      "en": "But the expected standard deviation is exactly the same for all of these random matrices regardless of their size.",
+      "zh": "但不論大小，所有隨機矩陣的預期標準差都相同。"
+    },
+    {
+      "start": 603.34,
+      "end": 606.09,
+      "en": "That is because of how I created them.",
+      "zh": "這由建立方式決定。"
+    },
+    {
+      "start": 606.09,
+      "end": 612.45,
+      "en": "But when we multiply them together, when we calculate all of the dot products of all of the columns",
+      "zh": "但相乘時，也就是計算 Q 所有欄"
+    },
+    {
+      "start": 612.45,
+      "end": 619.53,
+      "en": "of Q with the columns of K, then all of those multiplications get bigger and bigger and bigger.",
+      "zh": "與 K 所有欄之間的內積，乘積就越來越大。"
+    },
+    {
+      "start": 619.65,
+      "end": 625.17,
+      "en": "And that's because we are just multiplying a lot more random numbers together.",
+      "zh": "因為要相乘的隨機數更多。"
+    },
+    {
+      "start": 625.21,
+      "end": 625.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 625.49,
+      "end": 628.53,
+      "en": "So let me go back to this and redraw that.",
+      "zh": "回來重新畫。"
+    },
+    {
+      "start": 628.57,
+      "end": 629.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 629.29,
+      "end": 632.69,
+      "en": "So the bigger the matrices the bigger the standard deviation.",
+      "zh": "矩陣越大，標準差越大。"
+    },
+    {
+      "start": 633.89,
+      "end": 637.21,
+      "en": "Exercise three is not so complicated.",
+      "zh": "練習三不太複雜。"
+    },
+    {
+      "start": 637.21,
+      "end": 640.05,
+      "en": "But it does take a few minutes to explain.",
+      "zh": "但要花幾分鐘解釋。"
+    },
+    {
+      "start": 640.57,
+      "end": 646.37,
+      "en": "The end result of exercise three will be these four scatter plots here.",
+      "zh": "最後會得到這四張散佈圖。"
+    },
+    {
+      "start": 647.01,
+      "end": 652.93,
+      "en": "So start with a 50 by 50 q and k matrix.",
+      "zh": "從 50 × 50 的 Q、K 矩陣開始。"
+    },
+    {
+      "start": 652.93,
+      "end": 655.73,
+      "en": "So basically going back to exercise one.",
+      "zh": "基本上回到練習一。"
+    },
+    {
+      "start": 656.41,
+      "end": 662.85,
+      "en": "Then I want you to calculate the softmax of the Q transpose matrix.",
+      "zh": "計算 Q Kᵀ 矩陣的 softmax。"
+    },
+    {
+      "start": 663.25,
+      "end": 670.79,
+      "en": "And then also transform the softmax probabilities into negative log softmax.",
+      "zh": "再把 softmax 機率轉成負 log softmax。"
+    },
+    {
+      "start": 671.31,
+      "end": 674.35,
+      "en": "So that is two sets of results that you see here.",
+      "zh": "這裡有兩組結果。"
+    },
+    {
+      "start": 674.35,
+      "end": 680.83,
+      "en": "So this is the softmax of the matrix values from QQ transpose.",
+      "zh": "這是 Q Kᵀ 矩陣值的 softmax。"
+    },
+    {
+      "start": 680.95,
+      "end": 683.79,
+      "en": "And this is the negative log softmax.",
+      "zh": "這是負 log softmax。"
+    },
+    {
+      "start": 684.31,
+      "end": 693.63,
+      "en": "And you put these into a scatter plot where the x axis has 2500 indices corresponding to each matrix element.",
+      "zh": "畫成散佈圖，x 軸有 2,500 個索引，對應各矩陣元素。"
+    },
+    {
+      "start": 694.19,
+      "end": 694.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 694.55,
+      "end": 702.87,
+      "en": "And the procedure that I just described, you do that twice once just from calculating QQ transpose.",
+      "zh": "這個程序做兩次，第一次直接計算 Q Kᵀ。"
+    },
+    {
+      "start": 702.99,
+      "end": 708.27,
+      "en": "And then you repeat it again after scaling by the square root of n.",
+      "zh": "再以 n 的平方根縮放後，重做一次。"
+    },
+    {
+      "start": 708.87,
+      "end": 711.63,
+      "en": "So the top row here is before scaling.",
+      "zh": "上排是縮放前。"
+    },
+    {
+      "start": 711.79,
+      "end": 716.15,
+      "en": "And then you use exactly the same matrix with exactly the same numbers.",
+      "zh": "使用完全相同的矩陣、完全相同的數字。"
+    },
+    {
+      "start": 716.31,
+      "end": 720.19,
+      "en": "But first you scale it by the square root of 50.",
+      "zh": "但先除以 50 的平方根。"
+    },
+    {
+      "start": 720.55,
+      "end": 723.31,
+      "en": "And that's what you see on the lower plot here.",
+      "zh": "下排就是這個。"
+    },
+    {
+      "start": 724.63,
+      "end": 735.57,
+      "en": "After you have this plot created, you can think about the implications of scaling on token selection after softmax using the logit model outputs.",
+      "zh": "圖完成後，思考縮放如何影響模型 logit 輸出做 softmax 後的詞元選擇。"
+    },
+    {
+      "start": 735.93,
+      "end": 740.05,
+      "en": "So I'll have a few words to say about that after showing my code.",
+      "zh": "展示程式後，會補充幾句。"
+    },
+    {
+      "start": 740.49,
+      "end": 746.17,
+      "en": "Here are q and k to random numbers matrices and their dot products.",
+      "zh": "Q、K 是兩個隨機數矩陣，這裡是它們的內積。"
+    },
+    {
+      "start": 746.21,
+      "end": 753.49,
+      "en": "Okay, so here what I do is basically I have a for loop over two elements.",
+      "zh": "基本上，用 for 迴圈遍歷兩個元素。"
+    },
+    {
+      "start": 753.49,
+      "end": 756.49,
+      "en": "So I'm just looping over the numbers zero and one.",
+      "zh": "也就是 0 與 1。"
+    },
+    {
+      "start": 756.97,
+      "end": 760.41,
+      "en": "And in the first iteration this part gets ignored.",
+      "zh": "第一次迭代忽略這一段。"
+    },
+    {
+      "start": 760.41,
+      "end": 762.13,
+      "en": "This line of code gets ignored.",
+      "zh": "這行不執行。"
+    },
+    {
+      "start": 762.57,
+      "end": 764.65,
+      "en": "So then I just flatten the matrix.",
+      "zh": "然後把矩陣攤平。"
+    },
+    {
+      "start": 764.65,
+      "end": 767.69,
+      "en": "I implement softmax, calculate the.",
+      "zh": "做 softmax，計算，"
+    },
+    {
+      "start": 767.73,
+      "end": 773.69,
+      "en": "I call this the negative log likelihood, but it's more appropriate just to call this negative softmax.",
+      "zh": "我叫它負對數概似，但叫負 softmax 比較適當。"
+    },
+    {
+      "start": 773.69,
+      "end": 774.37,
+      "en": "But anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 775.01,
+      "end": 775.97,
+      "en": "And then I plot it.",
+      "zh": "接著畫圖。"
+    },
+    {
+      "start": 775.97,
+      "end": 776.61,
+      "en": "And then.",
+      "zh": "然後，"
+    },
+    {
+      "start": 776.61,
+      "end": 778.49,
+      "en": "So that is the first iteration.",
+      "zh": "這就是第一次迭代。"
+    },
+    {
+      "start": 778.85,
+      "end": 784.25,
+      "en": "In the second iteration of this for loop all of this code is identical.",
+      "zh": "第二次迭代，所有程式相同。"
+    },
+    {
+      "start": 784.45,
+      "end": 787.24,
+      "en": "But this is also implemented.",
+      "zh": "但這一行也會執行。"
+    },
+    {
+      "start": 787.24,
+      "end": 796.92,
+      "en": "And all this line of code does is divide the dot products matrix by the square root of the shape, which is 50 okay.",
+      "zh": "只是把內積矩陣，除以維度 50 的平方根。"
+    },
+    {
+      "start": 796.96,
+      "end": 802.88,
+      "en": "And then yeah flatten softmax negative log softmax okay.",
+      "zh": "接著攤平、softmax、負 log softmax。"
+    },
+    {
+      "start": 802.92,
+      "end": 805.96,
+      "en": "And then you can see the results here.",
+      "zh": "可以看到結果。"
+    },
+    {
+      "start": 806.32,
+      "end": 810.72,
+      "en": "So what we see is when we when we leave this matrix unscaled.",
+      "zh": "矩陣沒有縮放時，"
+    },
+    {
+      "start": 811,
+      "end": 818.96,
+      "en": "Then after softmax there's only a very small number of, of elements in this matrix that really pop out.",
+      "zh": "softmax 後，只有非常少數元素突出。"
+    },
+    {
+      "start": 819.12,
+      "end": 823.04,
+      "en": "Almost the entire matrix got pushed down to zero.",
+      "zh": "幾乎整個矩陣被壓到零。"
+    },
+    {
+      "start": 824.2,
+      "end": 828.64,
+      "en": "And what does that mean for a model selecting tokens.",
+      "zh": "對選擇詞元的模型來說，這代表什麼？"
+    },
+    {
+      "start": 828.76,
+      "end": 834.48,
+      "en": "This means that basically only this token and this token could ever possibly get selected.",
+      "zh": "基本上，只有這個、這個詞元可能被選。"
+    },
+    {
+      "start": 834.76,
+      "end": 842.16,
+      "en": "All of these tokens have such a tiny, tiny probability that they're they have no chance of getting selected.",
+      "zh": "其餘機率太低，幾乎沒有機會。"
+    },
+    {
+      "start": 842.68,
+      "end": 850.46,
+      "en": "And then when we take exactly the same data but scale it, now we see that there is a lot more variability.",
+      "zh": "相同資料先縮放，就有更多變化。"
+    },
+    {
+      "start": 850.46,
+      "end": 852.62,
+      "en": "You can also look at the numerical scale here.",
+      "zh": "也可以看數值尺度。"
+    },
+    {
+      "start": 852.66,
+      "end": 854.66,
+      "en": "You know this is above 0.4.",
+      "zh": "這裡超過 0.4。"
+    },
+    {
+      "start": 854.98,
+      "end": 857.78,
+      "en": "And all of these are below 0.001.",
+      "zh": "這些則低於 0.001。"
+    },
+    {
+      "start": 858.02,
+      "end": 866.3,
+      "en": "So basically there's just a lot more opportunities for any one of these tokens to be selected compared to up here.",
+      "zh": "所以相比上面，這裡任一詞元都更有機會被選中。"
+    },
+    {
+      "start": 866.3,
+      "end": 875.26,
+      "en": "And that all happens just because we scaled by the square root of the of the dimension of the matrix.",
+      "zh": "只是因為除以矩陣維度的平方根，就有這個效果。"
+    },
+    {
+      "start": 875.58,
+      "end": 878.54,
+      "en": "And here you see the log transform of that.",
+      "zh": "這裡是它的對數轉換。"
+    },
+    {
+      "start": 878.54,
+      "end": 880.82,
+      "en": "Again you know, same basic story.",
+      "zh": "基本上相同道理。"
+    },
+    {
+      "start": 881.14,
+      "end": 882.3,
+      "en": "And why is this important.",
+      "zh": "為什麼重要？"
+    },
+    {
+      "start": 882.34,
+      "end": 889.62,
+      "en": "So the thing is, in a highly trained model, like a pre-trained model, a fine tuned model, a model",
+      "zh": "對高度訓練好的模型，例如預訓練、微調，或實際"
+    },
+    {
+      "start": 889.62,
+      "end": 897.46,
+      "en": "that's actually being deployed to generate text, you actually do want a situation like this where most",
+      "zh": "部署產生文字的模型，其實希望大部分"
+    },
+    {
+      "start": 897.46,
+      "end": 906.94,
+      "en": "of the tokens are suppressed, and only a very small number of tokens are actually allowed to even be considered for selection.",
+      "zh": "詞元被壓低，只讓少數詞元進入選擇範圍。"
+    },
+    {
+      "start": 906.94,
+      "end": 909.37,
+      "en": "But that would be for a fully trained model.",
+      "zh": "但那是完整訓練後的模型。"
+    },
+    {
+      "start": 909.49,
+      "end": 918.33,
+      "en": "That extreme selection should happen because the model is so trained to understand what tokens are appropriate,",
+      "zh": "極度挑選，應該是因為模型已訓練得能理解，"
+    },
+    {
+      "start": 918.33,
+      "end": 923.17,
+      "en": "given its context in a random model that is untrained.",
+      "zh": "在上下文中哪些詞元適合。隨機、未訓練的模型，"
+    },
+    {
+      "start": 923.21,
+      "end": 925.49,
+      "en": "You do not want this kind of behavior.",
+      "zh": "不希望這樣。"
+    },
+    {
+      "start": 925.61,
+      "end": 935.33,
+      "en": "If you get this kind of behavior, the model can only ever pick one token, which means it's not really going to learn to select other tokens.",
+      "zh": "否則只能選一個詞元，也就無法真正學會選其他詞元。"
+    },
+    {
+      "start": 935.45,
+      "end": 940.53,
+      "en": "So you need the values to be relatively small, not too small.",
+      "zh": "所以數值需要相對小，但別太小。"
+    },
+    {
+      "start": 940.57,
+      "end": 945.21,
+      "en": "Otherwise you're suppressing all of the distribution, but also not too big.",
+      "zh": "太小就把整個分布壓低；也不能太大。"
+    },
+    {
+      "start": 945.25,
+      "end": 949.25,
+      "en": "Otherwise you get yeah, this kind of a situation.",
+      "zh": "否則就會像這樣。"
+    },
+    {
+      "start": 949.37,
+      "end": 958.29,
+      "en": "So there's like a Goldilocks zone where you want the logits to be relatively close to zero, but not too close to zero.",
+      "zh": "所以有個恰到好處的區間，讓 logit 相對接近零，但又別太近。"
+    },
+    {
+      "start": 959.21,
+      "end": 963.69,
+      "en": "So far all the exercises were just using random numbers.",
+      "zh": "目前練習全部只用隨機數。"
+    },
+    {
+      "start": 964.33,
+      "end": 972.39,
+      "en": "So the final exercise in this code challenge is to have a look at GPT two layer norm parameters.",
+      "zh": "最後一個練習，要看看 GPT-2 的 LayerNorm 參數。"
+    },
+    {
+      "start": 972.83,
+      "end": 978.35,
+      "en": "So in this exercise, import the GPT two pre-trained model.",
+      "zh": "匯入預訓練 GPT-2。"
+    },
+    {
+      "start": 978.95,
+      "end": 985.31,
+      "en": "Loop through all of the parameters in the model and grab all of the layer norm parameters.",
+      "zh": "遍歷所有模型參數，取得所有 LayerNorm 參數。"
+    },
+    {
+      "start": 985.63,
+      "end": 993.27,
+      "en": "You don't need to separate the layer norm parameters if they are in attention versus MLP versus the final linear layer.",
+      "zh": "不必區分位於注意力、MLP，還是最後線性層。"
+    },
+    {
+      "start": 993.47,
+      "end": 994.03,
+      "en": "That's fine.",
+      "zh": "都可以。"
+    },
+    {
+      "start": 994.03,
+      "end": 997.07,
+      "en": "You can pull all of the layer norms together.",
+      "zh": "把所有 LayerNorm 合在一起。"
+    },
+    {
+      "start": 997.39,
+      "end": 1002.51,
+      "en": "But I do want you to separate the stretching versus the shifting parameters.",
+      "zh": "但要分開伸縮與平移參數。"
+    },
+    {
+      "start": 1003.07,
+      "end": 1009.79,
+      "en": "Remember that that corresponded to the beta and gamma parameters in the layer norm equation.",
+      "zh": "記得，對應公式裡的 beta、gamma。"
+    },
+    {
+      "start": 1010.19,
+      "end": 1015.75,
+      "en": "And basically it's the mean versus the standard deviation of the normalization.",
+      "zh": "基本上就是正規化的平均數與標準差。"
+    },
+    {
+      "start": 1016.11,
+      "end": 1019.39,
+      "en": "And then you can show the histograms of those two results.",
+      "zh": "再顯示兩者的直方圖。"
+    },
+    {
+      "start": 1019.83,
+      "end": 1025.83,
+      "en": "Now there's a lot of parameters in all of the layer norm functions.",
+      "zh": "所有 LayerNorm 合起來有很多參數。"
+    },
+    {
+      "start": 1025.83,
+      "end": 1034.9,
+      "en": "And so I chose to log scale the count that just makes the y axis, or makes the distribution a little bit easier to see.",
+      "zh": "所以我對次數取對數，讓 y 軸、分布較容易看。"
+    },
+    {
+      "start": 1034.94,
+      "end": 1039.02,
+      "en": "In particular, the more subtle distributional characteristics.",
+      "zh": "尤其能看出較細微的分布特性。"
+    },
+    {
+      "start": 1039.3,
+      "end": 1044.62,
+      "en": "You can also try making this plot with and without the log scaling and see which you prefer.",
+      "zh": "可以試有、沒有對數縮放，看喜歡哪種。"
+    },
+    {
+      "start": 1046.06,
+      "end": 1049.34,
+      "en": "Okay, so now is your opportunity to switch to code.",
+      "zh": "好，現在可以切到程式碼。"
+    },
+    {
+      "start": 1049.58,
+      "end": 1054.34,
+      "en": "If you are struggling with accumulating and finding all of the parameters.",
+      "zh": "如果不會累積、尋找所有參數，"
+    },
+    {
+      "start": 1054.66,
+      "end": 1062.5,
+      "en": "Then remember that there was a code challenge in the previous section where you have code to implement exactly that.",
+      "zh": "記得上一節有個程式挑戰，正好提供這種實作。"
+    },
+    {
+      "start": 1063.3,
+      "end": 1067.22,
+      "en": "So import the pre-trained GPT two.",
+      "zh": "匯入預訓練 GPT-2。"
+    },
+    {
+      "start": 1067.74,
+      "end": 1073.02,
+      "en": "And here I'm looping over all of the named parameters in the model.",
+      "zh": "遍歷所有具名參數。"
+    },
+    {
+      "start": 1073.3,
+      "end": 1076.34,
+      "en": "And here I say if ln is in the name.",
+      "zh": "如果名稱裡有 ln，"
+    },
+    {
+      "start": 1076.34,
+      "end": 1086.58,
+      "en": "So if it's a layernorm part of the model and if weight is also in the name, then I'm going to grab all of those weights here.",
+      "zh": "也就是模型 LayerNorm 部分，而且還含 weight，就取得那些權重。"
+    },
+    {
+      "start": 1086.58,
+      "end": 1098,
+      "en": "So grab the data from that parameter and put it into or concatenate it, append it onto this variable here so all layernorm weights.",
+      "zh": "取得參數的資料，串接、附加到這個變數，累積所有 LayerNorm 權重。"
+    },
+    {
+      "start": 1098,
+      "end": 1106.16,
+      "en": "And if a bias is in the name and also it's a layernorm parameter, then get its data and put that in here.",
+      "zh": "如果名稱含 bias，而且也是 LayerNorm 參數，就取得資料放進這裡。"
+    },
+    {
+      "start": 1106.16,
+      "end": 1112.36,
+      "en": "So again this is finding all of the layer norms all the weights and the biases.",
+      "zh": "同樣是找出所有 LayerNorm、所有權重、偏置。"
+    },
+    {
+      "start": 1112.64,
+      "end": 1118.72,
+      "en": "It does not separate depending on whether it's in an MLP or an attention layer okay.",
+      "zh": "不區分 MLP 還是注意力層。"
+    },
+    {
+      "start": 1118.76,
+      "end": 1119.88,
+      "en": "So we can run all that code.",
+      "zh": "執行程式。"
+    },
+    {
+      "start": 1119.92,
+      "end": 1120.96,
+      "en": "It's very fast.",
+      "zh": "很快。"
+    },
+    {
+      "start": 1120.96,
+      "end": 1126.04,
+      "en": "And then we can just generate a histogram of the these two data.",
+      "zh": "然後畫這兩組資料的直方圖。"
+    },
+    {
+      "start": 1126.2,
+      "end": 1134.12,
+      "en": "And yeah I just played around a little bit to pick these particular values because there are some values that are just very large.",
+      "zh": "我稍微試了一下才選這些值，因為有些值非常大。"
+    },
+    {
+      "start": 1134.12,
+      "end": 1137.16,
+      "en": "So I just wanted to exclude those okay.",
+      "zh": "只是想排除它們。"
+    },
+    {
+      "start": 1137.2,
+      "end": 1138.88,
+      "en": "So here you see those results.",
+      "zh": "這裡是結果。"
+    },
+    {
+      "start": 1138.88,
+      "end": 1144.64,
+      "en": "We get a warning message here because there are some bins in this bin count.",
+      "zh": "出現警告，因為有些區間，"
+    },
+    {
+      "start": 1144.64,
+      "end": 1150.71,
+      "en": "There are some bins that have zero parameters with those particular values.",
+      "zh": "沒有任何參數落在其中。"
+    },
+    {
+      "start": 1150.71,
+      "end": 1156.95,
+      "en": "And so then we try to take the log of that and we get a missing data which is completely fine.",
+      "zh": "取對數就得到缺值，沒關係。"
+    },
+    {
+      "start": 1156.95,
+      "end": 1158.15,
+      "en": "This is just zero.",
+      "zh": "這只是零。"
+    },
+    {
+      "start": 1158.19,
+      "end": 1159.63,
+      "en": "There's zero data points here.",
+      "zh": "這裡沒有資料點。"
+    },
+    {
+      "start": 1160.07,
+      "end": 1165.83,
+      "en": "Uh, and uh but yeah when you, when you get a, when you transform it into log, you get some complaints okay.",
+      "zh": "但轉成對數，就會有些抱怨。"
+    },
+    {
+      "start": 1165.87,
+      "end": 1166.43,
+      "en": "It's fine.",
+      "zh": "沒關係。"
+    },
+    {
+      "start": 1166.91,
+      "end": 1168.11,
+      "en": "So what do we see here.",
+      "zh": "看到了什麼？"
+    },
+    {
+      "start": 1168.27,
+      "end": 1176.47,
+      "en": "We see here that in the pre-trained GPT two the stretching parameter values which correspond to the",
+      "zh": "預訓練 GPT-2 的伸縮參數，對應"
+    },
+    {
+      "start": 1176.47,
+      "end": 1183.07,
+      "en": "standard deviation of the post layernorm data are mostly pretty small.",
+      "zh": "LayerNorm 後資料的標準差，大多很小。"
+    },
+    {
+      "start": 1183.07,
+      "end": 1187.87,
+      "en": "So they're mostly between 0 and 0.5 0.7.",
+      "zh": "大部分在 0 到 0.5、0.7 之間。"
+    },
+    {
+      "start": 1188.03,
+      "end": 1192.55,
+      "en": "And interestingly, there's another bump where we have actual stretching.",
+      "zh": "有趣的是，還有一個真正做擴張的峰。"
+    },
+    {
+      "start": 1192.55,
+      "end": 1200.31,
+      "en": "So where the numerical values are actually increasing, they're getting a little bit bigger than how they were before a Layernorm.",
+      "zh": "也就是數值比 LayerNorm 前變得稍大。"
+    },
+    {
+      "start": 1200.71,
+      "end": 1204.63,
+      "en": "The shifting parameters are actually really tightly distributed.",
+      "zh": "平移參數則分布得很集中。"
+    },
+    {
+      "start": 1204.67,
+      "end": 1207.51,
+      "en": "There's not a whole lot of variability here.",
+      "zh": "變異不多。"
+    },
+    {
+      "start": 1207.67,
+      "end": 1211.41,
+      "en": "Most of them are around zero or a little bit negative.",
+      "zh": "大部分在零附近，或稍微為負。"
+    },
+    {
+      "start": 1211.41,
+      "end": 1215.53,
+      "en": "So a little bit of a negative shift in the parameters.",
+      "zh": "所以參數稍微往負方向平移。"
+    },
+    {
+      "start": 1215.53,
+      "end": 1221.57,
+      "en": "But mostly you know for this context of this video we're interested in this component over here.",
+      "zh": "但這支影片主要關心這部分。"
+    },
+    {
+      "start": 1222.01,
+      "end": 1224.81,
+      "en": "Now here this looks like this is a really large bump.",
+      "zh": "這裡的峰看起來很大。"
+    },
+    {
+      "start": 1224.81,
+      "end": 1233.81,
+      "en": "But in fact if you would not plot this with a log transform, then you really see that that bump is pretty small.",
+      "zh": "但不取對數，就會看到其實很小。"
+    },
+    {
+      "start": 1233.81,
+      "end": 1245.05,
+      "en": "So most of the parameters are in fact or most of the, uh, stretching of the parameters in Layernorm are somewhere around 0.20.3.",
+      "zh": "所以大部分 LayerNorm 伸縮參數，其實在 0.2、0.3 左右。"
+    },
+    {
+      "start": 1245.33,
+      "end": 1255.01,
+      "en": "So basically shrinking the activation values by a third to a fifth in, uh, in the as the data are",
+      "zh": "基本上讓活化值縮到三分之一至五分之一，當資料"
+    },
+    {
+      "start": 1255.01,
+      "end": 1257.41,
+      "en": "passing through all of the transformers.",
+      "zh": "通過所有 Transformer 時如此。"
+    },
+    {
+      "start": 1258.61,
+      "end": 1263.85,
+      "en": "So if you like, if you're curious, you can try to recreate these plots.",
+      "zh": "有興趣可以重畫這些圖。"
+    },
+    {
+      "start": 1263.89,
+      "end": 1271.92,
+      "en": "Separating the layernorm parameters for attention and MLP might be interesting to see if one of these",
+      "zh": "分開注意力與 MLP 的 LayerNorm，看看某種"
+    },
+    {
+      "start": 1271.92,
+      "end": 1276.56,
+      "en": "distributions is more likely to be in attention.",
+      "zh": "分布是否比較可能出現在注意力"
+    },
+    {
+      "start": 1277.08,
+      "end": 1279.6,
+      "en": "Sublayers versus MLP Sublayers.",
+      "zh": "子層，還是 MLP 子層，應該很有趣。"
+    },
+    {
+      "start": 1280.12,
+      "end": 1288.04,
+      "en": "Mathematically, matrix multiplication increases the variance and the numerical range of numbers.",
+      "zh": "數學上，矩陣乘法會增加變異數，以及數值範圍。"
+    },
+    {
+      "start": 1288.56,
+      "end": 1291.96,
+      "en": "That's just a feature of linear algebra, and it makes sense.",
+      "zh": "這是線性代數的性質，也合理。"
+    },
+    {
+      "start": 1292,
+      "end": 1297.44,
+      "en": "Of course, you know, two times three is six, and six is larger than either 2 or 3.",
+      "zh": "當然，2 乘 3 等於 6，比 2、3 都大。"
+    },
+    {
+      "start": 1298.48,
+      "end": 1309.28,
+      "en": "Now on the other hand, allowing these numbers to grow can have pretty severe consequences for numerical stability and also for softmaxes.",
+      "zh": "但讓數字不斷變大，會對數值穩定性、softmax，"
+    },
+    {
+      "start": 1309.4,
+      "end": 1310.36,
+      "en": "The logits.",
+      "zh": "也就是 logit，"
+    },
+    {
+      "start": 1310.6,
+      "end": 1321.6,
+      "en": "When doing probabilistic token selection, that is why there are lots of normalizations at almost every step of model calculations.",
+      "zh": "在機率式詞元選擇時造成嚴重影響，所以模型計算幾乎每一步都有很多正規化。"
+    },
+    {
+      "start": 1322.12,
+      "end": 1330.44,
+      "en": "And this is also literally the justification for applying the temperature parameter in probabilistic token selection.",
+      "zh": "這也正是機率式詞元選擇中，使用溫度參數的理由。"
+    }
+  ]
+}

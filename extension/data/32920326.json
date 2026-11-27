@@ -1,0 +1,973 @@
+{
+  "courseId": "4734870",
+  "lectureId": "32920326",
+  "title": "Creating a Loss Function: an Optimizer for Model 0",
+  "section": 5,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "7a40175da1b7a929746be3415352398040ac404f35bab73f9c94c331549ee73f",
+  "cues": [
+    {
+      "start": 0.3,
+      "end": 1.28,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 1.29,
+      "end": 12.75,
+      "en": "And the last video we created, module Zero, which is going to be our baseline model for our computer vision problem of detecting different types of clothing in 28 by 28 gray scale images.",
+      "zh": "上一部影片，我們建立 model_0，作為電腦視覺問題的基準模型，辨識 28 × 28 灰階圖片中的不同服飾。"
+    },
+    {
+      "start": 12.75,
+      "end": 23.51,
+      "en": "And we also learned the concept of making sure our or we rehashed on the concept of making sure our input and output shapes line up with where they need to be.",
+      "zh": "也學會，或者說再次複習，確保輸入與輸出形狀對得起來。"
+    },
+    {
+      "start": 23.52,
+      "end": 26.52,
+      "en": "We also did a dummy forward pass with some dummy data.",
+      "zh": "用一些模擬資料做了前向傳遞。"
+    },
+    {
+      "start": 26.52,
+      "end": 30.42,
+      "en": "This is a great way to troubleshoot to see if your model shapes are correct.",
+      "zh": "這是很棒的排錯方式，看看模型形狀是否正確，"
+    },
+    {
+      "start": 30.42,
+      "end": 35.46,
+      "en": "If they come out correctly and if the inputs are lining up with where they need to be.",
+      "zh": "輸出是否正確，輸入是否與預期相符。"
+    },
+    {
+      "start": 35.46,
+      "end": 42,
+      "en": "And just to rehash on what our model is going to be or what's inside our model, if we check model zero",
+      "zh": "再複習模型內部是什麼，查看 model_0."
+    },
+    {
+      "start": 42,
+      "end": 47.73,
+      "en": "state dict, what we see here is that our first layer has a weight tensor.",
+      "zh": "state_dict()，第一層有權重張量，"
+    },
+    {
+      "start": 48.12,
+      "end": 54.93,
+      "en": "It also has a bias and our next layer has a weight tensor and it also has a bias.",
+      "zh": "也有偏差；下一層也有權重張量與偏差。"
+    },
+    {
+      "start": 54.93,
+      "end": 58.56,
+      "en": "So these are of course initialized with random values.",
+      "zh": "當然，它們使用隨機數值初始化。"
+    },
+    {
+      "start": 58.56,
+      "end": 70.28999999999999,
+      "en": "But the whole premise of deep learning and machine learning is to pass data through our model and use our optimizer to update these random values to better represent the features in our data.",
+      "zh": "不過深度學習與機器學習的整個概念，就是把資料傳過模型，透過最佳化器更新這些隨機值，更好地表示資料中的特徵。"
+    },
+    {
+      "start": 70.44,
+      "end": 75.15,
+      "en": "And I keep saying features, but I just want to rehash on that before we move on to the next thing.",
+      "zh": "我一直說特徵，不過進入下一件事之前，想再複習一下。"
+    },
+    {
+      "start": 75.33,
+      "end": 77.91,
+      "en": "Featuring data could be almost anything.",
+      "zh": "資料的特徵幾乎可以是任何東西。"
+    },
+    {
+      "start": 77.91,
+      "end": 81.75,
+      "en": "So for example, the feature of this bag could be that it's got a rounded handle at the top.",
+      "zh": "例如這個包包的特徵，可能是上面有圓弧提把，"
+    },
+    {
+      "start": 81.75,
+      "end": 84.45,
+      "en": "It has an edge over here, it has an edge over there.",
+      "zh": "這邊有邊緣，那邊也有邊緣。"
+    },
+    {
+      "start": 84.48,
+      "end": 89.16,
+      "en": "Now, we aren't going to tell our model what features to learn about the data.",
+      "zh": "我們不會告訴模型應該學資料的哪些特徵。"
+    },
+    {
+      "start": 89.25,
+      "end": 91.92,
+      "en": "The whole premise of it is to or the whole fun.",
+      "zh": "整個概念，或整個樂趣，"
+    },
+    {
+      "start": 91.92,
+      "end": 96.42,
+      "en": "The whole magic behind machine learning is that it figures out what features to learn.",
+      "zh": "機器學習的魔法，就是自行找出應該學哪些特徵。"
+    },
+    {
+      "start": 97.15,
+      "end": 104.56,
+      "en": "And so that is what the weights and bias matrices or tenses will represent as different features in our images.",
+      "zh": "所以權重與偏差矩陣或張量，會代表圖片中的不同特徵。"
+    },
+    {
+      "start": 104.56,
+      "end": 109.24000000000001,
+      "en": "And there could be many because we have 60,000 images of ten classes.",
+      "zh": "特徵可能很多，因為有 60,000 張圖片、十個類別。"
+    },
+    {
+      "start": 109.50999999999999,
+      "end": 110.74000000000001,
+      "en": "So let's keep pushing forward.",
+      "zh": "繼續。"
+    },
+    {
+      "start": 110.74000000000001,
+      "end": 113.86,
+      "en": "It's now time to set up a loss function and an optimizer.",
+      "zh": "現在設定損失函數與最佳化器。"
+    },
+    {
+      "start": 114.55,
+      "end": 121.48,
+      "en": "Speaking of optimizers, so 3.1 set up loss optimizer and evaluation metrics.",
+      "zh": "說到最佳化器，3.1，設定損失、最佳化器與評估指標。"
+    },
+    {
+      "start": 121.84,
+      "end": 125.86,
+      "en": "Now recall in notebook two, I'm going to turn this into markdown.",
+      "zh": "記得在第二本筆記本，把這裡轉成 Markdown，"
+    },
+    {
+      "start": 126.31,
+      "end": 129.31,
+      "en": "We created Oh, I don't need an emoji there.",
+      "zh": "我們建立，喔，這裡不需要表情符號。"
+    },
+    {
+      "start": 129.79,
+      "end": 133.9,
+      "en": "So this is by the way, we're just moving through this workflow.",
+      "zh": "對了，這只是在依照工作流程前進。"
+    },
+    {
+      "start": 133.9,
+      "end": 135.4,
+      "en": "We've got our data ready into tenses.",
+      "zh": "資料已準備成張量。"
+    },
+    {
+      "start": 135.4,
+      "end": 136.69,
+      "en": "We've built a baseline model.",
+      "zh": "建立了基準模型。"
+    },
+    {
+      "start": 136.69,
+      "end": 139.3,
+      "en": "It's now time to pick a loss function and an optimizer.",
+      "zh": "現在選擇損失函數與最佳化器。"
+    },
+    {
+      "start": 139.72,
+      "end": 140.62,
+      "en": "So.",
+      "zh": "所以，"
+    },
+    {
+      "start": 141.6,
+      "end": 146.16,
+      "en": "If we go back to Google Chrome, let's write here loss function.",
+      "zh": "回到 Google Chrome，這裡寫損失函數。"
+    },
+    {
+      "start": 146.16,
+      "end": 147.75,
+      "en": "What's our loss function going to be?",
+      "zh": "損失函數是什麼？"
+    },
+    {
+      "start": 147.87,
+      "end": 161.16,
+      "en": "Since we're working with multi class data, our lost function will be an n dot cross entropy loss and",
+      "zh": "因為使用多類別資料，損失函數會是 nn.CrossEntropyLoss，"
+    },
+    {
+      "start": 161.16,
+      "end": 162.32999999999998,
+      "en": "our optimizer.",
+      "zh": "最佳化器，"
+    },
+    {
+      "start": 163.74,
+      "end": 172.93,
+      "en": "We've got a few options here with the optimizer, but we've had practice in the past with SGD, which stands for Stochastic Gradient Descent and the Atom Optimizer.",
+      "zh": "有幾種選擇，不過之前練習過 SGD，代表隨機梯度下降，以及 Adam 最佳化器。"
+    },
+    {
+      "start": 172.95,
+      "end": 184.23,
+      "en": "So our optimizer, let's just stick with SGD, which is kind of the entry level optimizer Torch Optim SGD for stochastic.",
+      "zh": "最佳化器先用 SGD，算是入門的最佳化器，torch.optim.SGD，隨機"
+    },
+    {
+      "start": 185.7,
+      "end": 186.54,
+      "en": "Gradient.",
+      "zh": "梯度"
+    },
+    {
+      "start": 188.09,
+      "end": 188.84,
+      "en": "Dissent.",
+      "zh": "下降。"
+    },
+    {
+      "start": 189.2,
+      "end": 192.02,
+      "en": "And finally, our evaluation metric.",
+      "zh": "最後是評估指標。"
+    },
+    {
+      "start": 193.07,
+      "end": 194.45,
+      "en": "Since we're working.",
+      "zh": "因為正在處理"
+    },
+    {
+      "start": 196.15,
+      "end": 198.16,
+      "en": "On a classification problem.",
+      "zh": "分類問題，"
+    },
+    {
+      "start": 200.78,
+      "end": 207.44,
+      "en": "Let's use accuracy as our evaluation metric.",
+      "zh": "使用準確率作為評估指標。"
+    },
+    {
+      "start": 208.74,
+      "end": 212.19,
+      "en": "So recall that accuracy is a classification evaluation metric.",
+      "zh": "記得準確率是分類評估指標。"
+    },
+    {
+      "start": 212.19,
+      "end": 213.92000000000002,
+      "en": "Now, where can we find this?",
+      "zh": "在哪裡可以找到？"
+    },
+    {
+      "start": 213.93,
+      "end": 221.37,
+      "en": "Well, if we go into lone Pinocchio, this is the beauty of having online reference material in hand",
+      "zh": "到 learnpytorch.io，手邊有線上參考教材就是這麼方便，"
+    },
+    {
+      "start": 221.37,
+      "end": 226.86,
+      "en": "neural network classification with PyTorch in this notebook section oh two we created.",
+      "zh": "使用 PyTorch 進行神經網路分類，第 02 章筆記本，我們建立過。"
+    },
+    {
+      "start": 226.86,
+      "end": 229.71,
+      "en": "Do we have different classification methods?",
+      "zh": "有不同分類方法嗎？"
+    },
+    {
+      "start": 229.8,
+      "end": 230.91,
+      "en": "Yes, we did.",
+      "zh": "有。"
+    },
+    {
+      "start": 230.91,
+      "end": 235.8,
+      "en": "So we've got a whole bunch of different options here for classification evaluation metrics.",
+      "zh": "這裡有許多分類評估指標的選項。"
+    },
+    {
+      "start": 235.8,
+      "end": 239.79,
+      "en": "We've got accuracy, precision recall, f one score of confusion matrix.",
+      "zh": "有準確率、精確率、召回率、F1 分數、混淆矩陣。"
+    },
+    {
+      "start": 239.79,
+      "end": 245.13,
+      "en": "Now we have some code that we could use if we wanted to use torture metrics for accuracy, we could.",
+      "zh": "如果想用 TorchMetrics 算準確率，也有程式可以用。"
+    },
+    {
+      "start": 245.52,
+      "end": 250.35,
+      "en": "And Torch Matrix is a beautiful library that has a lot of evaluation.",
+      "zh": "TorchMetrics 是很棒的函式庫，有許多評估，"
+    },
+    {
+      "start": 250.53,
+      "end": 252.99,
+      "en": "Oh, it doesn't exist.",
+      "zh": "喔，不存在。"
+    },
+    {
+      "start": 253.35,
+      "end": 254.97,
+      "en": "What happened to watch Matrix?",
+      "zh": "TorchMetrics 怎麼了？"
+    },
+    {
+      "start": 255,
+      "end": 256.32,
+      "en": "Maybe I need to fix that.",
+      "zh": "或許要修好這個"
+    },
+    {
+      "start": 257.11,
+      "end": 257.68,
+      "en": "Link.",
+      "zh": "連結。"
+    },
+    {
+      "start": 258.89,
+      "end": 260.06,
+      "en": "To which metrics?",
+      "zh": "TorchMetrics"
+    },
+    {
+      "start": 261.79,
+      "end": 266.86,
+      "en": "Has a whole bunch of different PyTorch metrics, so very useful library.",
+      "zh": "有大量不同的 PyTorch 指標，是很實用的函式庫。"
+    },
+    {
+      "start": 266.86,
+      "end": 269.95,
+      "en": "But we also coded a function in here.",
+      "zh": "不過我們也寫過一個函式，"
+    },
+    {
+      "start": 271.19,
+      "end": 273.28,
+      "en": "Which is Accuracy FM.",
+      "zh": "accuracy_fn。"
+    },
+    {
+      "start": 273.38,
+      "end": 278.15,
+      "en": "So we could copy this straight into our notebook here.",
+      "zh": "可以直接把它複製到這本筆記本。"
+    },
+    {
+      "start": 278.42,
+      "end": 280.28,
+      "en": "Or I've also.",
+      "zh": "或者我也，"
+    },
+    {
+      "start": 280.31,
+      "end": 283.7,
+      "en": "If we go to the PyTorch deep learning GitHub, I'll just bring it over here.",
+      "zh": "到 pytorch-deep-learning GitHub，我把它移過來，"
+    },
+    {
+      "start": 283.88,
+      "end": 286.94,
+      "en": "I've also put it in helper functions dot py.",
+      "zh": "也把函式放在 helper_functions.py。"
+    },
+    {
+      "start": 286.97,
+      "end": 295.42,
+      "en": "Now this is a script of common functions that we've used throughout the course, including if we find accuracy function here, calculate accuracy.",
+      "zh": "這是一份課程常用函式腳本，包括找到這裡的 accuracy_fn，計算準確率。"
+    },
+    {
+      "start": 295.43,
+      "end": 297.56,
+      "en": "Now how would we get this helper functions?",
+      "zh": "如何把 helper_functions"
+    },
+    {
+      "start": 297.56,
+      "end": 301.55,
+      "en": "File this python file into our notebook.",
+      "zh": "這個 Python 檔案放進筆記本？"
+    },
+    {
+      "start": 301.79,
+      "end": 307.55,
+      "en": "One way is to just copy the code itself straight here, but let's import it as a python script.",
+      "zh": "一種方法是直接複製程式，不過我們要把它當 Python 腳本匯入。"
+    },
+    {
+      "start": 307.55,
+      "end": 309.26,
+      "en": "So import requests.",
+      "zh": "import requests。"
+    },
+    {
+      "start": 309.44,
+      "end": 312.53,
+      "en": "Then we're going to go from path lib import path.",
+      "zh": "再 from pathlib import Path。"
+    },
+    {
+      "start": 312.68,
+      "end": 314.75,
+      "en": "So we want to download.",
+      "zh": "要下載。"
+    },
+    {
+      "start": 315.69,
+      "end": 317.53,
+      "en": "And this is actually what you're going to see.",
+      "zh": "其實這是你會看到的，"
+    },
+    {
+      "start": 317.55,
+      "end": 327.39,
+      "en": "Very common practice in larger Python projects, especially deep learning and machine learning projects, is different functionality split up in different Python files.",
+      "zh": "在較大型 Python 專案，尤其深度學習與機器學習專案，非常常見的做法，就是把不同功能拆進不同 Python 檔案。"
+    },
+    {
+      "start": 327.42,
+      "end": 331.14,
+      "en": "And that way you don't have to keep rewriting the same code over and over again.",
+      "zh": "這樣就不必一直重寫相同程式。"
+    },
+    {
+      "start": 331.14,
+      "end": 334.11,
+      "en": "Like, you know how we've written a training and testing loop a fair few times?",
+      "zh": "例如我們寫過好幾次訓練與測試迴圈，"
+    },
+    {
+      "start": 334.14,
+      "end": 340.95,
+      "en": "Well, if we've written it once and it works, we might want to save that to a dot py file so we can import it later on.",
+      "zh": "如果寫過一次，而且能運作，就可以存成 .py 檔案，之後直接匯入。"
+    },
+    {
+      "start": 341.04,
+      "end": 346.62,
+      "en": "But let's now write some code to import this helper functions dot py file into our notebook here.",
+      "zh": "不過現在先寫程式，把 helper_functions.py 匯入這本筆記本。"
+    },
+    {
+      "start": 346.8,
+      "end": 352.77,
+      "en": "So download helper functions from learn pytorch repo.",
+      "zh": "從 Learn PyTorch repo 下載輔助函式。"
+    },
+    {
+      "start": 353.25,
+      "end": 357.24,
+      "en": "So we're going to check if our helper functions.",
+      "zh": "檢查 helper_functions"
+    },
+    {
+      "start": 358.54,
+      "end": 359.47,
+      "en": "Got pie.",
+      "zh": ".py。"
+    },
+    {
+      "start": 359.5,
+      "end": 363.85,
+      "en": "If this already exists, we don't want to download it, so we'll print.",
+      "zh": "如果已存在，就不下載，印出"
+    },
+    {
+      "start": 364.86,
+      "end": 372.18,
+      "en": "Help a functions pi already exists skipping download skipping download dot.",
+      "zh": "helper_functions.py 已存在，跳過下載，跳過下載。"
+    },
+    {
+      "start": 372.96,
+      "end": 374.34,
+      "en": "And we're going to go else here.",
+      "zh": "再用 else。"
+    },
+    {
+      "start": 375.15,
+      "end": 376.29,
+      "en": "If it doesn't exist.",
+      "zh": "如果不存在，"
+    },
+    {
+      "start": 376.29,
+      "end": 378.45,
+      "en": "So we're going to download it.",
+      "zh": "就下載。"
+    },
+    {
+      "start": 378.48,
+      "end": 379.65,
+      "en": "Downloading.",
+      "zh": "正在下載"
+    },
+    {
+      "start": 381.76,
+      "end": 383.71,
+      "en": "Help the functions dot pie.",
+      "zh": "helper_functions.py。"
+    },
+    {
+      "start": 383.89,
+      "end": 386.86,
+      "en": "And we're going to create a request here with the request.",
+      "zh": "使用 requests 函式庫建立一個請求，"
+    },
+    {
+      "start": 386.86,
+      "end": 389.05,
+      "en": "Library equals requests.",
+      "zh": "等於 requests."
+    },
+    {
+      "start": 390.43,
+      "end": 391.24,
+      "en": "Dot get.",
+      "zh": "get()。"
+    },
+    {
+      "start": 391.27,
+      "end": 394.96,
+      "en": "Now, here's where we have to pass in the URL of this file.",
+      "zh": "這裡必須傳入檔案的 URL。"
+    },
+    {
+      "start": 394.96,
+      "end": 398.26,
+      "en": "It's not this Earl here when dealing with GitHub.",
+      "zh": "使用 GitHub 時，不是這個 URL。"
+    },
+    {
+      "start": 399.06,
+      "end": 401.07,
+      "en": "To get the actual URL to the files.",
+      "zh": "要取得真正檔案的 URL，"
+    },
+    {
+      "start": 401.07,
+      "end": 403.29,
+      "en": "Many files you have to click the raw button.",
+      "zh": "許多檔案要點 Raw 按鈕。"
+    },
+    {
+      "start": 403.29,
+      "end": 405.15,
+      "en": "So just go back and show you.",
+      "zh": "回去示範一下。"
+    },
+    {
+      "start": 405.3,
+      "end": 408.9,
+      "en": "Click raw here and we're going to copy this raw URL.",
+      "zh": "點 Raw，再複製這個原始 URL。"
+    },
+    {
+      "start": 408.9,
+      "end": 410.28,
+      "en": "See how it's just text here.",
+      "zh": "看到這裡只有文字嗎？"
+    },
+    {
+      "start": 410.73,
+      "end": 416.19,
+      "en": "This is what we want to download into our CoLab notebook and we're going to write it in there.",
+      "zh": "這就是要下載到 Colab 筆記本的內容，把它寫進來。"
+    },
+    {
+      "start": 416.22,
+      "end": 424.44,
+      "en": "Request equals request dot get and we're going to go with open and here's where we're going to save our helper functions dot py.",
+      "zh": "request 等於 requests.get()，再 with open()，指定儲存 helper_functions.py 的位置。"
+    },
+    {
+      "start": 424.8,
+      "end": 433.71,
+      "en": "We're going to write binary as file F is for file, we're going to go F right request dot content.",
+      "zh": "寫入二進位模式，as f，f 是 file，再 f.write(request.content)。"
+    },
+    {
+      "start": 433.86,
+      "end": 445.5,
+      "en": "So what this is saying is Python is going to create a file called helper functions dot py and give it right binary permissions as f f is for file short for file.",
+      "zh": "所以意思是，Python 建立 helper_functions.py 檔案，以二進位寫入模式開啟，叫作 f，是 file 的縮寫。"
+    },
+    {
+      "start": 445.65,
+      "end": 447.66,
+      "en": "And then we're going to say F right.",
+      "zh": "再呼叫 f.write()。"
+    },
+    {
+      "start": 447.69,
+      "end": 456.99,
+      "en": "Hey request get that information from helper functions dot py here and write your content to this file here.",
+      "zh": "「request，把這裡 helper_functions.py 的資訊取來，把內容寫到這個檔案。」"
+    },
+    {
+      "start": 457.08,
+      "end": 458.73,
+      "en": "So let's give that a shot.",
+      "zh": "試試。"
+    },
+    {
+      "start": 464.7,
+      "end": 465.45,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 465.45,
+      "end": 467.28,
+      "en": "So downloading helper functions dot py.",
+      "zh": "正在下載 helper_functions.py。"
+    },
+    {
+      "start": 467.28,
+      "end": 468.45,
+      "en": "Let's have a look in here.",
+      "zh": "看看這裡。"
+    },
+    {
+      "start": 468.93,
+      "end": 470.07,
+      "en": "Do we have helper functions?",
+      "zh": "有 helper_functions"
+    },
+    {
+      "start": 470.07,
+      "end": 470.85,
+      "en": "Dot pi.",
+      "zh": ".py 嗎？"
+    },
+    {
+      "start": 472.51,
+      "end": 473.29,
+      "en": "Yes, we do.",
+      "zh": "有。"
+    },
+    {
+      "start": 473.32,
+      "end": 473.83,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 473.84000000000003,
+      "end": 476.98,
+      "en": "So now we can import our accuracy function.",
+      "zh": "現在可以匯入準確率函式。"
+    },
+    {
+      "start": 477.31,
+      "end": 478.07,
+      "en": "Where is it?",
+      "zh": "在哪裡？"
+    },
+    {
+      "start": 478.09000000000003,
+      "end": 478.8,
+      "en": "There we go.",
+      "zh": "找到了。"
+    },
+    {
+      "start": 478.81,
+      "end": 480.4,
+      "en": "Import accuracy function.",
+      "zh": "匯入準確率函式。"
+    },
+    {
+      "start": 481.4,
+      "end": 487.94,
+      "en": "So this is very common practice when writing lots of Python code is to put helper functions into dot py scripts.",
+      "zh": "寫大量 Python 程式時，把輔助函式放進 .py 腳本非常常見。"
+    },
+    {
+      "start": 488.12,
+      "end": 490.91,
+      "en": "So let's import the accuracy metric.",
+      "zh": "匯入準確率指標。"
+    },
+    {
+      "start": 494.25,
+      "end": 495.39,
+      "en": "Accuracy metric.",
+      "zh": "準確率指標，"
+    },
+    {
+      "start": 496,
+      "end": 497.11,
+      "en": "From help a functions.",
+      "zh": "來自 helper_functions。"
+    },
+    {
+      "start": 497.11,
+      "end": 499.18,
+      "en": "Of course, we could have used torch metrics as well.",
+      "zh": "當然也可以用 TorchMetrics。"
+    },
+    {
+      "start": 499.18,
+      "end": 506.83,
+      "en": "That's another perfectly valid option, but I just thought I'd show you what it's like to import your own helper function script.",
+      "zh": "也是完全有效的選擇，不過我想示範匯入自己的輔助函式腳本是什麼樣。"
+    },
+    {
+      "start": 507.46,
+      "end": 511.22,
+      "en": "Of course, you can customize helper functions to apply to have whatever you want in there.",
+      "zh": "當然，helper_functions 可以自由調整，放入任何想要的內容。"
+    },
+    {
+      "start": 511.24,
+      "end": 514.27,
+      "en": "So see this we've got from helper functions.",
+      "zh": "所以看看，from helper_functions"
+    },
+    {
+      "start": 514.42,
+      "end": 516.25,
+      "en": "Import accuracy function.",
+      "zh": "import accuracy_fn。"
+    },
+    {
+      "start": 516.7,
+      "end": 517.44,
+      "en": "What's this saying?",
+      "zh": "這裡說什麼？"
+    },
+    {
+      "start": 517.45,
+      "end": 518.29,
+      "en": "Could not be resolved.",
+      "zh": "無法解析。"
+    },
+    {
+      "start": 518.29,
+      "end": 519.19,
+      "en": "Is this going to work?",
+      "zh": "能運作嗎？"
+    },
+    {
+      "start": 520.91,
+      "end": 521.57,
+      "en": "It did.",
+      "zh": "可以。"
+    },
+    {
+      "start": 521.84,
+      "end": 523.82,
+      "en": "And where you can go Accuracy function.",
+      "zh": "可以用 accuracy_fn，"
+    },
+    {
+      "start": 523.82,
+      "end": 524.99,
+      "en": "Do we get a docstring?",
+      "zh": "會有 docstring 嗎？"
+    },
+    {
+      "start": 527.51,
+      "end": 528.05,
+      "en": "Hmm.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 529.11,
+      "end": 531.45,
+      "en": "Seems like CoLab isn't picking things up, but that's alright.",
+      "zh": "看起來 Colab 沒抓到，不過沒關係。"
+    },
+    {
+      "start": 531.45,
+      "end": 532.46,
+      "en": "It looks like it still worked.",
+      "zh": "似乎仍然成功了。"
+    },
+    {
+      "start": 532.47,
+      "end": 535.2,
+      "en": "We'll find out later on if it actually works when we train our model.",
+      "zh": "稍後訓練模型，實際用到時就知道。"
+    },
+    {
+      "start": 535.56,
+      "end": 540.15,
+      "en": "So set up loss, function and optimizer.",
+      "zh": "設定損失函數與最佳化器。"
+    },
+    {
+      "start": 541.59,
+      "end": 546.3,
+      "en": "So I'm going to set up the loss function equals rn dot cross entropy.",
+      "zh": "loss_fn 等於 nn.CrossEntropy-"
+    },
+    {
+      "start": 547.23,
+      "end": 547.92,
+      "en": "Loss.",
+      "zh": "Loss()。"
+    },
+    {
+      "start": 548.13,
+      "end": 556.77,
+      "en": "And I'm going to set up the optimizer here, as we discussed before, as Torch Optim dot SGD for stochastic gradient descent.",
+      "zh": "最佳化器如同剛才說的，用 torch.optim.SGD，隨機梯度下降。"
+    },
+    {
+      "start": 556.77,
+      "end": 565.17,
+      "en": "The parameters I want to optimize are the parameters from Model zero, our baseline model, which we had a look at before, which are all these random numbers.",
+      "zh": "要最佳化的參數，是基準模型 model_0 的參數，就是之前看過的那些隨機數字。"
+    },
+    {
+      "start": 565.17,
+      "end": 569.79,
+      "en": "We'd like our optimizer to tweak them in some way, shape or form to better represent our data.",
+      "zh": "希望最佳化器以某種方式調整它們，更好地表示資料。"
+    },
+    {
+      "start": 570.15,
+      "end": 572.16,
+      "en": "And then I'm going to set the learning rate here.",
+      "zh": "接著設定學習率。"
+    },
+    {
+      "start": 572.19,
+      "end": 573.72,
+      "en": "How much should they be tweaked?",
+      "zh": "每次要調整多少？"
+    },
+    {
+      "start": 573.72,
+      "end": 579.69,
+      "en": "Each epoch, I'm going to set it to 0.1 nice and high because our data set is quite simple.",
+      "zh": "每個訓練週期，我設為 0.1，稍高一點，因為資料集相當簡單。"
+    },
+    {
+      "start": 579.69,
+      "end": 582.75,
+      "en": "It's 28 by 28 images there are 60,000 of them.",
+      "zh": "是 28 × 28 圖片，共有 60,000 張。"
+    },
+    {
+      "start": 582.75,
+      "end": 588.72,
+      "en": "But again, if this doesn't work, we can always adjust this and experiment, experiment, experiment.",
+      "zh": "不過如果不行，隨時可以調整，實驗、實驗、再實驗。"
+    },
+    {
+      "start": 589.08,
+      "end": 589.83,
+      "en": "So let's run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 589.83,
+      "end": 591.06,
+      "en": "We've got a loss function.",
+      "zh": "損失函數有了。"
+    },
+    {
+      "start": 591.18,
+      "end": 592.59,
+      "en": "This is going to give me a docstring.",
+      "zh": "這會顯示 docstring 嗎？"
+    },
+    {
+      "start": 593.31,
+      "end": 594.42,
+      "en": "There we go.",
+      "zh": "出來了。"
+    },
+    {
+      "start": 594.51,
+      "end": 597.63,
+      "en": "So calculates accuracy between truth and predictions.",
+      "zh": "計算真實值與預測之間的準確率。"
+    },
+    {
+      "start": 597.66,
+      "end": 599.55,
+      "en": "Now, where does this doctoring come from?",
+      "zh": "這個 docstring 從哪裡來？"
+    },
+    {
+      "start": 599.73,
+      "end": 602.25,
+      "en": "Well, let's have a look how it functions.",
+      "zh": "看看 helper_functions。"
+    },
+    {
+      "start": 603.56,
+      "end": 605.12,
+      "en": "That's what we wrote before.",
+      "zh": "就是之前寫的。"
+    },
+    {
+      "start": 606.18,
+      "end": 610.62,
+      "en": "Good on us for writing good doc strings accuracy function.",
+      "zh": "我們寫了很棒的 docstring，做得好，accuracy_fn。"
+    },
+    {
+      "start": 610.77,
+      "end": 615.63,
+      "en": "Well, we're going to test all these out in the next video when we write a training loop.",
+      "zh": "下一部影片寫訓練迴圈時，就會測試這些東西。"
+    },
+    {
+      "start": 615.72,
+      "end": 616.56,
+      "en": "So.",
+      "zh": "所以，"
+    },
+    {
+      "start": 617.45,
+      "end": 621.62,
+      "en": "Oh, actually, I think we might do one more function before we write a training loop.",
+      "zh": "喔，其實寫訓練迴圈前，或許再做一個函式。"
+    },
+    {
+      "start": 622.32,
+      "end": 625.14,
+      "en": "How about we create a function to time our experiments?",
+      "zh": "不如建立一個為實驗計時的函式？"
+    },
+    {
+      "start": 625.56,
+      "end": 627.57,
+      "en": "Yeah, let's give that a go in the next video.",
+      "zh": "對，下一部影片試試。"
+    },
+    {
+      "start": 627.78,
+      "end": 628.71,
+      "en": "I'll see you there.",
+      "zh": "到時見。"
+    }
+  ]
+}

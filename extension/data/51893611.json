@@ -1,0 +1,1555 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893611",
+  "title": "Challenges with sparse logistic regression in large datasets",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "666ac9af48d5018023282ba0c4567fe5c4a03bb122329516cb19a44e74dbb35b",
+  "cues": [
+    {
+      "start": 2.28,
+      "end": 9.16,
+      "en": "This is a follow up to the previous video about logistic regression for sparse probing.",
+      "zh": "這支影片接續上一支，關於用邏輯斯迴歸進行稀疏探測的內容。"
+    },
+    {
+      "start": 9.76,
+      "end": 13.32,
+      "en": "In this video I'm going to use simulated data.",
+      "zh": "這次使用模擬資料，"
+    },
+    {
+      "start": 13.32,
+      "end": 18.16,
+      "en": "So just random numbers instead of using actual data from an.",
+      "zh": "也就是隨機數，而不是實際資料。"
+    },
+    {
+      "start": 19.56,
+      "end": 27.28,
+      "en": "That is advantageous because it allows us to have tighter control over the nature of the data.",
+      "zh": "這有個好處，能更嚴格控制資料的性質。"
+    },
+    {
+      "start": 27.84,
+      "end": 38.28,
+      "en": "So there's no new math in this video, just new concepts and possibly new revelations about logistic regression with large data sets.",
+      "zh": "所以沒有新數學，只有新概念，以及對大型資料集邏輯斯迴歸可能的新認識。"
+    },
+    {
+      "start": 38.84,
+      "end": 43,
+      "en": "So let me get straight to the overview of the demo.",
+      "zh": "直接進入示範概覽。"
+    },
+    {
+      "start": 43.72,
+      "end": 50.24,
+      "en": "I will begin by simulating data with 3000 neurons and two categories.",
+      "zh": "先模擬有 3,000 個神經元、兩個類別的資料。"
+    },
+    {
+      "start": 50.4,
+      "end": 58.96,
+      "en": "Now these data do not come from a language model, but you can think about something like 3000 MLP expansion",
+      "zh": "這些不是來自語言模型，但可以想成 3,000 個 MLP 擴張"
+    },
+    {
+      "start": 58.96,
+      "end": 67.13,
+      "en": "neurons and 200 tokens coming from two categories like the word the and the word n, for example.",
+      "zh": "神經元，以及來自兩類的 200 個 token，例如 the 與 an。"
+    },
+    {
+      "start": 67.85,
+      "end": 74.37,
+      "en": "So here you see all of the activations, and here you see the histograms of all of the activations.",
+      "zh": "這裡是全部活化，這裡則是全部活化的直方圖。"
+    },
+    {
+      "start": 75.01,
+      "end": 86.01,
+      "en": "So I shifted the activations for category one so that there is like a ridiculously huge effect size in the difference between the two categories.",
+      "zh": "我將類別 1 的活化偏移，讓兩類差異的效果量大得離譜。"
+    },
+    {
+      "start": 86.65,
+      "end": 93.57,
+      "en": "I will then run another sweep through different values of C, similar to what I did in the previous state.",
+      "zh": "接著會掃描不同 C 值，類似上一支"
+    },
+    {
+      "start": 93.57,
+      "end": 95.21000000000001,
+      "en": "A video with real data.",
+      "zh": "影片對真實資料做的。"
+    },
+    {
+      "start": 95.45,
+      "end": 98.97,
+      "en": "Remember that c equals one over lambda.",
+      "zh": "記住，C 等於 1 除以 lambda，"
+    },
+    {
+      "start": 99.09,
+      "end": 104.05,
+      "en": "So lambda is going down as we go up with values of c.",
+      "zh": "所以 C 增加時，lambda 下降。"
+    },
+    {
+      "start": 104.77000000000001,
+      "end": 110.09,
+      "en": "So the sparsity value values vary quite a bit depending on this parameter.",
+      "zh": "稀疏性會隨這個參數，大幅變動。"
+    },
+    {
+      "start": 110.28999999999999,
+      "end": 117.05,
+      "en": "Again it's not that surprising, but it does highlight that it can be difficult to choose a particular",
+      "zh": "這不太意外，但凸顯正規化強度可能很難挑選，"
+    },
+    {
+      "start": 117.05,
+      "end": 122.78,
+      "en": "regularization amount given the spread we have on the outcomes.",
+      "zh": "因為結果的範圍很廣。"
+    },
+    {
+      "start": 123.42,
+      "end": 131.46,
+      "en": "So a question here is which neurons actually get their coefficients switched to zero, given that basically",
+      "zh": "一個問題是，基本上每個神經元，都顯示很強類別差異時，"
+    },
+    {
+      "start": 131.46,
+      "end": 135.86,
+      "en": "every neuron shows a strong difference between the two categories.",
+      "zh": "究竟哪些神經元的係數會被改為零？"
+    },
+    {
+      "start": 136.1,
+      "end": 139.66,
+      "en": "How does the model know which coefficients to set to zero?",
+      "zh": "模型怎麼知道，哪些係數要設為零？"
+    },
+    {
+      "start": 140.18,
+      "end": 144.74,
+      "en": "That is something we will explore in the next couple of analyses.",
+      "zh": "接下來幾項分析會探索。"
+    },
+    {
+      "start": 145.42000000000002,
+      "end": 157.1,
+      "en": "I will rerun the analysis for one particular value of C, and then plot the beta coefficients on the x axis by the effect size on the y axis.",
+      "zh": "會針對某個特定 C 重跑，再畫出 x 軸 beta 係數、y 軸效果量。"
+    },
+    {
+      "start": 157.9,
+      "end": 161.7,
+      "en": "Effect size is similar to a t statistic.",
+      "zh": "效果量與 t 統計量相似，"
+    },
+    {
+      "start": 162.06,
+      "end": 168.34,
+      "en": "I will show you the exact formula when we get to that point in the code, but it's basically the difference",
+      "zh": "程式到那裡時，會展示精確公式，基本上是兩個類別的"
+    },
+    {
+      "start": 168.34,
+      "end": 176.22,
+      "en": "in the average activation for each category divided by the pooled standard deviations over the two categories.",
+      "zh": "平均活化差，除以兩類合併的標準差。"
+    },
+    {
+      "start": 177.3,
+      "end": 183.54,
+      "en": "So each dot in this plot corresponds to one of the 3000 neurons.",
+      "zh": "圖中每個點，對應 3,000 個神經元之一。"
+    },
+    {
+      "start": 184.14,
+      "end": 192.26,
+      "en": "You can see that those effect sizes vary from around four to around six, which is quite a decent effect size.",
+      "zh": "效果量大約從 4 到 6，相當可觀。"
+    },
+    {
+      "start": 192.74,
+      "end": 194.58,
+      "en": "But here's what's really striking.",
+      "zh": "但真正驚人的是，"
+    },
+    {
+      "start": 194.62,
+      "end": 199.02,
+      "en": "Around half of the beta values are actually negative.",
+      "zh": "大約一半的 beta 值，其實是負的。"
+    },
+    {
+      "start": 199.22,
+      "end": 201.34,
+      "en": "So what could that possibly mean?",
+      "zh": "這可能代表什麼？"
+    },
+    {
+      "start": 202.02,
+      "end": 213.34,
+      "en": "If you would interpret the beta for any one given neuron, then it would mean that there is more activation for category zero compared to category one.",
+      "zh": "如果解讀單一神經元的 beta，會表示類別 0 的活化，高於類別 1。"
+    },
+    {
+      "start": 213.9,
+      "end": 219.14,
+      "en": "But when we look back at the plots of the data and the distribution, that's just not the case.",
+      "zh": "但回頭看資料與分布圖，根本不是如此。"
+    },
+    {
+      "start": 219.42000000000002,
+      "end": 225.02,
+      "en": "Category one basically always has more activation than category zero.",
+      "zh": "類別 1 的活化，基本上永遠高於類別 0。"
+    },
+    {
+      "start": 225.7,
+      "end": 232.46,
+      "en": "So how can it possibly be that around half of the neurons have a negative beta value?",
+      "zh": "怎麼可能，大約一半的神經元有負 beta？"
+    },
+    {
+      "start": 233.22,
+      "end": 238.34,
+      "en": "I would also like to draw your attention to the magnitude of these coefficients.",
+      "zh": "也請注意，這些係數的大小，"
+    },
+    {
+      "start": 238.46,
+      "end": 241.51,
+      "en": "They are somewhere around 0.02 two ish.",
+      "zh": "大約在 0.02 左右。"
+    },
+    {
+      "start": 242.39,
+      "end": 253.75,
+      "en": "Okay, so what I'm going to do next is pick two of these 3000 neurons, the one with the largest beta value and the one with the most negative beta value.",
+      "zh": "接著，從 3,000 個神經元中挑兩個，beta 最大，以及 beta 最負的。"
+    },
+    {
+      "start": 254.79,
+      "end": 260.43,
+      "en": "Then I will visualize their histograms for two categories, which is what you see here.",
+      "zh": "再將兩個類別的直方圖畫出來，就是這裡。"
+    },
+    {
+      "start": 261.31,
+      "end": 268.63,
+      "en": "By the way, this screenshot here is from a different run through the code than what how I got this screenshot here.",
+      "zh": "順帶一提，這張截圖與那張，是不同次執行的結果，"
+    },
+    {
+      "start": 268.75,
+      "end": 271.95,
+      "en": "So the numerical betas don't necessarily lined up.",
+      "zh": "所以 beta 數值不一定對得上。"
+    },
+    {
+      "start": 271.95,
+      "end": 277.03,
+      "en": "The code produces slightly different results each time I run it because of random data.",
+      "zh": "因為隨機資料，每次執行結果稍微不同。"
+    },
+    {
+      "start": 277.07,
+      "end": 284.79,
+      "en": "Anyway, the point is that there is perfect, literally absolutely perfect separation between the activations",
+      "zh": "重點是，兩個類別的活化，真的、絕對完全分離，"
+    },
+    {
+      "start": 284.79,
+      "end": 294.90999999999997,
+      "en": "for the two categories, and they both go in these same in the same direction, which is both positive for label one compared to label two.",
+      "zh": "而且方向相同，標籤 1 相較標籤 2，兩者都是正向。"
+    },
+    {
+      "start": 295.67,
+      "end": 303.52,
+      "en": "So how can it be that the beta values are so small and one is actually Negative, even though the negative",
+      "zh": "為什麼 beta 那麼小，而且一個實際為負，即使負"
+    },
+    {
+      "start": 303.56,
+      "end": 307.84,
+      "en": "beta and the positive beta have the same direction of effect.",
+      "zh": "beta 與正 beta，效果方向都相同？"
+    },
+    {
+      "start": 308.8,
+      "end": 316.56,
+      "en": "Curiously, another visualization of this where I'm plotting the negative beta on the x axis and the",
+      "zh": "另外一種有意思的視覺化，x 軸畫負 beta 神經元的活化，"
+    },
+    {
+      "start": 317.24,
+      "end": 320.84,
+      "en": "activations from the positive beta neuron on the y axis.",
+      "zh": "y 軸是正 beta 神經元的活化。"
+    },
+    {
+      "start": 321.32,
+      "end": 328.24,
+      "en": "Again, perfect separability both within and at the intersection between these two neurons.",
+      "zh": "同樣，在兩個神經元各自內部，以及共同分布上，都完全可分。"
+    },
+    {
+      "start": 328.88,
+      "end": 336.32,
+      "en": "So I'm then going to rerun the logistic regression exactly the same as what gave me these results here.",
+      "zh": "接著會重跑完全相同的邏輯斯迴歸，與產生這裡結果的相同，"
+    },
+    {
+      "start": 336.8,
+      "end": 342.52,
+      "en": "Except I'm only going to use these two neurons and not all 3000 neurons.",
+      "zh": "只是只使用這兩個神經元，而不是全部 3,000 個。"
+    },
+    {
+      "start": 342.88,
+      "end": 353.32,
+      "en": "And you will see that their coefficients change from being small and positive and negative to being two orders of magnitude larger, and both positive.",
+      "zh": "會看到係數從小的正、負值，變成大兩個數量級，而且都為正。"
+    },
+    {
+      "start": 354.44,
+      "end": 359.4,
+      "en": "Now that difference is due to something called statistical suppression.",
+      "zh": "這個差異，來自一種叫作統計抑制的現象。"
+    },
+    {
+      "start": 359.96,
+      "end": 367.49,
+      "en": "Statistical suppression is a term that is used when there are a lot of variables in a statistical model,",
+      "zh": "統計抑制，是統計模型有很多變數時，"
+    },
+    {
+      "start": 367.97,
+      "end": 373.01,
+      "en": "and the variables start to suppress each other because they have redundant information.",
+      "zh": "因為資訊冗餘，變數開始彼此抑制的術語。"
+    },
+    {
+      "start": 373.65,
+      "end": 381.97,
+      "en": "Remember I mentioned in the previous video that for a logistic regression like this, the goal is to predict the label.",
+      "zh": "記住，上一支影片說過，這種邏輯斯迴歸的目標，是預測標籤，"
+    },
+    {
+      "start": 382.21,
+      "end": 387.81,
+      "en": "The goal is not to interpret every individual neuron separately from every other neuron.",
+      "zh": "不是將每個神經元，與其他神經元分開，個別解讀。"
+    },
+    {
+      "start": 388.45,
+      "end": 395.89,
+      "en": "So when there are so many neurons and so much redundancy that the model just ends up suppressing a lot",
+      "zh": "因此，神經元太多、冗餘太多時，模型最後會抑制很多"
+    },
+    {
+      "start": 395.89,
+      "end": 402.37,
+      "en": "of the activations from the neurons, simply because they're just not all relevant for predicting the label.",
+      "zh": "神經元活化，只因為並非全部都有助於預測標籤。"
+    },
+    {
+      "start": 403.09000000000003,
+      "end": 414.01,
+      "en": "So in fact, the model is learning to ignore around half of the neurons in this data set just because it doesn't actually need to use their activation values.",
+      "zh": "所以模型其實學會忽略資料集大約一半的神經元，因為不需要它們的活化值。"
+    },
+    {
+      "start": 414.77,
+      "end": 422.34,
+      "en": "Anyway, the last analysis I will run here is to see which neurons end up with zero valued coefficients.",
+      "zh": "最後，會分析哪些神經元最後得到零係數。"
+    },
+    {
+      "start": 422.86,
+      "end": 429.74,
+      "en": "It's actually not attributable to the amount of variability in the neuron, which is what I'm plotting here.",
+      "zh": "這其實不能歸因於神經元的變異量，也就是這裡畫的。"
+    },
+    {
+      "start": 429.74,
+      "end": 438.02,
+      "en": "So it's not the case that the least variable or the most variable neurons get shunted to have beta equals zero.",
+      "zh": "不是變異最少或最多的神經元，被壓成 beta=0。"
+    },
+    {
+      "start": 438.7,
+      "end": 442.9,
+      "en": "It's also not related to group differences in correlation strength.",
+      "zh": "也與群組間的相關強度差異無關。"
+    },
+    {
+      "start": 443.26,
+      "end": 446.5,
+      "en": "I don't show that figure here, but I will get to it in the code.",
+      "zh": "這裡沒展示那張圖，但程式中會看到。"
+    },
+    {
+      "start": 447.14,
+      "end": 451.1,
+      "en": "Anyway, so now let's switch to Python and work through this stuff.",
+      "zh": "總之，現在切換到 Python，逐步來看。"
+    },
+    {
+      "start": 452.34000000000003,
+      "end": 453.9,
+      "en": "Import some libraries.",
+      "zh": "匯入一些函式庫。"
+    },
+    {
+      "start": 453.9,
+      "end": 454.62,
+      "en": "And let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 454.65999999999997,
+      "end": 456.9,
+      "en": "Here is where I'm creating the data.",
+      "zh": "這裡建立資料。"
+    },
+    {
+      "start": 457.22,
+      "end": 459.22,
+      "en": "So 3000 neurons.",
+      "zh": "3,000 個神經元。"
+    },
+    {
+      "start": 459.22,
+      "end": 462.9,
+      "en": "In fact these are just literally random numbers that I'm generating here.",
+      "zh": "其實真的只是這裡產生的隨機數，"
+    },
+    {
+      "start": 462.9,
+      "end": 471.9,
+      "en": "But we will think of it as 3000 MLP expansion layer neurons, just for ease of, you know, linking to the other lectures.",
+      "zh": "但為了容易與其他課程連結，把它們想成 3,000 個 MLP 擴張層神經元。"
+    },
+    {
+      "start": 472.34000000000003,
+      "end": 475.22,
+      "en": "And we have 200 tokens.",
+      "zh": "有 200 個 token。"
+    },
+    {
+      "start": 475.22,
+      "end": 479.26,
+      "en": "And then what I do is so yeah here I generate all of the data.",
+      "zh": "先產生全部資料，"
+    },
+    {
+      "start": 479.3,
+      "end": 488.47,
+      "en": "And then what I do is, shift the data by a value of five only for the data in the first half of the",
+      "zh": "再只將前半部 token 的資料，偏移"
+    },
+    {
+      "start": 488.47,
+      "end": 489.19,
+      "en": "tokens.",
+      "zh": "5。"
+    },
+    {
+      "start": 489.31,
+      "end": 495.71,
+      "en": "So that means that 100 tokens will have random noise with a mean of zero and the other.",
+      "zh": "所以 100 個 token 有平均為零的隨機雜訊，另一組，"
+    },
+    {
+      "start": 495.75,
+      "end": 502.07,
+      "en": "The second 100 tokens will have random noise with a mean offset of five.",
+      "zh": "第二組 100 個 token，則有平均偏移為 5 的隨機雜訊。"
+    },
+    {
+      "start": 502.19,
+      "end": 505.51,
+      "en": "So one for the label and then times five.",
+      "zh": "標籤為 1，再乘以 5。"
+    },
+    {
+      "start": 505.63,
+      "end": 509.23,
+      "en": "And then I make some histograms and the image of the data.",
+      "zh": "接著建立直方圖與資料影像，"
+    },
+    {
+      "start": 509.23,
+      "end": 510.35,
+      "en": "And that's what you see here.",
+      "zh": "這裡就能看到。"
+    },
+    {
+      "start": 510.91,
+      "end": 515.07,
+      "en": "So super duper clear what's going on here for every neuron.",
+      "zh": "每個神經元的情況，都非常清楚，"
+    },
+    {
+      "start": 515.43,
+      "end": 522.75,
+      "en": "You know, basically every neuron we see that there is relatively low activation for the first hundred tokens.",
+      "zh": "基本上，前 100 個 token 的活化相對低，"
+    },
+    {
+      "start": 522.75,
+      "end": 529.87,
+      "en": "That's category zero and much higher activation for the other neuron for the other tokens.",
+      "zh": "是類別 0；其他神經元，不，是其他 token 的活化高很多，"
+    },
+    {
+      "start": 529.87,
+      "end": 531.99,
+      "en": "And that I call category one.",
+      "zh": "稱為類別 1。"
+    },
+    {
+      "start": 532.55,
+      "end": 540.27,
+      "en": "So if you would just take any individual neuron, any one of these 3000 neurons, it's going to be highly significant.",
+      "zh": "只要拿任何個別神經元，3,000 個中的任一個，都會高度顯著，"
+    },
+    {
+      "start": 540.31,
+      "end": 545.27,
+      "en": "The difference between the activations for category zero and for category one.",
+      "zh": "也就是類別 0 與類別 1 的活化差異。"
+    },
+    {
+      "start": 545.99,
+      "end": 553.51,
+      "en": "So now it's going to be interesting to see what happens with the logistic regression when we enforce sparsity okay.",
+      "zh": "所以強制稀疏性時，邏輯斯迴歸會如何，很值得觀察。"
+    },
+    {
+      "start": 553.55,
+      "end": 559.23,
+      "en": "And before I do that I am running the logistic regression for different values of C.",
+      "zh": "在那之前，先對不同 C 值執行邏輯斯迴歸。"
+    },
+    {
+      "start": 559.55,
+      "end": 564.51,
+      "en": "This is basically the same as what I showed in the previous video.",
+      "zh": "基本上與上一支影片相同，"
+    },
+    {
+      "start": 564.51,
+      "end": 566.27,
+      "en": "But there it was for real data.",
+      "zh": "但當時用真實資料，"
+    },
+    {
+      "start": 566.35,
+      "end": 569.27,
+      "en": "Here it's for these simulated data.",
+      "zh": "這裡是模擬資料。"
+    },
+    {
+      "start": 569.71,
+      "end": 572.47,
+      "en": "So here I'm just calculating sparsity.",
+      "zh": "這裡只計算稀疏性，"
+    },
+    {
+      "start": 572.47,
+      "end": 578.51,
+      "en": "This is the number of coefficients that have a value of exactly zero.",
+      "zh": "也就是值恰好為零的係數數量。"
+    },
+    {
+      "start": 578.79,
+      "end": 585.47,
+      "en": "And we get that from introducing this L1 regularization term averaging that.",
+      "zh": "加入 L1 正規化後，對它們取平均，"
+    },
+    {
+      "start": 585.47,
+      "end": 587.15,
+      "en": "So this is the proportion.",
+      "zh": "得到比例，"
+    },
+    {
+      "start": 587.15,
+      "end": 591.31,
+      "en": "And then I multiply it by 100 just to get the percent okay.",
+      "zh": "再乘以 100，得到百分比。"
+    },
+    {
+      "start": 591.35,
+      "end": 599.27,
+      "en": "Now in this line of code in the previous video I also increased the maximum number of iterations to 1000.",
+      "zh": "上一支影片，這行程式也將最大反覆次數提高到 1,000。"
+    },
+    {
+      "start": 599.31,
+      "end": 604.48,
+      "en": "Here I'm leaving it at 100, so probably would be a good idea to increase it a little bit.",
+      "zh": "這裡維持 100，也許提高一點會比較好，"
+    },
+    {
+      "start": 604.48,
+      "end": 606.6,
+      "en": "But yeah, it's really not a big deal.",
+      "zh": "但不是太大問題。"
+    },
+    {
+      "start": 606.96,
+      "end": 607.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 607.28,
+      "end": 615.08,
+      "en": "And then anyway, the point that I wanted to demonstrate here is that the sparsity in a in a data set",
+      "zh": "總之，想示範的是，一份資料集中的稀疏性，"
+    },
+    {
+      "start": 615.12,
+      "end": 619.52,
+      "en": "is not necessarily a parameter that is intrinsic to the data set.",
+      "zh": "不一定是資料集內在的參數，"
+    },
+    {
+      "start": 619.68,
+      "end": 626.56,
+      "en": "It is a parameter or a result that can vary depending on the parameter that you set.",
+      "zh": "而是會根據設定的參數，改變的結果。"
+    },
+    {
+      "start": 626.84,
+      "end": 630.4,
+      "en": "Now it does look like it's kind of stabilizes around here.",
+      "zh": "看起來大概在這裡穩定，"
+    },
+    {
+      "start": 630.6,
+      "end": 637.36,
+      "en": "And if you like, you can continue setting this c parameter a little bit higher to see if this really stabilizes here.",
+      "zh": "想的話，可以繼續提高 C，看看是否真的穩定。"
+    },
+    {
+      "start": 637.52,
+      "end": 641.36,
+      "en": "Of course it's ultimately going to be there's a floor of zero.",
+      "zh": "當然，最後有零這個下限，"
+    },
+    {
+      "start": 641.36,
+      "end": 643.2,
+      "en": "You can't get sparsity less than zero.",
+      "zh": "稀疏性不能小於零。"
+    },
+    {
+      "start": 644.2,
+      "end": 644.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 645.12,
+      "end": 652.4,
+      "en": "So this does present one of the challenges of doing sparse regression or L1 regression.",
+      "zh": "這就是稀疏迴歸、L1 迴歸的一項挑戰，"
+    },
+    {
+      "start": 652.56,
+      "end": 657.48,
+      "en": "Because yeah you have to pick a parameter of C or equivalently lambda.",
+      "zh": "因為必須挑選 C，或等價的 lambda，"
+    },
+    {
+      "start": 657.76,
+      "end": 665.57,
+      "en": "And the value that you pick will have a impact on the sparsity or the density that you get in your result.",
+      "zh": "選的數值，會影響結果的稀疏性或密度。"
+    },
+    {
+      "start": 665.97,
+      "end": 666.25,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 666.29,
+      "end": 669.17,
+      "en": "So here you can see I'm increasing the max iteration.",
+      "zh": "這裡可以看到，提高 max iteration。"
+    },
+    {
+      "start": 669.17,
+      "end": 671.89,
+      "en": "So now I just set C equals three.",
+      "zh": "現在直接設 C=3，"
+    },
+    {
+      "start": 671.93,
+      "end": 674.81,
+      "en": "It's kind of an arbitrary number I just picked it.",
+      "zh": "有點任意，隨便挑的，"
+    },
+    {
+      "start": 674.85,
+      "end": 677.09,
+      "en": "Yeah pretty arbitrarily okay.",
+      "zh": "對，相當任意。"
+    },
+    {
+      "start": 677.13,
+      "end": 680.21,
+      "en": "And then yeah I'm also running through the model.",
+      "zh": "接著也執行模型。"
+    },
+    {
+      "start": 680.45,
+      "end": 690.25,
+      "en": "And let's see in this case I'm actually not using a separate train and test set like I did with the previous, uh, in the previous video.",
+      "zh": "這裡其實不像上一支影片，沒有分開訓練集與測試集。"
+    },
+    {
+      "start": 690.33,
+      "end": 693.05,
+      "en": "That's generally always a good idea here.",
+      "zh": "一般而言，分開總是好做法。"
+    },
+    {
+      "start": 693.05,
+      "end": 698.69,
+      "en": "It doesn't matter, because I just want to focus on some other aspects of the logistic regression,",
+      "zh": "但這裡不重要，因為只想專注邏輯斯迴歸的其他面向，"
+    },
+    {
+      "start": 698.89,
+      "end": 706.77,
+      "en": "in particular interpreting the small beta values that can be negative in large data sets.",
+      "zh": "尤其大型資料集中，可能為負的小 beta 值如何解讀。"
+    },
+    {
+      "start": 707.89,
+      "end": 708.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 708.21,
+      "end": 711.37,
+      "en": "So we get an accuracy of 100%.",
+      "zh": "準確率是 100%，"
+    },
+    {
+      "start": 711.41,
+      "end": 716.25,
+      "en": "So I could actually multiply this by 100 if you want to see it in percent.",
+      "zh": "如果想看百分比，可以乘以 100。"
+    },
+    {
+      "start": 716.25,
+      "end": 719.85,
+      "en": "Let me comment this and just print this out again.",
+      "zh": "讓我把這裡註解掉，再列印一次。"
+    },
+    {
+      "start": 719.85,
+      "end": 722.62,
+      "en": "So uh so the accuracy is very high.",
+      "zh": "所以準確率很高，"
+    },
+    {
+      "start": 722.66,
+      "end": 724.98,
+      "en": "Sparsity is around 36%.",
+      "zh": "稀疏性大約 36%。"
+    },
+    {
+      "start": 725.18,
+      "end": 731.22,
+      "en": "And yeah here I just wanted to show the actual number of iterations.",
+      "zh": "這裡只想展示實際反覆次數。"
+    },
+    {
+      "start": 731.22,
+      "end": 735.98,
+      "en": "So I said uh maximum number of iterations is 1000.",
+      "zh": "我設定最大次數為 1,000，"
+    },
+    {
+      "start": 736.02,
+      "end": 739.86,
+      "en": "That doesn't necessarily mean the model will run a thousand iterations.",
+      "zh": "不表示模型一定執行 1,000 次，"
+    },
+    {
+      "start": 739.86,
+      "end": 751.26,
+      "en": "That means that the model will stop running through gradient descent once it gets to either a good solution that it's happy with, or a maximum of 1000 iterations.",
+      "zh": "而是在梯度下降找到滿意的好解，或達到最多 1,000 次時停止。"
+    },
+    {
+      "start": 751.62,
+      "end": 754.82,
+      "en": "And in this case, it did actually stop at 1000.",
+      "zh": "這次確實在 1,000 次停止。"
+    },
+    {
+      "start": 755.18,
+      "end": 761.78,
+      "en": "Something that I forgot to mention in the previous video is that when I showed the equation in the slides",
+      "zh": "上一支影片忘了提，投影片展示的方程式中，"
+    },
+    {
+      "start": 761.78,
+      "end": 771.22,
+      "en": "of the previous video, uh, the equation was, uh, you know, there was the beta zero term, which is the intercept, and then there's beta one through beta k.",
+      "zh": "有 beta 零，也就是截距，再有 beta 一到 beta k。"
+    },
+    {
+      "start": 771.74,
+      "end": 778.06,
+      "en": "So beta one through beta k are the coefficients for each variable or in our case each neuron.",
+      "zh": "beta 一到 k，是每個變數、這裡每個神經元的係數。"
+    },
+    {
+      "start": 779.02,
+      "end": 783.27,
+      "en": "But that means that there should be the number of beta values.",
+      "zh": "但這表示 beta 值的數量，"
+    },
+    {
+      "start": 783.27,
+      "end": 788.83,
+      "en": "So the number of coefficients that should correspond to the number of neurons plus one.",
+      "zh": "也就是係數數量，應對應神經元數加 1。"
+    },
+    {
+      "start": 789.35,
+      "end": 795.51,
+      "en": "However, when you look at the size of the coefficients, you only get the number of neurons.",
+      "zh": "可是查看係數大小，只得到神經元數量。"
+    },
+    {
+      "start": 795.51,
+      "end": 796.79,
+      "en": "So where is the intercept term?",
+      "zh": "截距項在哪裡？"
+    },
+    {
+      "start": 796.79,
+      "end": 798.35,
+      "en": "Where is the beta zero term?",
+      "zh": "beta 零在哪裡？"
+    },
+    {
+      "start": 798.83,
+      "end": 808.95,
+      "en": "It turns out that the scikit learn logistic regression function does not store the beta value with the rest of the coefficients.",
+      "zh": "原來 scikit-learn 的邏輯斯迴歸，不會將這個 beta 與其他係數放在一起，"
+    },
+    {
+      "start": 808.99,
+      "end": 812.11,
+      "en": "It stores it separately in large reg.",
+      "zh": "而是獨立存於 log reg。"
+    },
+    {
+      "start": 812.11,
+      "end": 818.51,
+      "en": "I can show you that that is just the object variable name that I had for this logistic regression.",
+      "zh": "可以展示，那只是這個邏輯斯迴歸物件的變數名稱。"
+    },
+    {
+      "start": 818.83,
+      "end": 821.39,
+      "en": "So log reg dot intercept.",
+      "zh": "所以是 log reg 的 intercept。"
+    },
+    {
+      "start": 821.39,
+      "end": 824.07,
+      "en": "And that is one number that is beta zero.",
+      "zh": "這是一個數字，就是 beta 零。"
+    },
+    {
+      "start": 824.07,
+      "end": 826.95,
+      "en": "And these are betas one through k.",
+      "zh": "這些則是 beta 一到 k。"
+    },
+    {
+      "start": 827.11,
+      "end": 830.03,
+      "en": "So I forgot to mention that in the previous video.",
+      "zh": "上一支影片忘記提，"
+    },
+    {
+      "start": 830.03,
+      "end": 832.03,
+      "en": "So now you get that information here.",
+      "zh": "現在補上。"
+    },
+    {
+      "start": 832.59,
+      "end": 832.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 832.99,
+      "end": 840.35,
+      "en": "So now uh yeah I want to look at uh where we get these, uh, zero value beta coefficients from.",
+      "zh": "現在想看，這些零 beta 係數從哪裡來。"
+    },
+    {
+      "start": 840.63,
+      "end": 848,
+      "en": "So the question is, why does the model set a given neurons coefficient to zero and not a different neuron?",
+      "zh": "問題是，模型為什麼把某個神經元的係數設為零，而不是另一個？"
+    },
+    {
+      "start": 848.32,
+      "end": 851.16,
+      "en": "So you might think that it has to do with the effect size.",
+      "zh": "也許覺得與效果量有關，"
+    },
+    {
+      "start": 851.32,
+      "end": 861.08,
+      "en": "For example, if a neuron just doesn't differentiate between the two categories, then it makes sense that its beta value should get pushed to zero.",
+      "zh": "例如，如果神經元根本無法區分兩類，beta 被推到零就合理。"
+    },
+    {
+      "start": 861.72,
+      "end": 864.28,
+      "en": "That can happen if you're working with data.",
+      "zh": "使用某些資料時，確實可能如此，"
+    },
+    {
+      "start": 864.28,
+      "end": 873.2,
+      "en": "Where there is, there are neurons that have some predictability and other neurons that have really no predictability in terms of the category label.",
+      "zh": "其中某些神經元能預測類別標籤，其他卻完全沒有可預測性。"
+    },
+    {
+      "start": 873.68,
+      "end": 876.12,
+      "en": "But that's not necessarily what happens.",
+      "zh": "但不一定是這樣。"
+    },
+    {
+      "start": 876.12,
+      "end": 880.72,
+      "en": "So this is the image that you saw in the slides.",
+      "zh": "這是投影片看過的圖。"
+    },
+    {
+      "start": 880.72,
+      "end": 886.44,
+      "en": "And basically what you see here is all of these circles here, these red circles, these correspond",
+      "zh": "這些圓點、這些紅色圓點，對應"
+    },
+    {
+      "start": 886.44,
+      "end": 895.28,
+      "en": "to the neurons that had their beta coefficients switched to zero resulting from the L1 regularization.",
+      "zh": "因 L1 正規化，而將 beta 係數變為零的神經元。"
+    },
+    {
+      "start": 895.64,
+      "end": 902.6,
+      "en": "And the fact that these are broadly distributed across the y axis, across basically the entire range",
+      "zh": "它們廣泛分布在 y 軸，基本上涵蓋全部效果量"
+    },
+    {
+      "start": 902.8,
+      "end": 908.32,
+      "en": "of effect size tells you that this is unrelated to the effect size.",
+      "zh": "範圍，表示與效果量無關。"
+    },
+    {
+      "start": 908.32,
+      "end": 918.4,
+      "en": "It is not the case that the neurons with the smallest effect size, or the smallest ability to differentiate the two labels get a zero valued coefficient.",
+      "zh": "不是效果量最小、最無法區分兩種標籤的神經元，才得到零係數。"
+    },
+    {
+      "start": 919.36,
+      "end": 922.28,
+      "en": "So now let me just briefly tell you about this Cohen's d.",
+      "zh": "現在簡短介紹 Cohen's d。"
+    },
+    {
+      "start": 922.72,
+      "end": 929.12,
+      "en": "It is defined as the average of one category minus the average of the other category.",
+      "zh": "定義是，一類的平均減去另一類的平均，"
+    },
+    {
+      "start": 929.4,
+      "end": 930.68,
+      "en": "That's in the numerator.",
+      "zh": "放在分子。"
+    },
+    {
+      "start": 930.96,
+      "end": 936.28,
+      "en": "And in the denominator is the pooled standard deviations across all the categories.",
+      "zh": "分母則是各類別合併的標準差，"
+    },
+    {
+      "start": 936.44,
+      "end": 940.8,
+      "en": "So standard deviation for category one standard deviation for category two.",
+      "zh": "類別一的標準差、類別二的標準差，"
+    },
+    {
+      "start": 941.16,
+      "end": 942.12,
+      "en": "Add those together.",
+      "zh": "相加，"
+    },
+    {
+      "start": 942.16,
+      "end": 943.16,
+      "en": "Divide by two.",
+      "zh": "除以 2。"
+    },
+    {
+      "start": 943.4,
+      "end": 946.32,
+      "en": "And then Cohen's d is literally just the ratio of that.",
+      "zh": "Cohen's d 就是兩者的比值。"
+    },
+    {
+      "start": 946.36,
+      "end": 951.44,
+      "en": "By the way this is a different Cohen from me different guy different family.",
+      "zh": "順帶一提，這是另一位 Cohen，與我不同人、不同家族，"
+    },
+    {
+      "start": 951.8,
+      "end": 953.88,
+      "en": "But he has a good name okay.",
+      "zh": "但他的名字不錯。"
+    },
+    {
+      "start": 953.92,
+      "end": 956.2,
+      "en": "And what does this mean visually.",
+      "zh": "從圖上，直觀上代表什麼？"
+    },
+    {
+      "start": 956.2,
+      "end": 964.37,
+      "en": "Intuitively Cohen's d is basically just the separability of these two distributions for the two different categories.",
+      "zh": "Cohen's d 基本上就是兩類分布的可分離程度。"
+    },
+    {
+      "start": 964.37,
+      "end": 968.69,
+      "en": "So the numerator is this average minus this average.",
+      "zh": "分子是這個平均減那個平均，"
+    },
+    {
+      "start": 968.89,
+      "end": 972.21,
+      "en": "And the denominator is this width plus this width.",
+      "zh": "分母是這個寬度加那個寬度，"
+    },
+    {
+      "start": 972.29,
+      "end": 973.69,
+      "en": "And then divided by two.",
+      "zh": "再除以 2。"
+    },
+    {
+      "start": 973.97,
+      "end": 980.05,
+      "en": "So you can think of Cohen's d as how separable these two distributions are from each other.",
+      "zh": "所以可以把 Cohen's d，想成兩個分布彼此多容易分離。"
+    },
+    {
+      "start": 980.33,
+      "end": 990.69,
+      "en": "So that means that when Cohen's d is small when it's close to zero then the neuron is really not differentiating between the two categories okay.",
+      "zh": "因此，Cohen's d 小、接近零時，神經元確實無法區分兩類。"
+    },
+    {
+      "start": 990.73,
+      "end": 1000.29,
+      "en": "So the point here is that even neurons with very large effect sizes can still have their betas switched to zero.",
+      "zh": "這裡重點是，即使神經元效果量非常大，beta 仍可能被設為零。"
+    },
+    {
+      "start": 1000.53,
+      "end": 1001.85,
+      "en": "So what is going on here?",
+      "zh": "究竟怎麼回事？"
+    },
+    {
+      "start": 1001.93,
+      "end": 1005.97,
+      "en": "So what I do to explore this a bit further is find the neuron.",
+      "zh": "為了進一步探索，找出那個神經元，"
+    },
+    {
+      "start": 1005.97,
+      "end": 1009.77,
+      "en": "Find the variable that has the smallest beta coefficient.",
+      "zh": "也就是 beta 係數最小的變數，"
+    },
+    {
+      "start": 1009.77,
+      "end": 1011.05,
+      "en": "Looks like it'll be this one.",
+      "zh": "看來是這個，"
+    },
+    {
+      "start": 1011.77,
+      "end": 1014.97,
+      "en": "And the largest beta coefficient which looks like it will be this one.",
+      "zh": "還有 beta 最大的，看來是這個，"
+    },
+    {
+      "start": 1015.49,
+      "end": 1018.17,
+      "en": "And then I plot their histograms.",
+      "zh": "再畫出它們的直方圖。"
+    },
+    {
+      "start": 1018.17,
+      "end": 1019.21,
+      "en": "And that you see here.",
+      "zh": "這裡就能看到。"
+    },
+    {
+      "start": 1019.57,
+      "end": 1022.54,
+      "en": "So this is the question I posed in the slides.",
+      "zh": "這就是投影片提出的問題。"
+    },
+    {
+      "start": 1022.54,
+      "end": 1027.38,
+      "en": "How is it possible that you get a negative regression coefficient?",
+      "zh": "為什麼可能得到負的迴歸係數，"
+    },
+    {
+      "start": 1027.54,
+      "end": 1031.38,
+      "en": "Although the direction of the effect is positive right.",
+      "zh": "即使效果方向是正的，對吧？"
+    },
+    {
+      "start": 1031.42,
+      "end": 1034.86,
+      "en": "So we have label one is greater than label zero.",
+      "zh": "標籤 1 高於標籤 0，"
+    },
+    {
+      "start": 1034.86,
+      "end": 1037.66,
+      "en": "And yet the beta term is negative.",
+      "zh": "beta 卻為負。"
+    },
+    {
+      "start": 1039.06,
+      "end": 1042.46,
+      "en": "Well let's see what happens when we run another regression.",
+      "zh": "看看再做一次迴歸會如何。"
+    },
+    {
+      "start": 1042.66,
+      "end": 1047.5,
+      "en": "So now I'm doing the same regression as I did above.",
+      "zh": "與上面是相同迴歸，"
+    },
+    {
+      "start": 1047.54,
+      "end": 1050.86,
+      "en": "Except now there's no L1 regularization.",
+      "zh": "只是這次沒有 L1 正規化。"
+    },
+    {
+      "start": 1051.02,
+      "end": 1054.1,
+      "en": "And the data are just I call this extreme data.",
+      "zh": "資料，我稱為 extreme data，"
+    },
+    {
+      "start": 1054.18,
+      "end": 1058.78,
+      "en": "These data are just from these two variables, these two neurons.",
+      "zh": "只來自這兩個變數、兩個神經元。"
+    },
+    {
+      "start": 1059.1,
+      "end": 1064.38,
+      "en": "And now we see that there are both positive and they are both fairly large.",
+      "zh": "現在看到，兩者都為正，而且相當大，"
+    },
+    {
+      "start": 1064.38,
+      "end": 1065.38,
+      "en": "So much larger.",
+      "zh": "大得多。"
+    },
+    {
+      "start": 1065.38,
+      "end": 1070.3,
+      "en": "These beta values are orders of magnitude larger than they are here.",
+      "zh": "beta 比這裡大好幾個數量級。"
+    },
+    {
+      "start": 1070.62,
+      "end": 1070.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1070.98,
+      "end": 1072.58,
+      "en": "So what is going on here.",
+      "zh": "究竟怎麼回事？"
+    },
+    {
+      "start": 1073.1,
+      "end": 1083.79,
+      "en": "The thing to keep in mind is that a logistic regression with lots of variables is not trying to predict the importance of each individual variable.",
+      "zh": "要記住，有很多變數的邏輯斯迴歸，不是在預測每個個別變數的重要性，"
+    },
+    {
+      "start": 1083.99,
+      "end": 1092.75,
+      "en": "Instead, it is trying to gather all of the data unmasked so all the aggregated data, and try to predict the label.",
+      "zh": "而是彙集全部資料，整體資料，再試著預測標籤。"
+    },
+    {
+      "start": 1092.75,
+      "end": 1097.43,
+      "en": "So it's not about the neurons, it's not about the variables, it's about the labels.",
+      "zh": "所以重點不是神經元、不是變數，而是標籤。"
+    },
+    {
+      "start": 1097.55,
+      "end": 1101.55,
+      "en": "And so basically the regression looks at all of these data.",
+      "zh": "基本上，迴歸看這些資料，"
+    },
+    {
+      "start": 1101.67,
+      "end": 1102.83,
+      "en": "And it says you know what.",
+      "zh": "它說，你知道嗎，"
+    },
+    {
+      "start": 1102.83,
+      "end": 1105.15,
+      "en": "This is way too much for me to deal with.",
+      "zh": "這對我而言太多了，"
+    },
+    {
+      "start": 1105.39,
+      "end": 1108.43,
+      "en": "I do not actually need all of these data.",
+      "zh": "不需要全部資料，"
+    },
+    {
+      "start": 1108.59,
+      "end": 1115.99,
+      "en": "So I'm going to ignore half of the data because yeah, half of the data is not contributing anything.",
+      "zh": "所以忽略一半，因為一半資料沒有貢獻任何東西。"
+    },
+    {
+      "start": 1116.11,
+      "end": 1118.67,
+      "en": "So it kind of balances out the full data set.",
+      "zh": "因此某種程度上，平衡整份資料集，"
+    },
+    {
+      "start": 1118.67,
+      "end": 1124.03,
+      "en": "So half the data get weighed negatively, half the data roughly get weighed positively.",
+      "zh": "大約一半資料給負權重，一半給正權重。"
+    },
+    {
+      "start": 1124.35,
+      "end": 1134.15,
+      "en": "And the net result is that the model can still make really accurate predictions of the labels, just because it has so much data from so many variables.",
+      "zh": "最終，模型仍能很準確地預測標籤，因為變數太多、資料太多，"
+    },
+    {
+      "start": 1134.15,
+      "end": 1138.95,
+      "en": "There's so much information that a lot of it has to be balanced and suppressed.",
+      "zh": "資訊太多，需要平衡、抑制很多內容。"
+    },
+    {
+      "start": 1139.27,
+      "end": 1142.8,
+      "en": "And that's what happens with gradient descent basically.",
+      "zh": "這基本上就是梯度下降發生的事情。"
+    },
+    {
+      "start": 1144.08,
+      "end": 1144.56,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1144.6,
+      "end": 1145.84,
+      "en": "So yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1145.84,
+      "end": 1149.92,
+      "en": "So then the last thing I want to show is, uh, not the last thing.",
+      "zh": "最後想展示，還不是最後，"
+    },
+    {
+      "start": 1149.92,
+      "end": 1151.8,
+      "en": "This is further expanding on this.",
+      "zh": "只是繼續延伸。"
+    },
+    {
+      "start": 1151.8,
+      "end": 1156.44,
+      "en": "So here I'm showing the correlation between these two, uh, neurons.",
+      "zh": "這裡顯示兩個神經元之間的相關，"
+    },
+    {
+      "start": 1156.44,
+      "end": 1163.84,
+      "en": "So the smallest beta value and the largest beta value here you can see that they are on mass strongly",
+      "zh": "最小 beta 與最大 beta。可以看到，它們整體高度"
+    },
+    {
+      "start": 1163.84,
+      "end": 1174.6,
+      "en": "correlated with each other because each one shows a significant difference, uh, a really large effect size, a difference between category one and category two.",
+      "zh": "相關，因為每個都顯示類別一與類別二的顯著差異、非常大的效果量。"
+    },
+    {
+      "start": 1175.12,
+      "end": 1183.04,
+      "en": "So when you would correlate across these two neurons, you actually get a really strong positive correlation that would look like this.",
+      "zh": "所以對兩個神經元計算相關，會得到很強正相關，像這樣。"
+    },
+    {
+      "start": 1183.04,
+      "end": 1189.64,
+      "en": "Although if you would, you know, ignore all of these data, then these neurons are uncorrelated with each other.",
+      "zh": "但如果忽略這些資料，神經元彼此不相關；"
+    },
+    {
+      "start": 1189.64,
+      "end": 1193.92,
+      "en": "And if you ignore these data, then the neurons are uncorrelated with each other.",
+      "zh": "忽略另一組資料，也不相關。"
+    },
+    {
+      "start": 1193.92,
+      "end": 1194.4,
+      "en": "Here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 1194.8,
+      "end": 1206.65,
+      "en": "This is related to something called Simpson's paradox or the subgroups correlation paradox, which I've mentioned earlier in this course, and you may have learned about Simpson's paradox in another statistics",
+      "zh": "與辛普森悖論，或子群組相關悖論有關，課程前面提過，也可能在其他統計"
+    },
+    {
+      "start": 1206.65,
+      "end": 1207.93,
+      "en": "or machine learning course.",
+      "zh": "或機器學習課學過。"
+    },
+    {
+      "start": 1208.21,
+      "end": 1215.69,
+      "en": "But basically, when the logistic regression model sees these data all together pooled together, then",
+      "zh": "但基本上，邏輯斯迴歸將資料合併、一起看時，"
+    },
+    {
+      "start": 1216.21,
+      "end": 1224.45,
+      "en": "their collective effect is that they provide a lot of redundant information about the label.",
+      "zh": "整體效果，是提供大量關於標籤的冗餘資訊，"
+    },
+    {
+      "start": 1224.45,
+      "end": 1227.33,
+      "en": "So therefore the model doesn't really need both of them.",
+      "zh": "所以模型不太需要兩者，"
+    },
+    {
+      "start": 1227.33,
+      "end": 1229.25,
+      "en": "So it's going to suppress one of them.",
+      "zh": "就抑制其中一個，"
+    },
+    {
+      "start": 1229.45,
+      "end": 1234.49,
+      "en": "And at the limit of suppression it turns it into a zero coefficient.",
+      "zh": "抑制到極限，就變成零係數。"
+    },
+    {
+      "start": 1235.13,
+      "end": 1235.49,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1235.53,
+      "end": 1236.41,
+      "en": "So yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1236.45,
+      "end": 1242.49,
+      "en": "Then I did another little exploration here where I looked at the variance of the data.",
+      "zh": "接著也做了一點探索，查看資料變異數。"
+    },
+    {
+      "start": 1242.49,
+      "end": 1251.53,
+      "en": "So what I'm doing here is calculating the variance of the data for the neurons with non-zero coefficients",
+      "zh": "這裡計算非零係數神經元的資料變異數，"
+    },
+    {
+      "start": 1251.53,
+      "end": 1253.97,
+      "en": "in blue and zero coefficients in red.",
+      "zh": "畫成藍色；零係數則是紅色。"
+    },
+    {
+      "start": 1254.09,
+      "end": 1263.29,
+      "en": "This is basically the same analysis as the Cohen's d effect size plot that I showed above, Of uh, but yeah, with variants instead.",
+      "zh": "基本上與上面 Cohen's d 效果量圖相同，只是換成變異數。"
+    },
+    {
+      "start": 1263.33,
+      "end": 1270.77,
+      "en": "So you do see, there is in general a strong relationship between the variability in a neuron and the beta coefficient.",
+      "zh": "所以一般而言，神經元的變異程度，與 beta 係數有很強關係，"
+    },
+    {
+      "start": 1270.77,
+      "end": 1275.93,
+      "en": "But that doesn't explain why the neurons here get switched to zero.",
+      "zh": "但無法解釋，為什麼這裡的神經元變成零。"
+    },
+    {
+      "start": 1276.05,
+      "end": 1281.05,
+      "en": "It does help us understand why some of the neurons get negative beta coefficients.",
+      "zh": "確實有助於理解，為什麼一些神經元得到負 beta，"
+    },
+    {
+      "start": 1281.09,
+      "end": 1283.49,
+      "en": "Basically they are less variable.",
+      "zh": "基本上，它們變異比較少，"
+    },
+    {
+      "start": 1283.49,
+      "end": 1286.93,
+      "en": "So they're contributing less to the global information.",
+      "zh": "對整體資訊的貢獻比較少，"
+    },
+    {
+      "start": 1287.05,
+      "end": 1294.41,
+      "en": "And so therefore the model just decides to suppress them and ignore them by giving a negative beta value.",
+      "zh": "所以模型決定給負 beta，抑制、忽略它們。"
+    },
+    {
+      "start": 1294.93,
+      "end": 1303.85,
+      "en": "Uh, here I also wanted to show some correlations to show that the distribution of correlations across the different neurons is basically identical.",
+      "zh": "這裡也想展示一些相關，說明不同神經元之間的相關分布，基本上完全相同，"
+    },
+    {
+      "start": 1303.97,
+      "end": 1308.25,
+      "en": "It doesn't matter whether the beta coefficients are zero or non-zero.",
+      "zh": "不論 beta 係數為零或非零。"
+    },
+    {
+      "start": 1308.65,
+      "end": 1316.41,
+      "en": "The reason why this should not be surprising is that I generated these data as completely random numbers.",
+      "zh": "不應意外，因為資料是完全隨機數產生的。"
+    },
+    {
+      "start": 1317.49,
+      "end": 1324.82,
+      "en": "I hope you are not dissuaded from using logistic regression for LMS and circuit based analyses.",
+      "zh": "希望你不會因此放棄，用邏輯斯迴歸研究 LLM 與迴路。"
+    },
+    {
+      "start": 1325.38,
+      "end": 1333.86,
+      "en": "This method is quite powerful and can be quite insightful, but it is tricky when you're working with very large data sets.",
+      "zh": "方法相當有力、能帶來見解，但資料集很大時，很棘手。"
+    },
+    {
+      "start": 1333.9,
+      "end": 1340.26,
+      "en": "You just have to make sure you're using and interpreting the regression in an appropriate way, and",
+      "zh": "只要確保以適當方式使用、解讀迴歸，"
+    },
+    {
+      "start": 1340.26,
+      "end": 1347.58,
+      "en": "keeping in mind that the goal of the logistic regression is to predict the label, and not necessarily",
+      "zh": "記得邏輯斯迴歸的目標，是預測標籤，不一定"
+    },
+    {
+      "start": 1347.58,
+      "end": 1353.1,
+      "en": "to facilitate meaningful inferences about individual beta coefficients.",
+      "zh": "是方便對個別 beta 係數做有意義的推論。"
+    },
+    {
+      "start": 1353.78,
+      "end": 1362.46,
+      "en": "It's also generally a good idea, when possible, to have a smaller number of variables, so a smaller number of neurons in the analysis.",
+      "zh": "一般而言，可能的話，分析中變數、神經元少一點，也是好主意。"
+    },
+    {
+      "start": 1362.7,
+      "end": 1371.22,
+      "en": "For example, you could select neurons based on exhibiting some other statistical properties or their relation to token features.",
+      "zh": "例如，根據其他統計性質，或與 token 特徵的關係，挑選神經元。"
+    },
+    {
+      "start": 1372.02,
+      "end": 1380.42,
+      "en": "On the other hand, data selection also leads to its own can of worms and potential for biases or misspecifications.",
+      "zh": "另一方面，資料選擇也會帶來自己的麻煩，以及偏誤或模型設定錯誤的可能。"
+    }
+  ]
+}

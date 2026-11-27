@@ -1,0 +1,409 @@
+{
+  "courseId": "4734870",
+  "lectureId": "37745240",
+  "title": "Preparing Training and Testing Loops with Timing Steps for PyTorch 2.0 timing",
+  "section": 12,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "393c9d0a9c160f4089d3219d2cc93358f2f27b2eb4ebc025dd49dc7f4dd9d35c",
+  "cues": [
+    {
+      "start": 0.2,
+      "end": 1.4,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 1.43,
+      "end": 2.26,
+      "en": "How'd you go?",
+      "zh": "做得如何？"
+    },
+    {
+      "start": 2.27,
+      "end": 8.06,
+      "en": "Did you create some training and testing loops and maybe even added the functionality to time, the training and test step?",
+      "zh": "有建立訓練與測試迴圈，甚至加入計算 train_step 和 test_step 耗時的功能嗎？"
+    },
+    {
+      "start": 8.06,
+      "end": 9.38,
+      "en": "So let's just write this down.",
+      "zh": "寫下來。"
+    },
+    {
+      "start": 9.38,
+      "end": 24.47,
+      "en": "So one, two, create training and test loops, plus a timing step for each so we know how long our",
+      "zh": "建立訓練與測試迴圈，並各自加入計時，知道"
+    },
+    {
+      "start": 24.47,
+      "end": 27.77,
+      "en": "models take to train slash test.",
+      "zh": "模型訓練與測試要多久。"
+    },
+    {
+      "start": 27.92,
+      "end": 29.15,
+      "en": "That's all we're after.",
+      "zh": "我們只想取得這些資訊。"
+    },
+    {
+      "start": 29.15,
+      "end": 33.23,
+      "en": "So if we jump into here, we go into going modular.",
+      "zh": "到這裡，進模組化章節。"
+    },
+    {
+      "start": 33.65,
+      "end": 42.68,
+      "en": "I'm going to just put a link here, so I'm going to be a bit cheeky in this video, actually break our rule of not copying code.",
+      "zh": "我放個連結。其實這段影片要稍微偷懶，打破不複製程式的規則。"
+    },
+    {
+      "start": 42.68,
+      "end": 48.83,
+      "en": "So we covered this functionality in previous videos in previous sections.",
+      "zh": "前面幾節的影片已經介紹過這個功能。"
+    },
+    {
+      "start": 49.46,
+      "end": 53.24,
+      "en": "One is here of how to do it.",
+      "zh": "其中一個做法在這裡。"
+    },
+    {
+      "start": 53.69,
+      "end": 60.29,
+      "en": "And you remember the song of course, for training a PyTorch model and call model dot train calculate",
+      "zh": "當然還記得那首歌，訓練 PyTorch 模型，先呼叫 model.train，計算，"
+    },
+    {
+      "start": 60.39,
+      "end": 67.59,
+      "en": "the loss, do the forward pass, calculate the loss optimizer zero grad loss backwards optimizer.",
+      "zh": "先做前向傳播，計算損失，optimizer.zero_grad，loss.backward，optimizer."
+    },
+    {
+      "start": 67.59,
+      "end": 69.51,
+      "en": "Step, step, step.",
+      "zh": "step、step、step。"
+    },
+    {
+      "start": 70.44,
+      "end": 72.6,
+      "en": "So that's the PyTorch training loop song.",
+      "zh": "這就是 PyTorch 訓練迴圈之歌。"
+    },
+    {
+      "start": 72.6,
+      "end": 74.1,
+      "en": "But we're not doing that.",
+      "zh": "不過，我們現在不重做那一段。"
+    },
+    {
+      "start": 74.1,
+      "end": 75.49,
+      "en": "We're doing 2.0.",
+      "zh": "正在介紹 2.0。"
+    },
+    {
+      "start": 75.51,
+      "end": 77.76,
+      "en": "So let's go down to 2.7.",
+      "zh": "到 2.7。"
+    },
+    {
+      "start": 77.76,
+      "end": 79.41,
+      "en": "I'm going to show you what I did.",
+      "zh": "給你看我做了什麼。"
+    },
+    {
+      "start": 79.41,
+      "end": 81.39,
+      "en": "So copy this.",
+      "zh": "複製這段。"
+    },
+    {
+      "start": 81.66,
+      "end": 83.22,
+      "en": "Now this is in 2.7.",
+      "zh": "這在 2.7。"
+    },
+    {
+      "start": 83.4,
+      "end": 85.83,
+      "en": "So again, breaking the rule here.",
+      "zh": "所以，再次打破規則。"
+    },
+    {
+      "start": 85.83,
+      "end": 88.05,
+      "en": "But the reason is because there's a few changes.",
+      "zh": "原因是只有幾項改變。"
+    },
+    {
+      "start": 88.05,
+      "end": 96.21000000000001,
+      "en": "And rather than write out all this code, which we have covered before, I want to just show you the changes and then you can go through and make sure they make sense.",
+      "zh": "與其重寫以前介紹過的全部程式，我只展示修改，再讓你逐步確認是否理解。"
+    },
+    {
+      "start": 96.47999999999999,
+      "end": 105.27000000000001,
+      "en": "And another thing to note actually while we're here is when experimenting with PyTorch 2.0 is that I ran into issues with inference mode.",
+      "zh": "另外，趁現在補充，實驗 PyTorch 2.0 時，我遇到 inference_mode 相關問題。"
+    },
+    {
+      "start": 105.45,
+      "end": 108.63,
+      "en": "I had to use Torch No grad in the testing loop.",
+      "zh": "所以，測試迴圈必須使用 torch.no_grad。"
+    },
+    {
+      "start": 108.87,
+      "end": 115.53,
+      "en": "So if you find out that you can use inference mode because PyTorch 2.0 is being upgraded, I'd love to know.",
+      "zh": "如果你發現 inference_mode 能用了，因為 PyTorch 2.0 持續更新，我很想知道。"
+    },
+    {
+      "start": 115.53,
+      "end": 124.98,
+      "en": "So please let me know on GitHub in the discussions or issues or something like that and I'll update this notebook to use inference mode.",
+      "zh": "請到 GitHub Discussions 或 Issues 告訴我，我會更新 Notebook，改用 inference_mode。"
+    },
+    {
+      "start": 124.98,
+      "end": 133.17,
+      "en": "But anyway, so if you're watching this in the future in inference mode works, it's because there was an update to PyTorch 2.0, but I'm going to copy all that code there.",
+      "zh": "所以，如果未來看影片時 inference_mode 能正常使用，是因為 PyTorch 2.0 有更新。我把整段程式複製進來。"
+    },
+    {
+      "start": 133.17,
+      "end": 138.96,
+      "en": "Well, a lot of code, but there is only a couple of changes here and they're very subtle.",
+      "zh": "程式很多，但只有幾個很細微的變更。"
+    },
+    {
+      "start": 138.96,
+      "end": 144.42000000000002,
+      "en": "So what we've done here is added this is in the training step training step.",
+      "zh": "在這裡，也就是 train_step，"
+    },
+    {
+      "start": 144.46,
+      "end": 153.09,
+      "en": "I've added a little here, a parameter to disable the progress bar, but you'll have that if you reference this material here.",
+      "zh": "我加了一個關閉進度列的參數。不過如果參考這裡的教材，本來就會有。"
+    },
+    {
+      "start": 153.09,
+      "end": 156.78,
+      "en": "So 2.7, if you take it from here, you'll have it all.",
+      "zh": "從 2.7 複製，就全部都有了。"
+    },
+    {
+      "start": 156.78,
+      "end": 159.18,
+      "en": "But the major steps is up here.",
+      "zh": "主要步驟在上面。"
+    },
+    {
+      "start": 159.18,
+      "end": 161.91,
+      "en": "Import a time and then what are we trying to do?",
+      "zh": "匯入計時器。我們想做什麼？"
+    },
+    {
+      "start": 161.94,
+      "end": 163.89,
+      "en": "We're trying to time each step.",
+      "zh": "替每一步計時。"
+    },
+    {
+      "start": 163.89,
+      "end": 168.21,
+      "en": "So let's come down into here and we go to our train function.",
+      "zh": "往下到 train 函式。"
+    },
+    {
+      "start": 168.81,
+      "end": 172.23,
+      "en": "All I did was added a start train epoch time.",
+      "zh": "我只是加上 start_train_epoch_time。"
+    },
+    {
+      "start": 172.38,
+      "end": 175.32,
+      "en": "That's for the training epoch and then a finish.",
+      "zh": "這是訓練週期的開始，再有結束，"
+    },
+    {
+      "start": 175.59,
+      "end": 177.21,
+      "en": "So this is the end time.",
+      "zh": "這是 end_time。"
+    },
+    {
+      "start": 177.3,
+      "end": 187.26,
+      "en": "And then we have the total time, which is just the end minus the start, then the same again for the test, but of course custom to the test epoch.",
+      "zh": "總時間就是結束減開始，測試也是相同做法，但改成測試週期。"
+    },
+    {
+      "start": 187.38,
+      "end": 195.18,
+      "en": "So we time the start, we time the finish and then we calculate the total and then we print out what's happening.",
+      "zh": "記錄開始、記錄結束、計算總時間，再印出結果。"
+    },
+    {
+      "start": 195.87,
+      "end": 198.48,
+      "en": "Train epoch time and the test epoch time.",
+      "zh": "訓練週期時間與測試週期時間。"
+    },
+    {
+      "start": 198.48,
+      "end": 200.25,
+      "en": "So these are two new lines of code.",
+      "zh": "這是新增的兩行程式。"
+    },
+    {
+      "start": 200.4,
+      "end": 204,
+      "en": "And then we also update the results dictionary that gets returned.",
+      "zh": "也更新回傳的 results 字典。"
+    },
+    {
+      "start": 204,
+      "end": 212.19,
+      "en": "So if we look at the original version in going modular, the original version, if we come down to train",
+      "zh": "如果看 going_modular 的原始版本，往下到 train，"
+    },
+    {
+      "start": 212.19,
+      "end": 218.01,
+      "en": "where most of the editions have, all we've done is we've added two lines of code to here, we've added two lines of code to here.",
+      "zh": "大部分修改都在這裡，只是在這裡加兩行，那裡加兩行。"
+    },
+    {
+      "start": 218.01,
+      "end": 228.03,
+      "en": "Now there's a timing section and we've sandwiched the training step with a timing step and we've sandwiched the test step with timing step.",
+      "zh": "現在有計時部分，用開始與結束時間包住 train_step，也包住 test_step。"
+    },
+    {
+      "start": 228.03,
+      "end": 229.98,
+      "en": "So they're the major changes that we've made.",
+      "zh": "這些就是主要修改。"
+    },
+    {
+      "start": 230.28,
+      "end": 241.05,
+      "en": "So with that being said, now that we've got training and test loops ready to go and we've got timing functionality ready to go, you might want to jump ahead again and test it out.",
+      "zh": "現在訓練與測試迴圈、計時功能都準備好，你可以再先往前試。"
+    },
+    {
+      "start": 241.05,
+      "end": 243.71,
+      "en": "So what's the next step to do?",
+      "zh": "接著該做什麼？"
+    },
+    {
+      "start": 243.71,
+      "end": 245.81,
+      "en": "Well, I believe we're up to Section three.",
+      "zh": "我想來到第三部分。"
+    },
+    {
+      "start": 245.84,
+      "end": 252.59,
+      "en": "Let's go time models across a single run and we want experiment.",
+      "zh": "記錄模型單次執行的時間，先做實驗，"
+    },
+    {
+      "start": 253.64,
+      "end": 259.64,
+      "en": "One equals our single run without torch.",
+      "zh": "一，單次執行、不使用 torch."
+    },
+    {
+      "start": 261.65,
+      "end": 268.23,
+      "en": "Torch compile and for five epochs.",
+      "zh": "compile，訓練五個週期。"
+    },
+    {
+      "start": 268.25,
+      "end": 274.11,
+      "en": "So my challenge to you is to use the training loops that we've done without jumping ahead to here.",
+      "zh": "所以，給你的挑戰，是使用目前的訓練迴圈，先別往下偷看。"
+    },
+    {
+      "start": 274.15999999999997,
+      "end": 277.90999999999997,
+      "en": "So if we go to go to our experiments, this is what we want to do.",
+      "zh": "回到實驗表，這就是要做的。"
+    },
+    {
+      "start": 277.94,
+      "end": 278.99,
+      "en": "We've got our model ready.",
+      "zh": "模型準備好了嗎？"
+    },
+    {
+      "start": 278.99,
+      "end": 279.52,
+      "en": "Yes, we do.",
+      "zh": "有。"
+    },
+    {
+      "start": 279.53,
+      "end": 281.38,
+      "en": "We've got our data ready and data loaders.",
+      "zh": "資料與 DataLoader 也好了。"
+    },
+    {
+      "start": 281.39,
+      "end": 283.29,
+      "en": "You'll have to set up five epochs.",
+      "zh": "需要設定五個訓練週期。"
+    },
+    {
+      "start": 283.31,
+      "end": 284.42,
+      "en": "We've got our transform.",
+      "zh": "有轉換操作，"
+    },
+    {
+      "start": 284.42,
+      "end": 287.33,
+      "en": "We've got our batch size without using torch dot compile.",
+      "zh": "有 batch_size，不使用 torch.compile。"
+    },
+    {
+      "start": 287.33,
+      "end": 291.07,
+      "en": "So just we're training and evaluating our model just like we've done in the past.",
+      "zh": "就是像以前那樣，訓練與評估模型。"
+    },
+    {
+      "start": 291.08,
+      "end": 295.31,
+      "en": "So give that a shot and we'll do it together in the next video.",
+      "zh": "試試看，下一段影片一起做。"
+    },
+    {
+      "start": 295.67,
+      "end": 296.78,
+      "en": "I'll see you there.",
+      "zh": "到時見。"
+    }
+  ]
+}

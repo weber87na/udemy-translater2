@@ -1,0 +1,595 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892679",
+  "title": "Activation maximization via gradient ascent (theory)",
+  "section": 18,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "fc15b9d33f3d8f7590889c75f8b6d344e6926174c018130f386a1076e7b8f2cf",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 11.04,
+      "en": "In this and the next few videos, I will introduce you to a concept and procedure called activation maximization.",
+      "zh": "這部與接下來幾部影片，會介紹一個稱為活化最大化的概念與程序。"
+    },
+    {
+      "start": 11.68,
+      "end": 23.48,
+      "en": "The general idea is to use gradient descent to find a human interpretable data pattern that a single neuron in a deep learning network is tuned to.",
+      "zh": "整體概念，是使用梯度下降，找出深度學習網路中某個神經元所調諧、而且人類能解讀的資料模式。"
+    },
+    {
+      "start": 24.16,
+      "end": 27.72,
+      "en": "In this video, I'll give a brief description.",
+      "zh": "這部影片會先簡單描述。"
+    },
+    {
+      "start": 27.72,
+      "end": 35.16,
+      "en": "I'll show some examples from computational vision research, and then I'll discuss the assumptions underlying this method.",
+      "zh": "展示計算視覺研究中的一些例子，再討論方法背後的假設。"
+    },
+    {
+      "start": 35.36,
+      "end": 40.76,
+      "en": "And then in the next few videos we will implement this technique in Python.",
+      "zh": "接下來幾部，會用 Python 實作這個技巧。"
+    },
+    {
+      "start": 40.92,
+      "end": 50,
+      "en": "And we will consider and discuss whether llms actually conform to the assumptions of activation maximization.",
+      "zh": "也會思考、討論 LLM 是否真的符合活化最大化的假設。"
+    },
+    {
+      "start": 50.8,
+      "end": 54.48,
+      "en": "So here is the motivation for this analysis method.",
+      "zh": "這是這個分析方法的動機。"
+    },
+    {
+      "start": 54.6,
+      "end": 57.36,
+      "en": "Imagine this is some deep learning network.",
+      "zh": "想像這是某個深度學習網路。"
+    },
+    {
+      "start": 57.52,
+      "end": 61.84,
+      "en": "Of course this is not an LLM, just a general picture of a network.",
+      "zh": "當然，這不是 LLM，只是網路的一般示意圖。"
+    },
+    {
+      "start": 62.32,
+      "end": 66.64,
+      "en": "So the question is what does this one neuron here code for?",
+      "zh": "問題是，這裡這個神經元編碼什麼？"
+    },
+    {
+      "start": 67,
+      "end": 70.24,
+      "en": "What does it pay attention to in this stimulus data.",
+      "zh": "它關注刺激資料中的什麼？"
+    },
+    {
+      "start": 70.36,
+      "end": 71.72,
+      "en": "What is it tuned to?",
+      "zh": "對什麼有反應偏好？"
+    },
+    {
+      "start": 72.48,
+      "end": 79.52,
+      "en": "So if you want to isolate the tuning of this one neuron, there are basically two ways that you can do that.",
+      "zh": "想單獨找出這個神經元的調諧特性，基本上有兩種方式。"
+    },
+    {
+      "start": 79.96000000000001,
+      "end": 88.72,
+      "en": "One option is to show lots and lots of data samples and measure the activation that this neuron outputs.",
+      "zh": "第一種，呈現大量資料樣本，測量神經元輸出的活化。"
+    },
+    {
+      "start": 89.24,
+      "end": 96.2,
+      "en": "And then you can find all of the input data samples that strongly activated this neuron.",
+      "zh": "再找出所有強烈活化該神經元的輸入資料樣本。"
+    },
+    {
+      "start": 96.2,
+      "end": 101.68,
+      "en": "And then you can see if you can find some meaningful description of those data samples.",
+      "zh": "接著，看看能否為這些樣本找到有意義的描述。"
+    },
+    {
+      "start": 102.4,
+      "end": 109.68,
+      "en": "A second option is to start from a random number sample, and then use gradient descent to optimize",
+      "zh": "第二種，從隨機數樣本開始，再使用梯度下降，最佳化"
+    },
+    {
+      "start": 109.68,
+      "end": 117.2,
+      "en": "that random matrix so that it specifically maximizes maximizes the activation of this one neuron here.",
+      "zh": "這個隨機矩陣，讓它專門最大化這個神經元的活化。"
+    },
+    {
+      "start": 117.75999999999999,
+      "end": 119.8,
+      "en": "Now both of these methods are fine.",
+      "zh": "兩種方法都可以。"
+    },
+    {
+      "start": 119.8,
+      "end": 120.36,
+      "en": "They're great.",
+      "zh": "都很好。"
+    },
+    {
+      "start": 120.36,
+      "end": 124.72,
+      "en": "They're used in deep learning models for Interpretability.",
+      "zh": "在深度學習模型可解釋性研究中，都會使用。"
+    },
+    {
+      "start": 125.2,
+      "end": 129.36,
+      "en": "We will use this first approach a little bit later on.",
+      "zh": "第一種方法，稍後會用到。"
+    },
+    {
+      "start": 129.68,
+      "end": 136.2,
+      "en": "For example, you can present lots of text to a model and see if you can find neurons that are more",
+      "zh": "例如，向模型呈現大量文字，看看能否找到神經元，"
+    },
+    {
+      "start": 136.2,
+      "end": 142.48,
+      "en": "active for, let's say, past tense versus present tense, or nouns versus verbs or something like that.",
+      "zh": "對過去式比現在式更活躍，或者對名詞比動詞更活躍等等。"
+    },
+    {
+      "start": 142.92000000000002,
+      "end": 152.44,
+      "en": "But this approach is more commonly used for something like mass univariate testing or linear probing with logistic regression.",
+      "zh": "但這種方式，更常用於大量單變量檢定，或以邏輯斯迴歸做線性探測。"
+    },
+    {
+      "start": 153,
+      "end": 160.36,
+      "en": "Anyway, activation maximization refers to this second approach, and that's what we are going to do here.",
+      "zh": "總之，活化最大化指的是第二種方式，這就是這裡要做的。"
+    },
+    {
+      "start": 161.12,
+      "end": 167.64,
+      "en": "It's a pretty neat approach because it's like the flipped version of how things normally work in deep learning.",
+      "zh": "這個方法很有意思，因為像把深度學習平常的運作方式反過來。"
+    },
+    {
+      "start": 168.2,
+      "end": 177.28,
+      "en": "So typically you have a fixed data set and a randomly initialized model, and you use the data to train",
+      "zh": "通常有固定資料集，以及隨機初始化的模型，再用資料訓練"
+    },
+    {
+      "start": 177.28,
+      "end": 178.12,
+      "en": "the model.",
+      "zh": "模型。"
+    },
+    {
+      "start": 178.84,
+      "end": 185.8,
+      "en": "Now for language models, of course the data are human written text taken from the web and books and so on.",
+      "zh": "對語言模型，資料當然是從網路、書籍等取得，人類寫的文字。"
+    },
+    {
+      "start": 186.83,
+      "end": 193.31,
+      "en": "And for a computer vision model, the data are pictures that you get from the web, medical images, whatever.",
+      "zh": "對電腦視覺模型，資料則是網路圖片、醫學影像等等。"
+    },
+    {
+      "start": 193.75,
+      "end": 202.79,
+      "en": "The point is that typically the data are not changed and the model is optimized after being initially set to random numbers.",
+      "zh": "重點是，通常資料不變，模型從隨機數初始化後，再進行最佳化。"
+    },
+    {
+      "start": 203.35,
+      "end": 207.59,
+      "en": "Now with activation maximization, we turn this whole thing around.",
+      "zh": "活化最大化，則把整件事反過來。"
+    },
+    {
+      "start": 207.71,
+      "end": 211.35,
+      "en": "You start with a trained model and that is fixed.",
+      "zh": "從已訓練的模型開始，並固定它。"
+    },
+    {
+      "start": 211.43,
+      "end": 218.15,
+      "en": "This is already a good working model, and you don't want to fine tune it or change the weights or anything like that.",
+      "zh": "這已經是運作良好的模型，不想微調、改權重，或做其他變更。"
+    },
+    {
+      "start": 218.51,
+      "end": 225.71,
+      "en": "Instead, you start with a data sample that is randomly initialized, and then you optimize that data",
+      "zh": "反而從隨機初始化的資料樣本開始，再最佳化那個資料"
+    },
+    {
+      "start": 225.71,
+      "end": 233.67000000000002,
+      "en": "matrix so that it maximally activates some feature of the model, like the activation of a particular neuron.",
+      "zh": "矩陣，讓它最大程度活化模型的某個特徵，例如特定神經元的活化。"
+    },
+    {
+      "start": 235.43,
+      "end": 236.27,
+      "en": "Activation.",
+      "zh": "活化"
+    },
+    {
+      "start": 236.27,
+      "end": 242.39,
+      "en": "Maximization has produced some really interesting insights in computer vision models.",
+      "zh": "最大化，已為電腦視覺模型帶來一些非常有意思的洞見。"
+    },
+    {
+      "start": 242.83,
+      "end": 250.91,
+      "en": "So here you see an example of various maps that started off as random, and then we're optimized to",
+      "zh": "這裡看到，各種一開始是隨機的圖，再經過最佳化，"
+    },
+    {
+      "start": 250.95,
+      "end": 258.79,
+      "en": "maximize the activation of particular neurons in different layers of a convolutional neural network.",
+      "zh": "最大化卷積神經網路不同層中特定神經元的活化。"
+    },
+    {
+      "start": 259.23,
+      "end": 266.63,
+      "en": "So this is already a trained CNN that is designed to recognize image categories.",
+      "zh": "這是已訓練好的 CNN，設計用來辨識影像類別。"
+    },
+    {
+      "start": 267.19,
+      "end": 269.75,
+      "en": "It's pretty neat and also a little bit spooky.",
+      "zh": "相當有意思，也有點詭異。"
+    },
+    {
+      "start": 270.03,
+      "end": 276.95,
+      "en": "But you do see for example, this looks like a unit to that responds to something that looks like an eyeball.",
+      "zh": "例如，這看起來像對眼球形狀有反應的單元。"
+    },
+    {
+      "start": 277.15,
+      "end": 279.11,
+      "en": "Uh, this one is like a dog unit.",
+      "zh": "這個像是狗單元。"
+    },
+    {
+      "start": 279.11,
+      "end": 281.67,
+      "en": "Also down here we have some more dog neurons.",
+      "zh": "下面也有更多狗神經元。"
+    },
+    {
+      "start": 281.95,
+      "end": 284.15,
+      "en": "This one here, I'm not quite sure what this is.",
+      "zh": "這個，不太確定是什麼。"
+    },
+    {
+      "start": 284.15,
+      "end": 287.03,
+      "en": "This may be like a avocado cut in half.",
+      "zh": "可能像切成兩半的酪梨。"
+    },
+    {
+      "start": 287.03,
+      "end": 288.83,
+      "en": "And you still see the seed in there.",
+      "zh": "裡面還看得到種子。"
+    },
+    {
+      "start": 289.43,
+      "end": 296.03,
+      "en": "Anyway, I have to say, uh, that in order to get these kinds of compelling and human interpretable",
+      "zh": "不過必須說，為了得到這些有說服力、能讓人解讀的"
+    },
+    {
+      "start": 296.03,
+      "end": 303.03,
+      "en": "images, you have to start with some statistical priors and do some additional tricks like dimension",
+      "zh": "影像，需要先有一些統計先驗，再做額外技巧，例如維度"
+    },
+    {
+      "start": 303.03,
+      "end": 308.87,
+      "en": "compression, clustering and averaging in order to get results that look like this.",
+      "zh": "壓縮、分群與平均，才能得到這樣的結果。"
+    },
+    {
+      "start": 309.43,
+      "end": 316.19,
+      "en": "In fact, if you just start from literally random noise and you try to do this activation maximization",
+      "zh": "事實上，如果真的只從隨機雜訊開始，試著做活化最大化"
+    },
+    {
+      "start": 316.19,
+      "end": 321.71,
+      "en": "procedure, you tend to get results that are a little bit less human interpretable.",
+      "zh": "程序，往往會得到比較不容易讓人解讀的結果。"
+    },
+    {
+      "start": 322.19,
+      "end": 325.99,
+      "en": "Now, these authors called this an example of rubbish.",
+      "zh": "這些作者把它稱為垃圾範例。"
+    },
+    {
+      "start": 326.39,
+      "end": 330.07,
+      "en": "I respectfully disagree, I think this actually worked very well.",
+      "zh": "我尊重他們，但不同意；我認為其實做得很好。"
+    },
+    {
+      "start": 330.23,
+      "end": 338.63,
+      "en": "It just didn't produce results that we humans can easily interpret as anything other than like curvy patches of colors.",
+      "zh": "只是結果除了彎曲的彩色區塊之外，人類很難解讀成其他東西。"
+    },
+    {
+      "start": 338.87,
+      "end": 348.15,
+      "en": "But that doesn't mean that the method didn't work, and it doesn't mean that this is not the way that this particular neuron in this network sees the world.",
+      "zh": "但不表示方法沒有效，也不表示這不是網路中特定神經元看待世界的方式。"
+    },
+    {
+      "start": 348.63,
+      "end": 357.03,
+      "en": "So we should not expect that the internal workings of a deep learning model are necessarily all human interpretable.",
+      "zh": "所以，不應預期深度學習模型的內部運作，一定全部都能讓人解讀。"
+    },
+    {
+      "start": 358.23,
+      "end": 362.59,
+      "en": "That's not even the case for actual biological neurons inside a human brain.",
+      "zh": "即使人腦內真正的生物神經元，也不是如此。"
+    },
+    {
+      "start": 362.63,
+      "end": 369.43,
+      "en": "You know, they generally do not produce activation patterns that are easily human interpretable.",
+      "zh": "它們一般不會產生容易讓人解讀的活化模式。"
+    },
+    {
+      "start": 369.83,
+      "end": 376.35,
+      "en": "Of course, with some noteworthy exceptions that tend to get most of the attention in the scientific literature.",
+      "zh": "當然，有些值得注意的例外，而科學文獻往往把大部分注意力放在那些例外。"
+    },
+    {
+      "start": 376.95,
+      "end": 383.75,
+      "en": "Anyway, I certainly agree that this image is not as cleanly interpretable as the ones in the previous",
+      "zh": "總之，我當然同意，這張影像沒有上一張投影片中的"
+    },
+    {
+      "start": 383.75,
+      "end": 392.99,
+      "en": "slide, and in part this is because these random initializations are sometimes modified to be constrained",
+      "zh": "那些那麼清楚可解讀，部分原因是，隨機初始化有時會經過修改，受到"
+    },
+    {
+      "start": 392.99,
+      "end": 399.47,
+      "en": "by strong priors, dimension compression, clustering, and other tricks that they use in this literature.",
+      "zh": "強先驗、降維、分群，以及文獻中其他技巧的限制。"
+    },
+    {
+      "start": 400.39,
+      "end": 404.55,
+      "en": "So there are several assumptions that underlie this analysis.",
+      "zh": "這個分析背後，有幾項假設，"
+    },
+    {
+      "start": 404.55,
+      "end": 406.51,
+      "en": "Activation maximization.",
+      "zh": "也就是活化最大化。"
+    },
+    {
+      "start": 407.15,
+      "end": 417.63,
+      "en": "One assumption is that the neurons represent individual features, for example, that there is a neuron that represents an eye or a dog face or a bus.",
+      "zh": "第一個假設，神經元表示個別特徵，例如有神經元表示眼睛、狗臉或公車。"
+    },
+    {
+      "start": 418.27,
+      "end": 426.87,
+      "en": "In the context of language, this assumption underlying activation maximization can be interpreted as",
+      "zh": "在語言脈絡中，活化最大化背後的假設，可以解讀成"
+    },
+    {
+      "start": 427.11,
+      "end": 434.35,
+      "en": "the assumption that individual neurons code for something like a concept or a specific word, or maybe",
+      "zh": "個別神經元編碼某個概念、特定單字，或者"
+    },
+    {
+      "start": 434.35,
+      "end": 439.27,
+      "en": "a group of semantically related words like banana and apple and pear.",
+      "zh": "一組語意相關的單字，例如 banana、apple、pear。"
+    },
+    {
+      "start": 439.87,
+      "end": 443.91,
+      "en": "Uh, or maybe a grammatical concept like past tense.",
+      "zh": "也許是過去式之類的文法概念。"
+    },
+    {
+      "start": 443.95,
+      "end": 448.71,
+      "en": "Maybe a neuron would reflect a single fact about the world.",
+      "zh": "也許，一個神經元反映關於世界的某項單一事實。"
+    },
+    {
+      "start": 448.75,
+      "end": 452.47,
+      "en": "Like who was president of the US in the year 1987?",
+      "zh": "例如，1987 年的美國總統是誰？"
+    },
+    {
+      "start": 453.59000000000003,
+      "end": 462.35,
+      "en": "So if this assumption is true, then activation maximization is likely to be a successful strategy.",
+      "zh": "如果這個假設成立，活化最大化就可能是成功策略。"
+    },
+    {
+      "start": 463.31,
+      "end": 470.19,
+      "en": "Now, for various reasons, it turns out that this assumption is unlikely to be true, at least for lots of neurons.",
+      "zh": "但出於各種原因，這個假設其實不太可能成立，至少對很多神經元如此。"
+    },
+    {
+      "start": 470.19,
+      "end": 473.83,
+      "en": "It might be the case for some individual neurons.",
+      "zh": "可能對某些個別神經元成立。"
+    },
+    {
+      "start": 474.63,
+      "end": 482.63,
+      "en": "The second assumption is that activation of a unit in a deep learning network corresponds to importance.",
+      "zh": "第二個假設，深度學習網路中某單元的活化，對應它的重要性。"
+    },
+    {
+      "start": 483.07,
+      "end": 490.35,
+      "en": "It is possible that the activation of a given neuron is only meaningful as it relates to the activation",
+      "zh": "某個神經元的活化，可能只有在與"
+    },
+    {
+      "start": 490.35,
+      "end": 497.3,
+      "en": "of lots of other neurons, so its activation on its own might not necessarily be meaningful.",
+      "zh": "其他許多神經元活化的關係中才有意義，單獨活化本身不一定有意義。"
+    },
+    {
+      "start": 498.1,
+      "end": 505.74,
+      "en": "Now, I don't want to keep comparing deep learning models to actual biological brains because they're really nothing alike.",
+      "zh": "我不想一直把深度學習模型與真正生物大腦比較，因為兩者真的不像。"
+    },
+    {
+      "start": 505.78,
+      "end": 508.7,
+      "en": "They have basically nothing whatsoever in common.",
+      "zh": "基本上，完全沒有共同點。"
+    },
+    {
+      "start": 508.94,
+      "end": 519.58,
+      "en": "But in biological neurons, you also see that a suppression of activity can be as informative as an increase in activity.",
+      "zh": "但生物神經元中，也可以看到，活性受抑制可能和活性增加一樣有資訊。"
+    },
+    {
+      "start": 520.66,
+      "end": 528.98,
+      "en": "A third assumption is that the space that we are trying to optimize is smooth, continuous and differentiable,",
+      "zh": "第三個假設，想最佳化的空間是平滑、連續、可微分的，"
+    },
+    {
+      "start": 529.14,
+      "end": 534.94,
+      "en": "and therefore optimizable at basically any step or any location in that space.",
+      "zh": "因此，基本上在那個空間的任何步驟、任何位置，都能最佳化。"
+    },
+    {
+      "start": 535.58,
+      "end": 539.62,
+      "en": "Now, that actually is not necessarily the case for language.",
+      "zh": "但語言其實不一定如此。"
+    },
+    {
+      "start": 539.86,
+      "end": 548.66,
+      "en": "For example, a banana and an apple are semantically closely related, but there's nothing really in between them.",
+      "zh": "例如，香蕉與蘋果在語意上接近，但兩者中間並沒有什麼。"
+    },
+    {
+      "start": 548.9,
+      "end": 556.02,
+      "en": "There is no word that is one third of the way between banana and apple, and you can contrast that with",
+      "zh": "沒有一個詞，位於 banana 到 apple 路程的三分之一處；相對地，"
+    },
+    {
+      "start": 556.02,
+      "end": 562.1,
+      "en": "something like color, where there really is something that is one third of the way between yellow and red.",
+      "zh": "顏色則真的存在介於黃色與紅色之間三分之一處的顏色。"
+    },
+    {
+      "start": 563.7,
+      "end": 570.22,
+      "en": "The last assumption that I will mention here is that the optimized results, that is to say, the optimized",
+      "zh": "最後要提的假設，是最佳化結果，也就是經過最佳化、"
+    },
+    {
+      "start": 570.22,
+      "end": 577.98,
+      "en": "random data samples that maximally activate a given neuron are human interpretable.",
+      "zh": "能最大程度活化某個神經元的隨機資料樣本，是人類能解讀的。"
+    },
+    {
+      "start": 578.5,
+      "end": 585.3,
+      "en": "I've already mentioned this in the previous slide, but human interpretability is certainly something that we want.",
+      "zh": "上一張投影片已提過，但人類可解釋性，確實是我們想要的。"
+    },
+    {
+      "start": 585.3,
+      "end": 591.74,
+      "en": "It's something that we look for in interpretability research, but it's not necessarily the case that",
+      "zh": "這是可解釋性研究中追求的東西，但不一定"
+    },
+    {
+      "start": 591.74,
+      "end": 597.38,
+      "en": "everything inside of a model is necessarily interpretable to humans.",
+      "zh": "模型內部的所有東西，都能讓人類解讀。"
+    },
+    {
+      "start": 598.54,
+      "end": 603.46,
+      "en": "Okay, so that is the brief high level intro to activation maximization.",
+      "zh": "以上就是活化最大化的簡短概述。"
+    },
+    {
+      "start": 603.7,
+      "end": 610.02,
+      "en": "In the next video I will show you how to implement this technique in PyTorch using gradient descent.",
+      "zh": "下一部影片，會用 PyTorch 與梯度下降，展示如何實作這個技巧。"
+    },
+    {
+      "start": 610.38,
+      "end": 617.5,
+      "en": "We will continue to think about these assumptions and whether and to what extent they hold for LMS.",
+      "zh": "我們會繼續思考這些假設，以及它們是否、在多大程度上對 LLM 成立。"
+    }
+  ]
+}

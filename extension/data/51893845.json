@@ -1,0 +1,1537 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893845",
+  "title": "CodeChallenge: Hidden-state scaling and token loss",
+  "section": 24,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e575933eb3ab02a958f631b20102ae2b3eac4fc35fb3df2bcbdd256fb9980572",
+  "cues": [
+    {
+      "start": 2.2,
+      "end": 4.56,
+      "en": "And now for a code challenge.",
+      "zh": "現在來做程式挑戰。"
+    },
+    {
+      "start": 5.12,
+      "end": 12.32,
+      "en": "Here we will follow up on what you have learned so far, while focusing more on the impact of editing",
+      "zh": "這裡會延續目前學到的內容，更聚焦於編輯"
+    },
+    {
+      "start": 12.32,
+      "end": 21.24,
+      "en": "the hidden states on the model's output in terms of token selection and log softmax values of a target token.",
+      "zh": "隱藏狀態對模型輸出的影響，包括 token 選擇，以及目標 token 的 log_softmax 值。"
+    },
+    {
+      "start": 21.8,
+      "end": 28.08,
+      "en": "You're also going to get a nice little reminder of how to calculate the loss per token.",
+      "zh": "也會順便複習，如何計算每個 token 的損失。"
+    },
+    {
+      "start": 29.12,
+      "end": 38.44,
+      "en": "The goal of exercise one is to set up the model and the experiment with some tokens and some baseline activations.",
+      "zh": "練習一的目標，是設定模型與實驗，準備一些 token 和基準活化。"
+    },
+    {
+      "start": 38.96,
+      "end": 46.28,
+      "en": "So import the GPT two model and we will work with the medium size in this code challenge.",
+      "zh": "匯入 GPT2 模型，這次程式挑戰使用 medium 大小。"
+    },
+    {
+      "start": 46.72,
+      "end": 49.4,
+      "en": "We won't be doing that many forward passes.",
+      "zh": "不會做太多次前向傳播。"
+    },
+    {
+      "start": 49.4,
+      "end": 52.24,
+      "en": "So I actually ran this whole thing on the CPU.",
+      "zh": "所以，我其實全部都在 CPU 上執行。"
+    },
+    {
+      "start": 52.8,
+      "end": 57.08,
+      "en": "Of course you can put the model and the tokens on the GPU if you like.",
+      "zh": "當然，如果願意，也可以把模型和 token 放到 GPU。"
+    },
+    {
+      "start": 57.68,
+      "end": 65.05,
+      "en": "Next, create a hook function that is similar to the function that I showed in the code demo in the",
+      "zh": "接著，建立與上一支影片程式示範類似的 hook"
+    },
+    {
+      "start": 65.05,
+      "end": 73.97,
+      "en": "previous video, except this one here can be implanted into all of the layers, and the idea is that",
+      "zh": "函數，不過這個可以植入所有層。概念是，"
+    },
+    {
+      "start": 73.97,
+      "end": 81.73,
+      "en": "you get to specify dynamically during the experiment which layer you want to scale, and by how much.",
+      "zh": "實驗時，可以動態指定要縮放哪一層，以及縮放多少。"
+    },
+    {
+      "start": 82.28999999999999,
+      "end": 88.93,
+      "en": "So you have seen code that allows you to pick one layer to manipulate before in the previous section.",
+      "zh": "上一個章節，你已經看過如何挑選一層操作的程式碼。"
+    },
+    {
+      "start": 90.01,
+      "end": 98.89,
+      "en": "The idea of running the code here is that you create a dictionary called scaling, fact dict, or whatever else you would like to call it.",
+      "zh": "執行這裡程式碼的概念，是建立一個字典，稱為 scaling fact dict，或者任何你喜歡的名字。"
+    },
+    {
+      "start": 99.28999999999999,
+      "end": 106.17,
+      "en": "Anyway, the keys in this dictionary would be the layer number, and the value associated with that",
+      "zh": "字典的鍵，是層編號；對應的"
+    },
+    {
+      "start": 106.17,
+      "end": 113.72999999999999,
+      "en": "key is also a number, and that indicates how much to scale the vectors in that layer.",
+      "zh": "值也是數字，代表要對那一層的向量縮放多少。"
+    },
+    {
+      "start": 114.37,
+      "end": 120.35,
+      "en": "So for example, if we would use this in the previous demo if we set up the previous demo like this.",
+      "zh": "例如，如果在上一個示範中，像這樣設定，"
+    },
+    {
+      "start": 120.79,
+      "end": 127.03,
+      "en": "Then the key would be the number two, and the value of that key would be the number 0.5.",
+      "zh": "鍵就是數字二，那個鍵的值則是 0.5。"
+    },
+    {
+      "start": 127.79,
+      "end": 139.71,
+      "en": "Remember that because we are working with the hidden states here, you don't need to extract the activations inside this hook because we can get them in the forward pass from setting output.",
+      "zh": "記得，因為這裡處理隱藏狀態，不需要在 hook 中擷取活化，因為前向傳播時，可以設定 output"
+    },
+    {
+      "start": 139.71,
+      "end": 141.27,
+      "en": "Hidden states equals true.",
+      "zh": "hidden states 等於 True 取得。"
+    },
+    {
+      "start": 142.15,
+      "end": 149.43,
+      "en": "Once you have this hook set up, you can tokenize this quote from Einstein except the final word.",
+      "zh": "設定好 hook 之後，可以對這句愛因斯坦引言做 token 化，但排除最後一個詞。"
+    },
+    {
+      "start": 149.91,
+      "end": 151.55,
+      "en": "In other words, tokenize.",
+      "zh": "換句話說，token 化的是："
+    },
+    {
+      "start": 151.55,
+      "end": 153.03,
+      "en": "I have no special talents.",
+      "zh": "我沒有特殊才能。"
+    },
+    {
+      "start": 153.03,
+      "end": 160.63,
+      "en": "I am only passionately and basically what we are going to do in the rest of this code challenge is examine",
+      "zh": "我只是熱切地……基本上，這次程式挑戰其餘部分，要檢查"
+    },
+    {
+      "start": 160.67000000000002,
+      "end": 170.43,
+      "en": "the final model logits for the word passionately to see if the model can correctly predict that the next word should be curious.",
+      "zh": "passionately 這個詞的最終模型 logit，看看模型能否正確預測，下一個詞應該是 curious。"
+    },
+    {
+      "start": 171.71,
+      "end": 178.84,
+      "en": "Okay, the last thing to do for exercise one is to run a forward pass with no scaling on any of the",
+      "zh": "好，練習一最後，要在不縮放任何"
+    },
+    {
+      "start": 178.84,
+      "end": 188.52,
+      "en": "transformer outputs, so that you have a baseline version of the hidden states that we can use for comparison in later exercises.",
+      "zh": "Transformer 輸出的情況下，做前向傳播，取得基準隱藏狀態版本，供後續練習比較。"
+    },
+    {
+      "start": 189.6,
+      "end": 192.48,
+      "en": "Now you can pause the video and work through this exercise.",
+      "zh": "現在可以暫停影片，完成這份練習。"
+    },
+    {
+      "start": 192.64,
+      "end": 201.72,
+      "en": "I don't think you will find it too challenging, considering that almost everything you need to do here, we've already done in the last several videos.",
+      "zh": "我想不會太難，因為這裡幾乎所有需要做的事，前幾支影片都已經做過。"
+    },
+    {
+      "start": 202.2,
+      "end": 205.8,
+      "en": "Anyway, now I will switch to code and discuss my solution.",
+      "zh": "總之，現在切換到程式碼，討論解答。"
+    },
+    {
+      "start": 207.44,
+      "end": 209.4,
+      "en": "Import lots of libraries and so on.",
+      "zh": "匯入很多函式庫等等。"
+    },
+    {
+      "start": 209.4,
+      "end": 214.64,
+      "en": "Here I'm importing GPT two medium and also the tokenizer.",
+      "zh": "這裡匯入 GPT2 medium，以及 tokenizer。"
+    },
+    {
+      "start": 214.64,
+      "end": 220.28,
+      "en": "It doesn't actually matter if you do it with medium or just the GPT two small.",
+      "zh": "tokenizer 使用 medium 或 GPT2 small，其實沒有差別。"
+    },
+    {
+      "start": 220.32,
+      "end": 227.52,
+      "en": "All of the GPT two tokenizers are the same, regardless of whether you use the small, medium, large, or xlarge version.",
+      "zh": "GPT2 的 tokenizer 全都相同，不管使用 small、medium、large 或 xlarge。"
+    },
+    {
+      "start": 227.72,
+      "end": 232.88,
+      "en": "Anyway, so while that is loading in, I can discuss the solution to this hook.",
+      "zh": "總之，等待載入時，可以討論 hook 的解法。"
+    },
+    {
+      "start": 233.16,
+      "end": 240.98,
+      "en": "Okay, so here this code is all the same as what you saw in the code file in the previous video.",
+      "zh": "好，這裡程式碼與上一支影片程式碼檔看到的都相同。"
+    },
+    {
+      "start": 241.18,
+      "end": 242.74,
+      "en": "There's only two changes.",
+      "zh": "只有兩項改變。"
+    },
+    {
+      "start": 242.74,
+      "end": 251.7,
+      "en": "One is here that I get the scaling factor not from a variable, but from a value in this dictionary",
+      "zh": "第一，這裡不從變數取得縮放因子，而是從這個字典中，與"
+    },
+    {
+      "start": 251.9,
+      "end": 253.66,
+      "en": "associated with the key.",
+      "zh": "鍵對應的值取得，"
+    },
+    {
+      "start": 254.02,
+      "end": 255.54,
+      "en": "For layer number.",
+      "zh": "也就是層編號。"
+    },
+    {
+      "start": 255.98,
+      "end": 267.82,
+      "en": "And then the second difference compared to the previous code demo is that I have this if statement here, where I say if the layer number is in this in the keys here.",
+      "zh": "第二項與前一個程式示範的差異，是這裡的 if 陳述式，判斷層編號是否在這些鍵中。"
+    },
+    {
+      "start": 268.14,
+      "end": 277.26,
+      "en": "And the reason why this is useful is that we do not want to scale all of the hidden states vectors for every single layer.",
+      "zh": "這很有用，因為我們不想對每一層的所有隱藏狀態向量都縮放。"
+    },
+    {
+      "start": 277.26,
+      "end": 279.02,
+      "en": "That's what would happen if you did this.",
+      "zh": "如果這樣做，就會如此。"
+    },
+    {
+      "start": 279.14,
+      "end": 281.18,
+      "en": "This would impact every single layer.",
+      "zh": "這會影響每一層。"
+    },
+    {
+      "start": 282.18,
+      "end": 292.98,
+      "en": "Instead, what we want to do is only modify the one layer that this hook is implanted in, only if it has a corresponding key in this dictionary.",
+      "zh": "相反地，我們只想在字典有對應鍵時，修改這個 hook 所植入的那一層。"
+    },
+    {
+      "start": 293.42,
+      "end": 300.31,
+      "en": "And when this is false, then of course all of this is skipped and then the output is exactly the same as the output here.",
+      "zh": "當條件為 False，當然就跳過這些，輸出與這裡的原始輸出完全相同。"
+    },
+    {
+      "start": 301.07,
+      "end": 301.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 301.47,
+      "end": 308.79,
+      "en": "So now we can run this and implant this hook into all of the hidden modules.",
+      "zh": "現在可以執行，把 hook 植入所有隱藏模組。"
+    },
+    {
+      "start": 308.79,
+      "end": 310.23,
+      "en": "All of the hidden layers.",
+      "zh": "所有隱藏層。"
+    },
+    {
+      "start": 310.43,
+      "end": 312.07,
+      "en": "Okay I have no special talent.",
+      "zh": "好，我沒有特殊才能。"
+    },
+    {
+      "start": 312.07,
+      "end": 315.11,
+      "en": "I'm only passionately blank okay.",
+      "zh": "我只是熱切地……空白。"
+    },
+    {
+      "start": 315.15,
+      "end": 319.35,
+      "en": "And then we want to know what is the model going to predict.",
+      "zh": "接著，我們想知道，模型會預測什麼。"
+    },
+    {
+      "start": 320.03,
+      "end": 322.59,
+      "en": "Now we know that the correct answer is curious.",
+      "zh": "知道正確答案是 curious。"
+    },
+    {
+      "start": 322.59,
+      "end": 332.43,
+      "en": "But there is another possible set of outcomes here, which is that the model gives a different word that is not curious, but a word that also makes sense.",
+      "zh": "但也可能有另一種結果：模型給出不是 curious，卻同樣合理的詞。"
+    },
+    {
+      "start": 332.43,
+      "end": 334.95,
+      "en": "For example, I have no special talent.",
+      "zh": "例如，我沒有特殊才能。"
+    },
+    {
+      "start": 334.95,
+      "end": 338.15,
+      "en": "I am only passionately interested, for example.",
+      "zh": "我只是充滿熱情地 interested，也就是感興趣。"
+    },
+    {
+      "start": 338.63,
+      "end": 342.51,
+      "en": "Okay, anyway, here is the target token index.",
+      "zh": "好，總之，這裡是目標 token 索引。"
+    },
+    {
+      "start": 342.67,
+      "end": 350.11,
+      "en": "So what we are going to look for is the model's loss on this particular token 11,040 okay.",
+      "zh": "我們要看的，是模型對這個特定 token，11040 的損失。"
+    },
+    {
+      "start": 350.15,
+      "end": 358.8,
+      "en": "And then the last thing for exercise one is to run the model once with the tokens with no scaling factors applied.",
+      "zh": "練習一最後，就是用這些 token 執行一次模型，不套用任何縮放因子。"
+    },
+    {
+      "start": 358.8,
+      "end": 361.16,
+      "en": "And here I call this pure logits.",
+      "zh": "這裡我稱為 pure logits。"
+    },
+    {
+      "start": 361.2,
+      "end": 362.2,
+      "en": "That's the variable name.",
+      "zh": "那是變數名稱。"
+    },
+    {
+      "start": 362.2,
+      "end": 374.12,
+      "en": "That's the logits for this outcome here, the goal of exercise two is to scale one layer and examine the impact on the final output logits.",
+      "zh": "這是這個結果的 logit。練習二的目標，是縮放一層，檢查對最終輸出 logit 的影響。"
+    },
+    {
+      "start": 374.48,
+      "end": 384.08,
+      "en": "So change the dictionary that the hook function reads to scale transformer layer two by a factor of 0.6.",
+      "zh": "修改 hook 函數讀取的字典，讓第二號 Transformer 層乘以 0.6。"
+    },
+    {
+      "start": 384.76,
+      "end": 391.32,
+      "en": "Then you want to do a forward pass again with the same Einstein quote, and you get the output logits.",
+      "zh": "接著，用相同的愛因斯坦引言，再做前向傳播，取得輸出 logit。"
+    },
+    {
+      "start": 391.32,
+      "end": 397.08,
+      "en": "From that, you can make a scatter plot of the logits for all the vocab elements.",
+      "zh": "根據它，製作所有詞彙表元素 logit 的散布圖。"
+    },
+    {
+      "start": 397.2,
+      "end": 401.84000000000003,
+      "en": "Now you've seen plots that look like this plenty of times earlier in the course.",
+      "zh": "課程前面，已經看過很多這樣的圖。"
+    },
+    {
+      "start": 402.32,
+      "end": 413.46,
+      "en": "The blue dots here are for the unscaled forward pass that you did in exercise one, and this is coming from the last token in the sequence.",
+      "zh": "這裡的藍點，是練習一沒有縮放的前向傳播結果，來自序列最後一個 token。"
+    },
+    {
+      "start": 413.98,
+      "end": 421.7,
+      "en": "As you know, the model prediction for the next token is the vocab item that has the largest logit here.",
+      "zh": "你知道，模型對下一個 token 的預測，就是這裡 logit 最大的詞彙表項目。"
+    },
+    {
+      "start": 421.94,
+      "end": 426.82,
+      "en": "Now, for now, don't worry about actually picking out that largest element.",
+      "zh": "現在先不用真的挑出最大的元素。"
+    },
+    {
+      "start": 426.82,
+      "end": 428.34,
+      "en": "We will get to that later.",
+      "zh": "稍後會做。"
+    },
+    {
+      "start": 428.78,
+      "end": 436.14,
+      "en": "For now, the goal is to compare the impact of scaling down layer two by a factor of 0.6.",
+      "zh": "目前目標，是比較第二號層縮小為 0.6 的影響。"
+    },
+    {
+      "start": 436.66,
+      "end": 442.22,
+      "en": "I have switched off the red dots here so that you don't see what they look like.",
+      "zh": "這裡把紅點關掉，所以看不到它們的樣子。"
+    },
+    {
+      "start": 442.22,
+      "end": 447.38,
+      "en": "But of course your plot will have red dots here in addition to these blue dots.",
+      "zh": "但當然，你的圖除了藍點，也會有紅點。"
+    },
+    {
+      "start": 447.94,
+      "end": 455.62,
+      "en": "So now we have the final output logits for the two versions of the model on exactly the same tokens.",
+      "zh": "現在，同樣的 token，在兩個模型版本中，都有最終輸出 logit。"
+    },
+    {
+      "start": 456.02,
+      "end": 463.26,
+      "en": "And so the next thing you can do is make a scatter plot of the scaled by the unscaled logits.",
+      "zh": "接著可以製作縮放 logit 相對於未縮放 logit 的散布圖。"
+    },
+    {
+      "start": 463.7,
+      "end": 471.3,
+      "en": "You can already see that the numerical range is at least slightly different for these two runs through the model.",
+      "zh": "已經可以看到，兩次模型執行的數值範圍，至少有一點不同。"
+    },
+    {
+      "start": 471.43,
+      "end": 476.39,
+      "en": "so scaled and the original or pure or clean unscaled logits.",
+      "zh": "也就是縮放後，以及原始、純粹、乾淨、未縮放的 logit。"
+    },
+    {
+      "start": 476.87,
+      "end": 479.15,
+      "en": "So you also saw that in the previous video.",
+      "zh": "上一支影片也看過這點。"
+    },
+    {
+      "start": 479.15,
+      "end": 485.83,
+      "en": "But the question is whether that difference in numbers has any meaningful impact.",
+      "zh": "但問題是，數字差異是否有實質影響。"
+    },
+    {
+      "start": 486.15,
+      "end": 490.11,
+      "en": "So this scatterplot shows the two sets of logits.",
+      "zh": "這張散布圖顯示兩組 logit。"
+    },
+    {
+      "start": 490.35,
+      "end": 498.07,
+      "en": "And the idea is that if the correlation is one then it would mean that the numbers might be globally shifted.",
+      "zh": "概念是，如果相關係數為一，表示數字可能整體平移，"
+    },
+    {
+      "start": 498.07,
+      "end": 506.71,
+      "en": "But that really had no impact on the model's behavior because all of the relative values are preserved when scaling down.",
+      "zh": "但其實沒有影響模型行為，因為縮小時保留了所有相對值。"
+    },
+    {
+      "start": 507.31,
+      "end": 510.59,
+      "en": "Here you can see the correlation coefficient in the title.",
+      "zh": "標題可以看到相關係數。"
+    },
+    {
+      "start": 510.75,
+      "end": 515.07,
+      "en": "And again this is the correlation between the blue dots and the red dots here.",
+      "zh": "這就是這裡藍點與紅點之間的相關性。"
+    },
+    {
+      "start": 515.83,
+      "end": 516.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 516.11,
+      "end": 517.75,
+      "en": "So that's for exercise two.",
+      "zh": "練習二就是這樣。"
+    },
+    {
+      "start": 517.91,
+      "end": 520.47,
+      "en": "Now you can pause the video and switch to code.",
+      "zh": "現在可以暫停影片，切換到程式碼。"
+    },
+    {
+      "start": 520.59,
+      "end": 525.39,
+      "en": "And now I will switch to code and discuss the solution and what the results might mean.",
+      "zh": "現在我切換到程式碼，討論解法，以及結果可能代表什麼。"
+    },
+    {
+      "start": 526.55,
+      "end": 533.93,
+      "en": "Here I am recreating the dictionary to have the key of two and the value of 0.6.",
+      "zh": "這裡重新建立字典，鍵是二，值是 0.6。"
+    },
+    {
+      "start": 534.25,
+      "end": 541.17,
+      "en": "As I mentioned in the previous video, it's super duper ultra mega important that this has exactly the",
+      "zh": "上一支影片提過，這個名稱必須與 hook 函數內尋找的變數"
+    },
+    {
+      "start": 541.17,
+      "end": 548.09,
+      "en": "same spelling as what variables are being looked through inside this hook function.",
+      "zh": "拼字完全相同，這是超級、極其重要的事。"
+    },
+    {
+      "start": 548.69,
+      "end": 549.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 549.21,
+      "end": 550.49,
+      "en": "And let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 550.53,
+      "end": 552.45,
+      "en": "So then I just defined this.",
+      "zh": "接著，我只是定義這個。"
+    },
+    {
+      "start": 552.49,
+      "end": 554.33,
+      "en": "And now this code is the same.",
+      "zh": "現在，這段程式碼相同。"
+    },
+    {
+      "start": 554.33,
+      "end": 559.25,
+      "en": "We don't need to do anything special inside the forward pass okay.",
+      "zh": "前向傳播內不需要做任何特別的事。"
+    },
+    {
+      "start": 559.29,
+      "end": 561.17,
+      "en": "And then I'm getting the logits here.",
+      "zh": "這裡取得 logit。"
+    },
+    {
+      "start": 561.17,
+      "end": 566.85,
+      "en": "And I'm calling them a different variable name from what we had in exercise one okay.",
+      "zh": "取一個與練習一不同的變數名稱。"
+    },
+    {
+      "start": 566.89,
+      "end": 568.01,
+      "en": "So now we can plot that.",
+      "zh": "現在可以畫圖。"
+    },
+    {
+      "start": 568.01,
+      "end": 571.89,
+      "en": "And I showed you half of this plot already in the slides.",
+      "zh": "投影片中，已經展示過這張圖的一半。"
+    },
+    {
+      "start": 571.89,
+      "end": 574.09,
+      "en": "So now we can see what the other half looks like.",
+      "zh": "現在可以看看另一半。"
+    },
+    {
+      "start": 574.93,
+      "end": 578.93,
+      "en": "So you see there is a global downward shift.",
+      "zh": "可以看到，整體向下平移。"
+    },
+    {
+      "start": 578.93,
+      "end": 581.17,
+      "en": "So scaling the layer.",
+      "zh": "所以，縮放那一層，"
+    },
+    {
+      "start": 581.33,
+      "end": 581.81,
+      "en": "What was it.",
+      "zh": "是哪一層？"
+    },
+    {
+      "start": 581.81,
+      "end": 582.53,
+      "en": "Layer two.",
+      "zh": "第二號層。"
+    },
+    {
+      "start": 583.01,
+      "end": 588.41,
+      "en": "Scaling down layer two by a factor of 0.6 had a pretty significant impact.",
+      "zh": "把第二號層縮小為 0.6，有相當顯著的影響。"
+    },
+    {
+      "start": 588.41,
+      "end": 590.66,
+      "en": "That's a pretty noticeable change.",
+      "zh": "這是非常明顯的改變。"
+    },
+    {
+      "start": 590.78,
+      "end": 597.9,
+      "en": "It's a global suppression of all of the activity in the model, propagating forward all the way until",
+      "zh": "模型中所有活動都受到整體抑制，一路向前傳播，直到"
+    },
+    {
+      "start": 597.9,
+      "end": 604.94,
+      "en": "the very, very end of the model, until the UN embeddings matrix that calculates the final output logits.",
+      "zh": "模型最末端，計算最終輸出 logit 的反嵌入矩陣。"
+    },
+    {
+      "start": 605.34,
+      "end": 606.7,
+      "en": "So it's pretty significant.",
+      "zh": "所以，影響相當大。"
+    },
+    {
+      "start": 606.74,
+      "end": 607.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 607.1,
+      "end": 610.18,
+      "en": "So now the question is does that matter.",
+      "zh": "現在的問題是，這重要嗎？"
+    },
+    {
+      "start": 610.38,
+      "end": 610.66,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 610.7,
+      "end": 618.42,
+      "en": "When we are thinking about choosing the next token, what we do is we pick out whatever token has the largest value here.",
+      "zh": "考慮選擇下一個 token 時，我們會挑出這裡值最大的 token。"
+    },
+    {
+      "start": 618.62,
+      "end": 622.54,
+      "en": "So does it matter that they are globally pushed down?",
+      "zh": "它們整體被壓低，重要嗎？"
+    },
+    {
+      "start": 622.9,
+      "end": 624.78,
+      "en": "Uh, and yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 624.78,
+      "end": 629.5,
+      "en": "So to address that question, uh, it's a complicated question.",
+      "zh": "要回答這個問題，它其實很複雜。"
+    },
+    {
+      "start": 629.5,
+      "end": 631.06,
+      "en": "There's multiple factors to it.",
+      "zh": "有多個因素。"
+    },
+    {
+      "start": 631.06,
+      "end": 634.42,
+      "en": "But one thing we can do is look at the correlation between them.",
+      "zh": "但可以做的一件事，是看兩者的相關性。"
+    },
+    {
+      "start": 634.58,
+      "end": 638.06,
+      "en": "So you see the correlation is 0.995.",
+      "zh": "可以看到，相關係數是 0.995。"
+    },
+    {
+      "start": 638.1,
+      "end": 644.22,
+      "en": "Let me actually, uh I want to just expand this out a little bit further.",
+      "zh": "讓我再多顯示幾位。"
+    },
+    {
+      "start": 644.54,
+      "end": 646.54,
+      "en": "So it's nine nine.",
+      "zh": "所以，是九九……"
+    },
+    {
+      "start": 646.58,
+      "end": 649.44,
+      "en": "What is this 994792.",
+      "zh": "這是多少？0.994792。"
+    },
+    {
+      "start": 649.48,
+      "end": 652.28,
+      "en": "This is a really strong correlation.",
+      "zh": "這是非常強的相關。"
+    },
+    {
+      "start": 652.28,
+      "end": 653.44,
+      "en": "That said, it's not one.",
+      "zh": "話雖如此，它不是一。"
+    },
+    {
+      "start": 653.44,
+      "end": 654.76,
+      "en": "It's not a perfect correlation.",
+      "zh": "不是完全相關。"
+    },
+    {
+      "start": 654.76,
+      "end": 658.76,
+      "en": "So there actually was a little bit of wiggling and adjusting in here.",
+      "zh": "所以，這裡確實有一些微小變動與調整。"
+    },
+    {
+      "start": 659.12,
+      "end": 668,
+      "en": "Uh, but the next token selection the generation procedure is not purely based on the maximum.",
+      "zh": "不過，下一個 token 的選擇與生成程序，不完全取決於最大值。"
+    },
+    {
+      "start": 668.2,
+      "end": 668.4,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 668.44,
+      "end": 671.88,
+      "en": "So that would be the case if we have a deterministic system.",
+      "zh": "如果是確定性系統，才會如此。"
+    },
+    {
+      "start": 672.04,
+      "end": 679.36,
+      "en": "But very often when generating model outputs, we don't just look at the top, we do a softmax.",
+      "zh": "但產生模型輸出時，經常不只看最高值，而是做 softmax。"
+    },
+    {
+      "start": 679.72,
+      "end": 680.92,
+      "en": "Uh logsoftmax.",
+      "zh": "或 log_softmax。"
+    },
+    {
+      "start": 680.92,
+      "end": 684.88,
+      "en": "We probabilistically pick based on some probabilities.",
+      "zh": "根據某些機率，採機率方式選擇。"
+    },
+    {
+      "start": 684.88,
+      "end": 692.32,
+      "en": "And that actually means that this global suppression could have an impact on the values that are selected",
+      "zh": "這其實表示，如果整體抑制影響 log_softmax，"
+    },
+    {
+      "start": 692.32,
+      "end": 697.64,
+      "en": "probabilistically, if it has an impact on the log softmax.",
+      "zh": "就可能影響依機率選出的值。"
+    },
+    {
+      "start": 698.92,
+      "end": 703.6,
+      "en": "Now let's switch from looking at numbers to looking at words.",
+      "zh": "現在，從數字轉向看詞。"
+    },
+    {
+      "start": 704.04,
+      "end": 712.17,
+      "en": "The goal of exercise three is to pick out the top ten logits for each of the two versions of the model.",
+      "zh": "練習三的目標，是挑出兩個模型版本各自最高的十個 logit。"
+    },
+    {
+      "start": 712.53,
+      "end": 715.53,
+      "en": "You can create a table that looks like this.",
+      "zh": "可以建立這樣的表格。"
+    },
+    {
+      "start": 715.53,
+      "end": 719.81,
+      "en": "So I picked out the ten largest for the two models.",
+      "zh": "我為兩個模型各選出最大的十個。"
+    },
+    {
+      "start": 719.81,
+      "end": 725.17,
+      "en": "And here I'm showing how this model would complete the sentence.",
+      "zh": "這裡展示模型會如何完成句子。"
+    },
+    {
+      "start": 725.53,
+      "end": 730.77,
+      "en": "So it turns out that the top logit for both models is exactly the same token.",
+      "zh": "結果，兩個模型最高 logit 對應完全相同的 token。"
+    },
+    {
+      "start": 730.93,
+      "end": 732.37,
+      "en": "Categorically incorrect.",
+      "zh": "就答案而言，絕對不正確。"
+    },
+    {
+      "start": 732.37,
+      "end": 739.17,
+      "en": "But it is sort of semantically related and certainly seems contextually accurate.",
+      "zh": "但語意上有些相關，放在上下文裡，顯然也合理。"
+    },
+    {
+      "start": 739.53,
+      "end": 743.09,
+      "en": "So then the question is what happens after that?",
+      "zh": "接著的問題是，之後會發生什麼？"
+    },
+    {
+      "start": 743.37,
+      "end": 746.53,
+      "en": "So this is the first part of exercise three.",
+      "zh": "這是練習三的第一部分。"
+    },
+    {
+      "start": 747.05,
+      "end": 752.65,
+      "en": "The second part of exercise three is to calculate the loss for the token.",
+      "zh": "第二部分，是計算這個 token 的損失："
+    },
+    {
+      "start": 752.89,
+      "end": 753.73,
+      "en": "Curious.",
+      "zh": "curious。"
+    },
+    {
+      "start": 754.25,
+      "end": 760.81,
+      "en": "Now we know for a fact that the next token in this sequence should be the word curious.",
+      "zh": "我們確切知道，這個序列的下一個 token，應該是 curious 這個詞。"
+    },
+    {
+      "start": 761.45,
+      "end": 763.25,
+      "en": "Technically space curious.",
+      "zh": "嚴格來說，是前面有空白的 curious。"
+    },
+    {
+      "start": 763.89,
+      "end": 771.86,
+      "en": "So calculate the loss in the scaled and the unscaled models for the token corresponding to the word",
+      "zh": "所以，在縮放與未縮放模型中，計算對應"
+    },
+    {
+      "start": 772.1,
+      "end": 777.02,
+      "en": "curious again with a space in front so that it fits in the sentence.",
+      "zh": "curious 這個詞的 token 損失；前面同樣有空白，才能放進句子。"
+    },
+    {
+      "start": 777.26,
+      "end": 781.02,
+      "en": "And remember that smaller numbers are better.",
+      "zh": "記得，數字越小越好。"
+    },
+    {
+      "start": 781.38,
+      "end": 788.3,
+      "en": "And of course, the question here is whether interfering with the model made it perform worse overall,",
+      "zh": "這裡的問題，當然是干預模型，是否使整體表現更差，"
+    },
+    {
+      "start": 788.42,
+      "end": 795.9,
+      "en": "which would mean that the loss would be higher in the scaled version compared to the unscaled version of the model.",
+      "zh": "也就是縮放版本的損失，是否會比未縮放版本更高。"
+    },
+    {
+      "start": 796.78,
+      "end": 803.06,
+      "en": "I hope you enjoy working through this exercise, and now I will switch to code and discuss my solution.",
+      "zh": "希望你享受這份練習，現在切換到程式碼，討論我的解答。"
+    },
+    {
+      "start": 804.18,
+      "end": 815.62,
+      "en": "Here I'm applying Argsort to get the sorting indices from the pure logits and the scaled logits, and we are only interested in the final token because we.",
+      "zh": "這裡套用 argsort，取得純粹 logit 與縮放 logit 的排序索引，只關心最後一個 token，因為，"
+    },
+    {
+      "start": 815.66,
+      "end": 818.74,
+      "en": "Yeah, this tells us about the prediction for the next token.",
+      "zh": "對，這告訴我們下一個 token 的預測。"
+    },
+    {
+      "start": 819.38,
+      "end": 823.46,
+      "en": "Descending equals true so that we get the largest value in the beginning.",
+      "zh": "descending=True，讓最大值排在最前面。"
+    },
+    {
+      "start": 823.46,
+      "end": 828.16,
+      "en": "And here's where I format and then print out the text information.",
+      "zh": "這裡格式化，再印出文字資訊。"
+    },
+    {
+      "start": 828.44,
+      "end": 834.32,
+      "en": "Okay, so you've already seen that the top token is interested.",
+      "zh": "好，已經看過，最高 token 是 interested。"
+    },
+    {
+      "start": 834.32,
+      "end": 836.2,
+      "en": "And also the next one is passionate.",
+      "zh": "下一個則是 passionate。"
+    },
+    {
+      "start": 836.2,
+      "end": 838.36,
+      "en": "But then we start getting some differences.",
+      "zh": "接著，就開始出現差異。"
+    },
+    {
+      "start": 838.56,
+      "end": 840.24,
+      "en": "I am passionately committed.",
+      "zh": "我熱切地 committed，也就是投入。"
+    },
+    {
+      "start": 840.28,
+      "end": 841.72,
+      "en": "I'm passionately trying.",
+      "zh": "我熱切地 trying，也就是嘗試。"
+    },
+    {
+      "start": 841.88,
+      "end": 846.04,
+      "en": "All these words are sort of, you know, they they could kind of fit in here.",
+      "zh": "這些詞，某種程度上都可以放在這裡。"
+    },
+    {
+      "start": 846.04,
+      "end": 848.56,
+      "en": "But here we know that this is the correct word.",
+      "zh": "但這裡，我們知道正確的詞是，"
+    },
+    {
+      "start": 848.56,
+      "end": 849.32,
+      "en": "Curious.",
+      "zh": "curious。"
+    },
+    {
+      "start": 849.52,
+      "end": 857.68,
+      "en": "So curious is in both of these versions in the top ten, but curiously, curious actually appears higher",
+      "zh": "兩個版本的 curious 都在前十名；有趣的是，curious 在縮放版本的清單中，"
+    },
+    {
+      "start": 857.68,
+      "end": 862.12,
+      "en": "in the list for the scaled version compared to the Unscaled version.",
+      "zh": "其實比未縮放版本更前面。"
+    },
+    {
+      "start": 862.12,
+      "end": 869.64,
+      "en": "So it kind of seems like the scaled version, like manipulating the interior dynamics of the model,",
+      "zh": "所以，似乎縮放版本，也就是操作模型內部動態，"
+    },
+    {
+      "start": 869.84,
+      "end": 874.4,
+      "en": "actually had a beneficial impact, at least in this particular example.",
+      "zh": "反而帶來正面影響，至少在這個特定範例中。"
+    },
+    {
+      "start": 875.48,
+      "end": 878.12,
+      "en": "Okay, so next we calculate the loss.",
+      "zh": "好，接著計算損失。"
+    },
+    {
+      "start": 878.28,
+      "end": 883,
+      "en": "The loss for one token is pretty simple to calculate.",
+      "zh": "單一 token 的損失，相當容易計算。"
+    },
+    {
+      "start": 883,
+      "end": 883.13,
+      "en": "We calculate.",
+      "zh": "我們計算，"
+    },
+    {
+      "start": 883.13,
+      "end": 888.21,
+      "en": "We just get the log softmax over all of the tokens.",
+      "zh": "只要取得所有 token 的 log_softmax。"
+    },
+    {
+      "start": 888.25,
+      "end": 892.97,
+      "en": "Again, for the Or sorry, all of the elements in the vocab for the final token.",
+      "zh": "再一次……抱歉，是最後一個 token，對詞彙表所有元素的 log_softmax。"
+    },
+    {
+      "start": 893.25,
+      "end": 895.17,
+      "en": "So that is the log softmax.",
+      "zh": "這就是 log_softmax。"
+    },
+    {
+      "start": 895.17,
+      "end": 899.17,
+      "en": "And then we want to know just the one for the target token.",
+      "zh": "接著，只取目標 token 的那一個。"
+    },
+    {
+      "start": 899.25,
+      "end": 900.49,
+      "en": "And then we take minus that.",
+      "zh": "再取它的負值。"
+    },
+    {
+      "start": 900.49,
+      "end": 905.97,
+      "en": "So this is the negative log likelihood loss for this one token here.",
+      "zh": "這就是這一個 token 的負對數概似損失。"
+    },
+    {
+      "start": 906.29,
+      "end": 916.29,
+      "en": "And consistent with this curious finding up here, we actually see that the loss is lower in the scaled model compared to the Unscaled model.",
+      "zh": "與上面這個有趣發現一致，縮放模型的損失，其實比未縮放模型更低。"
+    },
+    {
+      "start": 916.57,
+      "end": 922.81,
+      "en": "And that means that even though the model would not have picked out curious as if it's just picking",
+      "zh": "這代表，即使模型只選最大 logit 的 token 時，"
+    },
+    {
+      "start": 922.81,
+      "end": 932.41,
+      "en": "out the largest logit token, it actually was closer to being correct when we scaled it down compared to the Unscaled version.",
+      "zh": "不會挑出 curious，但縮小後比未縮放版本更接近正確答案。"
+    },
+    {
+      "start": 933.49,
+      "end": 936.97,
+      "en": "This is the final exercise in this code challenge.",
+      "zh": "這是這次程式挑戰的最後一個練習。"
+    },
+    {
+      "start": 937.41,
+      "end": 949.07,
+      "en": "The goal here is to repeat the loss calculation and the correlation that you have computed in exercise two and three, but now doing it over all of the layers.",
+      "zh": "目標是重複練習二、三計算的損失與相關性，但這次對所有層執行。"
+    },
+    {
+      "start": 949.47,
+      "end": 953.99,
+      "en": "There are 24 layers in the medium version of this model.",
+      "zh": "這個模型 medium 版本有 24 層。"
+    },
+    {
+      "start": 954.43,
+      "end": 958.19,
+      "en": "So in a for loop you want to scale each layer at a time.",
+      "zh": "所以，在 for 迴圈中，一次縮放一層。"
+    },
+    {
+      "start": 958.19,
+      "end": 961.71,
+      "en": "So you're just scaling one layer at a time in a for loop.",
+      "zh": "每次迴圈，只縮放其中一層。"
+    },
+    {
+      "start": 961.75,
+      "end": 964.63,
+      "en": "You can also use a scaling factor of 0.6.",
+      "zh": "同樣可以使用 0.6 的縮放因子。"
+    },
+    {
+      "start": 965.23,
+      "end": 971.79,
+      "en": "Calculate the target loss just like in the previous exercise, and also the correlation between all",
+      "zh": "像上一個練習一樣計算目標損失，也計算縮放與未縮放模型"
+    },
+    {
+      "start": 971.79,
+      "end": 978.71,
+      "en": "of the logits for the scaled and the unscaled versions of the model, as you did in exercise two.",
+      "zh": "所有 logit 之間的相關性，就像練習二。"
+    },
+    {
+      "start": 979.71,
+      "end": 984.31,
+      "en": "And then you can visualize those results in two plots like what you see here.",
+      "zh": "接著，用這裡這樣的兩張圖視覺化。"
+    },
+    {
+      "start": 984.67,
+      "end": 987.95,
+      "en": "So here on the left we have the target losses.",
+      "zh": "左邊是目標損失。"
+    },
+    {
+      "start": 988.07,
+      "end": 991.99,
+      "en": "It's always the same number for the Unscaled model of course.",
+      "zh": "當然，未縮放模型的數字總是相同。"
+    },
+    {
+      "start": 991.99,
+      "end": 994.75,
+      "en": "So therefore you can draw that as a horizontal line.",
+      "zh": "所以，可以畫成水平線。"
+    },
+    {
+      "start": 994.75,
+      "end": 996.15,
+      "en": "That's what you see here.",
+      "zh": "就是這裡看到的。"
+    },
+    {
+      "start": 996.75,
+      "end": 1003.96,
+      "en": "And here you see the result for what happens when you scale down the final transformer block by a factor of 0.6.",
+      "zh": "這裡可以看到，最後一個 Transformer 區塊縮小為 0.6 的結果。"
+    },
+    {
+      "start": 1004.36,
+      "end": 1007.72,
+      "en": "And the question is what do all of the earlier blocks look like?",
+      "zh": "問題是，前面所有區塊的結果長什麼樣子？"
+    },
+    {
+      "start": 1008.52,
+      "end": 1014.28,
+      "en": "And over here on the right are the correlations between the scaled and unscaled logits.",
+      "zh": "右邊是縮放與未縮放 logit 之間的相關性。"
+    },
+    {
+      "start": 1014.32,
+      "end": 1016.84,
+      "en": "Again for each transformer block.",
+      "zh": "同樣，每個 Transformer 區塊各一個。"
+    },
+    {
+      "start": 1017.72,
+      "end": 1021,
+      "en": "So now you can pause the video and wrap up this code challenge.",
+      "zh": "現在可以暫停影片，完成這次程式挑戰。"
+    },
+    {
+      "start": 1021,
+      "end": 1023.76,
+      "en": "And now I will switch to code and bring us home.",
+      "zh": "現在我切換到程式碼，帶大家收尾。"
+    },
+    {
+      "start": 1026.08,
+      "end": 1029.68,
+      "en": "Here is where I initialize the output variables.",
+      "zh": "這裡初始化輸出變數。"
+    },
+    {
+      "start": 1029.68,
+      "end": 1038.88,
+      "en": "So for the losses and the correlations here I'm getting the log softmax for the pure unscaled version of this model.",
+      "zh": "包括損失與相關性。這裡取得模型純粹、未縮放版本的 log_softmax。"
+    },
+    {
+      "start": 1039.12,
+      "end": 1041.8,
+      "en": "And yeah again this is for the final token.",
+      "zh": "同樣，是最後一個 token。"
+    },
+    {
+      "start": 1041.8,
+      "end": 1046.12,
+      "en": "We want to know what is the prediction for the subsequent token.",
+      "zh": "我們想知道，後續 token 的預測是什麼。"
+    },
+    {
+      "start": 1046.68,
+      "end": 1050.56,
+      "en": "Okay then here I'm looping over the layers in the model.",
+      "zh": "好，這裡遍歷模型各層。"
+    },
+    {
+      "start": 1050.56,
+      "end": 1053.08,
+      "en": "Here I'm recreating the scaling dictionary.",
+      "zh": "這裡重新建立縮放字典。"
+    },
+    {
+      "start": 1053.32,
+      "end": 1056.24,
+      "en": "The value is always fixed at 0.6.",
+      "zh": "值總是固定為 0.6。"
+    },
+    {
+      "start": 1056.24,
+      "end": 1058.72,
+      "en": "And what I'm changing is the key.",
+      "zh": "改變的是鍵。"
+    },
+    {
+      "start": 1058.76,
+      "end": 1060.21,
+      "en": "So the layer I.",
+      "zh": "也就是第 i 層。"
+    },
+    {
+      "start": 1060.25,
+      "end": 1064.29,
+      "en": "This is the layer index from zero up to the number of layers.",
+      "zh": "這是層索引，從零到層數。"
+    },
+    {
+      "start": 1064.81,
+      "end": 1066.33,
+      "en": "Forward pass etc..",
+      "zh": "前向傳播等等。"
+    },
+    {
+      "start": 1066.37,
+      "end": 1068.61,
+      "en": "Here I'm getting the output logits.",
+      "zh": "這裡取得輸出 logit。"
+    },
+    {
+      "start": 1068.65,
+      "end": 1072.53,
+      "en": "Also softmax log softmax defying them.",
+      "zh": "也把它 softmax 化、log_softmax 化。"
+    },
+    {
+      "start": 1072.57,
+      "end": 1073.45,
+      "en": "Is that a real word.",
+      "zh": "這算真正的詞嗎？"
+    },
+    {
+      "start": 1073.93,
+      "end": 1077.25,
+      "en": "Uh and then picking out the target token and.",
+      "zh": "接著，挑出目標 token。"
+    },
+    {
+      "start": 1077.29,
+      "end": 1077.57,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1077.61,
+      "end": 1080.97,
+      "en": "Minus the negative log likelihood of that.",
+      "zh": "取它的負對數概似的負值。"
+    },
+    {
+      "start": 1081.21,
+      "end": 1083.65,
+      "en": "And here I'm correlating using torch.",
+      "zh": "這裡使用 Torch 計算相關性。"
+    },
+    {
+      "start": 1084.85,
+      "end": 1092.85,
+      "en": "This is slightly awkward syntax but the torch function doesn't take two vectors.",
+      "zh": "這個語法有點彆扭，因為 Torch 函數不接受兩個向量。"
+    },
+    {
+      "start": 1092.89,
+      "end": 1100.93,
+      "en": "You know you would like to be able to input two vectors a and B like this and calculate the correlation coefficient between them.",
+      "zh": "你會希望像這樣，輸入兩個向量 a 和 b，計算它們之間的相關係數。"
+    },
+    {
+      "start": 1101.25,
+      "end": 1104.13,
+      "en": "That is not how Torch Cove works.",
+      "zh": "但 Torch cov 並不是這樣運作。"
+    },
+    {
+      "start": 1104.25,
+      "end": 1114.89,
+      "en": "Instead, you have to input a matrix, and PyTorch will calculate the correlation matrix based on all of the columns in that matrix.",
+      "zh": "必須輸入矩陣，PyTorch 會根據矩陣的所有欄，計算相關矩陣。"
+    },
+    {
+      "start": 1115.01,
+      "end": 1123.27,
+      "en": "So therefore I have to actually create that matrix using torch, dot, concatenate and then yeah, it also needs to be unsqueezed.",
+      "zh": "所以，我必須用 torch.concatenate 實際建立矩陣，而且還需要 unsqueeze。"
+    },
+    {
+      "start": 1123.27,
+      "end": 1123.79,
+      "en": "This is.",
+      "zh": "這是……"
+    },
+    {
+      "start": 1123.83,
+      "end": 1132.31,
+      "en": "Yeah, to be honest, I think it's easier to transform everything into numpy and then use numpy coef.",
+      "zh": "老實說，我覺得全部轉成 NumPy，再使用 NumPy 的 corrcoef 比較容易。"
+    },
+    {
+      "start": 1132.55,
+      "end": 1140.95,
+      "en": "But I wanted to include this formulation here just as a reminder of how this works in PyTorch.",
+      "zh": "但我想把這種寫法放在這裡，提醒你 PyTorch 中的做法。"
+    },
+    {
+      "start": 1141.63,
+      "end": 1147.51,
+      "en": "Okay, so anyway, then we get the correlations and then that won't take too long to go through.",
+      "zh": "好，總之，接著取得相關性，全部執行完不會花太久。"
+    },
+    {
+      "start": 1148.55,
+      "end": 1153.11,
+      "en": "We can visualize all of those results as you see here.",
+      "zh": "就能像這裡，把所有結果視覺化。"
+    },
+    {
+      "start": 1153.51,
+      "end": 1153.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1153.83,
+      "end": 1159.91,
+      "en": "So again the red line up here is the loss for the uh target token.",
+      "zh": "同樣，上方紅線，是未縮放模型對目標 token 的損失，"
+    },
+    {
+      "start": 1159.91,
+      "end": 1162.71,
+      "en": "Curious from the Unscaled model.",
+      "zh": "也就是 curious。"
+    },
+    {
+      "start": 1162.71,
+      "end": 1164.43,
+      "en": "This is our reference point.",
+      "zh": "這是比較基準。"
+    },
+    {
+      "start": 1164.43,
+      "end": 1172.03,
+      "en": "And you see most of the time a few outliers notwithstanding, most of the time the scaled model actually",
+      "zh": "可以看到，除了少數離群值，大多數時候，縮放模型其實"
+    },
+    {
+      "start": 1172.03,
+      "end": 1176.55,
+      "en": "had a lower loss compared to the Unscaled model.",
+      "zh": "比未縮放模型的損失更低。"
+    },
+    {
+      "start": 1176.87,
+      "end": 1182.12,
+      "en": "And it kind of seems like the loss is increasing as we get deeper into the model.",
+      "zh": "而且，似乎越深入模型，損失越高。"
+    },
+    {
+      "start": 1182.12,
+      "end": 1190.52,
+      "en": "It's not really a perfect monotonic function, so I certainly wouldn't make a big deal out of that particular finding.",
+      "zh": "這不是真正完美的單調函數，所以我絕對不會太強調這個特定發現。"
+    },
+    {
+      "start": 1190.84,
+      "end": 1192.32,
+      "en": "And here you see the correlations.",
+      "zh": "這裡可以看到相關性。"
+    },
+    {
+      "start": 1192.32,
+      "end": 1193.84,
+      "en": "They are really, really high.",
+      "zh": "非常、非常高。"
+    },
+    {
+      "start": 1194,
+      "end": 1197.96,
+      "en": "So 0.992 is like the lowest correlation.",
+      "zh": "最低相關係數大約是 0.992。"
+    },
+    {
+      "start": 1197.96,
+      "end": 1200.72,
+      "en": "That is a crazy high correlation coefficient.",
+      "zh": "這是高得驚人的相關係數。"
+    },
+    {
+      "start": 1202.32,
+      "end": 1210.16,
+      "en": "Doing lots of detailed circuit analysis can be interesting and fun and insightful, but ultimately it's",
+      "zh": "做許多詳細的迴路分析，可以很有趣、很好玩、很有洞見，但最後，"
+    },
+    {
+      "start": 1210.16,
+      "end": 1216.72,
+      "en": "also important to try to link the internal dynamics to model outputs whenever possible.",
+      "zh": "盡可能嘗試把內部動態與模型輸出連結起來，也很重要。"
+    },
+    {
+      "start": 1217.28,
+      "end": 1224.16,
+      "en": "And that's because at the end of the day, what we really care about is the kinds of text that the model produces.",
+      "zh": "因為說到底，我們真正關心的，是模型產生什麼樣的文字。"
+    },
+    {
+      "start": 1224.52,
+      "end": 1232.68,
+      "en": "Now, that's not always possible or necessary to focus your analyses on the final model output and text generation.",
+      "zh": "當然，不是每次都能，或都有必要，把分析聚焦於最終模型輸出與文字生成。"
+    },
+    {
+      "start": 1232.68,
+      "end": 1240.98,
+      "en": "But when you can link your Internal model manipulations and investigations to token selection, then",
+      "zh": "但如果能把內部模型操作與研究，連結到 token 選擇，"
+    },
+    {
+      "start": 1240.98,
+      "end": 1245.7,
+      "en": "that will help your findings be more interpretable and more impactful.",
+      "zh": "就有助於讓發現更容易解讀、更有影響。"
+    },
+    {
+      "start": 1246.58,
+      "end": 1254.1,
+      "en": "The last point I want to mention is that global scaling is kind of like decreasing the temperature in softmax.",
+      "zh": "最後想提的是，整體縮放有點像降低 softmax 的溫度。"
+    },
+    {
+      "start": 1254.82,
+      "end": 1262.02,
+      "en": "It's not exactly literally what happens because there are still multiple stages of transformations and normalizations.",
+      "zh": "不是字面上完全相同，因為中間仍有多個轉換與正規化階段。"
+    },
+    {
+      "start": 1262.02,
+      "end": 1272.22,
+      "en": "But decreasing the softmax temperature is one way to think about the impact of global scaling of these embeddings vectors.",
+      "zh": "但可以把降低 softmax 溫度，當作思考這些嵌入向量整體縮放影響的一種方式。"
+    },
+    {
+      "start": 1272.74,
+      "end": 1279.5,
+      "en": "The model seems to be doing better, but really what's happening is that the model distribution is getting sharper.",
+      "zh": "模型似乎表現更好，但實際上，是模型分布變得更尖銳。"
+    },
+    {
+      "start": 1279.86,
+      "end": 1284.22,
+      "en": "So that happened to be a good thing in this particular example.",
+      "zh": "所以，在這個特定例子中，剛好是好事。"
+    },
+    {
+      "start": 1284.46,
+      "end": 1294.3,
+      "en": "But as I've discussed earlier in the course, having a more restricted and less stochastic token selection is not always a desired property.",
+      "zh": "但課程前面也談過，更受限、隨機性較低的 token 選擇，不一定總是理想特性。"
+    }
+  ]
+}

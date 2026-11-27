@@ -1,0 +1,1849 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893519",
+  "title": "Calculating rotations of embeddings vectors",
+  "section": 20,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "484f6a0b2002fb1467ebb7596ff08d4c5ae78c50f28237c95430189a50f0e500",
+  "cues": [
+    {
+      "start": 2,
+      "end": 5.16,
+      "en": "Welcome to this section of the course.",
+      "zh": "歡迎來到本章。"
+    },
+    {
+      "start": 5.56,
+      "end": 14.52,
+      "en": "Now, there isn't really a huge difference between the analyses in the previous sections and the analyses in this section.",
+      "zh": "其實，上一章與這一章的分析，沒有非常巨大的差異。"
+    },
+    {
+      "start": 15,
+      "end": 21.88,
+      "en": "It's a slight shift in focus from what's happening at the level of the entire layer to what's happening",
+      "zh": "只是焦點稍微從整個層的層級，轉向"
+    },
+    {
+      "start": 21.92,
+      "end": 27.92,
+      "en": "to individual embeddings, vectors coming from each token in a text sequence.",
+      "zh": "文字序列中，每個 token 所對應的個別嵌入向量。"
+    },
+    {
+      "start": 28.6,
+      "end": 37.68,
+      "en": "So the idea of this section is to track how the embeddings vectors change as they pass through the transformer",
+      "zh": "所以本章的概念，是追蹤嵌入向量通過 Transformer"
+    },
+    {
+      "start": 37.68,
+      "end": 40.76,
+      "en": "layers and how they interact with other tokens.",
+      "zh": "層時，如何改變，以及如何與其他 token 互動。"
+    },
+    {
+      "start": 41.28,
+      "end": 51.4,
+      "en": "So yeah, it's a slight shift in conceptualization and terminology, but not really fundamentally different from the material so far in this part of the course.",
+      "zh": "對，只是概念化方式與術語稍有不同，並沒有與這部分課程目前為止的內容，存在根本差異。"
+    },
+    {
+      "start": 51.92,
+      "end": 59.99,
+      "en": "Anyway, the goal of this video is to teach you about calculating how these embeddings vectors are rotating",
+      "zh": "總之，這支影片的目標，是教你計算，這些嵌入向量如何在"
+    },
+    {
+      "start": 60.35,
+      "end": 63.95,
+      "en": "as they pass from one transformer block to the next.",
+      "zh": "通過一個 Transformer 區塊到下一個時旋轉。"
+    },
+    {
+      "start": 64.43,
+      "end": 71.11,
+      "en": "I will show a bit of math and a Python demo here, and then you're going to have a couple of code challenges",
+      "zh": "這裡會展示一點數學與 Python 示範，接著安排幾個程式挑戰，"
+    },
+    {
+      "start": 71.11,
+      "end": 76.51,
+      "en": "where you can continue exploring these concepts for different analyses.",
+      "zh": "讓你繼續在不同分析中探索這些概念。"
+    },
+    {
+      "start": 77.95,
+      "end": 86.99,
+      "en": "I'd like to start by reminding you that tokens are represented as vectors in a high dimensional space.",
+      "zh": "先提醒一下，token 是以高維空間中的向量表示。"
+    },
+    {
+      "start": 87.47,
+      "end": 94.75,
+      "en": "This screenshot here shows the slide from way back towards the beginning of the course, when I explained",
+      "zh": "這張截圖，是課程很前面的一張投影片，當時解釋"
+    },
+    {
+      "start": 94.75,
+      "end": 102.11,
+      "en": "the idea of representing words using dense vectors in, in this case, a two dimensional space.",
+      "zh": "使用稠密向量表徵字詞的概念，在這個例子是二維空間。"
+    },
+    {
+      "start": 102.83,
+      "end": 112.15,
+      "en": "Now, the thing is that we cannot actually visualize or even conceptualize a high dimensional space that's used in language models.",
+      "zh": "問題是，語言模型使用的高維空間，實際上無法視覺化，甚至很難在腦中想像。"
+    },
+    {
+      "start": 112.27000000000001,
+      "end": 123.79,
+      "en": "But the cool thing about linear algebra is that the conceptualizations and the math that you work out for two dimensions apply to any number of dimensions.",
+      "zh": "但線性代數很酷的一點，是二維中建立的概念與數學，適用於任意數目的維度。"
+    },
+    {
+      "start": 125.15,
+      "end": 134.63,
+      "en": "So let's think about the word cat not as a box with some coordinate, but instead as a vector that starts",
+      "zh": "所以不要把 cat 想成某個座標上的方框，而是想成一個從"
+    },
+    {
+      "start": 134.63,
+      "end": 142.51,
+      "en": "at the origin of this space and ends at the coordinate of the token in this embedding space.",
+      "zh": "空間原點出發，終點位於嵌入空間中該 token 座標的向量。"
+    },
+    {
+      "start": 143.11,
+      "end": 146.71,
+      "en": "Now this is the initial embeddings for the word cat.",
+      "zh": "這是 cat 這個字的最初嵌入。"
+    },
+    {
+      "start": 147.07,
+      "end": 154.82999999999998,
+      "en": "And as you know, the point of all the transformer blocks is to slowly transform this vector from representing",
+      "zh": "你也知道，所有 Transformer 區塊的目的，就是慢慢將這個向量，從表徵"
+    },
+    {
+      "start": 154.82999999999998,
+      "end": 160.59,
+      "en": "the token for cat to making a prediction about what token should come next.",
+      "zh": "cat 這個 token，轉成預測下一個 token。"
+    },
+    {
+      "start": 161.19,
+      "end": 163.63,
+      "en": "And how does that transformation happen?",
+      "zh": "這個轉換如何發生？"
+    },
+    {
+      "start": 164.19,
+      "end": 172.15,
+      "en": "Well, within each transformer you have two sublayers that calculate these little adjustments that get added onto the vector.",
+      "zh": "每個 Transformer 內有兩個子層，計算這些小調整，再加到向量上。"
+    },
+    {
+      "start": 172.82999999999998,
+      "end": 179.62,
+      "en": "Those adjustments depend on the context of other tokens Surrounding the appearance of the word cat.",
+      "zh": "調整取決於 cat 出現位置周圍，其他 token 的上下文。"
+    },
+    {
+      "start": 180.18,
+      "end": 188.38,
+      "en": "So let's imagine that other words in the sentence are, for example, the word mean or ferocious or unfriendly.",
+      "zh": "假設句子中其他字，例如 mean、ferocious 或 unfriendly，也就是兇狠、不友善這些詞，"
+    },
+    {
+      "start": 189.02,
+      "end": 194.94,
+      "en": "Those tokens are going to pull down this vector a little bit on the friendliness dimension.",
+      "zh": "它們會將這個向量在友善程度的維度，稍微往下拉。"
+    },
+    {
+      "start": 195.74,
+      "end": 202.86,
+      "en": "So now the token embeddings vector of the word cat has been rotated a tiny bit like this.",
+      "zh": "所以現在，cat 的 token 嵌入向量，就像這樣旋轉了一點。"
+    },
+    {
+      "start": 203.34,
+      "end": 213.42000000000002,
+      "en": "And also just as a reminder that these embeddings dimensions generally do not have human interpretable labels like friendliness or size.",
+      "zh": "也提醒一下，這些嵌入維度，一般不會有友善程度或大小這類人類可解讀的標籤。"
+    },
+    {
+      "start": 213.54,
+      "end": 215.7,
+      "en": "That's really just for this toy example.",
+      "zh": "這只是玩具範例，"
+    },
+    {
+      "start": 215.78,
+      "end": 219.34,
+      "en": "So we have a picture to look at and some math to work through.",
+      "zh": "讓我們有張圖可看，有些數學可以推導。"
+    },
+    {
+      "start": 220.1,
+      "end": 221.86,
+      "en": "But this is the idea.",
+      "zh": "但概念就是如此。"
+    },
+    {
+      "start": 222.1,
+      "end": 228.38,
+      "en": "The embeddings vector starts off pointing in one direction, and then each transformer block that it",
+      "zh": "嵌入向量一開始指向某個方向，接著每通過一個 Transformer 區塊，"
+    },
+    {
+      "start": 228.38,
+      "end": 237.62,
+      "en": "passes through, the vector gets rotated by some amount according to the context And how much does this",
+      "zh": "就根據上下文旋轉某個角度。那麼，這個"
+    },
+    {
+      "start": 237.62,
+      "end": 239.1,
+      "en": "vector get rotated?",
+      "zh": "向量到底旋轉多少？"
+    },
+    {
+      "start": 239.38,
+      "end": 243.3,
+      "en": "That is the question that I will answer on this slide.",
+      "zh": "這就是這張投影片要回答的問題。"
+    },
+    {
+      "start": 243.78,
+      "end": 251.14,
+      "en": "In fact, to answer this question, I'm going to start with the formula for cosine similarity.",
+      "zh": "其實要回答，會從餘弦相似度公式開始。"
+    },
+    {
+      "start": 251.82,
+      "end": 257.1,
+      "en": "So let's say we want to calculate the cosine similarity between the original vector.",
+      "zh": "假設要計算原始向量的餘弦相似度，"
+    },
+    {
+      "start": 257.1,
+      "end": 262.74,
+      "en": "We can call that x and the adjusted vector after going through a transformer block.",
+      "zh": "將它稱為 x，而通過 Transformer 區塊後的調整向量，"
+    },
+    {
+      "start": 262.9,
+      "end": 264.58,
+      "en": "We can call that vector y.",
+      "zh": "稱為 y。"
+    },
+    {
+      "start": 266.02,
+      "end": 268.1,
+      "en": "Now you already know how to do that.",
+      "zh": "你已經知道怎麼做，"
+    },
+    {
+      "start": 268.1,
+      "end": 270.62,
+      "en": "And we've done this earlier in the course.",
+      "zh": "課程前面也做過。"
+    },
+    {
+      "start": 270.82,
+      "end": 275.86,
+      "en": "But the question here in this video is not about cosine similarity.",
+      "zh": "但這支影片的問題，不是餘弦相似度，"
+    },
+    {
+      "start": 275.9,
+      "end": 279.26,
+      "en": "It's about the angle between the two vectors.",
+      "zh": "而是兩個向量的夾角。"
+    },
+    {
+      "start": 279.65999999999997,
+      "end": 287.54,
+      "en": "So to get that angle all we need to do is isolate theta on the left hand side of this equation.",
+      "zh": "要取得角度，只需要在方程式左邊解出 theta，"
+    },
+    {
+      "start": 287.54,
+      "end": 289.22,
+      "en": "So this is the angle here.",
+      "zh": "也就是這裡的角度。"
+    },
+    {
+      "start": 289.94,
+      "end": 293.1,
+      "en": "But there's a lot of pixels in this equation.",
+      "zh": "但這個方程式占了很多像素，"
+    },
+    {
+      "start": 293.1,
+      "end": 299.89,
+      "en": "So for simplicity I'm going to rewrite this equation using this more compact notation.",
+      "zh": "所以為了簡單，用更精簡的記號重寫。"
+    },
+    {
+      "start": 300.41,
+      "end": 306.29,
+      "en": "These angle brackets here are often used to indicate the dot product.",
+      "zh": "這些角括號，經常用來表示內積，"
+    },
+    {
+      "start": 306.29,
+      "end": 310.85,
+      "en": "So this would be the dot product between vector x and vector y.",
+      "zh": "所以這是向量 x 與向量 y 的內積。"
+    },
+    {
+      "start": 311.49,
+      "end": 315.81,
+      "en": "And these vertical lines here indicate the vector norms.",
+      "zh": "這些豎線，則表示向量範數。"
+    },
+    {
+      "start": 315.85,
+      "end": 319.53,
+      "en": "Sometimes in linear algebra you will see double vertical lines.",
+      "zh": "線性代數有時會用雙豎線，"
+    },
+    {
+      "start": 319.53,
+      "end": 326.89,
+      "en": "Here you might also see a little two subscript here, but I'm just using one vertical line just for simplicity.",
+      "zh": "這裡也可能看到下標 2，但為了簡單，我只用單豎線。"
+    },
+    {
+      "start": 327.73,
+      "end": 330.97,
+      "en": "So these two equations here are the same.",
+      "zh": "所以這兩個方程式相同，"
+    },
+    {
+      "start": 331.13,
+      "end": 334.45,
+      "en": "This one is just more compact in terms of notation.",
+      "zh": "只是這個記號更精簡。"
+    },
+    {
+      "start": 335.13,
+      "end": 340.65,
+      "en": "Now to isolate theta you'd like to do something like dividing by the cosine.",
+      "zh": "要解出 theta，可能會想做類似除以 cosine 的事情。"
+    },
+    {
+      "start": 341.17,
+      "end": 343.45,
+      "en": "But the cosine is an operator.",
+      "zh": "但 cosine 是一個運算子，"
+    },
+    {
+      "start": 343.45,
+      "end": 344.29,
+      "en": "It's a function.",
+      "zh": "是一個函數，"
+    },
+    {
+      "start": 344.29,
+      "end": 346.53,
+      "en": "It's not something we can just divide by.",
+      "zh": "不是能直接拿來除的東西。"
+    },
+    {
+      "start": 347.05,
+      "end": 358.65,
+      "en": "However there is an inverse cosine function which is also called the arc cosine, and that will cancel out the cosine function on the left.",
+      "zh": "不過，有反餘弦函數，也叫作 arccosine，它會消掉左邊的餘弦函數，"
+    },
+    {
+      "start": 358.85,
+      "end": 360.97,
+      "en": "Leaving us with just theta.",
+      "zh": "只留下 theta。"
+    },
+    {
+      "start": 361.49,
+      "end": 367.45,
+      "en": "So we can take the inverse cosine or the arc cosine of both sides of the equation.",
+      "zh": "因此可以對方程式兩邊取反餘弦，"
+    },
+    {
+      "start": 367.45,
+      "end": 371.73,
+      "en": "And then we have a formula for the angle between two vectors.",
+      "zh": "就得到兩個向量之間夾角的公式。"
+    },
+    {
+      "start": 372.33,
+      "end": 381.89,
+      "en": "This result is in units of radians, and we can convert it to degrees by multiplying by 180 over pi.",
+      "zh": "結果單位是弧度，乘以 180 除以 π，就能轉成角度。"
+    },
+    {
+      "start": 382.57,
+      "end": 383.93,
+      "en": "So this is the theory.",
+      "zh": "這就是理論。"
+    },
+    {
+      "start": 384.09,
+      "end": 389.33,
+      "en": "It's surprisingly simple once you are familiar with cosine similarity.",
+      "zh": "熟悉餘弦相似度後，它簡單得令人意外。"
+    },
+    {
+      "start": 390.09,
+      "end": 394.21,
+      "en": "And this is actually one of the things I really love about linear algebra.",
+      "zh": "這也是我非常喜歡線性代數的一點。"
+    },
+    {
+      "start": 394.49,
+      "end": 401.57,
+      "en": "Seemingly complicated linear algebra operations are actually quite simple once you have a decent foundation.",
+      "zh": "只要有不錯的基礎，看起來複雜的線性代數運算，其實相當簡單。"
+    },
+    {
+      "start": 402.17,
+      "end": 406.93,
+      "en": "Anyway, now I will describe what I'll do in the Python demo.",
+      "zh": "總之，現在描述 Python 示範要做什麼。"
+    },
+    {
+      "start": 408.21,
+      "end": 416.24,
+      "en": "We are going to work with ChatGPT to Excel because it has lots of layers, lots of transformer blocks.",
+      "zh": "會使用 GPT2-XL，因為它有很多層、很多 Transformer 區塊，"
+    },
+    {
+      "start": 416.24,
+      "end": 419.08,
+      "en": "So that's pretty useful for this analysis.",
+      "zh": "對這項分析很有用。"
+    },
+    {
+      "start": 419.84000000000003,
+      "end": 429.64,
+      "en": "To create the activations for the token embeddings vectors, I will use the sentences that all contain her somewhere in each sentence.",
+      "zh": "要建立 token 嵌入向量的活化，會使用每句都在某個位置包含 her 的句子。"
+    },
+    {
+      "start": 429.96,
+      "end": 433.84,
+      "en": "We've worked with this sentence data set before.",
+      "zh": "這份句子資料集以前用過，"
+    },
+    {
+      "start": 434.28,
+      "end": 438.96,
+      "en": "It is 54 sentences that I got from Claude I.",
+      "zh": "是我從 Claude 取得的 54 個句子。"
+    },
+    {
+      "start": 439.52,
+      "end": 442.92,
+      "en": "Now these sentences have different token lengths.",
+      "zh": "這些句子有不同的 token 長度，"
+    },
+    {
+      "start": 443.16,
+      "end": 455.04,
+      "en": "So this Python demo will also be a nice reminder of padding sequences to create batches of equal lengths when you start from sentences that have unequal lengths.",
+      "zh": "所以這份 Python 示範，也能複習：從長度不同的句子開始，如何填補序列，建立等長批次。"
+    },
+    {
+      "start": 456.36,
+      "end": 463.28,
+      "en": "After pushing through these sequences through the model, I'll get all of the Hidden States activations.",
+      "zh": "將序列送進模型後，取得所有隱藏狀態活化。"
+    },
+    {
+      "start": 463.28,
+      "end": 474.6,
+      "en": "You can see that there are 49 hidden layers for 48 transformer blocks, so eight tokens and an embedding dimension of 1600.",
+      "zh": "可以看到，48 個 Transformer 區塊有 49 個隱藏層，每個序列 8 個 token，嵌入維度為 1,600。"
+    },
+    {
+      "start": 475.24,
+      "end": 483.12,
+      "en": "The main analysis in the code is to calculate the angle of the embeddings vector from each layer, each",
+      "zh": "程式中的主要分析，是計算每一層、每個 Transformer 區塊中的嵌入向量，相較於"
+    },
+    {
+      "start": 483.12,
+      "end": 490.28,
+      "en": "transformer block relative to the previous layer, so that is equivalent to what I described in the",
+      "zh": "前一層的角度。這等同於上一張"
+    },
+    {
+      "start": 490.28,
+      "end": 497.96,
+      "en": "previous slide, where the context surrounding the token will modify the embeddings vector at each transformer",
+      "zh": "投影片描述的內容：token 周圍的上下文，會在每個 Transformer"
+    },
+    {
+      "start": 497.96,
+      "end": 503.64,
+      "en": "block, and we want to calculate the angle from each transformer to the next.",
+      "zh": "區塊修改嵌入向量，而我們想計算一個 Transformer 到下一個的角度。"
+    },
+    {
+      "start": 504.04,
+      "end": 504.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 504.44,
+      "end": 507.16,
+      "en": "And that's what you see in this plot here.",
+      "zh": "這就是這張圖看到的。"
+    },
+    {
+      "start": 507.64,
+      "end": 515.16,
+      "en": "The x axis shows depth into the model or the transformer block index, and the y and the y axis shows",
+      "zh": "x 軸顯示模型深度、Transformer 區塊索引，y 軸顯示"
+    },
+    {
+      "start": 515.16,
+      "end": 520.64,
+      "en": "the angle from the previous layer to the current layer for the target token.",
+      "zh": "目標 token 從前一層到目前這層的夾角，"
+    },
+    {
+      "start": 520.64,
+      "end": 522.64,
+      "en": "So that's the token word here.",
+      "zh": "也就是 her 這個詞。"
+    },
+    {
+      "start": 523.88,
+      "end": 527.08,
+      "en": "And then I also used a non-target reference.",
+      "zh": "另外，也用了非目標作為參考，"
+    },
+    {
+      "start": 527.08,
+      "end": 532.43,
+      "en": "And for that I use the token immediately preceding the target word.",
+      "zh": "使用目標詞正前方的 token。"
+    },
+    {
+      "start": 532.79,
+      "end": 538.79,
+      "en": "That's a pretty interesting comparison, because the context for the target and non-target words are",
+      "zh": "這是很有意思的比較，因為目標與非目標詞的上下文，"
+    },
+    {
+      "start": 538.95,
+      "end": 544.87,
+      "en": "nearly identical, but the words themselves are all different from each other.",
+      "zh": "幾乎相同，但字本身彼此不同。"
+    },
+    {
+      "start": 545.43,
+      "end": 554.71,
+      "en": "And actually, there is another comparison that I have in the code, which is randomly selected tokens across randomly selected layers.",
+      "zh": "其實程式中還有另一種比較，從隨機挑選的層，隨機挑選 token。"
+    },
+    {
+      "start": 555.19,
+      "end": 564.87,
+      "en": "I did not include that visualization in this plot because it's so much higher and it's really noisy, but it's interesting to look at and to ponder.",
+      "zh": "這張圖沒有放那個視覺化，因為數值高很多，而且雜訊很多，但很值得查看與思考。"
+    },
+    {
+      "start": 564.87,
+      "end": 567.31,
+      "en": "And so I will show it when I switch to code.",
+      "zh": "切換到程式碼後會展示。"
+    },
+    {
+      "start": 567.91,
+      "end": 575.39,
+      "en": "And also in the code, I will convert the y axis into angles so that they're easier to interpret.",
+      "zh": "程式中，也會將 y 軸轉成角度，讓它比較容易解讀。"
+    },
+    {
+      "start": 576.47,
+      "end": 582.11,
+      "en": "Now there are several features that we see in this plot that are pretty interesting to think about.",
+      "zh": "這張圖有幾個特徵，很值得思考。"
+    },
+    {
+      "start": 582.35,
+      "end": 592.47,
+      "en": "First is the huge change from the very beginning as we transition from the initial embeddings to the first transformer block.",
+      "zh": "首先，一開始從最初嵌入轉到第一個 Transformer 區塊時，有巨大變化。"
+    },
+    {
+      "start": 592.95,
+      "end": 594.51,
+      "en": "And that's actually pretty sensible.",
+      "zh": "這其實很合理。"
+    },
+    {
+      "start": 594.51,
+      "end": 599.63,
+      "en": "The initial embeddings have zero context modulation.",
+      "zh": "最初嵌入完全沒有上下文調整，"
+    },
+    {
+      "start": 599.63,
+      "end": 607.03,
+      "en": "And then the first transformer block has a lot of work to do to incorporate the initial context.",
+      "zh": "第一個 Transformer 區塊，必須做很多工作，納入初始上下文。"
+    },
+    {
+      "start": 607.63,
+      "end": 617.67,
+      "en": "And then you see this gentle but consistent and fairly linear looking decrease in the angle as we get deeper into the model.",
+      "zh": "接著可以看到，模型越深，角度就越溫和、持續，而且看起來相當線性地下降。"
+    },
+    {
+      "start": 618.19,
+      "end": 627.55,
+      "en": "So it seems like the adjustments from one transformer to the next are relatively small and getting smaller as we go deeper into the model.",
+      "zh": "所以一個 Transformer 到下一個的調整，似乎相對小，而且模型越深，調整越小。"
+    },
+    {
+      "start": 628.63,
+      "end": 635.07,
+      "en": "And then there's this big jump right at the very end, which can be interpreted as the final transformer",
+      "zh": "接著，最末端突然有個大跳躍，可以解讀為最後一個 Transformer"
+    },
+    {
+      "start": 635.07,
+      "end": 644.31,
+      "en": "block, making the last adjustments to the embeddings vectors before they get sent out to the embeddings and a new token is generated.",
+      "zh": "區塊，在嵌入向量送往嵌入、產生新 token 前，做最後的調整。"
+    },
+    {
+      "start": 645.03,
+      "end": 653.07,
+      "en": "And by the way, these thin lines are for each of the 54 sentences, and the thick lines show the average.",
+      "zh": "順帶一提，細線代表 54 個句子各自的結果，粗線顯示平均。"
+    },
+    {
+      "start": 654.51,
+      "end": 659.39,
+      "en": "And because we have a lot of repetitions here we have 54 sentences.",
+      "zh": "因為這裡有很多重複觀察，有 54 個句子，"
+    },
+    {
+      "start": 659.39,
+      "end": 662.79,
+      "en": "So 54 targets and 54 non targets.",
+      "zh": "也就是 54 個目標、54 個非目標，"
+    },
+    {
+      "start": 662.83,
+      "end": 666.31,
+      "en": "We can actually perform a statistical analysis.",
+      "zh": "其實可以進行統計分析。"
+    },
+    {
+      "start": 666.79,
+      "end": 672.67,
+      "en": "In particular it kind of looks like the blue line is higher than the red line in early blocks.",
+      "zh": "尤其前面區塊，藍線似乎比紅線高，"
+    },
+    {
+      "start": 672.67,
+      "end": 676.75,
+      "en": "Whereas the red line is higher than the blue line in later blocks.",
+      "zh": "後面區塊則是紅線比藍線高。"
+    },
+    {
+      "start": 677.27,
+      "end": 686.75,
+      "en": "And so the final part of this demo is to run a t test on the angles of the vector changes at each layer.",
+      "zh": "因此示範最後，是在每一層，對向量變化的角度做 t 檢定。"
+    },
+    {
+      "start": 687.23,
+      "end": 689.15,
+      "en": "And those results you see here.",
+      "zh": "這裡可以看到結果。"
+    },
+    {
+      "start": 689.27,
+      "end": 698.59,
+      "en": "So there are green circles where the target angles are statistically significantly larger than the non-target angles.",
+      "zh": "目標角度在統計上顯著大於非目標角度時，標記綠色圓點。"
+    },
+    {
+      "start": 698.91,
+      "end": 701.67,
+      "en": "And then we have blue squares for the opposite.",
+      "zh": "相反情況，則用藍色方塊，"
+    },
+    {
+      "start": 701.67,
+      "end": 712.26,
+      "en": "So the non-target angles are significantly bigger than the target angles and red X's, where there are no statistically significant differences.",
+      "zh": "也就是非目標角度顯著大於目標角度；若沒有統計顯著差異，則用紅色叉號。"
+    },
+    {
+      "start": 712.5,
+      "end": 721.74,
+      "en": "In other words, the angle of the change in the embeddings vectors from one layer to the next is roughly the same for targets and non targets.",
+      "zh": "換句話說，從一層到下一層，嵌入向量變化的角度，對目標與非目標大致相同。"
+    },
+    {
+      "start": 723.34,
+      "end": 730.54,
+      "en": "Now, I don't want to over interpret this plot or this result, because it's only based on 54 short",
+      "zh": "不過，我不想過度解讀這張圖或這個結果，因為只基於 54 個"
+    },
+    {
+      "start": 730.54,
+      "end": 736.82,
+      "en": "sentences that are all fairly homogeneous in the sense that the target token is always the same.",
+      "zh": "短句，而且相當同質，目標 token 永遠相同。"
+    },
+    {
+      "start": 737.38,
+      "end": 747.78,
+      "en": "But the interpretation of this kind of finding would be that as we get deeper into the model, the adjustments for the target word have to increase.",
+      "zh": "但這類結果的解讀會是，模型越深，目標詞需要的調整就越大。"
+    },
+    {
+      "start": 748.06,
+      "end": 757.1,
+      "en": "In this case, because the pronoun her needs to be bound to other words in the text that the word her references.",
+      "zh": "在這個例子，是因為代名詞 her，需要與文字中它所指涉的其他字詞連結。"
+    },
+    {
+      "start": 757.46,
+      "end": 759.14,
+      "en": "So that would be the interpretation.",
+      "zh": "這就是可能的解讀。"
+    },
+    {
+      "start": 759.54,
+      "end": 763.66,
+      "en": "Anyway, let's now switch to Python and see what the code looks like.",
+      "zh": "總之，現在切換到 Python，看看程式。"
+    },
+    {
+      "start": 764.93,
+      "end": 767.85,
+      "en": "here are the libraries we will use here.",
+      "zh": "這裡是會使用的函式庫，"
+    },
+    {
+      "start": 768.01,
+      "end": 774.61,
+      "en": "And also I will use the Scipy.stats library for running t tests towards the end of the code.",
+      "zh": "也會用 scipy.stats，在程式最後執行 t 檢定。"
+    },
+    {
+      "start": 775.09,
+      "end": 777.81,
+      "en": "Here I'm importing GPT two XL.",
+      "zh": "這裡匯入 GPT2-XL。"
+    },
+    {
+      "start": 777.85,
+      "end": 783.09,
+      "en": "This takes a few minutes, so I probably should have started running this before I switched to Python.",
+      "zh": "需要幾分鐘，所以我可能應該在切換到 Python 之前，就先開始執行。"
+    },
+    {
+      "start": 783.21,
+      "end": 787.77,
+      "en": "But anyway, here are the sentences these you've seen before.",
+      "zh": "總之，這些句子以前看過。"
+    },
+    {
+      "start": 788.09,
+      "end": 790.05,
+      "en": "And uh, yeah, let me see.",
+      "zh": "我看看。"
+    },
+    {
+      "start": 790.25,
+      "end": 790.97,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 791.01,
+      "end": 792.53,
+      "en": "All of this code you've seen before as well.",
+      "zh": "這些程式也都看過。"
+    },
+    {
+      "start": 792.53,
+      "end": 794.09,
+      "en": "So I'm just tokenizing them.",
+      "zh": "只是將它們 token 化，"
+    },
+    {
+      "start": 794.33,
+      "end": 794.77,
+      "en": "Uh, here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 794.77,
+      "end": 796.21,
+      "en": "I'm tokenizing them here.",
+      "zh": "在這裡進行 token 化，"
+    },
+    {
+      "start": 796.21,
+      "end": 798.53,
+      "en": "I'm tokenizing the target word her.",
+      "zh": "將目標詞 her 進行 token 化。"
+    },
+    {
+      "start": 798.57,
+      "end": 801.45,
+      "en": "I've also talked about this issue with the space before.",
+      "zh": "也談過前置空格的問題。"
+    },
+    {
+      "start": 801.97,
+      "end": 804.49,
+      "en": "So I'll cue up that cell to run.",
+      "zh": "先把這個區塊排入執行佇列。"
+    },
+    {
+      "start": 804.85,
+      "end": 809.73,
+      "en": "And here is where we tokenize all of those sentences.",
+      "zh": "這裡將所有句子 token 化。"
+    },
+    {
+      "start": 809.85,
+      "end": 819.25,
+      "en": "And just as a reminder, the issue with creating batches from these sentences is that the different sentences have different numbers of tokens.",
+      "zh": "提醒一下，要將這些句子建立為批次，問題是不同句子的 token 數量不同，"
+    },
+    {
+      "start": 819.49,
+      "end": 829.09,
+      "en": "And so therefore we need to pad all of the tokens such that all the sequences are exactly the same length within a batch.",
+      "zh": "因此必須填補，讓同一批次內，所有序列長度完全相同。"
+    },
+    {
+      "start": 829.21,
+      "end": 836.37,
+      "en": "So to do that, we use the end of sequence token as the pad token, and then we write padding equals true.",
+      "zh": "做法是使用序列結尾 token，作為 pad token，再寫 padding=True。"
+    },
+    {
+      "start": 836.49,
+      "end": 841.37,
+      "en": "And then we get padded tokens here which we can then push through the model.",
+      "zh": "就能取得填補後的 token，再送進模型。"
+    },
+    {
+      "start": 841.53,
+      "end": 845.25,
+      "en": "This is all stuff that I have described earlier in the course.",
+      "zh": "這些都是課程前面介紹過的內容。"
+    },
+    {
+      "start": 845.69,
+      "end": 845.97,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 846.01,
+      "end": 849.77,
+      "en": "So this will also take a about a minute on the CPU.",
+      "zh": "這在 CPU 上也需要大約一分鐘。"
+    },
+    {
+      "start": 850.01,
+      "end": 854.05,
+      "en": "Of course it's much faster on the GPU than it's like a second maybe.",
+      "zh": "在 GPU 上當然快很多，大概一秒。"
+    },
+    {
+      "start": 854.21,
+      "end": 858.93,
+      "en": "But uh, yeah, we don't really need the GPU for this, uh, entire script.",
+      "zh": "但這整份程式，其實不太需要 GPU。"
+    },
+    {
+      "start": 859.37,
+      "end": 869.13,
+      "en": "Okay, so then, yeah, I'm just grabbing the number of hidden layers, and here I'm just printing out the shape the size of one of the hidden layers.",
+      "zh": "好，接著只是取得隱藏層數，這裡列印其中一個隱藏層的形狀、大小。"
+    },
+    {
+      "start": 869.13,
+      "end": 873.41,
+      "en": "This is really just confirmation that we get some expected results.",
+      "zh": "只是確認得到預期結果。"
+    },
+    {
+      "start": 873.93,
+      "end": 877.29,
+      "en": "And now here is where we do the analysis.",
+      "zh": "現在開始分析。"
+    },
+    {
+      "start": 877.37,
+      "end": 882.92,
+      "en": "So I'm looping over all of the sentences here I'm finding the target.",
+      "zh": "這裡逐一迭代所有句子，找出目標的位置。"
+    },
+    {
+      "start": 882.92,
+      "end": 885.92,
+      "en": "Where again, this is code that you've seen in earlier videos.",
+      "zh": "同樣，這段程式在先前影片看過。"
+    },
+    {
+      "start": 885.92,
+      "end": 891.64,
+      "en": "But the main idea is that the target word her is in a different index location.",
+      "zh": "主要概念是，目標詞 her 的索引位置不同，"
+    },
+    {
+      "start": 891.64,
+      "end": 894.44,
+      "en": "So different location in each sentence.",
+      "zh": "也就是在每個句子的位置不同。"
+    },
+    {
+      "start": 894.44,
+      "end": 902.68,
+      "en": "So therefore we need to loop over all of the sentences and find the index of the target word in each individual sentence.",
+      "zh": "因此必須逐一迭代所有句子，找出每個句子中，目標詞的索引。"
+    },
+    {
+      "start": 903.2,
+      "end": 906.84,
+      "en": "Here I'm starting the loop over all of the layers.",
+      "zh": "這裡開始迭代所有層。"
+    },
+    {
+      "start": 906.88,
+      "end": 911.8,
+      "en": "Notice that I start the loop at index one and not index zero.",
+      "zh": "注意，迴圈從索引 1 開始，而不是 0。"
+    },
+    {
+      "start": 912.16,
+      "end": 918.72,
+      "en": "And the reason is that what I want to calculate in this analysis is the change, or the angle of the",
+      "zh": "因為這項分析要計算的是，每個 Transformer 區塊，相對於前一個區塊，向量的"
+    },
+    {
+      "start": 918.72,
+      "end": 924.96,
+      "en": "change in the vector from each transformer block relative to the previous transformer block.",
+      "zh": "變化，或者說變化的角度。"
+    },
+    {
+      "start": 925.16,
+      "end": 928.36,
+      "en": "So outputs dot hidden states layer I.",
+      "zh": "所以是 outputs.hidden_states 的 layer i，"
+    },
+    {
+      "start": 928.4,
+      "end": 931.96,
+      "en": "So this is the current layer in this for loop minus one.",
+      "zh": "這裡是 for 迴圈中的目前層，減去 1。"
+    },
+    {
+      "start": 932,
+      "end": 934.48,
+      "en": "And then for convenience I call that vector v.",
+      "zh": "為了方便，將這個向量稱為 v。"
+    },
+    {
+      "start": 934.72,
+      "end": 941.96,
+      "en": "This I call vector u that is still this sentence, this target location, but the current layer.",
+      "zh": "這個稱為向量 u，仍是同一個句子、這個目標位置，但取目前的層。"
+    },
+    {
+      "start": 943,
+      "end": 943.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 943.32,
+      "end": 944.32,
+      "en": "So then detach.",
+      "zh": "接著 detach。"
+    },
+    {
+      "start": 944.32,
+      "end": 949.44,
+      "en": "And the squeeze is basically just to get rid of these singleton dimensions here.",
+      "zh": "squeeze 基本上只是去掉這些單一元素的維度。"
+    },
+    {
+      "start": 949.56,
+      "end": 953.04,
+      "en": "Of course this is the embeddings dimensionality here.",
+      "zh": "當然，這裡是嵌入維度，"
+    },
+    {
+      "start": 953.04,
+      "end": 960.64,
+      "en": "So that means that the result here this v is going to be one vector with 1600 elements in it.",
+      "zh": "因此這裡的結果 v，會是一個有 1,600 個元素的向量。"
+    },
+    {
+      "start": 960.76,
+      "end": 962.28,
+      "en": "So v and then u.",
+      "zh": "v，以及 u。"
+    },
+    {
+      "start": 962.6,
+      "end": 970.32,
+      "en": "And here is where I directly translate the formula that I showed in the slides a moment ago into code.",
+      "zh": "這裡直接將剛才投影片展示的公式，轉成程式。"
+    },
+    {
+      "start": 970.6,
+      "end": 980.12,
+      "en": "So we have the dot product between v and u divided by or normalized by the product of the norms of the two vectors.",
+      "zh": "v 與 u 的內積，除以、或者說用兩個向量範數的乘積作正規化。"
+    },
+    {
+      "start": 980.48,
+      "end": 983.52,
+      "en": "And then here I apply the arc cosine.",
+      "zh": "接著套用 arccosine，"
+    },
+    {
+      "start": 983.56,
+      "end": 985.84,
+      "en": "This is the inverse cosine function.",
+      "zh": "也就是反餘弦函數。"
+    },
+    {
+      "start": 986.28,
+      "end": 991.8,
+      "en": "And the result here is the angle between these two vectors.",
+      "zh": "結果就是兩個向量的夾角，"
+    },
+    {
+      "start": 992,
+      "end": 995.24,
+      "en": "And again it's in units of radians.",
+      "zh": "同樣以弧度為單位。"
+    },
+    {
+      "start": 996.24,
+      "end": 1004.11,
+      "en": "And again the idea is that if a particular embeddings vector doesn't really change after the transformer block.",
+      "zh": "同樣，概念是，如果某個嵌入向量，通過 Transformer 區塊後沒有真正改變，"
+    },
+    {
+      "start": 1004.11,
+      "end": 1011.99,
+      "en": "Let's say the attention mechanism looks at the vector as like yep, this is good as it is, we don't need to do any adjustments.",
+      "zh": "假設注意力機制看它，覺得這樣很好，不必做任何調整，"
+    },
+    {
+      "start": 1012.19,
+      "end": 1020.99,
+      "en": "Then that angle is going to look basically the same before and after the transformer block, in which case the angle will be zero.",
+      "zh": "那麼向量在區塊前後看起來基本相同，這時夾角就會是零。"
+    },
+    {
+      "start": 1021.43,
+      "end": 1027.51,
+      "en": "On the other hand, if the transformer block really needs to make some pretty significant adjustments",
+      "zh": "另一方面，如果 Transformer 區塊，真的需要對向量做相當大的"
+    },
+    {
+      "start": 1027.51,
+      "end": 1038.67,
+      "en": "to the vector, then that vector will be rotated and then vector u will point off in a different direction from vector v, and then this angle will be larger.",
+      "zh": "調整，向量就會旋轉，u 將指向不同於 v 的方向，夾角就會比較大。"
+    },
+    {
+      "start": 1039.15,
+      "end": 1045.11,
+      "en": "Now the adjustments to these vectors is not only about changing the angles.",
+      "zh": "不過，這些向量的調整，不只是角度變化。"
+    },
+    {
+      "start": 1045.43,
+      "end": 1053.19,
+      "en": "That is to say, it's not the case that the vectors necessarily stay exactly the same length, they just rotate a little bit.",
+      "zh": "也就是說，向量不一定永遠維持完全相同的長度，只是稍微旋轉。"
+    },
+    {
+      "start": 1053.59,
+      "end": 1059.59,
+      "en": "The attention and MLP adjustments can also change the length of the vectors.",
+      "zh": "注意力與 MLP 的調整，也能改變向量長度。"
+    },
+    {
+      "start": 1059.59,
+      "end": 1067.23,
+      "en": "They can get shorter, they can get longer, and the angle does actually not really capture those changes in lengths.",
+      "zh": "可以變短、變長，而角度其實無法捕捉這些長度變化。"
+    },
+    {
+      "start": 1067.35,
+      "end": 1077.87,
+      "en": "For example, let's imagine that a transformer block decides that a vector needs to be a little bit shorter, but pointed in the same direction.",
+      "zh": "例如，假設 Transformer 區塊決定，向量需要稍微短一點，但方向相同，"
+    },
+    {
+      "start": 1078.75,
+      "end": 1087.43,
+      "en": "In that case, there's no rotation, so the angle is going to be zero where the whereas the length of that vector might actually have changed a lot.",
+      "zh": "這時沒有旋轉，所以夾角是零，但向量長度實際上可能變了很多。"
+    },
+    {
+      "start": 1087.63,
+      "end": 1092.79,
+      "en": "So that is something that we would not be able to detect with this analysis.",
+      "zh": "這種情況，這項分析就無法偵測，"
+    },
+    {
+      "start": 1092.79,
+      "end": 1098.27,
+      "en": "But we will be able to detect it by measuring the change in the length of the vector.",
+      "zh": "但透過測量向量長度的變化，就能偵測。"
+    },
+    {
+      "start": 1098.43,
+      "end": 1101.19,
+      "en": "That's what we're going to do in a couple of videos for now.",
+      "zh": "那是幾支影片後，"
+    },
+    {
+      "start": 1101.23,
+      "end": 1102.43,
+      "en": "Later in this section.",
+      "zh": "本章稍後要做的事情。"
+    },
+    {
+      "start": 1102.67,
+      "end": 1102.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1102.99,
+      "end": 1107.59,
+      "en": "Anyway, I just wanted to discuss the interpretation of this result a little bit more.",
+      "zh": "總之，只是想多討論一點結果的解讀。"
+    },
+    {
+      "start": 1108.03,
+      "end": 1117.95,
+      "en": "So this is for the target words here I have exactly the same analysis, but this is for all of the tokens Preceding the target word.",
+      "zh": "這是目標詞，這裡是完全相同的分析，但對象是目標詞前面的所有那些 token。"
+    },
+    {
+      "start": 1118.31,
+      "end": 1125.35,
+      "en": "Now, this is pretty interesting because this is exactly the same token in every single sentence.",
+      "zh": "這很有意思，因為每個句子的這個 token 都完全相同，"
+    },
+    {
+      "start": 1125.35,
+      "end": 1127.91,
+      "en": "By definition, it's always the word her.",
+      "zh": "按定義，永遠是 her。"
+    },
+    {
+      "start": 1128.27,
+      "end": 1133.11,
+      "en": "But the word preceding her is different in every sentence.",
+      "zh": "但 her 前面的字，在每個句子都不同，"
+    },
+    {
+      "start": 1133.27,
+      "end": 1138.07,
+      "en": "So you know here it's introduced, informed, married and so on.",
+      "zh": "例如這裡是 introduced、informed、married 等等。"
+    },
+    {
+      "start": 1138.47,
+      "end": 1144.55,
+      "en": "So in this case it's still the same token across the different layers.",
+      "zh": "所以在這個情況，不同層之間仍然是同一個 token，"
+    },
+    {
+      "start": 1144.71,
+      "end": 1149.23,
+      "en": "But each sentence is going to have a different word here.",
+      "zh": "但每個句子，這裡會是不同的字。"
+    },
+    {
+      "start": 1149.63,
+      "end": 1150.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1150.47,
+      "end": 1150.71,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1150.75,
+      "end": 1152.67,
+      "en": "And so those are the same.",
+      "zh": "所以那些都相同，"
+    },
+    {
+      "start": 1152.79,
+      "end": 1155.35,
+      "en": "These are the same but it's different for each sentence.",
+      "zh": "這些相同，但每個句子不同。"
+    },
+    {
+      "start": 1155.43,
+      "end": 1162.51,
+      "en": "And then what I've done here is completely shuffle to get random vectors mapping onto random other vectors.",
+      "zh": "這裡則完全打亂，讓隨機向量對應隨機其他向量。"
+    },
+    {
+      "start": 1162.79,
+      "end": 1169.75,
+      "en": "Now this result doesn't really it's not really interpretable because I'm picking random layers and random",
+      "zh": "這個結果其實不太能解讀，因為隨機挑選層，以及隨機"
+    },
+    {
+      "start": 1169.75,
+      "end": 1180.22,
+      "en": "pairs of tokens, but it's going to provide an interesting comparison to Harrison to see what is the angle difference between randomly selected embeddings vectors.",
+      "zh": "token 配對，但它會提供有意思的比較，看看隨機挑選的嵌入向量之間，角度差多少。"
+    },
+    {
+      "start": 1180.5,
+      "end": 1185.86,
+      "en": "So what I do is from the hidden states I take a random layer.",
+      "zh": "做法是從隱藏狀態取一個隨機層，"
+    },
+    {
+      "start": 1185.86,
+      "end": 1187.5,
+      "en": "So I'm not just using this layer.",
+      "zh": "不只是使用這一層，"
+    },
+    {
+      "start": 1187.5,
+      "end": 1195.02,
+      "en": "I'm literally picking a random layer excluding the embeddings, but any random transformer layer.",
+      "zh": "而是真的隨機挑層，排除嵌入，但任何 Transformer 層都有可能。"
+    },
+    {
+      "start": 1195.42,
+      "end": 1199.02,
+      "en": "And then I'm also picking any random token.",
+      "zh": "也隨機挑選 token，"
+    },
+    {
+      "start": 1199.22,
+      "end": 1206.86,
+      "en": "So any random token from anywhere in the sentence and any random layer from anywhere in the model completely random.",
+      "zh": "句子任何位置的任意 token，以及模型任何位置的任意層，完全隨機。"
+    },
+    {
+      "start": 1206.86,
+      "end": 1212.34,
+      "en": "We do not expect any sensible results between these two vectors.",
+      "zh": "我們不預期這兩個向量之間有什麼合理結果，"
+    },
+    {
+      "start": 1212.38,
+      "end": 1223.86,
+      "en": "It's just a couple of randomly picked vectors, so it's going to be interesting to compare the magnitude of these vectors that we see with the magnitude of vectors that we see here.",
+      "zh": "只是幾個隨機挑選的向量，因此將這裡向量的大小，與這裡看到的向量大小比較，會很有意思。"
+    },
+    {
+      "start": 1224.38,
+      "end": 1224.82,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1225.78,
+      "end": 1227.34,
+      "en": "So I can run that analysis.",
+      "zh": "可以執行這項分析。"
+    },
+    {
+      "start": 1227.34,
+      "end": 1229.06,
+      "en": "This actually goes really fast.",
+      "zh": "其實很快，"
+    },
+    {
+      "start": 1229.38,
+      "end": 1232.9,
+      "en": "Uh, because uh, yeah it can all be done on the CPU.",
+      "zh": "因為全都能在 CPU 上做，"
+    },
+    {
+      "start": 1232.94,
+      "end": 1234.73,
+      "en": "It's just some calculations.",
+      "zh": "只是一些計算。"
+    },
+    {
+      "start": 1235.17,
+      "end": 1235.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1235.81,
+      "end": 1237.69,
+      "en": "And then let's see.",
+      "zh": "接著看看。"
+    },
+    {
+      "start": 1237.69,
+      "end": 1242.89,
+      "en": "So the sizes of this matrix angles is 48 for the transformer blocks.",
+      "zh": "angles 矩陣的大小是 48，對應 Transformer 區塊，"
+    },
+    {
+      "start": 1243.29,
+      "end": 1248.05,
+      "en": "And then 54 sentences and three of these analyses.",
+      "zh": "再來是 54 個句子，以及三種分析，"
+    },
+    {
+      "start": 1248.05,
+      "end": 1250.65,
+      "en": "So target non-target and shuffled.",
+      "zh": "也就是目標、非目標，以及打亂。"
+    },
+    {
+      "start": 1251.09,
+      "end": 1253.93,
+      "en": "This is to convert from radians to angles.",
+      "zh": "這裡將弧度轉成角度。"
+    },
+    {
+      "start": 1253.93,
+      "end": 1256.13,
+      "en": "I'm not going to run that just yet.",
+      "zh": "先不執行，"
+    },
+    {
+      "start": 1256.17,
+      "end": 1258.57,
+      "en": "I want to show you the results first.",
+      "zh": "想先展示結果。"
+    },
+    {
+      "start": 1259.05,
+      "end": 1261.01,
+      "en": "So here you see the results.",
+      "zh": "這裡可以看到結果，"
+    },
+    {
+      "start": 1261.01,
+      "end": 1262.49,
+      "en": "This is what I showed in the slides.",
+      "zh": "就是投影片展示的內容。"
+    },
+    {
+      "start": 1262.49,
+      "end": 1265.09,
+      "en": "Now let me uncomment this.",
+      "zh": "現在取消這裡的註解，"
+    },
+    {
+      "start": 1265.81,
+      "end": 1271.89,
+      "en": "So now we have also the completely shuffled angles randomly selected angles.",
+      "zh": "也加入完全打亂、隨機挑選的角度。"
+    },
+    {
+      "start": 1271.89,
+      "end": 1273.49,
+      "en": "And you don't even see the average.",
+      "zh": "甚至看不到平均，"
+    },
+    {
+      "start": 1273.49,
+      "end": 1274.85,
+      "en": "It's so much higher here.",
+      "zh": "因為它高得多。"
+    },
+    {
+      "start": 1275.01,
+      "end": 1275.85,
+      "en": "So let me see.",
+      "zh": "我看看，"
+    },
+    {
+      "start": 1275.85,
+      "end": 1281.77,
+      "en": "I have to get rid of this uh y axis limit here.",
+      "zh": "需要去掉這裡的 y 軸界限。"
+    },
+    {
+      "start": 1282.37,
+      "end": 1282.69,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1282.73,
+      "end": 1288.49,
+      "en": "So we see that, uh, these randomly selected angles are much higher.",
+      "zh": "可以看到，隨機挑選的角度高很多，"
+    },
+    {
+      "start": 1288.49,
+      "end": 1294.37,
+      "en": "So in radians we get around 1.3, 31.4 or so radians.",
+      "zh": "弧度大約在 1.3、1.4 左右。"
+    },
+    {
+      "start": 1294.37,
+      "end": 1297.05,
+      "en": "That's actually pretty close to pi over two.",
+      "zh": "其實相當接近 π 除以 2。"
+    },
+    {
+      "start": 1297.25,
+      "end": 1299.41,
+      "en": "You can also see that these are just wild.",
+      "zh": "也可以看到，它們變動得很劇烈，"
+    },
+    {
+      "start": 1299.45,
+      "end": 1300.97,
+      "en": "And this is not really surprising.",
+      "zh": "這其實不意外。"
+    },
+    {
+      "start": 1301.01,
+      "end": 1303.69,
+      "en": "I mean these vectors are just pointing all over the place.",
+      "zh": "這些向量指向各種方向，"
+    },
+    {
+      "start": 1303.69,
+      "end": 1307.29,
+      "en": "They're randomly selected pairs of tokens.",
+      "zh": "是隨機選出的 token 配對。"
+    },
+    {
+      "start": 1307.49,
+      "end": 1315.85,
+      "en": "And one thing I wanted to point out here is just the way I set up this analysis, maybe a little bit lazy, but it is actually possible.",
+      "zh": "這裡想指出一點，我設定分析的方式可能有點偷懶，但確實有可能，"
+    },
+    {
+      "start": 1315.89,
+      "end": 1318.29,
+      "en": "Let me show you this without me.",
+      "zh": "讓我拿掉平均來展示。"
+    },
+    {
+      "start": 1318.45,
+      "end": 1319.53,
+      "en": "So here we get.",
+      "zh": "這裡會得到，"
+    },
+    {
+      "start": 1319.57,
+      "end": 1321.65,
+      "en": "We're probably going to get a couple up.",
+      "zh": "可能會出現幾個，"
+    },
+    {
+      "start": 1321.69,
+      "end": 1323.53,
+      "en": "We didn't get any missing data points.",
+      "zh": "沒有任何缺失資料點。"
+    },
+    {
+      "start": 1323.57,
+      "end": 1324.69,
+      "en": "Let me try this again.",
+      "zh": "再試一次。"
+    },
+    {
+      "start": 1324.93,
+      "end": 1330.93,
+      "en": "Sometimes when you run this analysis, you will get missing data points in the green lines.",
+      "zh": "有時執行分析，綠色線條會出現缺失資料點，"
+    },
+    {
+      "start": 1331.05,
+      "end": 1332.85,
+      "en": "And that happens because.",
+      "zh": "原因是，"
+    },
+    {
+      "start": 1333.25,
+      "end": 1333.45,
+      "en": "Okay.",
+      "zh": "好，"
+    },
+    {
+      "start": 1333.49,
+      "end": 1335.25,
+      "en": "Here we go randomly.",
+      "zh": "隨機情況下，這次出現了。"
+    },
+    {
+      "start": 1335.37,
+      "end": 1341.45,
+      "en": "It can happen that you get these two in the shuffled and the randomly selected pairs.",
+      "zh": "可能在打亂、隨機挑選的配對中，"
+    },
+    {
+      "start": 1341.45,
+      "end": 1345.45,
+      "en": "These two can be exactly the same vectors just by chance.",
+      "zh": "兩個向量碰巧完全相同。"
+    },
+    {
+      "start": 1345.81,
+      "end": 1350.13,
+      "en": "And when that happens we just run into some numerical problems.",
+      "zh": "這時就會碰到一些數值問題，"
+    },
+    {
+      "start": 1350.13,
+      "end": 1352.04,
+      "en": "We get some Nan values.",
+      "zh": "得到 NaN，"
+    },
+    {
+      "start": 1352.04,
+      "end": 1356.24,
+      "en": "And so therefore I just take the Nan mean.",
+      "zh": "所以我才使用 nanmean。"
+    },
+    {
+      "start": 1356.64,
+      "end": 1360.28,
+      "en": "So next I'm going to statistically evaluate.",
+      "zh": "接著，會用統計方法評估。"
+    },
+    {
+      "start": 1360.32,
+      "end": 1363.24,
+      "en": "Let me go back to this visualization.",
+      "zh": "回到這個視覺化。"
+    },
+    {
+      "start": 1363.4,
+      "end": 1372.44,
+      "en": "So yeah here when we look at this result it seems like the uh the non-targets have a higher angle than the targets early on.",
+      "zh": "看這個結果，前段非目標的角度，似乎比目標大，"
+    },
+    {
+      "start": 1372.44,
+      "end": 1375.64,
+      "en": "And that, uh, pattern flips later on.",
+      "zh": "到了後段，這個模式反過來。"
+    },
+    {
+      "start": 1376.04,
+      "end": 1380.16,
+      "en": "So then I did a statistical analysis to evaluate that.",
+      "zh": "所以我做統計分析，評估這點。"
+    },
+    {
+      "start": 1380.28,
+      "end": 1389.2,
+      "en": "So I grabbed all of the angles for, uh, zero and one that corresponds to the target tokens and the non-target tokens.",
+      "zh": "取得 0 與 1 的全部角度，分別對應目標與非目標 token。"
+    },
+    {
+      "start": 1389.2,
+      "end": 1396.84,
+      "en": "I'm not doing any analyses on the randomly selected pairs, because I don't think it makes sense to do that.",
+      "zh": "我沒有對隨機挑選的配對做任何分析，因為覺得那麼做沒有道理，"
+    },
+    {
+      "start": 1397.08,
+      "end": 1398.72,
+      "en": "Uh, statistical analysis.",
+      "zh": "也就是不做統計分析。"
+    },
+    {
+      "start": 1399.2,
+      "end": 1399.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1399.52,
+      "end": 1405.84,
+      "en": "And then, yeah, I'm using a threshold of 0.05 divided by the number of hidden layers.",
+      "zh": "接著使用 0.05 除以隱藏層數，作為門檻。"
+    },
+    {
+      "start": 1405.84,
+      "end": 1416.52,
+      "en": "So basically it's Bonferroni corrected p values Because we are doing so many comparisons here, and these are the results that I showed in the slides.",
+      "zh": "基本上是 Bonferroni 校正後的 P 值，因為這裡做了很多比較。這就是投影片展示的結果。"
+    },
+    {
+      "start": 1416.68,
+      "end": 1416.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1416.96,
+      "end": 1424.8,
+      "en": "The last thing I want to show here is changing all of these angles from radians to degrees.",
+      "zh": "最後想示範，將所有角度從弧度轉成度。"
+    },
+    {
+      "start": 1424.84,
+      "end": 1426.28,
+      "en": "This should say degrees here.",
+      "zh": "這裡應該寫 degrees。"
+    },
+    {
+      "start": 1426.92,
+      "end": 1432.08,
+      "en": "Now, it probably would be better if I would create a new variable and call this like degrees.",
+      "zh": "也許建立一個新變數，叫作 degrees，會比較好，"
+    },
+    {
+      "start": 1432.44,
+      "end": 1436.56,
+      "en": "But then I would need to do new plotting code and I didn't feel like doing that.",
+      "zh": "但那就需要新的繪圖程式，我不想那麼做。"
+    },
+    {
+      "start": 1436.72,
+      "end": 1441.32,
+      "en": "So now I've overwritten all of these results.",
+      "zh": "所以現在覆寫了所有結果，"
+    },
+    {
+      "start": 1441.32,
+      "end": 1442.08,
+      "en": "But that's fine.",
+      "zh": "不過沒關係，"
+    },
+    {
+      "start": 1442.08,
+      "end": 1444.36,
+      "en": "This takes literally one second to run.",
+      "zh": "這真的只要一秒就能跑完。"
+    },
+    {
+      "start": 1444.8,
+      "end": 1449.6,
+      "en": "Okay, so now we have data in angles instead of in radians.",
+      "zh": "好，現在資料是角度，而不是弧度。"
+    },
+    {
+      "start": 1449.72,
+      "end": 1457.72,
+      "en": "And the whole point of me doing that is that it's just a little bit easier for a lot of people to interpret.",
+      "zh": "這麼做的目的，是很多人用角度比較容易解讀。"
+    },
+    {
+      "start": 1458.16,
+      "end": 1465.44,
+      "en": "So we see that the change, the difference in angle between these randomly selected pairs is somewhere",
+      "zh": "可以看到，這些隨機配對之間的角度差，大約"
+    },
+    {
+      "start": 1465.44,
+      "end": 1474.16,
+      "en": "around 70 to 80 Degrees and remember that 90 degrees would correspond to exactly orthogonal.",
+      "zh": "在 70 到 80 度，記住，90 度就對應完全正交，"
+    },
+    {
+      "start": 1474.8,
+      "end": 1477.12,
+      "en": "Completely orthogonal vectors.",
+      "zh": "完全正交的向量。"
+    },
+    {
+      "start": 1477.28,
+      "end": 1479.4,
+      "en": "Now in a high dimensional space.",
+      "zh": "在高維空間中，"
+    },
+    {
+      "start": 1479.6,
+      "end": 1483.76,
+      "en": "Random vectors are likely to be orthogonal to each other.",
+      "zh": "隨機向量很可能彼此正交。"
+    },
+    {
+      "start": 1484.12,
+      "end": 1485.52,
+      "en": "So the fact that this.",
+      "zh": "所以這個事實，"
+    },
+    {
+      "start": 1485.76,
+      "end": 1491.76,
+      "en": "These random pairs are almost but not quite orthogonal, they are a little bit correlated with each other.",
+      "zh": "這些隨機配對幾乎正交，但不完全正交，彼此還有一點相關，"
+    },
+    {
+      "start": 1492.16,
+      "end": 1501.76,
+      "en": "That actually is consistent with the bias towards positive cosine similarities in the GPT two tokenizer",
+      "zh": "其實符合課程很前面發現，GPT2 tokenizer 的餘弦相似度"
+    },
+    {
+      "start": 1501.96,
+      "end": 1505.28,
+      "en": "that we discovered very early in the course.",
+      "zh": "偏向正值的現象。"
+    },
+    {
+      "start": 1505.64,
+      "end": 1505.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1505.92,
+      "end": 1509.24,
+      "en": "And otherwise you see that the target and non-target.",
+      "zh": "其他方面，可以看到目標與非目標，"
+    },
+    {
+      "start": 1509.24,
+      "end": 1519.68,
+      "en": "So when we use exactly the same token, looking at the same token before versus after each transformer, then the rotations are somewhere around ten degrees.",
+      "zh": "也就是使用完全相同 token，查看每個 Transformer 前後同一個 token 時，旋轉大約是 10 度。"
+    },
+    {
+      "start": 1520.04,
+      "end": 1525.96,
+      "en": "And again also interesting to see in the very beginning going from the initial embeddings.",
+      "zh": "也很有意思的是，最一開始從最初嵌入，"
+    },
+    {
+      "start": 1526.16,
+      "end": 1531.51,
+      "en": "So the token plus the position embeddings to the first transformer block there.",
+      "zh": "也就是 token 加位置嵌入，到第一個 Transformer 區塊，"
+    },
+    {
+      "start": 1531.55,
+      "end": 1535.75,
+      "en": "The change is almost 90 degrees, so it's a major rotation.",
+      "zh": "角度變化幾乎是 90 度，是很大的旋轉。"
+    },
+    {
+      "start": 1535.87,
+      "end": 1543.31,
+      "en": "That's the first moment in the model where the context, the surrounding context, is loaded in and",
+      "zh": "那是模型首次載入周圍上下文，"
+    },
+    {
+      "start": 1543.31,
+      "end": 1548.19,
+      "en": "modulates the angle of the embeddings vector for each token.",
+      "zh": "調整每個 token 嵌入向量角度的時刻。"
+    },
+    {
+      "start": 1548.19,
+      "end": 1550.35,
+      "en": "That's a pretty significant rotation there.",
+      "zh": "這是相當大的旋轉。"
+    },
+    {
+      "start": 1551.63,
+      "end": 1560.47,
+      "en": "I've mentioned before that the field of mechanistic interpretability of LL is still fairly new, which",
+      "zh": "之前提過，LLM 的機制可解釋性領域仍然相當新，"
+    },
+    {
+      "start": 1560.47,
+      "end": 1567.75,
+      "en": "is a little bit frustrating sometimes, because it means that a lot of the interpretations are speculative",
+      "zh": "有時讓人有點挫折，因為許多解讀是推測性的，"
+    },
+    {
+      "start": 1567.75,
+      "end": 1573.59,
+      "en": "and going to change over time as new theories develop, a new research comes out.",
+      "zh": "隨著新理論發展、新研究出現，還會改變。"
+    },
+    {
+      "start": 1573.95,
+      "end": 1581.15,
+      "en": "But the nation see of this field is also exciting, because it means that a lot of work remains to be",
+      "zh": "但這個領域仍在萌芽，也很令人興奮，因為還有很多工作需要"
+    },
+    {
+      "start": 1581.15,
+      "end": 1590.74,
+      "en": "done, and a lot of concepts that you might have learned about in linear algebra or machine learning or calculus can be relevant here for understanding.",
+      "zh": "完成，而你在線性代數、機器學習或微積分學過的許多概念，都可能與這裡的理解有關。"
+    },
+    {
+      "start": 1592.26,
+      "end": 1599.06,
+      "en": "Now, one of the situations where you see this phenomenon is that sometimes we do analyses where it",
+      "zh": "有一種情況能看到這個現象：有些分析，"
+    },
+    {
+      "start": 1599.06,
+      "end": 1607.26,
+      "en": "seems like the representations inside the model transition smoothly and slowly across the transformer",
+      "zh": "似乎表示模型內部表徵，在 Transformer"
+    },
+    {
+      "start": 1607.26,
+      "end": 1615.7,
+      "en": "blocks, whereas other analyses seem to suggest that there are sudden discontinuous jumps in processing.",
+      "zh": "區塊之間平順、緩慢轉變，其他分析卻似乎表示，處理過程會突然、不連續地跳躍。"
+    },
+    {
+      "start": 1616.26,
+      "end": 1624.1,
+      "en": "Of course, both of those statements can be true because these are such complex systems and they implement",
+      "zh": "當然，兩種說法都可能成立，因為系統非常複雜，同時執行"
+    },
+    {
+      "start": 1624.1,
+      "end": 1629.1,
+      "en": "many calculations at the same time and distributed in different ways.",
+      "zh": "許多計算，而且以不同方式分布。"
+    },
+    {
+      "start": 1629.86,
+      "end": 1636.06,
+      "en": "Anyway, I hope you are looking forward to the code challenge in the next video where you will follow",
+      "zh": "總之，希望你期待下一支影片的程式挑戰，屆時會接續"
+    },
+    {
+      "start": 1636.06,
+      "end": 1644.46,
+      "en": "up on these ideas by calculating angles not just between layers, but between tokens within each sentence.",
+      "zh": "這些概念，不只計算層與層之間，也計算每個句子內 token 之間的角度。"
+    }
+  ]
+}

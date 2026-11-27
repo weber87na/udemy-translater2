@@ -1,0 +1,1741 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51835305",
+  "title": "Cosine similarity (and relation to correlation)",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "c11ab241b2661a07115fe007aa8a08cf01fb53260c19bc46f679f901c809a9e4",
+  "cues": [
+    {
+      "start": 2.24,
+      "end": 10.32,
+      "en": "Cosine similarity is a statistical measure of how closely related two variables are to each other.",
+      "zh": "餘弦相似度，是量化兩個變數關係有多接近的統計量。"
+    },
+    {
+      "start": 10.92,
+      "end": 20.92,
+      "en": "You have already seen cosine similarity in this course, and you are going to continue using cosine similarity throughout the rest of this course.",
+      "zh": "本課程已經看過，接下來也會持續使用。"
+    },
+    {
+      "start": 21.04,
+      "end": 27.84,
+      "en": "So I want to have a couple of videos just about cosine similarity, to make sure you really understand",
+      "zh": "所以，想用兩支影片，專門談餘弦相似度，確認你真正理解"
+    },
+    {
+      "start": 28.04,
+      "end": 33.2,
+      "en": "what it means, how to interpret it, and how to calculate it in Python.",
+      "zh": "它的意義、如何解讀，以及如何用 Python 計算。"
+    },
+    {
+      "start": 33.72,
+      "end": 36.76,
+      "en": "So this is the first of those two videos.",
+      "zh": "這是其中第一支。"
+    },
+    {
+      "start": 36.76,
+      "end": 44.84,
+      "en": "And I'm going to have another, more advanced discussion of cosine similarity in the beginning of the following section.",
+      "zh": "下一章開頭，還會有更進階的討論。"
+    },
+    {
+      "start": 45.32,
+      "end": 52.16,
+      "en": "Anyway, let me start by identifying the motivation for something like cosine similarity.",
+      "zh": "先從使用餘弦相似度的動機開始。"
+    },
+    {
+      "start": 52.96,
+      "end": 63.54,
+      "en": "So we are going to want to quantify relationships between variables, including for example, how embeddings for two tokens are related to each other.",
+      "zh": "我們需要量化變數間的關係，例如兩個 token 的嵌入，彼此有什麼關係；"
+    },
+    {
+      "start": 63.98,
+      "end": 70.14,
+      "en": "How weights or matrices of parameters in one part of the model are related to weights in other parts",
+      "zh": "模型某部分的權重或參數矩陣，與其他部分的權重有什麼關係；"
+    },
+    {
+      "start": 70.14,
+      "end": 77.9,
+      "en": "of the model, how activations in attention layers might be related to activations in other attention layers.",
+      "zh": "某個注意力層的活化，與其他注意力層的活化，可能有什麼關係；"
+    },
+    {
+      "start": 78.98,
+      "end": 87.14,
+      "en": "How updates to the embeddings in the residual stream might be related to other updates from other tokens or other contexts, and so on.",
+      "zh": "殘差串流中，嵌入的更新，與其他 token 或其他上下文的更新，有什麼關係，等等。"
+    },
+    {
+      "start": 87.18,
+      "end": 97.53999999999999,
+      "en": "There's a lot of analyses that we will perform that require some quantification of relationships between continuous variables.",
+      "zh": "許多分析，都需要量化連續變數之間的關係。"
+    },
+    {
+      "start": 98.14,
+      "end": 102.34,
+      "en": "Now, there are several statistical quantifications that we can use.",
+      "zh": "可以使用幾種統計量。"
+    },
+    {
+      "start": 102.58,
+      "end": 109.38,
+      "en": "Cosine similarity is not the only one, but it works quite well for the a lot of the analyses that we",
+      "zh": "餘弦相似度不是唯一選擇，但很適合"
+    },
+    {
+      "start": 109.38,
+      "end": 119.24000000000001,
+      "en": "will be doing here, which is why you see it so often, not only in this course, but in other aspects of Investigating llms and machine learning.",
+      "zh": "這裡的許多分析，因此不只本課程，在其他 LLM 與機器學習研究中，也經常出現。"
+    },
+    {
+      "start": 119.75999999999999,
+      "end": 126.2,
+      "en": "Okay, so that is motivation for cosine similarity in investigating Llms.",
+      "zh": "這就是研究 LLM 時，使用餘弦相似度的動機。"
+    },
+    {
+      "start": 126.68,
+      "end": 134.96,
+      "en": "Here I have four graphs indicating four different relationships between the variables on the x axis and on the y axis.",
+      "zh": "這裡有四張圖，表示 x、y 軸變數間，四種不同關係。"
+    },
+    {
+      "start": 135.48,
+      "end": 139.2,
+      "en": "Obviously this one up here has a really tight correlation.",
+      "zh": "顯然，這張有非常緊密的相關。"
+    },
+    {
+      "start": 139.32,
+      "end": 142.48,
+      "en": "In fact the cosine similarity would be one.",
+      "zh": "餘弦相似度其實會是 1。"
+    },
+    {
+      "start": 142.84,
+      "end": 152.56,
+      "en": "Now for reasons that will become clear on the next slide, when you see the math, a value of one is the maximum possible cosine similarity.",
+      "zh": "下一張投影片看到數學式，就會清楚，1 是餘弦相似度的最大值。"
+    },
+    {
+      "start": 152.72,
+      "end": 158.4,
+      "en": "It's not possible to have cosine similarity greater than one or less than minus one.",
+      "zh": "不可能大於 1，也不可能小於負 1。"
+    },
+    {
+      "start": 159.48,
+      "end": 167.72,
+      "en": "By the way, a small point of notation cosine similarity is sometimes indicated as an s with a subscript c.",
+      "zh": "順帶一提，記號上，有時用帶下標 c 的 s 表示餘弦相似度。"
+    },
+    {
+      "start": 168.12,
+      "end": 170.07999999999998,
+      "en": "The s is for similarity.",
+      "zh": "s 代表 similarity，相似度。"
+    },
+    {
+      "start": 170.12,
+      "end": 171.92000000000002,
+      "en": "Obviously the c is for cosine.",
+      "zh": "c 當然代表 cosine，餘弦。"
+    },
+    {
+      "start": 172.12,
+      "end": 174.2,
+      "en": "I'll show you some other notations later.",
+      "zh": "稍後會介紹其他記法。"
+    },
+    {
+      "start": 174.64,
+      "end": 176.82,
+      "en": "Okay, how about this one over here?",
+      "zh": "那這張呢？"
+    },
+    {
+      "start": 176.94,
+      "end": 185.26,
+      "en": "Well, each variable has its own unique contributions, so the relationship isn't perfect, but it is quite strong.",
+      "zh": "每個變數都有各自獨特的影響，所以關係不是完美的，但相當強。"
+    },
+    {
+      "start": 185.26,
+      "end": 186.42,
+      "en": "And it's positive.",
+      "zh": "而且，是正向關係。"
+    },
+    {
+      "start": 186.42,
+      "end": 190.62,
+      "en": "So when one variable goes up, the other variable also goes up.",
+      "zh": "一個變數上升，另一個也上升。"
+    },
+    {
+      "start": 191.02,
+      "end": 192.7,
+      "en": "So you can imagine I don't know.",
+      "zh": "可以想像，"
+    },
+    {
+      "start": 192.74,
+      "end": 195.78,
+      "en": "The x axis is height and the y axis is weight.",
+      "zh": "x 軸是身高，y 軸是體重。"
+    },
+    {
+      "start": 196.1,
+      "end": 201.7,
+      "en": "In general people who are taller tend to weigh more, but it's obviously not a perfect relationship.",
+      "zh": "一般而言，較高的人往往較重，但顯然不是完美關係。"
+    },
+    {
+      "start": 202.38,
+      "end": 209.22,
+      "en": "Okay, so here we would expect the cosine similarity to be positive greater than zero less than one.",
+      "zh": "這裡預期餘弦相似度為正，大於 0、小於 1。"
+    },
+    {
+      "start": 209.62,
+      "end": 210.74,
+      "en": "For this context.",
+      "zh": "在這個情境，"
+    },
+    {
+      "start": 210.74,
+      "end": 222.62,
+      "en": "For this slide it doesn't matter what the exact number is, it's just about getting some intuition that when two variables go up and down together, then their cosine similarity is positive.",
+      "zh": "這張投影片裡，確切數值不重要，只是建立直覺：兩個變數一起起伏，餘弦相似度就是正的。"
+    },
+    {
+      "start": 223.18,
+      "end": 227.74,
+      "en": "You're going to see relationships like this with embedding vectors a lot.",
+      "zh": "嵌入向量中，會經常看到這類關係。"
+    },
+    {
+      "start": 227.78,
+      "end": 238.28,
+      "en": "So for example imagine that these two axes correspond to the embeddings for let's say, Spain on this axis and Mexico on this axis.",
+      "zh": "例如，兩軸分別對應 Spain 與 Mexico 的嵌入。"
+    },
+    {
+      "start": 238.72,
+      "end": 242.88,
+      "en": "Now, Spain and Mexico have a close semantic relationship.",
+      "zh": "西班牙與墨西哥有密切的語意關係，"
+    },
+    {
+      "start": 243.08,
+      "end": 244.68,
+      "en": "They have a rich history together.",
+      "zh": "有豐富的共同歷史，"
+    },
+    {
+      "start": 244.68,
+      "end": 246.12,
+      "en": "They both speak Spanish.",
+      "zh": "都說西班牙文，"
+    },
+    {
+      "start": 246.4,
+      "end": 249.04,
+      "en": "They're written about a lot in texts.",
+      "zh": "在文字中，也經常被提到。"
+    },
+    {
+      "start": 250.12,
+      "end": 257.08,
+      "en": "So if the embeddings vectors really reflect something about the real world semantic relationships that",
+      "zh": "所以，如果嵌入向量確實反映這些單字、token 所表達的"
+    },
+    {
+      "start": 257.08,
+      "end": 266.72,
+      "en": "these words, these tokens are expressing, then we would expect that their embeddings would have a positive cosine similarity.",
+      "zh": "真實世界語意關係，就預期兩者的嵌入，有正的餘弦相似度。"
+    },
+    {
+      "start": 267.52,
+      "end": 267.92,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 268.44,
+      "end": 271.36,
+      "en": "Then we get to this example down here.",
+      "zh": "接著，看下方這個例子。"
+    },
+    {
+      "start": 271.52,
+      "end": 276.36,
+      "en": "Now here there isn't visually a very strong relationship between these two variables.",
+      "zh": "視覺上，兩個變數的關係不太強。"
+    },
+    {
+      "start": 276.8,
+      "end": 282.4,
+      "en": "In fact, in this data set that there is cosine similarity is a bit negative.",
+      "zh": "這份資料中，餘弦相似度其實稍微為負，"
+    },
+    {
+      "start": 282.44,
+      "end": 283.28,
+      "en": "It's kind of weak.",
+      "zh": "很弱。"
+    },
+    {
+      "start": 283.52,
+      "end": 286.4,
+      "en": "But we can say that it's approximately zero.",
+      "zh": "但可以說，大約是 0。"
+    },
+    {
+      "start": 286.72,
+      "end": 297.1,
+      "en": "It certainly is the case that when there is no relationship between two variables, then we expect the cosine similarity to be close to or exactly zero.",
+      "zh": "兩個變數沒有關係時，確實預期餘弦相似度接近或等於 0。"
+    },
+    {
+      "start": 297.86,
+      "end": 304.9,
+      "en": "Now to be clear, because of noise and variability, we never really expect the cosine similarity to",
+      "zh": "說清楚一點，因為雜訊與變異，即使變數完全無關，"
+    },
+    {
+      "start": 304.94,
+      "end": 313.78,
+      "en": "be exactly, exactly zero, like 0.00000 even for variables that are totally unrelated to each other.",
+      "zh": "也不太預期它會精確等於 0.00000 這樣的 0。"
+    },
+    {
+      "start": 313.78,
+      "end": 323.54,
+      "en": "But if the cosine similarity is roughly close to zero, then we don't expect a meaningful relationship between the two variables.",
+      "zh": "但如果大致接近 0，就不預期兩變數有有意義的關係。"
+    },
+    {
+      "start": 324.02,
+      "end": 324.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 324.34,
+      "end": 327.7,
+      "en": "And then finally over here we have a negative relationship.",
+      "zh": "最後，這裡是負向關係。"
+    },
+    {
+      "start": 327.9,
+      "end": 330.94,
+      "en": "So one variable is larger values.",
+      "zh": "一個變數的值較大，"
+    },
+    {
+      "start": 330.94,
+      "end": 333.18,
+      "en": "The other variable has smaller values.",
+      "zh": "另一個變數的值較小。"
+    },
+    {
+      "start": 333.58,
+      "end": 339.14,
+      "en": "And here the cosine similarity would be negative indicating a negative relationship.",
+      "zh": "餘弦相似度會是負的，表示負向關係。"
+    },
+    {
+      "start": 340.22,
+      "end": 343.98,
+      "en": "And again the lowest it could possibly be is minus one.",
+      "zh": "同樣，最低只可能是負 1。"
+    },
+    {
+      "start": 343.98,
+      "end": 347.22,
+      "en": "Cosine similarity cannot be less than minus one.",
+      "zh": "不能小於負 1。"
+    },
+    {
+      "start": 347.82,
+      "end": 352,
+      "en": "Okay I hope this Uh, slide gives you some intuition.",
+      "zh": "希望這張投影片，能建立一些直覺。"
+    },
+    {
+      "start": 352.36,
+      "end": 355.48,
+      "en": "Here you see the formula for cosine similarity?",
+      "zh": "這裡是餘弦相似度公式。"
+    },
+    {
+      "start": 355.96,
+      "end": 358.04,
+      "en": "It looks a little bit complicated at first.",
+      "zh": "乍看有點複雜，"
+    },
+    {
+      "start": 358.04,
+      "end": 361.96,
+      "en": "There's a lot going on here, but when you break it down, it's not so bad.",
+      "zh": "內容很多，但拆開看，就沒那麼難。"
+    },
+    {
+      "start": 362.4,
+      "end": 367.44,
+      "en": "First of all, you can see here some other notation for cosine similarity.",
+      "zh": "首先，這裡是另一種記號，"
+    },
+    {
+      "start": 367.68,
+      "end": 369.56,
+      "en": "It's the cosine of theta.",
+      "zh": "也就是 cos theta。"
+    },
+    {
+      "start": 369.56,
+      "end": 374.72,
+      "en": "And this is actually the reason why this measure is called cosine similarity.",
+      "zh": "這其實就是它叫「餘弦相似度」的原因。"
+    },
+    {
+      "start": 375.2,
+      "end": 385.76,
+      "en": "So there is a geometric interpretation of this measure, which is the cosine of the angle between two vectors in some high dimensional space.",
+      "zh": "它有幾何解釋：高維空間中，兩個向量夾角的餘弦。"
+    },
+    {
+      "start": 386.24,
+      "end": 397.64,
+      "en": "I will get back to this geometric interpretation later in the course, but for now, suffice it to say that this is another way of notating cosine similarity.",
+      "zh": "後面會再談幾何解釋；目前先知道，這是另一種記法。"
+    },
+    {
+      "start": 398.96,
+      "end": 407.92,
+      "en": "Okay, so cosine similarity is a ratio in the numerator, we have the sum of element wise multiplication",
+      "zh": "餘弦相似度是一個比值。分子是兩個變數逐元素相乘後的總和，"
+    },
+    {
+      "start": 407.92,
+      "end": 412.38,
+      "en": "Duplication between two variables, for example, two embeddings vectors.",
+      "zh": "例如兩個嵌入向量的逐元素乘積總和。"
+    },
+    {
+      "start": 412.9,
+      "end": 422.62,
+      "en": "Now, if you've taken a linear algebra course, or if you went through the appendix section at the end of this course, then you will recognize this as the dot product.",
+      "zh": "如果上過線性代數，或看過課程末尾附錄，就會認得，這是內積。"
+    },
+    {
+      "start": 422.62,
+      "end": 429.7,
+      "en": "So element wise multiplication between our two variables which are typically expressed as two vectors.",
+      "zh": "兩個變數，通常以兩個向量表示，先逐元素相乘，"
+    },
+    {
+      "start": 430.02,
+      "end": 431.46,
+      "en": "And then we sum.",
+      "zh": "再加總。"
+    },
+    {
+      "start": 431.9,
+      "end": 435.62,
+      "en": "So the dot product the numerator of cosine similarity.",
+      "zh": "內積就是餘弦相似度的分子。"
+    },
+    {
+      "start": 436.06,
+      "end": 443.3,
+      "en": "The dot product is the computational backbone of lots of analyses in theoretical and applied mathematics,",
+      "zh": "內積，是許多理論與應用數學分析的計算骨幹，"
+    },
+    {
+      "start": 443.66,
+      "end": 453.82,
+      "en": "everything ranging from correlation to covariance to PCA, the Fourier transform, time series filtering, computational vision, the list goes on and on.",
+      "zh": "從相關、共變異數、PCA、傅立葉轉換、時間序列濾波，到電腦視覺，例子不勝枚舉。"
+    },
+    {
+      "start": 454.06,
+      "end": 458.58,
+      "en": "If there's math involved, you're pretty likely to see the dot product.",
+      "zh": "只要涉及數學，很可能就會看到內積。"
+    },
+    {
+      "start": 459.18,
+      "end": 466.1,
+      "en": "Now, the thing about the dot product is that it can grow arbitrarily large depending on the scale of the data.",
+      "zh": "內積有個特性：會隨資料尺度，變得任意大。"
+    },
+    {
+      "start": 466.48,
+      "end": 476.68,
+      "en": "So if we were to multiply the data vectors by, let's say a factor of ten, well, that doesn't change the relationship between the two variables.",
+      "zh": "如果將兩個資料向量都乘以 10，不會改變兩變數的關係，"
+    },
+    {
+      "start": 476.68,
+      "end": 483.96,
+      "en": "But the numerator has increased enormously potentially by a factor of 100.",
+      "zh": "但分子可能大幅增加到 100 倍。"
+    },
+    {
+      "start": 484.2,
+      "end": 493.96,
+      "en": "So that would make cosine similarity basically impossible to interpret, because the value would depend entirely on the scale of the data.",
+      "zh": "這會讓結果難以解讀，因為數值完全依賴資料尺度。"
+    },
+    {
+      "start": 494.48,
+      "end": 494.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 494.8,
+      "end": 502.6,
+      "en": "So that's why we have the denominator, which is nothing more than a normalization factor to scale down",
+      "zh": "因此，需要分母；它就是正規化因子，依照"
+    },
+    {
+      "start": 502.6,
+      "end": 507.4,
+      "en": "the numerator according to the norms of the individual variables.",
+      "zh": "各變數的範數，縮放分子。"
+    },
+    {
+      "start": 508,
+      "end": 519.24,
+      "en": "Again, if you've taken linear algebra, you should recognize this expression as the Euclidean norm, which is the distance of this vector away from the origin of the space.",
+      "zh": "學過線性代數，應該認得這是歐幾里得範數，也就是向量與空間原點的距離。"
+    },
+    {
+      "start": 519.92,
+      "end": 531.82,
+      "en": "So basically it just means that the larger the variables, the larger the numerical values in the variables, the larger the denominators, so the more they will get shrunk down.",
+      "zh": "基本上，變數中的數值越大，分母越大，因此縮小得越多。"
+    },
+    {
+      "start": 532.74,
+      "end": 538.14,
+      "en": "And conversely, if the variables contain really, really tiny numbers, let's say really, really small",
+      "zh": "反過來，如果變數中的數值非常小，"
+    },
+    {
+      "start": 538.14,
+      "end": 545.22,
+      "en": "numbers close to zero, then the denominators will be even tinier, which means that they will get scaled up.",
+      "zh": "接近 0，分母就更小，因此會放大。"
+    },
+    {
+      "start": 545.22,
+      "end": 547.9,
+      "en": "So then cosine similarity will get scaled up.",
+      "zh": "餘弦相似度，就經過這樣的縮放。"
+    },
+    {
+      "start": 548.22,
+      "end": 556.54,
+      "en": "So the numerator is the dot product between two vectors two variables to embeddings vectors for example.",
+      "zh": "分子是兩個向量、兩個變數，例如兩個嵌入向量的內積。"
+    },
+    {
+      "start": 556.94,
+      "end": 561.42,
+      "en": "And the denominator is the norm of each vector.",
+      "zh": "分母是各向量的範數，"
+    },
+    {
+      "start": 561.86,
+      "end": 568.42,
+      "en": "And then we multiply the two norms for the two vectors of the square roots of the two norms, and together",
+      "zh": "再將兩個向量的範數，也就是平方和開根號的結果相乘，"
+    },
+    {
+      "start": 568.42,
+      "end": 579.26,
+      "en": "that is the normalization factor that constrains cosine similarity to have a maximum value of one and a minimum value of minus one.",
+      "zh": "共同形成正規化因子，把餘弦相似度限制在最大 1、最小負 1。"
+    },
+    {
+      "start": 579.54,
+      "end": 586.44,
+      "en": "To understand why the maximum value is one, You can think about what would happen when y equals x.",
+      "zh": "要理解為何最大是 1，可以想想 y 等於 x 時，"
+    },
+    {
+      "start": 586.44,
+      "end": 590.44,
+      "en": "So then the numerator is the same thing as the denominator.",
+      "zh": "分子就和分母相同。"
+    },
+    {
+      "start": 591.28,
+      "end": 591.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 591.64,
+      "end": 593.8,
+      "en": "So that's about cosine similarity.",
+      "zh": "這就是餘弦相似度。"
+    },
+    {
+      "start": 593.8,
+      "end": 603.8,
+      "en": "And as I mentioned you will gain a lot more experience with what this means how to interpret it, how to calculate it implemented in Python and so on.",
+      "zh": "如前所述，會有更多機會理解意義、解讀，以及用 Python 計算與實作，"
+    },
+    {
+      "start": 604,
+      "end": 610.2,
+      "en": "Uh, in this video and the next several videos and later in the course, etc., what I want to do in",
+      "zh": "這支、接下來幾支，以及課程後面都會談。不過，下一張"
+    },
+    {
+      "start": 610.2,
+      "end": 617.4,
+      "en": "the next slide is discuss the relationship between cosine similarity and Pearson correlation coefficient.",
+      "zh": "投影片，想討論餘弦相似度與皮爾森相關係數的關係。"
+    },
+    {
+      "start": 617.8,
+      "end": 626.6,
+      "en": "And I include this discussion because a lot of people are familiar with the correlation more than they are familiar with the cosine similarity.",
+      "zh": "之所以加入這段，是因為許多人對相關，比對餘弦相似度更熟悉。"
+    },
+    {
+      "start": 627.08,
+      "end": 638.8,
+      "en": "And it's important to understand the difference between those two measures and why cosine similarity is generally preferred in the analyses that we will be doing in this course.",
+      "zh": "理解兩者差異，以及為什麼本課程的分析通常偏好餘弦相似度，很重要。"
+    },
+    {
+      "start": 638.96,
+      "end": 649.18,
+      "en": "And that's different from lots of other applications in other areas of data science, where correlation is often a more appropriate measure than cosine similarity.",
+      "zh": "這和資料科學其他領域的許多應用不同，那些情況往往比較適合相關係數。"
+    },
+    {
+      "start": 650.58,
+      "end": 650.86,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 650.9,
+      "end": 652.38,
+      "en": "So here you see two formulas.",
+      "zh": "這裡有兩個公式。"
+    },
+    {
+      "start": 652.38,
+      "end": 657.38,
+      "en": "This first one up here is literally exactly the same as the previous slide.",
+      "zh": "上方這個，和上一張投影片完全相同，"
+    },
+    {
+      "start": 657.38,
+      "end": 658.58,
+      "en": "Just copy it again.",
+      "zh": "只是再複製一次。"
+    },
+    {
+      "start": 659.1,
+      "end": 663.38,
+      "en": "Here is the formula for the Pearson correlation coefficient.",
+      "zh": "這是皮爾森相關係數公式。"
+    },
+    {
+      "start": 663.86,
+      "end": 672.78,
+      "en": "So I would like you to pause the video and see if you can find where these two formulas are the same and where they are different.",
+      "zh": "請暫停影片，看看兩個公式哪裡相同、哪裡不同。"
+    },
+    {
+      "start": 673.02,
+      "end": 679.26,
+      "en": "And then you can also think about the conditions under which they would be identical okay.",
+      "zh": "也想想，什麼條件下，兩者會完全一樣。"
+    },
+    {
+      "start": 679.3,
+      "end": 683.26,
+      "en": "So I hope you took that opportunity to pause the video and think about it a bit.",
+      "zh": "希望你剛才有暫停，稍微思考。"
+    },
+    {
+      "start": 683.62,
+      "end": 691.26,
+      "en": "The answer is that the only difference between cosine similarity and correlation is this shifting term here.",
+      "zh": "答案是，餘弦相似度與相關，唯一差別就是這個平移項。"
+    },
+    {
+      "start": 691.42,
+      "end": 698.5,
+      "en": "So minus x bar and y bar x bar is the mean or the average of variable x.",
+      "zh": "也就是減掉 x bar 與 y bar；x bar 是變數 x 的平均值。"
+    },
+    {
+      "start": 698.58,
+      "end": 701.32,
+      "en": "Of course y bar is the average of y.",
+      "zh": "y bar 當然是 y 的平均值。"
+    },
+    {
+      "start": 701.88,
+      "end": 709.96,
+      "en": "So this means that the difference between Pearson correlation and cosine similarity is simply whether",
+      "zh": "這代表，皮爾森相關與餘弦相似度的差別，只在於"
+    },
+    {
+      "start": 709.96,
+      "end": 717.12,
+      "en": "the variables are mean centered, whether we're shifting the variables according to the mean of the variable.",
+      "zh": "是否做平均中心化，也就是是否依變數平均值進行平移。"
+    },
+    {
+      "start": 718.08,
+      "end": 725.04,
+      "en": "It also means that these two measures will be identical to each other if the data are already mean centered.",
+      "zh": "也表示，如果資料已經平均中心化，兩者就會相同。"
+    },
+    {
+      "start": 725.04,
+      "end": 728.2,
+      "en": "So if the mean of each variable is zero.",
+      "zh": "也就是每個變數的平均值為 0。"
+    },
+    {
+      "start": 728.92,
+      "end": 733.04,
+      "en": "Now what does this difference actually mean in practical terms?",
+      "zh": "這個差異，實務上代表什麼？"
+    },
+    {
+      "start": 733.16,
+      "end": 740.8,
+      "en": "And why do I claim that cosine similarity is more appropriate for the analyses will be working with in this course?",
+      "zh": "為什麼我認為，本課程的分析比較適合餘弦相似度？"
+    },
+    {
+      "start": 741.28,
+      "end": 744.44,
+      "en": "Well, I'm going to get back to the answer towards the end of this lecture.",
+      "zh": "這一講最後，會回頭回答。"
+    },
+    {
+      "start": 744.44,
+      "end": 748.08,
+      "en": "But first let me run some demos in Python.",
+      "zh": "但先在 Python 跑幾個示範。"
+    },
+    {
+      "start": 748.8,
+      "end": 756.52,
+      "en": "So what we're going to do in Python is start by simulating some data that have positive or negative relationships.",
+      "zh": "先模擬具有正向或負向關係的資料，"
+    },
+    {
+      "start": 756.8,
+      "end": 760.9,
+      "en": "And then we will calculate cosine similarity in three ways.",
+      "zh": "再用三種方式計算餘弦相似度。"
+    },
+    {
+      "start": 761.14,
+      "end": 768.06,
+      "en": "So we're going to calculate it manually by directly implementing the formula that I showed in the previous slide.",
+      "zh": "第一，直接把上一張投影片的公式，手動實作。"
+    },
+    {
+      "start": 768.98,
+      "end": 774.78,
+      "en": "Again using scikit learn which is a popular Python library for machine learning.",
+      "zh": "再用常見的 Python 機器學習函式庫 scikit-learn，"
+    },
+    {
+      "start": 775.82,
+      "end": 780.06,
+      "en": "And then finally we will calculate cosine similarity in PyTorch.",
+      "zh": "最後，用 PyTorch 計算。"
+    },
+    {
+      "start": 780.5,
+      "end": 791.02,
+      "en": "And then we're also going to compare the cosine similarity with Pearson correlation coefficient in mean centered and in non mean centered data.",
+      "zh": "也會比較資料平均中心化前後，餘弦相似度與皮爾森相關係數。"
+    },
+    {
+      "start": 791.46,
+      "end": 800.94,
+      "en": "So you're going to see graphs that look something like this for example where we see two variables I call this d1 and d2 for data one and data two.",
+      "zh": "例如，會看到這樣的圖，兩個變數叫 d1、d2，代表第一與第二組資料。"
+    },
+    {
+      "start": 801.58,
+      "end": 807.18,
+      "en": "Here we see positive correlation positive cosine similarity negative relationship.",
+      "zh": "這裡是正相關、正餘弦相似度，這裡是負向關係，"
+    },
+    {
+      "start": 807.18,
+      "end": 809.86,
+      "en": "And here also a negative relationship.",
+      "zh": "這裡也是負向關係。"
+    },
+    {
+      "start": 810.54,
+      "end": 817.01,
+      "en": "You will see that when we calculate cosine similarity manually That's here.",
+      "zh": "手動計算餘弦相似度，就是這裡，"
+    },
+    {
+      "start": 817.01,
+      "end": 825.41,
+      "en": "We will get exactly the same result as when we use scikit learn, and then we will discover some interesting",
+      "zh": "會和 scikit-learn 得到完全相同結果，也會發現"
+    },
+    {
+      "start": 825.41,
+      "end": 833.69,
+      "en": "differences between correlation coefficient and cosine similarity, depending on whether the data are mean centered.",
+      "zh": "資料是否平均中心化，對相關係數與餘弦相似度，會造成有趣差異。"
+    },
+    {
+      "start": 834.69,
+      "end": 839.49,
+      "en": "And we're going to get a bunch of error messages in PyTorch.",
+      "zh": "PyTorch 裡，也會得到一堆錯誤訊息。"
+    },
+    {
+      "start": 839.49,
+      "end": 841.45,
+      "en": "That's always something to look forward to.",
+      "zh": "總是值得期待。"
+    },
+    {
+      "start": 841.57,
+      "end": 846.97,
+      "en": "And of course I will show you how to get this to work to avoid these error messages.",
+      "zh": "當然，會展示如何讓它正常運作，避免這些錯誤。"
+    },
+    {
+      "start": 847.77,
+      "end": 854.17,
+      "en": "Here I'm importing libraries that I use in basically every single code file I've ever written here.",
+      "zh": "這裡匯入我幾乎每個程式檔都用的函式庫。"
+    },
+    {
+      "start": 854.17,
+      "end": 859.09,
+      "en": "We're also importing the function cosinesimilarity from scikit learn.",
+      "zh": "也從 scikit-learn 匯入 cosine_similarity 函式，"
+    },
+    {
+      "start": 859.25,
+      "end": 861.89,
+      "en": "And I'm also importing PyTorch here.",
+      "zh": "並匯入 PyTorch。"
+    },
+    {
+      "start": 862.45,
+      "end": 862.73,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 862.77,
+      "end": 865.29,
+      "en": "So here I'm generating some data.",
+      "zh": "這裡產生一些資料，"
+    },
+    {
+      "start": 865.41,
+      "end": 866.13,
+      "en": "Very simple.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 866.13,
+      "end": 872.49,
+      "en": "The way I generate this data, I say that data vector d1 is just random numbers.",
+      "zh": "令資料向量 d1 為隨機數，"
+    },
+    {
+      "start": 872.81,
+      "end": 875.31,
+      "en": "I'm going to generate 30 random numbers.",
+      "zh": "產生 30 個。"
+    },
+    {
+      "start": 875.31,
+      "end": 878.27,
+      "en": "The plus one adds an offset a mean offset.",
+      "zh": "加 1，是加入平均值的偏移。"
+    },
+    {
+      "start": 878.27,
+      "end": 882.83,
+      "en": "So that will be interesting to compare for Pearson versus cosine similarity.",
+      "zh": "這對比較皮爾森與餘弦相似度，會很有意思。"
+    },
+    {
+      "start": 883.31,
+      "end": 893.75,
+      "en": "And then here I'm assigning d2 to be exactly d1 plus some other random numbers, and d3 to be minus d1 plus some other random numbers.",
+      "zh": "d2 設為 d1 加上其他隨機數，d3 則是負 d1，加上其他隨機數。"
+    },
+    {
+      "start": 893.75,
+      "end": 902.47,
+      "en": "This is just a very quick and easy way to impose relationships linear relationships between different variables.",
+      "zh": "這是快速、簡單地，讓不同變數具有線性關係的方法。"
+    },
+    {
+      "start": 902.99,
+      "end": 903.27,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 903.31,
+      "end": 904.75,
+      "en": "And then here I'm just plotting them.",
+      "zh": "接著畫圖。"
+    },
+    {
+      "start": 904.75,
+      "end": 906.95,
+      "en": "So visually super duper clear.",
+      "zh": "視覺上，非常清楚。"
+    },
+    {
+      "start": 907.23,
+      "end": 909.19,
+      "en": "This is a positive relationship.",
+      "zh": "這是正向關係，"
+    },
+    {
+      "start": 909.19,
+      "end": 911.67,
+      "en": "These two are negative relationships.",
+      "zh": "這兩個是負向關係。"
+    },
+    {
+      "start": 911.83,
+      "end": 921.91,
+      "en": "So now the goal of the rest of this code file is basically to quantify this relationship using cosine similarity and Pearson correlation.",
+      "zh": "所以，這個程式檔後面，要用餘弦相似度與皮爾森相關，量化這些關係。"
+    },
+    {
+      "start": 922.47,
+      "end": 925.43,
+      "en": "So let's begin with a manual calculation.",
+      "zh": "先手動計算。"
+    },
+    {
+      "start": 926.27,
+      "end": 928.75,
+      "en": "Here I have cosine similarity.",
+      "zh": "這裡是餘弦相似度，"
+    },
+    {
+      "start": 928.79,
+      "end": 930.31,
+      "en": "That's what this variable stands for.",
+      "zh": "這個變數名稱，就是這個意思。"
+    },
+    {
+      "start": 930.51,
+      "end": 939.29,
+      "en": "And underscore manual, because I'm just implementing the formula that I showed in the slides directly in code.",
+      "zh": "後面加 manual，因為直接把投影片公式寫成程式。"
+    },
+    {
+      "start": 939.77,
+      "end": 940.13,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 940.17,
+      "end": 950.89,
+      "en": "So it is the numerator divided by the square root of the denominator where the numerator is the element wise multiplication of these two data vectors.",
+      "zh": "分子，除以分母的平方根；分子是兩個資料向量的逐元素乘積，"
+    },
+    {
+      "start": 951.01,
+      "end": 956.25,
+      "en": "And then we sum over those element wise multiplications here in the denominator.",
+      "zh": "再把逐元素乘積加總。分母這裡，"
+    },
+    {
+      "start": 956.25,
+      "end": 965.77,
+      "en": "I'm actually writing this out in two different ways here I wrote d1 times d1 because I want you to see the connection between the numerator and the denominator.",
+      "zh": "寫了兩種方式；d1 乘 d1，是為了讓你看出分子與分母的連結。"
+    },
+    {
+      "start": 965.77,
+      "end": 968.29,
+      "en": "In fact, both are just the dot product.",
+      "zh": "兩者其實都是內積，"
+    },
+    {
+      "start": 968.57,
+      "end": 975.25,
+      "en": "The question is whether we are calculating the dot product between different variables or within the same variable.",
+      "zh": "差別在於，是不同變數間的內積，還是同一變數與自己的內積。"
+    },
+    {
+      "start": 975.57,
+      "end": 977.89,
+      "en": "And here I'm writing it out d2 squared.",
+      "zh": "這裡寫成 d2 平方，"
+    },
+    {
+      "start": 977.89,
+      "end": 981.33,
+      "en": "Obviously this is the same thing as d2 times d2.",
+      "zh": "顯然，等同 d2 乘 d2。"
+    },
+    {
+      "start": 982.01,
+      "end": 982.37,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 982.41,
+      "end": 990.67,
+      "en": "So if we just did this this is not correct because we need to take the square root of the denominator.",
+      "zh": "如果只寫成這樣，並不正確，因為還需要對分母開根號。"
+    },
+    {
+      "start": 990.67,
+      "end": 996.95,
+      "en": "Basically, the square root accounts for the fact that we are multiplying two terms in the denominator.",
+      "zh": "基本上，平方根是為了處理分母中兩項相乘，"
+    },
+    {
+      "start": 996.95,
+      "end": 1002.47,
+      "en": "And here in the numerator we are we only have one term okay.",
+      "zh": "而分子只有一項。"
+    },
+    {
+      "start": 1002.51,
+      "end": 1008.19,
+      "en": "So it turns out that the cosine similarity between d1 and d2 is 0.84.",
+      "zh": "結果，d1 與 d2 的餘弦相似度是 0.84。"
+    },
+    {
+      "start": 1008.19,
+      "end": 1015.11,
+      "en": "So that's interesting to compare the quantitative measure against this visual representation here.",
+      "zh": "把量化數值與這裡的視覺呈現比較，很有意思。"
+    },
+    {
+      "start": 1015.11,
+      "end": 1018.51,
+      "en": "So 0.84 is the cosine similarity.",
+      "zh": "0.84，就是餘弦相似度。"
+    },
+    {
+      "start": 1018.95,
+      "end": 1022.75,
+      "en": "Now what we are going to do is check this against scikit learn.",
+      "zh": "接著，用 scikit-learn 核對。"
+    },
+    {
+      "start": 1022.75,
+      "end": 1030.99,
+      "en": "So basically hopefully if the universe is kind and if I have implemented the math correctly, then we",
+      "zh": "如果宇宙友善，而且數學實作正確，"
+    },
+    {
+      "start": 1030.99,
+      "end": 1037.91,
+      "en": "should see that scikit learn gives us exactly the same number as what we calculated here manually.",
+      "zh": "就應該看到 scikit-learn 給出和手動計算完全相同的數字。"
+    },
+    {
+      "start": 1038.19,
+      "end": 1039.31,
+      "en": "Let's see what happens.",
+      "zh": "看看結果。"
+    },
+    {
+      "start": 1039.83,
+      "end": 1040.19,
+      "en": "Uh oh.",
+      "zh": "糟了。"
+    },
+    {
+      "start": 1040.23,
+      "end": 1041.71,
+      "en": "We get an error okay.",
+      "zh": "出錯了。"
+    },
+    {
+      "start": 1041.75,
+      "end": 1043.23,
+      "en": "Why do we get an error here?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 1043.59,
+      "end": 1049.09,
+      "en": "The error message is expected 2D array and got a 1D array instead.",
+      "zh": "錯誤訊息說，預期二維陣列，卻收到一維陣列。"
+    },
+    {
+      "start": 1049.93,
+      "end": 1058.41,
+      "en": "It turns out that scikit learn and also PyTorch, as you will see in a few moments, is very picky about",
+      "zh": "scikit-learn，以及稍後會看到的 PyTorch，對於"
+    },
+    {
+      "start": 1058.45,
+      "end": 1066.73,
+      "en": "the dimensionality and the types of the data that you input into several of these functions, including cosine similarity.",
+      "zh": "輸入某些函式的維度與資料型別很挑剔，包括餘弦相似度。"
+    },
+    {
+      "start": 1068.01,
+      "end": 1075.85,
+      "en": "So let me just uncomment and run this line just to confirm that we get the same answer 0.8466.",
+      "zh": "取消這行註解，再執行，確認得到相同答案 0.8466。"
+    },
+    {
+      "start": 1075.89,
+      "end": 1076.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1076.21,
+      "end": 1083.57,
+      "en": "So that confirms that whatever, you know, mysterious crazy black box things are happening inside this function.",
+      "zh": "這就確認，不論函式內部，有什麼神祕的黑箱操作，"
+    },
+    {
+      "start": 1083.57,
+      "end": 1086.73,
+      "en": "We can reproduce them exactly using this code.",
+      "zh": "都能用這段程式完全重現。"
+    },
+    {
+      "start": 1087.13,
+      "end": 1088.29,
+      "en": "It's just a joke, by the way.",
+      "zh": "順帶一提，這只是開玩笑。"
+    },
+    {
+      "start": 1088.29,
+      "end": 1094.17,
+      "en": "You can look up the, uh, the function for cosine similarity and you will find exactly this code.",
+      "zh": "查看 cosine_similarity 的原始碼，會看到同樣的程式，"
+    },
+    {
+      "start": 1094.53,
+      "end": 1095.13,
+      "en": "Uh, okay.",
+      "zh": "好吧，"
+    },
+    {
+      "start": 1095.17,
+      "end": 1097.13,
+      "en": "Or, you know, something very close to it.",
+      "zh": "或者非常相近。"
+    },
+    {
+      "start": 1097.57,
+      "end": 1103.09,
+      "en": "So here I'm just going to print out the shapes of D1 and reshaping D1.",
+      "zh": "這裡印出 d1 的形狀，以及 reshape 後的形狀。"
+    },
+    {
+      "start": 1103.61,
+      "end": 1103.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1103.97,
+      "end": 1111.35,
+      "en": "So uh, with uh, when I reshape to say one comma minus one, that's just going to transform it into",
+      "zh": "reshape 輸入 1、負 1，就會將它轉成"
+    },
+    {
+      "start": 1111.39,
+      "end": 1119.91,
+      "en": "a vector, in particular a row vector versus this dimensionless array, which is how I initially created it.",
+      "zh": "向量，具體來說是列向量，而不是最初建立的單一維度陣列。"
+    },
+    {
+      "start": 1120.35,
+      "end": 1129.43,
+      "en": "In principle, the scikit learn functions could be written to handle a situation like this, because",
+      "zh": "原則上，scikit-learn 函式也可以寫成支援這種情況，"
+    },
+    {
+      "start": 1129.43,
+      "end": 1131.27,
+      "en": "it certainly worked for us up here.",
+      "zh": "畢竟，上方我們自己算就可以。"
+    },
+    {
+      "start": 1131.59,
+      "end": 1137.95,
+      "en": "Uh, but, uh, yeah, this is just something you will have to, uh, be mindful of and be aware of.",
+      "zh": "但這是使用時，必須留意的地方。"
+    },
+    {
+      "start": 1138.11,
+      "end": 1144.15,
+      "en": "But fortunately, you know, if, uh, if you see an error message that looks like this in scikit learn,",
+      "zh": "幸好，如果在 scikit-learn 看到這種錯誤，"
+    },
+    {
+      "start": 1144.15,
+      "end": 1151.31,
+      "en": "something about expected 2D array got 1D array instead, the first thing you should try is looking at",
+      "zh": "提到預期二維、卻收到一維，首先該檢查"
+    },
+    {
+      "start": 1151.31,
+      "end": 1157.23,
+      "en": "the shapes at the sizes of these variables, and possibly reshaping when necessary.",
+      "zh": "變數的形狀與大小，必要時重新塑形。"
+    },
+    {
+      "start": 1157.75,
+      "end": 1164.47,
+      "en": "Okay, I'm going to run this code again, because I don't like to see all this red stuff in the, uh, in the notebook.",
+      "zh": "重新執行這段程式，因為不喜歡 notebook 裡一堆紅色錯誤。"
+    },
+    {
+      "start": 1165.09,
+      "end": 1165.37,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1165.41,
+      "end": 1168.53,
+      "en": "So what I'm going to do here is compare our results.",
+      "zh": "接著，將結果"
+    },
+    {
+      "start": 1168.57,
+      "end": 1172.81,
+      "en": "0.8466 with the Pearson correlation coefficient.",
+      "zh": "0.8466，與皮爾森相關係數比較。"
+    },
+    {
+      "start": 1172.85,
+      "end": 1178.65,
+      "en": "Again I am manually calculating the Pearson correlation coefficient here.",
+      "zh": "這裡同樣手動計算皮爾森相關。"
+    },
+    {
+      "start": 1178.65,
+      "end": 1184.17,
+      "en": "And what do you notice about these three lines of code versus these three lines of code.",
+      "zh": "比較這三行與這三行，注意到什麼？"
+    },
+    {
+      "start": 1184.85,
+      "end": 1188.29,
+      "en": "They are exactly literally exactly identical.",
+      "zh": "它們完全一樣。"
+    },
+    {
+      "start": 1188.57,
+      "end": 1195.65,
+      "en": "I guess you know well the variable name is slightly different, but otherwise all the mathematical calculations are identical.",
+      "zh": "好吧，變數名稱稍微不同，但數學計算完全相同。"
+    },
+    {
+      "start": 1196.21,
+      "end": 1204.33,
+      "en": "The only difference is here for Pearson, I have created new variables that I call em for mean centered,",
+      "zh": "唯一差別，是皮爾森這裡建立新變數，用 m 代表平均中心化，"
+    },
+    {
+      "start": 1204.33,
+      "end": 1213.13,
+      "en": "where I subtract the average value from the data vector, and then you can see I'm using different variable names here.",
+      "zh": "也就是從資料向量減去平均值，再使用不同變數名稱。"
+    },
+    {
+      "start": 1214.33,
+      "end": 1214.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1214.65,
+      "end": 1219.17,
+      "en": "And here is using the numpy function numpy coef.",
+      "zh": "這裡則使用 NumPy 的 numpy.corrcoef 函式。"
+    },
+    {
+      "start": 1219.21,
+      "end": 1224.11,
+      "en": "Now if you input two vectors into numpy dot coef.",
+      "zh": "輸入兩個向量，"
+    },
+    {
+      "start": 1224.35,
+      "end": 1227.51,
+      "en": "You're going to get out a correlation matrix.",
+      "zh": "會得到相關矩陣。"
+    },
+    {
+      "start": 1227.87,
+      "end": 1230.79,
+      "en": "And we want the off diagonal from that matrix.",
+      "zh": "我們要取矩陣的非對角元素。"
+    },
+    {
+      "start": 1231.43,
+      "end": 1231.75,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1231.79,
+      "end": 1238.35,
+      "en": "And then here what I'm doing is calculating cosine similarity again from the scikit learn library.",
+      "zh": "接著，再用 scikit-learn 計算餘弦相似度，"
+    },
+    {
+      "start": 1238.51,
+      "end": 1246.35,
+      "en": "But now I'm calculating it not between d1 and D2 but between d1 mean centered and D2 mean centered.",
+      "zh": "但不是 d1 與 d2，而是平均中心化後的 d1 與 d2。"
+    },
+    {
+      "start": 1246.83,
+      "end": 1253.55,
+      "en": "And basically, you know, the point is that all of these numbers are the same and this number is different.",
+      "zh": "基本上，重點是這些數字全部一樣，而這個不同。"
+    },
+    {
+      "start": 1253.79,
+      "end": 1254.95,
+      "en": "And what is this number.",
+      "zh": "這個數字是什麼？"
+    },
+    {
+      "start": 1254.99,
+      "end": 1261.23,
+      "en": "This is the cosine similarity between the non mean centered uh d1 and d2.",
+      "zh": "是未平均中心化的 d1 與 d2，其餘弦相似度。"
+    },
+    {
+      "start": 1261.51,
+      "end": 1272.67,
+      "en": "And all of these numbers correspond to either Pearson correlation or cosine similarity between d1 mean centered and D2 mean centered.",
+      "zh": "其他數字，則是皮爾森相關，或平均中心化後 d1、d2 的餘弦相似度。"
+    },
+    {
+      "start": 1276.35,
+      "end": 1285.01,
+      "en": "So this is just an empirical demonstration that cosine similarity and Pearson correlation are exactly identical.",
+      "zh": "這就是實際示範，餘弦相似度與皮爾森相關完全相同，"
+    },
+    {
+      "start": 1285.37,
+      "end": 1288.45,
+      "en": "If the data means are all zero.",
+      "zh": "前提是資料平均值都為 0。"
+    },
+    {
+      "start": 1289.13,
+      "end": 1292.21,
+      "en": "Okay, so that's enough for scikit learn.",
+      "zh": "scikit-learn 就談到這裡。"
+    },
+    {
+      "start": 1292.25,
+      "end": 1295.21,
+      "en": "Actually, we're not really going to be using scikit learn in this course.",
+      "zh": "其實，本課程不太會用到 scikit-learn，"
+    },
+    {
+      "start": 1295.21,
+      "end": 1298.05,
+      "en": "I just wanted to use it here as a demo.",
+      "zh": "這裡只是示範。"
+    },
+    {
+      "start": 1298.33,
+      "end": 1302.53,
+      "en": "Well we are going to be using a lot is the PyTorch library.",
+      "zh": "會大量使用的，是 PyTorch 函式庫。"
+    },
+    {
+      "start": 1302.69,
+      "end": 1307.77,
+      "en": "So we've imported PyTorch and there is a method.",
+      "zh": "已經匯入 PyTorch，裡面有個方法，"
+    },
+    {
+      "start": 1307.77,
+      "end": 1311.41,
+      "en": "There's a function in PyTorch called cosine similarity.",
+      "zh": "有個叫 cosine_similarity 的函式。"
+    },
+    {
+      "start": 1311.45,
+      "end": 1313.21,
+      "en": "So let's see if this is going to work.",
+      "zh": "看看能否運作。"
+    },
+    {
+      "start": 1313.41,
+      "end": 1314.77,
+      "en": "You already know what's going to happen.",
+      "zh": "你已經知道結果，"
+    },
+    {
+      "start": 1314.77,
+      "end": 1316.33,
+      "en": "We're going to get an error message.",
+      "zh": "會得到錯誤訊息。"
+    },
+    {
+      "start": 1316.77,
+      "end": 1317.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1317.33,
+      "end": 1322.53,
+      "en": "So this first error message is actually not about sizes or shapes or dimensions.",
+      "zh": "第一個錯誤，其實不是大小、形狀或維度，"
+    },
+    {
+      "start": 1322.81,
+      "end": 1324.37,
+      "en": "It's about data types.",
+      "zh": "而是資料型別。"
+    },
+    {
+      "start": 1324.45,
+      "end": 1328.89,
+      "en": "So the error message here is that the argument must be.",
+      "zh": "訊息說，參數必須是，"
+    },
+    {
+      "start": 1328.89,
+      "end": 1333.77,
+      "en": "So the input must be a tensor not a numpy array.",
+      "zh": "輸入必須是張量，不能是 NumPy 陣列。"
+    },
+    {
+      "start": 1334.81,
+      "end": 1335.25,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1335.41,
+      "end": 1336.13,
+      "en": "Fair enough.",
+      "zh": "合理。"
+    },
+    {
+      "start": 1336.13,
+      "end": 1337.17,
+      "en": "We can deal with that.",
+      "zh": "可以處理。"
+    },
+    {
+      "start": 1337.21,
+      "end": 1346.63,
+      "en": "So all I'm going to do is Use this function here torch.tensor lowercase t tensor and then input d1 and",
+      "zh": "只要使用 torch.tensor，tensor 的 t 是小寫，輸入 d1，"
+    },
+    {
+      "start": 1346.63,
+      "end": 1347.31,
+      "en": "input d2.",
+      "zh": "以及 d2。"
+    },
+    {
+      "start": 1347.35,
+      "end": 1348.27,
+      "en": "And actually let me.",
+      "zh": "其實，讓我，"
+    },
+    {
+      "start": 1348.31,
+      "end": 1354.91,
+      "en": "So I've introduced this function before in the Python tutorial at the end of this course.",
+      "zh": "課程末尾的 Python 教學，已介紹過這個函式。"
+    },
+    {
+      "start": 1354.91,
+      "end": 1364.23,
+      "en": "But just so you can see uh let me do this uh type D1 so we can see that the variable d1 is a numpy array.",
+      "zh": "不過，為了示範，執行 type(d1)，看到 d1 是 NumPy 陣列。"
+    },
+    {
+      "start": 1364.67,
+      "end": 1368.99,
+      "en": "And now I will write type torch dot tensor d1.",
+      "zh": "再寫 type(torch.tensor(d1))。"
+    },
+    {
+      "start": 1368.99,
+      "end": 1371.59,
+      "en": "And so now we've taken exactly the same data.",
+      "zh": "資料完全相同，"
+    },
+    {
+      "start": 1371.95,
+      "end": 1373.15,
+      "en": "This doesn't change the data.",
+      "zh": "沒有改變資料，"
+    },
+    {
+      "start": 1373.15,
+      "end": 1378.23,
+      "en": "It just transforms the data type from numpy into PyTorch.",
+      "zh": "只把型別從 NumPy 轉成 PyTorch。"
+    },
+    {
+      "start": 1378.63,
+      "end": 1378.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1379.03,
+      "end": 1380.43,
+      "en": "So that's what I do here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 1380.43,
+      "end": 1383.07,
+      "en": "And then we still get an error okay.",
+      "zh": "但仍然出錯。"
+    },
+    {
+      "start": 1383.11,
+      "end": 1386.87,
+      "en": "And now we get the error about dimensionality okay.",
+      "zh": "這次，才是維度錯誤。"
+    },
+    {
+      "start": 1386.91,
+      "end": 1389.95,
+      "en": "So here again we have to use reshape or view.",
+      "zh": "所以，同樣需要 reshape 或 view，"
+    },
+    {
+      "start": 1389.99,
+      "end": 1391.71,
+      "en": "It's basically the same kind of function.",
+      "zh": "基本上是相似的功能。"
+    },
+    {
+      "start": 1391.71,
+      "end": 1397.27,
+      "en": "Very very similar syntax to what we did to get scikit learn to work okay.",
+      "zh": "語法也很像剛才讓 scikit-learn 正常運作的做法。"
+    },
+    {
+      "start": 1397.41,
+      "end": 1399.17,
+      "en": "And now we get a tensor.",
+      "zh": "現在，得到張量，"
+    },
+    {
+      "start": 1399.37,
+      "end": 1400.29,
+      "en": "But that doesn't matter.",
+      "zh": "但這不重要。"
+    },
+    {
+      "start": 1400.29,
+      "end": 1411.73,
+      "en": "What's important here is that the result, 0.8466, is exactly identical to what we got from our manual calculation and from scikit learn.",
+      "zh": "重要的是，結果 0.8466，與手動計算及 scikit-learn 完全相同。"
+    },
+    {
+      "start": 1412.13,
+      "end": 1412.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1412.45,
+      "end": 1416.01,
+      "en": "So that's basically the conclusion of this code.",
+      "zh": "這基本上就是程式"
+    },
+    {
+      "start": 1416.29,
+      "end": 1417.61,
+      "en": "Uh demo.",
+      "zh": "示範的結論。"
+    },
+    {
+      "start": 1417.89,
+      "end": 1425.77,
+      "en": "The last thing I do here is just reproduce the plot with the cosine similarities printed in the titles.",
+      "zh": "最後，只是重畫圖，把餘弦相似度印在標題裡。"
+    },
+    {
+      "start": 1427.21,
+      "end": 1435.77,
+      "en": "So some conclusions both Pearson correlation and cosine similarity variance normalize in the denominator.",
+      "zh": "幾個結論：皮爾森相關與餘弦相似度，都在分母進行變異尺度的正規化，"
+    },
+    {
+      "start": 1435.97,
+      "end": 1439.17,
+      "en": "But Pearson additionally means centers.",
+      "zh": "但皮爾森還會做平均中心化。"
+    },
+    {
+      "start": 1439.37,
+      "end": 1446.53,
+      "en": "Now this seemingly small difference can actually have some pretty important implications for when to use these measures.",
+      "zh": "這個看似小小的差異，對何時使用哪種量測，其實有重要影響。"
+    },
+    {
+      "start": 1446.97,
+      "end": 1457.23,
+      "en": "Now, in general, you would prefer to use Pearson correlation when the two variables have different scales or mean offsets, and you don't care about those scales.",
+      "zh": "一般而言，兩變數有不同尺度或平均值偏移，而你不在意那些尺度時，會偏好皮爾森相關。"
+    },
+    {
+      "start": 1457.23,
+      "end": 1459.07,
+      "en": "Or maybe the scales are arbitrary.",
+      "zh": "或者，尺度本身是任意的。"
+    },
+    {
+      "start": 1459.59,
+      "end": 1462.95,
+      "en": "So one example would be correlating height and income.",
+      "zh": "例如，計算身高與收入的相關。"
+    },
+    {
+      "start": 1463.39,
+      "end": 1467.79,
+      "en": "We can measure height in inches or centimeters or light years.",
+      "zh": "身高可以用英吋、公分，甚至光年量測。"
+    },
+    {
+      "start": 1467.79,
+      "end": 1471.67,
+      "en": "And we can measure income in dollars or euros or any other currency.",
+      "zh": "收入可以用美元、歐元，或其他貨幣。"
+    },
+    {
+      "start": 1472.31,
+      "end": 1478.95,
+      "en": "Those measurement units are completely arbitrary and they're also completely different between the two variables.",
+      "zh": "單位完全任意，而且兩個變數的單位完全不同。"
+    },
+    {
+      "start": 1479.27,
+      "end": 1487.91,
+      "en": "So this would be a case where cosine similarity would actually be the wrong analysis, and Pearson correlation would be the correct analysis.",
+      "zh": "這種情況，餘弦相似度是錯的分析，皮爾森相關才正確。"
+    },
+    {
+      "start": 1488.51,
+      "end": 1496.63,
+      "en": "On the other hand, when the variables are in the same scale and when any possible offsets between the",
+      "zh": "另一方面，變數尺度相同，而變數之間任何"
+    },
+    {
+      "start": 1496.63,
+      "end": 1506.43,
+      "en": "variables actually is meaningful and interpretable, then cosine similarity is the more appropriate and interpretable analysis to use.",
+      "zh": "偏移，都有意義且可解讀時，餘弦相似度更適合，也更容易解讀。"
+    },
+    {
+      "start": 1506.79,
+      "end": 1514.21,
+      "en": "And that is exactly going to be the case for us where if we have mean offsets in embeddings or model",
+      "zh": "我們就屬於這種情況：嵌入或模型"
+    },
+    {
+      "start": 1514.21,
+      "end": 1522.29,
+      "en": "activation values, then that's actually meaningful information that reduces the similarity between two variables.",
+      "zh": "活化值的平均偏移，是有意義的資訊，會降低兩變數相似度。"
+    },
+    {
+      "start": 1522.93,
+      "end": 1523.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1523.21,
+      "end": 1526.33,
+      "en": "And then one small discussion about coding.",
+      "zh": "最後，簡短談談寫程式。"
+    },
+    {
+      "start": 1526.33,
+      "end": 1535.69,
+      "en": "When you are learning new analyses or technical topics, I do recommend translating the math formulas into code as much as possible.",
+      "zh": "學新分析或技術主題時，建議盡可能把數學公式轉成程式。"
+    },
+    {
+      "start": 1536.61,
+      "end": 1546.73,
+      "en": "That really helps you learn the analyses and when you get to applications, in many cases it actually is better to use functions that come with established libraries.",
+      "zh": "這很有助於學習分析；實際應用時，許多情況下，使用成熟函式庫提供的函式更好。"
+    },
+    {
+      "start": 1546.77,
+      "end": 1552.25,
+      "en": "They tend to be easier to use, more reliable, and often faster than writing your own code.",
+      "zh": "它們通常更容易用、更可靠，而且比自己寫更快。"
+    },
+    {
+      "start": 1552.85,
+      "end": 1559.93,
+      "en": "But on the other hand, cosine similarity is actually, in my humble opinion, an exception to this rule.",
+      "zh": "但就我個人而言，餘弦相似度是個例外。"
+    },
+    {
+      "start": 1560.33,
+      "end": 1571.05,
+      "en": "I find that it's often easier just to write out the math for cosine similarity myself, rather than using the PyTorch functions, but that is a personal preference.",
+      "zh": "我常覺得，直接把餘弦相似度公式寫出來，比使用 PyTorch 函式容易；不過，這只是個人偏好。"
+    }
+  ]
+}

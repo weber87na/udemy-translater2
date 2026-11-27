@@ -1,0 +1,1669 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840107",
+  "title": "Multihead attention: theory and implementation",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "fdc47a7759142021439d37f181325c8118f9bce4a51b85cb20efde36b09effea",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 10.92,
+      "en": "The final piece for understanding the full attention algorithm is to slice the attention matrices into",
+      "zh": "理解完整注意力演算法的最後一塊拼圖，就是把注意力矩陣切成"
+    },
+    {
+      "start": 10.96,
+      "end": 20.36,
+      "en": "tall, thin matrices that process the token vectors separately and in parallel, that is called multi-head.",
+      "zh": "高而窄的矩陣，分開並行處理詞元向量，這叫做多頭"
+    },
+    {
+      "start": 20.4,
+      "end": 21.24,
+      "en": "Attention.",
+      "zh": "注意力。"
+    },
+    {
+      "start": 21.72,
+      "end": 28.24,
+      "en": "It is a little bit confusing at first, but once you understand the math and the implementation of the",
+      "zh": "一開始有點混淆，但只要理解單頭注意力的數學與"
+    },
+    {
+      "start": 28.24,
+      "end": 34.48,
+      "en": "single head attention, it's just a small step to understanding the multi-head aspect.",
+      "zh": "實作，離理解多頭部分就只差一小步。"
+    },
+    {
+      "start": 35.36,
+      "end": 44.44,
+      "en": "I will begin by clarifying a point about where the attention matrices come from, and then showing how those matrices are sliced.",
+      "zh": "先釐清注意力矩陣的來源，再展示如何切分。"
+    },
+    {
+      "start": 45.08,
+      "end": 49.56,
+      "en": "Here you see the equations for creating the query matrix.",
+      "zh": "這裡是建立查詢矩陣的方程式。"
+    },
+    {
+      "start": 49.96,
+      "end": 53.2,
+      "en": "It's exactly the same for the key and value matrices.",
+      "zh": "鍵矩陣與值矩陣完全一樣。"
+    },
+    {
+      "start": 53.2,
+      "end": 55.56,
+      "en": "So we can just focus on Q here.",
+      "zh": "所以只看 Q 就好。"
+    },
+    {
+      "start": 56.16,
+      "end": 59.08,
+      "en": "So we can think about sizes and shapes and so on.",
+      "zh": "來思考大小、形狀等等。"
+    },
+    {
+      "start": 59.52,
+      "end": 67.75,
+      "en": "Okay so as I mentioned before, the query matrix is a product of the matrix X, which is the embeddings,",
+      "zh": "如前所述，查詢矩陣來自矩陣 X，也就是嵌入，"
+    },
+    {
+      "start": 67.99,
+      "end": 74.39,
+      "en": "and w q which is the weights matrix for q that is learned during training.",
+      "zh": "乘上 W_Q，也就是訓練期間學習到的查詢權重矩陣。"
+    },
+    {
+      "start": 75.11,
+      "end": 84.67,
+      "en": "Now this matrix result here is a reminder that the elements in Q are the dot products between each column",
+      "zh": "這個矩陣結果提醒我們，Q 的元素，是 X 每一欄"
+    },
+    {
+      "start": 84.67,
+      "end": 88.87,
+      "en": "in X and each row in w q.",
+      "zh": "與 W_Q 每一列之間的內積。"
+    },
+    {
+      "start": 89.47,
+      "end": 99.63,
+      "en": "The subscript d here corresponds to the embeddings dimensionality, and the subscript s down here is for the sequence length.",
+      "zh": "下標 d 對應嵌入維度，下面的下標 s 則代表序列長度。"
+    },
+    {
+      "start": 99.78999999999999,
+      "end": 102.67,
+      "en": "So how many tokens the model is processing.",
+      "zh": "也就是模型處理多少個詞元。"
+    },
+    {
+      "start": 103.35,
+      "end": 113.50999999999999,
+      "en": "And what I want to highlight with this matrix is that all of the embeddings and all the dimensions get mixed together here in Q.",
+      "zh": "這裡想強調，所有嵌入、所有維度，都會在 Q 裡混合。"
+    },
+    {
+      "start": 113.83,
+      "end": 122.69,
+      "en": "So it is not the case that, for example, the first ten dimensions of the token embeddings are the first ten columns in Q.",
+      "zh": "例如，詞元嵌入的前十個維度，並不是直接成為 Q 的前十欄。"
+    },
+    {
+      "start": 123.21,
+      "end": 131.29,
+      "en": "Instead, WQ distributes all of the embeddings dimensions across the entire Q matrix.",
+      "zh": "而是 W_Q 會把所有嵌入維度，分配到整個 Q 矩陣。"
+    },
+    {
+      "start": 132.01,
+      "end": 134.41,
+      "en": "Okay, so Q is this matrix here.",
+      "zh": "好，Q 就是這個矩陣。"
+    },
+    {
+      "start": 134.45,
+      "end": 143.29,
+      "en": "Now, in previous videos with single head attention, this q matrix multiplied the keys and was then softmax.",
+      "zh": "之前的單頭注意力，會把 Q 矩陣乘上鍵矩陣，再做 softmax。"
+    },
+    {
+      "start": 143.81,
+      "end": 153.49,
+      "en": "Now what we do is slice this matrix into several tall matrices before running each of them through the attention equation.",
+      "zh": "現在則先把這個矩陣切成幾個高矩陣，再分別送進注意力方程式。"
+    },
+    {
+      "start": 154.32999999999998,
+      "end": 158.69,
+      "en": "Imagine that this square here is the q matrix.",
+      "zh": "想像這個方形就是 Q 矩陣。"
+    },
+    {
+      "start": 159.29,
+      "end": 161.77,
+      "en": "So now I've created q one.",
+      "zh": "現在建立了 Q₁。"
+    },
+    {
+      "start": 162.41,
+      "end": 164.45,
+      "en": "And now I've created q2.",
+      "zh": "接著建立 Q₂。"
+    },
+    {
+      "start": 164.49,
+      "end": 169.29,
+      "en": "This is just slice of the q matrix and so on and on.",
+      "zh": "這只是 Q 矩陣的一個切片，依此類推。"
+    },
+    {
+      "start": 169.29,
+      "end": 171.29,
+      "en": "And now I have four slices.",
+      "zh": "現在有四個切片。"
+    },
+    {
+      "start": 171.85,
+      "end": 177.13,
+      "en": "Each of these slices is a non-overlapping partition of Q.",
+      "zh": "每個切片都是 Q 中互不重疊的一部分。"
+    },
+    {
+      "start": 177.57,
+      "end": 179.32999999999998,
+      "en": "And these are the heads.",
+      "zh": "這些就是注意力頭。"
+    },
+    {
+      "start": 179.32999999999998,
+      "end": 183.64,
+      "en": "So in this diagram there would be four attention heads.",
+      "zh": "所以這張圖有四個注意力頭。"
+    },
+    {
+      "start": 184.08,
+      "end": 192.52,
+      "en": "Now these have to be all equal sized, so the number of heads must evenly divide into the embeddings dimension d.",
+      "zh": "它們大小必須相同，因此頭數必須能整除嵌入維度 d。"
+    },
+    {
+      "start": 193.68,
+      "end": 201.76,
+      "en": "So for example if you have 100 embeddings dimensions you cannot have three attention heads because you",
+      "zh": "例如嵌入有 100 維，就不能用三個注意力頭，因為"
+    },
+    {
+      "start": 201.76,
+      "end": 207.52,
+      "en": "cannot cut 100 dimensions into three equal sized slices.",
+      "zh": "100 維無法切成三個大小相等的部分。"
+    },
+    {
+      "start": 208.2,
+      "end": 217.84,
+      "en": "So with that example of 100 dimensions embedding dimensions and four heads, each of these heads would be 25 dimensions wide.",
+      "zh": "若是 100 維嵌入、四個頭，每個頭的寬度就是 25 維。"
+    },
+    {
+      "start": 218.56,
+      "end": 218.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 219,
+      "end": 220.4,
+      "en": "So this is a picture.",
+      "zh": "這是圖像表示。"
+    },
+    {
+      "start": 220.44,
+      "end": 222.6,
+      "en": "Now I want to show some equations.",
+      "zh": "現在看一些方程式。"
+    },
+    {
+      "start": 223.04,
+      "end": 225.76,
+      "en": "So here we have attention one.",
+      "zh": "這裡有注意力一。"
+    },
+    {
+      "start": 226.16,
+      "end": 229.28,
+      "en": "This is the familiar attention equation.",
+      "zh": "就是熟悉的注意力方程式。"
+    },
+    {
+      "start": 229.64,
+      "end": 234.88,
+      "en": "Except it's only using q1 k1 and v1.",
+      "zh": "只是只使用 Q₁、K₁、V₁。"
+    },
+    {
+      "start": 235.44,
+      "end": 242.63,
+      "en": "Now the mask is still the same because q1 k1 And transpose is still a square matrix.",
+      "zh": "遮罩仍然相同，因為 Q₁ K₁ᵀ 仍然是方陣。"
+    },
+    {
+      "start": 242.63,
+      "end": 249.75,
+      "en": "And so the time causal mask here is exactly the same as what you learned several videos ago.",
+      "zh": "所以這裡的時間因果遮罩，和前幾支影片介紹的完全一樣。"
+    },
+    {
+      "start": 250.51,
+      "end": 258.15,
+      "en": "Now, this scaling term here to counteract the variance inflation is now D divided by h.",
+      "zh": "抵銷變異數擴張的縮放項，現在使用 d 除以 h。"
+    },
+    {
+      "start": 258.43,
+      "end": 265.03,
+      "en": "Because q and k are no longer d dimensional, they are d divided by h dimensional.",
+      "zh": "因為 Q、K 不再是 d 維，而是 d/h 維。"
+    },
+    {
+      "start": 265.59,
+      "end": 271.31,
+      "en": "So that would be for example 25 using the numbers that I gave here a moment ago.",
+      "zh": "例如用剛才的數字，就是 25。"
+    },
+    {
+      "start": 272.59000000000003,
+      "end": 277.07,
+      "en": "Also notice that there is no w zero at the end here.",
+      "zh": "也注意，這裡最後沒有 Wₒ。"
+    },
+    {
+      "start": 277.83,
+      "end": 278.11,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 278.15,
+      "end": 283.71,
+      "en": "So now we repeat this attention equation h times for h heads.",
+      "zh": "現在把這個注意力方程式重複 h 次，對應 h 個頭。"
+    },
+    {
+      "start": 284.35,
+      "end": 290.55,
+      "en": "And now we want to combine all of these h activation matrices.",
+      "zh": "接著要合併這 h 個活化矩陣。"
+    },
+    {
+      "start": 291.03,
+      "end": 296.47,
+      "en": "So what we do is literally just concatenate the individual attention matrices.",
+      "zh": "做法就是直接串接個別的注意力矩陣。"
+    },
+    {
+      "start": 297.39,
+      "end": 301.66,
+      "en": "And then finally we multiply by w zero.",
+      "zh": "最後再乘上 Wₒ。"
+    },
+    {
+      "start": 302.14,
+      "end": 308.1,
+      "en": "And also notice here that there's no non-linearity between the attention heads and w0.",
+      "zh": "也注意，注意力頭與 Wₒ 之間沒有非線性函數。"
+    },
+    {
+      "start": 308.58,
+      "end": 309.94,
+      "en": "And why is that the case.",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 310.62,
+      "end": 317.34,
+      "en": "Well the idea is that w0 linearly mixes the different heads together.",
+      "zh": "概念是，Wₒ 會線性混合不同的頭。"
+    },
+    {
+      "start": 317.58,
+      "end": 322.94,
+      "en": "So each attention head is learning something different about the text.",
+      "zh": "每個注意力頭都在學文字的不同特性。"
+    },
+    {
+      "start": 323.9,
+      "end": 335.1,
+      "en": "And w0 allows the separate heads to talk to each other, to share what they've each learned without losing or fundamentally changing any information.",
+      "zh": "Wₒ 讓各個頭彼此交流、分享各自學到的內容，而不遺失或根本改變任何資訊。"
+    },
+    {
+      "start": 335.34000000000003,
+      "end": 339.14,
+      "en": "And that would happen if there were some non-linearity in here.",
+      "zh": "如果這裡有非線性，就會出現那種改變。"
+    },
+    {
+      "start": 339.86,
+      "end": 347.06,
+      "en": "By the way, the real implementation is a little bit more complicated than this because we work over batches.",
+      "zh": "順帶一提，真正的實作稍微更複雜，因為還要處理批次。"
+    },
+    {
+      "start": 347.06,
+      "end": 350.82,
+      "en": "So in fact, these matrices aren't really matrices.",
+      "zh": "所以這些其實不只是矩陣。"
+    },
+    {
+      "start": 350.82,
+      "end": 353.3,
+      "en": "They're actually multi-dimensional tensors.",
+      "zh": "而是多維張量。"
+    },
+    {
+      "start": 353.9,
+      "end": 359.82,
+      "en": "And that means that there's also some broadcasting that gets done, for example with these time causal",
+      "zh": "因此還會做一些廣播操作，例如時間因果"
+    },
+    {
+      "start": 360,
+      "end": 369.32,
+      "en": "masks, but the extra dimension for batching is more about computational efficiency than some, like deep theoretical meaning, meaningful reason.",
+      "zh": "遮罩；但加入批次維度，主要是為了計算效率，不是出於什麼深奧的理論理由。"
+    },
+    {
+      "start": 369.6,
+      "end": 371.2,
+      "en": "So it doesn't really change the math.",
+      "zh": "所以不會真正改變數學。"
+    },
+    {
+      "start": 371.2,
+      "end": 374.32,
+      "en": "It just makes the implementation a little bit trickier.",
+      "zh": "只是實作稍微更棘手。"
+    },
+    {
+      "start": 375.12,
+      "end": 381.92,
+      "en": "Okay, I have a few more comments and reminders here, and then I'll show you what we'll do in the code.",
+      "zh": "還有幾點說明與提醒，之後就展示程式碼要做什麼。"
+    },
+    {
+      "start": 383.2,
+      "end": 388.2,
+      "en": "So this is a reminder about what I explained with this matrix back here.",
+      "zh": "先回顧剛才用這個矩陣說明的內容。"
+    },
+    {
+      "start": 388.52,
+      "end": 397.04,
+      "en": "And that is all of the embeddings dimensions are mixed into Q, and that means that slicing up Q into",
+      "zh": "所有嵌入維度都會混進 Q，所以把 Q 切成"
+    },
+    {
+      "start": 397.08,
+      "end": 406.4,
+      "en": "equal sized bins or tall matrices does not mean that we're segmenting the dimensionality of the token embeddings space.",
+      "zh": "等大的區間或高矩陣，不代表直接切分詞元嵌入空間的維度。"
+    },
+    {
+      "start": 407.56,
+      "end": 412.52,
+      "en": "Also, by the way, I'm just writing Q up here, but obviously the same applies to k and v.",
+      "zh": "另外，這裡雖然只寫 Q，但 K、V 當然也一樣。"
+    },
+    {
+      "start": 412.84000000000003,
+      "end": 416.44,
+      "en": "Those are calculated and split in exactly the same way.",
+      "zh": "它們的計算與切分方式完全相同。"
+    },
+    {
+      "start": 417.32,
+      "end": 423.71,
+      "en": "Another important point is that by slicing, we have not actually changed the parameter count.",
+      "zh": "另一個重點是，切分其實沒有改變參數數量。"
+    },
+    {
+      "start": 424.11,
+      "end": 434.91,
+      "en": "So this does actually increase the number of calculations because of the additional multiplications and additions, the additional softmaxes and so on.",
+      "zh": "這確實會因額外的乘法、加法、softmax 等操作，增加計算次數。"
+    },
+    {
+      "start": 435.15,
+      "end": 444.47,
+      "en": "But the total number of trainable parameters in the model is exactly the same for single head versus multi head attention.",
+      "zh": "但模型可訓練參數的總數，單頭與多頭注意力完全相同。"
+    },
+    {
+      "start": 446.15,
+      "end": 453.47,
+      "en": "And yeah, W0 just takes all of these separate attention heads and linearly mixes them together.",
+      "zh": "Wₒ 就是取得所有獨立注意力頭，再把它們線性混合。"
+    },
+    {
+      "start": 453.83,
+      "end": 461.43,
+      "en": "So the idea here is to combine all of the attention information and not change what each head has discovered.",
+      "zh": "概念是合併所有注意力資訊，而不是改變每個頭發現的內容。"
+    },
+    {
+      "start": 462.07,
+      "end": 462.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 462.51,
+      "end": 468.43,
+      "en": "So this slide was all about the how how we split the matrices into multiple heads.",
+      "zh": "這張投影片談的是「如何」把矩陣切成多個頭。"
+    },
+    {
+      "start": 468.90999999999997,
+      "end": 470.63,
+      "en": "But why do we do that?",
+      "zh": "但為什麼要做？"
+    },
+    {
+      "start": 470.67,
+      "end": 475.99,
+      "en": "What is the point of splitting up the attention equation into multiple heads?",
+      "zh": "把注意力方程式拆成多個頭，有什麼意義？"
+    },
+    {
+      "start": 477.03,
+      "end": 480.9,
+      "en": "Well, I can give you several speculations that people have made.",
+      "zh": "可以提出幾種大家的推測。"
+    },
+    {
+      "start": 481.14,
+      "end": 487.14,
+      "en": "I don't want to discount these ideas and interpretations, but I do want you to understand that a lot",
+      "zh": "我不想否定這些想法與解讀，但希望你理解，許多"
+    },
+    {
+      "start": 487.14,
+      "end": 495.78,
+      "en": "of interpretations about why Llms work the way they do is not based on a formal mathematical theory.",
+      "zh": "關於 LLM 為何如此運作的解讀，並不是根據正式的數學理論。"
+    },
+    {
+      "start": 495.78,
+      "end": 500.78,
+      "en": "It's not based on constraints that are put onto the model during training.",
+      "zh": "也不是訓練時強加給模型的限制。"
+    },
+    {
+      "start": 501.38,
+      "end": 507.9,
+      "en": "People who study these models using mechanistic interpretability methods that you will learn later in",
+      "zh": "使用機制可解釋性方法研究模型的人，也就是你稍後"
+    },
+    {
+      "start": 507.9,
+      "end": 515.46,
+      "en": "the course they make the kinds of interpretations that I will show here, and that reflects their results",
+      "zh": "會學到的方法，會提出這裡要展示的解讀。它們反映了"
+    },
+    {
+      "start": 515.46,
+      "end": 524.46,
+      "en": "from experiments and explorations, their intuition and also their speculation, but based on a lot of expertise that they've developed over the years.",
+      "zh": "實驗、探索的結果與直覺，也包括推測，但建立在多年累積的大量專業知識之上。"
+    },
+    {
+      "start": 525.66,
+      "end": 536.9,
+      "en": "Okay, so all that said, one idea is that by having multiple heads, each attention head can learn to pay attention to different features of the text.",
+      "zh": "說明這些之後，一個想法是：有多個頭，每個注意力頭就能學著關注文字的不同特徵。"
+    },
+    {
+      "start": 537.26,
+      "end": 544.93,
+      "en": "So lots of heads can learn a richer and more complicated repertoire than just one individual head.",
+      "zh": "所以很多個頭，可以學到比單一頭更豐富、複雜的能力組合。"
+    },
+    {
+      "start": 545.69,
+      "end": 552.65,
+      "en": "Another way to phrase this is that each head can develop its own spotlight of attention, so to speak.",
+      "zh": "換個說法，每個頭都能發展出自己的注意力聚光燈。"
+    },
+    {
+      "start": 553.17,
+      "end": 558.37,
+      "en": "Some heads might learn to look for local features just from neighboring tokens.",
+      "zh": "有些頭可能學習只看鄰近詞元的局部特徵。"
+    },
+    {
+      "start": 558.77,
+      "end": 565.93,
+      "en": "Other heads might learn to look for contextual similarities over the span of hundreds of tokens.",
+      "zh": "另一些頭則可能在數百個詞元的跨度中，尋找上下文相似性。"
+    },
+    {
+      "start": 566.65,
+      "end": 576.61,
+      "en": "And then combining all of the individual heads makes it easier for the subsequent MLP layer to identify features and patterns.",
+      "zh": "合併所有個別的頭，會讓後續 MLP 層更容易辨識特徵與模式。"
+    },
+    {
+      "start": 577.29,
+      "end": 579.49,
+      "en": "Now, all of this kind of makes sense.",
+      "zh": "這些聽起來都合理。"
+    },
+    {
+      "start": 579.49,
+      "end": 585.33,
+      "en": "I think if you need to solve a complicated puzzle, you get a bunch of people together.",
+      "zh": "如果要解一道複雜謎題，就找一群人一起來。"
+    },
+    {
+      "start": 585.49,
+      "end": 592.41,
+      "en": "Each person comes in with their own background, their own expertise and experiences and talents, and",
+      "zh": "每個人帶著自己的背景、專長、經驗與才能，"
+    },
+    {
+      "start": 592.41,
+      "end": 598.09,
+      "en": "so each person can solve different parts of the puzzle or look at the puzzle in a different way.",
+      "zh": "就能解不同部分，或以不同角度看問題。"
+    },
+    {
+      "start": 599.63,
+      "end": 611.63,
+      "en": "But, you know, I think the most accurate answer to the question of why use Multi-head attention instead of single head attention is that developers tried it and it worked better.",
+      "zh": "但為什麼用多頭，而不是單頭注意力？我想最準確的答案是：開發者試過，發現比較有效。"
+    },
+    {
+      "start": 611.99,
+      "end": 614.71,
+      "en": "A lot of deep learning really is empirical.",
+      "zh": "深度學習的很多內容，確實來自實驗。"
+    },
+    {
+      "start": 615.99,
+      "end": 616.63,
+      "en": "Okay, great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 616.63,
+      "end": 618.11,
+      "en": "So I hope that all makes sense.",
+      "zh": "希望這些都說得通。"
+    },
+    {
+      "start": 618.11,
+      "end": 620.39,
+      "en": "In a moment we'll switch to Python.",
+      "zh": "稍後會切換到 Python。"
+    },
+    {
+      "start": 620.39,
+      "end": 624.43,
+      "en": "So let me first give you a heads up about what to expect.",
+      "zh": "先預告一下會看到什麼。"
+    },
+    {
+      "start": 625.19,
+      "end": 632.27,
+      "en": "The main goal of the code file for this video is to build a Multi-head attention sublayer.",
+      "zh": "這支影片的程式檔，主要目標是建立多頭注意力子層。"
+    },
+    {
+      "start": 632.99,
+      "end": 639.23,
+      "en": "In this code file there's no transformer block, there's no MLP, no embeddings, and no data.",
+      "zh": "裡面沒有 Transformer 區塊、MLP、嵌入，也沒有資料。"
+    },
+    {
+      "start": 639.35,
+      "end": 641.47,
+      "en": "We will get to that in module five.",
+      "zh": "模型五才會加入那些。"
+    },
+    {
+      "start": 642.15,
+      "end": 649.83,
+      "en": "Instead, the goal here is just to create a multi-head attention pipeline that is modular.",
+      "zh": "這裡只要建立模組化的多頭注意力流程。"
+    },
+    {
+      "start": 649.83,
+      "end": 654.91,
+      "en": "So we can just insert it into an LLM in model five.",
+      "zh": "這樣模型五就能直接把它放進 LLM。"
+    },
+    {
+      "start": 655.11,
+      "end": 658.15,
+      "en": "I'm going to do this using a class.",
+      "zh": "我會用類別來做。"
+    },
+    {
+      "start": 658.39,
+      "end": 663.74,
+      "en": "So here you see the initialization of the class Multi-head attention.",
+      "zh": "這裡是 MultiHeadAttention 類別的初始化。"
+    },
+    {
+      "start": 664.3,
+      "end": 671.14,
+      "en": "In fact, the only new thing here is defining the number of heads and the head dimensionality.",
+      "zh": "其實唯一的新東西，是定義頭數與每個頭的維度。"
+    },
+    {
+      "start": 671.7,
+      "end": 676.3,
+      "en": "Notice that the query key and value matrices.",
+      "zh": "注意查詢、鍵、值矩陣，"
+    },
+    {
+      "start": 676.3,
+      "end": 679.42,
+      "en": "So wq w k and w v.",
+      "zh": "也就是 W_Q、W_K、W_V，"
+    },
+    {
+      "start": 680.06,
+      "end": 684.14,
+      "en": "These are all still created as embeddings by embeddings.",
+      "zh": "仍然全部建立為「嵌入維度 × 嵌入維度」。"
+    },
+    {
+      "start": 684.34,
+      "end": 687.14,
+      "en": "They get sliced up in the forward pass.",
+      "zh": "到了前向傳播時才切分。"
+    },
+    {
+      "start": 687.14,
+      "end": 691.82,
+      "en": "But the weights matrices themselves are not already pre-sliced.",
+      "zh": "權重矩陣本身沒有預先切開。"
+    },
+    {
+      "start": 692.38,
+      "end": 697.58,
+      "en": "So imagine we have an embeddings space with 100 dimensions.",
+      "zh": "想像嵌入空間有 100 維。"
+    },
+    {
+      "start": 697.58,
+      "end": 699.58,
+      "en": "So embed dim would be 100.",
+      "zh": "所以 embedDim 是 100。"
+    },
+    {
+      "start": 699.82,
+      "end": 702.82,
+      "en": "And imagine that we specify that we have four heads.",
+      "zh": "假設指定四個頭。"
+    },
+    {
+      "start": 703.42,
+      "end": 710.66,
+      "en": "So that would mean that the head dimensionality here would be 100 divided by four which is 25.",
+      "zh": "那麼每個頭的維度，就是 100 除以 4，等於 25。"
+    },
+    {
+      "start": 711.5,
+      "end": 713.74,
+      "en": "And here you see the forward method.",
+      "zh": "這裡是 forward 方法。"
+    },
+    {
+      "start": 713.78,
+      "end": 719.14,
+      "en": "Now I will explain each of these lines of code in more detail when I switch to Python.",
+      "zh": "切到 Python 時，會更詳細說明每一行。"
+    },
+    {
+      "start": 719.45,
+      "end": 725.13,
+      "en": "So let me just direct your attention to the reshaping lines of code here.",
+      "zh": "先請注意這幾行 reshape 程式。"
+    },
+    {
+      "start": 725.29,
+      "end": 733.77,
+      "en": "So actually first q and V are created by multiplying the token embeddings, which is variable x by the",
+      "zh": "首先，Q、V 來自詞元嵌入，也就是變數 X，乘上"
+    },
+    {
+      "start": 734.13,
+      "end": 738.01,
+      "en": "w matrices for q and v.",
+      "zh": "Q 與 V 的 W 矩陣。"
+    },
+    {
+      "start": 738.57,
+      "end": 743.05,
+      "en": "And then those get reshaped here in these lines of code.",
+      "zh": "然後在這幾行重新塑形。"
+    },
+    {
+      "start": 743.05,
+      "end": 747.89,
+      "en": "And that is actually doing the slicing that I described a few slides ago.",
+      "zh": "這其實就是前幾張投影片說的切分。"
+    },
+    {
+      "start": 748.29,
+      "end": 749.89,
+      "en": "So B is for batch.",
+      "zh": "B 代表批次。"
+    },
+    {
+      "start": 750.05,
+      "end": 754.33,
+      "en": "T is for the number of tokens which is also the sequence length.",
+      "zh": "T 代表詞元數，也就是序列長度。"
+    },
+    {
+      "start": 754.65,
+      "end": 761.57,
+      "en": "So here is where the full q, k and v matrices get sliced into thinner matrices.",
+      "zh": "這裡把完整的 Q、K、V 矩陣，切成較窄的矩陣。"
+    },
+    {
+      "start": 762.17,
+      "end": 765.17,
+      "en": "And this code here is just some housekeeping.",
+      "zh": "這幾行則只是整理工作。"
+    },
+    {
+      "start": 765.45,
+      "end": 773.57,
+      "en": "For some reason, the scaled dot product attention function expects the dimensions to be in a different order.",
+      "zh": "出於某種原因，scaled_dot_product_attention 函數預期的維度順序不同。"
+    },
+    {
+      "start": 773.89,
+      "end": 778.69,
+      "en": "So we need to swap the heads and the token sequence dimension.",
+      "zh": "因此要交換注意力頭與詞元序列的維度。"
+    },
+    {
+      "start": 778.85,
+      "end": 783.2,
+      "en": "And then after this calculation, we need to transfer them back.",
+      "zh": "算完後，再把它們交換回來。"
+    },
+    {
+      "start": 783.96,
+      "end": 787.88,
+      "en": "This seems inefficient to me, but I assume there was a good reason for this.",
+      "zh": "我覺得好像沒效率，但推測應該有充分理由。"
+    },
+    {
+      "start": 788.2,
+      "end": 793.88,
+      "en": "Maybe this turns out to be an easier or more efficient way to implement on the GPU.",
+      "zh": "也許這樣更容易或更有效率地在 GPU 上實作。"
+    },
+    {
+      "start": 794.12,
+      "end": 799.04,
+      "en": "Even after accounting for this double transpose anyway, that doesn't matter.",
+      "zh": "即使把兩次轉置也算進去。總之，這不重要。"
+    },
+    {
+      "start": 799.24,
+      "end": 811,
+      "en": "Here I am concatenating all of the heads back into one matrix or multidimensional tensor, and here I'm multiplying that output by w zero.",
+      "zh": "這裡把所有頭串接回一個矩陣或多維張量，再把輸出乘上 Wₒ。"
+    },
+    {
+      "start": 811.72,
+      "end": 817.36,
+      "en": "I hope you can see how this code follows the equations from a few slides ago.",
+      "zh": "希望你看得出，程式如何對應前幾張投影片的方程式。"
+    },
+    {
+      "start": 817.96,
+      "end": 824.88,
+      "en": "Finally, I'm going to track the sizes of these matrices as they pass through the attention layer.",
+      "zh": "最後會追蹤這些矩陣通過注意力層時的大小。"
+    },
+    {
+      "start": 825.28,
+      "end": 831.72,
+      "en": "I will go through all of these numbers in more detail in the code, but you can already see that the",
+      "zh": "程式碼中會更詳細說明這些數字，但現在已能看到，"
+    },
+    {
+      "start": 831.72,
+      "end": 842.82,
+      "en": "128 dimensions for the embeddings becomes four by 32, which then gets merged back into being 128.",
+      "zh": "128 維嵌入變成 4 × 32，之後再合併回 128。"
+    },
+    {
+      "start": 843.3,
+      "end": 843.58,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 843.62,
+      "end": 844.3,
+      "en": "Very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 844.3,
+      "end": 851.06,
+      "en": "Now I will switch to code, import some libraries here, some parameters for the model.",
+      "zh": "現在切到程式碼，匯入函式庫，這裡是模型的一些參數。"
+    },
+    {
+      "start": 851.22,
+      "end": 855.62,
+      "en": "Here I'm specifying the number of heads to be four.",
+      "zh": "這裡指定頭數為 4。"
+    },
+    {
+      "start": 855.74,
+      "end": 861.86,
+      "en": "So in this uh, little attention subblock, we are going to have four attention heads.",
+      "zh": "所以這個小注意力子區塊，會有四個注意力頭。"
+    },
+    {
+      "start": 862.46,
+      "end": 862.94,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 862.98,
+      "end": 864.34,
+      "en": "So we run that code.",
+      "zh": "執行程式碼。"
+    },
+    {
+      "start": 864.66,
+      "end": 867.54,
+      "en": "So here you can see the class for Multi-head attention.",
+      "zh": "這裡可以看到多頭注意力的類別。"
+    },
+    {
+      "start": 867.54,
+      "end": 872.22,
+      "en": "We have two methods here the initialization and the forward method.",
+      "zh": "有兩個方法：初始化與 forward。"
+    },
+    {
+      "start": 872.62,
+      "end": 878.5,
+      "en": "So in the initialization I define the number of heads and the head dimensionality.",
+      "zh": "初始化時，定義頭數與每個頭的維度。"
+    },
+    {
+      "start": 878.78,
+      "end": 888.9,
+      "en": "And as I mentioned in the slides this needs to uh this comes from the division of the embeddings dimension by the number of heads.",
+      "zh": "如投影片所說，這是嵌入維度除以頭數而來。"
+    },
+    {
+      "start": 889.06,
+      "end": 891.54,
+      "en": "So the number of heads needs to go into this.",
+      "zh": "所以頭數必須能整除，"
+    },
+    {
+      "start": 891.58,
+      "end": 892.18,
+      "en": "Exactly.",
+      "zh": "完全整除。"
+    },
+    {
+      "start": 892.18,
+      "end": 899.85,
+      "en": "You cannot have 3.7 heads and 126.2 dimensions Okay.",
+      "zh": "不能有 3.7 個頭，以及 126.2 個維度。"
+    },
+    {
+      "start": 899.89,
+      "end": 900.37,
+      "en": "Anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 900.41,
+      "end": 900.69,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 900.69,
+      "end": 905.53,
+      "en": "So the key the the the query and the values matrices.",
+      "zh": "鍵、查詢與值矩陣，"
+    },
+    {
+      "start": 905.53,
+      "end": 913.37,
+      "en": "The weights matrices are initialized to be square matrices of size embedding by embedding later on during",
+      "zh": "其權重矩陣初始化為方陣，大小為「嵌入維度 × 嵌入維度」，之後在"
+    },
+    {
+      "start": 913.37,
+      "end": 917.73,
+      "en": "the forward pass they are cut up into the separate slices.",
+      "zh": "前向傳播時，才切成獨立切片。"
+    },
+    {
+      "start": 918.13,
+      "end": 925.37,
+      "en": "And in fact, uh, in model five I'm going to make this even more compact because you can actually create",
+      "zh": "其實模型五會寫得更精簡，因為可以把"
+    },
+    {
+      "start": 925.45,
+      "end": 931.21,
+      "en": "all three of these in one matrix that is, uh, three times embeddings.",
+      "zh": "這三個放進同一個矩陣，其大小是三倍嵌入維度。"
+    },
+    {
+      "start": 931.37,
+      "end": 933.05,
+      "en": "So I'll get back to that later.",
+      "zh": "之後會再談。"
+    },
+    {
+      "start": 933.09,
+      "end": 935.21,
+      "en": "But just, uh, just have this note here.",
+      "zh": "這裡只是先提醒。"
+    },
+    {
+      "start": 935.21,
+      "end": 943.41,
+      "en": "So in model five we're going to combine all of these three separate matrices into one object okay.",
+      "zh": "模型五會把這三個獨立矩陣，合併成一個物件。"
+    },
+    {
+      "start": 943.45,
+      "end": 946.49,
+      "en": "And then the final uh linear uh mixing matrix.",
+      "zh": "然後是最後的線性混合矩陣。"
+    },
+    {
+      "start": 946.93,
+      "end": 949.65,
+      "en": "And so here is the forward method.",
+      "zh": "這就是 forward 方法。"
+    },
+    {
+      "start": 949.65,
+      "end": 952.89,
+      "en": "And what we do here is uh yeah.",
+      "zh": "我們在這裡做的是，"
+    },
+    {
+      "start": 952.89,
+      "end": 954.69,
+      "en": "So here's where we process the data.",
+      "zh": "也就是處理資料。"
+    },
+    {
+      "start": 954.69,
+      "end": 962.04,
+      "en": "So the data vectors the embeddings vectors times wq times w k times w v.",
+      "zh": "讓資料向量，也就是嵌入向量，分別乘上 W_Q、W_K、W_V。"
+    },
+    {
+      "start": 962.64,
+      "end": 964.72,
+      "en": "And then here they are split up.",
+      "zh": "接著在這裡切分。"
+    },
+    {
+      "start": 964.72,
+      "end": 966.88,
+      "en": "So they go into shape.",
+      "zh": "形狀變成，"
+    },
+    {
+      "start": 966.92,
+      "end": 968.08,
+      "en": "Batch times.",
+      "zh": "批次大小乘以"
+    },
+    {
+      "start": 968.08,
+      "end": 972.96,
+      "en": "Sequence length times the number of heads times the head dimensionality.",
+      "zh": "序列長度、頭數，以及每個頭的維度。"
+    },
+    {
+      "start": 973.16,
+      "end": 984.72,
+      "en": "So this splitting up here corresponds to the image in the slides that I showed where I had the square matrix and then the four columns next to each other.",
+      "zh": "這裡的切分，就對應投影片中，方陣旁邊並排四個高矩陣的圖。"
+    },
+    {
+      "start": 984.72,
+      "end": 986.92,
+      "en": "So that's what this line of code does.",
+      "zh": "這行程式做的就是這件事。"
+    },
+    {
+      "start": 987.48,
+      "end": 987.8,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 987.84,
+      "end": 991.32,
+      "en": "Here we need to transpose the number of heads.",
+      "zh": "這裡要轉置頭數的維度。"
+    },
+    {
+      "start": 991.32,
+      "end": 996.36,
+      "en": "So we just need to swap the order of the the heads and the tokens.",
+      "zh": "只要交換頭數與詞元數的順序。"
+    },
+    {
+      "start": 996.36,
+      "end": 998.6,
+      "en": "So here it is tokens by heads.",
+      "zh": "這裡是「詞元數 × 頭數」。"
+    },
+    {
+      "start": 998.6,
+      "end": 1000.44,
+      "en": "Here it needs to be heads by tokens.",
+      "zh": "這邊則需要「頭數 × 詞元數」。"
+    },
+    {
+      "start": 1000.88,
+      "end": 1007.68,
+      "en": "This is one comma two because batch is the first dimension which would correspond to zero.",
+      "zh": "這裡是 (1, 2)，因為批次是第一個維度，索引為 0。"
+    },
+    {
+      "start": 1007.68,
+      "end": 1010.6,
+      "en": "But we don't want to transpose the batch dimension.",
+      "zh": "但不要轉置批次維度。"
+    },
+    {
+      "start": 1010.6,
+      "end": 1012.04,
+      "en": "We preserve the batches.",
+      "zh": "保留批次。"
+    },
+    {
+      "start": 1012.04,
+      "end": 1015.36,
+      "en": "We preserve the head dimensionality at the end.",
+      "zh": "也保留最後的頭維度。"
+    },
+    {
+      "start": 1015.36,
+      "end": 1019.95,
+      "en": "And we just swap these middle two dimensions here again.",
+      "zh": "只交換中間這兩個維度。"
+    },
+    {
+      "start": 1019.99,
+      "end": 1023.67,
+      "en": "That seems quite, uh, senselessly confusing to me.",
+      "zh": "我覺得這樣好像有點無謂地令人混淆。"
+    },
+    {
+      "start": 1023.71,
+      "end": 1030.59,
+      "en": "It feels like unnecessary overhead, but that's just how it works in, uh, these PyTorch LM models.",
+      "zh": "感覺是多餘的負擔，但這些 PyTorch 語言模型就是這樣運作。"
+    },
+    {
+      "start": 1031.03,
+      "end": 1031.79,
+      "en": "Um, okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1031.83,
+      "end": 1032.07,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1032.07,
+      "end": 1037.23,
+      "en": "So here, uh, we call scale dot product attention, which implements the attention equation.",
+      "zh": "這裡呼叫 scaled_dot_product_attention，實作注意力方程式。"
+    },
+    {
+      "start": 1037.67,
+      "end": 1044.03,
+      "en": "And this function is so we do not have to have a for loop here over the separate heads.",
+      "zh": "有了這個函數，就不需要用 for 迴圈逐一遍歷各個頭。"
+    },
+    {
+      "start": 1044.23,
+      "end": 1052.55,
+      "en": "This function has built into it an optimized method that will uh basically run the attention, uh,",
+      "zh": "函數內建最佳化方法，可以"
+    },
+    {
+      "start": 1052.95,
+      "end": 1057.31,
+      "en": "equation on all of these heads individually and in parallel.",
+      "zh": "對所有頭分別、並行執行注意力方程式。"
+    },
+    {
+      "start": 1057.91,
+      "end": 1058.19,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1058.27,
+      "end": 1062.59,
+      "en": "And then once we get the output of that, then we swap back.",
+      "zh": "取得輸出後，再交換回來。"
+    },
+    {
+      "start": 1062.59,
+      "end": 1066.79,
+      "en": "So we swap the, uh, undo this dimension swapping here.",
+      "zh": "也就是撤銷剛才的維度交換。"
+    },
+    {
+      "start": 1067.27,
+      "end": 1067.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1067.55,
+      "end": 1070.43,
+      "en": "And then all of those get merged back together.",
+      "zh": "接著全部合併回去。"
+    },
+    {
+      "start": 1070.59,
+      "end": 1071.55,
+      "en": "And then finally.",
+      "zh": "最後，"
+    },
+    {
+      "start": 1071.55,
+      "end": 1079.82,
+      "en": "So this was the line of code that corresponds to in the equation where I have a equals A1 concatenated",
+      "zh": "這行程式對應方程式中，A 等於 A₁ 串接"
+    },
+    {
+      "start": 1079.82,
+      "end": 1085.98,
+      "en": "with a2, concatenated with dot dot dot a h, and in this case that's h equals four.",
+      "zh": "A₂，再串接直到 A_h，這裡 h 等於 4。"
+    },
+    {
+      "start": 1086.98,
+      "end": 1087.18,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1087.22,
+      "end": 1090.86,
+      "en": "And then we multiply that by the linear mixing matrix.",
+      "zh": "接著乘上線性混合矩陣。"
+    },
+    {
+      "start": 1090.86,
+      "end": 1097.86,
+      "en": "And there the idea is to pool all of the information that the different heads have learned all together.",
+      "zh": "概念是把各個頭學到的所有資訊，匯集在一起。"
+    },
+    {
+      "start": 1098.46,
+      "end": 1098.74,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1098.78,
+      "end": 1103.7,
+      "en": "Now there's a repeating line of code here that I have ignored and I haven't explained yet.",
+      "zh": "這裡有一行反覆出現的程式，我一直略過，還沒說明。"
+    },
+    {
+      "start": 1104.02,
+      "end": 1104.86,
+      "en": "And that is this.",
+      "zh": "就是這個。"
+    },
+    {
+      "start": 1104.9,
+      "end": 1111.1,
+      "en": "If track sizes print one and then input data shape and then you see that here as well.",
+      "zh": "如果 trackSizes，就印出 1 和輸入資料形狀，這裡也看得到。"
+    },
+    {
+      "start": 1111.14,
+      "end": 1111.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1111.5,
+      "end": 1117.02,
+      "en": "So this code here includes an extra uh sorry.",
+      "zh": "這段程式包含一個額外的，抱歉，"
+    },
+    {
+      "start": 1117.1,
+      "end": 1118.42,
+      "en": "Here in the forward method.",
+      "zh": "是在 forward 方法裡。"
+    },
+    {
+      "start": 1118.58,
+      "end": 1123.62,
+      "en": "It includes an extra optional input called track sizes.",
+      "zh": "有個額外的可選輸入，叫 trackSizes。"
+    },
+    {
+      "start": 1123.62,
+      "end": 1125.98,
+      "en": "And by default it is set to false.",
+      "zh": "預設設成 False。"
+    },
+    {
+      "start": 1126.3,
+      "end": 1134.98,
+      "en": "If you call this method and you set track sizes to be true, then all of this information here will",
+      "zh": "呼叫方法時，如果把 trackSizes 設成 True，就會把所有這些資訊"
+    },
+    {
+      "start": 1134.98,
+      "end": 1138.42,
+      "en": "print out each of these transformations.",
+      "zh": "印出，顯示每一步轉換。"
+    },
+    {
+      "start": 1138.42,
+      "end": 1138.44,
+      "en": "Formations.",
+      "zh": "也就是這些轉換。"
+    },
+    {
+      "start": 1138.44,
+      "end": 1147.68,
+      "en": "So this allows us to track the flow of the data matrices and their sizes throughout the model throughout",
+      "zh": "這讓我們能追蹤資料矩陣與大小，在模型整個"
+    },
+    {
+      "start": 1147.68,
+      "end": 1148.6,
+      "en": "the forward pass.",
+      "zh": "前向傳播中的流動。"
+    },
+    {
+      "start": 1148.96,
+      "end": 1152,
+      "en": "This is something that is really great to do.",
+      "zh": "這是很值得做的事情。"
+    },
+    {
+      "start": 1152.16,
+      "end": 1153.88,
+      "en": "It can be very insightful.",
+      "zh": "能提供很多洞見。"
+    },
+    {
+      "start": 1154.08,
+      "end": 1157.88,
+      "en": "It can help you understand how the deep learning model works.",
+      "zh": "幫助理解深度學習模型如何運作。"
+    },
+    {
+      "start": 1158.36,
+      "end": 1162.4,
+      "en": "It can also help you debug models when you're working on building models.",
+      "zh": "建立模型時，也能幫助除錯。"
+    },
+    {
+      "start": 1162.84,
+      "end": 1168.24,
+      "en": "This is not something that you want to include in a production level model.",
+      "zh": "但不適合放在正式上線的模型裡。"
+    },
+    {
+      "start": 1168.24,
+      "end": 1177.2,
+      "en": "You don't want a bajillion of these shape text messages to be dumping out into the into the window all the time.",
+      "zh": "你不會希望無數形狀訊息，一直大量湧進視窗。"
+    },
+    {
+      "start": 1177.36,
+      "end": 1187.56,
+      "en": "So this would be something that you can include when you are developing models, when you're trying to understand models, not something you want to have in real legit models.",
+      "zh": "所以開發模型、理解模型時可以加入，但真正正式使用的模型不希望有這些。"
+    },
+    {
+      "start": 1188,
+      "end": 1189.68,
+      "en": "Okay, certainly not during training.",
+      "zh": "好，訓練期間尤其不適合。"
+    },
+    {
+      "start": 1189.72,
+      "end": 1192.36,
+      "en": "This would end up printing out so many times.",
+      "zh": "會重複印出太多次。"
+    },
+    {
+      "start": 1192.64,
+      "end": 1195.96,
+      "en": "Okay, so here what I'm doing is just creating an instance.",
+      "zh": "這裡建立一個實例。"
+    },
+    {
+      "start": 1196.08,
+      "end": 1199.71,
+      "en": "And we're going to have a look at what that instance looks like.",
+      "zh": "來看看實例長什麼樣。"
+    },
+    {
+      "start": 1199.95,
+      "end": 1200.39,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1200.59,
+      "end": 1207.87,
+      "en": "So we see a multi-head attention and we have a q, a k and a value weights matrix.",
+      "zh": "可以看到 MultiHeadAttention，以及 Q、K、V 的權重矩陣。"
+    },
+    {
+      "start": 1208.19,
+      "end": 1211.79,
+      "en": "And the w0 that does the linear mixing at the end.",
+      "zh": "還有最後負責線性混合的 Wₒ。"
+    },
+    {
+      "start": 1212.83,
+      "end": 1215.47,
+      "en": "Here I'm just coming up with some fake data.",
+      "zh": "這裡隨便建立一些假資料。"
+    },
+    {
+      "start": 1215.51,
+      "end": 1216.23,
+      "en": "Doesn't matter.",
+      "zh": "內容不重要。"
+    },
+    {
+      "start": 1216.23,
+      "end": 1224.55,
+      "en": "I just want to see what is the size of the data matrix and what is the size of the matrix when I push it through the model.",
+      "zh": "只想知道資料矩陣大小，以及通過模型後的矩陣大小。"
+    },
+    {
+      "start": 1224.55,
+      "end": 1225.83,
+      "en": "So this is the output.",
+      "zh": "這是輸出。"
+    },
+    {
+      "start": 1226.19,
+      "end": 1228.79,
+      "en": "So the five here corresponds to batches.",
+      "zh": "5 對應批次。"
+    },
+    {
+      "start": 1228.83,
+      "end": 1231.63,
+      "en": "The eight here corresponds to the sequence length.",
+      "zh": "8 對應序列長度。"
+    },
+    {
+      "start": 1231.63,
+      "end": 1234.83,
+      "en": "So eight tokens and 128 dimensions.",
+      "zh": "也就是八個詞元、128 維。"
+    },
+    {
+      "start": 1235.43,
+      "end": 1242.23,
+      "en": "Now here when I called this uh model instance and I pushed it through, I pushed data through.",
+      "zh": "這裡呼叫模型實例、把資料送進去時，"
+    },
+    {
+      "start": 1242.23,
+      "end": 1250.67,
+      "en": "I did not specify a second parameter, which means that the parameter for track sizes was set to the default, which was false.",
+      "zh": "沒有指定第二個參數，所以 trackSizes 使用預設值 False。"
+    },
+    {
+      "start": 1251.11,
+      "end": 1253.75,
+      "en": "So now what I'm going to do is run it again.",
+      "zh": "現在再跑一次。"
+    },
+    {
+      "start": 1253.75,
+      "end": 1256.87,
+      "en": "You can see this line is basically the same as this.",
+      "zh": "這行和這行基本上相同。"
+    },
+    {
+      "start": 1256.87,
+      "end": 1259.58,
+      "en": "But I set track sizes equals true.",
+      "zh": "但我設定 trackSizes=True。"
+    },
+    {
+      "start": 1260.02,
+      "end": 1268.66,
+      "en": "And basically that's just going to allow us to follow the sizes of the data matrices as they are passing through the model.",
+      "zh": "這樣就能追蹤資料矩陣通過模型時的大小。"
+    },
+    {
+      "start": 1269.02,
+      "end": 1270.54,
+      "en": "So here is some information.",
+      "zh": "這裡有一些資訊。"
+    },
+    {
+      "start": 1270.54,
+      "end": 1274.58,
+      "en": "And here is the numbers that we can match.",
+      "zh": "這些數字可以互相對照。"
+    },
+    {
+      "start": 1274.78,
+      "end": 1278.86,
+      "en": "So it starts off as five by eight by 128.",
+      "zh": "起初是 5 × 8 × 128。"
+    },
+    {
+      "start": 1278.98,
+      "end": 1285.54,
+      "en": "And then here is where we split into the different slices for multi-head attention.",
+      "zh": "接著切成多頭注意力的不同切片。"
+    },
+    {
+      "start": 1285.82,
+      "end": 1290.66,
+      "en": "So now we went from H by 28 to 4 by eight by 32.",
+      "zh": "所以這裡從「8 × 128」變成「4 × 8 × 32」。"
+    },
+    {
+      "start": 1290.7,
+      "end": 1294.82,
+      "en": "So this 128 got reshaped into four by 32.",
+      "zh": "也就是把 128 重新塑形成 4 × 32。"
+    },
+    {
+      "start": 1295.22,
+      "end": 1301.1,
+      "en": "Again if you think back to the picture of in the slides that I showed of the square matrix being cut",
+      "zh": "回想投影片的圖，把方陣切"
+    },
+    {
+      "start": 1301.1,
+      "end": 1310.02,
+      "en": "up into four columns for tall matrices, then that started off as being 128 by 128.",
+      "zh": "成四個並排的高矩陣，原本是 128 × 128。"
+    },
+    {
+      "start": 1310.02,
+      "end": 1313.02,
+      "en": "And now we have four by 32.",
+      "zh": "現在有 4 × 32。"
+    },
+    {
+      "start": 1313.3,
+      "end": 1313.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1313.54,
+      "end": 1316.38,
+      "en": "And why don't you see the 128 by 128 here?",
+      "zh": "為什麼這裡看不到 128 × 128？"
+    },
+    {
+      "start": 1316.54,
+      "end": 1325.69,
+      "en": "That is because I have chosen not to print out the this matrix here, but instead to print out this result here.",
+      "zh": "因為我沒有選擇印出這個矩陣，而是印出這個結果。"
+    },
+    {
+      "start": 1325.69,
+      "end": 1334.21,
+      "en": "So this matrix in here, the weights matrix inside self dot query that is 128 by 128.",
+      "zh": "self.query 裡的權重矩陣，才是 128 × 128。"
+    },
+    {
+      "start": 1334.37,
+      "end": 1336.61,
+      "en": "If you like you could print that out as well.",
+      "zh": "有興趣也可以印出來。"
+    },
+    {
+      "start": 1336.77,
+      "end": 1344.93,
+      "en": "It would be something like uh self dot query dot weights dot detach dot shape.",
+      "zh": "像是 self.query.weight.detach().shape。"
+    },
+    {
+      "start": 1345.05,
+      "end": 1352.49,
+      "en": "So you could confirm the size of the weights matrix for the queries by printing out this information.",
+      "zh": "印出這個資訊，就能確認查詢權重矩陣的大小。"
+    },
+    {
+      "start": 1353.53,
+      "end": 1358.13,
+      "en": "So how many attention heads are actually used in real models.",
+      "zh": "實際模型究竟使用幾個注意力頭？"
+    },
+    {
+      "start": 1358.81,
+      "end": 1361.41,
+      "en": "That depends on several factors.",
+      "zh": "取決於幾項因素。"
+    },
+    {
+      "start": 1361.41,
+      "end": 1366.33,
+      "en": "Here is a table that I found in this paper when I just googled the answer.",
+      "zh": "這是我搜尋答案時，在這篇論文裡找到的表格。"
+    },
+    {
+      "start": 1366.85,
+      "end": 1378.63,
+      "en": "You can see it's generally a dozen or a few dozen, uh, attention heads, publicly available models that we will work with later in this course list their configurations.",
+      "zh": "可以看到，通常是十幾個或幾十個注意力頭。課程後面會用的公開模型，都會列出設定。"
+    },
+    {
+      "start": 1378.63,
+      "end": 1383.59,
+      "en": "So this exact number can be really easy to find out for lots of models.",
+      "zh": "所以很多模型的確切數字，都很容易找到。"
+    },
+    {
+      "start": 1383.67,
+      "end": 1387.59,
+      "en": "We will look at this in a code challenge later in this section.",
+      "zh": "這一節稍後的程式挑戰會查看。"
+    },
+    {
+      "start": 1388.99,
+      "end": 1389.79,
+      "en": "So there you go.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 1389.83,
+      "end": 1392.03,
+      "en": "That is Multi-head attention.",
+      "zh": "這就是多頭注意力。"
+    },
+    {
+      "start": 1392.63,
+      "end": 1400.03,
+      "en": "I think that when people try to explain the entirety of the attention technique from scratch in one",
+      "zh": "我覺得，如果想在一支影片裡，從零解釋整套注意力技術，"
+    },
+    {
+      "start": 1400.03,
+      "end": 1405.95,
+      "en": "video, it just feels overwhelming and you forget it as soon as you get up from your chair.",
+      "zh": "就會令人不堪負荷，一離開座位就忘光。"
+    },
+    {
+      "start": 1406.47,
+      "end": 1416.95,
+      "en": "So my goal here was to build up everything, one little piece at a time, balancing the math with the explanations, with the code and the exercises.",
+      "zh": "所以目標是逐小塊建立起來，平衡數學、說明、程式碼與練習。"
+    },
+    {
+      "start": 1417.55,
+      "end": 1422.47,
+      "en": "And I hope you now feel like you have a pretty good grasp of the attention mechanism.",
+      "zh": "希望現在你已經相當掌握注意力機制。"
+    },
+    {
+      "start": 1423.11,
+      "end": 1430.91,
+      "en": "In the next video, we will put the multi-head attention into a transformer block and then create a full model.",
+      "zh": "下一支影片，會把多頭注意力放進 Transformer 區塊，再建立完整模型。"
+    },
+    {
+      "start": 1431.55,
+      "end": 1436.99,
+      "en": "In fact, model five is basically the same thing as GPT two.",
+      "zh": "其實模型五，基本上就和 GPT-2 相同。"
+    }
+  ]
+}

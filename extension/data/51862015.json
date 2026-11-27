@@ -1,0 +1,1021 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51862015",
+  "title": "Partial fine-tuning by freezing attention weights",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "28e8d88cfcf36ad87d0bce6a62e9d884f80fe605cb18062903db4fd9eaf83d53",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 10.08,
+      "en": "You already know about the concept of tide weights, which is where two weights matrices are linked together.",
+      "zh": "你已經知道權重綁定的概念，也就是把兩個權重矩陣連結在一起。"
+    },
+    {
+      "start": 10.6,
+      "end": 21.28,
+      "en": "If you studied deep learning before, then you're probably also familiar with the concept of freezing weights during fine tuning or during transfer learning.",
+      "zh": "如果之前學過深度學習，你可能也熟悉在微調或遷移學習時凍結權重的做法。"
+    },
+    {
+      "start": 21.72,
+      "end": 27.36,
+      "en": "This is commonly done in CNN architectures for computational vision.",
+      "zh": "這在電腦視覺的 CNN 架構中很常見。"
+    },
+    {
+      "start": 27.88,
+      "end": 36.92,
+      "en": "You can also freeze weights in LMS, which has a number of potential benefits that I will discuss towards the end of this video.",
+      "zh": "LLM 也能凍結權重，這有幾項潛在好處，我會在影片後段討論。"
+    },
+    {
+      "start": 37.36,
+      "end": 44.76,
+      "en": "But first, I will remind you what it means to freeze a weights matrix, and then I'll have a code demo.",
+      "zh": "先來複習凍結權重矩陣的意思，接著示範程式。"
+    },
+    {
+      "start": 44.88,
+      "end": 47.84,
+      "en": "Or actually I'll show you how to do this in PyTorch.",
+      "zh": "也就是示範如何在 PyTorch 中操作。"
+    },
+    {
+      "start": 48.52,
+      "end": 54.8,
+      "en": "The upshot of this video is that it's actually really easy to freeze weights in terms of the coding",
+      "zh": "這支影片的重點是，就程式實作而言，凍結權重其實很簡單，"
+    },
+    {
+      "start": 54.8,
+      "end": 65.53,
+      "en": "implementation, but it can be overwhelming to think about all of the possibilities for sets of weights that could be frozen in fine tuning.",
+      "zh": "但微調時可以凍結的權重組合太多，思考起來可能令人眼花撩亂。"
+    },
+    {
+      "start": 66.45,
+      "end": 68.69,
+      "en": "So what does frozen weights mean?",
+      "zh": "那麼，凍結權重是什麼意思？"
+    },
+    {
+      "start": 69.05,
+      "end": 73.81,
+      "en": "It has nothing to do with weightlifting in Norway in the winter outside.",
+      "zh": "這跟冬天在挪威戶外舉重完全無關。"
+    },
+    {
+      "start": 74.53,
+      "end": 82.49,
+      "en": "Instead, freezing weights means that you prevent the parameters from being modified during back propagation.",
+      "zh": "凍結權重是指不讓參數在反向傳播期間被修改。"
+    },
+    {
+      "start": 82.73,
+      "end": 90.53,
+      "en": "So normally when you run backprop, the error signal propagates back through every weight in the model.",
+      "zh": "一般執行反向傳播時，誤差信號會往回經過模型中的每個權重。"
+    },
+    {
+      "start": 90.93,
+      "end": 99.85,
+      "en": "However, if a weight is frozen, then backprop will skip over that parameter and it will not be adjusted.",
+      "zh": "但如果某個權重被凍結，反向傳播就會略過該參數，不調整它。"
+    },
+    {
+      "start": 100.28999999999999,
+      "end": 110.61,
+      "en": "This is certainly not something you want to do during pre-training, but it is a common technique in fine tuning, transfer learning and instruction tuning.",
+      "zh": "預訓練時當然不會想這麼做，但在微調、遷移學習和指令微調時，這是常見技巧。"
+    },
+    {
+      "start": 111.21000000000001,
+      "end": 119.05,
+      "en": "It is quite common to freeze weights in computer vision models, especially if you are fine tuning on a small data set.",
+      "zh": "電腦視覺模型很常凍結權重，尤其是在小型資料集上微調時。"
+    },
+    {
+      "start": 120.13,
+      "end": 121.77,
+      "en": "And why would you want to do this?",
+      "zh": "為什麼要這麼做？"
+    },
+    {
+      "start": 122.21,
+      "end": 126.15,
+      "en": "There are several reasons why freezing weights is beneficial.",
+      "zh": "凍結權重有好幾項好處。"
+    },
+    {
+      "start": 126.39,
+      "end": 133.83,
+      "en": "I will discuss these in more detail after the code demo, but the basic idea is that it decreases computation",
+      "zh": "程式示範後我會詳細討論，基本概念是減少計算時間，"
+    },
+    {
+      "start": 133.83,
+      "end": 144.51,
+      "en": "time and requires fewer resources to train large models, and it also makes the adjustments a little more targeted and a little bit more subtle.",
+      "zh": "降低訓練大型模型所需的資源，也讓調整更有針對性、更細微。"
+    },
+    {
+      "start": 145.35,
+      "end": 149.07,
+      "en": "In PyTorch, freezing is very simple to toggle.",
+      "zh": "在 PyTorch 中，開關凍結狀態非常簡單。"
+    },
+    {
+      "start": 149.59,
+      "end": 158.31,
+      "en": "There is a parameter in every PyTorch tensor called requiresgrad, and all of the tensors that are attached",
+      "zh": "每個 PyTorch 張量都有一個叫 requires_grad 的屬性，而連結到"
+    },
+    {
+      "start": 158.31,
+      "end": 168.82999999999998,
+      "en": "to a particular model have Requiresgrad equals true, and you can simply set this parameter to false, and that freezes that tensor.",
+      "zh": "特定模型的所有張量，其 requires_grad 都是 True。把它設成 False，就能凍結該張量。"
+    },
+    {
+      "start": 168.82999999999998,
+      "end": 172.82999999999998,
+      "en": "So it freezes all of the parameters in that matrix.",
+      "zh": "也就是凍結那個矩陣中的所有參數。"
+    },
+    {
+      "start": 174.35,
+      "end": 176.63,
+      "en": "In a moment I will switch to Python.",
+      "zh": "等一下我會切換到 Python。"
+    },
+    {
+      "start": 176.63,
+      "end": 187.88,
+      "en": "We are going to import a pre-trained model and fine tune it on the text of Gulliver's Travels, so a fairly similar procedure to what we've done.",
+      "zh": "我們會匯入預訓練模型，用《格列佛遊記》的文本微調，流程和之前相當類似。"
+    },
+    {
+      "start": 187.92,
+      "end": 189.56,
+      "en": "Several previous times.",
+      "zh": "我們之前已經做過好幾次。"
+    },
+    {
+      "start": 189.56,
+      "end": 192.04,
+      "en": "If you're getting bored of working with this book, then.",
+      "zh": "如果你已經厭倦一直使用這本書，"
+    },
+    {
+      "start": 192.08,
+      "end": 197.2,
+      "en": "Don't worry, we're going to switch from Gulliver's Travels to something else in the next video.",
+      "zh": "不用擔心，下一支影片會改用《格列佛遊記》以外的素材。"
+    },
+    {
+      "start": 197.68,
+      "end": 203.4,
+      "en": "This screenshot here shows how the code looks for selectively freezing a layer.",
+      "zh": "這張截圖顯示選擇性凍結某一層的程式寫法。"
+    },
+    {
+      "start": 204.04,
+      "end": 210.36,
+      "en": "I will explain this in more detail when I switch to code, but essentially this code is setting the",
+      "zh": "切到程式時我會詳細解釋，基本上這段程式會把所有 Transformer 區塊的"
+    },
+    {
+      "start": 210.36,
+      "end": 219.4,
+      "en": "Requiresgrad parameter to be false for all of the transformer blocks, which we can identify as having",
+      "zh": "requires_grad 設成 False。我們可以從名稱中的"
+    },
+    {
+      "start": 219.4,
+      "end": 222.44,
+      "en": "a dot h dot in the name.",
+      "zh": "「.h.」辨認這些區塊。"
+    },
+    {
+      "start": 223.2,
+      "end": 231.44,
+      "en": "Then I will train the model and confirm that the weights that were frozen really didn't change at all as a function of learning.",
+      "zh": "接著訓練模型，確認凍結的權重確實完全沒有因學習而改變。"
+    },
+    {
+      "start": 232.04,
+      "end": 240.52,
+      "en": "And what I'm showing here is the matrix norm of the difference in the weights matrix before versus after training.",
+      "zh": "這裡顯示的是訓練前後，權重矩陣差值的矩陣範數。"
+    },
+    {
+      "start": 240.88,
+      "end": 251.82,
+      "en": "And the fact that the norm is zero means that the numbers in the weights matrix before versus after training are completely 100% identical.",
+      "zh": "範數為零，表示訓練前後權重矩陣中的數值百分之百完全相同。"
+    },
+    {
+      "start": 253.02,
+      "end": 257.98,
+      "en": "And for comparison, here is the same analysis on a trainable layer.",
+      "zh": "作為對照，這裡對可訓練層做相同分析。"
+    },
+    {
+      "start": 257.98,
+      "end": 266.74,
+      "en": "And here we see that the norm is non-zero, which means that the matrix is different after versus before the training.",
+      "zh": "這裡範數不為零，表示訓練前後的矩陣不同。"
+    },
+    {
+      "start": 267.5,
+      "end": 269.14,
+      "en": "Okay, let's switch to Python.",
+      "zh": "好，切換到 Python。"
+    },
+    {
+      "start": 269.14,
+      "end": 275.14,
+      "en": "And then I will have a discussion about the choices for when and why to freeze parameters.",
+      "zh": "之後再討論何時、為什麼要凍結參數，以及如何選擇。"
+    },
+    {
+      "start": 276.3,
+      "end": 286.7,
+      "en": "I'm sure that by this point in the course, you're starting to get really familiar with looking at all of this import code and code to import these models.",
+      "zh": "課程到這裡，相信你已經很熟悉這些匯入套件與模型的程式了。"
+    },
+    {
+      "start": 286.82,
+      "end": 290.9,
+      "en": "Code to set up these hyper parameters in the GPU, and so on.",
+      "zh": "還有設定超參數、GPU 等程式。"
+    },
+    {
+      "start": 291.02,
+      "end": 291.98,
+      "en": "That's a good thing.",
+      "zh": "這是好事。"
+    },
+    {
+      "start": 291.98,
+      "end": 302.78,
+      "en": "You want to be able to focus on what's new, and not have to worry about all of the boilerplate code that we keep writing to do all this import and stuff like that.",
+      "zh": "你應該能把心力放在新內容，不必一直擔心這些反覆撰寫、用來匯入東西的固定程式碼。"
+    },
+    {
+      "start": 303.02,
+      "end": 305.18,
+      "en": "Okay, here we get to new code here.",
+      "zh": "好，這裡開始有新的程式。"
+    },
+    {
+      "start": 305.27,
+      "end": 305.59,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 305.67,
+      "end": 312.43,
+      "en": "Let me start by actually copying this and writing print name over here.",
+      "zh": "先複製這段，在這裡寫 print(name)。"
+    },
+    {
+      "start": 312.55,
+      "end": 320.19,
+      "en": "So what this code is doing is looping through all of the named parameters in this model.",
+      "zh": "這段程式會逐一走訪模型中所有具名參數。"
+    },
+    {
+      "start": 320.31,
+      "end": 322.63,
+      "en": "And then I'm just printing out the name.",
+      "zh": "接著印出名稱。"
+    },
+    {
+      "start": 322.87,
+      "end": 326.39,
+      "en": "So you can see it starts up at transformer.",
+      "zh": "可以看到，開頭是 transformer。"
+    },
+    {
+      "start": 327.63,
+      "end": 330.19,
+      "en": "That's word token embeddings.",
+      "zh": "這是詞元嵌入。"
+    },
+    {
+      "start": 330.35,
+      "end": 332.43,
+      "en": "And then the word position embeddings.",
+      "zh": "接著是位置嵌入。"
+    },
+    {
+      "start": 332.55,
+      "end": 343.59000000000003,
+      "en": "And then we have all of these um layernorm attention MLP for H0H .1.2 and so on all the way up to h",
+      "zh": "然後是 h.0、h.1、h.2 等區塊中的 LayerNorm、注意力與 MLP，一直到 h."
+    },
+    {
+      "start": 343.83,
+      "end": 344.47,
+      "en": "11.",
+      "zh": "11。"
+    },
+    {
+      "start": 344.51,
+      "end": 352.23,
+      "en": "Of course, this corresponds to the 12 transformer blocks that are in GPT two small.",
+      "zh": "當然，這對應 GPT-2 small 的 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 352.39,
+      "end": 354.43,
+      "en": "And the H again is for hidden.",
+      "zh": "h 一樣代表 hidden。"
+    },
+    {
+      "start": 354.79,
+      "end": 359.87,
+      "en": "So what we want to do here is loop through all of these named parameters.",
+      "zh": "我們要逐一走訪所有具名參數。"
+    },
+    {
+      "start": 360.07,
+      "end": 370.09,
+      "en": "And if we are working with a parameter that is inside a transformer block, we can indicate that using a dot h dot.",
+      "zh": "如果參數位於 Transformer 區塊內，就能用名稱中的「.h.」辨識。"
+    },
+    {
+      "start": 370.45,
+      "end": 375.45,
+      "en": "And then we will set that Requiresgrad parameter to be false.",
+      "zh": "接著把它的 requires_grad 設成 False。"
+    },
+    {
+      "start": 375.61,
+      "end": 377.37,
+      "en": "And then here I'm just printing it out.",
+      "zh": "然後在這裡印出結果。"
+    },
+    {
+      "start": 377.37,
+      "end": 381.49,
+      "en": "So I'm printing out uh minus signs if it's frozen.",
+      "zh": "如果已凍結，就印出減號。"
+    },
+    {
+      "start": 381.73,
+      "end": 386.37,
+      "en": "And uh then yeah getting the actual, uh, requiresgrad parameter.",
+      "zh": "接著取得實際的 requires_grad 屬性。"
+    },
+    {
+      "start": 386.69,
+      "end": 392.57,
+      "en": "And here, if it's not in a transformer block or a hidden block, then I have plus plus plus.",
+      "zh": "如果不在 Transformer 或隱藏區塊內，這裡就印出加號。"
+    },
+    {
+      "start": 392.57,
+      "end": 397.13,
+      "en": "That means that this layer, this weights matrix is trainable.",
+      "zh": "這代表該層、該權重矩陣可以訓練。"
+    },
+    {
+      "start": 397.13,
+      "end": 401.17,
+      "en": "And then I print out the value of requiresgrad for that parameter.",
+      "zh": "然後印出該參數的 requires_grad 值。"
+    },
+    {
+      "start": 401.57,
+      "end": 403.33,
+      "en": "So that looks like this.",
+      "zh": "執行後長這樣。"
+    },
+    {
+      "start": 403.33,
+      "end": 407.05,
+      "en": "So essentially you know you can see it's mostly minus signs here.",
+      "zh": "基本上可以看到，這裡幾乎都是減號。"
+    },
+    {
+      "start": 407.09000000000003,
+      "end": 408.40999999999997,
+      "en": "Just some pluses here.",
+      "zh": "只有這裡有一些加號。"
+    },
+    {
+      "start": 409.37,
+      "end": 414.57,
+      "en": "And the embeddings matrix matrices in the beginning are also trainable.",
+      "zh": "模型開頭的嵌入矩陣也可以訓練。"
+    },
+    {
+      "start": 414.57,
+      "end": 420.89,
+      "en": "So basically this entire model almost the entire model is now frozen.",
+      "zh": "所以這個模型幾乎整個都已凍結。"
+    },
+    {
+      "start": 420.89,
+      "end": 424.81,
+      "en": "And really only the embeddings in the very beginning of the model can be trained.",
+      "zh": "真正能訓練的，只有模型最開頭的嵌入。"
+    },
+    {
+      "start": 425.53,
+      "end": 426.81,
+      "en": "Is this a good idea?",
+      "zh": "這樣做是好主意嗎？"
+    },
+    {
+      "start": 427.42,
+      "end": 428.7,
+      "en": "Almost certainly not.",
+      "zh": "幾乎可以肯定不是。"
+    },
+    {
+      "start": 428.78,
+      "end": 432.14,
+      "en": "This is not the method of.",
+      "zh": "這並不是"
+    },
+    {
+      "start": 432.3,
+      "end": 433.38,
+      "en": "Of freezing.",
+      "zh": "你實際應用時"
+    },
+    {
+      "start": 433.42,
+      "end": 436.42,
+      "en": "Extensive freezing that you would want to use in practice.",
+      "zh": "會想採用的大範圍凍結方式。"
+    },
+    {
+      "start": 436.5,
+      "end": 439.14,
+      "en": "However, this is not for application.",
+      "zh": "不過，這裡不是要做實務應用。"
+    },
+    {
+      "start": 439.14,
+      "end": 441.66,
+      "en": "What I want to do here is give you code.",
+      "zh": "我想提供你程式碼。"
+    },
+    {
+      "start": 441.86,
+      "end": 443.62,
+      "en": "In the next video.",
+      "zh": "在下一支影片，"
+    },
+    {
+      "start": 443.66,
+      "end": 446.66,
+      "en": "You are going to start with code that looks like this.",
+      "zh": "你會從類似這樣的程式開始，"
+    },
+    {
+      "start": 446.66,
+      "end": 452.1,
+      "en": "And you're going to extend it and learn how to do precision freezing.",
+      "zh": "擴充它，學習如何精準凍結，"
+    },
+    {
+      "start": 452.1,
+      "end": 453.94,
+      "en": "Much more targeted freezing.",
+      "zh": "也就是更有針對性的凍結。"
+    },
+    {
+      "start": 454.14,
+      "end": 459.65999999999997,
+      "en": "I'll have more to say about what is and is not sensible to freeze later on.",
+      "zh": "稍後我還會談，凍結哪些部分合理、哪些不合理。"
+    },
+    {
+      "start": 460.06,
+      "end": 462.38,
+      "en": "Okay, so all of that said.",
+      "zh": "好，說明完這些，"
+    },
+    {
+      "start": 462.54,
+      "end": 464.86,
+      "en": "So now most of the model is frozen, which is fine.",
+      "zh": "現在模型大部分已凍結，這沒問題。"
+    },
+    {
+      "start": 465.34000000000003,
+      "end": 470.65999999999997,
+      "en": "Here what I'm doing is just grabbing the weights from just some random layer.",
+      "zh": "這裡只是從隨意挑選的某一層取出權重。"
+    },
+    {
+      "start": 470.65999999999997,
+      "end": 472.74,
+      "en": "So this is a frozen layer.",
+      "zh": "這是一個凍結層。"
+    },
+    {
+      "start": 472.78,
+      "end": 474.9,
+      "en": "It's in the transformer block.",
+      "zh": "它位於 Transformer 區塊內。"
+    },
+    {
+      "start": 475.94,
+      "end": 480.86,
+      "en": "And this is a trainable weight matrix over here.",
+      "zh": "這邊則是一個可訓練的權重矩陣。"
+    },
+    {
+      "start": 480.86,
+      "end": 482.14,
+      "en": "This is the last one.",
+      "zh": "也就是最後這個。"
+    },
+    {
+      "start": 482.38,
+      "end": 483.3,
+      "en": "It's this one.",
+      "zh": "就是它。"
+    },
+    {
+      "start": 483.3,
+      "end": 485.06,
+      "en": "And it is trainable.",
+      "zh": "它可以訓練。"
+    },
+    {
+      "start": 485.34,
+      "end": 495.24,
+      "en": "So basically just as a sanity check what I'm doing is grabbing the weights before I do any fine tuning, and then after fine tuning and we will compare them.",
+      "zh": "基本上是做合理性檢查：先在微調前取出權重，微調後再取一次，然後比較。"
+    },
+    {
+      "start": 495.72,
+      "end": 496,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 496.04,
+      "end": 498.64,
+      "en": "So run that, push the model to the GPU.",
+      "zh": "執行，把模型移到 GPU。"
+    },
+    {
+      "start": 499.28,
+      "end": 501.16,
+      "en": "Here I'm fine tuning the model.",
+      "zh": "這裡對模型微調。"
+    },
+    {
+      "start": 501.16,
+      "end": 505.76,
+      "en": "This looks the same as uh, lots of other code you have seen before.",
+      "zh": "這和之前看過的許多程式一樣。"
+    },
+    {
+      "start": 506.08,
+      "end": 509,
+      "en": "Uh, I'm not even going to talk about it, so I'll just let that run.",
+      "zh": "我就不再解說，直接讓它執行。"
+    },
+    {
+      "start": 509.92,
+      "end": 511.8,
+      "en": "That was a very quick training.",
+      "zh": "訓練很快就完成了。"
+    },
+    {
+      "start": 512,
+      "end": 514.56,
+      "en": "Uh, it's really not a lot of samples.",
+      "zh": "樣本數其實很少。"
+    },
+    {
+      "start": 514.56,
+      "end": 516.64,
+      "en": "It took less than half a minute.",
+      "zh": "不到半分鐘。"
+    },
+    {
+      "start": 516.88,
+      "end": 521.04,
+      "en": "The point in this video is not to really fine tune a model.",
+      "zh": "這支影片的重點不是認真把模型微調好。"
+    },
+    {
+      "start": 521.04,
+      "end": 528.68,
+      "en": "The point in this video is to give you code so you can see how to, uh, look through all of the parameters",
+      "zh": "而是提供程式，讓你知道如何逐一查看模型中的參數，"
+    },
+    {
+      "start": 528.68,
+      "end": 534.52,
+      "en": "in a model and selectively, uh, freeze some of the parameters.",
+      "zh": "並選擇性凍結其中一些參數。"
+    },
+    {
+      "start": 534.88,
+      "end": 537.04,
+      "en": "I'm terrified to look at this thing.",
+      "zh": "我實在不敢看這個輸出。"
+    },
+    {
+      "start": 537.04,
+      "end": 538.28,
+      "en": "I don't even want to look at it.",
+      "zh": "甚至不想看。"
+    },
+    {
+      "start": 538.48,
+      "end": 540.56,
+      "en": "Okay, so here is, uh.",
+      "zh": "好，這裡是……"
+    },
+    {
+      "start": 540.56,
+      "end": 541.16,
+      "en": "Okay, fine.",
+      "zh": "好吧。"
+    },
+    {
+      "start": 541.16,
+      "end": 542.04,
+      "en": "We can look at it.",
+      "zh": "還是看一下。"
+    },
+    {
+      "start": 542.32,
+      "end": 546.56,
+      "en": "It's just that, uh, yeah, the model doesn't learn that much because it doesn't train that much.",
+      "zh": "只是模型訓練不多，所以也沒學到多少。"
+    },
+    {
+      "start": 546.96,
+      "end": 555.69,
+      "en": "Okay, here is the, uh, exactly the same weights matrices that I grabbed before training those variables I called pre.",
+      "zh": "好，這是訓練前取出的相同權重矩陣，之前的變數命名為 pre。"
+    },
+    {
+      "start": 555.73,
+      "end": 557.69,
+      "en": "Here I'm calling them post.",
+      "zh": "這裡則命名為 post。"
+    },
+    {
+      "start": 558.05,
+      "end": 562.13,
+      "en": "And then the idea is that I'm subtracting those two layers.",
+      "zh": "做法是把這兩個層的權重相減。"
+    },
+    {
+      "start": 562.29,
+      "end": 566.17,
+      "en": "So frozen weights uh post minus pre.",
+      "zh": "凍結權重的 post 減去 pre。"
+    },
+    {
+      "start": 566.21,
+      "end": 575.37,
+      "en": "Now if the model really is frozen on this layer then these two weights should be identical because backprop completely didn't touch them.",
+      "zh": "如果這一層真的被凍結，兩組權重應該相同，因為反向傳播完全沒動到它們。"
+    },
+    {
+      "start": 575.49,
+      "end": 579.73,
+      "en": "So that would mean that this, uh, matrix should be all zeros.",
+      "zh": "因此，差值矩陣應該全是零。"
+    },
+    {
+      "start": 579.97,
+      "end": 583.37,
+      "en": "And the norm of a zeros matrix is zero.",
+      "zh": "零矩陣的範數就是零。"
+    },
+    {
+      "start": 583.85,
+      "end": 588.29,
+      "en": "On the other hand, these two matrices should have trained.",
+      "zh": "另一方面，這兩個矩陣應該有經過訓練。"
+    },
+    {
+      "start": 588.29,
+      "end": 589.69,
+      "en": "They should be different.",
+      "zh": "它們應該不同。"
+    },
+    {
+      "start": 589.81,
+      "end": 591.57,
+      "en": "Doesn't matter how they're different.",
+      "zh": "不管是怎麼不同，"
+    },
+    {
+      "start": 592.17,
+      "end": 594.93,
+      "en": "Greater or smaller move in directions.",
+      "zh": "變大、變小，或往哪個方向改變，"
+    },
+    {
+      "start": 595.09,
+      "end": 597.53,
+      "en": "It doesn't matter for our purposes here.",
+      "zh": "對這裡的目的而言都不重要。"
+    },
+    {
+      "start": 597.73,
+      "end": 608.01,
+      "en": "All I want to do is confirm that these two matrices are different from each other, in which case this difference matrix will have a norm other than zero.",
+      "zh": "我只想確認兩個矩陣不同；若不同，差值矩陣的範數就不會是零。"
+    },
+    {
+      "start": 608.25,
+      "end": 609.93,
+      "en": "And that's exactly what we see.",
+      "zh": "結果正是如此。"
+    },
+    {
+      "start": 610.11,
+      "end": 612.75,
+      "en": "Again, just a little bit of sanity checking here.",
+      "zh": "這裡同樣只是做一點合理性檢查。"
+    },
+    {
+      "start": 613.87,
+      "end": 617.31,
+      "en": "So why would you want to freeze any weights at all?",
+      "zh": "那麼，為什麼要凍結權重？"
+    },
+    {
+      "start": 617.51,
+      "end": 619.31,
+      "en": "Why is this a good thing to do?",
+      "zh": "這樣做有什麼好處？"
+    },
+    {
+      "start": 619.87,
+      "end": 621.83,
+      "en": "There are several reasons.",
+      "zh": "有幾個原因。"
+    },
+    {
+      "start": 621.91,
+      "end": 629.59,
+      "en": "One is that by training only some of the parameters in the model, you reduce the risk of overfitting.",
+      "zh": "第一，只訓練模型中的部分參數，可以降低過度擬合的風險。"
+    },
+    {
+      "start": 629.83,
+      "end": 637.15,
+      "en": "And that is especially true if you want to prevent the model from developing too many training sets.",
+      "zh": "尤其當你希望避免模型形成太多訓練集"
+    },
+    {
+      "start": 637.59,
+      "end": 640.71,
+      "en": "Training set specific idiosyncrasies.",
+      "zh": "特有的細節時，更是如此。"
+    },
+    {
+      "start": 641.31,
+      "end": 648.91,
+      "en": "In fact, it is these kinds of idiosyncrasies that are literally exactly what we've been training models to generate.",
+      "zh": "事實上，我們之前訓練模型產生的，正是這類特有細節。"
+    },
+    {
+      "start": 649.55,
+      "end": 653.07,
+      "en": "Like in Alice in Wonderland or Edgar Allan Poe models.",
+      "zh": "例如《愛麗絲夢遊仙境》或愛倫坡的模型。"
+    },
+    {
+      "start": 653.39,
+      "end": 660.99,
+      "en": "So in those videos, the overfitting to training set idiosyncrasies was kind of the goal of the training.",
+      "zh": "所以那些影片中，對訓練集特有細節過度擬合，某種程度上就是訓練目標。"
+    },
+    {
+      "start": 660.99,
+      "end": 664.07,
+      "en": "But it's not always something that you want.",
+      "zh": "但這不一定是你想要的結果。"
+    },
+    {
+      "start": 664.95,
+      "end": 673.2,
+      "en": "And because these models are so ginormous, if you have limited training data, then freezing parameters",
+      "zh": "由於這些模型非常龐大，如果訓練資料有限，凍結參數"
+    },
+    {
+      "start": 673.2,
+      "end": 681.64,
+      "en": "helps the model adapt better, because you have the same amount of data and fewer parameters to be modified.",
+      "zh": "能幫助模型更好地適應，因為資料量相同，需要修改的參數卻更少。"
+    },
+    {
+      "start": 682.4,
+      "end": 689.64,
+      "en": "An example of this could be if you are fine tuning a model on technical documentation inside a company.",
+      "zh": "例如，用公司內部的技術文件微調模型。"
+    },
+    {
+      "start": 690.2,
+      "end": 698.96,
+      "en": "So a foundation model that was pre-trained on the entire internet can then be fine tuned just on the technical documentation.",
+      "zh": "先在整個網際網路上預訓練的基礎模型，之後只用這些技術文件微調。"
+    },
+    {
+      "start": 699.32,
+      "end": 703.72,
+      "en": "But that's a tiny, tiny data set relative to the pre-training data.",
+      "zh": "但相較於預訓練資料，這個資料集非常非常小。"
+    },
+    {
+      "start": 703.96,
+      "end": 707.8,
+      "en": "So only training parts of the model might be beneficial.",
+      "zh": "因此，只訓練部分模型可能有幫助。"
+    },
+    {
+      "start": 708.56,
+      "end": 711.32,
+      "en": "Another benefit is just very practical.",
+      "zh": "另一項好處很實際。"
+    },
+    {
+      "start": 711.84,
+      "end": 719.16,
+      "en": "In this course, we are mostly working with relatively small llms that have maybe a few hundred million",
+      "zh": "這門課主要使用相對較小的 LLM，可能有幾億個"
+    },
+    {
+      "start": 719.16,
+      "end": 726.52,
+      "en": "parameters, but the models that are used in practice have billions or tens of billions of parameters.",
+      "zh": "參數，但實際應用的模型有幾十億，甚至幾百億個參數。"
+    },
+    {
+      "start": 727.08,
+      "end": 736.14,
+      "en": "And so fine tuning those kinds of models costs a lot of time and money, not to mention the computational resources.",
+      "zh": "微調這些模型要花很多時間與金錢，更不用說運算資源。"
+    },
+    {
+      "start": 736.46,
+      "end": 744.9,
+      "en": "So therefore people will freeze large sections of the model just so that it's more feasible to train on limited resources.",
+      "zh": "因此，大家會凍結模型的大部分，讓有限資源下的訓練更可行。"
+    },
+    {
+      "start": 746.14,
+      "end": 749.1,
+      "en": "Finally, you can also do targeted freezing.",
+      "zh": "最後，也能做有針對性的凍結。"
+    },
+    {
+      "start": 749.1,
+      "end": 756.62,
+      "en": "So for example, earlier transformer blocks tend to learn more low level syntax and semantics.",
+      "zh": "例如，較前面的 Transformer 區塊通常學習較低階的句法與語意。"
+    },
+    {
+      "start": 756.62,
+      "end": 765.74,
+      "en": "So just basic language structure, whereas later layers generally learn more high level context and abstracted patterns.",
+      "zh": "也就是基本語言結構；較後面的層通常學習較高階的語境與抽象模式。"
+    },
+    {
+      "start": 766.02,
+      "end": 774.22,
+      "en": "So freezing just the first half of the transformer blocks would help the help preserve the model's syntax,",
+      "zh": "因此，只凍結前半部 Transformer 區塊，有助保留模型的句法能力，"
+    },
+    {
+      "start": 774.38,
+      "end": 778.94,
+      "en": "while allowing the training to focus more on higher level features.",
+      "zh": "同時讓訓練更著重高階特徵。"
+    },
+    {
+      "start": 779.5,
+      "end": 785.46,
+      "en": "And this would be something you might want to do if you're fine tuning a model for, let's say, text classification.",
+      "zh": "例如，為文字分類微調模型時，可能會想這麼做。"
+    },
+    {
+      "start": 787.02,
+      "end": 794.27,
+      "en": "Now I have a few discussion points about what parts of the model to freeze and when to do the freezing.",
+      "zh": "現在討論該凍結模型的哪些部分，以及何時凍結。"
+    },
+    {
+      "start": 794.83,
+      "end": 802.19,
+      "en": "Here you have an explosion of possibilities for which specific layers in the model you want to freeze.",
+      "zh": "究竟要凍結哪些特定層，可選擇的組合非常多。"
+    },
+    {
+      "start": 802.79,
+      "end": 810.83,
+      "en": "For example, if you freeze all the MLP layers and allow the attention layers to continue to be adjusted,",
+      "zh": "例如，凍結所有 MLP 層，讓注意力層繼續調整，"
+    },
+    {
+      "start": 811.31,
+      "end": 817.15,
+      "en": "that can preferentially modify how the tokens over time are indicated.",
+      "zh": "就能優先修改不同時間位置的詞元之間如何互相指示。"
+    },
+    {
+      "start": 817.55,
+      "end": 823.87,
+      "en": "Now, I've kind of discussed this point earlier, which is basically that freezing the earlier transformer",
+      "zh": "這點先前已經提過：凍結較前面的 Transformer"
+    },
+    {
+      "start": 823.87,
+      "end": 834.55,
+      "en": "blocks allows the training to focus more on high level text and context features, while preserving the semantic and syntactic knowledge.",
+      "zh": "區塊，可以保留語意與句法知識，讓訓練專注於較高階的文本與語境特徵。"
+    },
+    {
+      "start": 835.75,
+      "end": 846.71,
+      "en": "Uh, this point here is that you can also freeze a layer at the beginning of fine tuning and then unfreeze it after, for example, the first hundred training samples.",
+      "zh": "也可以在微調一開始先凍結某一層，等前一百筆訓練樣本跑完後再解凍。"
+    },
+    {
+      "start": 847.27,
+      "end": 855.69,
+      "en": "Or maybe you monitor the losses during fine tuning and unfreeze some layers when the loss drops below some threshold that you pick.",
+      "zh": "或是在微調時監測損失，降到你選定的門檻以下時，解凍某些層。"
+    },
+    {
+      "start": 855.93,
+      "end": 859.97,
+      "en": "And finally, in the field of mechanistic interpretability.",
+      "zh": "最後，在機制可解釋性領域，"
+    },
+    {
+      "start": 860.01,
+      "end": 866.65,
+      "en": "People use targeted freezing to test hypotheses about what different parts of the model can learn.",
+      "zh": "研究者會用有針對性的凍結，檢驗模型不同部分能學到什麼的假說。"
+    },
+    {
+      "start": 867.13,
+      "end": 874.69,
+      "en": "In other words, freezing is also used for research purposes, not only for practical application purposes.",
+      "zh": "換句話說，凍結也用於研究，不只是實務應用。"
+    },
+    {
+      "start": 875.77,
+      "end": 882.09,
+      "en": "So freezing during fine tuning is both extremely easy and extremely hard.",
+      "zh": "所以，微調時凍結權重，既極其簡單，也極其困難。"
+    },
+    {
+      "start": 882.57,
+      "end": 887.01,
+      "en": "It's extremely easy because it's basically just one piece of code to run.",
+      "zh": "簡單是因為，基本上只要執行一小段程式。"
+    },
+    {
+      "start": 887.57,
+      "end": 894.05,
+      "en": "But it's extremely hard because there are so many possibilities for what and when to freeze.",
+      "zh": "困難則在於，凍結什麼、何時凍結，有太多可能。"
+    },
+    {
+      "start": 894.45,
+      "end": 901.65,
+      "en": "And although there are some guidelines about which layers to freeze, the reality is that in practice,",
+      "zh": "雖然有一些選擇凍結層的指引，但實際上，"
+    },
+    {
+      "start": 901.77,
+      "end": 909.17,
+      "en": "freezing involves a lot of exploration and experimentation and can get quite time consuming.",
+      "zh": "凍結往往需要大量探索與實驗，也可能相當耗時。"
+    },
+    {
+      "start": 909.37,
+      "end": 913.85,
+      "en": "You will get a taste of this in the code challenge in the next video.",
+      "zh": "下一支影片的程式挑戰，就會讓你體驗這件事。"
+    }
+  ]
+}

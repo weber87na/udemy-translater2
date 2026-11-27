@@ -1,0 +1,1519 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51862005",
+  "title": "CodeChallenge: Quantify the Alice/Edgar fine-tuning",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e5bcf887db1347434e7d348ad872f17326e8185fe772551a7487485ec79bfe7f",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 7.32,
+      "en": "This code challenge will pick up where we left off in the previous video.",
+      "zh": "這個挑戰接續上一支影片。"
+    },
+    {
+      "start": 8.12,
+      "end": 18.48,
+      "en": "In particular, you are going to continue fine tuning two models to adopt the style of Alice in Wonderland or Edgar Allan Poe.",
+      "zh": "繼續微調兩個模型，分別採用愛麗絲、Edgar Allan Poe 的風格。"
+    },
+    {
+      "start": 19.12,
+      "end": 28.88,
+      "en": "And then here you're also going to perform both quantitative and qualitative evaluations of the performance of these models.",
+      "zh": "也會同時量化、質性評估表現。"
+    },
+    {
+      "start": 29.76,
+      "end": 39.08,
+      "en": "The first part of exercise one is to import and tokenize both of the texts that we used in the previous video.",
+      "zh": "練習一先匯入、斷詞上一支的兩份文字。"
+    },
+    {
+      "start": 39.56,
+      "end": 41.08,
+      "en": "Now that part is very simple.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 41.08,
+      "end": 45.28,
+      "en": "You can just literally copy paste it from previous notebook.",
+      "zh": "直接從前個筆記本複製。"
+    },
+    {
+      "start": 45.8,
+      "end": 53.76,
+      "en": "The next part of this exercise is to find the 100 most commonly appearing tokens in each text.",
+      "zh": "接著找每份文字最常見 100 個詞元。"
+    },
+    {
+      "start": 54.48,
+      "end": 60.28,
+      "en": "Now you have already done something similar to this before with Gulliver's Travels.",
+      "zh": "之前《格列佛遊記》做過類似事情，"
+    },
+    {
+      "start": 60.28,
+      "end": 60.29,
+      "en": "Novels.",
+      "zh": "也就是小說。"
+    },
+    {
+      "start": 60.53,
+      "end": 69.37,
+      "en": "But here this is a little bit different, because here I want you to ignore any tokens that have 1 or 2 characters.",
+      "zh": "但這裡稍不同，要忽略只有一、兩個字元的詞元。"
+    },
+    {
+      "start": 69.65,
+      "end": 77.49,
+      "en": "So you want to find the 100 most frequent tokens that are at least three characters long.",
+      "zh": "找出至少三字元長的最常見 100 個。"
+    },
+    {
+      "start": 78.28999999999999,
+      "end": 83.93,
+      "en": "And of course, that's done separately for the Alice text and for the Edgar text.",
+      "zh": "Alice、Edgar 文字各自做。"
+    },
+    {
+      "start": 84.45,
+      "end": 91.65,
+      "en": "Now, the reason why I'm asking you to do this is that by the end of this code challenge, you are going",
+      "zh": "原因是，到挑戰最後，"
+    },
+    {
+      "start": 91.65,
+      "end": 100.25,
+      "en": "to have two fine tuned models generate text and then count the proportion of generated texts that are",
+      "zh": "會讓兩個微調模型產生文字，計算生成內容"
+    },
+    {
+      "start": 100.25,
+      "end": 107.69,
+      "en": "in each of these lists in order to determine whether the models really start preferring to use tokens",
+      "zh": "有多少比例在各清單，判斷模型是否真的偏好使用"
+    },
+    {
+      "start": 107.85,
+      "end": 113.25,
+      "en": "from the text that they were trained on, as opposed to the text that they were not trained on.",
+      "zh": "自己訓練文字的詞元，而非沒訓練過的另一份。"
+    },
+    {
+      "start": 114.57,
+      "end": 123.02,
+      "en": "So I found that almost half of the tokens in each of these books has fewer than three tokens.",
+      "zh": "發現兩本書幾乎一半詞元，長度少於三個字元。"
+    },
+    {
+      "start": 123.54,
+      "end": 130.58,
+      "en": "Now, that might initially seem surprising, but it includes punctuation marks and newline characters.",
+      "zh": "起初可能意外，但包含標點、換行。"
+    },
+    {
+      "start": 131.3,
+      "end": 139.86,
+      "en": "So here is a screenshot of some of the 100 most frequent words from the Edgar Allan Poe text.",
+      "zh": "這是 Poe 文字最常見 100 個中的一部分。"
+    },
+    {
+      "start": 140.38,
+      "end": 146.62,
+      "en": "You can see that a lot of these words are still not really specific to Poe's poetry.",
+      "zh": "很多仍不是 Poe 詩作特有。"
+    },
+    {
+      "start": 147.22,
+      "end": 149.3,
+      "en": "They're just very common words.",
+      "zh": "只是常用字。"
+    },
+    {
+      "start": 149.57999999999998,
+      "end": 153.66,
+      "en": "So it will be interesting to see what happens with this quantification.",
+      "zh": "所以量化會如何，很有意思。"
+    },
+    {
+      "start": 154.34,
+      "end": 166.02,
+      "en": "And in fact, by the end of this code challenge, I want to have a few discussion points about the challenges of quantifying the performance of generative models.",
+      "zh": "挑戰最後，也會談量化生成模型表現的困難。"
+    },
+    {
+      "start": 166.14,
+      "end": 174.54,
+      "en": "So you can already start thinking about possible critiques of this approach and any improvements you can think of.",
+      "zh": "現在就能開始想，這種方式有什麼缺點、如何改善。"
+    },
+    {
+      "start": 175.42000000000002,
+      "end": 179.38,
+      "en": "But anyway, please pause the video now and work through this exercise.",
+      "zh": "總之，請暫停，完成練習。"
+    },
+    {
+      "start": 179.5,
+      "end": 182.07,
+      "en": "And now I will discuss my solution.",
+      "zh": "接著說明解法。"
+    },
+    {
+      "start": 183.47,
+      "end": 186.39,
+      "en": "So here are some libraries that we will use.",
+      "zh": "這些是函式庫。"
+    },
+    {
+      "start": 186.51,
+      "end": 191.19,
+      "en": "And here I'm tokenizing and finding the most common tokens.",
+      "zh": "斷詞、找最常見詞元。"
+    },
+    {
+      "start": 191.35,
+      "end": 191.71,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 191.75,
+      "end": 198.95,
+      "en": "So this code here is identical literally just copy pasted from the previous video.",
+      "zh": "這裡程式完全從上一支複製。"
+    },
+    {
+      "start": 199.39,
+      "end": 201.11,
+      "en": "And also this code as well.",
+      "zh": "這段也是。"
+    },
+    {
+      "start": 201.31,
+      "end": 201.63,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 201.67000000000002,
+      "end": 204.39,
+      "en": "Here is where we start getting to new stuff.",
+      "zh": "這裡有新東西。"
+    },
+    {
+      "start": 204.87,
+      "end": 205.15,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 205.19,
+      "end": 212.07,
+      "en": "So what I have done here is create a new token vector that I call Alice Tokens filter.",
+      "zh": "建立新的詞元向量，叫 aliceTokensFilter。"
+    },
+    {
+      "start": 212.51,
+      "end": 214.67000000000002,
+      "en": "The filter is for filtered.",
+      "zh": "filter 代表已過濾。"
+    },
+    {
+      "start": 214.95,
+      "end": 222.43,
+      "en": "And you can see that I'm defining this to be the same length as the Alice tokens, but filled with minus one.",
+      "zh": "長度與原本相同，但全部填 -1。"
+    },
+    {
+      "start": 222.75,
+      "end": 232.23,
+      "en": "So this vector here is just all minus ones, but exactly the same number of tokens as that which appears",
+      "zh": "所以這個向量全是 -1，詞元數量卻恰好等於"
+    },
+    {
+      "start": 232.23,
+      "end": 233.82999999999998,
+      "en": "in the Alice book.",
+      "zh": "Alice 書中的數量。"
+    },
+    {
+      "start": 234.39,
+      "end": 234.63,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 234.67000000000002,
+      "end": 239.75,
+      "en": "And then here what I do is loop over all of the Alice tokens.",
+      "zh": "遍歷全部 Alice 詞元。"
+    },
+    {
+      "start": 239.8,
+      "end": 243.52,
+      "en": "And I say if for each of these tokens.",
+      "zh": "對每個詞元，"
+    },
+    {
+      "start": 243.72,
+      "end": 251.44,
+      "en": "If, then I decode them, and if the length of that decoded token index is greater than two, then I",
+      "zh": "先解碼，如果解碼後長度大於 2，就"
+    },
+    {
+      "start": 251.44,
+      "end": 256.88,
+      "en": "replace the minus one with the actual token value.",
+      "zh": "用實際詞元值取代 -1。"
+    },
+    {
+      "start": 257.24,
+      "end": 257.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 257.52,
+      "end": 258.52,
+      "en": "I hope that makes sense.",
+      "zh": "希望說得通。"
+    },
+    {
+      "start": 258.52,
+      "end": 268,
+      "en": "So basically, if the token index can be decoded into a token string that is three or more characters,",
+      "zh": "基本上，詞元索引若能解碼成至少三字元的字串，"
+    },
+    {
+      "start": 268.16,
+      "end": 273.08,
+      "en": "then that token index is preserved in this filtered vector.",
+      "zh": "就在過濾向量保留。"
+    },
+    {
+      "start": 273.52,
+      "end": 276.92,
+      "en": "Otherwise it remains as minus one.",
+      "zh": "否則仍是 -1。"
+    },
+    {
+      "start": 277.52,
+      "end": 277.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 277.8,
+      "end": 280.88,
+      "en": "And then I repeat that for the Edgar text.",
+      "zh": "Edgar 也重複。"
+    },
+    {
+      "start": 282.08,
+      "end": 286.84000000000003,
+      "en": "So then okay so here is where I produce that screenshot that I showed before.",
+      "zh": "這裡產生剛才截圖。"
+    },
+    {
+      "start": 286.96,
+      "end": 296.52,
+      "en": "So here I'm just counting the total number of filtered tokens that equal minus one and dividing that by the total number of tokens.",
+      "zh": "計算過濾後等於 -1 的數量，除以總詞元數。"
+    },
+    {
+      "start": 296.64,
+      "end": 298.4,
+      "en": "So yeah that gives me that.",
+      "zh": "就得到這個。"
+    },
+    {
+      "start": 298.44,
+      "end": 305.33,
+      "en": "Almost half of the tokens in the book for both of these books are 1 or 2 characters.",
+      "zh": "兩本書都幾乎一半詞元，只有一、兩個字元。"
+    },
+    {
+      "start": 305.77,
+      "end": 315.05,
+      "en": "Okay, so from here, it's actually really straightforward to quantify the top 100 most frequent tokens.",
+      "zh": "好，接著很容易量化最常見前 100 個。"
+    },
+    {
+      "start": 315.17,
+      "end": 319.05,
+      "en": "All we need to do is ignore the minus one tokens.",
+      "zh": "只要忽略 -1。"
+    },
+    {
+      "start": 319.29,
+      "end": 324.53,
+      "en": "And the way that I do that is by using the same code that I used before.",
+      "zh": "用之前相同程式。"
+    },
+    {
+      "start": 324.85,
+      "end": 326.93,
+      "en": "But it's on the filtered vector.",
+      "zh": "但針對過濾向量。"
+    },
+    {
+      "start": 327.05,
+      "end": 332.49,
+      "en": "And here, you know, before I was doing this, I had from the beginning to 100.",
+      "zh": "原本從開頭取到 100。"
+    },
+    {
+      "start": 332.53,
+      "end": 341.61,
+      "en": "But the most common token, you know, appearing in like almost 50% of the tokens are in this vector,",
+      "zh": "但這個向量幾乎 50% 的詞元，"
+    },
+    {
+      "start": 341.65,
+      "end": 343.49,
+      "en": "have a value of minus one.",
+      "zh": "都是 -1。"
+    },
+    {
+      "start": 343.69,
+      "end": 348.57,
+      "en": "So minus one is going to be by far the most common token.",
+      "zh": "所以它遠比其他常見。"
+    },
+    {
+      "start": 349.61,
+      "end": 355.40999999999997,
+      "en": "So therefore all I'm doing is ignoring that token that's going to be in index zero.",
+      "zh": "只要忽略索引 0 的那個。"
+    },
+    {
+      "start": 355.40999999999997,
+      "end": 361.42,
+      "en": "So I'm just taking the first to the 101st token index.",
+      "zh": "取索引 1 到 101 這一段的詞元。"
+    },
+    {
+      "start": 361.46,
+      "end": 362.9,
+      "en": "Frequency token index.",
+      "zh": "也就是依頻率排序後的詞元索引。"
+    },
+    {
+      "start": 363.3,
+      "end": 364.26,
+      "en": "Okay, so there you go.",
+      "zh": "就這樣。"
+    },
+    {
+      "start": 364.3,
+      "end": 367.3,
+      "en": "You see, it's also the two end of it.",
+      "zh": "有「also、the、two、end、of、it」，"
+    },
+    {
+      "start": 367.3,
+      "end": 370.42,
+      "en": "She said in you was Alice is in here.",
+      "zh": "「she、said、in、you、was」，也有 Alice。"
+    },
+    {
+      "start": 370.9,
+      "end": 372.5,
+      "en": "And uh, let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 372.54,
+      "end": 375.5,
+      "en": "Then we get to the Edgar Allan Poe.",
+      "zh": "再看 Edgar Allan Poe。"
+    },
+    {
+      "start": 375.74,
+      "end": 380.06,
+      "en": "And also these are really not very unique tokens.",
+      "zh": "也不是很獨特。"
+    },
+    {
+      "start": 380.06,
+      "end": 385.98,
+      "en": "These are very common tokens that you would find frequently in basically any text language.",
+      "zh": "幾乎任何語言文字都常見。"
+    },
+    {
+      "start": 387.18,
+      "end": 398.18,
+      "en": "For exercise two, you are going to write code that will quantify the proportion of high frequency tokens for the two models and the two texts.",
+      "zh": "練習二，寫程式量化兩個模型、兩份文字的高頻詞元比例。"
+    },
+    {
+      "start": 398.65999999999997,
+      "end": 408.62,
+      "en": "This is similar to code you've written before, so you can certainly start by finding that code and copying and pasting it into this notebook file.",
+      "zh": "和之前類似，可以找出來、複製進筆記本。"
+    },
+    {
+      "start": 408.62,
+      "end": 412.38,
+      "en": "But this here for exercise two is a little bit different.",
+      "zh": "但這次稍不同。"
+    },
+    {
+      "start": 412.38,
+      "end": 416.65999999999997,
+      "en": "So make sure you go through the code carefully after you paste it in.",
+      "zh": "貼上後仔細檢查。"
+    },
+    {
+      "start": 417.18,
+      "end": 419.07,
+      "en": "Now for exercise two.",
+      "zh": "練習二，"
+    },
+    {
+      "start": 419.43,
+      "end": 422.71,
+      "en": "You do not actually create any visualizations.",
+      "zh": "不畫圖。"
+    },
+    {
+      "start": 422.71,
+      "end": 430.43,
+      "en": "This is a bar plot that you will create in exercise four in the future, but I'm showing it to you now,",
+      "zh": "這張長條圖是之後練習四才畫，先展示，"
+    },
+    {
+      "start": 430.43,
+      "end": 438.03,
+      "en": "so you have an idea of how to organize the data so you know what you're going to do with these data in the future.",
+      "zh": "讓你知道怎麼整理資料、之後要做什麼。"
+    },
+    {
+      "start": 438.51,
+      "end": 446.47,
+      "en": "So you can see that what we have here is a bar plot where we have two groups according to the models.",
+      "zh": "可以看到，依模型有兩組長條。"
+    },
+    {
+      "start": 446.47,
+      "end": 449.27,
+      "en": "So the Alice model and the Edgar model.",
+      "zh": "Alice、Edgar 模型。"
+    },
+    {
+      "start": 449.75,
+      "end": 453.47,
+      "en": "And then we have the two sets of the most frequent tokens.",
+      "zh": "再有兩組最常見詞元。"
+    },
+    {
+      "start": 453.47,
+      "end": 457.43,
+      "en": "So I call those the Alice tokens and the Edgar tokens.",
+      "zh": "叫 Alice tokens、Edgar tokens。"
+    },
+    {
+      "start": 457.90999999999997,
+      "end": 469.27,
+      "en": "And then we quantified the proportion of generated tokens from each model and from each text, both before fine tuning and after fine tuning.",
+      "zh": "每個模型對每份文字，計算生成詞元比例，也分微調前、後。"
+    },
+    {
+      "start": 469.75,
+      "end": 473.71,
+      "en": "So that means that this data set is two by two by two.",
+      "zh": "因此資料是 2 × 2 × 2。"
+    },
+    {
+      "start": 474.23,
+      "end": 482.84,
+      "en": "So you have to think carefully about how you want to organize and create these variables to minimize the risk of confusion.",
+      "zh": "仔細想怎麼整理、建立變數，避免混淆。"
+    },
+    {
+      "start": 483.96,
+      "end": 494.04,
+      "en": "Okay, once you have that idea, then you actually do want to run the code generation and calculate these data for before training.",
+      "zh": "想好後，實際跑生成，計算訓練前資料。"
+    },
+    {
+      "start": 494.04,
+      "end": 496.56,
+      "en": "So you actually could make this bar plot.",
+      "zh": "其實現在就能畫圖，"
+    },
+    {
+      "start": 497.24,
+      "end": 499.08,
+      "en": "Now although you don't need to do that now.",
+      "zh": "但不必現在做。"
+    },
+    {
+      "start": 499.08,
+      "end": 500.8,
+      "en": "You can do the visualization later.",
+      "zh": "之後再畫。"
+    },
+    {
+      "start": 500.8,
+      "end": 512,
+      "en": "But you definitely want to quantify the data that I'm showing here before you do the fine tuning, because that is going to be our baseline.",
+      "zh": "但微調前一定要量化，因為這是基準。"
+    },
+    {
+      "start": 512.48,
+      "end": 514,
+      "en": "So that's exercise two.",
+      "zh": "這是練習二。"
+    },
+    {
+      "start": 514.04,
+      "end": 517.48,
+      "en": "Please pause the video now and work through this exercise.",
+      "zh": "請暫停，完成。"
+    },
+    {
+      "start": 517.6,
+      "end": 519.4,
+      "en": "And now I will switch to code.",
+      "zh": "接著切到程式碼。"
+    },
+    {
+      "start": 520.64,
+      "end": 528.48,
+      "en": "So in this code cell you will recognize a lot of code that you have seen before for Gulliver's Travels.",
+      "zh": "這個儲存格，很多程式和《格列佛遊記》相似。"
+    },
+    {
+      "start": 528.48,
+      "end": 532.52,
+      "en": "So ten repetitions of 100 tokens.",
+      "zh": "十次，每次 100 個詞元。"
+    },
+    {
+      "start": 532.68,
+      "end": 541.49,
+      "en": "And then I'm generating 100 uh generating those tokens starting from a completely random indices.",
+      "zh": "從完全隨機索引開始生成。"
+    },
+    {
+      "start": 541.49,
+      "end": 543.49,
+      "en": "So a num rep.",
+      "zh": "numReps，"
+    },
+    {
+      "start": 543.49,
+      "end": 545.01,
+      "en": "So batch by one.",
+      "zh": "也就是「批次大小 × 1」。"
+    },
+    {
+      "start": 545.21,
+      "end": 551.81,
+      "en": "So totally random single tokens that we're giving to the model to generate some text from.",
+      "zh": "提供隨機單一詞元，讓模型生成。"
+    },
+    {
+      "start": 552.13,
+      "end": 555.17,
+      "en": "So here is how it looks for the Alice model.",
+      "zh": "這是 Alice 模型。"
+    },
+    {
+      "start": 555.33,
+      "end": 558.89,
+      "en": "And here is how it looks for the Edgar model.",
+      "zh": "這是 Edgar 模型。"
+    },
+    {
+      "start": 559.25,
+      "end": 563.53,
+      "en": "Now in this case we do not really care about what the text says.",
+      "zh": "這次不太在乎文字說什麼。"
+    },
+    {
+      "start": 563.53,
+      "end": 572.97,
+      "en": "We only care about counting the number of tokens that are in the one top 100 most frequent tokens in",
+      "zh": "只關心有多少生成詞元，屬於 Alice 書裡"
+    },
+    {
+      "start": 572.97,
+      "end": 573.73,
+      "en": "the Alice book.",
+      "zh": "最常見 100 個，"
+    },
+    {
+      "start": 573.77,
+      "end": 575.05,
+      "en": "And in the Edgar book.",
+      "zh": "以及 Edgar 書裡最常見的。"
+    },
+    {
+      "start": 575.53,
+      "end": 578.65,
+      "en": "So therefore I'm just reshaping this into a vector.",
+      "zh": "所以攤成向量。"
+    },
+    {
+      "start": 578.65,
+      "end": 583.93,
+      "en": "It just makes it a little bit easier to check for the usage.",
+      "zh": "比較容易檢查使用比例。"
+    },
+    {
+      "start": 584.21,
+      "end": 589.09,
+      "en": "And you can also see here I'm not taking the entire output, not all the tokens.",
+      "zh": "也不是取全部輸出、全部詞元。"
+    },
+    {
+      "start": 589.09,
+      "end": 591.21,
+      "en": "I'm skipping the first one.",
+      "zh": "略過第一個。"
+    },
+    {
+      "start": 591.33,
+      "end": 595.73,
+      "en": "And that's because the first token is the random token that I input.",
+      "zh": "因為是隨機輸入。"
+    },
+    {
+      "start": 595.97,
+      "end": 600.58,
+      "en": "That is un On that that is not controlled by the model.",
+      "zh": "不由模型控制。"
+    },
+    {
+      "start": 601.66,
+      "end": 601.9,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 601.94,
+      "end": 605.7,
+      "en": "And then over here is the same code as this one.",
+      "zh": "這裡程式相同。"
+    },
+    {
+      "start": 605.7,
+      "end": 607.34,
+      "en": "It's just for the model.",
+      "zh": "只是換另一個模型。"
+    },
+    {
+      "start": 607.34,
+      "end": 608.5,
+      "en": "And I compressed it.",
+      "zh": "我把它壓縮。"
+    },
+    {
+      "start": 608.54,
+      "end": 612.06,
+      "en": "I don't remember why I did that but I did okay.",
+      "zh": "忘了為什麼，但就是這樣。"
+    },
+    {
+      "start": 612.1,
+      "end": 613.18,
+      "en": "And then okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 613.22,
+      "end": 616.42,
+      "en": "So now let me scroll up and explain this here.",
+      "zh": "往上解釋。"
+    },
+    {
+      "start": 616.86,
+      "end": 624.38,
+      "en": "Now I initially thought of storing all of these results in a two by two by two tensor.",
+      "zh": "原先想存成 2 × 2 × 2 張量。"
+    },
+    {
+      "start": 624.38,
+      "end": 626.1,
+      "en": "So a cube of data.",
+      "zh": "一個資料立方體。"
+    },
+    {
+      "start": 626.54,
+      "end": 638.22,
+      "en": "But because it's two dimensions all around, I found that I was just getting confused about which dimension corresponded to the model versus the text and pre and post.",
+      "zh": "但每個維度都是 2，很容易搞混模型、文字、訓練前後。"
+    },
+    {
+      "start": 638.22,
+      "end": 643.02,
+      "en": "So therefore I decided to break it up into two separate variables.",
+      "zh": "所以改成兩個獨立變數。"
+    },
+    {
+      "start": 643.02,
+      "end": 644.42,
+      "en": "So that's what you see here.",
+      "zh": "就是這裡。"
+    },
+    {
+      "start": 644.9,
+      "end": 649.06,
+      "en": "This variable corresponds to the Alice text.",
+      "zh": "這個對應 Alice 文字。"
+    },
+    {
+      "start": 649.06,
+      "end": 652.38,
+      "en": "And this variable corresponds to the Edgar text.",
+      "zh": "這個對應 Edgar。"
+    },
+    {
+      "start": 652.38,
+      "end": 656.82,
+      "en": "And then the two by two corresponds to pre versus post fine tuning.",
+      "zh": "2 × 2 則是微調前後，"
+    },
+    {
+      "start": 656.98,
+      "end": 659.32,
+      "en": "And the Alice and Edgar model.",
+      "zh": "以及 Alice、Edgar 模型。"
+    },
+    {
+      "start": 659.32,
+      "end": 665.32,
+      "en": "So now if we scroll down here to where I calculate the data, you can see.",
+      "zh": "往下計算處看。"
+    },
+    {
+      "start": 665.36,
+      "end": 667.28,
+      "en": "Let me scroll over this way.",
+      "zh": "捲到這裡。"
+    },
+    {
+      "start": 667.76,
+      "end": 668.04,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 668.08,
+      "end": 671.12,
+      "en": "So most of this code in these four lines is identical.",
+      "zh": "這四行大部分相同。"
+    },
+    {
+      "start": 671.12,
+      "end": 672.64,
+      "en": "It's just different variable names.",
+      "zh": "只是變數名稱不同。"
+    },
+    {
+      "start": 672.88,
+      "end": 678.84,
+      "en": "So this is the Alice model the tokens generated by the Alice model.",
+      "zh": "這是 Alice 模型產生的詞元。"
+    },
+    {
+      "start": 678.84,
+      "end": 687.92,
+      "en": "And how often do those Alice model generated tokens appear in the top 100 uh, from the Alice book.",
+      "zh": "它們有多少出現在 Alice 書的前 100 個。"
+    },
+    {
+      "start": 688.52,
+      "end": 691.08,
+      "en": "And here is the Edgar model.",
+      "zh": "這是 Edgar 模型。"
+    },
+    {
+      "start": 691.08,
+      "end": 695.28,
+      "en": "And how often does it generate Alice frequent tokens?",
+      "zh": "它多常產生 Alice 的高頻詞元？"
+    },
+    {
+      "start": 695.88,
+      "end": 696.16,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 696.2,
+      "end": 697.64,
+      "en": "And then here this is the same.",
+      "zh": "這裡也相同。"
+    },
+    {
+      "start": 697.64,
+      "end": 700.48,
+      "en": "So this except it's for the Edgar tokens.",
+      "zh": "只是改 Edgar 詞元。"
+    },
+    {
+      "start": 700.8,
+      "end": 711.88,
+      "en": "So this is the Alice model generating the Edgar uh, tokens and the Edgar model generating the Edgar tokens and those proportions.",
+      "zh": "Alice 模型產生 Edgar 詞元，以及 Edgar 模型產生 Edgar 詞元，各自比例。"
+    },
+    {
+      "start": 711.92,
+      "end": 712.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 712.6,
+      "end": 714.6,
+      "en": "Even confusing just to talk about this.",
+      "zh": "連說明都令人混淆。"
+    },
+    {
+      "start": 715.2,
+      "end": 719.41,
+      "en": "So, uh, we can have a look at this, but this is not that informative.",
+      "zh": "可以看，但資訊不太多。"
+    },
+    {
+      "start": 719.69,
+      "end": 723.25,
+      "en": "Mostly what we want to do is have this as a baseline.",
+      "zh": "主要作為基準。"
+    },
+    {
+      "start": 723.53,
+      "end": 727.97,
+      "en": "Nonetheless, we do expect these two numbers to be roughly comparable.",
+      "zh": "不過預期這兩個數字大致相近。"
+    },
+    {
+      "start": 728.21,
+      "end": 734.73,
+      "en": "In fact, we expect them to be identical and any difference between them is just attributable to the",
+      "zh": "其實預期相同，差異只來自"
+    },
+    {
+      "start": 734.73,
+      "end": 741.97,
+      "en": "random sampling that you get from these generative models that do stochastic processing.",
+      "zh": "生成模型的隨機抽樣。"
+    },
+    {
+      "start": 742.73,
+      "end": 744.29,
+      "en": "So, uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 744.29,
+      "end": 752.09,
+      "en": "So around 25% of the tokens that these models generate are in either one of these books.",
+      "zh": "模型生成詞元約 25%，在各本書的清單裡。"
+    },
+    {
+      "start": 753.57,
+      "end": 759.97,
+      "en": "Now for exercise three here you want to fine tune the two models.",
+      "zh": "練習三，微調兩個模型。"
+    },
+    {
+      "start": 760.21,
+      "end": 763.05,
+      "en": "You can copy code from the previous video.",
+      "zh": "可複製上一支程式。"
+    },
+    {
+      "start": 763.05,
+      "end": 767.57,
+      "en": "But again be very careful to check each line that you're pasting in.",
+      "zh": "但仔細檢查每行。"
+    },
+    {
+      "start": 767.73,
+      "end": 772.09,
+      "en": "Make sure that it is consistent with the goals of this code challenge.",
+      "zh": "確保符合挑戰目標。"
+    },
+    {
+      "start": 772.73,
+      "end": 775.73,
+      "en": "Here are some parameters to use for training.",
+      "zh": "這些是訓練參數。"
+    },
+    {
+      "start": 776.09,
+      "end": 782.38,
+      "en": "Uh, and after the training you can create line plots showing the losses for the two models.",
+      "zh": "訓練後畫兩個損失曲線。"
+    },
+    {
+      "start": 782.54,
+      "end": 788.14,
+      "en": "It will look overall similar to the loss profiles from the previous video.",
+      "zh": "整體會與上支相似。"
+    },
+    {
+      "start": 789.06,
+      "end": 792.38,
+      "en": "All right, so now you can pause the video and code away.",
+      "zh": "現在暫停、寫程式。"
+    },
+    {
+      "start": 792.58,
+      "end": 794.38,
+      "en": "And now I will switch to code.",
+      "zh": "接著切到程式碼。"
+    },
+    {
+      "start": 794.9,
+      "end": 797.14,
+      "en": "So here are the two optimizers.",
+      "zh": "兩個最佳化器。"
+    },
+    {
+      "start": 797.18,
+      "end": 798.82,
+      "en": "Again I'm being repetitive now.",
+      "zh": "再次重複，"
+    },
+    {
+      "start": 798.86,
+      "end": 808.86,
+      "en": "But you don't actually need to create a separate loss function if you are using these hugging face pre-trained transformer models.",
+      "zh": "使用這些 Hugging Face 預訓練 Transformer，不必另建損失函數。"
+    },
+    {
+      "start": 809.46,
+      "end": 809.86,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 809.9,
+      "end": 811.3,
+      "en": "And here yeah let me see.",
+      "zh": "來看。"
+    },
+    {
+      "start": 811.3,
+      "end": 814.22,
+      "en": "All of this stuff is basically the same.",
+      "zh": "全部基本相同。"
+    },
+    {
+      "start": 814.22,
+      "end": 816.58,
+      "en": "I don't think you really needed to change that much.",
+      "zh": "應該不用改很多。"
+    },
+    {
+      "start": 816.98,
+      "end": 826.42,
+      "en": "I think when I said you really need to check your code carefully, that was more about encouraging you to look carefully at code instead of just blindly copy pasting it.",
+      "zh": "說要仔細檢查，是鼓勵細看，別盲目複製。"
+    },
+    {
+      "start": 826.46,
+      "end": 830.22,
+      "en": "I don't think I really changed anything relative to the previous video.",
+      "zh": "相較上一支，應該沒改什麼。"
+    },
+    {
+      "start": 831.1,
+      "end": 834.02,
+      "en": "All right, so that took around seven minutes.",
+      "zh": "花約七分鐘。"
+    },
+    {
+      "start": 834.06,
+      "end": 835.46,
+      "en": "Overall, not so bad.",
+      "zh": "整體不差。"
+    },
+    {
+      "start": 836.06,
+      "end": 841.35,
+      "en": "And let's have a look at the losses similar to the previous video.",
+      "zh": "看看損失，和上一支相似。"
+    },
+    {
+      "start": 841.39,
+      "end": 845.11,
+      "en": "We see that the Alice losses are steep.",
+      "zh": "Alice 損失很陡。"
+    },
+    {
+      "start": 845.11,
+      "end": 850.39,
+      "en": "They go way down to not exactly zero, but you know, they get pretty close to zero.",
+      "zh": "降到接近零，雖然不是零。"
+    },
+    {
+      "start": 850.67,
+      "end": 853.55,
+      "en": "And the Edgar losses decrease over time.",
+      "zh": "Edgar 也隨時間下降。"
+    },
+    {
+      "start": 853.55,
+      "end": 854.35,
+      "en": "Definitely.",
+      "zh": "確實。"
+    },
+    {
+      "start": 854.51,
+      "end": 858.31,
+      "en": "But not quite as far down as the Alice tokens.",
+      "zh": "但沒有 Alice 那麼低。"
+    },
+    {
+      "start": 858.79,
+      "end": 865.71,
+      "en": "And also as we saw in the previous video, that's not necessarily so meaningful.",
+      "zh": "如上支所見，不一定非常有意義。"
+    },
+    {
+      "start": 865.75,
+      "end": 872.27,
+      "en": "I mean, this does tell us something about these two models and the text and the data sets and so on.",
+      "zh": "確實透露模型、文字、資料集的一些資訊。"
+    },
+    {
+      "start": 872.51,
+      "end": 878.43,
+      "en": "But this doesn't necessarily mean that this model didn't learn the style of Edgar Allan Poe.",
+      "zh": "但不代表這個模型沒學到 Poe 風格。"
+    },
+    {
+      "start": 878.87,
+      "end": 881.31,
+      "en": "It just means that the losses were different.",
+      "zh": "只表示損失不同。"
+    },
+    {
+      "start": 881.31,
+      "end": 885.31,
+      "en": "And there are a number of reasons for why that could be the case.",
+      "zh": "可能有很多原因。"
+    },
+    {
+      "start": 885.91,
+      "end": 888.95,
+      "en": "And that brings us to exercise four.",
+      "zh": "來到練習四。"
+    },
+    {
+      "start": 889.55,
+      "end": 891.79,
+      "en": "So now we've done all the training.",
+      "zh": "訓練完成。"
+    },
+    {
+      "start": 891.95,
+      "end": 899.76,
+      "en": "And so what you want to do is complete the evaluation that you started in exercise two, and now you",
+      "zh": "完成練習二開始的評估，現在"
+    },
+    {
+      "start": 899.76,
+      "end": 906.48,
+      "en": "actually can create and show this bar plot figure that I showed earlier in exercise two.",
+      "zh": "就能建立、顯示之前展示的長條圖。"
+    },
+    {
+      "start": 907.12,
+      "end": 910.16,
+      "en": "Now the results can be a little tricky to interpret.",
+      "zh": "結果可能有點難解讀。"
+    },
+    {
+      "start": 910.16,
+      "end": 920.2,
+      "en": "So if you've created the plot but you're not quite sure what to make of it, then don't worry, I will have a discussion about that when I'm in Python.",
+      "zh": "如果圖做好，卻不確定意義，別擔心，Python 裡會討論。"
+    },
+    {
+      "start": 920.76,
+      "end": 922.72,
+      "en": "Now that is it.",
+      "zh": "就這樣。"
+    },
+    {
+      "start": 922.76,
+      "end": 925.52,
+      "en": "That's for the quantitative evaluation.",
+      "zh": "這是量化評估。"
+    },
+    {
+      "start": 925.72,
+      "end": 929.24,
+      "en": "Next you want to do a qualitative assessment.",
+      "zh": "接著質性。"
+    },
+    {
+      "start": 929.56,
+      "end": 938.56,
+      "en": "So here the idea is to generate somewhere around 100 tokens from both models after giving both models the same prompt.",
+      "zh": "同樣提示輸入兩模型，各產生約 100 個詞元。"
+    },
+    {
+      "start": 938.92,
+      "end": 941,
+      "en": "So I used this prompt.",
+      "zh": "我用這個。"
+    },
+    {
+      "start": 941,
+      "end": 943.72,
+      "en": "What did the Red Queen say to Alice?",
+      "zh": "「紅皇后對愛麗絲說了什麼？」"
+    },
+    {
+      "start": 944.04,
+      "end": 952.52,
+      "en": "You can use a different prompt if you like, but it is interesting to give the same prompt to both models to see how they differ.",
+      "zh": "也能用別的，但相同提示，才容易看到差異。"
+    },
+    {
+      "start": 953.08,
+      "end": 960.29,
+      "en": "And I also want you to include random sampling in the generation, so that you can run the code multiple",
+      "zh": "生成也加入隨機抽樣，方便多跑"
+    },
+    {
+      "start": 960.29,
+      "end": 965.49,
+      "en": "times and try to get a bit of a feel for how the models generate text.",
+      "zh": "幾次，體會模型如何寫文字。"
+    },
+    {
+      "start": 966.01,
+      "end": 972.93,
+      "en": "Now, another part of exercise four is to think about these two forms of evaluation.",
+      "zh": "另一部分，是思考兩種評估。"
+    },
+    {
+      "start": 973.13,
+      "end": 978.65,
+      "en": "We have the quantitative evaluation and the qualitative evaluation.",
+      "zh": "量化與質性。"
+    },
+    {
+      "start": 979.21,
+      "end": 980.97,
+      "en": "So what do you think is good.",
+      "zh": "覺得哪些好？"
+    },
+    {
+      "start": 981.01,
+      "end": 982.57,
+      "en": "What do you think isn't good.",
+      "zh": "哪些不好？"
+    },
+    {
+      "start": 982.69,
+      "end": 989.49,
+      "en": "How might you develop better quantitative or qualitative assessments for a project like this?",
+      "zh": "這類專案如何設計更好的量化、質性評估？"
+    },
+    {
+      "start": 990.13,
+      "end": 992.69,
+      "en": "There are no right or wrong answers to this.",
+      "zh": "沒有標準對錯。"
+    },
+    {
+      "start": 993.09,
+      "end": 1001.53,
+      "en": "I will talk more about evaluating throughout this section, and also in a dedicated section a little bit later in the course.",
+      "zh": "這一節，以及稍後專門章節，會多談。"
+    },
+    {
+      "start": 1002.13,
+      "end": 1008.33,
+      "en": "But suffice it to say that it's tricky to really evaluate these kinds of generative models.",
+      "zh": "總之，真的很難評估。"
+    },
+    {
+      "start": 1009.69,
+      "end": 1015.53,
+      "en": "This code here is literally copy pasted from the code from before training.",
+      "zh": "這裡完全從訓練前的程式複製。"
+    },
+    {
+      "start": 1015.78,
+      "end": 1024.26,
+      "en": "The main difference is that I don't reset the variables here, because I've already defined them and partially populated them above.",
+      "zh": "主要差別是不重設變數，因為上面已定義、填了一部分。"
+    },
+    {
+      "start": 1024.74,
+      "end": 1026.58,
+      "en": "Okay, so run this code.",
+      "zh": "好，執行。"
+    },
+    {
+      "start": 1026.62,
+      "end": 1031.94,
+      "en": "The generation takes several seconds, two seconds, so not so bad overall.",
+      "zh": "生成花幾秒，兩秒，整體不差。"
+    },
+    {
+      "start": 1032.34,
+      "end": 1032.62,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1032.66,
+      "end": 1035.22,
+      "en": "And here we can look at the bar plot.",
+      "zh": "看看長條圖。"
+    },
+    {
+      "start": 1035.26,
+      "end": 1036.94,
+      "en": "So what does this look like.",
+      "zh": "長什麼樣？"
+    },
+    {
+      "start": 1036.94,
+      "end": 1038.14,
+      "en": "What do we see here.",
+      "zh": "看到什麼？"
+    },
+    {
+      "start": 1038.66,
+      "end": 1041.98,
+      "en": "So again let me just orient you a bit here.",
+      "zh": "再說明方向。"
+    },
+    {
+      "start": 1042.14,
+      "end": 1047.98,
+      "en": "This is um, before the training and this is after the training.",
+      "zh": "這裡訓練前，這裡訓練後。"
+    },
+    {
+      "start": 1048.58,
+      "end": 1059.46,
+      "en": "So if we just look before the training, then we see that the Alice model generates Alice tokens and Edgar tokens with exactly equal percentage.",
+      "zh": "先看訓練前，Alice 模型產生 Alice、Edgar 詞元的百分比相同。"
+    },
+    {
+      "start": 1059.78,
+      "end": 1060.82,
+      "en": "The Edgar model.",
+      "zh": "Edgar 模型，"
+    },
+    {
+      "start": 1060.86,
+      "end": 1063.7,
+      "en": "Curiously, also prefers Edgar tokens.",
+      "zh": "有趣地，也偏好 Edgar 詞元。"
+    },
+    {
+      "start": 1063.7,
+      "end": 1065.7,
+      "en": "But I would not interpret this.",
+      "zh": "但不解讀。"
+    },
+    {
+      "start": 1065.7,
+      "end": 1070.22,
+      "en": "Basically this difference here, because this is an untrained model.",
+      "zh": "這個差別，因為是還沒做這次訓練的模型。"
+    },
+    {
+      "start": 1070.54,
+      "end": 1074.58,
+      "en": "Uh, any difference you see here is just due to chance.",
+      "zh": "差異只來自機率。"
+    },
+    {
+      "start": 1074.58,
+      "end": 1081.55,
+      "en": "You can consider this magnitude to be in the expected range of sampling variability.",
+      "zh": "可以把幅度當作預期抽樣變異。"
+    },
+    {
+      "start": 1082.71,
+      "end": 1086.95,
+      "en": "The more interesting thing is to see what happens after the training.",
+      "zh": "有趣的是訓練後。"
+    },
+    {
+      "start": 1087.11,
+      "end": 1090.55,
+      "en": "And what you see is a crossover interaction.",
+      "zh": "有交叉交互作用。"
+    },
+    {
+      "start": 1090.55,
+      "end": 1098.83,
+      "en": "So the Alice model prefers or generates Alice tokens more than it generates Edgar tokens, whereas the",
+      "zh": "Alice 模型比起 Edgar 詞元，更常生成 Alice 詞元；而"
+    },
+    {
+      "start": 1098.83,
+      "end": 1105.31,
+      "en": "Edgar model generates more Edgar tokens than it does Alice tokens.",
+      "zh": "Edgar 模型，比起 Alice，更常生成 Edgar 詞元。"
+    },
+    {
+      "start": 1105.67,
+      "end": 1116.91,
+      "en": "So even though these tokens are not super unique to these particular books, they are common words like and with, of the, and so on.",
+      "zh": "所以即使詞元並非書本獨有，只是 and、with、of、the 等常用字，"
+    },
+    {
+      "start": 1117.23,
+      "end": 1126.47,
+      "en": "We still see that there is something meaningful in these, uh, high frequency tokens that, uh, is",
+      "zh": "高頻詞元裡仍有某些有意義的資訊，"
+    },
+    {
+      "start": 1126.51,
+      "end": 1129.91,
+      "en": "able to distinguish between these two models.",
+      "zh": "能區分兩模型。"
+    },
+    {
+      "start": 1129.99,
+      "end": 1133.83,
+      "en": "So get this nice expected crossover pattern.",
+      "zh": "得到漂亮、符合預期的交叉模式。"
+    },
+    {
+      "start": 1134.63,
+      "end": 1141.6,
+      "en": "I have run this code and inspected this plot many times, and the pattern always looks slightly different,",
+      "zh": "我多次跑、看圖，模式每次稍不同，"
+    },
+    {
+      "start": 1141.6,
+      "end": 1147,
+      "en": "but you should always see some kind of a crossover interaction like this.",
+      "zh": "但應看到某種交叉交互作用。"
+    },
+    {
+      "start": 1147,
+      "end": 1153.12,
+      "en": "Sometimes you might find that the Alice tokens don't really change that much, so maybe these two blue",
+      "zh": "有時 Alice 詞元變化不大，也許兩根藍色"
+    },
+    {
+      "start": 1153.12,
+      "end": 1162.68,
+      "en": "bars have a fairly similar rate, but you should see this preference of the Alice model for Alice tokens and the Edgar model for Edgar tokens.",
+      "zh": "長條很接近，但應看出 Alice 偏好 Alice，Edgar 偏好 Edgar。"
+    },
+    {
+      "start": 1163.28,
+      "end": 1163.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1163.64,
+      "end": 1166.56,
+      "en": "So now let's go to the qualitative assessment.",
+      "zh": "接著質性評估。"
+    },
+    {
+      "start": 1166.56,
+      "end": 1172.88,
+      "en": "So yeah this is the text that I'm presenting to both the Alice model and the Edgar model.",
+      "zh": "這是提供兩模型的文字。"
+    },
+    {
+      "start": 1172.88,
+      "end": 1177.4,
+      "en": "This is actually the same assessment that we did in the previous video.",
+      "zh": "其實和上一支評估相同。"
+    },
+    {
+      "start": 1177.92,
+      "end": 1183.36,
+      "en": "I always find this just really fascinating and lovely and thought provoking.",
+      "zh": "總覺得迷人、美好、引人深思。"
+    },
+    {
+      "start": 1183.36,
+      "end": 1184.76,
+      "en": "I love reading these things.",
+      "zh": "喜歡讀。"
+    },
+    {
+      "start": 1185.04,
+      "end": 1196.21,
+      "en": "If you happen to get a really, uh, interesting or hilarious response from, uh, from these models, feel free to take a screenshot and post it to the Q&A.",
+      "zh": "如果有特別有趣、好笑的回應，歡迎截圖貼到問答區。"
+    },
+    {
+      "start": 1197.21,
+      "end": 1206.33,
+      "en": "I think we all have a sense that it would be nice if we could attach numbers to everything that we need to evaluate in humanity.",
+      "zh": "大家都覺得，如果人類需要評估的所有事情都能附上數字，應該很好。"
+    },
+    {
+      "start": 1206.89,
+      "end": 1211.53,
+      "en": "Quantification just seems like it would make everything be better.",
+      "zh": "量化似乎能讓一切更好。"
+    },
+    {
+      "start": 1211.57,
+      "end": 1217.29,
+      "en": "Reduced biases allow for more efficient and merit based society, and so on.",
+      "zh": "減少偏誤、提升效率、以能力為本的社會等等。"
+    },
+    {
+      "start": 1217.69,
+      "end": 1225.33,
+      "en": "But it's generally really tricky to accurately quantify a lot of things, and that includes human endeavors,",
+      "zh": "但許多事很難準確量化，包括人類活動，"
+    },
+    {
+      "start": 1225.33,
+      "end": 1229.85,
+      "en": "but it also includes the output of generative language models.",
+      "zh": "也包括生成語言模型的輸出。"
+    },
+    {
+      "start": 1230.01,
+      "end": 1234.69,
+      "en": "And yeah, that also goes for image generating models as well.",
+      "zh": "影像生成模型也一樣。"
+    },
+    {
+      "start": 1235.41,
+      "end": 1242.37,
+      "en": "And you know that the text is good when you read it, but it's hard to put a number to that subjective feeling.",
+      "zh": "讀時知道文字好，但很難替主觀感受打分。"
+    },
+    {
+      "start": 1242.97,
+      "end": 1246.01,
+      "en": "Anyway, I hope you enjoyed this code challenge.",
+      "zh": "希望你喜歡挑戰。"
+    },
+    {
+      "start": 1246.17,
+      "end": 1253.21,
+      "en": "In the next video, we're going to have these two models actually have a little conversation with each other.",
+      "zh": "下一支，會讓這兩模型真正簡短對話。"
+    }
+  ]
+}

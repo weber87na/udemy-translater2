@@ -1,0 +1,1405 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51862019",
+  "title": "CodeChallenge: Fine-tuning and targeted freezing (part 1)",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b4367d590b1b203dd33758cdc4676513f00bff7ba7781fca02fc56a899d1fa5c",
+  "cues": [
+    {
+      "start": 1.8,
+      "end": 12.56,
+      "en": "If you are remotely curious about the possibilities and impact of fine tuning, then I think you are really going to enjoy this code challenge.",
+      "zh": "只要你對微調的可能性與影響有一點好奇，我想你一定會喜歡這個程式挑戰。"
+    },
+    {
+      "start": 12.84,
+      "end": 19.68,
+      "en": "We are going to do precision freezing and measure the impact of freezing on training loss.",
+      "zh": "我們要精準凍結權重，測量凍結對訓練損失、"
+    },
+    {
+      "start": 19.72,
+      "end": 24.84,
+      "en": "Proportion of common token usage and on training computation time.",
+      "zh": "常用詞元使用比例，以及訓練運算時間的影響。"
+    },
+    {
+      "start": 25.2,
+      "end": 27.96,
+      "en": "There's a lot to do here, so let's begin.",
+      "zh": "內容很多，開始吧。"
+    },
+    {
+      "start": 28.84,
+      "end": 36.6,
+      "en": "And you will also definitely be happy to know that we are not going to work with Gulliver's Travels or with the Time Machine.",
+      "zh": "你也一定會很高興，這次不用《格列佛遊記》或《時間機器》。"
+    },
+    {
+      "start": 36.92,
+      "end": 40,
+      "en": "We will switch to the famous book Moby Dick.",
+      "zh": "我們改用名著《白鯨記》。"
+    },
+    {
+      "start": 40.36,
+      "end": 43.76,
+      "en": "This is available on gutenberg.org.",
+      "zh": "這本書可以在 gutenberg.org 取得。"
+    },
+    {
+      "start": 43.96,
+      "end": 51.36,
+      "en": "You can easily find it on their website, or you can just check the helper or solutions file for the direct URL.",
+      "zh": "你可以直接在網站找到，也可以查看提示檔或解答檔裡的直接網址。"
+    },
+    {
+      "start": 52.44,
+      "end": 64.04,
+      "en": "When you import and tokenize this book, you should find that there are around 350,000 tokens, only 17,000 of which are actually unique tokens.",
+      "zh": "匯入這本書並斷詞後，應該會有約 35 萬個詞元，其中只有約 1 萬 7 千種不同詞元。"
+    },
+    {
+      "start": 64.6,
+      "end": 71.68,
+      "en": "That is pretty interesting on its own, because it means that the book does not actually have a very large vocabulary.",
+      "zh": "這本身就很有趣，表示這本書的詞彙量其實不算非常大。"
+    },
+    {
+      "start": 72.52,
+      "end": 79.24,
+      "en": "Anyway, you want to find the 100 most frequently used tokens in that book.",
+      "zh": "總之，找出書中使用頻率最高的 100 個詞元。"
+    },
+    {
+      "start": 79.76,
+      "end": 87.48,
+      "en": "Now, the last time we did this, we also applied a filter of tokens that needed to be more than two characters long.",
+      "zh": "上次我們還加上詞元長度必須超過兩個字元的篩選條件。"
+    },
+    {
+      "start": 88.48,
+      "end": 93.84,
+      "en": "I did not include that constraint here, although you are welcome to include it if you like.",
+      "zh": "這次我沒加這個限制，但你想加也可以。"
+    },
+    {
+      "start": 94.47999999999999,
+      "end": 100.92,
+      "en": "Here you see a few of those results, and if you know anything about Moby Dick, you will not be surprised",
+      "zh": "這裡列出部分結果；如果你知道《白鯨記》的內容，"
+    },
+    {
+      "start": 100.92,
+      "end": 106.92,
+      "en": "that the word whale is among the most commonly used tokens in the book.",
+      "zh": "就不會意外 whale 是書中最常用的詞元之一。"
+    },
+    {
+      "start": 107.92,
+      "end": 114.28,
+      "en": "So this part of Exercise one is all about importing and tokenizing the text.",
+      "zh": "所以練習一的這部分，是匯入文本並斷詞。"
+    },
+    {
+      "start": 114.84,
+      "end": 124.21,
+      "en": "Next, you want to create two GPT two neo models from Eleuther, and you should download exactly the",
+      "zh": "接著，從 EleutherAI 建立兩個 GPT-Neo 模型。你要下載完全"
+    },
+    {
+      "start": 124.21,
+      "end": 130.65,
+      "en": "same model twice in two separate variables, and you definitely want to push these to the GPU.",
+      "zh": "相同的模型兩次，存入兩個不同變數，而且一定要移到 GPU。"
+    },
+    {
+      "start": 131.29,
+      "end": 137.29,
+      "en": "Now, the reason why you want to have two models, or actually the same model in two different variables,",
+      "zh": "之所以需要兩個模型，或者說，同一個模型放進兩個不同變數，"
+    },
+    {
+      "start": 137.45,
+      "end": 144.13,
+      "en": "is that we are going to freeze parts of one model and leave the other model completely trainable.",
+      "zh": "是因為我們會凍結其中一個模型的部分權重，另一個則保持全部可訓練。"
+    },
+    {
+      "start": 145.05,
+      "end": 152.29,
+      "en": "And that makes for a really interesting experimental approach, because the models start off identical",
+      "zh": "這是很有意思的實驗設計，因為兩個模型一開始完全相同，"
+    },
+    {
+      "start": 152.77,
+      "end": 157.89,
+      "en": "and they will be trained on identical data in the identical order.",
+      "zh": "訓練資料與資料順序也完全相同。"
+    },
+    {
+      "start": 158.41,
+      "end": 166.05,
+      "en": "The only difference between these two models is going to be that one model has some weights matrices frozen.",
+      "zh": "唯一差別是，其中一個模型凍結了部分權重矩陣。"
+    },
+    {
+      "start": 166.85,
+      "end": 177.61,
+      "en": "Now the last part of exercise one is to count the proportion of generated tokens that are in the most frequent Moby-Dick tokens.",
+      "zh": "練習一最後，計算生成詞元中，有多少比例屬於《白鯨記》的高頻詞元。"
+    },
+    {
+      "start": 178.17000000000002,
+      "end": 185.37,
+      "en": "This is exactly the same idea and approach that you used for the Alice versus Edgar videos.",
+      "zh": "概念和做法，與愛麗絲對愛倫坡那幾支影片完全相同。"
+    },
+    {
+      "start": 185.93,
+      "end": 192.65,
+      "en": "And just so you see where this is going in exercise four, you're going to create a figure that looks",
+      "zh": "先讓你知道接下來的方向：練習四會製作類似"
+    },
+    {
+      "start": 192.65,
+      "end": 201.37,
+      "en": "like this, which shows the percent of tokens generated by the two models before and after fine tuning.",
+      "zh": "這樣的圖，呈現兩個模型微調前後生成這些詞元的百分比。"
+    },
+    {
+      "start": 201.61,
+      "end": 204.89,
+      "en": "I call these two models Freeze and Train.",
+      "zh": "我把兩個模型叫做 Freeze 與 Train。"
+    },
+    {
+      "start": 205.21,
+      "end": 211.05,
+      "en": "It's a little bit of a misnomer because we are also training the freeze model, but here is going.",
+      "zh": "這名稱有點不精確，因為 Freeze 模型也會訓練，不過這個模型"
+    },
+    {
+      "start": 211.09,
+      "end": 216.37,
+      "en": "This model will contain a lot of frozen layers, frozen weights, matrices.",
+      "zh": "會包含許多凍結的層、凍結的權重矩陣。"
+    },
+    {
+      "start": 216.37,
+      "end": 220.93,
+      "en": "And here with this model, the entire model will be fine tunable.",
+      "zh": "而另一個模型則整個都能微調。"
+    },
+    {
+      "start": 221.81,
+      "end": 222.21,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 222.25,
+      "end": 233.09,
+      "en": "So what you're going to do now is calculate the basically the blue bars here corresponding to before the training before we get to fine tuning.",
+      "zh": "所以現在要計算的是這些藍色長條，也就是開始微調之前的結果。"
+    },
+    {
+      "start": 233.53,
+      "end": 236.01,
+      "en": "You do not need to create this graphic here.",
+      "zh": "你現在不必畫這張圖。"
+    },
+    {
+      "start": 236.01,
+      "end": 237.29,
+      "en": "I'm just showing it to you.",
+      "zh": "我只是先讓你看看，"
+    },
+    {
+      "start": 237.29,
+      "end": 239.53,
+      "en": "So you see where we are going.",
+      "zh": "知道我們的目標。"
+    },
+    {
+      "start": 240.13,
+      "end": 240.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 240.58,
+      "end": 242.38,
+      "en": "so that's for exercise one.",
+      "zh": "這就是練習一。"
+    },
+    {
+      "start": 242.5,
+      "end": 245.14,
+      "en": "Pause the video and work through this exercise.",
+      "zh": "暫停影片，試著完成這個練習。"
+    },
+    {
+      "start": 245.14,
+      "end": 246.86,
+      "en": "And now I will switch to code.",
+      "zh": "現在切換到程式。"
+    },
+    {
+      "start": 247.34,
+      "end": 254.78,
+      "en": "Here are all of the libraries that we will use, including some libraries that we will use for later exercises.",
+      "zh": "這裡是會用到的所有函式庫，也包括後面練習會用的。"
+    },
+    {
+      "start": 254.78,
+      "end": 256.22,
+      "en": "But I put them up here.",
+      "zh": "我先把它們放在這裡。"
+    },
+    {
+      "start": 256.7,
+      "end": 263.22,
+      "en": "Here I'm importing the Eleuther tokenizer, as you remember from earlier in the course.",
+      "zh": "這裡匯入 EleutherAI 的 tokenizer，課程前面用過。"
+    },
+    {
+      "start": 263.34,
+      "end": 270.06,
+      "en": "This is exactly the same tokenizer as the GPT, the OpenAI GPT tokenizer.",
+      "zh": "它與 OpenAI 的 GPT tokenizer 完全相同。"
+    },
+    {
+      "start": 270.3,
+      "end": 280.18,
+      "en": "However, the models themselves are different and you can see these two lines of code are identical except for this variable here.",
+      "zh": "但模型本身不同。可以看到，這兩行程式只有這個變數不同。"
+    },
+    {
+      "start": 280.18,
+      "end": 288.22,
+      "en": "So model freeze which has some frozen layers and some trainable layers, and model train which is completely trainable.",
+      "zh": "model_freeze 有部分凍結層與部分可訓練層；model_train 則全部可訓練。"
+    },
+    {
+      "start": 288.78,
+      "end": 289.06,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 289.1,
+      "end": 290.42,
+      "en": "So import that.",
+      "zh": "先匯入。"
+    },
+    {
+      "start": 290.42,
+      "end": 293.98,
+      "en": "And then here I push them to the GPU over here.",
+      "zh": "接著在這裡把它們移到 GPU。"
+    },
+    {
+      "start": 294.62,
+      "end": 294.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 294.98,
+      "end": 296.94,
+      "en": "So now we get to exercise one.",
+      "zh": "現在進入練習一。"
+    },
+    {
+      "start": 297.14,
+      "end": 304.82,
+      "en": "Here I'm importing the Moby-Dick text and reporting the number of total tokens and unique tokens.",
+      "zh": "這裡匯入《白鯨記》文本，並顯示總詞元數與不同詞元數。"
+    },
+    {
+      "start": 305.22,
+      "end": 309.26,
+      "en": "And here I'm doing the token frequency counting.",
+      "zh": "這裡計算詞元頻率。"
+    },
+    {
+      "start": 309.26,
+      "end": 310.58,
+      "en": "You've seen this code before.",
+      "zh": "這段程式之前看過。"
+    },
+    {
+      "start": 311.06,
+      "end": 311.34,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 311.38,
+      "end": 321.82,
+      "en": "And as you've also seen before, the most common tokens, or at least many of the most common tokens, are really common tokens that you expect in any text.",
+      "zh": "如同之前所見，最常用的詞元中，有很多是任何文本都常見的東西。"
+    },
+    {
+      "start": 321.82,
+      "end": 326.1,
+      "en": "So newlines comma, the period and so on.",
+      "zh": "例如換行、逗號、句點等等。"
+    },
+    {
+      "start": 326.42,
+      "end": 328.82,
+      "en": "Uh, semicolon, exclamation points.",
+      "zh": "還有分號、驚嘆號。"
+    },
+    {
+      "start": 328.82,
+      "end": 338.58,
+      "en": "There's clearly a lot of exclamations in Moby Dick, but we also see words like whale and uh, eh for Ahab, I think.",
+      "zh": "《白鯨記》顯然有很多驚嘆。不過，也能看到 whale，以及我想是 Ahab 裡的 A。"
+    },
+    {
+      "start": 338.82,
+      "end": 343.02,
+      "en": "And here's the the hab for Ahab and I think ship.",
+      "zh": "還有 Ahab 裡的 hab，以及 ship，我想是這個。"
+    },
+    {
+      "start": 343.06,
+      "end": 343.3,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 343.34000000000003,
+      "end": 344.22,
+      "en": "Here's ship.",
+      "zh": "這就是 ship。"
+    },
+    {
+      "start": 344.42,
+      "end": 353.74,
+      "en": "So there are, you know, see, there are some, uh, tokens that you probably wouldn't expect to see with such high frequency in a lot of other texts.",
+      "zh": "所以有些詞元的頻率，在其他許多文本中可能不會這麼高。"
+    },
+    {
+      "start": 354.14,
+      "end": 364.7,
+      "en": "Here is code that you have seen before, although not exactly identical, but it's code to generate tokens based on random starting indices.",
+      "zh": "這段程式以前看過，雖然不完全一樣，但用途是從隨機起始索引生成詞元。"
+    },
+    {
+      "start": 364.9,
+      "end": 370.26,
+      "en": "There will be ten batches, each of 100 generated tokens.",
+      "zh": "會跑十個批次，每批生成 100 個詞元。"
+    },
+    {
+      "start": 370.9,
+      "end": 373.02,
+      "en": "So you've seen this before.",
+      "zh": "這部分看過了。"
+    },
+    {
+      "start": 373.18,
+      "end": 373.98,
+      "en": "And yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 373.98,
+      "end": 383.26,
+      "en": "So then down here I'm calculating the proportion of the generated tokens that are in the top 100 Moby",
+      "zh": "接著在這裡計算，生成的詞元有多少比例屬於《白鯨記》"
+    },
+    {
+      "start": 383.3,
+      "end": 384.46,
+      "en": "Dick tokens.",
+      "zh": "頻率最高的 100 個詞元。"
+    },
+    {
+      "start": 385.02,
+      "end": 387.42,
+      "en": "So this takes a minute to run or so.",
+      "zh": "執行大約要一分鐘。"
+    },
+    {
+      "start": 387.42,
+      "end": 390.3,
+      "en": "And here we find in the upper 40%.",
+      "zh": "這裡得到接近百分之五十的結果。"
+    },
+    {
+      "start": 390.42,
+      "end": 399.62,
+      "en": "So 47 and 44% of tokens generated by these pre-trained base models are tokens that also appear in the",
+      "zh": "也就是兩個預訓練基礎模型生成的詞元中，47% 與 44% 也出現在"
+    },
+    {
+      "start": 399.65999999999997,
+      "end": 403.14,
+      "en": "top 100 of the Moby Dick book.",
+      "zh": "《白鯨記》最常用的 100 個詞元裡。"
+    },
+    {
+      "start": 403.38,
+      "end": 410.26,
+      "en": "And then the question, of course, is what happens to these numbers after we fine tune the models?",
+      "zh": "問題當然就是，微調之後，這些數字會如何改變？"
+    },
+    {
+      "start": 410.82,
+      "end": 413.06,
+      "en": "Now for exercise two.",
+      "zh": "現在進入練習二。"
+    },
+    {
+      "start": 413.3,
+      "end": 420.59,
+      "en": "The goal of this exercise is to write code to do a targeted precision Vision freezing.",
+      "zh": "目標是撰寫程式，做有針對性的精準凍結。"
+    },
+    {
+      "start": 421.15,
+      "end": 429.55,
+      "en": "In particular, you want to train only the attention weights and only in transformer blocks six and higher.",
+      "zh": "具體而言，只訓練第 6 個及之後 Transformer 區塊中的注意力權重。"
+    },
+    {
+      "start": 430.15,
+      "end": 441.39,
+      "en": "Another way to think about this, or to phrase this, is that you are freezing the entire model, except for the attention weights in the later transformer blocks.",
+      "zh": "換句話說，除了較後面 Transformer 區塊的注意力權重，整個模型都凍結。"
+    },
+    {
+      "start": 441.75,
+      "end": 445.83,
+      "en": "So this is a very selective, very targeted fine tuning.",
+      "zh": "這是非常有選擇性、非常有針對性的微調。"
+    },
+    {
+      "start": 446.43,
+      "end": 449.67,
+      "en": "Now it's a little bit tricky to implement this in code.",
+      "zh": "實作起來有點棘手。"
+    },
+    {
+      "start": 449.67,
+      "end": 459.79,
+      "en": "You need to search for the q, k and v weights matrices so that you are not also freezing the w0 matrix,",
+      "zh": "你要搜尋 Q、K、V 權重矩陣，避免連 W_O 矩陣也一起凍結，"
+    },
+    {
+      "start": 459.90999999999997,
+      "end": 470.31,
+      "en": "which is the linear transformation matrix that combines all of the discoveries from the different attention heads together before being sent to the MLP layers.",
+      "zh": "W_O 是在送進 MLP 層前，把不同注意力頭的結果合併起來的線性轉換矩陣。"
+    },
+    {
+      "start": 470.55,
+      "end": 473.79,
+      "en": "Okay, so you do not want to train the W0 matrix.",
+      "zh": "好，所以你不想訓練 W_O 矩陣。"
+    },
+    {
+      "start": 474.03,
+      "end": 481.27,
+      "en": "You also do not want to train the qkv weights matrices in layers zero through five.",
+      "zh": "也不想訓練第 0 到第 5 層的 Q、K、V 權重矩陣。"
+    },
+    {
+      "start": 481.91,
+      "end": 485.91,
+      "en": "Here is a hint to help you get started with the filtering.",
+      "zh": "這裡給你一個開始篩選的提示。"
+    },
+    {
+      "start": 486.27,
+      "end": 494.27,
+      "en": "If you take the parameter name and split it up according to the periods, then you will get a list with",
+      "zh": "把參數名稱依句點切開，會得到一個串列，"
+    },
+    {
+      "start": 494.27,
+      "end": 498.83,
+      "en": "each list element corresponding to a component of the name.",
+      "zh": "每個元素對應名稱的一個部分。"
+    },
+    {
+      "start": 499.43,
+      "end": 505.63,
+      "en": "And from here you can write some code to do, some searching and some checking to see whether each of",
+      "zh": "然後就能寫程式搜尋與檢查，判斷每個"
+    },
+    {
+      "start": 505.63,
+      "end": 512.79,
+      "en": "the parameters corresponds to something that you want to freeze, or a layer that you want to remain trainable.",
+      "zh": "參數是要凍結的部分，還是要保持可訓練的層。"
+    },
+    {
+      "start": 514.03,
+      "end": 520.35,
+      "en": "I recommend printing out a list of the parameters, just like what I showed in the previous video.",
+      "zh": "建議把參數清單印出來，就像上一支影片的示範。"
+    },
+    {
+      "start": 520.35,
+      "end": 521.87,
+      "en": "It will look something like this.",
+      "zh": "看起來會像這樣。"
+    },
+    {
+      "start": 522.27,
+      "end": 529.87,
+      "en": "So here you see mostly minus signs, because most of the layers in this model are frozen and we have",
+      "zh": "這裡大多是減號，因為模型多數層已凍結；"
+    },
+    {
+      "start": 529.87,
+      "end": 538.19,
+      "en": "plus signs selectively only for the k, v and q weights matrices only in the attention subblocks and",
+      "zh": "只有注意力子區塊中的 K、V、Q 權重矩陣，"
+    },
+    {
+      "start": 538.19,
+      "end": 542,
+      "en": "only in layers six through 11.",
+      "zh": "而且僅限第 6 到第 11 層，才標示加號。"
+    },
+    {
+      "start": 542,
+      "end": 549.44,
+      "en": "So you can see here that we are really just training a very small number of the total parameters in the model.",
+      "zh": "可以看到，我們只訓練模型全部參數中很小的一部分。"
+    },
+    {
+      "start": 550.04,
+      "end": 559.04,
+      "en": "Now for this video, try not to think too much about why exactly only these parameters are trained and not other parameters in the model.",
+      "zh": "這支影片先不要太糾結，為何偏偏只訓練這些參數，而不是其他參數。"
+    },
+    {
+      "start": 559.52,
+      "end": 566.32,
+      "en": "I set up the instructions here primarily to give you an opportunity to make sure you really know how",
+      "zh": "我這樣設計題目，主要是讓你練習確認自己真的知道，"
+    },
+    {
+      "start": 566.32,
+      "end": 571.68,
+      "en": "to identify particular layers and switch their gradients on or off.",
+      "zh": "如何辨識特定層，並開啟或關閉它們的梯度。"
+    },
+    {
+      "start": 572.56,
+      "end": 574.56,
+      "en": "So that's it for this exercise.",
+      "zh": "這就是這個練習。"
+    },
+    {
+      "start": 574.72,
+      "end": 576.32,
+      "en": "Now you should pause the video.",
+      "zh": "現在請暫停影片。"
+    },
+    {
+      "start": 576.44,
+      "end": 579.8,
+      "en": "And now I will switch to code and discuss my solution.",
+      "zh": "接著切換到程式，說明我的解法。"
+    },
+    {
+      "start": 580.4,
+      "end": 587.68,
+      "en": "This code here just shows the screenshot that or the code that generates the screenshot that I showed in the slides.",
+      "zh": "這段程式就是投影片截圖的內容，或者說，是產生那張截圖的程式。"
+    },
+    {
+      "start": 587.92,
+      "end": 592.88,
+      "en": "Here I'm looping over all of the named parameters and just splitting them up.",
+      "zh": "這裡逐一走訪具名參數，把名稱切開。"
+    },
+    {
+      "start": 592.96,
+      "end": 597.6,
+      "en": "So of course you recognize all of these names of the different layers.",
+      "zh": "這些不同層的名稱，你應該都認得。"
+    },
+    {
+      "start": 597.76,
+      "end": 608.72,
+      "en": "The only thing that's new here is they are split into a list with the different, uh, strings in between the periods as separate list items.",
+      "zh": "唯一的新地方是，把句點之間的各段字串，拆成串列裡的不同元素。"
+    },
+    {
+      "start": 609.12,
+      "end": 613.04,
+      "en": "You can also see that some of these are like these two layers.",
+      "zh": "你也可以看到，有些名稱，例如這兩層，"
+    },
+    {
+      "start": 613.04,
+      "end": 617.24,
+      "en": "Here the token and position embeddings matrices are just three.",
+      "zh": "詞元嵌入與位置嵌入的名稱只有三段。"
+    },
+    {
+      "start": 617.28,
+      "end": 624.32,
+      "en": "There's only three elements in this list, whereas other lists other names are longer.",
+      "zh": "串列只有三個元素，其他名稱則比較長。"
+    },
+    {
+      "start": 624.32,
+      "end": 626.88,
+      "en": "And so I have more list elements.",
+      "zh": "所以有更多串列元素。"
+    },
+    {
+      "start": 627.48,
+      "end": 627.88,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 628.04,
+      "end": 631.8,
+      "en": "And now the next cell here is just a test.",
+      "zh": "下一個儲存格只是測試。"
+    },
+    {
+      "start": 631.84,
+      "end": 637.64,
+      "en": "This is code that I was using to explore and develop my filter.",
+      "zh": "這是我探索與開發篩選條件時用的程式。"
+    },
+    {
+      "start": 637.76,
+      "end": 643.92,
+      "en": "So notice that here in this cell I'm not actually changing anything in the model.",
+      "zh": "注意，這個儲存格其實沒有修改模型中的任何東西。"
+    },
+    {
+      "start": 643.92,
+      "end": 645.48,
+      "en": "For example I'm not writing.",
+      "zh": "例如，我沒有寫入，"
+    },
+    {
+      "start": 645.6,
+      "end": 649,
+      "en": "You know I'm not changing the value of requiresgrad.",
+      "zh": "沒有更改 requires_grad 的值。"
+    },
+    {
+      "start": 649.2,
+      "end": 658,
+      "en": "So all I'm doing is looking through every element in or every named parameter in the model and printing",
+      "zh": "只是在逐一檢查模型中的所有具名參數，"
+    },
+    {
+      "start": 658,
+      "end": 662.45,
+      "en": "out the ones that fit the filter that I want to modify.",
+      "zh": "印出符合篩選條件、我想修改的那些參數。"
+    },
+    {
+      "start": 662.69,
+      "end": 667.77,
+      "en": "So here you see if the length of split string is greater than five.",
+      "zh": "這裡判斷切開後的串列長度是否大於 5。"
+    },
+    {
+      "start": 668.21,
+      "end": 670.53,
+      "en": "And why do I want this to be greater than five.",
+      "zh": "為什麼要大於 5？"
+    },
+    {
+      "start": 671.25,
+      "end": 677.85,
+      "en": "That's because here I'm going to need to access the sixth element in the list.",
+      "zh": "因為這裡需要存取串列的第六個元素。"
+    },
+    {
+      "start": 677.97,
+      "end": 680.61,
+      "en": "But some of these don't have six elements.",
+      "zh": "但有些名稱不到六個元素。"
+    },
+    {
+      "start": 680.61,
+      "end": 682.65,
+      "en": "So that would give a Python error.",
+      "zh": "那就會造成 Python 錯誤。"
+    },
+    {
+      "start": 682.65,
+      "end": 690.53,
+      "en": "So here we already stop if the length of this string this list is too small okay.",
+      "zh": "因此，如果字串切成的串列太短，就先停下，不繼續檢查。"
+    },
+    {
+      "start": 690.57,
+      "end": 699.41,
+      "en": "And then I also only want to filter for where the fourth element is has the word attention or atm.",
+      "zh": "接著，只篩選第四個元素是 attention，也就是 attn 的項目。"
+    },
+    {
+      "start": 699.61,
+      "end": 710.09,
+      "en": "So here for example is element zero element 123 okay so this is MLP that does not match attention.",
+      "zh": "例如，這裡依序是索引 0、1、2、3；這是 MLP，不符合注意力條件。"
+    },
+    {
+      "start": 710.21,
+      "end": 714.53,
+      "en": "That means that this this element gets ignored.",
+      "zh": "所以會忽略這個項目。"
+    },
+    {
+      "start": 714.57,
+      "end": 716.97,
+      "en": "On the other hand this one is attention.",
+      "zh": "另一方面，這個是注意力。"
+    },
+    {
+      "start": 716.97,
+      "end": 721.01,
+      "en": "So that gets uh that passes through to the next statement here.",
+      "zh": "它就會通過，進入下一個條件。"
+    },
+    {
+      "start": 721.37,
+      "end": 729.29,
+      "en": "Then I want to say is the second or the third element in index two that corresponds to this number here.",
+      "zh": "接著檢查第二個，應該說第三個元素，也就是索引 2，對應這個數字。"
+    },
+    {
+      "start": 729.33,
+      "end": 731.45,
+      "en": "Now this is not really a number.",
+      "zh": "但它其實還不是數字，"
+    },
+    {
+      "start": 731.45,
+      "end": 732.45,
+      "en": "This is a string.",
+      "zh": "而是字串。"
+    },
+    {
+      "start": 732.45,
+      "end": 738.13,
+      "en": "So we convert it into an integer and then see if it's greater than five.",
+      "zh": "所以轉成整數，判斷是否大於 5。"
+    },
+    {
+      "start": 738.13,
+      "end": 746.97,
+      "en": "And this is the mechanism by which I can select only the weights matrices in block six and higher.",
+      "zh": "這樣就能只選出第 6 個及之後區塊裡的權重矩陣。"
+    },
+    {
+      "start": 748.05,
+      "end": 756.65,
+      "en": "And finally I test if the first letter in the sixth element is q v or k.",
+      "zh": "最後，檢查第六個元素的第一個字母，是否為 q、v 或 k。"
+    },
+    {
+      "start": 757.13,
+      "end": 768.37,
+      "en": "And basically that is going to pass these through and it's going to exclude these two parameters here which are the w0 linear mixing matrix okay.",
+      "zh": "這樣會讓這些參數通過，排除這兩個 W_O 線性混合矩陣的參數。"
+    },
+    {
+      "start": 768.41,
+      "end": 773.57,
+      "en": "And then I print out the name that just confirms that this is giving me the parameters that I want.",
+      "zh": "然後印出名稱，確認選出來的是我想要的參數。"
+    },
+    {
+      "start": 773.61,
+      "end": 778.97,
+      "en": "Now I took all of this code, copy that and pasted that down here.",
+      "zh": "接著把整段程式複製，貼到這裡。"
+    },
+    {
+      "start": 779.45,
+      "end": 787.33,
+      "en": "And then I actually modify the requiresgrad equals Requiresgrad parameter and then print out this message here.",
+      "zh": "這次就實際修改 requires_grad 屬性，再印出這個訊息。"
+    },
+    {
+      "start": 788.41,
+      "end": 794.77,
+      "en": "Now, because the default value of requiresgrad is true, you don't actually need this line.",
+      "zh": "因為 requires_grad 預設是 True，其實不需要這行。"
+    },
+    {
+      "start": 795.17,
+      "end": 801.49,
+      "en": "However, as I was writing this code, I was like changing things, changing the filters back and forth.",
+      "zh": "不過我撰寫程式時，一直反覆改動篩選條件，"
+    },
+    {
+      "start": 801.65,
+      "end": 804.13,
+      "en": "So I kept switching these toggles on and off.",
+      "zh": "所以也一直開關這些設定。"
+    },
+    {
+      "start": 804.13,
+      "end": 810.17,
+      "en": "So therefore I just decided to leave this in here just for a little bit of certainty.",
+      "zh": "為了多一點確定性，我就把這行留著。"
+    },
+    {
+      "start": 810.85,
+      "end": 811.25,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 811.29,
+      "end": 818.53,
+      "en": "So now we see most of these signs here are minus signs which means that they are frozen.",
+      "zh": "現在多數都是減號，代表已凍結。"
+    },
+    {
+      "start": 818.65,
+      "end": 819.93,
+      "en": "They cannot be trained.",
+      "zh": "無法訓練。"
+    },
+    {
+      "start": 819.93,
+      "end": 823.69,
+      "en": "Very few of these layers are actually trainable now.",
+      "zh": "只有非常少的層可以訓練。"
+    },
+    {
+      "start": 824.33,
+      "end": 835.01,
+      "en": "Exercise three involves training the models and also incorporating code into the training loop to track several features of the models.",
+      "zh": "練習三要訓練模型，並在訓練迴圈中加入程式，追蹤模型的幾項特徵。"
+    },
+    {
+      "start": 835.61,
+      "end": 840.46,
+      "en": "Now the training loop itself you can mostly copy from previous videos.",
+      "zh": "訓練迴圈本身，大部分可以從之前的影片複製。"
+    },
+    {
+      "start": 840.62,
+      "end": 842.54,
+      "en": "Some of the parameters are the same.",
+      "zh": "部分參數也相同。"
+    },
+    {
+      "start": 842.66,
+      "end": 850.34,
+      "en": "I used 474 training epochs and a learning rate of 0.0005.",
+      "zh": "我用了 474 個訓練週期，學習率 0.0005。"
+    },
+    {
+      "start": 850.74,
+      "end": 857.54,
+      "en": "That is a little bit bigger than I typically use for fine tuning, but, uh, so much of this model",
+      "zh": "這比我通常微調時用的學習率稍大，但由於這個模型"
+    },
+    {
+      "start": 857.54,
+      "end": 865.86,
+      "en": "is fine tuned or is frozen that the fine tuning actually benefited from having a slightly higher learning rate.",
+      "zh": "有這麼多部分被微調，應該說被凍結，稍高的學習率反而有利於微調。"
+    },
+    {
+      "start": 866.58,
+      "end": 873.54,
+      "en": "Okay, in addition to just fine tuning these models, there are a few more things that you need to add here.",
+      "zh": "好，除了微調模型，還要加入幾件事。"
+    },
+    {
+      "start": 874.14,
+      "end": 880.9,
+      "en": "One is that you want to time the forward pass and back prop for each iteration of training.",
+      "zh": "第一，測量每次訓練迭代中，前向傳播與反向傳播所花的時間。"
+    },
+    {
+      "start": 881.1,
+      "end": 885.42,
+      "en": "So your training loop code will look something like this.",
+      "zh": "因此，訓練迴圈會像這樣。"
+    },
+    {
+      "start": 885.66,
+      "end": 889.9,
+      "en": "This whole block here, this is for training the freeze model.",
+      "zh": "這整塊是訓練 Freeze 模型的程式。"
+    },
+    {
+      "start": 890.38,
+      "end": 895.9,
+      "en": "And I've broken it into two small subsections for the forward pass and back prop.",
+      "zh": "我把它分成前向傳播與反向傳播兩小段。"
+    },
+    {
+      "start": 896.82,
+      "end": 904.22,
+      "en": "And you can see that the first line in this code paragraph is to get the current clock time, and then",
+      "zh": "可以看到，這段程式第一行取得目前時間，然後"
+    },
+    {
+      "start": 904.22,
+      "end": 912.86,
+      "en": "store that as a variable, and then the last line before moving on to the next model is to again get",
+      "zh": "存進變數。換到下一個模型前的最後一行，再次取得"
+    },
+    {
+      "start": 912.86,
+      "end": 922.42,
+      "en": "the current clock time, subtract off the start time, and this is the total duration of time that elapsed between this line of code.",
+      "zh": "目前時間，減去開始時間，就得到這段程式的總經過時間。"
+    },
+    {
+      "start": 922.42,
+      "end": 928.1,
+      "en": "So the beginning of the forward pass and the end of back prop and storing the loss.",
+      "zh": "也就是從前向傳播開始，到反向傳播結束並儲存損失。"
+    },
+    {
+      "start": 928.38,
+      "end": 936.22,
+      "en": "And this time elapsed mint gets aggregated gets accumulated into this variable time free.",
+      "zh": "這個經過時間會累加進 time_freeze 變數。"
+    },
+    {
+      "start": 936.22,
+      "end": 946.58,
+      "en": "So it's the total time that is accumulating not just for one iteration but for all of the iterations, all 474 iterations.",
+      "zh": "所以累積的是全部迭代的總時間，不只一次，而是全部 474 次。"
+    },
+    {
+      "start": 946.98,
+      "end": 953.3,
+      "en": "When you have the code written for the freeze model, you can just copy paste it down here for the train",
+      "zh": "寫好 Freeze 模型的程式後，就能複製貼到下面，給 Train"
+    },
+    {
+      "start": 953.3,
+      "end": 959.06,
+      "en": "model and just be diligent in changing the variable names to the train model.",
+      "zh": "模型使用；只要仔細把變數名稱改成 Train 模型的。"
+    },
+    {
+      "start": 959.79,
+      "end": 963.39,
+      "en": "So that is one adjustment to make to the training code.",
+      "zh": "這是訓練程式的其中一項調整。"
+    },
+    {
+      "start": 963.95,
+      "end": 972.95,
+      "en": "Another adjustment to make is to track the learning related changes in one of the parameters that are trainable in both models.",
+      "zh": "另一項是追蹤某個在兩個模型中都可訓練的參數，觀察它隨學習如何改變。"
+    },
+    {
+      "start": 973.59,
+      "end": 979.35,
+      "en": "So I picked the k matrix from the seventh transformer block.",
+      "zh": "我選的是第七個 Transformer 區塊的 K 矩陣。"
+    },
+    {
+      "start": 980.15,
+      "end": 990.11,
+      "en": "Now, there is nothing particularly theoretically meaningful about this matrix, except that it is trainable in both of the models that we are working with here.",
+      "zh": "這個矩陣沒有什麼特別的理論意義，只是它在這裡的兩個模型中都可以訓練。"
+    },
+    {
+      "start": 990.71,
+      "end": 994.71,
+      "en": "By the way, this is not the full address to that weights matrix.",
+      "zh": "順帶一提，這裡不是該權重矩陣的完整存取路徑。"
+    },
+    {
+      "start": 994.71,
+      "end": 997.71,
+      "en": "I shortened it here so it would print nicely in the line.",
+      "zh": "我把它縮短，讓這一行印起來比較好看。"
+    },
+    {
+      "start": 998.75,
+      "end": 1008.71,
+      "en": "So the idea is that you want to subtract the weights matrix from the current iteration relative to the previous iteration during training.",
+      "zh": "做法是在訓練時，用目前迭代的權重矩陣，減去上一次迭代的矩陣。"
+    },
+    {
+      "start": 1009.27,
+      "end": 1016.31,
+      "en": "That will give you a difference matrix and you can calculate the norm of that matrix difference.",
+      "zh": "得到差值矩陣後，再計算它的範數。"
+    },
+    {
+      "start": 1016.91,
+      "end": 1024.87,
+      "en": "So this means that you will need to have a way of keeping track of the matrix each time it updates during fine tuning.",
+      "zh": "也就是說，你需要記錄微調時每次更新後的矩陣，"
+    },
+    {
+      "start": 1025.23,
+      "end": 1034.43,
+      "en": "In order to capture the matrix at each iteration with the same matrix from the previous iteration in",
+      "zh": "才能把每次迭代的矩陣，和前一次迭代的同一矩陣"
+    },
+    {
+      "start": 1034.43,
+      "end": 1035.07,
+      "en": "training.",
+      "zh": "拿來比較。"
+    },
+    {
+      "start": 1035.55,
+      "end": 1040.31,
+      "en": "Now you don't need to do any visualizations for this exercise.",
+      "zh": "這個練習不必畫圖。"
+    },
+    {
+      "start": 1040.43,
+      "end": 1043.11,
+      "en": "Just set up the training loop and run it.",
+      "zh": "只要建立訓練迴圈並執行。"
+    },
+    {
+      "start": 1043.59,
+      "end": 1054.59,
+      "en": "And by the way, as I mentioned a few times before, when you're just setting up the code, I recommend only running through five, maybe ten data training samples.",
+      "zh": "順帶一提，我之前提過幾次，剛設定程式時，建議只跑五筆、最多十筆訓練資料。"
+    },
+    {
+      "start": 1054.99,
+      "end": 1065.11,
+      "en": "And that's because when you're writing code and debugging and working through and developing code, you want to be able to iterate and improve as quickly as possible.",
+      "zh": "因為寫程式、除錯、開發功能時，你希望能盡快反覆嘗試與改進。"
+    },
+    {
+      "start": 1065.59,
+      "end": 1071.95,
+      "en": "And once you are confident that your code is good, then you can increase the number of training iterations.",
+      "zh": "等到確定程式沒問題，再增加訓練迭代次數。"
+    },
+    {
+      "start": 1072.59,
+      "end": 1074.75,
+      "en": "Anyway, good luck working through this one.",
+      "zh": "總之，祝你順利完成。"
+    },
+    {
+      "start": 1074.75,
+      "end": 1077.91,
+      "en": "And now I will switch to code and show my solution.",
+      "zh": "現在切換到程式，展示我的解法。"
+    },
+    {
+      "start": 1079.15,
+      "end": 1084.51,
+      "en": "We are training two different models and so we need two different optimizers.",
+      "zh": "我們訓練兩個不同模型，所以需要兩個不同的最佳化器。"
+    },
+    {
+      "start": 1085.23,
+      "end": 1092.51,
+      "en": "Actually, it's exactly the same optimizer, but I get two different instances of it, one for each model.",
+      "zh": "其實是相同類型的最佳化器，但建立兩個實例，各對應一個模型。"
+    },
+    {
+      "start": 1092.99,
+      "end": 1094.39,
+      "en": "Okay so run that.",
+      "zh": "好，執行。"
+    },
+    {
+      "start": 1094.43,
+      "end": 1096.91,
+      "en": "Here are some typical parameters.",
+      "zh": "這裡是一些常用參數。"
+    },
+    {
+      "start": 1097.15,
+      "end": 1103.51,
+      "en": "And actually, you know, just as a little reminder we do not specify a loss function in here.",
+      "zh": "提醒一下，這裡沒有另外指定損失函數。"
+    },
+    {
+      "start": 1103.83,
+      "end": 1104.87,
+      "en": "You can if you want to.",
+      "zh": "你想指定也可以。"
+    },
+    {
+      "start": 1104.91,
+      "end": 1111.83,
+      "en": "But it's really not necessary because with these models that are provided through hugging face, if",
+      "zh": "但實在不必要，因為對 Hugging Face 提供的這些模型而言，"
+    },
+    {
+      "start": 1111.83,
+      "end": 1120.95,
+      "en": "you input labels equals and then using the same, uh, tokens as what you input in the first input,",
+      "zh": "只要設定 labels，使用與第一個輸入相同的那些詞元，"
+    },
+    {
+      "start": 1121.23,
+      "end": 1128.95,
+      "en": "then the model will internally calculate a loss by shifting these tokens, transforming the logits into",
+      "zh": "模型就會在內部把詞元移位，將 logits 轉成"
+    },
+    {
+      "start": 1129.43,
+      "end": 1133.43,
+      "en": "a logsoftmax, and calculating negative log likelihood.",
+      "zh": "log_softmax，再計算負對數概似，得到損失。"
+    },
+    {
+      "start": 1133.43,
+      "end": 1136.55,
+      "en": "And that comes out in outputs dot loss.",
+      "zh": "結果會放在 outputs.loss。"
+    },
+    {
+      "start": 1136.99,
+      "end": 1137.23,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1137.27,
+      "end": 1138.63,
+      "en": "That was just a little reminder.",
+      "zh": "這只是小小提醒。"
+    },
+    {
+      "start": 1139.68,
+      "end": 1144.6,
+      "en": "Okay, so here I am initializing the losses to track for the two models.",
+      "zh": "這裡初始化要記錄的兩個模型損失。"
+    },
+    {
+      "start": 1144.6,
+      "end": 1146.52,
+      "en": "And this is the delta norm.",
+      "zh": "這是 delta norm。"
+    },
+    {
+      "start": 1146.52,
+      "end": 1156.44,
+      "en": "This is how I'm going to track the or store the norm of the difference matrix of that weights matrix during training.",
+      "zh": "我會用它追蹤、儲存訓練期間，這個權重矩陣之差的範數。"
+    },
+    {
+      "start": 1156.96,
+      "end": 1168.56,
+      "en": "Here I'm initializing the time vector the computation times to be zero, and at each iteration in the training, I will just keep adding more and more clock times onto this.",
+      "zh": "這裡把運算時間向量初始化為零。每次訓練迭代，都不斷把經過時間加上去。"
+    },
+    {
+      "start": 1168.56,
+      "end": 1174.12,
+      "en": "So this will reflect the total training time and not just the training time for one iteration.",
+      "zh": "所以它代表總訓練時間，不只是一次迭代的時間。"
+    },
+    {
+      "start": 1175.44,
+      "end": 1179.44,
+      "en": "Okay, here I'm getting the previous matrix.",
+      "zh": "好，這裡取得前一次的矩陣。"
+    },
+    {
+      "start": 1179.44,
+      "end": 1182.04,
+      "en": "I forget why I called it M here, but doesn't matter.",
+      "zh": "忘了為什麼取名 M，不過沒關係。"
+    },
+    {
+      "start": 1182.36,
+      "end": 1183.76,
+      "en": "So that's from this model.",
+      "zh": "這是從這個模型取出的。"
+    },
+    {
+      "start": 1183.76,
+      "end": 1187.48,
+      "en": "So model freeze transformer hidden layer six.",
+      "zh": "也就是 model_freeze 的 transformer，隱藏層 6，"
+    },
+    {
+      "start": 1187.52,
+      "end": 1188.36,
+      "en": "Attention.",
+      "zh": "注意力"
+    },
+    {
+      "start": 1188.76,
+      "end": 1192.12,
+      "en": "Uh, block the attention matrix K projections.",
+      "zh": "區塊中的 K 投影矩陣。"
+    },
+    {
+      "start": 1192.12,
+      "end": 1194.56,
+      "en": "So this is w k and then the weight.",
+      "zh": "也就是 W_K 的 weight。"
+    },
+    {
+      "start": 1194.56,
+      "end": 1196.8,
+      "en": "And here I detach it okay.",
+      "zh": "這裡呼叫 detach。"
+    },
+    {
+      "start": 1196.84,
+      "end": 1201.64,
+      "en": "So that is the matrix from.",
+      "zh": "所以這是"
+    },
+    {
+      "start": 1201.64,
+      "end": 1207.44,
+      "en": "Before we start fine tuning, I will show you what happens to these two variables in a moment.",
+      "zh": "開始微調前的矩陣。等一下會說明這兩個變數如何改變。"
+    },
+    {
+      "start": 1207.84,
+      "end": 1210.88,
+      "en": "Here we do the training, get a batch of data.",
+      "zh": "這裡開始訓練，取得一批資料。"
+    },
+    {
+      "start": 1210.92,
+      "end": 1213.04,
+      "en": "You've seen this multiple times before.",
+      "zh": "這段之前看過很多次。"
+    },
+    {
+      "start": 1213.28,
+      "end": 1217.28,
+      "en": "This is just some random batch of data from anywhere in the book.",
+      "zh": "只是從書中任意位置隨機抽出一批資料。"
+    },
+    {
+      "start": 1217.88,
+      "end": 1226.16,
+      "en": "Okay, so here is, uh, starting the clock time, clearing out the previous gradients, doing the forward pass.",
+      "zh": "好，這裡開始計時，清除之前的梯度，執行前向傳播。"
+    },
+    {
+      "start": 1226.44,
+      "end": 1234,
+      "en": "We calculate the loss, we calculate backprop, implement the weights adjustments, store the loss,",
+      "zh": "計算損失、反向傳播、更新權重、儲存損失，"
+    },
+    {
+      "start": 1234,
+      "end": 1238.52,
+      "en": "and then update the accumulated time so that you've seen before.",
+      "zh": "然後更新累計時間，這些之前看過。"
+    },
+    {
+      "start": 1238.56,
+      "end": 1242.16,
+      "en": "This code is exactly the same but for the train model.",
+      "zh": "這段程式完全相同，只是換成 Train 模型。"
+    },
+    {
+      "start": 1242.16,
+      "end": 1248.12,
+      "en": "So the model where I haven't changed any of the required grad uh, requires grad parameters.",
+      "zh": "也就是我沒有更動任何 requires_grad 屬性的模型。"
+    },
+    {
+      "start": 1248.68,
+      "end": 1249.12,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1249.16,
+      "end": 1258.85,
+      "en": "Here is also the new code to get the matrix norm of the difference of the weight matrices at each step during the training.",
+      "zh": "這段也是新增程式，用來取得訓練每一步中，權重矩陣差值的矩陣範數。"
+    },
+    {
+      "start": 1258.85,
+      "end": 1264.17,
+      "en": "So here I write torch and there are two matrices in here.",
+      "zh": "這裡呼叫 torch，裡面放兩個矩陣。"
+    },
+    {
+      "start": 1264.17,
+      "end": 1272.25,
+      "en": "The first one is this really long address to get exactly this matrix over here from attention block",
+      "zh": "第一個是透過這個很長的路徑，取出注意力區塊"
+    },
+    {
+      "start": 1272.25,
+      "end": 1278.29,
+      "en": "six minus the variable that I specified before the training loop.",
+      "zh": "6 的特定矩陣，減去我在訓練迴圈前指定的變數。"
+    },
+    {
+      "start": 1278.97,
+      "end": 1282.13,
+      "en": "And then I redefine that same variable.",
+      "zh": "接著重新定義同一個變數。"
+    },
+    {
+      "start": 1282.13,
+      "end": 1284.37,
+      "en": "Now it's the previous to be.",
+      "zh": "現在把它作為前一次的矩陣，設成"
+    },
+    {
+      "start": 1284.77,
+      "end": 1285.89,
+      "en": "Yeah exactly this.",
+      "zh": "對，就是這個。"
+    },
+    {
+      "start": 1286.37,
+      "end": 1298.25,
+      "en": "So this is the code that allows me to track the change in the weights matrix from the current iteration in training to the previous iteration in training.",
+      "zh": "這段程式讓我追蹤目前訓練迭代與前一次迭代之間，權重矩陣的變化。"
+    },
+    {
+      "start": 1299.29,
+      "end": 1302.73,
+      "en": "Part one of this code challenge ends here.",
+      "zh": "這個程式挑戰的第一部分到此結束。"
+    },
+    {
+      "start": 1302.89,
+      "end": 1305.93,
+      "en": "However, there are two more exercises to do.",
+      "zh": "不過，還有兩個練習。"
+    },
+    {
+      "start": 1306.13,
+      "end": 1311.73,
+      "en": "I cut the video here because I would like you to get up, stretch your legs, take a short break.",
+      "zh": "我在這裡分段，是希望你起身伸展一下雙腿，短暫休息。"
+    },
+    {
+      "start": 1311.73,
+      "end": 1317.29,
+      "en": "When you're ready, you can come back and continue this code challenge in the next video.",
+      "zh": "準備好了，就回來繼續下一支影片的程式挑戰。"
+    }
+  ]
+}

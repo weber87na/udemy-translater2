@@ -1,0 +1,2155 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893849",
+  "title": "CodeChallenge: Measure and correct BERT's bias",
+  "section": 24,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "1f8439f277254d5d739a56191702082c8602cf48ff4fd5d28b5c39e133df4022",
+  "cues": [
+    {
+      "start": 2.2,
+      "end": 5.32,
+      "en": "This will be an interesting code challenge.",
+      "zh": "這會是有趣的程式挑戰。"
+    },
+    {
+      "start": 5.68,
+      "end": 16.44,
+      "en": "You will combine concepts that you learned in the section on evaluations, with editing techniques that you learned over the past half dozen videos.",
+      "zh": "你會結合評估章節學到的概念，以及過去五、六支影片學到的編輯技術。"
+    },
+    {
+      "start": 17.12,
+      "end": 23.44,
+      "en": "In particular, we are going to test whether there is a gender bias in the Bert model.",
+      "zh": "特別是，我們要測試 BERT 模型是否有性別偏誤。"
+    },
+    {
+      "start": 23.76,
+      "end": 29.6,
+      "en": "And well, spoiler alert there is, at least for the example that we are going to work with.",
+      "zh": "先劇透一下，確實有，至少在我們要處理的範例中如此。"
+    },
+    {
+      "start": 29.96,
+      "end": 40.44,
+      "en": "But the point is this we will elicit that bias, quantify it, and then see if we can actually go into the model and surgically remove that bias.",
+      "zh": "重點是，要引出、量化這個偏誤，再看看能否真的進入模型，像外科手術般移除它。"
+    },
+    {
+      "start": 41.12,
+      "end": 45.2,
+      "en": "Now, just to be clear, say you don't have unrealistic expectations.",
+      "zh": "先說清楚，免得有不切實際的期待。"
+    },
+    {
+      "start": 45.2,
+      "end": 51.8,
+      "en": "What we are going to do here will work for these specific example that we are going to use.",
+      "zh": "這裡的做法，會對我們要用的這些特定範例有效。"
+    },
+    {
+      "start": 51.8,
+      "end": 59.36,
+      "en": "But that does not mean that it's such an easy fix to get rid of biases in general in language models,",
+      "zh": "但不代表，要普遍消除語言模型的偏誤，也是這麼容易。"
+    },
+    {
+      "start": 59.95,
+      "end": 66.79,
+      "en": "The biases that are present in language models were developed by learning from trillions of tokens that",
+      "zh": "語言模型中的偏誤，是學習人類撰寫的數兆個 token"
+    },
+    {
+      "start": 66.79,
+      "end": 78.11,
+      "en": "humans wrote, and so removing one very specific bias in one example is actually surprisingly easy, as you will learn in this code challenge.",
+      "zh": "所形成的。所以，在一個範例中移除非常特定的偏誤，其實出乎意料地容易，這次程式挑戰就會學到。"
+    },
+    {
+      "start": 78.11,
+      "end": 84.35,
+      "en": "But removing biases across any possible example is a lot trickier.",
+      "zh": "但要移除所有可能範例中的偏誤，就困難得多。"
+    },
+    {
+      "start": 84.55,
+      "end": 88.07,
+      "en": "Still possible, but not as simple as what we are going to do here.",
+      "zh": "仍然可能，但不像這裡要做的那麼簡單。"
+    },
+    {
+      "start": 88.75,
+      "end": 99.50999999999999,
+      "en": "Anyway, let me begin by reminding you of this slide, which I showed in the section on evaluations in the lecture about bias and fairness.",
+      "zh": "總之，先提醒你這張投影片，它曾出現在評估章節，偏誤與公平性的課程中。"
+    },
+    {
+      "start": 100.11,
+      "end": 104.75,
+      "en": "In particular, I want to focus your attention on this sentence here.",
+      "zh": "特別想請你注意這個句子。"
+    },
+    {
+      "start": 105.59,
+      "end": 114.55,
+      "en": "So what we are going to do here in this video is present this sentence to the model with no pronouns here, just a mask.",
+      "zh": "這支影片，我們會把這個句子提供給模型，但這裡沒有代名詞，只有遮罩。"
+    },
+    {
+      "start": 114.95,
+      "end": 120.98,
+      "en": "And then measure the logit activations to the words she, he, and they.",
+      "zh": "再測量 she、he、they 這幾個詞的 logit 活化。"
+    },
+    {
+      "start": 121.66,
+      "end": 125.38,
+      "en": "That will lead to our quantification of the bias.",
+      "zh": "藉此量化偏誤。"
+    },
+    {
+      "start": 125.62,
+      "end": 131.54,
+      "en": "And I'll get into the details of how we are going to undo that bias in a later exercise.",
+      "zh": "後面的練習，會詳細說明如何消除這個偏誤。"
+    },
+    {
+      "start": 132.1,
+      "end": 139.22,
+      "en": "Although I can, I think you can probably already guess what we're going to do based on the description of exercise one.",
+      "zh": "不過，我想，從練習一的說明，你大概已經能猜到要做什麼。"
+    },
+    {
+      "start": 139.74,
+      "end": 148.06,
+      "en": "So start with this code challenge by importing the Bert Large model and then push it to the GPU.",
+      "zh": "這次程式挑戰，先匯入 BERT large 模型，移到 GPU。"
+    },
+    {
+      "start": 148.66,
+      "end": 158.34,
+      "en": "Then you want to create a hook function that, in the broad strokes, actually looks a lot like the hook function from the previous code challenge.",
+      "zh": "接著，建立一個 hook 函數，大方向其實很像上次程式挑戰的 hook。"
+    },
+    {
+      "start": 158.54,
+      "end": 167.7,
+      "en": "In fact, it's probably easiest if you just copy that hook function and paste it into the code for this exercise.",
+      "zh": "事實上，最簡單的方式，大概就是複製那個 hook 函數，貼到這份練習的程式碼。"
+    },
+    {
+      "start": 168.02,
+      "end": 174.14,
+      "en": "Now, in the previous video, we had hook functions that would randomize the ordering of the embeddings",
+      "zh": "上一支影片，有個 hook 函數會隨機改變嵌入"
+    },
+    {
+      "start": 174.14,
+      "end": 183.02,
+      "en": "dimensions and a separate hook function that preserves the embeddings vectors ordering, but just added a little bit of noise.",
+      "zh": "維度順序，另一個則保留嵌入向量順序，只加入少量雜訊。"
+    },
+    {
+      "start": 183.5,
+      "end": 191.34,
+      "en": "So what you want to do here now in this code challenge is have a hook function that takes a weighted",
+      "zh": "這次程式挑戰，要用 hook 函數，對特定"
+    },
+    {
+      "start": 191.34,
+      "end": 198.78,
+      "en": "average between two embeddings vectors for a specific token and in a specific layer.",
+      "zh": "token、特定層的兩個嵌入向量，取加權平均。"
+    },
+    {
+      "start": 198.94,
+      "end": 207.54,
+      "en": "So two embeddings vectors, one of them will be the embeddings vector that the model naturally produces on its own.",
+      "zh": "有兩個嵌入向量，其中一個是模型自己自然產生的嵌入向量。"
+    },
+    {
+      "start": 207.94,
+      "end": 212.26,
+      "en": "And the other vector is something that you will define elsewhere.",
+      "zh": "另一個向量，則會在其他地方定義。"
+    },
+    {
+      "start": 212.82,
+      "end": 217.34,
+      "en": "And it's actually going to come from a different forward pass with different text.",
+      "zh": "它其實來自使用不同文字的另一次前向傳播。"
+    },
+    {
+      "start": 217.38,
+      "end": 220.26,
+      "en": "I'll get into that in a later exercise.",
+      "zh": "後面的練習再談。"
+    },
+    {
+      "start": 220.46,
+      "end": 229.66,
+      "en": "For now, suffice it to say that you are going to have the vector, the embeddings vector that the model naturally calculates, and you're going to mix that.",
+      "zh": "目前，只要知道，一個向量是模型自然計算的嵌入向量，再把它混合，"
+    },
+    {
+      "start": 229.66,
+      "end": 235.1,
+      "en": "So take a linear weighted combination with a new vector of the same shape.",
+      "zh": "也就是與另一個相同形狀的新向量，取線性加權組合。"
+    },
+    {
+      "start": 235.62,
+      "end": 242.53,
+      "en": "So up here you can see that I have this two element list which is a mixing vector.",
+      "zh": "上面這裡可以看到，一個含兩個元素的串列，也就是混合向量。"
+    },
+    {
+      "start": 242.89,
+      "end": 246.01,
+      "en": "So these two numbers should sum to one.",
+      "zh": "這兩個數字，總和應該是一。"
+    },
+    {
+      "start": 246.29,
+      "end": 253.53,
+      "en": "So for example if these were both set to 0.5 then we would be literally just averaging two vectors together.",
+      "zh": "例如，兩個都設成 0.5，就真的只是將兩個向量平均。"
+    },
+    {
+      "start": 254.53,
+      "end": 258.93,
+      "en": "And you can see here that I've initialized this to be 0.1 and 0.9.",
+      "zh": "這裡可以看到，初始化為 0.1 和 0.9。"
+    },
+    {
+      "start": 258.97,
+      "end": 266.37,
+      "en": "This means that the naturally calculated embeddings vector for a given token in a given layer will contribute",
+      "zh": "這代表，某一層中某個 token 自然計算出的嵌入向量，對調整後向量貢獻"
+    },
+    {
+      "start": 266.41,
+      "end": 275.57,
+      "en": "10% to the adjusted vector, and the other vector that we will get from outside of this forwardpass will contribute 90%.",
+      "zh": "10%，而從這次前向傳播外取得的另一個向量，貢獻 90%。"
+    },
+    {
+      "start": 275.89,
+      "end": 276.89,
+      "en": "I hope that makes sense.",
+      "zh": "希望這樣清楚。"
+    },
+    {
+      "start": 276.89,
+      "end": 282.69,
+      "en": "You don't need to do any analyses or any forward passes for this exercise.",
+      "zh": "這份練習不需要做分析，也不用前向傳播。"
+    },
+    {
+      "start": 282.73,
+      "end": 288.77,
+      "en": "Just import the model and create that hook function and implant the hook into all of the layers.",
+      "zh": "只要匯入模型、建立 hook 函數，再植入所有層。"
+    },
+    {
+      "start": 289.21,
+      "end": 292.93,
+      "en": "So you should pause the video now and work through this exercise.",
+      "zh": "所以，現在請暫停影片，完成這份練習。"
+    },
+    {
+      "start": 293.17,
+      "end": 298.36,
+      "en": "And now I will switch to code and go through my solution libraries.",
+      "zh": "現在切換到程式碼，逐步介紹解答。函式庫。"
+    },
+    {
+      "start": 298.36,
+      "end": 304.04,
+      "en": "Here I'm importing the Bert Large model and pushing it to the GPU.",
+      "zh": "這裡匯入 BERT large 模型，移到 GPU。"
+    },
+    {
+      "start": 304.08,
+      "end": 314.12,
+      "en": "This is not strictly necessary, but yeah, because it's on the the large model and because we will be doing lots of forward passes even though the sentences themselves.",
+      "zh": "這不是絕對必要，但因為是大模型，而且會做很多次前向傳播，即使句子本身，"
+    },
+    {
+      "start": 314.12,
+      "end": 319.68,
+      "en": "So the text sequences are pretty short, they're still going to be a lot of forward passes.",
+      "zh": "也就是文字序列很短，前向傳播次數仍然很多。"
+    },
+    {
+      "start": 319.68,
+      "end": 323.56,
+      "en": "So I think it's a good idea to run this on the GPU.",
+      "zh": "所以，我想放在 GPU 上執行比較好。"
+    },
+    {
+      "start": 324.24,
+      "end": 327.08,
+      "en": "Okay, so here is the hook function I'll get up to.",
+      "zh": "好，這裡是 hook 函數，我會談到，"
+    },
+    {
+      "start": 327.12,
+      "end": 328.88,
+      "en": "I'll get back to these in a moment.",
+      "zh": "稍後會回來看這些。"
+    },
+    {
+      "start": 329.52,
+      "end": 334.2,
+      "en": "Uh, the hook function looks pretty similar to what you have seen before here.",
+      "zh": "這個 hook 函數，與之前看到的很像。"
+    },
+    {
+      "start": 334.2,
+      "end": 340.88,
+      "en": "I'm saying that we will only modify this layer if this these two variables match.",
+      "zh": "這裡設定，只有這兩個變數相符時，才修改這一層。"
+    },
+    {
+      "start": 340.88,
+      "end": 346.72,
+      "en": "So the layer that is currently under consideration as the model is going through the forward pass.",
+      "zh": "一個是模型前向傳播目前處理的層。"
+    },
+    {
+      "start": 346.88,
+      "end": 352.12,
+      "en": "And then this variable which is not defined in this function is defined globally.",
+      "zh": "另一個變數，沒有在函數內定義，而是全域定義。"
+    },
+    {
+      "start": 352.12,
+      "end": 354.43,
+      "en": "So in the global Python workspace.",
+      "zh": "也就是全域 Python 工作空間中。"
+    },
+    {
+      "start": 354.99,
+      "end": 358.99,
+      "en": "So if those two match then we unpack the tuple.",
+      "zh": "如果兩者相符，就解開元組。"
+    },
+    {
+      "start": 358.99,
+      "end": 362.51,
+      "en": "And here you can see that's that's just loading in the Bert model.",
+      "zh": "這裡可以看到，這只是 BERT 模型正在載入。"
+    },
+    {
+      "start": 362.71,
+      "end": 363.43,
+      "en": "Uh where were we.",
+      "zh": "剛才在哪裡？"
+    },
+    {
+      "start": 363.47,
+      "end": 368.03,
+      "en": "Here you can see the calculation where I'm mixing the two matrices.",
+      "zh": "這裡可以看到，混合兩個矩陣的計算。"
+    },
+    {
+      "start": 368.47,
+      "end": 373.39,
+      "en": "So this right here, this is the original vector that comes from here.",
+      "zh": "這個是從這裡來的原始向量。"
+    },
+    {
+      "start": 373.63,
+      "end": 377.71,
+      "en": "Uh, so this is the one that is naturally being calculated by the model.",
+      "zh": "也就是模型自然計算出的。"
+    },
+    {
+      "start": 377.95,
+      "end": 383.27,
+      "en": "And then here I have this other vector called hidden state vector to replace.",
+      "zh": "這裡還有另一個向量，叫 hidden state vector to replace。"
+    },
+    {
+      "start": 383.59,
+      "end": 383.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 383.91,
+      "end": 390.07,
+      "en": "And then I'm adding these two together and multiplying them by the corresponding elements.",
+      "zh": "接著，把兩者相加，並乘上對應元素。"
+    },
+    {
+      "start": 390.07,
+      "end": 392.47,
+      "en": "In this variable it's a list.",
+      "zh": "就在這個變數中，它是串列。"
+    },
+    {
+      "start": 392.47,
+      "end": 394.15,
+      "en": "It's called mixture.",
+      "zh": "叫做 mixture。"
+    },
+    {
+      "start": 394.15,
+      "end": 395.83,
+      "en": "And it's defined up here.",
+      "zh": "定義在上面。"
+    },
+    {
+      "start": 396.79,
+      "end": 404.43,
+      "en": "And that replaces this one uh embeddings vector for this one target all of the embeddings dimensions.",
+      "zh": "這會替換這個目標的一個嵌入向量，包含全部嵌入維度。"
+    },
+    {
+      "start": 404.63,
+      "end": 408.90999999999997,
+      "en": "And here in this code challenge we will only be working with one sequence.",
+      "zh": "這次程式挑戰，只處理一個序列。"
+    },
+    {
+      "start": 408.90999999999997,
+      "end": 413.90999999999997,
+      "en": "So I've just hardcoded this to be uh sequence zero of this batch.",
+      "zh": "所以，我把它寫死為批次的序列零。"
+    },
+    {
+      "start": 414.35,
+      "end": 414.63,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 414.67,
+      "end": 416.59000000000003,
+      "en": "And then reconstruct the output here.",
+      "zh": "接著，在這裡重建輸出。"
+    },
+    {
+      "start": 416.59000000000003,
+      "end": 419.27,
+      "en": "I'm just printing out some useful information.",
+      "zh": "只是印出一些有用資訊。"
+    },
+    {
+      "start": 419.27,
+      "end": 428.79,
+      "en": "This is just a bit of sanity checking to confirm that we really are manipulating only the layer that we want to manipulate, and then that gets returned.",
+      "zh": "這是在檢查是否合理，確認真的只操作想操作的那一層，再傳回結果。"
+    },
+    {
+      "start": 428.79,
+      "end": 434.83,
+      "en": "And of course, if this statement is not true, which means we're in any other layer than the one we",
+      "zh": "當然，如果這個條件不成立，也就是目前在"
+    },
+    {
+      "start": 434.83,
+      "end": 444.99,
+      "en": "want to manipulate, none of this code gets run, and the output of the module just gets replaced by exactly itself.",
+      "zh": "目標以外的任何層，這些程式碼都不會執行，模組輸出只會被完全相同的自身替換。"
+    },
+    {
+      "start": 444.99,
+      "end": 447.23,
+      "en": "So it does absolutely nothing.",
+      "zh": "所以，絕對什麼都沒做。"
+    },
+    {
+      "start": 447.75,
+      "end": 450.51,
+      "en": "Okay, so then I have a couple of other vectors up here.",
+      "zh": "好，上面還有另外幾個向量。"
+    },
+    {
+      "start": 450.55,
+      "end": 453.99,
+      "en": "Layer to replace I'm initializing this to 40,000.",
+      "zh": "layer to replace，初始化為 40000。"
+    },
+    {
+      "start": 454.23,
+      "end": 455.27,
+      "en": "You've seen this before.",
+      "zh": "以前看過。"
+    },
+    {
+      "start": 455.31,
+      "end": 458.19,
+      "en": "That's just a way of creating this variable.",
+      "zh": "只是建立這個變數的一種方式。"
+    },
+    {
+      "start": 458.19,
+      "end": 462.83,
+      "en": "So it exists so that this line of code doesn't produce an error.",
+      "zh": "讓它存在，這行程式碼才不會產生錯誤。"
+    },
+    {
+      "start": 463.59000000000003,
+      "end": 471.87,
+      "en": "But also setting this to be way outside the range of the number of layers, so that this statement is never actually true.",
+      "zh": "同時，也把它設在層數範圍之外非常遠的位置，確保條件永遠不成立。"
+    },
+    {
+      "start": 472.14,
+      "end": 476.78,
+      "en": "That means that until I change this variable, nothing is going to happen.",
+      "zh": "代表，在改變這個變數之前，什麼都不會發生。"
+    },
+    {
+      "start": 476.78,
+      "end": 478.62,
+      "en": "No manipulations will take place.",
+      "zh": "不會做任何操作。"
+    },
+    {
+      "start": 479.74,
+      "end": 480.7,
+      "en": "This one as well.",
+      "zh": "這個也一樣。"
+    },
+    {
+      "start": 480.82,
+      "end": 487.66,
+      "en": "Here I'm initializing this variable to be zeros, but we will replace this in a later video.",
+      "zh": "這裡初始化為零，但後面的影片會替換。"
+    },
+    {
+      "start": 487.7,
+      "end": 490.14,
+      "en": "We're going to replace that with real embeddings vectors.",
+      "zh": "會換成真正的嵌入向量。"
+    },
+    {
+      "start": 490.38,
+      "end": 490.66,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 490.7,
+      "end": 495.18,
+      "en": "And then here I implant that hook into all of the layers.",
+      "zh": "接著，把 hook 植入所有層。"
+    },
+    {
+      "start": 496.38,
+      "end": 501.06,
+      "en": "Now we are ready to test for a gender bias in this model.",
+      "zh": "現在，準備測試模型的性別偏誤。"
+    },
+    {
+      "start": 501.58,
+      "end": 509.38,
+      "en": "The idea here is to tokenize for sentences that are all identical except for one word.",
+      "zh": "概念是，對四個句子做 token 化，除了其中一個詞之外，全部相同。"
+    },
+    {
+      "start": 509.86,
+      "end": 517.98,
+      "en": "So the engineer informed the client that he would need some more time, or she would need some more time, or they would need some more time.",
+      "zh": "工程師告知客戶，他需要更多時間，或者她需要更多時間，或者他們需要更多時間。"
+    },
+    {
+      "start": 518.18,
+      "end": 524.3,
+      "en": "And here the fourth iteration of this sentence is that mask would need more time.",
+      "zh": "第四個版本，則是 mask 需要更多時間。"
+    },
+    {
+      "start": 524.3,
+      "end": 526.66,
+      "en": "So this is the mask token.",
+      "zh": "這是 mask token。"
+    },
+    {
+      "start": 526.66,
+      "end": 528.38,
+      "en": "You've seen this in the previous video.",
+      "zh": "上一支影片看過。"
+    },
+    {
+      "start": 528.5,
+      "end": 533.53,
+      "en": "And basically this is just the square brackets with the word mask in between.",
+      "zh": "基本上，就是方括號，中間放 MASK 這個詞。"
+    },
+    {
+      "start": 533.85,
+      "end": 539.17,
+      "en": "So the sentence is always the same, except for this one key word over here.",
+      "zh": "句子總是相同，除了這裡這個關鍵詞。"
+    },
+    {
+      "start": 539.37,
+      "end": 544.65,
+      "en": "Here I'm printing out the tokenization just to make sure that everything worked.",
+      "zh": "這裡印出 token 化結果，確認一切正常。"
+    },
+    {
+      "start": 544.97,
+      "end": 554.65,
+      "en": "You will also need a variable for the mask index, because that will be the only token position that you will manipulate in the experiment.",
+      "zh": "也需要一個 mask index 變數，因為這是實驗中唯一會操作的 token 位置。"
+    },
+    {
+      "start": 555.13,
+      "end": 561.81,
+      "en": "And you're also going to need to know the vocab indices for the different target pronouns.",
+      "zh": "也需要知道，不同目標代名詞的詞彙表索引。"
+    },
+    {
+      "start": 562.37,
+      "end": 566.73,
+      "en": "Next, do a forward pass with all four of these sentences.",
+      "zh": "接著，對這四個句子都做前向傳播。"
+    },
+    {
+      "start": 567.17,
+      "end": 572.25,
+      "en": "Now for this exercise, do not do any mixing, any editing.",
+      "zh": "這份練習不要混合，也不要編輯。"
+    },
+    {
+      "start": 572.25,
+      "end": 573.45,
+      "en": "You don't want to add noise.",
+      "zh": "不要加入雜訊。"
+    },
+    {
+      "start": 573.45,
+      "end": 577.57,
+      "en": "You don't want to do anything here except the regular forward pass.",
+      "zh": "除了正常前向傳播，什麼都不要做。"
+    },
+    {
+      "start": 577.73,
+      "end": 581.29,
+      "en": "So this is just a regular forward pass through the model.",
+      "zh": "就是讓模型做正常前向傳播。"
+    },
+    {
+      "start": 581.57,
+      "end": 588.53,
+      "en": "Of course you want to give the output of the model different variable names, so you can continue accessing",
+      "zh": "當然，要為模型輸出取不同的變數名稱，這樣就能持續存取"
+    },
+    {
+      "start": 588.53,
+      "end": 594.8,
+      "en": "these model outputs for these four different sequences throughout the rest of this code.",
+      "zh": "這四個不同序列的模型輸出，供這次程式"
+    },
+    {
+      "start": 594.8,
+      "end": 595.44,
+      "en": "Challenge.",
+      "zh": "挑戰其餘部分使用。"
+    },
+    {
+      "start": 596.08,
+      "end": 600.68,
+      "en": "The next thing to do is to start investigating these different models.",
+      "zh": "接著，開始研究這些不同模型。"
+    },
+    {
+      "start": 601.12,
+      "end": 605.16,
+      "en": "Okay, now there's a lot going on in this figure that you are going to produce.",
+      "zh": "好，要製作的這張圖，內容很多。"
+    },
+    {
+      "start": 605.36,
+      "end": 607.92,
+      "en": "So let me take a moment to walk you through this.",
+      "zh": "讓我花一點時間，逐步說明。"
+    },
+    {
+      "start": 608.2,
+      "end": 615.72,
+      "en": "The top column shows the final model logit outputs transformed to log softmax.",
+      "zh": "上面那一欄，是最終模型 logit 輸出，轉換為 log_softmax。"
+    },
+    {
+      "start": 616.08,
+      "end": 621.8,
+      "en": "And the bottom row shows just the softmax probabilities without the log transform.",
+      "zh": "下面那一列，則只是 softmax 機率，沒有取對數。"
+    },
+    {
+      "start": 622.76,
+      "end": 629.88,
+      "en": "The height of the bars corresponds to the transformed logits for each of the three target pronouns,",
+      "zh": "長條高度，對應三個目標代名詞各自轉換後的 logit。"
+    },
+    {
+      "start": 630.2,
+      "end": 635,
+      "en": "and in the left column, we have the sentence that explicitly included the word he.",
+      "zh": "左欄是明確包含 he 的句子。"
+    },
+    {
+      "start": 635.6,
+      "end": 643.84,
+      "en": "In the middle column, the sentence that contained the word she in the target position and on the right is the sentence with they.",
+      "zh": "中欄是目標位置包含 she 的句子，右欄則是 they。"
+    },
+    {
+      "start": 644.48,
+      "end": 654.28,
+      "en": "So basically what these results show is that the model was extremely confident about predicting the word that actually was present in the sentence.",
+      "zh": "基本上，結果顯示，模型非常有把握地預測出句子中實際出現的詞。"
+    },
+    {
+      "start": 655.16,
+      "end": 661.2,
+      "en": "Now, to be honest, this figure here is not particularly interesting, nor is it surprising.",
+      "zh": "老實說，這張圖並不特別有趣，也不意外。"
+    },
+    {
+      "start": 661.48,
+      "end": 668.6,
+      "en": "In fact, it's kind of trivial that this is how it looks, because the model can literally see the word he in the sentence.",
+      "zh": "事實上，這有點理所當然，因為模型真的看得到句子中的 he。"
+    },
+    {
+      "start": 668.96,
+      "end": 675.04,
+      "en": "But this is actually good when you are developing code, when you're setting up analyses, you want",
+      "zh": "但開發程式、設定分析時，這其實很好，應該"
+    },
+    {
+      "start": 675.04,
+      "end": 681.36,
+      "en": "to incorporate lots of sanity checks like this to make sure that all of your code is correct.",
+      "zh": "加入很多這類合理性檢查，確認所有程式碼正確。"
+    },
+    {
+      "start": 681.92,
+      "end": 693.28,
+      "en": "By the way, it kind of looks like the bars are missing up here and down here, but they're actually just really close to zero because E to the zero is one.",
+      "zh": "順帶一提，這裡上面和下面，看起來有些長條不見了，但其實只是非常接近零，因為 e 的零次方是一。"
+    },
+    {
+      "start": 693.28,
+      "end": 694.08,
+      "en": "You see that?",
+      "zh": "看到了嗎？"
+    },
+    {
+      "start": 694.12,
+      "end": 694.36,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 694.4,
+      "end": 697.4,
+      "en": "These probability values are very close to one.",
+      "zh": "這些機率值非常接近一。"
+    },
+    {
+      "start": 698.44,
+      "end": 698.84,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 698.88,
+      "end": 701.4,
+      "en": "So this is like a trivial analysis.",
+      "zh": "所以，這是有點理所當然的分析。"
+    },
+    {
+      "start": 701.4,
+      "end": 702.76,
+      "en": "But you should do it anyway.",
+      "zh": "但還是應該做。"
+    },
+    {
+      "start": 702.76,
+      "end": 706.44,
+      "en": "It will help you set up for the non-trivial analysis.",
+      "zh": "它有助於為不那麼理所當然的分析做好準備。"
+    },
+    {
+      "start": 706.84,
+      "end": 716.91,
+      "en": "And then the nontrivial analysis to do for exercise two is to make a plot that looks like this, but for the masked sentence.",
+      "zh": "接著，練習二要做的不平凡分析，是製作類似的圖，但使用有遮罩的句子。"
+    },
+    {
+      "start": 717.07,
+      "end": 719.35,
+      "en": "And that is what you see here.",
+      "zh": "也就是這裡看到的。"
+    },
+    {
+      "start": 719.79,
+      "end": 729.55,
+      "en": "So this was the sentence where there was no pronoun, and the model had to make a prediction about what should go into this masked token.",
+      "zh": "這個句子沒有代名詞，模型必須預測，遮罩 token 的位置應該放什麼。"
+    },
+    {
+      "start": 730.11,
+      "end": 736.43,
+      "en": "I'm not going to reveal the results, because I want you to experience the joy of discovering this for yourself.",
+      "zh": "我不會先揭露結果，因為希望你親自體驗發現的樂趣。"
+    },
+    {
+      "start": 737.43,
+      "end": 738.83,
+      "en": "So that is exercise two.",
+      "zh": "這就是練習二。"
+    },
+    {
+      "start": 738.87,
+      "end": 741.11,
+      "en": "I hope you enjoy working through this one.",
+      "zh": "希望你享受這份練習。"
+    },
+    {
+      "start": 741.27,
+      "end": 745.23,
+      "en": "And now I will switch to code and discuss the findings in a bit more detail.",
+      "zh": "現在切換到程式碼，更詳細討論發現。"
+    },
+    {
+      "start": 746.59,
+      "end": 748.23,
+      "en": "Here are the target words.",
+      "zh": "這裡是目標詞。"
+    },
+    {
+      "start": 748.23,
+      "end": 749.67,
+      "en": "Here are the sentences.",
+      "zh": "這裡是句子。"
+    },
+    {
+      "start": 749.71,
+      "end": 756.03,
+      "en": "Again, they're all exactly the same except for one word difference he she they or mask.",
+      "zh": "同樣，完全相同，只差一個詞：he、she、they 或 mask。"
+    },
+    {
+      "start": 756.47,
+      "end": 758.15,
+      "en": "And also just a reminder.",
+      "zh": "也提醒一下。"
+    },
+    {
+      "start": 758.15,
+      "end": 765.86,
+      "en": "So these are the target words that we want to identify so that we can capture their log softmax Max",
+      "zh": "這些是我們要辨識的目標詞，才能在後續分析中，取得它們的 log_softmax"
+    },
+    {
+      "start": 765.9,
+      "end": 774.5,
+      "en": "logits in later analyses, and in Bert, we do not need preceding spaces because Bert ignores the preceding spaces.",
+      "zh": "logit；BERT 不需要前面的空白，因為它會忽略前置空白。"
+    },
+    {
+      "start": 774.82,
+      "end": 782.66,
+      "en": "If this were a GPT model that we were testing, you would want to incorporate spaces before these target words.",
+      "zh": "如果測試的是 GPT 模型，就要在這些目標詞前加上空白。"
+    },
+    {
+      "start": 782.78,
+      "end": 789.62,
+      "en": "So just a little reminder about the differences between tokenization in Bert and GPT models.",
+      "zh": "只是稍微提醒，BERT 和 GPT 模型 token 化的差異。"
+    },
+    {
+      "start": 790.14,
+      "end": 790.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 790.46,
+      "end": 793.34,
+      "en": "Let's see here I'm getting the target mask here.",
+      "zh": "這裡取得目標遮罩。"
+    },
+    {
+      "start": 793.34,
+      "end": 801.82,
+      "en": "So that's just yeah the index location where this mask occurs and then all of the other target words and so on okay.",
+      "zh": "也就是 mask 出現的索引位置，以及其他所有目標詞等等。"
+    },
+    {
+      "start": 801.86,
+      "end": 808.22,
+      "en": "So here we see the engineer inform the client that mask so blank would need more time.",
+      "zh": "這裡可以看到，工程師告知客戶，mask，也就是空白，需要更多時間。"
+    },
+    {
+      "start": 808.22,
+      "end": 812.66,
+      "en": "And we get all of these index positions here.",
+      "zh": "取得這裡全部索引位置。"
+    },
+    {
+      "start": 812.66,
+      "end": 819.3,
+      "en": "Again I'm redefining completely redundantly redefining this variable here to be 40,000.",
+      "zh": "再次完全多餘地，把這個變數重新定義為 40000。"
+    },
+    {
+      "start": 819.42,
+      "end": 821.46,
+      "en": "That's just for like safety.",
+      "zh": "只是為了保險。"
+    },
+    {
+      "start": 821.5,
+      "end": 829.33,
+      "en": "It's for my own mental sanity basically just in case you need to rerun this code after running later",
+      "zh": "基本上，是為了讓自己安心，免得執行後面程式碼之後，需要重跑這一段。"
+    },
+    {
+      "start": 829.33,
+      "end": 833.85,
+      "en": "code, let me just skip down to later in the figure you see okay.",
+      "zh": "讓我跳到後面的圖，你會看到。"
+    },
+    {
+      "start": 833.89,
+      "end": 835.69,
+      "en": "So for example an exercise four.",
+      "zh": "例如，練習四，"
+    },
+    {
+      "start": 835.73,
+      "end": 839.77,
+      "en": "We're going to be changing this variable layer to replace.",
+      "zh": "我們會改變 layer to replace 變數。"
+    },
+    {
+      "start": 839.77,
+      "end": 842.49,
+      "en": "Let's say you're exploring you're testing.",
+      "zh": "假設你正在探索、測試。"
+    },
+    {
+      "start": 842.49,
+      "end": 845.45,
+      "en": "You accidentally overwrite one of the variables.",
+      "zh": "不小心覆寫某個變數。"
+    },
+    {
+      "start": 845.49,
+      "end": 848.45,
+      "en": "You want to go back and rerun this code.",
+      "zh": "想回去重新執行這段程式碼。"
+    },
+    {
+      "start": 848.45,
+      "end": 860.01,
+      "en": "You will need to make sure that you really are resetting this variable layer to replace so that it doesn't actually continue modifying the model.",
+      "zh": "就必須確認，真的重設 layer to replace，避免繼續修改模型。"
+    },
+    {
+      "start": 861.21,
+      "end": 868.57,
+      "en": "Okay, so all that said, yeah, now I'm running four forward passes through the model with the different token sequences.",
+      "zh": "好，說完這些，現在讓不同 token 序列，各自通過模型，做四次前向傳播。"
+    },
+    {
+      "start": 868.57,
+      "end": 879.33,
+      "en": "And the final one is the mask that will allow us to measure the bias that the model has, at least in this specific example sentence.",
+      "zh": "最後一個是 mask，讓我們能測量模型的偏誤，至少在這個特定範例句子中。"
+    },
+    {
+      "start": 879.81,
+      "end": 880.13,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 880.17,
+      "end": 881.73,
+      "en": "Then I'm let's see.",
+      "zh": "接著，看看。"
+    },
+    {
+      "start": 881.93,
+      "end": 890.41,
+      "en": "Grabbing all of the logits for the masked token index for all of the vocab elements from the.",
+      "zh": "從 he 句子中，取出遮罩 token 索引位置，對所有詞彙表元素的"
+    },
+    {
+      "start": 890.45,
+      "end": 897.29,
+      "en": "He sentence log softmax and then showing from that log softmax the target.",
+      "zh": "logit，做 log_softmax，再從中顯示目標"
+    },
+    {
+      "start": 897.33,
+      "end": 898.29,
+      "en": "Indices.",
+      "zh": "索引。"
+    },
+    {
+      "start": 898.41,
+      "end": 902.97,
+      "en": "And then also here I'm undoing the logarithm to show the probability.",
+      "zh": "這裡也反轉對數，顯示機率"
+    },
+    {
+      "start": 903.01,
+      "end": 903.69,
+      "en": "Values.",
+      "zh": "值。"
+    },
+    {
+      "start": 904.09,
+      "end": 904.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 904.49,
+      "end": 906.45,
+      "en": "So this is the figure that I showed.",
+      "zh": "這就是先前展示的圖。"
+    },
+    {
+      "start": 906.49,
+      "end": 909.49,
+      "en": "Again this is kind of trivial that it looks like this.",
+      "zh": "同樣，長這樣有點理所當然。"
+    },
+    {
+      "start": 909.49,
+      "end": 916.45,
+      "en": "So we get basically really high probabilities for the target values in each of the corresponding sentences.",
+      "zh": "各個對應句子中的目標值，基本上都有非常高的機率。"
+    },
+    {
+      "start": 916.81,
+      "end": 921.41,
+      "en": "It's trivial because the model literally sees that exact word in the sentence.",
+      "zh": "理所當然，因為模型真的看得到句子中完全相同的詞。"
+    },
+    {
+      "start": 921.41,
+      "end": 923.85,
+      "en": "So yeah, this is not super meaningful.",
+      "zh": "所以，這不是特別有意義。"
+    },
+    {
+      "start": 924.17,
+      "end": 932.05,
+      "en": "On the other hand, if you did not see a pattern that looks like this, then you would be suspicious that something was wrong with your code.",
+      "zh": "另一方面，如果看不到這種模式，就會懷疑程式碼有問題。"
+    },
+    {
+      "start": 932.05,
+      "end": 934.01,
+      "en": "Maybe there's an indexing problem.",
+      "zh": "也許是索引問題。"
+    },
+    {
+      "start": 934.25,
+      "end": 942.05,
+      "en": "So these kinds of visualizations are great sanity checks to incorporate into your analysis code.",
+      "zh": "所以，這類視覺化，很適合加入分析程式碼作為合理性檢查。"
+    },
+    {
+      "start": 942.37,
+      "end": 945,
+      "en": "So this is for he she and they.",
+      "zh": "這是 he、she 和 they。"
+    },
+    {
+      "start": 945.04,
+      "end": 952.64,
+      "en": "And now the non-trivial analysis is what this plot will look like when we use the mask sentence.",
+      "zh": "現在，不平凡的分析，是使用 mask 句子時，這張圖長什麼樣子。"
+    },
+    {
+      "start": 952.64,
+      "end": 953.64,
+      "en": "And that's what I'm doing here.",
+      "zh": "這裡就是要做的。"
+    },
+    {
+      "start": 953.64,
+      "end": 959.44,
+      "en": "So all of this code is the same as above but looking for the mask token.",
+      "zh": "所有程式碼與上面相同，但這次看 mask token。"
+    },
+    {
+      "start": 959.72,
+      "end": 966.84,
+      "en": "So we see if we look over at the softmax probabilities the probability value for heat is over 0.6.",
+      "zh": "看 softmax 機率，可以看到 he 的機率超過 0.6。"
+    },
+    {
+      "start": 966.84,
+      "end": 971.4,
+      "en": "Maybe it's close to 70% for they it's around 20%.",
+      "zh": "也許接近 70%；they 大約是 20%。"
+    },
+    {
+      "start": 971.4,
+      "end": 974.92,
+      "en": "And for XI it's like I don't know 2% or whatever this is.",
+      "zh": "she 則大概是 2%，或者這裡這個值。"
+    },
+    {
+      "start": 975.24,
+      "end": 982.04,
+      "en": "And you see these differences also in the log of these values as well, that the log is closest to zero.",
+      "zh": "在這些值的對數中，也能看到相同差異；對數最接近零，"
+    },
+    {
+      "start": 982.44,
+      "end": 985.88,
+      "en": "So the largest for he and it's the smallest for XI.",
+      "zh": "也就是 he 最大，she 最小。"
+    },
+    {
+      "start": 986.32,
+      "end": 987.44,
+      "en": "And what does this mean.",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 987.44,
+      "end": 995.88,
+      "en": "This means that the model's activation for these different pronouns is highest for he and lower for xi compared to they.",
+      "zh": "代表模型對這幾個代名詞的活化，he 最高，而 she 比 they 更低。"
+    },
+    {
+      "start": 996.44,
+      "end": 1001.44,
+      "en": "And by the way, there's something else I want to show you so they gets relatively low activation.",
+      "zh": "順帶一提，還想展示另一件事，they 的活化相對低。"
+    },
+    {
+      "start": 1001.44,
+      "end": 1008.95,
+      "en": "What I want to show you now is what happens if I would change this sentence to say to make this plural",
+      "zh": "現在想展示，如果把這個句子改成複數，"
+    },
+    {
+      "start": 1009.23,
+      "end": 1016.63,
+      "en": "so the engineers, instead of the engineer, the engineers plural informed the client that.",
+      "zh": "也就是 the engineers，而非 the engineer；複數的工程師們告知客戶，"
+    },
+    {
+      "start": 1016.91,
+      "end": 1017.87,
+      "en": "And now let's see.",
+      "zh": "現在看看。"
+    },
+    {
+      "start": 1017.87,
+      "end": 1019.11,
+      "en": "I'll redo that.",
+      "zh": "重做這個。"
+    },
+    {
+      "start": 1019.19,
+      "end": 1021.15,
+      "en": "I don't need to redo that, but I'll do it anyway.",
+      "zh": "其實不用重做，不過還是做一下。"
+    },
+    {
+      "start": 1021.19,
+      "end": 1022.95,
+      "en": "Definitely need to rerun this.",
+      "zh": "這個一定要重新執行。"
+    },
+    {
+      "start": 1023.67,
+      "end": 1025.47,
+      "en": "Uh, I don't care about this.",
+      "zh": "這個不在意。"
+    },
+    {
+      "start": 1025.47,
+      "end": 1026.39,
+      "en": "And now I'm going.",
+      "zh": "現在我要……"
+    },
+    {
+      "start": 1026.43,
+      "end": 1030.43,
+      "en": "Ah, no, I well, I'll just rerun everything just for security.",
+      "zh": "不，算了，為了保險，我把全部重跑。"
+    },
+    {
+      "start": 1030.47,
+      "end": 1032.51,
+      "en": "Okay, so here's what it looked like before.",
+      "zh": "好，這是原本的樣子。"
+    },
+    {
+      "start": 1032.67,
+      "end": 1038.79,
+      "en": "And now this is what it looks like when I just changed the word engineer to engineers.",
+      "zh": "現在，只把 engineer 改成 engineers，就變成這樣。"
+    },
+    {
+      "start": 1039.23,
+      "end": 1047.47,
+      "en": "And just making it plural now dominates or allows the day token to dominate above the heat token.",
+      "zh": "只改成複數，現在就讓 they token 占優勢，超過 he token。"
+    },
+    {
+      "start": 1049.11,
+      "end": 1056.03,
+      "en": "So again, to be clear, what we have now demonstrated unequivocally is that this particular language",
+      "zh": "再說清楚，我們現在明確證明的是，這個特定語言"
+    },
+    {
+      "start": 1056.03,
+      "end": 1063.62,
+      "en": "model has a bias for associating engineers with the pronoun he in this particular sentence.",
+      "zh": "模型，在這個特定句子中，偏向把工程師與 he 代名詞連結。"
+    },
+    {
+      "start": 1063.98,
+      "end": 1070.86,
+      "en": "If you want to make strong claims about gender biases in language models in general, you would need",
+      "zh": "如果想對一般語言模型的性別偏誤提出強烈主張，"
+    },
+    {
+      "start": 1070.86,
+      "end": 1077.9,
+      "en": "to do this kind of analysis, but with a lot more examples and ideally in more models as well.",
+      "zh": "就需要做這類分析，但使用更多範例，最好也測試更多模型。"
+    },
+    {
+      "start": 1078.66,
+      "end": 1087.82,
+      "en": "Anyway, the goal of exercise three is to see if we can remove that gender bias through editing selective editing.",
+      "zh": "總之，練習三的目標，是看看能否透過編輯，也就是選擇性編輯，移除這個性別偏誤。"
+    },
+    {
+      "start": 1088.42,
+      "end": 1094.62,
+      "en": "Here we will focus entirely on layer ten, and you don't have to worry about any of the other layers for now.",
+      "zh": "這裡完全聚焦於第十號層，目前不用擔心其他任何層。"
+    },
+    {
+      "start": 1094.62,
+      "end": 1096.74,
+      "en": "We'll get to that in the next exercise.",
+      "zh": "下一個練習會處理。"
+    },
+    {
+      "start": 1097.38,
+      "end": 1106.94,
+      "en": "So using the hook that you wrote in exercise one, replace the transformer output from block ten with",
+      "zh": "使用練習一寫的 hook，替換第十號區塊的 Transformer 輸出，"
+    },
+    {
+      "start": 1106.98,
+      "end": 1115.9,
+      "en": "10% of the vector that the model naturally calculates, and 90% from the exact same vector location.",
+      "zh": "其中 10% 來自模型自然計算的向量，90% 來自完全相同的向量位置。"
+    },
+    {
+      "start": 1115.94,
+      "end": 1124.06,
+      "en": "So the same token index, but coming from the model that actually processed the sentence with the word she in it.",
+      "zh": "也就是相同 token 索引，但來自實際處理包含 she 這個詞之句子的模型。"
+    },
+    {
+      "start": 1124.5,
+      "end": 1125.66,
+      "en": "I hope that makes sense.",
+      "zh": "希望這樣清楚。"
+    },
+    {
+      "start": 1125.86,
+      "end": 1135.06,
+      "en": "So you need to find the embeddings vector for the word xi in transformer block ten from the output when",
+      "zh": "所以，要找出第十號 Transformer 區塊中，she 這個詞的嵌入向量，來自"
+    },
+    {
+      "start": 1135.06,
+      "end": 1137.7,
+      "en": "the model actually saw the word xi.",
+      "zh": "模型實際看見 she 時的輸出。"
+    },
+    {
+      "start": 1138.26,
+      "end": 1146.02,
+      "en": "And that is what you mix together with the token for the word mask, which is being calculated in the forward pass.",
+      "zh": "再把它與前向傳播中，正在計算的 mask token 混合。"
+    },
+    {
+      "start": 1146.1,
+      "end": 1152.54,
+      "en": "When you run the sentence with the word mask through the model, the figure you will create for this",
+      "zh": "當你把有 mask 這個詞的句子送進模型，這份練習要製作的圖，"
+    },
+    {
+      "start": 1152.54,
+      "end": 1158.34,
+      "en": "exercise is similar to the last figure that you created for exercise two.",
+      "zh": "會與練習二最後製作的圖類似。"
+    },
+    {
+      "start": 1158.82,
+      "end": 1162.34,
+      "en": "But you can include two sets of bar graphs.",
+      "zh": "但可以放入兩組長條圖。"
+    },
+    {
+      "start": 1162.62,
+      "end": 1168.66,
+      "en": "In fact, the blue lines here are identical to the bar graphs from exercise two.",
+      "zh": "這裡的藍線，其實與練習二的長條完全相同。"
+    },
+    {
+      "start": 1169.18,
+      "end": 1171.5,
+      "en": "The orange bars here, those are new.",
+      "zh": "橘色長條則是新的。"
+    },
+    {
+      "start": 1171.78,
+      "end": 1175.98,
+      "en": "And that comes from manipulating the model in layer ten.",
+      "zh": "來自在第十號層操作模型，"
+    },
+    {
+      "start": 1176.34,
+      "end": 1179.09,
+      "en": "For that one token embeddings vector.",
+      "zh": "針對那一個 token 嵌入向量的結果。"
+    },
+    {
+      "start": 1179.49,
+      "end": 1183.33,
+      "en": "So here I'm showing you what it would look like for the word they.",
+      "zh": "這裡展示的是 they 這個詞。"
+    },
+    {
+      "start": 1183.85,
+      "end": 1186.89,
+      "en": "And the question is what it looks like for he and she.",
+      "zh": "問題是，he 和 she 的結果長什麼樣子？"
+    },
+    {
+      "start": 1187.41,
+      "end": 1191.33,
+      "en": "And also again I'm showing the log softmax over here.",
+      "zh": "同樣，這裡展示 log_softmax，"
+    },
+    {
+      "start": 1191.49,
+      "end": 1195.41,
+      "en": "And the softmax probability in these two different axes.",
+      "zh": "以及這兩個座標系中的 softmax 機率。"
+    },
+    {
+      "start": 1195.89,
+      "end": 1201.29,
+      "en": "Of course it's still the same data in the left and the right plot just visualized differently.",
+      "zh": "當然，左圖與右圖仍是相同資料，只是視覺化方式不同。"
+    },
+    {
+      "start": 1202.13,
+      "end": 1207.53,
+      "en": "The last thing to do in this exercise is to calculate a bias score.",
+      "zh": "練習最後，要計算偏誤分數。"
+    },
+    {
+      "start": 1208.13,
+      "end": 1216.33,
+      "en": "You can do this simply by subtracting the log softmax for the masked token for he minus she.",
+      "zh": "只要取遮罩 token 位置，he 的 log_softmax 減去 she 的 log_softmax。"
+    },
+    {
+      "start": 1217.05,
+      "end": 1225.09,
+      "en": "A positive bias will mean more activation for he, and a negative bias would mean more activation for she.",
+      "zh": "正偏誤代表 he 活化較多，負偏誤代表 she 活化較多。"
+    },
+    {
+      "start": 1225.61,
+      "end": 1232.21,
+      "en": "The ideal result, which would be no gender bias at all, would be a bias score of zero.",
+      "zh": "理想結果，也就是完全沒有性別偏誤，偏誤分數會是零。"
+    },
+    {
+      "start": 1232.97,
+      "end": 1238.2,
+      "en": "In the next video, we're going to continue working with this metric over the different layers.",
+      "zh": "下一支影片，會繼續對不同層使用這個指標。"
+    },
+    {
+      "start": 1238.44,
+      "end": 1246.36,
+      "en": "But for now, here in exercise three, you can just calculate it for this one result with this one layer manipulation.",
+      "zh": "但目前練習三，只要計算這一層操作、這一個結果即可。"
+    },
+    {
+      "start": 1247.28,
+      "end": 1252.24,
+      "en": "I hope you find this exercise to be thought provoking and also fun to work through.",
+      "zh": "希望這份練習讓你覺得值得思考，也做得開心。"
+    },
+    {
+      "start": 1252.64,
+      "end": 1254.36,
+      "en": "And now I will switch to code.",
+      "zh": "現在切換到程式碼。"
+    },
+    {
+      "start": 1255.64,
+      "end": 1261.72,
+      "en": "Here I define the variable layer to replace which was previously set to 40,000.",
+      "zh": "這裡定義 layer to replace 變數，之前設為 40000。"
+    },
+    {
+      "start": 1261.76,
+      "end": 1264.2,
+      "en": "Now I'm defining it to be ten.",
+      "zh": "現在定義為十。"
+    },
+    {
+      "start": 1264.6,
+      "end": 1268.88,
+      "en": "And I'm also redefining this hidden state vector to replace.",
+      "zh": "也重新定義 hidden state vector to replace。"
+    },
+    {
+      "start": 1268.88,
+      "end": 1275.08,
+      "en": "Remember I initialized it with all zeros and now I'm replacing it with this layer.",
+      "zh": "記得，一開始全設成零，現在替換成這個 layer"
+    },
+    {
+      "start": 1275.08,
+      "end": 1282.84,
+      "en": "To replace I will ask you about this plus one in a moment and sequence one the mask target index, all",
+      "zh": "to replace。稍後會問你這裡為何加一。再取序列一、mask 目標索引，以及全部"
+    },
+    {
+      "start": 1282.84,
+      "end": 1289.4,
+      "en": "of the embeddings vectors, and from the version of the model where the model actually saw the word she.",
+      "zh": "嵌入向量，而且來自模型實際看見 she 的版本。"
+    },
+    {
+      "start": 1289.72,
+      "end": 1294.72,
+      "en": "So that means that this hidden states vector really corresponds to the token xi.",
+      "zh": "所以，這個隱藏狀態向量，真的對應 she token。"
+    },
+    {
+      "start": 1295,
+      "end": 1305.75,
+      "en": "And the idea is that we will mix together this token with whatever is the embeddings vector that the model is processing when it sees the word mask.",
+      "zh": "概念是，把這個 token，與模型看見 mask 時所處理的嵌入向量混合。"
+    },
+    {
+      "start": 1306.07,
+      "end": 1309.27,
+      "en": "So I'm not running through the tokens for he or she or they.",
+      "zh": "所以，不是讓 he、she 或 they 的 token 通過模型。"
+    },
+    {
+      "start": 1309.31,
+      "end": 1316.51,
+      "en": "I'm running through the tokens for the word mask, but I'm going to mix in the embeddings vector that",
+      "zh": "而是讓 mask 這個詞的 token 通過，但混入"
+    },
+    {
+      "start": 1316.51,
+      "end": 1325.51,
+      "en": "gets elicited by the mask token with the embeddings vector for the token corresponding to xi in the",
+      "zh": "mask token 引出的嵌入向量，以及 she token 在"
+    },
+    {
+      "start": 1325.51,
+      "end": 1328.71,
+      "en": "same layer and in the same target position.",
+      "zh": "相同層、相同目標位置的嵌入向量。"
+    },
+    {
+      "start": 1328.75,
+      "end": 1328.99,
+      "en": "Woof!",
+      "zh": "呼！"
+    },
+    {
+      "start": 1329.03,
+      "end": 1330.75,
+      "en": "Quite a mouthful to explain that.",
+      "zh": "解釋起來真拗口。"
+    },
+    {
+      "start": 1330.75,
+      "end": 1332.15,
+      "en": "I hope it all makes sense.",
+      "zh": "希望都說得通。"
+    },
+    {
+      "start": 1332.43,
+      "end": 1334.91,
+      "en": "Okay, so here's another question for you.",
+      "zh": "好，這裡再問你一個問題。"
+    },
+    {
+      "start": 1335.87,
+      "end": 1338.51,
+      "en": "Why is there a plus one here?",
+      "zh": "為什麼這裡加一？"
+    },
+    {
+      "start": 1338.63,
+      "end": 1341.71,
+      "en": "Why am I setting this variable to be ten.",
+      "zh": "為什麼把這個變數設為十，"
+    },
+    {
+      "start": 1341.99,
+      "end": 1344.55,
+      "en": "But here I'm accessing 11.",
+      "zh": "這裡卻存取十一？"
+    },
+    {
+      "start": 1344.99,
+      "end": 1346.19,
+      "en": "This is a tricky point.",
+      "zh": "這是棘手的地方。"
+    },
+    {
+      "start": 1346.19,
+      "end": 1353.11,
+      "en": "You have to remember that the hugging face versions of these models, when they define hidden states.",
+      "zh": "必須記得，Hugging Face 版本的模型，在定義隱藏狀態時，"
+    },
+    {
+      "start": 1353.23,
+      "end": 1361.19,
+      "en": "The first hidden state with index zero is not a transformer block, it is the output of the embeddings",
+      "zh": "第一個、索引零的隱藏狀態，不是 Transformer 區塊，而是模型最前面"
+    },
+    {
+      "start": 1361.31,
+      "end": 1366.39,
+      "en": "layer at the very beginning of the model, the token embeddings plus the position embeddings.",
+      "zh": "嵌入層的輸出，也就是 token 嵌入加上位置嵌入。"
+    },
+    {
+      "start": 1366.83,
+      "end": 1373.99,
+      "en": "So that means if you want to manipulate transformer block ten, which is actually the 11th transformer",
+      "zh": "所以，如果想操作第十號 Transformer 區塊，它其實是第十一個 Transformer"
+    },
+    {
+      "start": 1373.99,
+      "end": 1382.47,
+      "en": "block, then that corresponds to ten plus one, because this starts counting at zero for the first transformer block.",
+      "zh": "區塊，就對應十加一，因為第一個 Transformer 區塊從零開始計數。"
+    },
+    {
+      "start": 1382.47,
+      "end": 1384.79,
+      "en": "But the hidden states start transforming.",
+      "zh": "但隱藏狀態開始轉換……"
+    },
+    {
+      "start": 1385.11,
+      "end": 1389.31,
+      "en": "Start indexing at one for the first transformer block.",
+      "zh": "第一個 Transformer 區塊，索引從一開始。"
+    },
+    {
+      "start": 1389.67,
+      "end": 1393.47,
+      "en": "Also quite a mouthful to explain, but I think you get the idea.",
+      "zh": "解釋起來也很拗口，但我想你懂概念。"
+    },
+    {
+      "start": 1393.51,
+      "end": 1395.27,
+      "en": "Okay, so let me run through that.",
+      "zh": "好，讓我執行。"
+    },
+    {
+      "start": 1395.67,
+      "end": 1403.07,
+      "en": "And this provides some text confirmation that I wrote into the hook function.",
+      "zh": "這提供了一些我在 hook 函數中寫入的文字確認訊息。"
+    },
+    {
+      "start": 1403.47,
+      "end": 1403.75,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1403.79,
+      "end": 1411.03,
+      "en": "And now the rest of this code is basically just visualizing according to a code that I've written earlier.",
+      "zh": "現在其餘程式碼，基本上只是依照前面寫過的程式碼視覺化。"
+    },
+    {
+      "start": 1411.03,
+      "end": 1415.14,
+      "en": "So taking the mask Ask logits from the original.",
+      "zh": "取出原始的 mask logit。"
+    },
+    {
+      "start": 1415.18,
+      "end": 1424.82,
+      "en": "This is the clean version of the model, without any manipulations with the version of the model that I just ran up here where I actually did manipulate.",
+      "zh": "也就是乾淨、沒有操作的模型版本，以及上面剛執行、實際做過操作的模型版本。"
+    },
+    {
+      "start": 1424.82,
+      "end": 1430.62,
+      "en": "And this here I'm calling a ridge, and here I'm calling ripple for replace.",
+      "zh": "這裡稱為 orig，這裡稱為 repl，代表 replace。"
+    },
+    {
+      "start": 1430.86,
+      "end": 1434.78,
+      "en": "Okay, so then here is the interesting analysis.",
+      "zh": "好，接著是有趣的分析。"
+    },
+    {
+      "start": 1435.02,
+      "end": 1437.5,
+      "en": "So again remember blue is from the original.",
+      "zh": "記得，藍色來自原始模型。"
+    },
+    {
+      "start": 1437.5,
+      "end": 1444.46,
+      "en": "And what we see is that even though the word he and she do not actually appear in the sentence, the",
+      "zh": "可以看到，雖然 he 和 she 並沒有實際出現在句子裡，"
+    },
+    {
+      "start": 1444.46,
+      "end": 1452.46,
+      "en": "model is just likely to produce the token for he because yeah, it saw the word engineer and it associates",
+      "zh": "模型卻比較可能產生 he token，因為它看到 engineer，會把"
+    },
+    {
+      "start": 1452.46,
+      "end": 1459.1,
+      "en": "engineers with the word he more than it associates the word engineer with the token for she.",
+      "zh": "工程師與 he 的連結，建立得比 engineer 與 she token 的連結更強。"
+    },
+    {
+      "start": 1459.62,
+      "end": 1459.9,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1459.94,
+      "end": 1461.94,
+      "en": "So that is from the original model.",
+      "zh": "那是原始模型。"
+    },
+    {
+      "start": 1461.94,
+      "end": 1466.22,
+      "en": "And then we mix them together at 10% and 1%.",
+      "zh": "接著，用 10% 和 1% 把它們混合。"
+    },
+    {
+      "start": 1466.22,
+      "end": 1469.98,
+      "en": "And what we got is a complete, complete reversal.",
+      "zh": "得到的，是完全、徹底的反轉。"
+    },
+    {
+      "start": 1470.18,
+      "end": 1476.09,
+      "en": "So now the model has basically no activation, very, very little activation for the word he.",
+      "zh": "現在，模型對 he 幾乎沒有活化，只有非常、非常少。"
+    },
+    {
+      "start": 1476.09,
+      "end": 1482.81,
+      "en": "And it really activates for the word she almost 100% probability of responding to she.",
+      "zh": "卻對 she 強烈活化，回應 she 的機率幾乎是 100%。"
+    },
+    {
+      "start": 1482.85,
+      "end": 1488.33,
+      "en": "Now that is not very surprising because the manipulation that we ran was pretty severe.",
+      "zh": "這其實不太意外，因為操作相當強烈。"
+    },
+    {
+      "start": 1488.33,
+      "end": 1491.01,
+      "en": "It was 10% and 90%.",
+      "zh": "是 10% 和 90%。"
+    },
+    {
+      "start": 1491.01,
+      "end": 1498.77,
+      "en": "So we're really injecting the representation of the word she into this model okay.",
+      "zh": "所以，我們真的把 she 這個詞的表徵，注入這個模型。"
+    },
+    {
+      "start": 1498.81,
+      "end": 1501.49,
+      "en": "And now let's calculate this bias score.",
+      "zh": "現在計算偏誤分數。"
+    },
+    {
+      "start": 1501.65,
+      "end": 1508.57,
+      "en": "So you see in the original model the bias was three log units difference in favor of he.",
+      "zh": "可以看到，原始模型偏向 he，差了三個對數單位。"
+    },
+    {
+      "start": 1508.61,
+      "end": 1510.49,
+      "en": "So that means a bias towards he.",
+      "zh": "也就是對 he 的偏誤。"
+    },
+    {
+      "start": 1510.89,
+      "end": 1513.41,
+      "en": "And now we've completely reversed it.",
+      "zh": "現在完全反轉。"
+    },
+    {
+      "start": 1513.41,
+      "end": 1516.53,
+      "en": "So not just reverse it but like to the extreme.",
+      "zh": "不只是反轉，而是走到極端。"
+    },
+    {
+      "start": 1516.53,
+      "end": 1522.57,
+      "en": "So now we have a bias score of minus ten almost -11 log units.",
+      "zh": "現在偏誤分數是負十，將近負十一個對數單位。"
+    },
+    {
+      "start": 1522.57,
+      "end": 1530.65,
+      "en": "So this is a really intense like anti bias that we have introduced into this model.",
+      "zh": "所以，這是我們在模型中加入的，非常強烈的反向偏誤。"
+    },
+    {
+      "start": 1531.09,
+      "end": 1535.56,
+      "en": "So that's pretty extreme if you like, before going on to the next exercise.",
+      "zh": "這相當極端。如果願意，在進入下一個練習前，"
+    },
+    {
+      "start": 1535.56,
+      "end": 1541.28,
+      "en": "If you are curious, you can try rerunning this exercise a few more times.",
+      "zh": "如果好奇，可以試著多重跑這份練習幾次。"
+    },
+    {
+      "start": 1541.28,
+      "end": 1546.88,
+      "en": "So run the code for this exercise a few more times, but change around the mixture levels.",
+      "zh": "執行幾次練習程式碼，但改變混合比例。"
+    },
+    {
+      "start": 1546.88,
+      "end": 1557.8,
+      "en": "So instead of being 1% and 90%, maybe 30% and 70% or any other combination you'd like to try, this",
+      "zh": "不使用 1% 和 90%，也許改成 30% 和 70%，或者其他任何想試的組合。這"
+    },
+    {
+      "start": 1557.8,
+      "end": 1561.36,
+      "en": "is the last exercise of this code challenge.",
+      "zh": "是這次程式挑戰最後一個練習。"
+    },
+    {
+      "start": 1561.76,
+      "end": 1571.36,
+      "en": "The idea now is to soften the anti-bias editing a little bit and explore whether it matters which layer we modify.",
+      "zh": "現在的概念，是稍微減弱反向偏誤編輯，探索修改哪一層是否重要。"
+    },
+    {
+      "start": 1571.92,
+      "end": 1583.44,
+      "en": "So change the mixing weights to be half half so evenly, combining the naturally calculated vector with the one from the model that actually saw the word.",
+      "zh": "把混合權重改成一半、一半，也就是平均混合自然計算出的向量，以及模型實際看到這個詞時的向量，"
+    },
+    {
+      "start": 1583.48,
+      "end": 1593.32,
+      "en": "She then have a for loop over all of the different layers and basically repeat the calculation from exercise three.",
+      "zh": "也就是 she。接著，用 for 迴圈遍歷不同層，基本上重複練習三的計算。"
+    },
+    {
+      "start": 1594,
+      "end": 1599.92,
+      "en": "Now you don't need to create 24 sets of bar graphs, because that's just a lot of stuff to look at.",
+      "zh": "不需要建立 24 組長條圖，那樣要看的東西太多。"
+    },
+    {
+      "start": 1600,
+      "end": 1607.16,
+      "en": "So you can just focus on calculating the bias score and store that value per layer.",
+      "zh": "只要聚焦於計算偏誤分數，每一層儲存一個值。"
+    },
+    {
+      "start": 1607.56,
+      "end": 1610.16,
+      "en": "And then you can visualize it like this.",
+      "zh": "再像這樣視覺化。"
+    },
+    {
+      "start": 1610.28,
+      "end": 1615.04,
+      "en": "So the dashed line at zero corresponds to no bias.",
+      "zh": "零的虛線，對應沒有偏誤。"
+    },
+    {
+      "start": 1615.68,
+      "end": 1622.08,
+      "en": "So now the question is what is this going to look like as we go deeper into the model.",
+      "zh": "現在的問題是，越深入模型，會呈現什麼樣子？"
+    },
+    {
+      "start": 1622.48,
+      "end": 1629.48,
+      "en": "For example, does the bias score just kind of bop around randomly or does it go monotonically down?",
+      "zh": "例如，偏誤分數會隨機跳動，還是單調下降？"
+    },
+    {
+      "start": 1629.52,
+      "end": 1631.84,
+      "en": "Maybe it goes down and then comes back up.",
+      "zh": "也許先下降，再回升。"
+    },
+    {
+      "start": 1632.04,
+      "end": 1633.84,
+      "en": "That is for you to discover.",
+      "zh": "留給你發現。"
+    },
+    {
+      "start": 1634.72,
+      "end": 1635.24,
+      "en": "Cool.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1635.28,
+      "end": 1638.16,
+      "en": "I hope you enjoy working through this exercise.",
+      "zh": "希望你享受這份練習。"
+    },
+    {
+      "start": 1638.2,
+      "end": 1640.32,
+      "en": "And now I will show my solution.",
+      "zh": "現在展示我的解答。"
+    },
+    {
+      "start": 1641.92,
+      "end": 1648.28,
+      "en": "Here I am redefining this variable mixture to be 50 over 50.5 0.5.",
+      "zh": "這裡重新定義 mixture 為一半、一半，也就是 0.5、0.5。"
+    },
+    {
+      "start": 1648.92,
+      "end": 1649.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1649.51,
+      "end": 1652.39,
+      "en": "And now here I'm looping over the layers.",
+      "zh": "現在遍歷各層。"
+    },
+    {
+      "start": 1652.39,
+      "end": 1658.51,
+      "en": "Notice that I'm using a looping index variable called layer to replace.",
+      "zh": "注意，我用的迴圈索引變數，叫做 layer to replace。"
+    },
+    {
+      "start": 1658.51,
+      "end": 1663.83,
+      "en": "So that means that I do not actually need to redefine this variable explicitly.",
+      "zh": "這代表，不需要再明確重新定義這個變數。"
+    },
+    {
+      "start": 1664.03,
+      "end": 1666.87,
+      "en": "It's just going to be redefined on its own.",
+      "zh": "它會自行重新定義。"
+    },
+    {
+      "start": 1667.07,
+      "end": 1673.47,
+      "en": "Inside this for loop, as we are iterating over all of the layers, the number of hidden layers.",
+      "zh": "在這個 for 迴圈內，隨著遍歷所有層，也就是隱藏層的數量。"
+    },
+    {
+      "start": 1673.83,
+      "end": 1680.59,
+      "en": "So here I am again, grabbing the hidden state from the version of the model when it saw the word she.",
+      "zh": "這裡再次取得模型看到 she 時的隱藏狀態。"
+    },
+    {
+      "start": 1681.15,
+      "end": 1682.67,
+      "en": "So that hidden state and so on.",
+      "zh": "也就是那個隱藏狀態等等。"
+    },
+    {
+      "start": 1682.67,
+      "end": 1692.71,
+      "en": "This code you've seen before, it still needs to be inside this loop, because we want to get the layer specific embeddings vector and not from any other layer.",
+      "zh": "這段程式碼以前看過，但仍需要放在迴圈內，因為要取得特定層的嵌入向量，而不是其他層。"
+    },
+    {
+      "start": 1692.71,
+      "end": 1695.95,
+      "en": "So we're not mixing information across different layers here.",
+      "zh": "所以，這裡沒有混合不同層的資訊。"
+    },
+    {
+      "start": 1696.39,
+      "end": 1702.87,
+      "en": "And then pushing the mask tokens through the model as you've seen before, and then softmax ING and",
+      "zh": "接著，像以前一樣讓 mask token 通過模型，再做 softmax，"
+    },
+    {
+      "start": 1702.87,
+      "end": 1710.06,
+      "en": "calculating the bias for he that is going to be stored in this vector here.",
+      "zh": "計算對 he 的偏誤，存在這裡的向量中。"
+    },
+    {
+      "start": 1710.06,
+      "end": 1711.02,
+      "en": "Bias scores.",
+      "zh": "bias scores。"
+    },
+    {
+      "start": 1711.38,
+      "end": 1712.42,
+      "en": "So I can run through this.",
+      "zh": "可以執行。"
+    },
+    {
+      "start": 1712.46,
+      "end": 1716.3,
+      "en": "You can see that it's updating each time it runs through a layer.",
+      "zh": "可以看到，每處理一層就更新一次。"
+    },
+    {
+      "start": 1716.78,
+      "end": 1719.18,
+      "en": "So goes through pretty fast on the GPU.",
+      "zh": "在 GPU 上跑得相當快。"
+    },
+    {
+      "start": 1719.42,
+      "end": 1724.5,
+      "en": "I did not actually time this on the CPU, but I guess it's not so bad.",
+      "zh": "我其實沒有計時 CPU 的速度，但猜想也不會太糟。"
+    },
+    {
+      "start": 1724.54,
+      "end": 1726.38,
+      "en": "But nice to have the GPU here.",
+      "zh": "不過，這裡有 GPU 很好。"
+    },
+    {
+      "start": 1727.54,
+      "end": 1729.78,
+      "en": "Okay, so now here we can create this plot.",
+      "zh": "好，現在可以建立這張圖。"
+    },
+    {
+      "start": 1729.82,
+      "end": 1739.78,
+      "en": "Pretty interesting to see that there is I'm not sure what's going on here, but otherwise a pretty gentle decrease as we go deeper into the model.",
+      "zh": "相當有趣，這裡有個……我不確定發生什麼，但除此之外，越深入模型，整體相當平緩地下降。"
+    },
+    {
+      "start": 1740.06,
+      "end": 1748.26,
+      "en": "In other words, when we mix the embeddings vector for xi with the embeddings vector for a mask, then",
+      "zh": "換句話說，把 she 的嵌入向量與 mask 的嵌入向量混合時，"
+    },
+    {
+      "start": 1748.26,
+      "end": 1757.94,
+      "en": "at the very beginning, at the earliest levels of the transformer sequence, it doesn't really have much of an impact the later we get in the model.",
+      "zh": "在最前面、Transformer 序列最早期，沒有太大影響；越往模型後面，"
+    },
+    {
+      "start": 1757.94,
+      "end": 1763.94,
+      "en": "So the closer to the model output and the token prediction, the missing token prediction, the more",
+      "zh": "也就是越接近模型輸出與 token 預測、缺少 token 的預測，"
+    },
+    {
+      "start": 1763.98,
+      "end": 1770.05,
+      "en": "that this manipulation actually has an impact, so that is pretty neat to look at.",
+      "zh": "這種操作的影響就越大。這很值得觀察。"
+    },
+    {
+      "start": 1770.09,
+      "end": 1771.57,
+      "en": "It's pretty neat to consider.",
+      "zh": "也很值得思考。"
+    },
+    {
+      "start": 1771.57,
+      "end": 1782.57,
+      "en": "And essentially what's happening is as we get later into the model, the model is better incorporating all of the contextual information from surrounding tokens.",
+      "zh": "基本上，越往模型後面，模型越能整合周圍 token 的全部上下文資訊。"
+    },
+    {
+      "start": 1782.73,
+      "end": 1792.57,
+      "en": "So over here, the engineer, the token for engineer is having a bigger impact on the token for the mask compared to earlier in the model.",
+      "zh": "所以，這裡 engineer 這個 token，對 mask token 的影響，"
+    },
+    {
+      "start": 1792.57,
+      "end": 1797.05,
+      "en": "When the model is doing more like item level and word level processing.",
+      "zh": "比模型早期更大；早期模型比較像在做個別項目與詞層級的處理。"
+    },
+    {
+      "start": 1798.49,
+      "end": 1802.93,
+      "en": "I want to be clear about a few caveats of this code challenge.",
+      "zh": "這門程式挑戰，有幾個限制需要說清楚。"
+    },
+    {
+      "start": 1803.41,
+      "end": 1812.65,
+      "en": "As I mentioned before, it's really easy in complex systems to manipulate the system to give a desired",
+      "zh": "如同前面提過，在複雜系統中，針對某個特定範例，操作系統以取得想要的"
+    },
+    {
+      "start": 1812.65,
+      "end": 1815.37,
+      "en": "output in one specific example.",
+      "zh": "輸出，其實很容易。"
+    },
+    {
+      "start": 1815.81,
+      "end": 1822.05,
+      "en": "What is much harder, though, of course still possible, is to adjust the model weights so that these",
+      "zh": "困難得多，雖然仍然可能的，是調整模型權重，讓這些"
+    },
+    {
+      "start": 1822.05,
+      "end": 1833.89,
+      "en": "kinds of biases are eradicated from all examples, including when the model is generating new text or doing something else, like evaluating job applications.",
+      "zh": "偏誤從所有範例消失，包括產生新文字，或做其他事情，例如評估求職申請時。"
+    },
+    {
+      "start": 1834.37,
+      "end": 1846.21,
+      "en": "I just want to make sure it's clear to you that this is a hard problem to solve in general, even though it was extremely easy to solve here in this video for this one specific example.",
+      "zh": "我想確保你了解，這在一般情況下很難解決，雖然這支影片的單一特定範例，解決起來極其容易。"
+    },
+    {
+      "start": 1846.77,
+      "end": 1858.73,
+      "en": "One thing we did not explore here, for example, is whether you would get the same result if the model processed the word xi from a different sentence with a different context.",
+      "zh": "例如，這裡沒有探索的一件事，是如果模型在不同句子、不同上下文中處理 she，是否仍有相同結果。"
+    },
+    {
+      "start": 1859.49,
+      "end": 1866.13,
+      "en": "A second point here, which is more about model representations and not about practical implications",
+      "zh": "第二點，比較關於模型表徵，而不是偏誤的實際"
+    },
+    {
+      "start": 1866.13,
+      "end": 1875.37,
+      "en": "of biases, is that averaging two embeddings vectors together relies on an assumption of linearity in",
+      "zh": "影響：將兩個嵌入向量平均，仰賴嵌入"
+    },
+    {
+      "start": 1875.37,
+      "end": 1877.09,
+      "en": "the embeddings space.",
+      "zh": "空間的線性假設。"
+    },
+    {
+      "start": 1877.65,
+      "end": 1888.96,
+      "en": "So if these concepts like gender are not represented as lines in the embedding space, but instead as curves or planes or some other weird non-linear shape.",
+      "zh": "如果性別這類概念，在嵌入空間中不是以直線表徵，而是曲線、平面，或某種奇怪的非線性形狀，"
+    },
+    {
+      "start": 1889.32,
+      "end": 1893.84,
+      "en": "Then linearly averaging together vectors might not make sense.",
+      "zh": "線性平均向量，可能沒有意義。"
+    },
+    {
+      "start": 1894.28,
+      "end": 1905.16,
+      "en": "For example, on a line, the number three is halfway between 2 and 4, but on a curve three might not be halfway between 2 and 4.",
+      "zh": "例如，在直線上，三在二與四的正中間，但在曲線上，三未必在二與四的正中間。"
+    },
+    {
+      "start": 1905.84,
+      "end": 1909,
+      "en": "And multiply that by thousands of dimensions.",
+      "zh": "再把它乘上數千個維度。"
+    },
+    {
+      "start": 1909,
+      "end": 1918.72,
+      "en": "And it's just really not clear that what we are doing here actually incorporates the geometry of the representations in the model's embedding space.",
+      "zh": "就真的不清楚，這裡的做法，是否納入模型嵌入空間中表徵的幾何性質。"
+    },
+    {
+      "start": 1919.8,
+      "end": 1928.24,
+      "en": "That is a deep question about the fundamental nature of how models represent and compute tokens and representations.",
+      "zh": "這是很深的問題，涉及模型如何表徵、計算 token 與表徵的基本本質。"
+    },
+    {
+      "start": 1928.88,
+      "end": 1932.56,
+      "en": "But anyway, linear averaging certainly worked quite well here.",
+      "zh": "總之，這裡的線性平均確實效果很好。"
+    },
+    {
+      "start": 1932.56,
+      "end": 1943.24,
+      "en": "So that does lend some credence to the idea that at least some aspects of the embeddings space can be reasonably approximated linearly.",
+      "zh": "因此，多少支持了這個想法：至少嵌入空間的某些面向，可以合理地用線性近似。"
+    }
+  ]
+}

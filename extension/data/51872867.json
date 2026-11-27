@@ -1,0 +1,1627 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51872867",
+  "title": "CodeChallenge: Instruction tuning GPT2-large (part 1)",
+  "section": 9,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "23c8dec5cd2727aec571fcf0466b4060fa1db8e2ec83c52a5cb4ffd9614a7d38",
+  "cues": [
+    {
+      "start": 2.6,
+      "end": 9,
+      "en": "The goal of this code challenge is to continue exploring instruction tuning.",
+      "zh": "這個程式挑戰的目標，是繼續探索指令微調。"
+    },
+    {
+      "start": 9.44,
+      "end": 18.04,
+      "en": "I will ask you to program several design choices that you may or may not think is better than what we did in the previous video.",
+      "zh": "我會請你實作幾種設計選擇，你可能覺得比上一支好，也可能不這麼認為。"
+    },
+    {
+      "start": 18.2,
+      "end": 25.92,
+      "en": "But I think that will lead to some interesting discussions and insights into how models process tokens,",
+      "zh": "但這會帶來有趣的討論與洞見，了解模型如何處理詞元，"
+    },
+    {
+      "start": 25.92,
+      "end": 30.52,
+      "en": "and how that allows us to train models to become chatbots.",
+      "zh": "以及如何藉此把模型訓練成聊天機器人。"
+    },
+    {
+      "start": 30.72,
+      "end": 36.4,
+      "en": "We will also have to make some decisions based on practical considerations.",
+      "zh": "也必須基於實務考量，做一些決定。"
+    },
+    {
+      "start": 36.88,
+      "end": 41.04,
+      "en": "And then we will also be working with GPT two large.",
+      "zh": "另外，這次會使用 GPT-2 large。"
+    },
+    {
+      "start": 41.28,
+      "end": 50.12,
+      "en": "That is ten times as big as the GPT two small model that we often work with, including in the previous video.",
+      "zh": "它比我們常用、上一支也用的 GPT-2 small，大十倍。"
+    },
+    {
+      "start": 50.76,
+      "end": 58.4,
+      "en": "Exercise one is partly just about setting up the code for the training, but also we will examine some",
+      "zh": "練習一部分是準備訓練程式，但也會更仔細檢視"
+    },
+    {
+      "start": 58.4,
+      "end": 65.38,
+      "en": "data in more detail than we did in the previous video, and we will ask some questions about that.",
+      "zh": "資料，並提出問題。"
+    },
+    {
+      "start": 65.74,
+      "end": 76.94,
+      "en": "So begin by importing and inspecting GPT two large that contains 1.5 billion parameters, and you want",
+      "zh": "先匯入並檢視 GPT-2 large，這個模型包含 15 億個參數；"
+    },
+    {
+      "start": 76.94,
+      "end": 83.42,
+      "en": "to print out the model architecture and look for features like the embeddings, dimensionality, the",
+      "zh": "印出架構，找找嵌入維度、"
+    },
+    {
+      "start": 83.42,
+      "end": 89.46000000000001,
+      "en": "number of transformer layers, the expansion in the MLP layers, and so on.",
+      "zh": "Transformer 層數、MLP 層的擴張等等。"
+    },
+    {
+      "start": 90.14,
+      "end": 97.62,
+      "en": "Next, you can import this Q&A data set that we, uh, that I introduced you to a couple of videos ago.",
+      "zh": "接著匯入幾支影片前介紹過的問答資料集。"
+    },
+    {
+      "start": 97.62,
+      "end": 106.78,
+      "en": "And we also worked with in the previous video, and I would like you to count the number of tokens in",
+      "zh": "上一支也用過。我希望你計算訓練集中"
+    },
+    {
+      "start": 106.78,
+      "end": 116.42,
+      "en": "all the questions and all the answers in the training set, and visualize those distributions as histograms as you see here.",
+      "zh": "所有問題與回答的詞元數，再像這樣用直方圖呈現分布。"
+    },
+    {
+      "start": 116.97999999999999,
+      "end": 123.48,
+      "en": "Now it is extremely clear that the questions are short and the answers are long.",
+      "zh": "很明顯，問題短、回答長。"
+    },
+    {
+      "start": 124.04,
+      "end": 131.64,
+      "en": "And the question at hand here is whether this difference is problematic, whether we are introducing",
+      "zh": "要問的是，這種差異是否有問題，是否在訓練時"
+    },
+    {
+      "start": 131.64,
+      "end": 137,
+      "en": "some kind of systematic bias into the model as we train it.",
+      "zh": "引入某種系統性偏差。"
+    },
+    {
+      "start": 137.52,
+      "end": 148.72,
+      "en": "Now, to be clear, I'm not saying that it necessarily is problematic that there is this difference in distribution count of tokens between the questions and the answers.",
+      "zh": "先說清楚，我不是說問題與回答的詞元數分布不同，就一定有問題。"
+    },
+    {
+      "start": 149.16,
+      "end": 152.84,
+      "en": "That is a question I would like you to think about.",
+      "zh": "這是希望你思考的問題。"
+    },
+    {
+      "start": 152.84,
+      "end": 157.2,
+      "en": "So there clearly is a strong distributional difference.",
+      "zh": "顯然，兩者分布有很大差異。"
+    },
+    {
+      "start": 157.32,
+      "end": 163.04,
+      "en": "And the question for you to answer and think about is whether this is problematic.",
+      "zh": "請思考並回答，這是否有問題。"
+    },
+    {
+      "start": 163.28,
+      "end": 171.96,
+      "en": "In other words, what does this distributional difference mean for training the model and what kinds of patterns the model is going to learn?",
+      "zh": "換句話說，這種分布差異，對模型訓練，以及它學到的模式有什麼意義？"
+    },
+    {
+      "start": 172.6,
+      "end": 175.84,
+      "en": "Of course, when I switch to code, I will discuss the answer.",
+      "zh": "切到程式時會討論答案。"
+    },
+    {
+      "start": 176.36,
+      "end": 177.92000000000002,
+      "en": "So that's exercise one.",
+      "zh": "這就是練習一。"
+    },
+    {
+      "start": 177.92000000000002,
+      "end": 181.28,
+      "en": "You can now pause the video to work through this exercise.",
+      "zh": "現在可以暫停，試著完成。"
+    },
+    {
+      "start": 181.6,
+      "end": 191.54,
+      "en": "Of course you can copy as much code as you like from the previous few videos, but keep in mind that simply copy pasting is not always correct.",
+      "zh": "當然可以盡量複製前幾支的程式，但記得，單純複製貼上不一定正確。"
+    },
+    {
+      "start": 191.54,
+      "end": 193.7,
+      "en": "You might need to make some modifications.",
+      "zh": "可能需要修改。"
+    },
+    {
+      "start": 194.1,
+      "end": 196.34,
+      "en": "Anyway, now I will switch to code.",
+      "zh": "總之，現在切到程式。"
+    },
+    {
+      "start": 196.98,
+      "end": 202.5,
+      "en": "Here I import the libraries that we will need in this code challenge.",
+      "zh": "這裡匯入挑戰所需的函式庫。"
+    },
+    {
+      "start": 202.66,
+      "end": 210.34,
+      "en": "We definitely want to connect to the GPU here, because we are going to be training the GPT two large",
+      "zh": "一定要連接 GPU，因為要訓練 GPT-2 large，"
+    },
+    {
+      "start": 210.34,
+      "end": 218.06,
+      "en": "version, and you don't want to do that on the CPU unless you have a ton of time on your hands and nothing else to do.",
+      "zh": "除非時間非常多、沒其他事做，否則不會想在 CPU 上跑。"
+    },
+    {
+      "start": 218.57999999999998,
+      "end": 221.62,
+      "en": "Okay, here's where I'm importing GPT two large.",
+      "zh": "這裡匯入 GPT-2 large。"
+    },
+    {
+      "start": 221.62,
+      "end": 225.9,
+      "en": "Remember that if you write nothing here, that means that you are importing small.",
+      "zh": "記得，這裡不寫其他內容，就代表匯入 small。"
+    },
+    {
+      "start": 226.06,
+      "end": 228.06,
+      "en": "We want the large version.",
+      "zh": "我們要 large。"
+    },
+    {
+      "start": 228.06,
+      "end": 236.26,
+      "en": "Now all of the GPT two variants, all of the sizes, they all use exactly the same tokenizer.",
+      "zh": "但 GPT-2 所有大小版本，都使用完全相同的 tokenizer。"
+    },
+    {
+      "start": 236.26,
+      "end": 241.74,
+      "en": "So any GPT two tokenizer is every GPT two tokenizer.",
+      "zh": "所以任何 GPT-2 tokenizer 都一樣。"
+    },
+    {
+      "start": 242.27,
+      "end": 245.95,
+      "en": "So GPT two small is somewhere around.",
+      "zh": "GPT-2 small 大約是，"
+    },
+    {
+      "start": 245.99,
+      "end": 248.47,
+      "en": "I think it's like 450MB.",
+      "zh": "我想約 450 MB。"
+    },
+    {
+      "start": 248.67,
+      "end": 253.43,
+      "en": "GPT two large is around 3.5GB.",
+      "zh": "GPT-2 large 大約 3.5 GB。"
+    },
+    {
+      "start": 253.55,
+      "end": 256.07,
+      "en": "So it is considerably bigger.",
+      "zh": "所以大很多。"
+    },
+    {
+      "start": 256.07,
+      "end": 258.79,
+      "en": "And where does all that extra size come from?",
+      "zh": "這些額外大小從哪來？"
+    },
+    {
+      "start": 258.79,
+      "end": 260.39,
+      "en": "Where all those extra bits?",
+      "zh": "多出來的位元在哪？"
+    },
+    {
+      "start": 260.87,
+      "end": 267.67,
+      "en": "Well, we can see that this the embeddings is already larger than GPT two small.",
+      "zh": "可以看到，嵌入已經比 GPT-2 small 大。"
+    },
+    {
+      "start": 267.83,
+      "end": 273.27,
+      "en": "So remember the small version has 768 embeddings dimensions.",
+      "zh": "small 的嵌入維度是 768。"
+    },
+    {
+      "start": 274.03,
+      "end": 276.39,
+      "en": "And here we have 1280.",
+      "zh": "這裡則是 1280。"
+    },
+    {
+      "start": 276.63,
+      "end": 281.63,
+      "en": "So it's already like 50% larger right at the beginning from the embeddings.",
+      "zh": "所以一開始嵌入就大了約 50%。"
+    },
+    {
+      "start": 281.63,
+      "end": 287.23,
+      "en": "And of course this increase in size propagates through the entire model.",
+      "zh": "當然，這個尺寸增加也一路延伸到整個模型。"
+    },
+    {
+      "start": 287.51,
+      "end": 291.79,
+      "en": "So that also means that the expansion layer ends up being bigger.",
+      "zh": "所以擴張層也更大。"
+    },
+    {
+      "start": 291.95,
+      "end": 298.47,
+      "en": "Whereas the expansion layer here in the MLP layer, the expansion is still A4X expansion.",
+      "zh": "MLP 的擴張層，仍然是四倍擴張。"
+    },
+    {
+      "start": 298.47,
+      "end": 307.01,
+      "en": "But because we are starting from 1280, the expansion letter ends up being huge, so this is really big.",
+      "zh": "但因為從 1280 開始，擴張層就會變得非常龐大。"
+    },
+    {
+      "start": 307.13,
+      "end": 311.85,
+      "en": "In other words, this model is both wider and also deeper.",
+      "zh": "換句話說，模型既更寬，也更深。"
+    },
+    {
+      "start": 312.21,
+      "end": 321.65,
+      "en": "There are 36 transformer blocks or hidden layers as they are called here, compared to 12 in GPT two.",
+      "zh": "這裡有 36 個 Transformer 區塊，或這裡稱的隱藏層；GPT-2"
+    },
+    {
+      "start": 321.69,
+      "end": 322.25,
+      "en": "Small.",
+      "zh": "small 則只有 12 個。"
+    },
+    {
+      "start": 322.45,
+      "end": 324.21,
+      "en": "Okay, so this is a pretty big model.",
+      "zh": "所以模型相當大。"
+    },
+    {
+      "start": 325.29,
+      "end": 328.93,
+      "en": "Let's see here I'm importing the data set as you've seen before.",
+      "zh": "這裡匯入資料集，之前看過。"
+    },
+    {
+      "start": 328.97,
+      "end": 329.97,
+      "en": "Nothing new here.",
+      "zh": "沒有新內容。"
+    },
+    {
+      "start": 330.25,
+      "end": 338.33,
+      "en": "Here I'm looping through all of the train data samples and getting tokenizing the question and getting",
+      "zh": "逐一走訪所有訓練樣本，對問題斷詞並取得"
+    },
+    {
+      "start": 338.33,
+      "end": 342.37,
+      "en": "its length and tokenizing the answer and getting its length.",
+      "zh": "長度，再對回答斷詞並取得長度。"
+    },
+    {
+      "start": 342.40999999999997,
+      "end": 346.53,
+      "en": "So this is the data that I will use to create a histogram.",
+      "zh": "這些資料用來建立直方圖。"
+    },
+    {
+      "start": 346.77,
+      "end": 351.21,
+      "en": "This takes I think it's around 16 seconds or so to run through this code cell.",
+      "zh": "我想這個儲存格大約花 16 秒。"
+    },
+    {
+      "start": 351.61,
+      "end": 353.65,
+      "en": "Here I'm getting the histogram data.",
+      "zh": "這裡取得直方圖資料。"
+    },
+    {
+      "start": 353.69,
+      "end": 356.21,
+      "en": "I'm using density equals true.",
+      "zh": "使用 density=True，"
+    },
+    {
+      "start": 356.21,
+      "end": 362.57,
+      "en": "So I can estimate the probability density instead of just relying on the raw counts.",
+      "zh": "估計機率密度，不只依賴原始次數。"
+    },
+    {
+      "start": 362.69,
+      "end": 367.23,
+      "en": "And then once this finishes here, then we can examine the bar plot.",
+      "zh": "完成後，就能看長條圖。"
+    },
+    {
+      "start": 367.43,
+      "end": 375.75,
+      "en": "Now remember that that bar plot showed that the questions tend to be relatively short, so relatively",
+      "zh": "記得，圖上顯示問題相對短，"
+    },
+    {
+      "start": 375.75,
+      "end": 382.79,
+      "en": "few tokens, whereas the answers tend to be longer, so more tokens and also more widely distributed.",
+      "zh": "詞元少；回答比較長，詞元更多，分布也更廣。"
+    },
+    {
+      "start": 383.11,
+      "end": 388.19,
+      "en": "And that is a clear fact that is so visually obvious from looking at the plot.",
+      "zh": "看圖就很明顯。"
+    },
+    {
+      "start": 388.23,
+      "end": 399.79,
+      "en": "My question in the slides is whether that is problematic, and whether that is introducing a systematic bias into the model as it's training.",
+      "zh": "投影片問，這有沒有問題，是否在訓練時引入系統性偏差。"
+    },
+    {
+      "start": 400.99,
+      "end": 404.43,
+      "en": "The answer to the second question is absolutely yes.",
+      "zh": "第二個問題的答案，絕對是有。"
+    },
+    {
+      "start": 404.67,
+      "end": 413.87,
+      "en": "That definitely introduces a bias into the model, and that bias is that the model will learn that questions",
+      "zh": "確實會引入偏差，也就是模型會學到，問題"
+    },
+    {
+      "start": 413.87,
+      "end": 417.03,
+      "en": "tend to be short, answers tend to be long.",
+      "zh": "通常短，回答通常長。"
+    },
+    {
+      "start": 417.31,
+      "end": 427.05,
+      "en": "So the model learns that questions are somewhere between 15 and 20 tokens, whatever, Or maybe even less, let's say 5 to 15 tokens.",
+      "zh": "模型會學到問題大約 15 到 20 個詞元，或更少，假設是 5 到 15 個。"
+    },
+    {
+      "start": 427.33,
+      "end": 432.69,
+      "en": "And the answers are somewhere between, I don't know, 80 and 170 tokens.",
+      "zh": "回答則大約 80 到 170 個詞元。"
+    },
+    {
+      "start": 432.73,
+      "end": 434.73,
+      "en": "You know, on bulk, on mass.",
+      "zh": "我是說整體、大致而言。"
+    },
+    {
+      "start": 435.85,
+      "end": 437.85,
+      "en": "So that is what the model is learning.",
+      "zh": "這就是模型學的東西。"
+    },
+    {
+      "start": 437.89,
+      "end": 440.21,
+      "en": "Now my question was is that problematic?",
+      "zh": "那麼，我問這有沒有問題？"
+    },
+    {
+      "start": 440.33,
+      "end": 442.45,
+      "en": "And the answer to that question is no.",
+      "zh": "答案是沒有。"
+    },
+    {
+      "start": 442.45,
+      "end": 444.41,
+      "en": "It is not at all problematic.",
+      "zh": "完全沒有問題。"
+    },
+    {
+      "start": 444.57,
+      "end": 449.29,
+      "en": "That is a natural feature of how question answer queries work.",
+      "zh": "這是問答的自然特徵。"
+    },
+    {
+      "start": 449.33,
+      "end": 451.01,
+      "en": "Questions tend to be short.",
+      "zh": "問題通常很短。"
+    },
+    {
+      "start": 451.25,
+      "end": 458.13,
+      "en": "Answers can sometimes be short, but also many answers can be considerably longer than the questions.",
+      "zh": "回答有時也短，但很多回答比問題長得多。"
+    },
+    {
+      "start": 458.29,
+      "end": 464.13,
+      "en": "And that is actually something that you want for an informative and helpful chat bot.",
+      "zh": "對一個資訊豐富、有幫助的聊天機器人，這正是我們想要的。"
+    },
+    {
+      "start": 464.29,
+      "end": 470.57,
+      "en": "You want the answer to be long and detailed and not shorter than the actual question itself.",
+      "zh": "希望答案詳細而長，不要比問題本身還短。"
+    },
+    {
+      "start": 470.81,
+      "end": 475.21,
+      "en": "So this was not just a trick question that I was trying to ask you.",
+      "zh": "所以，我不是故意出陷阱題。"
+    },
+    {
+      "start": 475.40999999999997,
+      "end": 482.17,
+      "en": "I really want you to understand and think about the concept that the distributional characteristics",
+      "zh": "真的希望你理解並思考：訓練集的"
+    },
+    {
+      "start": 482.17,
+      "end": 489.91,
+      "en": "in the training set get imposed on the data on the model during training, and that is the pattern that",
+      "zh": "分布特徵，會在訓練時施加到模型上，這些模式"
+    },
+    {
+      "start": 489.91,
+      "end": 494.19,
+      "en": "the model will emulate during inference when you're actually running the model.",
+      "zh": "會在推論、實際執行模型時被模仿。"
+    },
+    {
+      "start": 494.31,
+      "end": 499.99,
+      "en": "So in this case, this is a pattern that we want and we are imposing it on the model.",
+      "zh": "這個例子中，這是我們想要並施加給模型的模式。"
+    },
+    {
+      "start": 500.71,
+      "end": 502.83,
+      "en": "Now for exercise two.",
+      "zh": "現在練習二。"
+    },
+    {
+      "start": 503.23,
+      "end": 509.63,
+      "en": "The goal of exercise two is to create the data set that we will fine tune on.",
+      "zh": "目標是建立用來微調的資料集。"
+    },
+    {
+      "start": 510.15,
+      "end": 517.63,
+      "en": "I'm going to have you set up the data in a slightly different way from how the data set was set up in the previous video.",
+      "zh": "這次資料的設定方式，會和上一支稍有不同。"
+    },
+    {
+      "start": 517.95,
+      "end": 524.35,
+      "en": "And then you will have to think about whether this approach here in this video is better or worse,",
+      "zh": "接著你要思考，和上一支的設定，"
+    },
+    {
+      "start": 524.35,
+      "end": 533.23,
+      "en": "or just completely unrelated to how well the model can learn from the data compared to how we set it up in the previous video.",
+      "zh": "以及前一支的解釋相比，這個做法對學習而言，是更好、更差，"
+    },
+    {
+      "start": 533.31,
+      "end": 535.83,
+      "en": "And what I explained in the video before that.",
+      "zh": "還是根本無關。"
+    },
+    {
+      "start": 536.39,
+      "end": 541.23,
+      "en": "Now remember that the data set looks like this as a dictionary.",
+      "zh": "記得，資料集是這樣的字典。"
+    },
+    {
+      "start": 541.23,
+      "end": 548.25,
+      "en": "So we have a modified Python dictionary that That contains train and validation and test.",
+      "zh": "修改過的 Python 字典，包含 train、validation 與 test。"
+    },
+    {
+      "start": 548.77,
+      "end": 554.81,
+      "en": "In this code challenge, you will use only the train set and the validation set.",
+      "zh": "這次只使用 train 與 validation。"
+    },
+    {
+      "start": 554.85,
+      "end": 556.77,
+      "en": "You can ignore the test set.",
+      "zh": "可以忽略 test。"
+    },
+    {
+      "start": 556.93,
+      "end": 560.17,
+      "en": "That's only because there's just 400 items here.",
+      "zh": "只是因為它只有 400 筆。"
+    },
+    {
+      "start": 560.21,
+      "end": 566.41,
+      "en": "We're going to focus on the 1000 items here and just 10,000 items from the train set.",
+      "zh": "我們會用這裡的 1000 筆，以及 train 中的 10,000 筆。"
+    },
+    {
+      "start": 567.09,
+      "end": 575.05,
+      "en": "You can also see that within for example, the train set, we have the question and the answer and the references.",
+      "zh": "也能看到，例如 train 裡有 question、answer 與 references。"
+    },
+    {
+      "start": 575.65,
+      "end": 583.73,
+      "en": "Now also you can completely ignore the references for this exercise for this code challenge.",
+      "zh": "這個練習、這個挑戰，也可以完全忽略 references。"
+    },
+    {
+      "start": 583.77,
+      "end": 593.41,
+      "en": "To be clear, I'm not saying that references are unimportant, but just in the interest of simplicity and compactness, we are going to ignore the references.",
+      "zh": "不是說參考資料不重要，只是為了簡單精簡，先忽略。"
+    },
+    {
+      "start": 593.57,
+      "end": 600.85,
+      "en": "You only need to focus on the question and the answer just from the train set and the validation set.",
+      "zh": "只需關注 train 與 validation 的問題和回答。"
+    },
+    {
+      "start": 600.89,
+      "end": 603.45,
+      "en": "And here I actually call this the test set.",
+      "zh": "我這裡其實把它叫 test。"
+    },
+    {
+      "start": 603.49,
+      "end": 604.99,
+      "en": "But Yeah.",
+      "zh": "不過，對，"
+    },
+    {
+      "start": 605.03,
+      "end": 607.87,
+      "en": "It has a similar function as the validation set.",
+      "zh": "功能和 validation 類似。"
+    },
+    {
+      "start": 608.51,
+      "end": 617.55,
+      "en": "Now, you know from the previous exercise that the questions and answers do not have the same number of tokens.",
+      "zh": "上一個練習已知道，問題與回答的詞元數不同。"
+    },
+    {
+      "start": 618.03,
+      "end": 625.99,
+      "en": "What we did in the previous video was to concatenate all of the token sequences, so that it's one really",
+      "zh": "上一支把所有詞元序列串接，變成一個很長的"
+    },
+    {
+      "start": 625.99,
+      "end": 632.83,
+      "en": "long token sequence for question, answer, question, answer, question, answer, etc. for all of these.",
+      "zh": "問題、回答、問題、回答、問題、回答序列，包含全部資料。"
+    },
+    {
+      "start": 632.87,
+      "end": 638.23,
+      "en": "In the previous video, we just used the first 5000, but we could continue expanding that.",
+      "zh": "上一支只用了前五千筆，但還可以繼續擴充。"
+    },
+    {
+      "start": 638.59,
+      "end": 644.91,
+      "en": "In the previous video, we found a vector with somewhere around 800,000 tokens.",
+      "zh": "得到一個約八十萬詞元的向量。"
+    },
+    {
+      "start": 644.91,
+      "end": 651.39,
+      "en": "That was just tokenizing the question and the answer, and then the next question, the next answer, and so on.",
+      "zh": "就是把問題、回答、下一題、下一個回答，依序斷詞。"
+    },
+    {
+      "start": 651.51,
+      "end": 656.43,
+      "en": "And then in the previous video, we just randomly drew batches out of that.",
+      "zh": "再從裡面隨機抽批次。"
+    },
+    {
+      "start": 656.71,
+      "end": 667.25,
+      "en": "And that means that the batches and token sequences that the model was trained on often started in the middle of a question or in the middle of an answer.",
+      "zh": "這代表訓練的批次與詞元序列，常常從問題或回答的中間開始。"
+    },
+    {
+      "start": 667.89,
+      "end": 673.73,
+      "en": "Now that feels strange and awkward, because it means that the model is just getting trained at any",
+      "zh": "感覺奇怪、不自然，因為模型是在問答中任意"
+    },
+    {
+      "start": 673.73,
+      "end": 684.09,
+      "en": "random point in the Q&A, instead of being trained at the start of the question, which is where we actually begin a Q&A interaction.",
+      "zh": "位置開始訓練，而不是從問題開頭，也就是實際互動的起點開始。"
+    },
+    {
+      "start": 684.85,
+      "end": 694.05,
+      "en": "So therefore, the goal here in this video, in this exercise, is to create matrices that are n by",
+      "zh": "所以，這支影片、這個練習，要建立 n 乘"
+    },
+    {
+      "start": 694.09,
+      "end": 703.05,
+      "en": "256 for n equals 10,000 rows in the train set and 1000 rows in the test set, which you can actually",
+      "zh": "256 的矩陣；訓練集 n=10,000 列，測試集 1000 列，實際上"
+    },
+    {
+      "start": 703.05,
+      "end": 706.65,
+      "en": "get from the validation element over here.",
+      "zh": "取自這裡的 validation。"
+    },
+    {
+      "start": 707.81,
+      "end": 712.33,
+      "en": "And the 256 corresponds to the sequence length.",
+      "zh": "256 對應序列長度。"
+    },
+    {
+      "start": 712.73,
+      "end": 721.37,
+      "en": "So the idea of this new data organization is that every sequence begins with the token for question.",
+      "zh": "這種新資料組織的概念，是讓每個序列都以 QUESTION 的詞元開頭。"
+    },
+    {
+      "start": 721.97,
+      "end": 728.34,
+      "en": "Now the questions and answers can have different lengths, which means that you are going to need to",
+      "zh": "問題與回答長度可能不同，因此必須"
+    },
+    {
+      "start": 728.38,
+      "end": 737.7,
+      "en": "pad shorter sequences and truncate longer sequences, so that every row in this matrix or these two",
+      "zh": "填補短序列、截斷長序列，讓這個矩陣，或者說兩個"
+    },
+    {
+      "start": 737.74,
+      "end": 742.7,
+      "en": "matrices has exactly 256 columns.",
+      "zh": "矩陣的每一列，都剛好有 256 欄。"
+    },
+    {
+      "start": 743.26,
+      "end": 747.42,
+      "en": "Here you see an example of one row of the train set.",
+      "zh": "這是訓練集其中一列的例子。"
+    },
+    {
+      "start": 747.9,
+      "end": 751.26,
+      "en": "So the token sequence starts with the word question.",
+      "zh": "詞元序列以 QUESTION 開頭。"
+    },
+    {
+      "start": 751.46,
+      "end": 754.22,
+      "en": "And then at some point here it goes to the answer.",
+      "zh": "接著到這裡轉成回答。"
+    },
+    {
+      "start": 754.22,
+      "end": 757.7,
+      "en": "One of these tokens is for the uppercase word answer.",
+      "zh": "其中某個詞元對應全大寫的 ANSWER。"
+    },
+    {
+      "start": 757.7,
+      "end": 759.98,
+      "en": "And then the answer is printed in here.",
+      "zh": "回答印在這裡。"
+    },
+    {
+      "start": 760.38,
+      "end": 769.22,
+      "en": "And now this particular in this particular example the question and the answer was less than 256 tokens.",
+      "zh": "這個例子中，問題加回答少於 256 個詞元。"
+    },
+    {
+      "start": 769.34,
+      "end": 773.06,
+      "en": "So the rest of them were padded using the pad token.",
+      "zh": "剩下就用填補詞元補滿。"
+    },
+    {
+      "start": 773.94,
+      "end": 779.06,
+      "en": "Then you will also need to create an attention mask vector which looks like this.",
+      "zh": "也需要建立像這樣的 attention_mask 向量。"
+    },
+    {
+      "start": 779.18,
+      "end": 788.8,
+      "en": "So it's all ones where we have tokens corresponding to words and the real data, and zeros where we just have padding tokens over here.",
+      "zh": "真正對應單字與資料的詞元位置是 1，只有填補詞元的位置是 0。"
+    },
+    {
+      "start": 789.92,
+      "end": 793.88,
+      "en": "So this screen here just shows the token indices.",
+      "zh": "這個畫面顯示詞元索引。"
+    },
+    {
+      "start": 794.08,
+      "end": 797.92,
+      "en": "And you can also print out the decoded version of this.",
+      "zh": "也可以印出解碼版本，"
+    },
+    {
+      "start": 797.96,
+      "end": 800.44,
+      "en": "And that's going to look like what you see here.",
+      "zh": "看起來就是這樣。"
+    },
+    {
+      "start": 800.92,
+      "end": 802.76,
+      "en": "So now you see the question.",
+      "zh": "現在能看到問題。"
+    },
+    {
+      "start": 802.76,
+      "end": 809.04,
+      "en": "So this row of the data set this sequence starts with the word question in all caps.",
+      "zh": "這一列、這個序列，以全大寫的 QUESTION 開頭。"
+    },
+    {
+      "start": 809.2,
+      "end": 811.36,
+      "en": "And then the answer is over here.",
+      "zh": "回答在這裡。"
+    },
+    {
+      "start": 811.52,
+      "end": 816.56,
+      "en": "Now what you do not see is the question for the next data sample.",
+      "zh": "看不到下一筆資料的問題。"
+    },
+    {
+      "start": 816.56,
+      "end": 819,
+      "en": "So there's no more questions in this sequence.",
+      "zh": "序列中不會再有其他問題。"
+    },
+    {
+      "start": 819.12,
+      "end": 823.24,
+      "en": "This sequence begins with one question and there is one answer.",
+      "zh": "從一個問題開始，只有一個回答。"
+    },
+    {
+      "start": 823.24,
+      "end": 825.08,
+      "en": "And that's it for this sequence.",
+      "zh": "這個序列就到此為止。"
+    },
+    {
+      "start": 825.2,
+      "end": 829.64,
+      "en": "Then the next sequence will have another question and another answer.",
+      "zh": "下一個序列有另一個問題、另一個回答。"
+    },
+    {
+      "start": 829.64,
+      "end": 830.28,
+      "en": "And that's it.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 830.28,
+      "end": 831.76,
+      "en": "No more questions in here.",
+      "zh": "裡面不會有更多問題。"
+    },
+    {
+      "start": 832.16,
+      "end": 835.12,
+      "en": "And here you see all of the pad tokens.",
+      "zh": "這裡可以看到所有填補詞元。"
+    },
+    {
+      "start": 835.24,
+      "end": 839.76,
+      "en": "And we get up to 256 of these tokens.",
+      "zh": "一直補到 256 個詞元。"
+    },
+    {
+      "start": 839.92,
+      "end": 847.06,
+      "en": "Now the thing about this organization is that this is really how question answer interactions.",
+      "zh": "這種組織方式，正是人類眼中的"
+    },
+    {
+      "start": 847.06,
+      "end": 848.78,
+      "en": "Look to us humans.",
+      "zh": "問答互動。"
+    },
+    {
+      "start": 848.78,
+      "end": 850.98,
+      "en": "We don't start in the middle of the answer.",
+      "zh": "不會從答案中間開始，"
+    },
+    {
+      "start": 850.98,
+      "end": 853.7,
+      "en": "We start with the beginning of the question.",
+      "zh": "而是從問題開頭。"
+    },
+    {
+      "start": 854.22,
+      "end": 860.34,
+      "en": "So when you create these train and test matrices, they will always start with a question.",
+      "zh": "所以，建立的訓練與測試矩陣，永遠從問題開始。"
+    },
+    {
+      "start": 860.34,
+      "end": 862.86,
+      "en": "And they always have the answer like this.",
+      "zh": "也永遠有像這樣的答案。"
+    },
+    {
+      "start": 863.38,
+      "end": 865.86,
+      "en": "So this is more natural for humans.",
+      "zh": "對人類比較自然。"
+    },
+    {
+      "start": 865.9,
+      "end": 866.22,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 866.26,
+      "end": 874.98,
+      "en": "And then the question that you want to think about here is whether this will also improve the model training.",
+      "zh": "接著要思考，這是否也能改善模型訓練。"
+    },
+    {
+      "start": 875.3,
+      "end": 877.46,
+      "en": "That is a question for you to think about.",
+      "zh": "這是留給你的問題。"
+    },
+    {
+      "start": 877.46,
+      "end": 879.62,
+      "en": "I will discuss the answer in code.",
+      "zh": "我會在程式中討論。"
+    },
+    {
+      "start": 880.1,
+      "end": 890.98,
+      "en": "But there is one more thing that I want you to do here, which is to calculate the proportion of train and test tokens that are padding tokens.",
+      "zh": "還有一件事：計算訓練與測試詞元中，填補詞元所占比例。"
+    },
+    {
+      "start": 891.38,
+      "end": 899.18,
+      "en": "So in this specific example here, it looks like, I don't know, maybe 40% or something of the tokens are Pad tokens.",
+      "zh": "這個例子看起來，也許約 40% 是填補詞元。"
+    },
+    {
+      "start": 899.46,
+      "end": 904.9,
+      "en": "So you want to calculate this percentage over the entire data matrix.",
+      "zh": "請對整個資料矩陣計算百分比。"
+    },
+    {
+      "start": 905.06,
+      "end": 907.24,
+      "en": "And you can print it out like this.",
+      "zh": "可以像這樣印出。"
+    },
+    {
+      "start": 908.16,
+      "end": 908.56,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 908.6,
+      "end": 911.08,
+      "en": "So that is for exercise two.",
+      "zh": "這就是練習二。"
+    },
+    {
+      "start": 911.36,
+      "end": 915.08,
+      "en": "Now you should pause the video and start working on this exercise.",
+      "zh": "現在暫停影片，開始做。"
+    },
+    {
+      "start": 915.32,
+      "end": 920.6,
+      "en": "And now I will switch to Python, show my code and discuss the answer to the question.",
+      "zh": "接著切到 Python，展示程式，討論問題答案。"
+    },
+    {
+      "start": 921.28,
+      "end": 925.72,
+      "en": "Here I define the sequence length of 256.",
+      "zh": "這裡定義序列長度 256。"
+    },
+    {
+      "start": 926.04,
+      "end": 931.32,
+      "en": "So this code here is where I create the train and test matrices.",
+      "zh": "這段建立訓練與測試矩陣。"
+    },
+    {
+      "start": 931.32,
+      "end": 934.92,
+      "en": "So I initialize them using torch full.",
+      "zh": "使用 torch.full 初始化。"
+    },
+    {
+      "start": 935.12,
+      "end": 942.08,
+      "en": "They are of size 10,000 for the train and 1000 for the test token matrix.",
+      "zh": "訓練詞元矩陣是 10,000 筆，測試是 1000 筆。"
+    },
+    {
+      "start": 942.24,
+      "end": 945.16,
+      "en": "And so 10,000 by sequence length.",
+      "zh": "也就是 10,000 乘以序列長度。"
+    },
+    {
+      "start": 945.28,
+      "end": 949.72,
+      "en": "And then I'm filling this matrix in with the padding token.",
+      "zh": "先用填補詞元填滿矩陣。"
+    },
+    {
+      "start": 949.72,
+      "end": 955.2,
+      "en": "So this matrix starts off as being 10,000 by 256.",
+      "zh": "所以初始形狀是 10,000 乘 256。"
+    },
+    {
+      "start": 955.2,
+      "end": 961.56,
+      "en": "And all of the elements are the pad token ID which is 50,256.",
+      "zh": "所有元素都是填補詞元 ID，也就是 50,256。"
+    },
+    {
+      "start": 961.84,
+      "end": 962.28,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 962.6,
+      "end": 966.4,
+      "en": "Then I loop over all of those rows in here.",
+      "zh": "接著逐一走訪每列。"
+    },
+    {
+      "start": 966.4,
+      "end": 968.14,
+      "en": "So all 10,000 rows.",
+      "zh": "也就是全部 10,000 列。"
+    },
+    {
+      "start": 968.14,
+      "end": 971.06,
+      "en": "And here I'm creating a little piece of text.",
+      "zh": "建立一小段文字。"
+    },
+    {
+      "start": 971.1,
+      "end": 972.3,
+      "en": "As I showed.",
+      "zh": "如前面示範，"
+    },
+    {
+      "start": 972.46,
+      "end": 978.06,
+      "en": "Uh, let's see, I didn't actually show it here, but you will remember what this looks like from the previous video.",
+      "zh": "看看，其實這裡沒示範，但你應該記得上一支的樣子。"
+    },
+    {
+      "start": 978.14,
+      "end": 982.06,
+      "en": "So basically, it's the question that I print out in all caps.",
+      "zh": "基本上，先印出全大寫的 QUESTION。"
+    },
+    {
+      "start": 982.18,
+      "end": 986.86,
+      "en": "And then here I am putting in the question from the data set.",
+      "zh": "再放入資料集裡的問題。"
+    },
+    {
+      "start": 986.86,
+      "end": 989.14,
+      "en": "And then I write this word answer.",
+      "zh": "接著寫 ANSWER。"
+    },
+    {
+      "start": 989.18,
+      "end": 991.86,
+      "en": "This is just a format that I want to train in.",
+      "zh": "這只是我想用來訓練的格式。"
+    },
+    {
+      "start": 993.02,
+      "end": 993.3,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 993.34,
+      "end": 996.06,
+      "en": "And then I tokenize that entire text.",
+      "zh": "把整段文字斷詞。"
+    },
+    {
+      "start": 996.3,
+      "end": 1004.82,
+      "en": "And then here I have to figure out what is shorter the sequence length or the length of these, uh, this vector of tokens.",
+      "zh": "再判斷序列長度與這個詞元向量的長度，哪個比較短。"
+    },
+    {
+      "start": 1004.86,
+      "end": 1014.7,
+      "en": "And the reason why I need this is that this matrix here, uh, so this is one row and this is 256 columns.",
+      "zh": "因為這是矩陣的一列，有 256 欄。"
+    },
+    {
+      "start": 1014.82,
+      "end": 1021.98,
+      "en": "So if this is, let's say 280 tokens, then that's not going to fit in here.",
+      "zh": "如果有 280 個詞元，就放不進去，"
+    },
+    {
+      "start": 1021.98,
+      "end": 1024.9,
+      "en": "So then I would need to truncate the answer.",
+      "zh": "必須截斷回答。"
+    },
+    {
+      "start": 1025.46,
+      "end": 1028.72,
+      "en": "Uh or if it's shorter then I also need to know that.",
+      "zh": "如果比較短，也必須知道。"
+    },
+    {
+      "start": 1028.72,
+      "end": 1031,
+      "en": "So let's say it's only 200 tokens.",
+      "zh": "假設只有 200 個詞元，"
+    },
+    {
+      "start": 1031.32,
+      "end": 1041.32,
+      "en": "Now I would also need to know that that is less than the sequence length, so that I know to index only up to, let's say 200 in that example.",
+      "zh": "就要知道它比序列長度短，才能只索引到 200 這個位置。"
+    },
+    {
+      "start": 1041.88,
+      "end": 1042.16,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1042.2,
+      "end": 1047.04,
+      "en": "So that is the idea for populating this train tokens matrix.",
+      "zh": "這就是填入 train_tokens 矩陣的概念。"
+    },
+    {
+      "start": 1047.16,
+      "end": 1050.32,
+      "en": "And then down here this is exactly the same code.",
+      "zh": "下面程式完全相同。"
+    },
+    {
+      "start": 1050.32,
+      "end": 1054.2,
+      "en": "I cut out the comments and I changed the variable name.",
+      "zh": "刪掉註解，更改變數名稱。"
+    },
+    {
+      "start": 1054.2,
+      "end": 1055.92,
+      "en": "So now it's getting the test data.",
+      "zh": "現在取得測試資料。"
+    },
+    {
+      "start": 1056.08,
+      "end": 1058.8,
+      "en": "Technically the validation data but that's okay.",
+      "zh": "技術上是驗證資料，但沒關係。"
+    },
+    {
+      "start": 1059.44,
+      "end": 1059.8,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1059.8,
+      "end": 1061.88,
+      "en": "So this code will take a minute or so.",
+      "zh": "這段需要大約一分鐘。"
+    },
+    {
+      "start": 1063.12,
+      "end": 1069.24,
+      "en": "Uh, and then uh here I'm creating the attention mask vector for one particular row.",
+      "zh": "這裡建立某一列的 attention_mask 向量。"
+    },
+    {
+      "start": 1069.4,
+      "end": 1071.44,
+      "en": "This is pretty easy to create.",
+      "zh": "很容易。"
+    },
+    {
+      "start": 1071.44,
+      "end": 1079.64,
+      "en": "So I say where is this uh, where are the elements in this particular row not equal to the padding token.",
+      "zh": "判斷這一列的哪些元素，不等於填補詞元。"
+    },
+    {
+      "start": 1079.64,
+      "end": 1082.52,
+      "en": "And now this is a Boolean vector.",
+      "zh": "現在是布林向量。"
+    },
+    {
+      "start": 1082.76,
+      "end": 1084.04,
+      "en": "It's a lot of trues.",
+      "zh": "前面很多 True，"
+    },
+    {
+      "start": 1084.04,
+      "end": 1085.8,
+      "en": "And then falses at the end.",
+      "zh": "後面是 False。"
+    },
+    {
+      "start": 1085.8,
+      "end": 1090.7,
+      "en": "And then I use dot long to convert it from boolean into integer.",
+      "zh": "再用 .long()，從布林轉成整數。"
+    },
+    {
+      "start": 1090.98,
+      "end": 1092.42,
+      "en": "And then I'm printing something out.",
+      "zh": "然後印出內容。"
+    },
+    {
+      "start": 1092.42,
+      "end": 1096.06,
+      "en": "This is just an example like what I showed in the slides.",
+      "zh": "只是投影片裡那種例子。"
+    },
+    {
+      "start": 1096.7,
+      "end": 1096.94,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1096.98,
+      "end": 1101.02,
+      "en": "What I'm doing here is just generating a random batch.",
+      "zh": "這裡只是隨機產生一批。"
+    },
+    {
+      "start": 1101.14,
+      "end": 1102.66,
+      "en": "This code you've seen before.",
+      "zh": "這段之前看過。"
+    },
+    {
+      "start": 1103.3,
+      "end": 1108.18,
+      "en": "So this is generating a random batch from the train tokens matrix.",
+      "zh": "從 train_tokens 矩陣產生隨機批次。"
+    },
+    {
+      "start": 1108.18,
+      "end": 1114.1,
+      "en": "And here I'm creating an attention mask specifically for this batch over here.",
+      "zh": "並針對這一批，建立 attention_mask。"
+    },
+    {
+      "start": 1114.54,
+      "end": 1115.06,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1115.06,
+      "end": 1118.22,
+      "en": "So then here yeah I'm just printing out the sizes.",
+      "zh": "接著印出形狀。"
+    },
+    {
+      "start": 1118.58,
+      "end": 1121.5,
+      "en": "Uh, here I'm specifying a batch size of eight.",
+      "zh": "這裡指定批次大小 8。"
+    },
+    {
+      "start": 1121.54,
+      "end": 1126.26,
+      "en": "I will discuss the batch size in more detail when I introduce exercise three.",
+      "zh": "介紹練習三時，會詳細談批次大小。"
+    },
+    {
+      "start": 1126.26,
+      "end": 1133.02,
+      "en": "But whatever arbitrary batch size, uh, and the sequence length of 256 here I'm just printing out.",
+      "zh": "不管批次大小怎麼選，序列長度都是 256，這裡印出來。"
+    },
+    {
+      "start": 1133.02,
+      "end": 1139.62,
+      "en": "So I'm just decoding, uh, this, uh, some of these random examples and then printing them out.",
+      "zh": "也就是解碼一些隨機例子，再印出。"
+    },
+    {
+      "start": 1140.26,
+      "end": 1140.54,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1140.58,
+      "end": 1149,
+      "en": "And then the last thing in this exercise was to count the percentage of tokens throughout the entire",
+      "zh": "這個練習最後，是計算整個"
+    },
+    {
+      "start": 1149,
+      "end": 1156.48,
+      "en": "train and test datasets that are Pad tokens, or here I call them EOS for end of sequence.",
+      "zh": "訓練與測試資料集的填補詞元比例，這裡也叫 EOS，也就是序列結束。"
+    },
+    {
+      "start": 1156.88,
+      "end": 1162.12,
+      "en": "So I just say where are there the train tokens equal to the pad tokens?",
+      "zh": "判斷 train_tokens 哪些等於填補詞元，"
+    },
+    {
+      "start": 1162.32,
+      "end": 1170.8,
+      "en": "Sum that all up and divide by the total number of elements in the train matrix and in the test matrix, and print those out.",
+      "zh": "加總，再除以訓練與測試矩陣的元素總數，印出結果。"
+    },
+    {
+      "start": 1170.8,
+      "end": 1176.68,
+      "en": "And that number is around 38% for both of the train and the test.",
+      "zh": "兩者都約 38%。"
+    },
+    {
+      "start": 1176.68,
+      "end": 1179.08,
+      "en": "So we can ask a couple of questions here.",
+      "zh": "可以問幾個問題。"
+    },
+    {
+      "start": 1179.44,
+      "end": 1188.32,
+      "en": "One is whether it's surprising or unusual that the number is almost exactly the same for train and test.",
+      "zh": "第一，訓練與測試的數字幾乎完全相同，會不會很意外、很不尋常？"
+    },
+    {
+      "start": 1188.32,
+      "end": 1189.12,
+      "en": "Is that weird?",
+      "zh": "很奇怪嗎？"
+    },
+    {
+      "start": 1189.68,
+      "end": 1191.52,
+      "en": "The answer is no, it's not weird.",
+      "zh": "不，不奇怪。"
+    },
+    {
+      "start": 1191.52,
+      "end": 1198.48,
+      "en": "That's actually very good because the test set, or in this case the validation set, should be basically",
+      "zh": "其實很好，因為測試集，這裡其實是驗證集，"
+    },
+    {
+      "start": 1198.48,
+      "end": 1208.93,
+      "en": "the same as the train set in terms of the distributional characteristics, both of the vocab, the language that's used and also the lengths, the sizes.",
+      "zh": "在詞彙、使用語言，以及長度大小等分布特徵上，基本上應該與訓練集相同。"
+    },
+    {
+      "start": 1209.09,
+      "end": 1216.49,
+      "en": "So in fact, it's good that the train and the test set are roughly equally long in terms of the questions and answers.",
+      "zh": "所以，訓練與測試的問答長度大致相同，是好事。"
+    },
+    {
+      "start": 1216.73,
+      "end": 1225.97,
+      "en": "But the more important question that we should be asking here is what this means in terms of training that over a third.",
+      "zh": "但更重要的問題是，這對訓練代表什麼？超過三分之一，"
+    },
+    {
+      "start": 1226.21,
+      "end": 1235.61,
+      "en": "So, you know, 38% of the tokens that we are pushing into the model in the forward pass are useless, are unused.",
+      "zh": "也就是 38% 前向傳播輸入詞元，是沒用、沒使用的。"
+    },
+    {
+      "start": 1235.61,
+      "end": 1237.69,
+      "en": "They are explicitly ignored.",
+      "zh": "它們會明確被忽略。"
+    },
+    {
+      "start": 1237.69,
+      "end": 1243.29,
+      "en": "We actually have this mask where we tell the model to ignore all of these tokens.",
+      "zh": "我們有遮罩，告訴模型忽略這些詞元。"
+    },
+    {
+      "start": 1243.69,
+      "end": 1252.13,
+      "en": "Now what I pose, the question that I posed in the slides was whether this is beneficial, because each",
+      "zh": "投影片問，這種每個訓練序列都從一個問題開始，"
+    },
+    {
+      "start": 1252.13,
+      "end": 1259.25,
+      "en": "of these training sequences starts with a question, one question, it has one answer.",
+      "zh": "接一個回答，"
+    },
+    {
+      "start": 1259.37,
+      "end": 1261.53,
+      "en": "And then we go to the next sequence.",
+      "zh": "再換下一個序列的方式，是否有幫助。"
+    },
+    {
+      "start": 1261.73,
+      "end": 1268.81,
+      "en": "And and I said that this is more natural for us humans because this really is how we have.",
+      "zh": "我說，這對人類較自然，因為這就是我們"
+    },
+    {
+      "start": 1268.95,
+      "end": 1271.59,
+      "en": "question, answer, uh, interactions.",
+      "zh": "問答互動的方式。"
+    },
+    {
+      "start": 1271.63,
+      "end": 1271.83,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 1271.87,
+      "end": 1281.23,
+      "en": "If you go to your professor at a university in a course, you don't start, you know, in the middle of the answer, you start with the beginning of the question.",
+      "zh": "在大學課堂上問教授，不會從答案中間開始，而是從問題開頭。"
+    },
+    {
+      "start": 1282.19,
+      "end": 1284.47,
+      "en": "Okay, here is the answer to that.",
+      "zh": "好，這個問題的答案，"
+    },
+    {
+      "start": 1284.59,
+      "end": 1286.03,
+      "en": "Uh, that question.",
+      "zh": "就是剛才那個問題，"
+    },
+    {
+      "start": 1286.07,
+      "end": 1287.31,
+      "en": "The answer is this is bad.",
+      "zh": "答案是：這樣不好。"
+    },
+    {
+      "start": 1287.31,
+      "end": 1288.23,
+      "en": "This is pointless.",
+      "zh": "沒有意義。"
+    },
+    {
+      "start": 1288.23,
+      "end": 1299.31,
+      "en": "We are just wasting space and computational power by padding these questions with so many end of sequence, uh, tokens with these padding tokens, it's purely a waste.",
+      "zh": "用這麼多序列結束、填補詞元補滿問題，只是在浪費空間與運算能力，純粹是浪費。"
+    },
+    {
+      "start": 1299.31,
+      "end": 1303.79,
+      "en": "The model does not really benefit from having the question first.",
+      "zh": "模型不會真的因為問題在前面而受益。"
+    },
+    {
+      "start": 1303.79,
+      "end": 1305.35,
+      "en": "And why is that the case?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 1305.83,
+      "end": 1314.27,
+      "en": "That is the case because these laws, when we fine tune them to understand what a question answer discussion",
+      "zh": "因為微調這些 LLM，教它們理解問答"
+    },
+    {
+      "start": 1314.27,
+      "end": 1320.39,
+      "en": "looks like, the model does not really know anything about questions and answers.",
+      "zh": "互動時，模型其實不知道問題與答案是什麼。"
+    },
+    {
+      "start": 1320.39,
+      "end": 1326.63,
+      "en": "Instead, the model is just learning that there are statistical characteristics of the text that it",
+      "zh": "它只是在學文字的統計特徵，"
+    },
+    {
+      "start": 1326.63,
+      "end": 1334.01,
+      "en": "has learned, and those Characteristics are that at some point there's a question which is ten ish tokens",
+      "zh": "例如某個位置會出現長約十個詞元的問題，"
+    },
+    {
+      "start": 1334.01,
+      "end": 1340.33,
+      "en": "long, and then immediately following is an answer which is 50 to 80 tokens long, whatever.",
+      "zh": "緊接長約 50 到 80 個詞元的回答，等等。"
+    },
+    {
+      "start": 1340.81,
+      "end": 1343.73,
+      "en": "That is a pattern that the model is learning.",
+      "zh": "這就是學到的模式。"
+    },
+    {
+      "start": 1343.73,
+      "end": 1349.21,
+      "en": "It doesn't matter where that pattern starts and ends inside the batch.",
+      "zh": "模式在批次裡從哪開始、到哪結束，不重要。"
+    },
+    {
+      "start": 1349.21,
+      "end": 1351.17,
+      "en": "The model doesn't care about that.",
+      "zh": "模型不在乎。"
+    },
+    {
+      "start": 1351.21,
+      "end": 1357.81,
+      "en": "It might be awkward in 1 or 2 places, but there's so many batches and there are so many, and the batches",
+      "zh": "也許有一兩個位置不自然，但批次很多，"
+    },
+    {
+      "start": 1357.81,
+      "end": 1368.29,
+      "en": "are so long that the model does not really get confused the way that we would get confused by starting to read in the middle of an answer, and then going to the next question.",
+      "zh": "序列也很長，所以模型不會像我們一樣，從答案中間讀起、再接下一題，就覺得困惑。"
+    },
+    {
+      "start": 1369.01,
+      "end": 1377.13,
+      "en": "There is one more exercise where we will actually fine tune and interact with the model, but I'm going",
+      "zh": "還有一個練習，會實際微調並與模型互動，但這裡"
+    },
+    {
+      "start": 1377.13,
+      "end": 1383.41,
+      "en": "to cut the video here because I encourage you to get up from your desk and stretch your legs.",
+      "zh": "先分段，鼓勵你離開書桌，伸展雙腿。"
+    },
+    {
+      "start": 1383.45,
+      "end": 1386.41,
+      "en": "Splash some water in your face when you feel refreshed.",
+      "zh": "用水拍拍臉，等恢復精神，"
+    },
+    {
+      "start": 1386.41,
+      "end": 1388.85,
+      "en": "Come back to complete this code challenge.",
+      "zh": "再回來完成這個程式挑戰。"
+    }
+  ]
+}

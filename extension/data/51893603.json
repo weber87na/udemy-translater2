@@ -1,0 +1,2233 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893603",
+  "title": "Are circuits clustered in low-dimensional space?",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "7c46959b6a02a48d5c935812d14d26639a9d530b6851fd1fba90eacdadf9f348",
+  "cues": [
+    {
+      "start": 2.28,
+      "end": 13.08,
+      "en": "In this video, I am going to show you an investigation into identifying circuits based on clustering in a lower dimensional space.",
+      "zh": "這支影片，會展示一項研究，根據低維空間中的分群，辨識迴路。"
+    },
+    {
+      "start": 13.6,
+      "end": 23.48,
+      "en": "Now, it sounds like it should be a very sensible and successful analysis approach to take, but I can already tell you that is not going to work.",
+      "zh": "聽起來應該是合理、能成功的分析方法，但可以先說，它不會成功。"
+    },
+    {
+      "start": 23.88,
+      "end": 32.04,
+      "en": "Well, the analysis will work, but they will not reveal meaningful circuits or clusters in the way that we might want.",
+      "zh": "分析本身會運作，但不會以我們想要的方式，揭示有意義的迴路或群集。"
+    },
+    {
+      "start": 32.44,
+      "end": 38.92,
+      "en": "But that's actually fantastic, because if you want to advance research, you need to know what works.",
+      "zh": "不過其實很好，因為要推進研究，需要知道什麼有效，"
+    },
+    {
+      "start": 39.04,
+      "end": 42.12,
+      "en": "And you also need to know what is unlikely to work.",
+      "zh": "也需要知道什麼不太可能有效。"
+    },
+    {
+      "start": 42.8,
+      "end": 49.64,
+      "en": "And also, the methods that I will implement in this code demo are great reminders of some analysis",
+      "zh": "另外，這份程式示範實作的方法，也能很好地複習一些分析"
+    },
+    {
+      "start": 49.64,
+      "end": 55.16,
+      "en": "techniques, including t-SNE, DBscan, and K-means clustering.",
+      "zh": "技巧，包括 t-SNE、DBSCAN，以及 K-means 分群。"
+    },
+    {
+      "start": 55.76,
+      "end": 64.32,
+      "en": "Essentially, what I'm going to do here is statistically Identify MLP expansion neurons from one transformer",
+      "zh": "基本上，要從一個 Transformer 區塊，透過統計找出 MLP 擴張"
+    },
+    {
+      "start": 64.32,
+      "end": 71.96000000000001,
+      "en": "block that have significantly different activation magnitudes for either him or her, so the pronouns",
+      "zh": "神經元，對 him 或 her 的活化大小有顯著差異，"
+    },
+    {
+      "start": 71.96000000000001,
+      "end": 79.2,
+      "en": "him or her using the him and her sentences that we've used a few times before in this course.",
+      "zh": "也就是用課程中用過幾次的 him、her 句子，研究這兩個代名詞。"
+    },
+    {
+      "start": 79.88,
+      "end": 89.76,
+      "en": "Then we will see if we can use clustering to group these neurons into small circuits that are basically behaving in very similar ways.",
+      "zh": "接著看看，能否用分群，將神經元組成行為基本上非常相似的小迴路。"
+    },
+    {
+      "start": 90.52,
+      "end": 97.44,
+      "en": "So yeah, it's a quite a sensible thing to do, but it turns out that it's not going to yield a reproducible",
+      "zh": "這是相當合理的做法，但結果不會得到可重現的"
+    },
+    {
+      "start": 97.44,
+      "end": 106.03999999999999,
+      "en": "set of small clusters, at least not in this model that I will use here and not in the data set that I have used here.",
+      "zh": "小群集，至少這裡使用的模型與資料集如此。"
+    },
+    {
+      "start": 106.84,
+      "end": 112.28,
+      "en": "Perhaps the analysis approach could be useful, could be more fruitful for other models.",
+      "zh": "這個分析方式，也許對其他模型有用、更有成果，"
+    },
+    {
+      "start": 112.28,
+      "end": 115.47999999999999,
+      "en": "Maybe we would just need a much larger data set.",
+      "zh": "也許只需要大得多的資料集。"
+    },
+    {
+      "start": 115.68,
+      "end": 121.44,
+      "en": "So I don't want to dismiss the approach that I will show you here completely out of hand.",
+      "zh": "所以不想完全、不加考慮地否定這個方法。"
+    },
+    {
+      "start": 121.64,
+      "end": 130.96,
+      "en": "But by the end of this video, I think you will agree that this approach was worth learning about, but doesn't really give a nice set of results.",
+      "zh": "但影片結束時，我想你會同意，方法值得學習，卻沒有得到很好的結果。"
+    },
+    {
+      "start": 131.92,
+      "end": 134.56,
+      "en": "Anyway, let me jump right into the demo.",
+      "zh": "總之，直接進入示範，"
+    },
+    {
+      "start": 134.8,
+      "end": 135.68,
+      "en": "Overview.",
+      "zh": "先看概覽。"
+    },
+    {
+      "start": 136.16,
+      "end": 144.24,
+      "en": "I'm going to work with GPT two medium and hook all of the MLP expansion neurons from one layer.",
+      "zh": "使用 GPT2-medium，從一層 hook 到全部 MLP 擴張神經元。"
+    },
+    {
+      "start": 144.68,
+      "end": 154,
+      "en": "I picked layer five, but the pattern of results seems pretty consistent across the different layers, at least as far as I can tell from some explorations.",
+      "zh": "我選第 5 層，但至少從一些探索看來，不同層的結果模式似乎相當一致。"
+    },
+    {
+      "start": 154.64,
+      "end": 161.72,
+      "en": "The size of the activations matrix is 108 by eight by 4096.",
+      "zh": "活化矩陣大小是 108×8×4,096。"
+    },
+    {
+      "start": 162.07999999999998,
+      "end": 164.16,
+      "en": "You will remember these sentences.",
+      "zh": "應該記得這些句子，"
+    },
+    {
+      "start": 164.16,
+      "end": 170,
+      "en": "They are the same, but one set contains him and one set contains the word her.",
+      "zh": "它們相同，但一組包含 him，另一組包含 her。"
+    },
+    {
+      "start": 170.44,
+      "end": 179.52,
+      "en": "And there are 54 EVPs of either gender, either pronoun, and so there's 108 altogether, and the sequences",
+      "zh": "兩種性別、兩種代名詞各有 54 個，所以合計 108；序列"
+    },
+    {
+      "start": 179.52,
+      "end": 187.88,
+      "en": "are eight tokens long, including padding, and the 4096 corresponds to the dimensionality of.",
+      "zh": "包含填補在內，長 8 個 token，4,096 則對應維度，"
+    },
+    {
+      "start": 188.32,
+      "end": 196.24,
+      "en": "So the embeddings dimensionality of 1024 with the four x expansion in the MLP layers.",
+      "zh": "也就是 1,024 維嵌入，在 MLP 層擴張四倍。"
+    },
+    {
+      "start": 197.44,
+      "end": 202.76,
+      "en": "Here you see some visualizations of the MLP neuron activations.",
+      "zh": "這裡可以看到一些 MLP 神經元活化的視覺化。"
+    },
+    {
+      "start": 203.2,
+      "end": 212.32,
+      "en": "This image here shows all of the activation magnitudes pseudo colorized over all the neurons and over all of the sentences.",
+      "zh": "這張影像，對全部神經元、全部句子的所有活化大小，使用偽色彩顯示。"
+    },
+    {
+      "start": 212.88,
+      "end": 219.84,
+      "en": "You can see a lot of vertical stripes, which indicates that lots of neurons have particular biases",
+      "zh": "可以看到很多垂直條紋，表示很多神經元有特定偏向，"
+    },
+    {
+      "start": 219.84,
+      "end": 226.07999999999998,
+      "en": "or like general offsets that are persistent for all the tokens that I have analyzed here.",
+      "zh": "或者一般性偏移，在這裡分析的全部 token 中持續存在。"
+    },
+    {
+      "start": 226.68,
+      "end": 232.4,
+      "en": "And actually, if you look really carefully, you should be able to see a kind of horizontal line here",
+      "zh": "其實仔細看，應該能看到這裡有一條水平線，"
+    },
+    {
+      "start": 232.4,
+      "end": 241.76,
+      "en": "somewhere at around 54 rows That corresponds to the transition between him sentences and the her sentences.",
+      "zh": "大約在第 54 列，對應從 him 句子轉成 her 句子。"
+    },
+    {
+      "start": 242.44,
+      "end": 247.08,
+      "en": "Over here you see a distribution of all of the activation values.",
+      "zh": "這邊是全部活化值的分布，"
+    },
+    {
+      "start": 247.28,
+      "end": 253.88,
+      "en": "The distribution is shifted negative, but it otherwise has a nice bell curve shape.",
+      "zh": "分布偏負，但除此之外，有漂亮的鐘形曲線。"
+    },
+    {
+      "start": 254.28,
+      "end": 262.96,
+      "en": "And finally over here, I've averaged over all of the neurons to get one activation value per sentence.",
+      "zh": "最後，這裡將全部神經元取平均，得到每個句子一個活化值。"
+    },
+    {
+      "start": 263.44,
+      "end": 274.15999999999997,
+      "en": "And just to be clear, all of the data that I'm showing here and all the data that we will be analyzing in this video, these are the activations to the target word, him or her.",
+      "zh": "也說清楚，這裡展示，以及這支影片要分析的全部資料，都是目標詞 him 或 her 的活化，"
+    },
+    {
+      "start": 274.64,
+      "end": 282.15999999999997,
+      "en": "Given that the context surrounding that target word is exactly the same for the two target types.",
+      "zh": "而兩種目標周圍的上下文完全相同。"
+    },
+    {
+      "start": 283.04,
+      "end": 288.48,
+      "en": "But this plot is about all of the neurons pooled together and averaged together.",
+      "zh": "但這張圖，是把所有神經元合併、取平均。"
+    },
+    {
+      "start": 288.76,
+      "end": 298.08,
+      "en": "What we are interested in here is whether individual neurons show differential activation to him versus her pronouns.",
+      "zh": "這裡感興趣的是，個別神經元，是否對 him 與 her 代名詞，呈現不同活化。"
+    },
+    {
+      "start": 298.48,
+      "end": 300.76,
+      "en": "And here you see an example of that.",
+      "zh": "這裡有個例子。"
+    },
+    {
+      "start": 300.88,
+      "end": 304.12,
+      "en": "So this scatter plot looks similar to this one.",
+      "zh": "這張散佈圖與那張相似，"
+    },
+    {
+      "start": 304.44,
+      "end": 306.12,
+      "en": "But this is just for one neuron.",
+      "zh": "但只看一個神經元，"
+    },
+    {
+      "start": 306.12,
+      "end": 309.52,
+      "en": "It happens to be number 712.",
+      "zh": "剛好是第 712 號。"
+    },
+    {
+      "start": 309.88,
+      "end": 313.8,
+      "en": "Now clearly this neuron has a preference for the token her.",
+      "zh": "顯然，這個神經元偏好 her 這個 token。"
+    },
+    {
+      "start": 314.36,
+      "end": 325.96,
+      "en": "It's not a really super amazing perfect separation, but it would certainly be highly statistically significantly different between these groups of sentences.",
+      "zh": "不是非常驚人、完美的分離，但兩組句子之間，肯定有高度統計顯著差異。"
+    },
+    {
+      "start": 326.48,
+      "end": 337.08,
+      "en": "And this is interesting because remember that the first 54 and the second 54 sentences in this batch, in this block are all.",
+      "zh": "很有意思，因為記住，這個批次、這個區塊中，前 54 個與後 54 個句子都，"
+    },
+    {
+      "start": 337.32,
+      "end": 343.24,
+      "en": "So all the tokens here are exactly identical except for one word.",
+      "zh": "除了單一字詞之外，所有 token 都完全相同，"
+    },
+    {
+      "start": 344.24,
+      "end": 346.56,
+      "en": "So the context is the same.",
+      "zh": "所以上下文相同。"
+    },
+    {
+      "start": 346.8,
+      "end": 347.08,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 347.12,
+      "end": 349.12,
+      "en": "So this is one neuron.",
+      "zh": "這是一個神經元。"
+    },
+    {
+      "start": 349.12,
+      "end": 357.08,
+      "en": "We can do a t test to compare the activations for for him versus her over all 4000 neurons.",
+      "zh": "可以對全部 4,000 個神經元做 t 檢定，比較 him 與 her 的活化。"
+    },
+    {
+      "start": 357.08,
+      "end": 360.2,
+      "en": "And if we do that, we get a result that looks like this.",
+      "zh": "結果會像這樣。"
+    },
+    {
+      "start": 360.6,
+      "end": 367.76,
+      "en": "So here you see the neurons index on the x axis and the t values on the y axis.",
+      "zh": "x 軸是神經元索引，y 軸是 t 值。"
+    },
+    {
+      "start": 368.4,
+      "end": 372.84,
+      "en": "The red x's in the middle are for the non-significant neurons.",
+      "zh": "中間紅色叉號，是不顯著的神經元，"
+    },
+    {
+      "start": 372.84,
+      "end": 382.36,
+      "en": "So neurons for which the differences between activations for him sentences and her sentences was not statistically significant.",
+      "zh": "也就是 him 句子與 her 句子的活化差異，未達統計顯著。"
+    },
+    {
+      "start": 382.76,
+      "end": 389.48,
+      "en": "And then in the purple circles are the neurons that had a significant difference in activation between him and her.",
+      "zh": "紫色圓點，則是 him 與 her 之間，活化有顯著差異的神經元。"
+    },
+    {
+      "start": 389.6,
+      "end": 393.48,
+      "en": "For example, this one that I illustrated here was 712.",
+      "zh": "例如這裡展示的 712，"
+    },
+    {
+      "start": 393.6,
+      "end": 397,
+      "en": "So that would be one one of these guys in here somewhere.",
+      "zh": "大概就是這裡的其中一個。"
+    },
+    {
+      "start": 397.92,
+      "end": 406.68,
+      "en": "A positive T values indicate more activation for him, and negative t values indicate more activation for the word her.",
+      "zh": "正 t 值表示對 him 活化較強，負 t 值表示對 her 活化較強。"
+    },
+    {
+      "start": 407.36,
+      "end": 413.88,
+      "en": "So these tests treat each neuron as a Is a completely independent entity.",
+      "zh": "這些檢定，將每個神經元視為完全獨立的實體。"
+    },
+    {
+      "start": 414.4,
+      "end": 419.15999999999997,
+      "en": "Now that's kind of interesting, but it's not revealing any circuitry.",
+      "zh": "這有點意思，但沒有揭示迴路。"
+    },
+    {
+      "start": 419.6,
+      "end": 427.32,
+      "en": "What we want to know is whether these neurons actually form circuits such that they are all interacting with each other.",
+      "zh": "想知道的是，這些神經元是否真的形成迴路，彼此互動，"
+    },
+    {
+      "start": 427.36,
+      "end": 429.08,
+      "en": "They're behaving in the same way.",
+      "zh": "行為相同，"
+    },
+    {
+      "start": 429.32,
+      "end": 432.28,
+      "en": "Their activation values are strongly correlated.",
+      "zh": "活化值高度相關。"
+    },
+    {
+      "start": 433,
+      "end": 441.96,
+      "en": "So what I then did was take all of the significant neurons, use t-SNE to get the dimensionality down",
+      "zh": "所以接著，取所有顯著神經元，使用 t-SNE，將維度降到"
+    },
+    {
+      "start": 441.96,
+      "end": 445.28,
+      "en": "to two and visualize the results.",
+      "zh": "二維，呈現結果。"
+    },
+    {
+      "start": 445.28,
+      "end": 446.88,
+      "en": "And that looked like this.",
+      "zh": "長這樣。"
+    },
+    {
+      "start": 447.48,
+      "end": 449.48,
+      "en": "So it looks pretty neat, looks like an eye.",
+      "zh": "看起來很漂亮，像一隻眼睛。"
+    },
+    {
+      "start": 449.72,
+      "end": 458.32,
+      "en": "And so on the one hand there is this beautiful separation between the positive and the negative T valued neurons.",
+      "zh": "一方面，正 t 值與負 t 值的神經元，漂亮地分開。"
+    },
+    {
+      "start": 458.48,
+      "end": 459.68,
+      "en": "That is not trivial.",
+      "zh": "這不是理所當然，"
+    },
+    {
+      "start": 459.68,
+      "end": 461.88,
+      "en": "That just popped out of the clustering.",
+      "zh": "而是從分群中自然出現。"
+    },
+    {
+      "start": 462.4,
+      "end": 471.27,
+      "en": "But on the other hand, if there were actual circuits or like little subnetworks inside this MLP expansion",
+      "zh": "但另一方面，如果這個 MLP 擴張"
+    },
+    {
+      "start": 471.27,
+      "end": 477.67,
+      "en": "layer, you would expect to see islands or clusters visually appearing in this plot.",
+      "zh": "層中，真的有迴路、小型子網路，就會預期圖上出現島狀群集。"
+    },
+    {
+      "start": 478.31,
+      "end": 480.27,
+      "en": "And clearly that's not the case.",
+      "zh": "顯然並非如此。"
+    },
+    {
+      "start": 480.47,
+      "end": 488.31,
+      "en": "So at least from this statistical perspective, using t-SNE on these data, there isn't strong evidence",
+      "zh": "所以至少從這個統計角度，用 t-SNE 分析這些資料，沒有強力證據，"
+    },
+    {
+      "start": 488.31,
+      "end": 494.91,
+      "en": "for small circuits for processing him versus her given identical context.",
+      "zh": "支持在相同上下文下，處理 him 與 her 的小迴路。"
+    },
+    {
+      "start": 495.63,
+      "end": 503.27,
+      "en": "Now, to be honest, it doesn't really make any sense to continue doing clustering analyses on these data.",
+      "zh": "老實說，繼續對這些資料做分群分析，沒有什麼道理，"
+    },
+    {
+      "start": 503.47,
+      "end": 508.59,
+      "en": "But I did it anyway, partly because that was my original hypothesis.",
+      "zh": "但我還是做了，部分因為那是原本的假設，"
+    },
+    {
+      "start": 508.59,
+      "end": 517.03,
+      "en": "That was my analysis plan, and partly because I think it's still good practice to have more experience using clustering methods.",
+      "zh": "是分析計畫，也因為多一點使用分群方法的經驗，仍是很好的練習。"
+    },
+    {
+      "start": 518.39,
+      "end": 519.31,
+      "en": "Well, okay.",
+      "zh": "好吧。"
+    },
+    {
+      "start": 519.35,
+      "end": 524.99,
+      "en": "So the DBscan results look beautiful in the sense of being really aesthetically pleasing.",
+      "zh": "DBSCAN 的結果很漂亮，從美學上看，非常好看，"
+    },
+    {
+      "start": 525.15,
+      "end": 526.83,
+      "en": "So they're just nice to look at.",
+      "zh": "就是賞心悅目。"
+    },
+    {
+      "start": 527.63,
+      "end": 529.99,
+      "en": "But the results are basically nonsense.",
+      "zh": "但結果基本上沒意義。"
+    },
+    {
+      "start": 530.03,
+      "end": 536.19,
+      "en": "I mean, maybe you think that these really are some clusters forming in here in the data, but the problem",
+      "zh": "也許你覺得這裡真的形成群集，但問題是，"
+    },
+    {
+      "start": 536.19,
+      "end": 542.23,
+      "en": "is, if you rerun this analysis multiple times, you will get wildly different results.",
+      "zh": "多次重跑分析，會得到差異非常大的結果。"
+    },
+    {
+      "start": 542.35,
+      "end": 549.31,
+      "en": "So these clusters, these apparent clusters are not reproducible over the same data set.",
+      "zh": "所以在同一份資料集上，這些表面上的群集，無法重現，"
+    },
+    {
+      "start": 549.31,
+      "end": 556.35,
+      "en": "If you just repeat the clustering multiple times given like random initializations of the initial clustering.",
+      "zh": "只要根據隨機的初始分群設定，重複幾次。"
+    },
+    {
+      "start": 556.87,
+      "end": 565.19,
+      "en": "Furthermore, you can also change the DBscan parameters even a little bit and you will again get wildly different results.",
+      "zh": "另外，即使只稍微改變 DBSCAN 參數，也會得到差異非常大的結果。"
+    },
+    {
+      "start": 565.47,
+      "end": 569.99,
+      "en": "I will show you that in the code and I encourage you to continue exploring it.",
+      "zh": "程式中會展示，也鼓勵你繼續探索。"
+    },
+    {
+      "start": 570.47,
+      "end": 578.71,
+      "en": "Anyway, finally, I also applied a K-means clustering, again based on the initial t-SNE results.",
+      "zh": "最後，也套用 K-means，同樣基於最初的 t-SNE 結果。"
+    },
+    {
+      "start": 578.71,
+      "end": 585.87,
+      "en": "We don't really have a good justification for expecting meaningful results from K-means clustering.",
+      "zh": "其實沒有很好的理由，預期 K-means 會得到有意義結果，"
+    },
+    {
+      "start": 586.11,
+      "end": 588.35,
+      "en": "But yeah, I did it anyway.",
+      "zh": "但還是做了。"
+    },
+    {
+      "start": 588.35,
+      "end": 594.91,
+      "en": "And it does highlight one of the features of K-means, which is that all of the data points just get",
+      "zh": "這凸顯 K-means 的一個特性，所有資料點只是根據"
+    },
+    {
+      "start": 594.91,
+      "end": 601.31,
+      "en": "clustered based on local distances, and you're always going to get results, even if those results",
+      "zh": "局部距離分群，而且永遠會得到結果，即使結果"
+    },
+    {
+      "start": 601.31,
+      "end": 607.07,
+      "en": "are not really revealing any meaningful organizational patterns in the data.",
+      "zh": "沒有真正揭示資料中有意義的組織模式。"
+    },
+    {
+      "start": 607.39,
+      "end": 615.59,
+      "en": "You can see this cluster happened to get both negative and positive T valued neurons in the same cluster, just based on proximity.",
+      "zh": "可以看到，這個群集剛好同時包含正、負 t 值神經元，只是因為位置接近。"
+    },
+    {
+      "start": 616.75,
+      "end": 620.67,
+      "en": "Okay, let's switch to code and have a more detailed look at this stuff.",
+      "zh": "好，切換到程式碼，更詳細看看。"
+    },
+    {
+      "start": 621.15,
+      "end": 626.75,
+      "en": "Here are the libraries that I will use here, including t-SNE, DBscan and K-means.",
+      "zh": "這裡是函式庫，包括 t-SNE、DBSCAN、K-means，"
+    },
+    {
+      "start": 626.75,
+      "end": 633.15,
+      "en": "All three of those from scikit learn and Scipy.stats to get the stats module.",
+      "zh": "全部來自 scikit-learn，以及用來取得 stats 模組的 scipy.stats。"
+    },
+    {
+      "start": 633.51,
+      "end": 633.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 633.91,
+      "end": 638.15,
+      "en": "And then let's see here I'm importing Gpt2 medium.",
+      "zh": "接著這裡匯入 GPT2-medium。"
+    },
+    {
+      "start": 638.59,
+      "end": 641.03,
+      "en": "This variable here n neurons.",
+      "zh": "n neurons 這個變數，"
+    },
+    {
+      "start": 641.03,
+      "end": 643.11,
+      "en": "That's just a convenience variable.",
+      "zh": "只是方便使用，"
+    },
+    {
+      "start": 643.11,
+      "end": 652.03,
+      "en": "So I don't need to write out all of this business Every time I want to access the number 4096 that's here.",
+      "zh": "不用每次想存取這裡的 4,096，都寫出整串內容。"
+    },
+    {
+      "start": 652.03,
+      "end": 655.79,
+      "en": "So I'm just grabbing from any random transformer block.",
+      "zh": "從隨便一個 Transformer 區塊取得，"
+    },
+    {
+      "start": 655.79,
+      "end": 659.03,
+      "en": "They're all the same in in the sense of that counts.",
+      "zh": "它們在這個數量上全都相同。"
+    },
+    {
+      "start": 659.31,
+      "end": 667.51,
+      "en": "Uh, MLP CFC so fully connected weights dot shape and that is going to return this number over here.",
+      "zh": "MLP 的 c_fc，全連接層 weights.shape，會傳回這裡的數字。"
+    },
+    {
+      "start": 667.79,
+      "end": 669.35,
+      "en": "There we go okay.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 669.39,
+      "end": 671.19,
+      "en": "Now I'm going to implant a hook.",
+      "zh": "現在安裝 hook。"
+    },
+    {
+      "start": 671.23,
+      "end": 678.23,
+      "en": "Another thing I wanted to include in here is some printing statements inside the hook function.",
+      "zh": "這裡還想加入 hook 函式內的列印敘述。"
+    },
+    {
+      "start": 678.55,
+      "end": 681.15,
+      "en": "This is not something you would typically want.",
+      "zh": "通常不會想這樣做，"
+    },
+    {
+      "start": 681.31,
+      "end": 689.79,
+      "en": "It's going to just print out the shape of the output matrix that I'm storing in here as the model processes the tokens.",
+      "zh": "它會在模型處理 token 時，列印存在這裡的輸出矩陣形狀。"
+    },
+    {
+      "start": 689.79,
+      "end": 695.79,
+      "en": "So every time you push a batch of tokens through the model, this shape is going to be printed out.",
+      "zh": "所以每次將一批 token 送進模型，都會列印形狀。"
+    },
+    {
+      "start": 696.19,
+      "end": 698.39,
+      "en": "This is not for production.",
+      "zh": "這不是正式運作時要做的，"
+    },
+    {
+      "start": 698.51,
+      "end": 709.91,
+      "en": "Uh, it's for applications because it will just sort of take up some more computation time and also is going to print out a lot of mess if you're processing a lot of tokens.",
+      "zh": "應用時不適合，因為多花一點計算時間，而且處理大量 token，會列印一堆雜亂內容。"
+    },
+    {
+      "start": 709.91,
+      "end": 715.55,
+      "en": "But for development, when you're working with your code, this sort of thing is really great.",
+      "zh": "但開發、修改程式時，這非常好用。"
+    },
+    {
+      "start": 715.55,
+      "end": 718.23,
+      "en": "You just insert a bunch of print statements.",
+      "zh": "直接加入一堆 print 敘述，"
+    },
+    {
+      "start": 718.35,
+      "end": 728.35,
+      "en": "Maybe inside this hook you're doing some more sophisticated processing, some additional calculations, and so therefore this can be pretty handy.",
+      "zh": "hook 裡可能還有更精細處理、額外計算，這就相當實用。"
+    },
+    {
+      "start": 728.71,
+      "end": 728.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 728.99,
+      "end": 729.55,
+      "en": "Let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 729.71,
+      "end": 730.15,
+      "en": "Did I run?",
+      "zh": "執行了嗎？"
+    },
+    {
+      "start": 730.15,
+      "end": 734.39,
+      "en": "Yes, I already ran this code so I don't need to import it twice okay.",
+      "zh": "有，已經執行，不必匯入兩次。"
+    },
+    {
+      "start": 734.39,
+      "end": 734.63,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 734.63,
+      "end": 738.31,
+      "en": "So then import implanting the hook into the fully connected layer.",
+      "zh": "接著，在全連接層安裝 hook。"
+    },
+    {
+      "start": 738.67,
+      "end": 743.39,
+      "en": "Here again are the him and her sentences which you've now seen multiple times.",
+      "zh": "這裡再次是看過好幾次的 him 與 her 句子。"
+    },
+    {
+      "start": 743.39,
+      "end": 746.35,
+      "en": "54 sentences exactly repeated.",
+      "zh": "54 個句子，完全重複，"
+    },
+    {
+      "start": 746.35,
+      "end": 749.51,
+      "en": "But the first block of 54 has him.",
+      "zh": "但第一組 54 個用 him，"
+    },
+    {
+      "start": 749.67,
+      "end": 752.03,
+      "en": "And then we have a her over here.",
+      "zh": "另一組則有 her。"
+    },
+    {
+      "start": 752.59,
+      "end": 753.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 753.11,
+      "end": 753.91,
+      "en": "So let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 754.23,
+      "end": 756.27,
+      "en": "And then uh, let's see then.",
+      "zh": "接著，看看。"
+    },
+    {
+      "start": 756.31,
+      "end": 756.43,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 756.47,
+      "end": 760.15,
+      "en": "I'm just also finding the target tokens.",
+      "zh": "也找出目標 token，"
+    },
+    {
+      "start": 760.15,
+      "end": 767.19,
+      "en": "I need that because the token the target tokens are in different indices in each sentence, and so to",
+      "zh": "因為每個句子中，目標 token 的索引不同；要"
+    },
+    {
+      "start": 767.23,
+      "end": 778.99,
+      "en": "know which activations we want to grab out of the model, we need to be able to identify these target locations each time we or for each sentence.",
+      "zh": "知道從模型取得哪些活化，就必須每次、對每個句子，找出目標位置。"
+    },
+    {
+      "start": 779.55,
+      "end": 781.39,
+      "en": "Okay, so here I'm doing the forward pass.",
+      "zh": "好，這裡執行前向傳播。"
+    },
+    {
+      "start": 781.39,
+      "end": 784.35,
+      "en": "And then you are going to see this thing printed out.",
+      "zh": "會看到這個東西被列印，"
+    },
+    {
+      "start": 784.39,
+      "end": 788.91,
+      "en": "As I mentioned, this is not something you would want to do all the time in practice.",
+      "zh": "就像提過的，實務上不會想一直這麼做，"
+    },
+    {
+      "start": 788.91,
+      "end": 793.19,
+      "en": "But when you are developing code it's great to do something like this.",
+      "zh": "但開發程式時很好用。"
+    },
+    {
+      "start": 793.55,
+      "end": 793.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 793.87,
+      "end": 796.27,
+      "en": "And then this is just confirmation.",
+      "zh": "接著只是確認，"
+    },
+    {
+      "start": 796.27,
+      "end": 802.15,
+      "en": "So I only implanted into layer five transformer block five.",
+      "zh": "只安裝到第 5 層、Transformer 區塊 5，"
+    },
+    {
+      "start": 802.59,
+      "end": 807.11,
+      "en": "And here we see the size of the activations matrix okay.",
+      "zh": "這裡可以看到活化矩陣大小。"
+    },
+    {
+      "start": 807.15,
+      "end": 809.03,
+      "en": "This is also code you've seen before.",
+      "zh": "這段程式以前也看過。"
+    },
+    {
+      "start": 809.03,
+      "end": 815.83,
+      "en": "I have to find the location of the target token for each sentence.",
+      "zh": "必須找出每個句子目標 token 的位置，"
+    },
+    {
+      "start": 815.83,
+      "end": 818.55,
+      "en": "So that's why I loop over sentences.",
+      "zh": "所以逐一迭代句子。"
+    },
+    {
+      "start": 818.79,
+      "end": 823.75,
+      "en": "And here I'm looking for either the token for him or the token for her.",
+      "zh": "這裡找的是 him 或 her 的 token。"
+    },
+    {
+      "start": 824.19,
+      "end": 830.91,
+      "en": "This code works because there is exactly one token target token per sentence.",
+      "zh": "程式能運作，因為每句恰好只有一個目標 token。"
+    },
+    {
+      "start": 830.91,
+      "end": 837.27,
+      "en": "If you have sentences with multiple targets in the same sentence, then you might need to adjust this code a little bit.",
+      "zh": "如果同一句有多個目標，可能需要稍微調整程式。"
+    },
+    {
+      "start": 837.71,
+      "end": 837.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 837.91,
+      "end": 839.95,
+      "en": "And then I'm grabbing the activations.",
+      "zh": "接著取得活化，"
+    },
+    {
+      "start": 839.95,
+      "end": 849.15,
+      "en": "So I'm pulling it out of this layer, this sentence, this target token index, and then detaching it",
+      "zh": "從這一層、這個句子、這個目標 token 索引取出，再 detach，"
+    },
+    {
+      "start": 849.15,
+      "end": 852.15,
+      "en": "and then converting it to numpy.",
+      "zh": "轉成 NumPy。"
+    },
+    {
+      "start": 852.59,
+      "end": 859.51,
+      "en": "This part is particularly convenient because a lot of these subsequent analyses in scikit learn, for",
+      "zh": "這特別方便，因為許多後續分析，例如 scikit-learn，"
+    },
+    {
+      "start": 859.51,
+      "end": 865.27,
+      "en": "example, just work better with numpy format compared to PyTorch format.",
+      "zh": "使用 NumPy 格式，比 PyTorch 更好處理。"
+    },
+    {
+      "start": 865.51,
+      "end": 873.91,
+      "en": "By the way, because I never need to use these activations in PyTorch format, it probably would have",
+      "zh": "順帶一提，因為永遠不需要 PyTorch 格式的這些活化，"
+    },
+    {
+      "start": 873.91,
+      "end": 878.39,
+      "en": "been sensible for me to do something like this.",
+      "zh": "也許像這樣做會更合理。"
+    },
+    {
+      "start": 878.63,
+      "end": 887.35,
+      "en": "So right here, when I hook the activations, I can already detach them from the computational graph and convert them into numpy.",
+      "zh": "在 hook 取得活化的當下，就與計算圖分離，轉成 NumPy。"
+    },
+    {
+      "start": 887.59,
+      "end": 889.75,
+      "en": "Sometimes I do that and sometimes I don't.",
+      "zh": "有時我會這樣，有時不會，"
+    },
+    {
+      "start": 889.75,
+      "end": 893.43,
+      "en": "But just so you know, that's pretty convenient to do sometimes.",
+      "zh": "只是讓你知道，有時相當方便。"
+    },
+    {
+      "start": 893.99,
+      "end": 897.91,
+      "en": "Okay, so let's see here we are getting the activations.",
+      "zh": "好，這裡取得活化。"
+    },
+    {
+      "start": 897.91,
+      "end": 898.27,
+      "en": "Yep.",
+      "zh": "對。"
+    },
+    {
+      "start": 898.31,
+      "end": 900.75,
+      "en": "This code cell that's pretty fast to run.",
+      "zh": "這個程式區塊執行相當快。"
+    },
+    {
+      "start": 900.79,
+      "end": 906.63,
+      "en": "Here I'm just creating these visualizations that I showed in the slides.",
+      "zh": "這裡只是建立投影片展示的視覺化。"
+    },
+    {
+      "start": 906.63,
+      "end": 911.23,
+      "en": "I don't know if you can see this horizontal line on the video screen.",
+      "zh": "不確定影片畫面能否看到這條水平線，"
+    },
+    {
+      "start": 911.23,
+      "end": 913.95,
+      "en": "Maybe you can see it on your Python window.",
+      "zh": "也許在自己的 Python 視窗看得到。"
+    },
+    {
+      "start": 913.95,
+      "end": 925.35,
+      "en": "But basically there is, you know, some kind of like global shift happening around here where there's a subtle but slight population shift from the Him sentences to the her sentences.",
+      "zh": "基本上，這裡有某種整體偏移，從 him 句子到 her 句子，存在細微的群體偏移。"
+    },
+    {
+      "start": 926.47,
+      "end": 926.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 927.11,
+      "end": 933.55,
+      "en": "So now here I'm just picking one neuron at random to visualize this neuron.",
+      "zh": "現在隨便挑一個神經元，畫出來。"
+    },
+    {
+      "start": 933.59,
+      "end": 934.19,
+      "en": "It doesn't.",
+      "zh": "它沒有，"
+    },
+    {
+      "start": 934.43,
+      "end": 936.87,
+      "en": "Maybe there's a very tiny okay.",
+      "zh": "也許有非常小的，好，"
+    },
+    {
+      "start": 936.91,
+      "end": 947.59,
+      "en": "Visually it looks to me like there is a bit of a shift for these sentences for the her tokens compared to the Him tokens, but I might just be reading into that.",
+      "zh": "從圖上看，her token 的句子，相較 him token，似乎有一點偏移，但也可能只是我想太多。"
+    },
+    {
+      "start": 947.63,
+      "end": 951.63,
+      "en": "Obviously in this plot I'm not doing any statistical analysis.",
+      "zh": "顯然，這張圖沒有做統計分析，"
+    },
+    {
+      "start": 951.67,
+      "end": 953.91,
+      "en": "I'm not even looking at means and standard deviations.",
+      "zh": "甚至沒看平均數與標準差，"
+    },
+    {
+      "start": 953.91,
+      "end": 956.43,
+      "en": "This is just random visualizations.",
+      "zh": "只是隨意視覺化。"
+    },
+    {
+      "start": 957.51,
+      "end": 966.95,
+      "en": "And then there were a couple of neurons that I found literally just from randomly scooping around, uh, that seemed to show really beautiful effects.",
+      "zh": "接著有幾個神經元，真的是隨便亂找，卻似乎顯示非常漂亮的效果。"
+    },
+    {
+      "start": 966.99,
+      "end": 967.47,
+      "en": "Look at that.",
+      "zh": "看看這個，"
+    },
+    {
+      "start": 967.47,
+      "end": 968.55,
+      "en": "Really, really nice.",
+      "zh": "真的非常不錯。"
+    },
+    {
+      "start": 968.83,
+      "end": 969.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 969.11,
+      "end": 970.95,
+      "en": "So you can explore a little bit more.",
+      "zh": "可以再多探索。"
+    },
+    {
+      "start": 971.15,
+      "end": 976.39,
+      "en": "Again, this is qualitative because I'm not doing any statistical analyses.",
+      "zh": "同樣，這是質性觀察，沒有做統計分析，"
+    },
+    {
+      "start": 976.63,
+      "end": 980.11,
+      "en": "And I'm also just looking at one neuron at a time.",
+      "zh": "而且一次只看一個神經元，"
+    },
+    {
+      "start": 980.11,
+      "end": 982.47,
+      "en": "So this is also not very scalable.",
+      "zh": "也很難擴充。"
+    },
+    {
+      "start": 982.59,
+      "end": 990.99,
+      "en": "Still it's really interesting and insightful to do this kind of visual kind of qualitative investigations in your data.",
+      "zh": "不過，對資料做這種視覺、質性探索，確實很有意思，也能帶來見解。"
+    },
+    {
+      "start": 991.71,
+      "end": 991.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 992.03,
+      "end": 1002.39,
+      "en": "So now for more quantitative approaches here I'm running a t test on all of the neurons, all of all the activations for the him sentences versus the her sentences.",
+      "zh": "現在做更量化的方法，對所有神經元、所有活化，針對 him 句子與 her 句子進行 t 檢定。"
+    },
+    {
+      "start": 1002.83,
+      "end": 1008.43,
+      "en": "This is the p value threshold I will use to evaluate the statistical significance.",
+      "zh": "這是評估統計顯著性的 P 值門檻，"
+    },
+    {
+      "start": 1008.87,
+      "end": 1012.31,
+      "en": "It is 0.05 divided by the number of neurons.",
+      "zh": "0.05 除以神經元數量。"
+    },
+    {
+      "start": 1012.31,
+      "end": 1015.63,
+      "en": "That's Bonferroni correcting for multiple comparisons.",
+      "zh": "這是對多重比較做 Bonferroni 校正。"
+    },
+    {
+      "start": 1016.07,
+      "end": 1019.51,
+      "en": "So this is going to give me a boolean vector here.",
+      "zh": "得到這裡這個布林向量。"
+    },
+    {
+      "start": 1019.55,
+      "end": 1021.71,
+      "en": "Actually maybe I'll show you what that looks like.",
+      "zh": "其實可以展示一下。"
+    },
+    {
+      "start": 1022.19,
+      "end": 1024.59,
+      "en": "So I have this vector sig p values.",
+      "zh": "有這個 sig p values 向量，"
+    },
+    {
+      "start": 1024.87,
+      "end": 1027.19,
+      "en": "And it's a bunch of trues and falses.",
+      "zh": "一串 True 與 False。"
+    },
+    {
+      "start": 1027.43,
+      "end": 1029.71,
+      "en": "It is true for every neuron.",
+      "zh": "對每個神經元，它是 True，"
+    },
+    {
+      "start": 1029.71,
+      "end": 1032.51,
+      "en": "So let me also show you the length of this.",
+      "zh": "也展示一下長度，"
+    },
+    {
+      "start": 1033.51,
+      "end": 1035.43,
+      "en": "That is 4096.",
+      "zh": "是 4,096。"
+    },
+    {
+      "start": 1035.59,
+      "end": 1045.07,
+      "en": "And it has a value of true every time the p value from the t test is less than 0.05, corrected for multiple comparisons.",
+      "zh": "每當 t 檢定 P 值小於多重比較校正後的 0.05，就是 True。"
+    },
+    {
+      "start": 1045.35,
+      "end": 1050.07,
+      "en": "And when it's false, that means that the p value was greater than 0.05.",
+      "zh": "False 則表示 P 值大於 0.05。"
+    },
+    {
+      "start": 1050.63,
+      "end": 1050.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1050.99,
+      "end": 1060.99,
+      "en": "And then yeah here I'm just finding and then visualizing the On significant devalued neurons and the significant valued ones.",
+      "zh": "這裡找出並呈現不顯著的 t 值神經元，以及顯著的。"
+    },
+    {
+      "start": 1061.51,
+      "end": 1061.83,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1061.87,
+      "end": 1065.71,
+      "en": "So yeah, you see some interesting distributions here.",
+      "zh": "可以看到一些有意思的分布。"
+    },
+    {
+      "start": 1065.75,
+      "end": 1074.11,
+      "en": "A couple of neurons show really, really, really striking differences between these two in the positive direction and in the negative direction.",
+      "zh": "幾個神經元，在正方向與負方向，都呈現兩者非常鮮明的差異。"
+    },
+    {
+      "start": 1074.11,
+      "end": 1078.47,
+      "en": "And lots of them are clustered towards closer to zero, but still significant.",
+      "zh": "許多則集中在接近零的位置，但仍然顯著。"
+    },
+    {
+      "start": 1078.95,
+      "end": 1086.87,
+      "en": "Now if you would like to continue exploring these data, I think it would be pretty interesting to figure out what is this maximum here.",
+      "zh": "如果想繼續探索資料，找出這裡的最大值，應該很有意思。"
+    },
+    {
+      "start": 1086.91,
+      "end": 1089.67,
+      "en": "Be pretty straightforward to find this maximum.",
+      "zh": "很容易找到，"
+    },
+    {
+      "start": 1089.71,
+      "end": 1092.71,
+      "en": "It's going to be somewhere around 1800 or so.",
+      "zh": "大概在 1,800 左右。"
+    },
+    {
+      "start": 1092.87,
+      "end": 1098.63,
+      "en": "And then look at the plot for that neuron and see how good that separability is.",
+      "zh": "接著看該神經元的圖，觀察分離程度有多好。"
+    },
+    {
+      "start": 1100.11,
+      "end": 1100.31,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1100.35,
+      "end": 1102.43,
+      "en": "But so for now I'm going to move forward.",
+      "zh": "但目前先繼續。"
+    },
+    {
+      "start": 1102.47,
+      "end": 1110.79,
+      "en": "The idea of this circuit analysis investigation by clustering is that it is possible.",
+      "zh": "透過分群研究迴路的想法，是有可能，"
+    },
+    {
+      "start": 1110.79,
+      "end": 1122.67,
+      "en": "So I had this idea, this hypothesis that if I look at the significant neurons, that may be some of these are forming clusters, some of them are working together.",
+      "zh": "我有個想法、假設，顯著神經元之中，也許有些形成群集、共同運作，"
+    },
+    {
+      "start": 1122.67,
+      "end": 1125.87,
+      "en": "They have activation patterns that go up and down together.",
+      "zh": "活化模式一起上升、一起下降。"
+    },
+    {
+      "start": 1125.99,
+      "end": 1130.39,
+      "en": "So the neurons are kind of functionally coupled into a circuit.",
+      "zh": "也就是神經元在功能上，耦合成一個迴路。"
+    },
+    {
+      "start": 1130.79,
+      "end": 1132.23,
+      "en": "Decent hypothesis.",
+      "zh": "是不錯的假設，"
+    },
+    {
+      "start": 1132.23,
+      "end": 1140.39,
+      "en": "That is a way that circuits are identified in other areas of complex systems analyses, including in neuroscience.",
+      "zh": "其他複雜系統分析領域，包括神經科學，也會這樣辨識迴路。"
+    },
+    {
+      "start": 1140.55,
+      "end": 1141.55,
+      "en": "So yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1141.55,
+      "end": 1142.87,
+      "en": "So I proceeded from there.",
+      "zh": "所以從這裡繼續。"
+    },
+    {
+      "start": 1143.19,
+      "end": 1144.03,
+      "en": "So here's what I did.",
+      "zh": "這是我的做法。"
+    },
+    {
+      "start": 1144.03,
+      "end": 1149.91,
+      "en": "I took only the neurons that show a p value less than 0.05 corrected.",
+      "zh": "只取校正後 P 值小於 0.05 的神經元，"
+    },
+    {
+      "start": 1149.91,
+      "end": 1152.71,
+      "en": "So I'm not going to cluster all of the neurons.",
+      "zh": "不會將全部神經元分群。"
+    },
+    {
+      "start": 1152.71,
+      "end": 1154.43,
+      "en": "You can also try that if you want.",
+      "zh": "想的話也能試，"
+    },
+    {
+      "start": 1154.47,
+      "end": 1158.31,
+      "en": "I'll show you or I will tell you what that looks like in a moment.",
+      "zh": "稍後會告訴你那長什麼樣子。"
+    },
+    {
+      "start": 1158.71,
+      "end": 1161.55,
+      "en": "Uh, and then yeah, this is just counting the number of neurons.",
+      "zh": "這裡只是計算神經元數量。"
+    },
+    {
+      "start": 1161.55,
+      "end": 1165.23,
+      "en": "And so we see that out of all of the neurons.",
+      "zh": "可以看到，全部神經元中，"
+    },
+    {
+      "start": 1165.23,
+      "end": 1168.47,
+      "en": "So that's 4096 then.",
+      "zh": "也就是 4,096 個，"
+    },
+    {
+      "start": 1168.63,
+      "end": 1175.83,
+      "en": "Uh, yeah, a bit over a quarter of them, maybe 30 ish percent, 30 something percent of them were significant.",
+      "zh": "略超過四分之一，大約百分之三十幾，達到顯著，"
+    },
+    {
+      "start": 1175.87,
+      "end": 1178.55,
+      "en": "Had a p value less than 0.05.",
+      "zh": "P 值小於 0.05。"
+    },
+    {
+      "start": 1179.07,
+      "end": 1179.39,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1179.43,
+      "end": 1188.71,
+      "en": "So then what I'm going to do is use t-SNE to derive two components and then fit the data to the to the",
+      "zh": "接著使用 t-SNE，取得兩個成分，再將資料擬合到"
+    },
+    {
+      "start": 1188.71,
+      "end": 1189.23,
+      "en": "model.",
+      "zh": "模型。"
+    },
+    {
+      "start": 1189.35,
+      "end": 1196.83,
+      "en": "This, by the way, is just min max scaling the color values just for the coloring all of the individual points here.",
+      "zh": "順帶一提，這只是對顏色值做最小最大縮放，為每個資料點上色。"
+    },
+    {
+      "start": 1196.83,
+      "end": 1203.83,
+      "en": "So essentially a min max scaling all the t values so that this value ends up being -1 or 0.",
+      "zh": "基本上，將所有 t 值做最小最大縮放，讓這個值變成 −1 或 0，"
+    },
+    {
+      "start": 1203.83,
+      "end": 1206.91,
+      "en": "And this one ends up being plus one okay.",
+      "zh": "這個則變成 +1。"
+    },
+    {
+      "start": 1206.95,
+      "end": 1211.63,
+      "en": "So here are the t-SNE results which you already saw in a screenshot.",
+      "zh": "這是截圖中已經看過的 t-SNE 結果，"
+    },
+    {
+      "start": 1212.31,
+      "end": 1216.43,
+      "en": "So here we see the results of t-SNE again.",
+      "zh": "這裡再看一次。"
+    },
+    {
+      "start": 1216.47,
+      "end": 1222.71,
+      "en": "Beautiful, beautiful separation between the positive t values and the negative t value neurons.",
+      "zh": "正 t 值與負 t 值神經元，漂亮地分開。"
+    },
+    {
+      "start": 1223.27,
+      "end": 1224.55,
+      "en": "But no.",
+      "zh": "但沒有，"
+    },
+    {
+      "start": 1224.99,
+      "end": 1225.35,
+      "en": "Yeah.",
+      "zh": "對，"
+    },
+    {
+      "start": 1225.39,
+      "end": 1228.27,
+      "en": "Like obvious clusters that are being formed.",
+      "zh": "形成明顯的群集。"
+    },
+    {
+      "start": 1228.39,
+      "end": 1235.75,
+      "en": "You can contrast that with the videos about Uh, using t-SNE on the embeddings vectors.",
+      "zh": "可以對照，對嵌入向量使用 t-SNE 的影片，"
+    },
+    {
+      "start": 1235.75,
+      "end": 1238.15,
+      "en": "So that was from a couple of sections ago.",
+      "zh": "那是前幾章，"
+    },
+    {
+      "start": 1238.19,
+      "end": 1240.15,
+      "en": "And their t-SNE worked really well.",
+      "zh": "當時 t-SNE 很好用。"
+    },
+    {
+      "start": 1240.15,
+      "end": 1243.27,
+      "en": "So this is certainly not a repudiation of t-SNE.",
+      "zh": "所以這絕對不是否定 t-SNE，"
+    },
+    {
+      "start": 1243.55,
+      "end": 1249.03,
+      "en": "It's just that in this particular data set, it really didn't work out very well.",
+      "zh": "只是這個特定資料集，效果不太好。"
+    },
+    {
+      "start": 1249.51,
+      "end": 1249.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1250.07,
+      "end": 1260.91,
+      "en": "Uh, by the way, if you would include all of the neurons and not just the significant neurons, then basically what you would see is all of this blank space in here gets filled in.",
+      "zh": "順帶一提，如果納入全部神經元，不只顯著的，這裡所有空白基本上都會填滿，"
+    },
+    {
+      "start": 1260.91,
+      "end": 1264.47,
+      "en": "So you would see, like this density of neurons basically all throughout.",
+      "zh": "各處都會有這種密度的神經元，"
+    },
+    {
+      "start": 1264.47,
+      "end": 1266.83,
+      "en": "And it just looks like an almond shape.",
+      "zh": "就像杏仁的形狀。"
+    },
+    {
+      "start": 1267.31,
+      "end": 1267.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1267.71,
+      "end": 1269.87,
+      "en": "So yeah, no obvious clusters.",
+      "zh": "所以沒有明顯群集。"
+    },
+    {
+      "start": 1269.87,
+      "end": 1273.67,
+      "en": "Maybe you think that this is a little cluster here, but it's really not.",
+      "zh": "也許覺得這裡是個小群集，但其實不是。"
+    },
+    {
+      "start": 1273.71,
+      "end": 1277.79,
+      "en": "You know, if you would just rerun this, you're going to get a different.",
+      "zh": "只要重跑，就會得到不同的，"
+    },
+    {
+      "start": 1278.11,
+      "end": 1281.79,
+      "en": "Well, the overall shape of the results is really consistent.",
+      "zh": "不過，整體結果形狀很一致，"
+    },
+    {
+      "start": 1281.79,
+      "end": 1286.67,
+      "en": "You will continue seeing that every time you run the analysis over and over again.",
+      "zh": "每次不斷重跑分析，仍然會看到。"
+    },
+    {
+      "start": 1286.67,
+      "end": 1290.59,
+      "en": "But these little tiny things that seem like they could be clusters.",
+      "zh": "但這些看起來可能是群集的小東西，"
+    },
+    {
+      "start": 1290.63,
+      "end": 1290.83,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1290.83,
+      "end": 1291.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1291.19,
+      "end": 1292.43,
+      "en": "This one came out again.",
+      "zh": "這一個又出現了，"
+    },
+    {
+      "start": 1292.43,
+      "end": 1294.91,
+      "en": "But I don't think that these are really robust.",
+      "zh": "但我不覺得它們真的穩健。"
+    },
+    {
+      "start": 1295.99,
+      "end": 1297.59,
+      "en": "This shows the gram matrix.",
+      "zh": "這裡顯示 Gram 矩陣，"
+    },
+    {
+      "start": 1297.59,
+      "end": 1301.67,
+      "en": "This is the data times its transpose that you see here.",
+      "zh": "就是資料乘以自身轉置，像這樣。"
+    },
+    {
+      "start": 1302.07,
+      "end": 1307.11,
+      "en": "This, uh, if you would mean center the data, this would be a covariance matrix.",
+      "zh": "如果將資料平均中心化，它就是共變異數矩陣。"
+    },
+    {
+      "start": 1307.35,
+      "end": 1318.27,
+      "en": "If you would suitably normalize the vectors in these matrices according to the norm of the vectors, then this would be a cosine similarity matrix.",
+      "zh": "如果根據向量範數，適當正規化矩陣中的向量，就成為餘弦相似度矩陣。"
+    },
+    {
+      "start": 1318.43,
+      "end": 1325.75,
+      "en": "Of course, you could also normalize this further and make a correlation matrix, but this doesn't really show that much.",
+      "zh": "當然，也能進一步正規化成相關矩陣，但這裡沒有顯示太多東西。"
+    },
+    {
+      "start": 1325.79,
+      "end": 1331.99,
+      "en": "What you would look for here is like blocks or clusters appearing in this kind of a plot.",
+      "zh": "要找的是，圖中是否出現區塊或群集。"
+    },
+    {
+      "start": 1332.03,
+      "end": 1340.11,
+      "en": "Again, you have seen this sort of thing earlier in the course in, uh, analyses where t-SNE really did work out quite well.",
+      "zh": "同樣，課程前面 t-SNE 表現不錯的分析，也看過這種圖。"
+    },
+    {
+      "start": 1340.71,
+      "end": 1341.15,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1341.27,
+      "end": 1344.39,
+      "en": "Uh, there's a couple of parameters for t-SNE.",
+      "zh": "t-SNE 有幾個參數，"
+    },
+    {
+      "start": 1344.39,
+      "end": 1346.71,
+      "en": "One is the number of of components.",
+      "zh": "一個是成分數量，"
+    },
+    {
+      "start": 1346.87,
+      "end": 1352.31,
+      "en": "I'm going to keep that as two just because then it's a little bit easier to visualize.",
+      "zh": "會維持 2，比較容易視覺化，"
+    },
+    {
+      "start": 1352.31,
+      "end": 1354.19,
+      "en": "We don't have to worry about 3D graphs.",
+      "zh": "不用處理三維圖。"
+    },
+    {
+      "start": 1354.59,
+      "end": 1357.51,
+      "en": "Another one is this perplexity parameter.",
+      "zh": "另一個是 perplexity 參數，"
+    },
+    {
+      "start": 1357.51,
+      "end": 1360.11,
+      "en": "I've discussed this earlier in the course.",
+      "zh": "課程前面談過，"
+    },
+    {
+      "start": 1360.15,
+      "end": 1368.67,
+      "en": "It basically relates to how much smoothing there is, connecting the low dimensional and the high dimensional representations of the data.",
+      "zh": "基本上，與連接資料高維及低維表徵時，有多少平滑程度有關。"
+    },
+    {
+      "start": 1368.87,
+      "end": 1373.67,
+      "en": "You can try changing that parameter and just set it back to 30.",
+      "zh": "可以試著修改，我剛把它改回 30，"
+    },
+    {
+      "start": 1373.67,
+      "end": 1374.55,
+      "en": "But it was 80.",
+      "zh": "原本是 80。"
+    },
+    {
+      "start": 1374.59,
+      "end": 1377.75,
+      "en": "So this is the result with perplexity value of 80.",
+      "zh": "這是 perplexity 為 80 的結果。"
+    },
+    {
+      "start": 1378.11,
+      "end": 1379.95,
+      "en": "It doesn't really change it that much.",
+      "zh": "其實沒有改變很多，"
+    },
+    {
+      "start": 1379.95,
+      "end": 1385.55,
+      "en": "And it certainly doesn't lead to like really nice beautiful little tiny isolated clusters.",
+      "zh": "肯定也沒有產生很漂亮、很小、獨立的群集。"
+    },
+    {
+      "start": 1386.31,
+      "end": 1392.91,
+      "en": "As I mentioned in the slides, when we get if you see a result like this, you're not really statistically",
+      "zh": "投影片提過，看到這種結果時，從統計上"
+    },
+    {
+      "start": 1392.91,
+      "end": 1398.63,
+      "en": "justified to continue applying clustering analyses.",
+      "zh": "沒有充分理由繼續進行分群分析。"
+    },
+    {
+      "start": 1398.75,
+      "end": 1408.03,
+      "en": "But because this is a teaching course and not a research, uh, analysis that I'm going to publish, I decided to continue with my plan anyway.",
+      "zh": "但這是教學課程，不是要發表的研究分析，所以決定繼續原本計畫。"
+    },
+    {
+      "start": 1408.46,
+      "end": 1415.18,
+      "en": "Okay so here I'm applying DBscan results and I'm fitting the t-SNE results.",
+      "zh": "這裡套用 DBSCAN，擬合 t-SNE 的結果，"
+    },
+    {
+      "start": 1415.18,
+      "end": 1417.1,
+      "en": "So these are the two dimensional data.",
+      "zh": "也就是二維資料。"
+    },
+    {
+      "start": 1417.14,
+      "end": 1422.58,
+      "en": "Let me just show you what this looks like t-SNE result dot shape.",
+      "zh": "展示一下 t-SNE result.shape，"
+    },
+    {
+      "start": 1422.58,
+      "end": 1430.98,
+      "en": "This is 1523 by two 1523 is the number of statistically significant neurons.",
+      "zh": "是 1,523×2，1,523 是統計顯著神經元的數量，"
+    },
+    {
+      "start": 1431.22,
+      "end": 1435.14,
+      "en": "And then two of course corresponds to these two dimensions over here.",
+      "zh": "2 當然對應這裡兩個維度。"
+    },
+    {
+      "start": 1435.58,
+      "end": 1435.9,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1435.94,
+      "end": 1440.7,
+      "en": "So this is what I'm putting into the DBscan analysis.",
+      "zh": "這就是送進 DBSCAN 的資料。"
+    },
+    {
+      "start": 1440.9,
+      "end": 1441.9,
+      "en": "And here we go.",
+      "zh": "開始了。"
+    },
+    {
+      "start": 1441.94,
+      "end": 1445.94,
+      "en": "Yeah I mean this is wildly different from what I showed in the slides.",
+      "zh": "對，這與投影片展示的差很多。"
+    },
+    {
+      "start": 1446.06,
+      "end": 1449.18,
+      "en": "And basically you can keep running this over and over again.",
+      "zh": "基本上，可以反覆執行，"
+    },
+    {
+      "start": 1449.22,
+      "end": 1454.62,
+      "en": "I'm going to run this again with a perplexity of 30.",
+      "zh": "這次用 perplexity=30 再跑。"
+    },
+    {
+      "start": 1454.66,
+      "end": 1455.66,
+      "en": "I think I set that back.",
+      "zh": "我想已經改回去了，"
+    },
+    {
+      "start": 1455.7,
+      "end": 1456.06,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1456.66,
+      "end": 1463.06,
+      "en": "And basically, yeah, you keep running this over and over again and you're just not going to get sensible results.",
+      "zh": "不斷重跑，就是得不到合理結果。"
+    },
+    {
+      "start": 1463.06,
+      "end": 1466.18,
+      "en": "Every time you run it, the results will look a bit different.",
+      "zh": "每次結果，看起來都稍微不同。"
+    },
+    {
+      "start": 1466.58,
+      "end": 1467.3,
+      "en": "Here we go.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 1467.3,
+      "end": 1475.34,
+      "en": "Sometimes you think you see some clusters, but those are just not really reproducible, and they're certainly not very compelling.",
+      "zh": "有時覺得看見群集，但它們不太能重現，也肯定沒有很強說服力。"
+    },
+    {
+      "start": 1475.74,
+      "end": 1484.82,
+      "en": "Furthermore, if you try to change this parameter here, remember this is the distance between pairs",
+      "zh": "另外，試著修改這個參數，記住，它是成組單元配對之間的"
+    },
+    {
+      "start": 1484.82,
+      "end": 1488.18,
+      "en": "of of units to form a group.",
+      "zh": "距離。"
+    },
+    {
+      "start": 1488.5,
+      "end": 1492.06,
+      "en": "If you change that parameter you're also going to get wildly different results.",
+      "zh": "改變參數，同樣會得到差很多的結果。"
+    },
+    {
+      "start": 1492.06,
+      "end": 1494.58,
+      "en": "You can also see you know these plus signs.",
+      "zh": "也能看到這些加號，"
+    },
+    {
+      "start": 1494.58,
+      "end": 1496.14,
+      "en": "These are non clustered.",
+      "zh": "它們沒有分群，"
+    },
+    {
+      "start": 1496.14,
+      "end": 1498.42,
+      "en": "This is what DBscan considers noise.",
+      "zh": "是 DBSCAN 視為雜訊的資料，"
+    },
+    {
+      "start": 1498.42,
+      "end": 1500.42,
+      "en": "Remember that's what the N stands for.",
+      "zh": "記住，N 就代表這個。"
+    },
+    {
+      "start": 1500.86,
+      "end": 1504.7,
+      "en": "But in my humble opinion these are just they're just not noise.",
+      "zh": "但我個人認為，它們並不真是雜訊，"
+    },
+    {
+      "start": 1504.7,
+      "end": 1508.1,
+      "en": "It's just not giving sensible results okay.",
+      "zh": "只是沒有得到合理結果。"
+    },
+    {
+      "start": 1508.14,
+      "end": 1518.06,
+      "en": "So what's happening here is I am making really small changes to the parameters and the results are changing drastically.",
+      "zh": "這裡只改一點點參數，結果卻劇烈改變。"
+    },
+    {
+      "start": 1518.18,
+      "end": 1523.18,
+      "en": "And when that happens in any kind of an analysis, you should not trust the results.",
+      "zh": "任何分析發生這種事，都不應信任結果。"
+    },
+    {
+      "start": 1523.22,
+      "end": 1528.34,
+      "en": "You know, you change one parameter a tiny bit and the results change enormously.",
+      "zh": "只微調一個參數，結果就變化巨大，"
+    },
+    {
+      "start": 1528.5,
+      "end": 1529.74,
+      "en": "That is not a good sign.",
+      "zh": "不是好徵兆。"
+    },
+    {
+      "start": 1530.7,
+      "end": 1535.3,
+      "en": "Okay, but all that said, you know, I feel like I'm being too negative here.",
+      "zh": "好，不過我覺得，自己似乎太負面。"
+    },
+    {
+      "start": 1535.38,
+      "end": 1537.06,
+      "en": "This plot looks really nice.",
+      "zh": "這張圖真的很好看，"
+    },
+    {
+      "start": 1537.06,
+      "end": 1538.14,
+      "en": "It's really pretty.",
+      "zh": "很漂亮。"
+    },
+    {
+      "start": 1538.62,
+      "end": 1544.42,
+      "en": "I think this could be, you know, you could print this out and, like, print it on a t shirt, and it would be great.",
+      "zh": "可以印出來，印在 T 恤上，應該很棒。"
+    },
+    {
+      "start": 1544.7,
+      "end": 1550.78,
+      "en": "Or, you know, this could be like, you could put this around your eyes and it would be really nice for Halloween or for a party.",
+      "zh": "或者放在眼睛周圍，萬聖節或派對應該很好看。"
+    },
+    {
+      "start": 1551.5,
+      "end": 1551.98,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1552.02,
+      "end": 1553.7,
+      "en": "Anyway, let's keep going.",
+      "zh": "總之，繼續。"
+    },
+    {
+      "start": 1553.82,
+      "end": 1562.06,
+      "en": "So now what I'm doing is gathering some information about the t statistics for each group and just printing out some information.",
+      "zh": "現在收集每組 t 統計量的一些資訊，再列印。"
+    },
+    {
+      "start": 1562.46,
+      "end": 1567.94,
+      "en": "This kind of table, this kind of information is typically very useful.",
+      "zh": "這種表格、這種資訊，通常很有用。"
+    },
+    {
+      "start": 1567.94,
+      "end": 1577.9,
+      "en": "Again I don't think it's useful in this particular situation because I do not believe that any of these clusters are real in the data.",
+      "zh": "但這個特定情況，我不覺得有用，因為不相信資料裡有任何真實群集。"
+    },
+    {
+      "start": 1578.06,
+      "end": 1582.7,
+      "en": "So what I'm doing now in this plot is let me generate this plot.",
+      "zh": "接著這張圖，先讓我產生。"
+    },
+    {
+      "start": 1582.7,
+      "end": 1593.9,
+      "en": "First is basically calculating a cosine similarities, sorting the neurons according to their group identity, and then calculating cosine similarity.",
+      "zh": "首先基本上是計算餘弦相似度，依群組身分排序神經元，再計算餘弦相似度。"
+    },
+    {
+      "start": 1593.98,
+      "end": 1601.7,
+      "en": "So again, if there were really clusters formed in these data, what you would expect is to see blocks on the diagonal like this.",
+      "zh": "同樣，如果資料真的形成群集，就預期對角線出現像這樣的區塊。"
+    },
+    {
+      "start": 1601.7,
+      "end": 1603.14,
+      "en": "This one actually looks really nice.",
+      "zh": "這一個其實很好看。"
+    },
+    {
+      "start": 1603.14,
+      "end": 1609.98,
+      "en": "You would want to see blocks on the diagonal such that within the block the cosine similarity is really",
+      "zh": "希望看到對角線上的區塊，區塊內餘弦相似度非常"
+    },
+    {
+      "start": 1609.98,
+      "end": 1617.06,
+      "en": "high, and off of that block the cosine similarities are very low, close to zero, maybe a little bit",
+      "zh": "高，區塊外則很低、接近零，也許稍微"
+    },
+    {
+      "start": 1617.1,
+      "end": 1622.26,
+      "en": "negative if there's some negative lateral interactions amongst the different clusters.",
+      "zh": "為負，如果不同群集之間有負向側向交互作用。"
+    },
+    {
+      "start": 1622.54,
+      "end": 1623.98,
+      "en": "But that's not really the case here.",
+      "zh": "但這裡不太是如此，"
+    },
+    {
+      "start": 1623.98,
+      "end": 1629.74,
+      "en": "So also when I look at this I do not see evidence of clustering okay.",
+      "zh": "看這個結果，也看不到分群證據。"
+    },
+    {
+      "start": 1629.78,
+      "end": 1635.5,
+      "en": "So again you know we are really not statistically justified to do a k means analysis.",
+      "zh": "同樣，統計上沒有充分理由做 K-means，"
+    },
+    {
+      "start": 1635.7,
+      "end": 1644.94,
+      "en": "But this is a really nice opportunity for you to see the code again for k means clustering just to get some more familiarity with it.",
+      "zh": "但這是再次查看 K-means 分群程式、增加熟悉度的好機會。"
+    },
+    {
+      "start": 1645.86,
+      "end": 1649.02,
+      "en": "And because, you know, this is all just gobbledygook.",
+      "zh": "反正這些都只是亂七八糟，"
+    },
+    {
+      "start": 1649.06,
+      "end": 1652.06,
+      "en": "Anyway, why don't we change the number of clusters to 13?",
+      "zh": "那為什麼不把群數改成 13？"
+    },
+    {
+      "start": 1652.06,
+      "end": 1653.26,
+      "en": "Because why not?",
+      "zh": "為什麼不呢？"
+    },
+    {
+      "start": 1653.42,
+      "end": 1654.98,
+      "en": "That's a lucky number I think.",
+      "zh": "我想那是幸運數字。"
+    },
+    {
+      "start": 1655.42,
+      "end": 1655.78,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1655.82,
+      "end": 1657.5,
+      "en": "So here's the k means function.",
+      "zh": "這是 K-means 函式，"
+    },
+    {
+      "start": 1657.5,
+      "end": 1663.42,
+      "en": "I specify 13 clusters and then I fit the t-SNE results.",
+      "zh": "指定 13 群，再擬合 t-SNE 結果，"
+    },
+    {
+      "start": 1663.66,
+      "end": 1666.1,
+      "en": "And then I generate the plot.",
+      "zh": "接著產生圖形。"
+    },
+    {
+      "start": 1666.14,
+      "end": 1674.66,
+      "en": "Here I'm plotting not only all the individual data points, but also the central the centroid of each data point.",
+      "zh": "不只畫所有個別資料點，也畫出每個資料點的中心、質心。"
+    },
+    {
+      "start": 1674.9,
+      "end": 1677.54,
+      "en": "So this is the centroid of this cluster.",
+      "zh": "這是這個群集的質心，"
+    },
+    {
+      "start": 1677.54,
+      "end": 1680.42,
+      "en": "This is the centroid of this cluster and so on.",
+      "zh": "這是另一群的質心，依此類推。"
+    },
+    {
+      "start": 1680.42,
+      "end": 1684.06,
+      "en": "And here is again cosine similarities sorted.",
+      "zh": "這裡再次是排序後的餘弦相似度，"
+    },
+    {
+      "start": 1684.06,
+      "end": 1688.5,
+      "en": "So all the neurons sorted according to their group identity over here.",
+      "zh": "所有神經元，依照這裡的群組身分排序。"
+    },
+    {
+      "start": 1689.74,
+      "end": 1695.58,
+      "en": "Now even if you think that these are like real clusters which I hope you don't think when you run the",
+      "zh": "即使你覺得它們是真實群集，希望你不會這樣想，重新執行"
+    },
+    {
+      "start": 1695.58,
+      "end": 1704.78,
+      "en": "code again you will get very different results just because of the random initialization involved in K-means clustering.",
+      "zh": "程式，也會因為 K-means 的隨機初始化，而得到很不同的結果。"
+    },
+    {
+      "start": 1706.26,
+      "end": 1713.62,
+      "en": "A quote that I like a lot, which I find very often relevant, especially when I ran a neuroscience",
+      "zh": "有一句話我很喜歡，經常覺得很貼切，尤其以前主持神經科學"
+    },
+    {
+      "start": 1713.62,
+      "end": 1718.38,
+      "en": "research lab and had a lot of students and postdocs in my lab doing research.",
+      "zh": "研究室，有很多學生與博士後進行研究時，"
+    },
+    {
+      "start": 1718.58,
+      "end": 1721.98,
+      "en": "Is this quote here from Alexander Graham Bell?",
+      "zh": "就是 Alexander Graham Bell 的這句話。"
+    },
+    {
+      "start": 1722.34,
+      "end": 1725.1,
+      "en": "There are no unsuccessful experiments.",
+      "zh": "沒有不成功的實驗，"
+    },
+    {
+      "start": 1725.22,
+      "end": 1727.66,
+      "en": "Every experiment contains a lesson.",
+      "zh": "每個實驗都包含一個教訓。"
+    },
+    {
+      "start": 1728.3,
+      "end": 1731.5,
+      "en": "So Bell, of course, was the guy who invented the telephone.",
+      "zh": "Bell 當然就是發明電話的人，"
+    },
+    {
+      "start": 1731.7,
+      "end": 1733.94,
+      "en": "Not a bad legacy to leave behind.",
+      "zh": "留下這樣的成就，很不錯。"
+    },
+    {
+      "start": 1734.42,
+      "end": 1744.22,
+      "en": "Uh, and what this quote means is that every experiment that you do, every data analysis you run, there's always something to learn.",
+      "zh": "這句話的意思，是每個實驗、每項資料分析，永遠都有東西可學，"
+    },
+    {
+      "start": 1744.66,
+      "end": 1748.34,
+      "en": "Even if you do not get the results that you are hoping for.",
+      "zh": "即使結果不是期待的，"
+    },
+    {
+      "start": 1748.5,
+      "end": 1754.98,
+      "en": "There's always something useful to be learned, even from unexpected or disappointing results.",
+      "zh": "即使意外或令人失望，仍然能學到有用的東西。"
+    },
+    {
+      "start": 1755.5,
+      "end": 1762.3,
+      "en": "Now, to be honest, this is also something that annoys me very much about our scientific publishing culture.",
+      "zh": "老實說，這也是科學發表文化中，非常令我煩惱的事。"
+    },
+    {
+      "start": 1762.58,
+      "end": 1770.46,
+      "en": "You know, we are incentivized to publish positive results and especially results that are surprising or unexpected.",
+      "zh": "我們被鼓勵發表正向結果，尤其令人驚訝、出乎意料的結果。"
+    },
+    {
+      "start": 1770.98,
+      "end": 1776.94,
+      "en": "But there is so much to learn about how complex systems work and how they don't work.",
+      "zh": "但關於複雜系統如何運作、如何不運作，其實有太多可以學，"
+    },
+    {
+      "start": 1777.38,
+      "end": 1784.98,
+      "en": "By studying the analyses that seem like they should be insightful but end up not working out anyway.",
+      "zh": "透過研究那些看似應該有啟發，最後卻不成功的分析。"
+    },
+    {
+      "start": 1784.98,
+      "end": 1785.86,
+      "en": "So that's that.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 1785.86,
+      "end": 1789.86,
+      "en": "I don't mean to be so dismissive or to dismiss this method.",
+      "zh": "不想如此輕率否定，也不想否定這個方法。"
+    },
+    {
+      "start": 1790.18,
+      "end": 1795.5,
+      "en": "It is very possible that this kind of approach would be much more successful.",
+      "zh": "這類做法很可能，在某些情況成功得多，"
+    },
+    {
+      "start": 1795.54,
+      "end": 1804.9,
+      "en": "Maybe for larger models, maybe for different kinds of target tokens, slightly different analyses, or maybe in different parts of the model.",
+      "zh": "也許更大模型、其他目標 token、稍微不同的分析，或模型其他部分。"
+    },
+    {
+      "start": 1805.82,
+      "end": 1812.46,
+      "en": "For example, you have seen that this exact same analysis approach was actually quite useful earlier",
+      "zh": "例如，課程前面，研究不同嵌入矩陣的 token 嵌入時，"
+    },
+    {
+      "start": 1812.46,
+      "end": 1818.34,
+      "en": "in the course when we were studying token embeddings with different embeddings matrices.",
+      "zh": "就看過完全相同的分析方式，其實相當有用。"
+    }
+  ]
+}

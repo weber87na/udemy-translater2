@@ -1,0 +1,2323 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893605",
+  "title": "Sparse probing: theory and code",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "00f6cb11cbf2d7478e03442418d5ce0e97fd2c07bdd2ac952ca8b79a5868f22e",
+  "cues": [
+    {
+      "start": 2.28,
+      "end": 8.52,
+      "en": "In this and the next videos you will learn about a technique called sparse probing.",
+      "zh": "這支與下一支影片，會學習一種叫作稀疏探測的技巧。"
+    },
+    {
+      "start": 8.84,
+      "end": 20.6,
+      "en": "It's actually just an application of logistic regression with a particular type of regularization that pushes a lot of the regression coefficients to be zero.",
+      "zh": "其實只是邏輯斯迴歸的應用，使用一種特定正規化，將許多迴歸係數推到零。"
+    },
+    {
+      "start": 21.4,
+      "end": 26.52,
+      "en": "I will start this video by going through some of the math of L1 regularization.",
+      "zh": "這支影片先介紹 L1 正規化的一些數學，"
+    },
+    {
+      "start": 26.96,
+      "end": 34.4,
+      "en": "The key regularization parameter and the difference between logistic regression for sparse probing versus",
+      "zh": "關鍵正規化參數，以及用於稀疏探測的邏輯斯迴歸，"
+    },
+    {
+      "start": 34.4,
+      "end": 40.28,
+      "en": "logistic regression to identify category tuning in individual neurons.",
+      "zh": "與辨識個別神經元類別偏好的邏輯斯迴歸，有何不同。"
+    },
+    {
+      "start": 40.28,
+      "end": 43.8,
+      "en": "And that is how we used regression a few sections ago.",
+      "zh": "那就是前幾章使用迴歸的方式。"
+    },
+    {
+      "start": 44.4,
+      "end": 50.88,
+      "en": "And then I'll switch to code and show you how to implement and evaluate sparse logistic regression.",
+      "zh": "接著切換到程式碼，示範如何實作與評估稀疏邏輯斯迴歸。"
+    },
+    {
+      "start": 51.68,
+      "end": 59.71,
+      "en": "So this is a screenshot from a video earlier in the course where you learned about classification using logistic Regression.",
+      "zh": "這是課程前面，學習以邏輯斯迴歸分類那支影片的截圖。"
+    },
+    {
+      "start": 59.87,
+      "end": 70.87,
+      "en": "You don't necessarily need to rewatch that video, but I'm showing it here in hopes that it will reactivate some happy memories of learning about logistic regression.",
+      "zh": "不一定需要重看，只是希望喚起學習邏輯斯迴歸的快樂回憶。"
+    },
+    {
+      "start": 71.39,
+      "end": 79.91,
+      "en": "The most important equation from that video was this one here, that the regression is designed to predict",
+      "zh": "當時最重要的方程式，是這個：迴歸的目標，是預測"
+    },
+    {
+      "start": 80.11,
+      "end": 85.23,
+      "en": "the probability that a given token belongs to one of two categories.",
+      "zh": "某個 token 屬於兩個類別之一的機率。"
+    },
+    {
+      "start": 85.75,
+      "end": 89.67,
+      "en": "So this was the general form of a logistic regression.",
+      "zh": "這是邏輯斯迴歸的一般形式。"
+    },
+    {
+      "start": 89.91,
+      "end": 101.91,
+      "en": "In that classification application there were only two beta values beta zero which is the intercept, and beta one which was the coefficient for the token activation.",
+      "zh": "那個分類應用只有兩個 beta 值，beta 零是截距，beta 一則是 token 活化的係數。"
+    },
+    {
+      "start": 102.59,
+      "end": 110.31,
+      "en": "Now we are going to extend this analysis and have multiple betas corresponding to k neurons.",
+      "zh": "現在會擴充分析，讓多個 beta 對應 k 個神經元。"
+    },
+    {
+      "start": 111.11,
+      "end": 121.97,
+      "en": "So in this slide I will describe a few other differences between using logistic regression for classification versus for sparse probing.",
+      "zh": "這張投影片，會介紹使用邏輯斯迴歸分類與稀疏探測的其他差異。"
+    },
+    {
+      "start": 122.45,
+      "end": 124.57,
+      "en": "Let's start with the overall goal.",
+      "zh": "先從整體目標開始。"
+    },
+    {
+      "start": 125.01,
+      "end": 132.61,
+      "en": "With a logistic classifier, the goal is to determine whether a given neuron or dimension, or just",
+      "zh": "邏輯斯分類器的目標，是判斷某個神經元、維度，或者更一般地，"
+    },
+    {
+      "start": 132.97,
+      "end": 140.29,
+      "en": "some variable more generally, is tuned to a particular category, which means that its activation is",
+      "zh": "某個變數，是否對特定類別有偏好，也就是它的活化"
+    },
+    {
+      "start": 140.29,
+      "end": 147.01,
+      "en": "reliably greater for, I don't know, like tokens related to cars versus tokens related to trucks.",
+      "zh": "對例如汽車相關 token，是否穩定高於卡車相關 token。"
+    },
+    {
+      "start": 148.09,
+      "end": 152.69,
+      "en": "So that's for one variable, like one neuron with sparse probing.",
+      "zh": "這是針對一個變數，例如一個神經元。稀疏探測，"
+    },
+    {
+      "start": 152.69,
+      "end": 158.57,
+      "en": "We want to see if we can identify a group or a cluster or circuit.",
+      "zh": "則想看看，能否辨識一組、群集或迴路，"
+    },
+    {
+      "start": 158.57,
+      "end": 162.97,
+      "en": "Here I use the word ensemble of neurons that together.",
+      "zh": "這裡用神經元集群，表示共同合作的一群，"
+    },
+    {
+      "start": 162.97,
+      "end": 169.13,
+      "en": "So they're a collective patterns of activations predict a particular category label.",
+      "zh": "讓它們整體的活化模式，預測某個類別標籤。"
+    },
+    {
+      "start": 169.61,
+      "end": 173.05,
+      "en": "So here this is not about one neuron individually.",
+      "zh": "所以這裡不是個別神經元，"
+    },
+    {
+      "start": 173.17000000000002,
+      "end": 183.32,
+      "en": "It's about a group of neurons that are together statistically able to predict a category in terms of the mechanism and the math.",
+      "zh": "而是一群神經元，整體在統計上能預測類別。至於機制與數學，"
+    },
+    {
+      "start": 183.36,
+      "end": 187.32,
+      "en": "Actually, both of these approaches are based on logistic regression.",
+      "zh": "其實兩種方式都基於邏輯斯迴歸，"
+    },
+    {
+      "start": 187.64,
+      "end": 191.24,
+      "en": "So the statistics mechanism is actually the same.",
+      "zh": "所以統計機制相同，"
+    },
+    {
+      "start": 191.4,
+      "end": 198.2,
+      "en": "It's just that with a classifier the logistic regression only sees one neuron at a time.",
+      "zh": "只是分類器的邏輯斯迴歸，一次只看一個神經元，"
+    },
+    {
+      "start": 198.48,
+      "end": 205.48,
+      "en": "Whereas with the sparse probe the regression incorporates activations from lots of neurons at the same time.",
+      "zh": "稀疏探測則同時納入很多神經元的活化。"
+    },
+    {
+      "start": 206.64,
+      "end": 209.28,
+      "en": "And finally we have regularization.",
+      "zh": "最後是正規化。"
+    },
+    {
+      "start": 209.76,
+      "end": 217,
+      "en": "And actually it's not really the case that you're not allowed to have any regularization on a logistic classifier.",
+      "zh": "其實並不是說，邏輯斯分類器不准加入任何正規化。"
+    },
+    {
+      "start": 217.32,
+      "end": 224.52,
+      "en": "Sometimes people add some like soft regularization, but in general, logistic classifiers don't need",
+      "zh": "有時會加一點溫和的正規化，但一般而言，邏輯斯分類器"
+    },
+    {
+      "start": 224.72,
+      "end": 233.16,
+      "en": "as strong regularization compared with sparse probing, where we add a stronger amount of L1 regularization.",
+      "zh": "不需要像稀疏探測那麼強的正規化；後者會加入較強的 L1 正規化，"
+    },
+    {
+      "start": 233.24,
+      "end": 235.3,
+      "en": "And this forces sparsity.",
+      "zh": "強制產生稀疏性，"
+    },
+    {
+      "start": 235.86,
+      "end": 245.42,
+      "en": "So that means that a lot of the coefficients will be set to zero, and a relatively small number of coefficients are allowed to be non-zero.",
+      "zh": "也就是許多係數設為零，只允許相對少數係數非零。"
+    },
+    {
+      "start": 246.1,
+      "end": 248.46,
+      "en": "So what is this regularization?",
+      "zh": "這個正規化是什麼？"
+    },
+    {
+      "start": 248.46,
+      "end": 252.46,
+      "en": "How does it work and how do we find the beta coefficients?",
+      "zh": "如何運作，又如何找出 beta 係數？"
+    },
+    {
+      "start": 253.14,
+      "end": 256.78,
+      "en": "That is the answer I'm going to discuss in this slide.",
+      "zh": "這張投影片就要討論答案。"
+    },
+    {
+      "start": 257.22,
+      "end": 261.18,
+      "en": "So here again we see the equation of the logistic regression.",
+      "zh": "這裡再次看到邏輯斯迴歸方程式。"
+    },
+    {
+      "start": 261.5,
+      "end": 272.3,
+      "en": "The way it works for a sparse probe is that for k neurons let's say 3000 MLP expansion neurons you would have k equals 3000.",
+      "zh": "稀疏探測的做法是，對 k 個神經元，例如 3,000 個 MLP 擴張神經元，k 就等於 3,000，"
+    },
+    {
+      "start": 272.34000000000003,
+      "end": 274.74,
+      "en": "I think it's technically 3072.",
+      "zh": "嚴格來說，我想是 3,072。"
+    },
+    {
+      "start": 275.22,
+      "end": 279.86,
+      "en": "So that means that you get a beta coefficient for every individual neuron.",
+      "zh": "所以每個個別神經元，都會有一個 beta 係數。"
+    },
+    {
+      "start": 280.26,
+      "end": 287.46,
+      "en": "And the idea is to figure out how to define a linear weighted combination of the activations from all",
+      "zh": "概念是，找出全部神經元活化的線性加權組合，"
+    },
+    {
+      "start": 287.46,
+      "end": 298.21,
+      "en": "the neurons, such that their weighted combination best predicts whether a token is from category one or category two or whatever, two different categories.",
+      "zh": "讓加權結果，最能預測 token 來自類別一或類別二，總之兩個不同類別。"
+    },
+    {
+      "start": 298.73,
+      "end": 302.49,
+      "en": "And how do we actually get these beta coefficients?",
+      "zh": "實際如何取得 beta 係數？"
+    },
+    {
+      "start": 303.09,
+      "end": 307.53,
+      "en": "That comes from defining a loss function that looks like this.",
+      "zh": "先定義這樣的損失函數。"
+    },
+    {
+      "start": 307.97,
+      "end": 312.29,
+      "en": "I hope you recognize this as binary cross entropy.",
+      "zh": "希望你認得，這是二元交叉熵。"
+    },
+    {
+      "start": 313.17,
+      "end": 318.21,
+      "en": "Why is the category which is either 0 or 1 so dummy coded?",
+      "zh": "y 是類別，0 或 1，也就是虛擬編碼，"
+    },
+    {
+      "start": 318.21,
+      "end": 320.25,
+      "en": "Or you could call it one hot encoded.",
+      "zh": "也可以稱為 one-hot 編碼。"
+    },
+    {
+      "start": 320.45,
+      "end": 323.01,
+      "en": "And p is the probability.",
+      "zh": "p 是機率，"
+    },
+    {
+      "start": 323.01,
+      "end": 324.93,
+      "en": "So that's this term over here.",
+      "zh": "就是這裡這一項。"
+    },
+    {
+      "start": 325.29,
+      "end": 329.33,
+      "en": "And I corresponds to a given presentation of a token.",
+      "zh": "i 對應某次 token 出現，"
+    },
+    {
+      "start": 329.49,
+      "end": 334.61,
+      "en": "And n is the total number of tokens in the analysis in the training set.",
+      "zh": "n 則是分析、訓練集中，token 的總數。"
+    },
+    {
+      "start": 335.05,
+      "end": 341.77,
+      "en": "So this is the general loss function for a logistic regression when you want to regularize the regression.",
+      "zh": "這是邏輯斯迴歸的一般損失函數。想要正規化迴歸時，"
+    },
+    {
+      "start": 341.81,
+      "end": 346.09000000000003,
+      "en": "You have another loss function which looks something like this.",
+      "zh": "再加入另一個像這樣的損失函數，"
+    },
+    {
+      "start": 346.09000000000003,
+      "end": 347.33,
+      "en": "So it's R here.",
+      "zh": "這裡是 R，"
+    },
+    {
+      "start": 347.33,
+      "end": 350.97,
+      "en": "That is for the regularizer loss function.",
+      "zh": "表示正規化項的損失函數。"
+    },
+    {
+      "start": 351.33,
+      "end": 357.23,
+      "en": "And here you sum over all of the absolute values of the beta coefficients.",
+      "zh": "將所有 beta 係數的絕對值加總。"
+    },
+    {
+      "start": 358.03,
+      "end": 369.07,
+      "en": "The impact of this regularizer term is that a lot of the coefficients will go to zero, and a relatively small number of them will remain non-zero.",
+      "zh": "這個正規化項的效果，是讓很多係數變成零，只有相對少數維持非零。"
+    },
+    {
+      "start": 369.47,
+      "end": 371.23,
+      "en": "So this is called L1.",
+      "zh": "這稱為 L1。"
+    },
+    {
+      "start": 371.47,
+      "end": 379.95,
+      "en": "And actually if you square these beta coefficients up here instead of taking the absolute value, that would be an L2 regularizer.",
+      "zh": "其實，如果改成將 beta 係數平方，而不是取絕對值，就是 L2 正規化。"
+    },
+    {
+      "start": 380.43,
+      "end": 384.87,
+      "en": "I have talked earlier in the course about the difference between L1 and L2.",
+      "zh": "課程前面談過 L1 與 L2 的差異。"
+    },
+    {
+      "start": 385.15,
+      "end": 388.79,
+      "en": "We're not using L2 regularization here in this video.",
+      "zh": "這支影片不會使用 L2 正規化，"
+    },
+    {
+      "start": 388.83,
+      "end": 393.67,
+      "en": "I just wanted to mention the similarity between L1 and L2.",
+      "zh": "只是想提 L1 與 L2 的相似性。"
+    },
+    {
+      "start": 394.15,
+      "end": 405.75,
+      "en": "Anyway, so now the idea is that we want to find the set of betas that minimizes the loss function and also the regularizer loss function.",
+      "zh": "總之，現在要找出一組 beta，同時最小化損失函數，以及正規化損失函數。"
+    },
+    {
+      "start": 406.19,
+      "end": 411.65999999999997,
+      "en": "And then we have this term lambda here which is just a scalar, so it's just a number.",
+      "zh": "這裡 lambda 只是純量，也就是一個數字。"
+    },
+    {
+      "start": 411.9,
+      "end": 419.46,
+      "en": "And the idea is that when lambda is larger, then the model puts more weight on imposing sparsity.",
+      "zh": "lambda 越大，模型就越著重於強制稀疏性。"
+    },
+    {
+      "start": 419.86,
+      "end": 426.98,
+      "en": "And of course when lambda is zero then you just have the normal logistic regression with no regularization.",
+      "zh": "當然，lambda 為零，就成為沒有正規化的一般邏輯斯迴歸。"
+    },
+    {
+      "start": 428.02,
+      "end": 437.86,
+      "en": "By the way, when you add an L1 regularizer that's also called a lasso regression with an L2 regularizer, that's called ridge regression.",
+      "zh": "順帶一提，加入 L1 正規化，也稱為 Lasso 迴歸；L2 則稱為 Ridge 迴歸。"
+    },
+    {
+      "start": 438.06,
+      "end": 442.66,
+      "en": "And if you have both L1 and L2 then that's called elasticnet.",
+      "zh": "如果同時有 L1 與 L2，就稱為 Elastic Net。"
+    },
+    {
+      "start": 443.14,
+      "end": 445.78,
+      "en": "Uh, you don't need to know those terms for this course.",
+      "zh": "這門課不需要知道那些術語，"
+    },
+    {
+      "start": 445.78,
+      "end": 447.98,
+      "en": "I just mentioned it here, FYI.",
+      "zh": "只是順便提一下。"
+    },
+    {
+      "start": 448.38,
+      "end": 454.22,
+      "en": "Anyway, uh, okay, but I haven't actually explained how we really find these beta coefficients.",
+      "zh": "不過，其實還沒解釋，如何真正找出 beta 係數。"
+    },
+    {
+      "start": 454.38,
+      "end": 457.14,
+      "en": "All I've done is tell you what the loss function is.",
+      "zh": "只告訴你損失函數是什麼。"
+    },
+    {
+      "start": 457.9,
+      "end": 465.14,
+      "en": "It turns out that gradient descent is a great way to find the betas that optimize this equation.",
+      "zh": "梯度下降，是找出讓這個方程式最佳化之 beta 的好方法。"
+    },
+    {
+      "start": 465.14,
+      "end": 472.08,
+      "en": "Over here for logistic regression, there is a slight variant of gradient descent compared to what you're",
+      "zh": "對邏輯斯迴歸，會使用你在深度學習熟悉的梯度下降之稍微不同版本，"
+    },
+    {
+      "start": 472.08,
+      "end": 477.96,
+      "en": "familiar with for deep learning, and that is called stochastic average gradient or Saga.",
+      "zh": "叫作隨機平均梯度，或者 SAGA。"
+    },
+    {
+      "start": 478.4,
+      "end": 483.48,
+      "en": "You will see in the code that I use this abbreviation as a parameter.",
+      "zh": "程式中會看到，我將這個縮寫作為參數。"
+    },
+    {
+      "start": 484.12,
+      "end": 487.8,
+      "en": "Also something slightly confusing and like super.",
+      "zh": "另外，有件稍微令人困惑，而且非常，"
+    },
+    {
+      "start": 487.8,
+      "end": 495.72,
+      "en": "Really a lot annoying about scikit learn is that it doesn't allow you to specify the lambda parameter directly.",
+      "zh": "非常惱人的事，是 scikit-learn 不讓你直接指定 lambda 參數，"
+    },
+    {
+      "start": 495.92,
+      "end": 501.2,
+      "en": "Instead, it takes a different parameter called C, which is just one over lambda.",
+      "zh": "而是用另一個叫作 C 的參數，等於 1 除以 lambda。"
+    },
+    {
+      "start": 501.56,
+      "end": 510.6,
+      "en": "So if you want to have a smaller lambda, which would mean less regularization, then you would use a larger value of c.",
+      "zh": "如果想要較小 lambda，也就是較少正規化，就用較大的 C。"
+    },
+    {
+      "start": 511.6,
+      "end": 513.76,
+      "en": "So yeah that's what I write over here.",
+      "zh": "所以這裡寫的就是如此。"
+    },
+    {
+      "start": 513.88,
+      "end": 522.04,
+      "en": "So higher lambda, which also means a smaller value of c leads to more coefficients being equal to zero.",
+      "zh": "lambda 越高，也就是 C 越小，等於零的係數越多。"
+    },
+    {
+      "start": 523.16,
+      "end": 523.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 523.56,
+      "end": 527.07,
+      "en": "So this is all very like abstract theoretical math.",
+      "zh": "以上都是相當抽象的理論數學。"
+    },
+    {
+      "start": 527.35,
+      "end": 530.91,
+      "en": "Let me now tell you what we're going to do in the code demo.",
+      "zh": "現在說明程式示範要做什麼。"
+    },
+    {
+      "start": 531.99,
+      "end": 540.19,
+      "en": "I will use GPT two small for this demo and hook the MLP expansion neurons from one layer.",
+      "zh": "使用 GPT2-small，從一層 hook 到 MLP 擴張神經元。"
+    },
+    {
+      "start": 541.03,
+      "end": 544.95,
+      "en": "These will actually be the post non-linearity activations.",
+      "zh": "其實是非線性轉換後的活化。"
+    },
+    {
+      "start": 545.15,
+      "end": 550.03,
+      "en": "And as you know, sometimes in this course I use the pre activations.",
+      "zh": "你知道，這門課有時會使用前活化值，"
+    },
+    {
+      "start": 550.47,
+      "end": 556.03,
+      "en": "It's a subtle distinction between the two and which one to use for different analyses.",
+      "zh": "兩者有細微區別，不同分析該用哪種，也值得考慮。"
+    },
+    {
+      "start": 556.43,
+      "end": 564.51,
+      "en": "But basically the pre activations tell you about the representation of the data in the high dimensional",
+      "zh": "基本上，前活化值，告訴我們資料在高維"
+    },
+    {
+      "start": 564.51,
+      "end": 571.03,
+      "en": "space where the model, the MLP layer is trying to learn how to transform the input data.",
+      "zh": "空間中的表徵，MLP 層試著在那裡學習，如何將輸入資料，"
+    },
+    {
+      "start": 571.03,
+      "end": 579.15,
+      "en": "So the token embeddings vectors into a space that is more amenable to linear separation, whereas the",
+      "zh": "也就是 token 嵌入向量，轉到更適合線性分離的空間；而非線性"
+    },
+    {
+      "start": 579.19,
+      "end": 586.49,
+      "en": "post non-linear activations correspond to the filtered information that gets passed along to the next",
+      "zh": "轉換後的活化，對應篩選後、傳給下一層的資訊，"
+    },
+    {
+      "start": 586.49,
+      "end": 594.33,
+      "en": "layer, which of course in this case corresponds to the MLP adjustments to the embeddings vectors in the residual stream.",
+      "zh": "在這裡，當然就是殘差流中，MLP 對嵌入向量的調整。"
+    },
+    {
+      "start": 595.45,
+      "end": 600.37,
+      "en": "Anyway, I'm going to import some data from the fine web dataset.",
+      "zh": "總之，會從 FineWeb 資料集匯入資料。"
+    },
+    {
+      "start": 600.41,
+      "end": 608.53,
+      "en": "You will remember that we used this dataset earlier in the course in pre-training and fine tuning the GPT models.",
+      "zh": "應該記得，之前預訓練與微調 GPT 模型時，用過它。"
+    },
+    {
+      "start": 609.05,
+      "end": 616.17,
+      "en": "So for this code demo, the goal will be to see if we can find a circuit, an ensemble of MLP neurons",
+      "zh": "這次示範目標，是看看能否找出一個迴路、一群 MLP 神經元，"
+    },
+    {
+      "start": 616.69,
+      "end": 624.37,
+      "en": "based on a sparse logistic probe that is tuned to definite versus indefinite articles.",
+      "zh": "透過稀疏邏輯斯探測，辨識定冠詞與不定冠詞的偏好。"
+    },
+    {
+      "start": 624.93,
+      "end": 629.61,
+      "en": "In particular, I will focus on the words the and an.",
+      "zh": "具體而言，只看 the 與 an。"
+    },
+    {
+      "start": 630.13,
+      "end": 635.21,
+      "en": "This is used for definite articles like when we refer to a specific.",
+      "zh": "這用作定冠詞，當我們指某個特定的，"
+    },
+    {
+      "start": 635.25,
+      "end": 641.81,
+      "en": "I don't know, chair or like a specific chocolate bar that someone was saving for themselves, but I accidentally ate.",
+      "zh": "例如椅子，或某個人留給自己，卻被我不小心吃掉的特定巧克力棒。"
+    },
+    {
+      "start": 642.13,
+      "end": 650.64,
+      "en": "Where has the article N is used generally to refer to any given chocolate bar, not the one that I actually stole.",
+      "zh": "an 這個冠詞，則一般指任意一條巧克力棒，不是被我偷走的那條。"
+    },
+    {
+      "start": 651.32,
+      "end": 658.4,
+      "en": "Anyway, we do have to be a little mindful when picking out these tokens from the text, because the",
+      "zh": "不過從文字挑選這些 token，要稍微小心，因為"
+    },
+    {
+      "start": 658.4,
+      "end": 663.8,
+      "en": "tokens for th and an can also be the start of a word.",
+      "zh": "the 與 an 的 token，也可能是單字的開頭，"
+    },
+    {
+      "start": 663.8,
+      "end": 669.96,
+      "en": "So a subword at the beginning or in the middle of another word instead of actual words themselves.",
+      "zh": "也就是其他字開頭或中間的子詞，而不是完整單字本身。"
+    },
+    {
+      "start": 670.36,
+      "end": 677,
+      "en": "Now I will let you ponder what you might need to do in the code to make sure that you are getting these",
+      "zh": "先讓你思考，程式中可能需要做什麼，確保取得的這"
+    },
+    {
+      "start": 677,
+      "end": 684.2,
+      "en": "two tokens as complete words, and not as just the first token of a multi token word.",
+      "zh": "兩個 token，是完整單字，而不只是多 token 單字的第一個 token。"
+    },
+    {
+      "start": 684.72,
+      "end": 688.16,
+      "en": "Of course, I'll show my solution to that little problem in the code.",
+      "zh": "當然，程式中會展示我的解法。"
+    },
+    {
+      "start": 689.16,
+      "end": 695.32,
+      "en": "Anyway, here you see a few examples of sequences that contain the word the and an.",
+      "zh": "總之，這裡有幾個包含 the 與 an 的序列例子。"
+    },
+    {
+      "start": 695.32,
+      "end": 697.04,
+      "en": "So here you see the the the.",
+      "zh": "這裡可以看到 the、the、the，"
+    },
+    {
+      "start": 697.08,
+      "end": 699.2,
+      "en": "It's always at the end I put it at the end.",
+      "zh": "永遠在結尾，是我把它放在結尾。"
+    },
+    {
+      "start": 699.48,
+      "end": 702.26,
+      "en": "And here is n and n n and so on.",
+      "zh": "這裡則是 an、an、an 等等。"
+    },
+    {
+      "start": 702.62,
+      "end": 709.02,
+      "en": "And then I'm going to have a brief tangent to talk a little bit more about spaces before tokens.",
+      "zh": "接著會短暫岔題，多談一點 token 前面的空格。"
+    },
+    {
+      "start": 709.22,
+      "end": 718.82,
+      "en": "This is an issue that has come up often in this course, and it's an easy source of confusion when working with models and tokenizers.",
+      "zh": "這個問題，課程經常出現，使用模型與 tokenizer 時，很容易造成困惑。"
+    },
+    {
+      "start": 719.06,
+      "end": 727.46,
+      "en": "So therefore I will introduce you to an optional input in the tokenizer which is called add prefix space.",
+      "zh": "所以會介紹 tokenizer 的選用輸入，叫作 add_prefix_space。"
+    },
+    {
+      "start": 727.82,
+      "end": 730.98,
+      "en": "I will show you what this does and what implications it has.",
+      "zh": "會展示它做什麼，以及有何影響。"
+    },
+    {
+      "start": 731.14,
+      "end": 733.1,
+      "en": "But the take home is quite simple.",
+      "zh": "但重點很簡單，"
+    },
+    {
+      "start": 733.26,
+      "end": 737.18,
+      "en": "It simply adds a space before the text that you input.",
+      "zh": "只是在輸入文字前面，加上一個空格。"
+    },
+    {
+      "start": 737.78,
+      "end": 742.5,
+      "en": "Anyway, I'm going to extract 100 of each of these tokens.",
+      "zh": "總之，這兩種 token，各擷取 100 個。"
+    },
+    {
+      "start": 742.62,
+      "end": 749.9,
+      "en": "And when I push that through the model to get the MLP activations, that will give me activations matrices",
+      "zh": "將它們送進模型，取得 MLP 活化後，會得到活化矩陣，"
+    },
+    {
+      "start": 750.14,
+      "end": 761.41,
+      "en": "of size 100 by 3072, corresponding to the 100 tokens 100 sequences where with the target token extracted",
+      "zh": "大小為 100×3,072，對應 100 個 token、100 個序列，擷取目標 token，"
+    },
+    {
+      "start": 761.41,
+      "end": 767.09,
+      "en": "and 3072 neurons in the MLP expansion layer.",
+      "zh": "以及 MLP 擴張層中的 3,072 個神經元。"
+    },
+    {
+      "start": 768.13,
+      "end": 775.29,
+      "en": "Now, before running the analysis, I'm going to split this dataset into a train and test set.",
+      "zh": "分析之前，會將資料集分成訓練集與測試集。"
+    },
+    {
+      "start": 775.73,
+      "end": 782.93,
+      "en": "There's going to be 140 samples used for training and 60 samples used for testing.",
+      "zh": "140 個樣本訓練，60 個樣本測試。"
+    },
+    {
+      "start": 783.49,
+      "end": 790.37,
+      "en": "And what you see here are the distributions of all the activation values for the two target words.",
+      "zh": "這裡是兩個目標詞，全部活化值的分布，"
+    },
+    {
+      "start": 790.41,
+      "end": 793.73,
+      "en": "Now this is all the data including the train and the test set.",
+      "zh": "包含全部資料，也包含訓練與測試集。"
+    },
+    {
+      "start": 794.13,
+      "end": 799.93,
+      "en": "It's definitely not Gaussian distributed because these are the post Gelu activations.",
+      "zh": "它肯定不是高斯分布，因為是 GELU 後的活化。"
+    },
+    {
+      "start": 800.33,
+      "end": 809.93,
+      "en": "The pre non-linear activations do tend to look roughly Gaussian, but as you know, the JLo squeezes down the negative values.",
+      "zh": "非線性之前的活化，往往大致呈高斯分布，但你知道，GELU 會壓低負值。"
+    },
+    {
+      "start": 810.57,
+      "end": 817.73,
+      "en": "Anyway, the point here is that at this global population level, there doesn't appear to be any really",
+      "zh": "總之，重點是，從整體群體層級看，"
+    },
+    {
+      "start": 817.73,
+      "end": 823.39,
+      "en": "major differences in activations for the two articles for the and N.",
+      "zh": "兩個冠詞 the 與 an，活化似乎沒有重大差異。"
+    },
+    {
+      "start": 823.99,
+      "end": 831.43,
+      "en": "Maybe there's some shift towards smaller activation values for N, but I don't think that's a real reliable difference.",
+      "zh": "也許 an 稍微偏向較小活化，但我不覺得那是可靠差異。"
+    },
+    {
+      "start": 831.87,
+      "end": 835.11,
+      "en": "Anyway, this is pooling over all of the data.",
+      "zh": "總之，這是合併全部資料。"
+    },
+    {
+      "start": 835.51,
+      "end": 840.31,
+      "en": "Next what I will do is train a logistic classifier on these data.",
+      "zh": "接著會對這些資料，訓練邏輯斯分類器，"
+    },
+    {
+      "start": 840.71,
+      "end": 844.27,
+      "en": "And we will see that the performance is literally perfect.",
+      "zh": "會看到表現真的完美。"
+    },
+    {
+      "start": 844.27,
+      "end": 854.79,
+      "en": "So there is some combination of the 3000 neurons that can perfectly predict whether each target token is the or n.",
+      "zh": "所以 3,000 個神經元，有某種組合，能完美預測目標 token 是 the 或 an。"
+    },
+    {
+      "start": 855.39,
+      "end": 864.87,
+      "en": "Now, that may initially seem impressive, but keep in mind that we are using 3000 features to predict 160 observations.",
+      "zh": "一開始可能覺得厲害，但記住，使用 3,000 個特徵，預測 160 個觀察值。"
+    },
+    {
+      "start": 865.47,
+      "end": 872.75,
+      "en": "So it is true that the results that I'm showing here actually come from the test set and not the training set.",
+      "zh": "這裡展示的結果，確實來自測試集，不是訓練集，"
+    },
+    {
+      "start": 873.11,
+      "end": 876.31,
+      "en": "But still, the sample size is just really small.",
+      "zh": "但樣本數仍然非常小。"
+    },
+    {
+      "start": 876.75,
+      "end": 882.98,
+      "en": "Anyway, that's fine for our purposes here, because the goal of this demo is to show you how to set",
+      "zh": "這對目前目的沒關係，因為示範目標，是展示如何設定"
+    },
+    {
+      "start": 883.02,
+      "end": 889.78,
+      "en": "up the code and visualizations for this kind of analysis, and not to do like a full research project",
+      "zh": "這類分析的程式與視覺化，而不是做完整研究專題，"
+    },
+    {
+      "start": 889.78,
+      "end": 896.58,
+      "en": "with a sufficient sample size where you would probably want thousands or tens of thousands of tokens.",
+      "zh": "使用足夠樣本，可能需要幾千、幾萬個 token。"
+    },
+    {
+      "start": 897.7,
+      "end": 900.22,
+      "en": "Anyway, here you can see some of the results.",
+      "zh": "這裡可以看到一些結果。"
+    },
+    {
+      "start": 900.34,
+      "end": 907.02,
+      "en": "So based on the value of lambda that I used, we got a density of around 0.4.",
+      "zh": "根據所用 lambda 值，密度大約是 0.4，"
+    },
+    {
+      "start": 907.42,
+      "end": 915.9,
+      "en": "So that means that only 13 out of the 3000 neurons actually had a non-zero coefficient.",
+      "zh": "也就是 3,000 個神經元中，只有 13 個係數非零。"
+    },
+    {
+      "start": 916.34,
+      "end": 919.54,
+      "en": "All the other coefficients were exactly zero.",
+      "zh": "其他係數全部恰好為零。"
+    },
+    {
+      "start": 920.14,
+      "end": 927.86,
+      "en": "And basically what this means is that the logistic regression only needed 13 neurons in order to predict",
+      "zh": "基本上，這表示邏輯斯迴歸只需要 13 個神經元，就能預測"
+    },
+    {
+      "start": 927.86,
+      "end": 932.5,
+      "en": "whether a given token is the word, the or the word n.",
+      "zh": "某個 token，是 the 還是 an。"
+    },
+    {
+      "start": 933.14,
+      "end": 937.2,
+      "en": "By the way, density is the opposite of sparsity.",
+      "zh": "順帶一提，密度與稀疏性相反。"
+    },
+    {
+      "start": 937.44,
+      "end": 943.76,
+      "en": "So density of 0.4% means that only 0.4% of the coefficients are non-zero.",
+      "zh": "密度 0.4%，表示只有 0.4% 的係數非零。"
+    },
+    {
+      "start": 944.12,
+      "end": 953.64,
+      "en": "And we could equivalently say that the sparsity is 99.6%, which would mean that 99.6% of the coefficients",
+      "zh": "也可以等價說，稀疏性為 99.6%，表示 99.6% 的係數"
+    },
+    {
+      "start": 953.64,
+      "end": 955.28,
+      "en": "are equal to zero.",
+      "zh": "等於零。"
+    },
+    {
+      "start": 956.56,
+      "end": 959.72,
+      "en": "And how about the sign of these coefficients?",
+      "zh": "那係數的正負號呢？"
+    },
+    {
+      "start": 959.72,
+      "end": 963.24,
+      "en": "What do you think the sign of the coefficients means?",
+      "zh": "你覺得係數的正負號代表什麼？"
+    },
+    {
+      "start": 963.92,
+      "end": 975.68,
+      "en": "I guess that you guess that the sign corresponds to whether more activations means the, or whether more activation means that the token was n.",
+      "zh": "你大概猜，正負號對應活化增加表示 the，還是活化增加表示 an。"
+    },
+    {
+      "start": 976.36,
+      "end": 981.12,
+      "en": "That is a good intuition, and in theory that is the way it should work.",
+      "zh": "直覺很好，理論上也應該如此。"
+    },
+    {
+      "start": 981.56,
+      "end": 990.88,
+      "en": "However, with data sets this large, especially with relatively small sample sizes, that's not necessarily what these results mean.",
+      "zh": "但資料集這麼大，尤其樣本數相對小時，結果不一定代表那個意思，"
+    },
+    {
+      "start": 990.88,
+      "end": 993.76,
+      "en": "What the sign of the coefficients indicates.",
+      "zh": "也就是係數正負號所表示的意義。"
+    },
+    {
+      "start": 993.76,
+      "end": 993.79,
+      "en": "Gates.",
+      "zh": "〔原字幕片段：Gates，辨識不清。〕"
+    },
+    {
+      "start": 994.55,
+      "end": 999.79,
+      "en": "There's something else pernicious going on here, which is called statistical suppression.",
+      "zh": "這裡還有一種隱藏的問題，叫作統計抑制。"
+    },
+    {
+      "start": 1000.15,
+      "end": 1005.43,
+      "en": "I'm going to talk about that term and that phenomenon more in the next video.",
+      "zh": "下一支影片會多討論這個術語與現象。"
+    },
+    {
+      "start": 1005.95,
+      "end": 1014.11,
+      "en": "But anyway, here you see scatter plots with all 13 of the neurons that had non-zero coefficients and",
+      "zh": "總之，這裡是全部 13 個非零係數神經元的散佈圖，"
+    },
+    {
+      "start": 1014.15,
+      "end": 1022.07,
+      "en": "their activations for each of the 100 of the the tokens and the 100 and tokens.",
+      "zh": "顯示它們對 100 個 the token，以及 100 個 an token 的活化。"
+    },
+    {
+      "start": 1022.47,
+      "end": 1030.91,
+      "en": "Now, it's not surprising that there aren't really negative activations here, and a lot of these activations are just kind of like crunched up.",
+      "zh": "這裡沒有很多負活化，而且許多活化擠在一起，並不意外，"
+    },
+    {
+      "start": 1030.91,
+      "end": 1034.23,
+      "en": "They're all like bundled up at some value just below zero.",
+      "zh": "全部聚集在略低於零的某個值，"
+    },
+    {
+      "start": 1034.79,
+      "end": 1038.63,
+      "en": "That is the impact of the jlu non-linearity.",
+      "zh": "這就是 GELU 非線性的效果。"
+    },
+    {
+      "start": 1039.43,
+      "end": 1039.75,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1039.79,
+      "end": 1047.71,
+      "en": "The last analysis that I will show in this demo is the relationship between sparsity and the lambda parameter.",
+      "zh": "這份示範最後的分析，是稀疏性與 lambda 參數的關係，"
+    },
+    {
+      "start": 1048.27,
+      "end": 1050.51,
+      "en": "Or actually this is showing density here.",
+      "zh": "其實這裡顯示的是密度，"
+    },
+    {
+      "start": 1050.51,
+      "end": 1056.21,
+      "en": "But you could just show So sparsity as 100 minus these numbers over here.",
+      "zh": "但也可以用 100 減這些數字，顯示稀疏性。"
+    },
+    {
+      "start": 1056.69,
+      "end": 1065.77,
+      "en": "So basically all I did was rerun the same logistic regression model with the same data except for the parameter c.",
+      "zh": "基本上，只是用相同資料重跑相同邏輯斯迴歸，只改 C 參數。"
+    },
+    {
+      "start": 1066.37,
+      "end": 1071.69,
+      "en": "Now these two plots show exactly the same results from exactly the same models.",
+      "zh": "這兩張圖，顯示完全相同模型的完全相同結果，"
+    },
+    {
+      "start": 1071.69,
+      "end": 1076.61,
+      "en": "But here on the right I'm plotting the value of c on the x axis.",
+      "zh": "右邊 x 軸畫 C，"
+    },
+    {
+      "start": 1076.85,
+      "end": 1084.09,
+      "en": "And here on the left, I'm plotting the value of lambda which is one divided by c.",
+      "zh": "左邊則畫 lambda，也就是 1 除以 C。"
+    },
+    {
+      "start": 1084.77,
+      "end": 1092.65,
+      "en": "These results are interesting, but really not that surprising when lambda is small, which also means",
+      "zh": "結果有意思，但不太意外：lambda 小，也就是"
+    },
+    {
+      "start": 1092.65,
+      "end": 1100.65,
+      "en": "when c is large, then you have more non-zero coefficients, and when lambda is large, or when c is",
+      "zh": "C 大時，非零係數比較多；lambda 大，或 C"
+    },
+    {
+      "start": 1100.65,
+      "end": 1105.53,
+      "en": "small, then you have very few neurons with non-zero coefficients.",
+      "zh": "小時，只有非常少的神經元係數非零。"
+    },
+    {
+      "start": 1106.01,
+      "end": 1108.41,
+      "en": "And why is this a sensible result?",
+      "zh": "為什麼合理？"
+    },
+    {
+      "start": 1108.81,
+      "end": 1118.04,
+      "en": "Because when lambda is closer to zero than the L1 regularizer doesn't really contribute to the overall loss function.",
+      "zh": "因為 lambda 越接近零，L1 正規化項對總損失函數的貢獻越小；"
+    },
+    {
+      "start": 1118.48,
+      "end": 1125.28,
+      "en": "Whereas when lambda gets bigger, then the optimization gets more weighted by the L1 term.",
+      "zh": "lambda 越大，最佳化就越受到 L1 項影響。"
+    },
+    {
+      "start": 1125.84,
+      "end": 1128.68,
+      "en": "Anyway, let's switch to Python and have a look.",
+      "zh": "總之，切換到 Python 看看。"
+    },
+    {
+      "start": 1129.92,
+      "end": 1132.8,
+      "en": "So here we are with the typical libraries.",
+      "zh": "這裡是常見函式庫，"
+    },
+    {
+      "start": 1133.08,
+      "end": 1135.6,
+      "en": "And here is some stuff from scikit learn.",
+      "zh": "還有一些 scikit-learn 工具，"
+    },
+    {
+      "start": 1135.64,
+      "end": 1138.76,
+      "en": "So logistic regression I'm using this function.",
+      "zh": "邏輯斯迴歸，使用這個函式；"
+    },
+    {
+      "start": 1138.8,
+      "end": 1143.88,
+      "en": "Train test split to split the data into a train set and a test set.",
+      "zh": "train_test_split，將資料分成訓練集與測試集；"
+    },
+    {
+      "start": 1144.16,
+      "end": 1152.96,
+      "en": "And this function also to give us the classification performance, which I can already tell you is going to be extremely good.",
+      "zh": "這個函式則提供分類表現，可以先說，會非常好。"
+    },
+    {
+      "start": 1153.32,
+      "end": 1155.44,
+      "en": "Here I'm importing GPT two.",
+      "zh": "這裡匯入 GPT2，"
+    },
+    {
+      "start": 1155.8,
+      "end": 1158.24,
+      "en": "And of course the tokenizer as well.",
+      "zh": "當然還有 tokenizer。"
+    },
+    {
+      "start": 1158.4,
+      "end": 1161.44,
+      "en": "And here's where I'm hooking all of the neurons.",
+      "zh": "這裡 hook 到全部神經元，"
+    },
+    {
+      "start": 1161.44,
+      "end": 1163.56,
+      "en": "So you can see I'm looking for MLP.",
+      "zh": "可以看到，找的是 MLP，"
+    },
+    {
+      "start": 1163.68,
+      "end": 1167,
+      "en": "And then I get this act layer in here.",
+      "zh": "接著取得這裡的 act 層，"
+    },
+    {
+      "start": 1167,
+      "end": 1170.23,
+      "en": "And this is the post Gelu activations.",
+      "zh": "這是 GELU 後的活化。"
+    },
+    {
+      "start": 1170.23,
+      "end": 1174.43,
+      "en": "So let me show you what part of the model that corresponds to.",
+      "zh": "展示一下，對應模型哪個部分。"
+    },
+    {
+      "start": 1175.47,
+      "end": 1183.11,
+      "en": "So here we are in layer H, the hidden layer, the transformer blocks we are looking at here, the MLP.",
+      "zh": "這裡位於 h 層，隱藏層、Transformer 區塊，看的就是 MLP，"
+    },
+    {
+      "start": 1183.15,
+      "end": 1185.15,
+      "en": "That's this part over here.",
+      "zh": "這裡這個部分。"
+    },
+    {
+      "start": 1185.35,
+      "end": 1189.75,
+      "en": "And now typically I would use the FC the fully connected.",
+      "zh": "通常我會用 fc，全連接層，"
+    },
+    {
+      "start": 1189.75,
+      "end": 1191.19,
+      "en": "That's the expansion layer.",
+      "zh": "也就是擴張層；"
+    },
+    {
+      "start": 1191.35,
+      "end": 1199.63,
+      "en": "Or if we are specifically looking for the adjustments to the embeddings vector, that would be the output of C proj.",
+      "zh": "如果特別想看嵌入向量的調整，就是 c_proj 的輸出。"
+    },
+    {
+      "start": 1199.79,
+      "end": 1209.59,
+      "en": "And what I am going to look at here is the output of act, and that this is not in the order in which the operations are applied.",
+      "zh": "這裡則看 act 的輸出，這份列表不是依運算實際套用順序排列。"
+    },
+    {
+      "start": 1209.59,
+      "end": 1217.03,
+      "en": "But basically this act here is what goes after the fully connected layer and before the projection.",
+      "zh": "基本上，act 位於全連接層之後、投影之前。"
+    },
+    {
+      "start": 1217.39,
+      "end": 1217.71,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1217.75,
+      "end": 1223.11,
+      "en": "So this will be the jlu activation of the expansion layer.",
+      "zh": "這會是擴張層的 GELU 活化。"
+    },
+    {
+      "start": 1223.27,
+      "end": 1223.55,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1223.59,
+      "end": 1224.47,
+      "en": "So run that.",
+      "zh": "執行它。"
+    },
+    {
+      "start": 1224.47,
+      "end": 1228.41,
+      "en": "And yeah it's kind of arbitrary that I'm just hooking into one layer here.",
+      "zh": "只 hook 到這一層，有點任意，"
+    },
+    {
+      "start": 1228.41,
+      "end": 1231.57,
+      "en": "Of course you can try hooking into different layers.",
+      "zh": "當然，也可以試試其他層。"
+    },
+    {
+      "start": 1232.01,
+      "end": 1234.01,
+      "en": "Okay, so here is the data.",
+      "zh": "好，這裡是資料。"
+    },
+    {
+      "start": 1234.05,
+      "end": 1238.89,
+      "en": "I'm importing the fine web data set, not the full data set.",
+      "zh": "匯入 FineWeb 資料集，不是完整資料，"
+    },
+    {
+      "start": 1238.93,
+      "end": 1240.49,
+      "en": "Of course it's ginormous.",
+      "zh": "完整資料當然大得驚人。"
+    },
+    {
+      "start": 1240.53,
+      "end": 1248.93,
+      "en": "I'm only going to extract the first 500 documents, and I append all of the tokens onto each other.",
+      "zh": "只擷取最前面的 500 份文件，再將全部 token 串接。"
+    },
+    {
+      "start": 1249.25,
+      "end": 1253.25,
+      "en": "Here I'm looking for the target tokens, the and n.",
+      "zh": "這裡找目標 token，the 與 an。"
+    },
+    {
+      "start": 1253.29,
+      "end": 1260.77,
+      "en": "And notice here I'm explicitly putting in spaces in front of the target words that I'm looking for.",
+      "zh": "注意，明確在目標詞前面放空格，"
+    },
+    {
+      "start": 1260.93,
+      "end": 1263.53,
+      "en": "I will get back to that in a moment.",
+      "zh": "稍後會再談。"
+    },
+    {
+      "start": 1263.89,
+      "end": 1273.73,
+      "en": "So in this text, there are 11,000 appearances of the token and 800 appearances of the token N space",
+      "zh": "這段文字中，the token 出現 11,000 次，an，也就是空格加"
+    },
+    {
+      "start": 1273.77,
+      "end": 1281.57,
+      "en": "an and from all of these, I am going to sample just 100 for each of the target tokens.",
+      "zh": "an，出現 800 次。從中每種只取樣 100 個目標 token。"
+    },
+    {
+      "start": 1282.13,
+      "end": 1288.52,
+      "en": "These tokens will or these sequences will be 17 tokens long.",
+      "zh": "這些 token、這些序列，長度會是 17 個 token。"
+    },
+    {
+      "start": 1288.72,
+      "end": 1290.12,
+      "en": "And let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 1290.12,
+      "end": 1292.68,
+      "en": "So here so here's where I do it okay.",
+      "zh": "這裡就是做這件事的地方。"
+    },
+    {
+      "start": 1292.72,
+      "end": 1296,
+      "en": "So I'm looping over all of the the tokens.",
+      "zh": "逐一迭代所有 the token，"
+    },
+    {
+      "start": 1296,
+      "end": 1301.72,
+      "en": "So all 11,000 of the tokens that match the word uh the character sequence space.",
+      "zh": "全部 11,000 個符合這個字、字元序列「空格加 the」的 token。"
+    },
+    {
+      "start": 1303.08,
+      "end": 1310.88,
+      "en": "And now here I have a little bit of code to check whether the following token is starts with a space.",
+      "zh": "這裡加一點程式，檢查下一個 token 是否以空格開頭。"
+    },
+    {
+      "start": 1311,
+      "end": 1319.04,
+      "en": "And the reason why I'm looking for this is that if we have a word like for example, uh, theology,",
+      "zh": "原因是，如果有像 theology 這樣的字，"
+    },
+    {
+      "start": 1319.6,
+      "end": 1323.88,
+      "en": "let's say this is the token, then it might actually start with space.",
+      "zh": "假設這是 token，它可能以「空格加"
+    },
+    {
+      "start": 1323.92,
+      "end": 1326.32,
+      "en": "The but this is not what we're looking for.",
+      "zh": "the」開頭，但那不是要找的。"
+    },
+    {
+      "start": 1326.32,
+      "end": 1333.8,
+      "en": "So if space is not an entire word, it's not the word the but it is part of a sub word.",
+      "zh": "如果這不是完整的 the，而是子詞的一部分，"
+    },
+    {
+      "start": 1333.8,
+      "end": 1337.24,
+      "en": "So it's a sub word that's part of a multi token word.",
+      "zh": "也就是多 token 單字中的子詞，"
+    },
+    {
+      "start": 1337.4,
+      "end": 1342.44,
+      "en": "Then this second this subsequent token here is not going to start with a space.",
+      "zh": "下一個 token 就不會以空格開頭，"
+    },
+    {
+      "start": 1342.44,
+      "end": 1345.38,
+      "en": "It will start with anything other than a space.",
+      "zh": "而會以任何其他東西開頭。"
+    },
+    {
+      "start": 1346.3,
+      "end": 1347.5,
+      "en": "So that's the idea here.",
+      "zh": "這就是概念。"
+    },
+    {
+      "start": 1347.62,
+      "end": 1353.58,
+      "en": "If the next token begins with a space, then we are looking at the and then something else.",
+      "zh": "如果下一個 token 以空格開頭，現在就是 the，後面接其他東西。"
+    },
+    {
+      "start": 1354.18,
+      "end": 1354.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1354.5,
+      "end": 1355.34,
+      "en": "So that's the idea.",
+      "zh": "這就是概念。"
+    },
+    {
+      "start": 1355.34,
+      "end": 1362.9,
+      "en": "And then we also do not want to run through this entire loop only until we have enough samples and then.",
+      "zh": "也不想跑完整個迴圈，只跑到樣本足夠。"
+    },
+    {
+      "start": 1363.1,
+      "end": 1363.38,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1363.38,
+      "end": 1369.3,
+      "en": "So if these two conditions are true then we store in this row of the batch.",
+      "zh": "兩個條件成立，就存進這個批次的這一列，"
+    },
+    {
+      "start": 1369.34,
+      "end": 1375.26,
+      "en": "We store the tokens from minus context free to plus context post.",
+      "zh": "存入從目標減 context pre，到加 context post 的 token。"
+    },
+    {
+      "start": 1375.74,
+      "end": 1375.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1375.98,
+      "end": 1382.46,
+      "en": "And then I repeat exactly the same for n again I want the next token to begin with a space.",
+      "zh": "接著對 an 完全重複，同樣希望下一個 token 以空格開頭。"
+    },
+    {
+      "start": 1383.14,
+      "end": 1383.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1383.54,
+      "end": 1385.54,
+      "en": "And then here you see a few examples.",
+      "zh": "這裡可以看到幾個例子。"
+    },
+    {
+      "start": 1385.94,
+      "end": 1386.18,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1386.18,
+      "end": 1387.86,
+      "en": "This is not super interesting.",
+      "zh": "沒有特別有趣，"
+    },
+    {
+      "start": 1387.86,
+      "end": 1392.26,
+      "en": "Just to see what some of these sequences actually look like.",
+      "zh": "只是看看其中一些序列，實際長什麼樣子。"
+    },
+    {
+      "start": 1392.62,
+      "end": 1399.78,
+      "en": "Down here is the little tangent just to introduce you to this optional input add prefix space.",
+      "zh": "下面是小岔題，介紹 add_prefix_space 這個選用輸入。"
+    },
+    {
+      "start": 1399.82,
+      "end": 1407.21,
+      "en": "I believe this is actually the only time in this entire course that I ever actually use this optional input.",
+      "zh": "我相信，整門課其實只有這次，真正使用這個選用輸入。"
+    },
+    {
+      "start": 1407.21,
+      "end": 1409.69,
+      "en": "I think it is better.",
+      "zh": "我覺得比較好，"
+    },
+    {
+      "start": 1409.69,
+      "end": 1418.57,
+      "en": "I think it's clear to, uh, to have this space explicitly written in here, because then you really know that there is this space here.",
+      "zh": "比較清楚的方式，是明確在這裡寫出空格，才真正知道有這個空格。"
+    },
+    {
+      "start": 1418.77,
+      "end": 1428.09,
+      "en": "Uh, whereas, yeah, if you have no space in the target word here, but then you add a space like this, I just find that to be a little bit less intuitive.",
+      "zh": "相對地，如果目標詞沒空格，卻像這樣另外加，我覺得不太直覺。"
+    },
+    {
+      "start": 1428.53,
+      "end": 1432.33,
+      "en": "And what I'm showing here is that, uh, yeah, you will get different tokens.",
+      "zh": "這裡展示的是，會得到不同 token。"
+    },
+    {
+      "start": 1432.33,
+      "end": 1442.57,
+      "en": "So this token is the same as this token, even though this, uh, includes a preceding space, and this does not include a preceding preceding space.",
+      "zh": "這個 token 與那個相同，即使這個包含前置空格，那個沒有。"
+    },
+    {
+      "start": 1442.81,
+      "end": 1447.61,
+      "en": "Because here I said add prefix space equals false, which is the default value.",
+      "zh": "因為這裡設定 add_prefix_space=False，是預設值，"
+    },
+    {
+      "start": 1447.81,
+      "end": 1450.85,
+      "en": "And here add prefix space equals true.",
+      "zh": "這裡則是 add_prefix_space=True。"
+    },
+    {
+      "start": 1451.29,
+      "end": 1458.25,
+      "en": "Again, I find this all to be a little confusing, and therefore my preference is to set add prefix",
+      "zh": "我覺得有點困惑，所以偏好將 add_prefix_space"
+    },
+    {
+      "start": 1458.25,
+      "end": 1464.63,
+      "en": "space to be false, which is the default value and explicitly include this space beforehand.",
+      "zh": "設為 False，也就是預設值，再明確在前面放空格。"
+    },
+    {
+      "start": 1464.67,
+      "end": 1466.19,
+      "en": "Okay, so that's just FYI.",
+      "zh": "好，只是讓你知道。"
+    },
+    {
+      "start": 1467.27,
+      "end": 1470.27,
+      "en": "Here I'm pushing all the tokens through the model.",
+      "zh": "這裡將所有 token 送進模型。"
+    },
+    {
+      "start": 1470.31,
+      "end": 1473.39,
+      "en": "These are the values of this activations.",
+      "zh": "這些是 activations 的值，"
+    },
+    {
+      "start": 1473.39,
+      "end": 1478.39,
+      "en": "Dictionary will get overwritten here when I push this batch through the model.",
+      "zh": "再送另一批資料通過模型時，字典會被覆寫。"
+    },
+    {
+      "start": 1478.39,
+      "end": 1484.07,
+      "en": "So therefore I need to extract this or save it as a separate variable.",
+      "zh": "所以必須擷取，或存成獨立變數。"
+    },
+    {
+      "start": 1484.43,
+      "end": 1488.91,
+      "en": "And also in this case we are not interested in all of the tokens.",
+      "zh": "另外，這裡不關心全部 token，"
+    },
+    {
+      "start": 1488.91,
+      "end": 1495.15,
+      "en": "We only want the activations for the target tokens, which is this position here.",
+      "zh": "只需要目標 token 的活化，也就是這個位置。"
+    },
+    {
+      "start": 1495.15,
+      "end": 1505.71,
+      "en": "So we get all the sequences, the target token, so the token corresponding to the word the and then all of the MLP expansion neurons post Jlu.",
+      "zh": "因此取全部序列、目標 token，也就是 the，以及全部 GELU 後的 MLP 擴張神經元。"
+    },
+    {
+      "start": 1505.71,
+      "end": 1507.59,
+      "en": "And that's what you see here.",
+      "zh": "這就是這裡看到的。"
+    },
+    {
+      "start": 1508.07,
+      "end": 1508.27,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1508.27,
+      "end": 1513.87,
+      "en": "And here I'm just showing the histogram of these all the activations over all the neurons.",
+      "zh": "這裡只是顯示，全部神經元所有活化的直方圖。"
+    },
+    {
+      "start": 1513.99,
+      "end": 1519.99,
+      "en": "Honestly I don't think this is super interesting to look at, but it does confirm that we really are",
+      "zh": "老實說，沒那麼有趣，但確實能確認，取得的"
+    },
+    {
+      "start": 1520.22,
+      "end": 1530.3,
+      "en": "grabbing the post Gelu activations because you do not see a lot of uh, like a tail here going into the negative activations.",
+      "zh": "是 GELU 後活化，因為看不到很長的尾巴往負活化延伸。"
+    },
+    {
+      "start": 1530.3,
+      "end": 1536.98,
+      "en": "Instead you just see this bunching up this really large, uh, number of activations that have values",
+      "zh": "反而有大量活化聚集，"
+    },
+    {
+      "start": 1536.98,
+      "end": 1543.82,
+      "en": "just below zero because, yeah, that's just the nature of the, uh, suppression, the weighting of the Gelu function.",
+      "zh": "數值略低於零，因為那就是 GELU 函數抑制、加權的特性。"
+    },
+    {
+      "start": 1544.42,
+      "end": 1552.42,
+      "en": "Okay, here I'm combining all of the activations into one matrix called all data and then creating labels.",
+      "zh": "好，這裡將所有活化合併成 all data 矩陣，再建立標籤。"
+    },
+    {
+      "start": 1552.42,
+      "end": 1556.62,
+      "en": "So it's 100 zeros and 100 ones.",
+      "zh": "100 個 0，以及 100 個 1。"
+    },
+    {
+      "start": 1556.82,
+      "end": 1559.62,
+      "en": "Remember that when you have a list like this.",
+      "zh": "記住，有這樣的串列，"
+    },
+    {
+      "start": 1559.86,
+      "end": 1563.06,
+      "en": "Uh, so that's just a one element list.",
+      "zh": "只有一個元素的串列，"
+    },
+    {
+      "start": 1563.06,
+      "end": 1568.94,
+      "en": "And then if you multiply it by let's say two, then it will just repeat this twice.",
+      "zh": "乘以例如 2，就會重複兩次。"
+    },
+    {
+      "start": 1568.94,
+      "end": 1573.26,
+      "en": "And if I multiply it by 20 then I get 20 values of four.",
+      "zh": "乘以 20，就得到 20 個數值 4。"
+    },
+    {
+      "start": 1574.3,
+      "end": 1576.1,
+      "en": "So here I get sample size.",
+      "zh": "這裡取得 sample size，"
+    },
+    {
+      "start": 1576.1,
+      "end": 1581.16,
+      "en": "This is a parameter that I set to be 100 100 zeros and 100 ones.",
+      "zh": "這個參數設為 100，所以是 100 個 0、100 個 1。"
+    },
+    {
+      "start": 1581.32,
+      "end": 1585.88,
+      "en": "And then I'm using the plus to concatenate two lists.",
+      "zh": "再用加號串接兩個串列，"
+    },
+    {
+      "start": 1586.16,
+      "end": 1592.68,
+      "en": "And then here I'm converting them into a numpy array that will be easier for indexing and so on later.",
+      "zh": "轉成 NumPy 陣列，方便之後索引等等。"
+    },
+    {
+      "start": 1593.08,
+      "end": 1593.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1593.32,
+      "end": 1600.04,
+      "en": "And then here I'm splitting the data into a train set and train labels and a test set.",
+      "zh": "接著將資料分成訓練集、訓練標籤，以及測試集。"
+    },
+    {
+      "start": 1600.4,
+      "end": 1600.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1600.64,
+      "end": 1609.4,
+      "en": "And here you see the size is 140 for the training set and 160 sorry just 60 for the test set.",
+      "zh": "這裡大小是訓練集 140，測試集 160，抱歉，只有 60。"
+    },
+    {
+      "start": 1609.68,
+      "end": 1621.32,
+      "en": "So now the idea is that I'm going to train the logistic regression only on these data, the training set without showing the model any of these data.",
+      "zh": "概念是，只對訓練資料訓練邏輯斯迴歸，不讓模型看到這些測試資料，"
+    },
+    {
+      "start": 1621.68,
+      "end": 1628.72,
+      "en": "And then I will evaluate the performance of the model on these data and not on the training set.",
+      "zh": "再在這些資料上評估表現，而不是訓練集。"
+    },
+    {
+      "start": 1630,
+      "end": 1630.2,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1630.24,
+      "end": 1631.36,
+      "en": "And so here's what it looks like.",
+      "zh": "所以長這樣。"
+    },
+    {
+      "start": 1631.36,
+      "end": 1637.47,
+      "en": "So most of this code you have seen before the logistic regression function from scikit learn.",
+      "zh": "大部分程式以前看過，scikit-learn 的 LogisticRegression 函式，"
+    },
+    {
+      "start": 1637.71,
+      "end": 1640.19,
+      "en": "You have seen that and then.",
+      "zh": "看過，接著，"
+    },
+    {
+      "start": 1640.23,
+      "end": 1640.43,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1640.47,
+      "end": 1640.99,
+      "en": "Here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 1641.03,
+      "end": 1644.11,
+      "en": "Uh, dot fit you've seen before dot predict.",
+      "zh": ".fit 看過，.predict，"
+    },
+    {
+      "start": 1644.15,
+      "end": 1646.91,
+      "en": "You have seen before what is new here.",
+      "zh": "也看過。這裡新增的，"
+    },
+    {
+      "start": 1647.11,
+      "end": 1654.67,
+      "en": "Uh, compared to what I showed earlier in the course for uh, classification is adding the penalty L1.",
+      "zh": "相較於課程前面的分類，是加入 L1 penalty。"
+    },
+    {
+      "start": 1654.87,
+      "end": 1659.31,
+      "en": "And here you see the solver which I mentioned in the slides a few moments ago.",
+      "zh": "這裡的 solver，剛才投影片提過，"
+    },
+    {
+      "start": 1659.67,
+      "end": 1660.15,
+      "en": "Saga.",
+      "zh": "saga。"
+    },
+    {
+      "start": 1660.19,
+      "end": 1663.07,
+      "en": "This is stochastic average gradient descent.",
+      "zh": "這是隨機平均梯度下降。"
+    },
+    {
+      "start": 1663.59,
+      "end": 1664.55,
+      "en": "And, uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1664.55,
+      "end": 1672.23,
+      "en": "Then I set the c parameter to be ten, which means that lambda is one divided by 10 or 0.1 okay.",
+      "zh": "C 參數設為 10，表示 lambda 是 1 除以 10，也就是 0.1。"
+    },
+    {
+      "start": 1672.27,
+      "end": 1680.55,
+      "en": "Now the max iterations, the number of iterations is by default 100 for some types of problems.",
+      "zh": "max iterations，反覆次數預設為 100；對某些問題，"
+    },
+    {
+      "start": 1680.55,
+      "end": 1686.07,
+      "en": "If you have a relatively clean data set or not, so many variables, that number is fine.",
+      "zh": "資料相對乾淨，或變數不多時，這個數字可以。"
+    },
+    {
+      "start": 1686.07,
+      "end": 1693.91,
+      "en": "I thought it would be good to add another zero here to increase the number of iterations by an order of magnitude.",
+      "zh": "我覺得多加一個零，將次數提高一個數量級，會不錯。"
+    },
+    {
+      "start": 1694.27,
+      "end": 1696.01,
+      "en": "And what does this correspond to?",
+      "zh": "這對應什麼？"
+    },
+    {
+      "start": 1696.05,
+      "end": 1703.65,
+      "en": "This is literally just the number of training epochs in gradient descent that this model is implementing.",
+      "zh": "真的就是模型用梯度下降進行訓練的 epoch 數。"
+    },
+    {
+      "start": 1704.33,
+      "end": 1704.69,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1704.73,
+      "end": 1710.77,
+      "en": "So yeah, now I'm fitting the data to the training set or fitting the model to the training data.",
+      "zh": "現在擬合資料到訓練集，或者說，將模型擬合到訓練資料，"
+    },
+    {
+      "start": 1710.93,
+      "end": 1713.57,
+      "en": "And then I'm predicting the test data.",
+      "zh": "再預測測試資料。"
+    },
+    {
+      "start": 1713.57,
+      "end": 1717.25,
+      "en": "And then yeah I call this function Classificationreport.",
+      "zh": "接著呼叫 classification_report，"
+    },
+    {
+      "start": 1717.45,
+      "end": 1721.85,
+      "en": "And that's going to print out the accuracy the F1 score and so on.",
+      "zh": "列印準確率、F1 分數等等。"
+    },
+    {
+      "start": 1721.97,
+      "end": 1728.45,
+      "en": "This is honestly not so interesting to look at for this problem because it's all exactly perfect.",
+      "zh": "對這個問題，其實沒那麼有趣，因為全部都完美，"
+    },
+    {
+      "start": 1728.45,
+      "end": 1730.37,
+      "en": "So we get perfect accuracy.",
+      "zh": "得到完美準確率。"
+    },
+    {
+      "start": 1730.85,
+      "end": 1733.81,
+      "en": "On the one hand that is kind of impressive.",
+      "zh": "一方面，的確有點厲害，"
+    },
+    {
+      "start": 1733.81,
+      "end": 1741.17,
+      "en": "It does mean that there is some meaningful patterns that the model was able to identify in the MLP,",
+      "zh": "表示模型確實能在 MLP"
+    },
+    {
+      "start": 1741.57,
+      "end": 1750.33,
+      "en": "uh, activations that really did separate the token activations for the versus for N, but on the other",
+      "zh": "活化中，找出有意義模式，區隔 the 與 an 的 token 活化；但另一方面，"
+    },
+    {
+      "start": 1750.33,
+      "end": 1758.56,
+      "en": "hand, it's a huge model and a really small sample size, so you should not overinterpret this pattern of findings.",
+      "zh": "模型巨大、樣本數非常小，所以不應過度解讀。"
+    },
+    {
+      "start": 1759.12,
+      "end": 1759.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1759.44,
+      "end": 1760.48,
+      "en": "This is just a reminder.",
+      "zh": "這只是提醒，"
+    },
+    {
+      "start": 1760.48,
+      "end": 1762.6,
+      "en": "I've mentioned this in the slides as well.",
+      "zh": "投影片也提過。"
+    },
+    {
+      "start": 1762.72,
+      "end": 1768.96,
+      "en": "The term sparsity refers to the number of zero coefficients.",
+      "zh": "稀疏性指的是零係數的數量，"
+    },
+    {
+      "start": 1768.96,
+      "end": 1776.68,
+      "en": "So the coefficients the beta coefficients that equal zero and the density is the number of non-zero coefficients.",
+      "zh": "也就是 beta 等於零，而密度是非零係數的數量，"
+    },
+    {
+      "start": 1776.84,
+      "end": 1781.16,
+      "en": "And of course that's scaled by the total number of coefficients.",
+      "zh": "當然還要除以係數總數縮放。"
+    },
+    {
+      "start": 1781.24,
+      "end": 1784.56,
+      "en": "And actually this what I'm showing here would be proportion.",
+      "zh": "其實這裡展示的會是比例，"
+    },
+    {
+      "start": 1784.84,
+      "end": 1789.04,
+      "en": "It's also common to multiply it by 100 to get a percent.",
+      "zh": "也常乘以 100，得到百分比。"
+    },
+    {
+      "start": 1790.36,
+      "end": 1790.72,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1790.76,
+      "end": 1792.6,
+      "en": "So yeah that's what I'm doing here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 1792.6,
+      "end": 1804.6,
+      "en": "I'm just extracting the coefficients from the result and finding where are the coefficients equal to zero and where are they not equal to zero.",
+      "zh": "從結果擷取係數，找出哪些等於零、哪些不等於零。"
+    },
+    {
+      "start": 1804.92,
+      "end": 1805.16,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1805.2,
+      "end": 1809.76,
+      "en": "And then we can just plot those data and plot the coefficients.",
+      "zh": "接著畫出資料、畫係數。"
+    },
+    {
+      "start": 1809.76,
+      "end": 1817.18,
+      "en": "So there are red x's where we had exactly zero and green circles where we have non-zero coefficients.",
+      "zh": "恰好為零，用紅色叉號，非零則是綠色圓點。"
+    },
+    {
+      "start": 1817.58,
+      "end": 1824.78,
+      "en": "Now the exact number here in the slides I showed a screenshot of 13, which was like 0.4%.",
+      "zh": "投影片的精確數字是 13，大概 0.4%。"
+    },
+    {
+      "start": 1825.78,
+      "end": 1832.9,
+      "en": "There's some stochasticity, there's some randomness in the model fitting and also in the train test split here.",
+      "zh": "模型擬合，以及訓練測試分割，都有一些隨機性，"
+    },
+    {
+      "start": 1833.22,
+      "end": 1838.3,
+      "en": "So each time you rerun this code you are going to get slightly different results.",
+      "zh": "所以每次重跑，結果會稍微不同，"
+    },
+    {
+      "start": 1838.3,
+      "end": 1841.3,
+      "en": "But it's always going to be somewhere around here.",
+      "zh": "但總在這附近。"
+    },
+    {
+      "start": 1841.7,
+      "end": 1847.54,
+      "en": "Uh, of course that number can change remarkably depending on what you set this value to.",
+      "zh": "當然，這個數字可能因為這個值的設定，而大幅改變，"
+    },
+    {
+      "start": 1847.9,
+      "end": 1850.42,
+      "en": "Uh, I will explore that in a moment.",
+      "zh": "稍後會探索。"
+    },
+    {
+      "start": 1850.58,
+      "end": 1853.62,
+      "en": "Uh, but of course you can play around with this yourself as well.",
+      "zh": "你當然也能自己調整。"
+    },
+    {
+      "start": 1854.74,
+      "end": 1854.98,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1855.02,
+      "end": 1860.34,
+      "en": "And then here we see the histogram of the non-zero coefficients.",
+      "zh": "接著看到非零係數的直方圖。"
+    },
+    {
+      "start": 1860.86,
+      "end": 1861.34,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 1861.38,
+      "end": 1862.3,
+      "en": "So that's that.",
+      "zh": "這部分就是這樣。"
+    },
+    {
+      "start": 1862.3,
+      "end": 1864.58,
+      "en": "And here I'm just plotting the data.",
+      "zh": "這裡只是畫資料。"
+    },
+    {
+      "start": 1864.58,
+      "end": 1872.73,
+      "en": "So I'm looping through all of the non-zero coefficients and grabbing their data where labels equals zero.",
+      "zh": "逐一迭代所有非零係數，取得 labels=0 的資料，"
+    },
+    {
+      "start": 1872.77,
+      "end": 1875.85,
+      "en": "That was the token the where labels equals one.",
+      "zh": "也就是 token the；labels=1，"
+    },
+    {
+      "start": 1875.85,
+      "end": 1877.37,
+      "en": "That is the token n.",
+      "zh": "則是 token an。"
+    },
+    {
+      "start": 1877.77,
+      "end": 1878.37,
+      "en": "And yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1878.41,
+      "end": 1883.93,
+      "en": "Then you see here's the histogram the activations for the and the activations for n.",
+      "zh": "這裡是直方圖，the 的活化，以及 an 的活化。"
+    },
+    {
+      "start": 1884.37,
+      "end": 1893.33,
+      "en": "Again this does not match exactly what I showed in the slides a moment ago because of just random random",
+      "zh": "同樣，與剛才投影片不完全相同，因為初始化模型與選取資料時，"
+    },
+    {
+      "start": 1893.33,
+      "end": 1898.01,
+      "en": "numbers that are generated when initializing the model and the data selection.",
+      "zh": "會產生隨機數。"
+    },
+    {
+      "start": 1898.53,
+      "end": 1907.01,
+      "en": "Okay, here this code is interesting to look at the results, but not so interesting in terms of any novelty of the code.",
+      "zh": "這裡程式的結果很有意思，但程式本身沒什麼新東西。"
+    },
+    {
+      "start": 1907.25,
+      "end": 1910.53,
+      "en": "This is exactly the same code that I have above.",
+      "zh": "與上面的完全相同，"
+    },
+    {
+      "start": 1910.73,
+      "end": 1913.89,
+      "en": "All I'm doing is changing the value of C.",
+      "zh": "只改 C 值。"
+    },
+    {
+      "start": 1914.21,
+      "end": 1919.29,
+      "en": "So here I call this vector C's for like you know C's like this.",
+      "zh": "這個向量稱為 Cs，就像這樣。"
+    },
+    {
+      "start": 1919.81,
+      "end": 1923.45,
+      "en": "So I'm changing the value of C between 1 and 100.",
+      "zh": "將 C 從 1 改到 100，"
+    },
+    {
+      "start": 1924.41,
+      "end": 1929.83,
+      "en": "And then just measuring how many coefficients are not equal to zero.",
+      "zh": "再測量多少係數不等於零。"
+    },
+    {
+      "start": 1929.83,
+      "end": 1936.75,
+      "en": "So how many coefficients the model actually needed in order to get the best prediction that it could?",
+      "zh": "也就是模型實際需要多少係數，才能取得它能做到的最佳預測？"
+    },
+    {
+      "start": 1937.11,
+      "end": 1939.91,
+      "en": "Now there's a lot of other information you could extract.",
+      "zh": "還有很多其他資訊可以擷取。"
+    },
+    {
+      "start": 1939.91,
+      "end": 1946.31,
+      "en": "For example, the prediction is that is the prediction always 100% for all these values of C.",
+      "zh": "例如，對這些 C 值，預測準確率是否永遠都是 100%？"
+    },
+    {
+      "start": 1946.63,
+      "end": 1949.79,
+      "en": "That is something you could incorporate into this code.",
+      "zh": "可以加進這段程式，"
+    },
+    {
+      "start": 1949.79,
+      "end": 1951.99,
+      "en": "It's not something I have done here.",
+      "zh": "但我這裡沒做。"
+    },
+    {
+      "start": 1951.99,
+      "end": 1962.39,
+      "en": "I just want to show you the basics of what it looks like for what the density looks like for different values of C, or equivalently lambda.",
+      "zh": "只想示範，不同 C，或等價的 lambda，密度基本上會如何。"
+    },
+    {
+      "start": 1963.79,
+      "end": 1970.43,
+      "en": "So that took around three minutes to run through 17 different values of the parameter c.",
+      "zh": "跑過 C 的 17 個不同值，大約花三分鐘。"
+    },
+    {
+      "start": 1970.91,
+      "end": 1973.11,
+      "en": "Now you do see this warning message.",
+      "zh": "現在可以看到警告，"
+    },
+    {
+      "start": 1973.11,
+      "end": 1978.35,
+      "en": "Here it says that maxiter was reached which means the coefficients did not converge.",
+      "zh": "這裡說達到 maxiter，表示係數沒有收斂。"
+    },
+    {
+      "start": 1978.39,
+      "end": 1980.27,
+      "en": "That is not necessarily a bad thing.",
+      "zh": "這不一定是壞事，"
+    },
+    {
+      "start": 1980.27,
+      "end": 1983.75,
+      "en": "That is something that deserves a little bit of inspection.",
+      "zh": "但值得檢查一下，"
+    },
+    {
+      "start": 1983.75,
+      "end": 1988.06,
+      "en": "You could look at the coefficients and so on, but it's not necessarily a bad thing.",
+      "zh": "可以看係數等等，不一定是壞事。"
+    },
+    {
+      "start": 1988.06,
+      "end": 1997.3,
+      "en": "Just like when you are training a deep learning model, you don't necessarily know when is an appropriate time to stop training the model.",
+      "zh": "就像訓練深度學習模型，不一定知道什麼時候停止才適當。"
+    },
+    {
+      "start": 1997.46,
+      "end": 2003.26,
+      "en": "So should you train for 500 epochs, 1000 epochs, 2000 epochs, and so on?",
+      "zh": "要訓練 500、1,000、2,000 個 epoch，還是多少？"
+    },
+    {
+      "start": 2003.34,
+      "end": 2013.82,
+      "en": "You don't necessarily know, and it is not necessarily the case that stopping a little bit earlier is necessarily detrimental to model performance.",
+      "zh": "不一定知道，稍早停止，也不一定會損害模型表現。"
+    },
+    {
+      "start": 2014.3,
+      "end": 2014.62,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2014.66,
+      "end": 2020.9,
+      "en": "And then yeah, the final thing I was going to show is this plot here, which you saw in the slides.",
+      "zh": "最後本來要展示這張圖，投影片看過。"
+    },
+    {
+      "start": 2020.94,
+      "end": 2029.66,
+      "en": "Basically the point is that this value of density, this is not an absolute value that comes from the analysis necessarily.",
+      "zh": "重點是，密度這個值，不一定是分析自然產生的絕對值，"
+    },
+    {
+      "start": 2029.66,
+      "end": 2035.42,
+      "en": "So it's not that each time you rerun the analysis you will necessarily get the same value of density.",
+      "zh": "不是每次重跑，就一定得到相同密度。"
+    },
+    {
+      "start": 2035.82,
+      "end": 2042.82,
+      "en": "Instead, the density or equivalently the sparsity is a function of the regularization parameter.",
+      "zh": "密度，或者等價的稀疏性，是正規化參數的函數。"
+    },
+    {
+      "start": 2042.98,
+      "end": 2047.48,
+      "en": "So you know you can actually get a desired level of sparsity.",
+      "zh": "所以其實能取得想要的稀疏程度，"
+    },
+    {
+      "start": 2047.76,
+      "end": 2050,
+      "en": "Not entirely, but you can shift it around.",
+      "zh": "不完全能，但可以調整，"
+    },
+    {
+      "start": 2050,
+      "end": 2057.92,
+      "en": "You can shift this result around depending on how you set the value of lambda, or for scikit learn, the value of c.",
+      "zh": "根據 lambda，或 scikit-learn 的 C，改變結果。"
+    },
+    {
+      "start": 2059.36,
+      "end": 2063.4,
+      "en": "I hope you found this video to be interesting and useful.",
+      "zh": "希望你覺得這支影片有趣、實用。"
+    },
+    {
+      "start": 2063.96,
+      "end": 2071.48,
+      "en": "Sparse probing is a super interesting analysis, but the results can be weird and difficult to interpret",
+      "zh": "稀疏探測非常有意思，但在很大的資料集中，結果可能奇怪、難解讀，"
+    },
+    {
+      "start": 2071.48,
+      "end": 2077.84,
+      "en": "in very large data sets, especially when there are correlations across the different variables.",
+      "zh": "尤其不同變數之間有相關時。"
+    },
+    {
+      "start": 2078.16,
+      "end": 2089.96,
+      "en": "I'm going to get into those issues in more detail in the next video, but the point is that the models are trying to predict labels, not individual neurons.",
+      "zh": "下一支影片會深入這些問題，但重點是，模型試著預測標籤，不是個別神經元。"
+    },
+    {
+      "start": 2090.16,
+      "end": 2094.92,
+      "en": "So it doesn't really matter what individual neurons get, what coefficients.",
+      "zh": "所以個別神經元取得什麼係數，其實不太重要，"
+    },
+    {
+      "start": 2095.12,
+      "end": 2100.84,
+      "en": "What matters is whether the entire data set can be used to predict a label.",
+      "zh": "重要的是，整份資料是否能用來預測標籤。"
+    },
+    {
+      "start": 2101.2,
+      "end": 2103.44,
+      "en": "More on that in the next video.",
+      "zh": "下一支影片再多談。"
+    }
+  ]
+}

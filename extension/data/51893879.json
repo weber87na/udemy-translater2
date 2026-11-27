@@ -1,0 +1,2437 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893879",
+  "title": "Statistics-based lesioning MLP neurons",
+  "section": 26,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "480d7ebddc8f7a03f118fe12d057427f53a52a0396ddd2f3d337ec4eea95e21c",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 8.44,
+      "en": "There are some conceptual similarities here in this demo compared to the previous video.",
+      "zh": "這個示範，在概念上與上一支影片有些相似。"
+    },
+    {
+      "start": 9.04,
+      "end": 17.2,
+      "en": "In particular, the idea of using some kind of statistical procedure to select subsets of neurons in",
+      "zh": "特別是，使用某種統計程序，選擇 MLP 擴張層"
+    },
+    {
+      "start": 17.2,
+      "end": 24.72,
+      "en": "the MLP expansion layer as a way to deal with the large dimensionality of the model internals.",
+      "zh": "的一部分神經元，處理模型內部龐大維度的問題。"
+    },
+    {
+      "start": 25.2,
+      "end": 33.4,
+      "en": "But here in this video, I will take a more statistically sophisticated approach by using a t test on",
+      "zh": "但這支影片，會用統計上更精細的方法：對"
+    },
+    {
+      "start": 33.4,
+      "end": 39.28,
+      "en": "one data set to select neurons to manipulate in a separate data set.",
+      "zh": "一份資料集做 t 檢定，挑選要在另一份資料集中操作的神經元。"
+    },
+    {
+      "start": 40.08,
+      "end": 43.36,
+      "en": "There's a lot of steps in this demo, a lot of moving parts.",
+      "zh": "示範有很多步驟、很多互相配合的部分。"
+    },
+    {
+      "start": 43.36,
+      "end": 48.68,
+      "en": "So I'm going to organize this demo into three sections or three parts.",
+      "zh": "所以，我會分成三節，或三部分。"
+    },
+    {
+      "start": 49.16,
+      "end": 52.12,
+      "en": "And I will give you the overview of each part.",
+      "zh": "每一部分，先介紹概覽，"
+    },
+    {
+      "start": 52.16,
+      "end": 56.92,
+      "en": "Then switch to code and then come back to the slides to introduce the next part.",
+      "zh": "再切換到程式碼，接著回投影片介紹下一部分。"
+    },
+    {
+      "start": 57.12,
+      "end": 64.99,
+      "en": "It's slightly different from how I typically organize the Python video demos, but I think you will agree that it's a good approach.",
+      "zh": "這與平常 Python 示範影片的組織稍有不同，但我想你會同意，這是好方式。"
+    },
+    {
+      "start": 65.55,
+      "end": 75.27,
+      "en": "So the major goal of part one is to get activations of MLP neurons for him versus her tokens in different",
+      "zh": "第一部分的主要目標，是取得 MLP 神經元對不同句子中 him 與 her token"
+    },
+    {
+      "start": 75.27,
+      "end": 85.31,
+      "en": "sentences, and then run a batch of T tests to identify neurons that have significantly different activations between those two pronouns.",
+      "zh": "的活化，再做一批 t 檢定，辨識兩個代名詞之間，活化有顯著差異的神經元。"
+    },
+    {
+      "start": 85.91,
+      "end": 89.51,
+      "en": "So to begin, I will import the Bert model.",
+      "zh": "首先，匯入 BERT 模型。"
+    },
+    {
+      "start": 89.87,
+      "end": 98.55,
+      "en": "As you know, there are naming convention differences between the Bert model as opposed to the OpenAI GPT models.",
+      "zh": "你知道，BERT 與 OpenAI GPT 模型的命名慣例不同。"
+    },
+    {
+      "start": 99.07,
+      "end": 103.27000000000001,
+      "en": "So this is the layer that we want to hook into.",
+      "zh": "所以，要掛接的是這一層。"
+    },
+    {
+      "start": 103.67,
+      "end": 107.27000000000001,
+      "en": "It's called the dense layer in the intermediate group.",
+      "zh": "稱為 intermediate 群組中的 dense 層。"
+    },
+    {
+      "start": 107.75,
+      "end": 117.22999999999999,
+      "en": "You can see that it has the number of output features of 3072 that corresponds to the expansion layer of the MLP.",
+      "zh": "可以看到，輸出特徵數是 3072，對應 MLP 擴張層。"
+    },
+    {
+      "start": 118.15,
+      "end": 120.06,
+      "en": "So the hook function looks like this.",
+      "zh": "hook 函數長這樣。"
+    },
+    {
+      "start": 120.42,
+      "end": 121.18,
+      "en": "Very simple.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 121.22,
+      "end": 129.66,
+      "en": "All I'm doing is extracting the activation values and storing them in a dictionary, so I can later access and analyze them.",
+      "zh": "只擷取活化值，存到字典，方便稍後存取、分析。"
+    },
+    {
+      "start": 130.5,
+      "end": 137.22,
+      "en": "And the data that I will use to identify neurons that have a statistically significant difference in",
+      "zh": "用來辨識 him 與 her 之間，活化程度有統計顯著"
+    },
+    {
+      "start": 137.22,
+      "end": 146.46,
+      "en": "activation levels between him and her are the same him and her sentences that you've now seen many times before in this course.",
+      "zh": "差異神經元的資料，就是這門課已經看過很多次的那些 him/her 句子。"
+    },
+    {
+      "start": 147.42000000000002,
+      "end": 152.42000000000002,
+      "en": "These are the histograms of all the activations from the target indices.",
+      "zh": "這些是目標索引全部活化的直方圖。"
+    },
+    {
+      "start": 152.74,
+      "end": 157.5,
+      "en": "The blue line is the activations that the hook functions get out from the model.",
+      "zh": "藍線，是 hook 函數從模型取得的活化。"
+    },
+    {
+      "start": 158.57999999999998,
+      "end": 165.54,
+      "en": "And I have applied the Jlu activation function to show you what it would look like that you see in the orange line.",
+      "zh": "我套用了 GELU 活化函數，讓你看看結果，也就是橘線。"
+    },
+    {
+      "start": 165.98,
+      "end": 169.14,
+      "en": "Now that's something that I just calculated manually.",
+      "zh": "那只是我手動計算的。"
+    },
+    {
+      "start": 169.14,
+      "end": 171.7,
+      "en": "It's not what I pulled out of the model.",
+      "zh": "不是直接從模型擷取的。"
+    },
+    {
+      "start": 172.34,
+      "end": 181.12,
+      "en": "Anyway, I then ran a t test on each of the 3000 neurons comparing the 54 sentences with him versus her.",
+      "zh": "總之，再對 3,000 個神經元各做 t 檢定，比較 54 個 him 與 her 句子。"
+    },
+    {
+      "start": 181.88,
+      "end": 185.64,
+      "en": "And here you see a scatter plot of those T values.",
+      "zh": "這裡是那些 t 值的散布圖。"
+    },
+    {
+      "start": 186,
+      "end": 193.92,
+      "en": "Turns out that over two thirds of the neurons showed a significant T value for one or the other category.",
+      "zh": "結果，超過三分之二的神經元，對其中一類有顯著 t 值。"
+    },
+    {
+      "start": 194.44,
+      "end": 197.76,
+      "en": "That is quite a large number of significant effects.",
+      "zh": "這是相當多的顯著效果。"
+    },
+    {
+      "start": 197.92000000000002,
+      "end": 206.28,
+      "en": "But here I used the correction for multiple comparisons, which actually rewards lots of small p values.",
+      "zh": "但這裡使用的多重比較校正，其實會有利於大量小 p 值的情況。"
+    },
+    {
+      "start": 206.72,
+      "end": 208.92000000000002,
+      "en": "You could also use Bonferroni correction.",
+      "zh": "也可以使用 Bonferroni 校正。"
+    },
+    {
+      "start": 208.92000000000002,
+      "end": 212.52,
+      "en": "It's more stringent than it probably needs to be here.",
+      "zh": "它比這裡大概需要的程度更嚴格。"
+    },
+    {
+      "start": 212.68,
+      "end": 223.28,
+      "en": "You'll get a lot fewer significant neurons, but that won't actually change the pattern of findings that you get from the experiments that I will show you later on.",
+      "zh": "顯著神經元會少很多，但其實不會改變稍後實驗得到的發現模式。"
+    },
+    {
+      "start": 223.92000000000002,
+      "end": 226.4,
+      "en": "Okay, so that is the end of part one.",
+      "zh": "好，這是第一部分結尾。"
+    },
+    {
+      "start": 226.44,
+      "end": 232.76,
+      "en": "The idea is now I have a T value for each of the neurons in one layer of the model.",
+      "zh": "概念是，現在有模型某一層，每個神經元各自的 t 值。"
+    },
+    {
+      "start": 233.76,
+      "end": 234.16,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 234.2,
+      "end": 238.51,
+      "en": "So now I will switch to code and show you how all this stuff gets implemented.",
+      "zh": "現在切換到程式碼，展示實作。"
+    },
+    {
+      "start": 239.67000000000002,
+      "end": 244.31,
+      "en": "Quite a few libraries that we will use here for the rest of this code demo.",
+      "zh": "這裡有不少函式庫，示範其餘部分都會用到。"
+    },
+    {
+      "start": 244.51,
+      "end": 246.99,
+      "en": "And here I'm loading in the Bert model.",
+      "zh": "這裡載入 BERT 模型。"
+    },
+    {
+      "start": 247.15,
+      "end": 248.87,
+      "en": "And yeah here you see the layers.",
+      "zh": "這裡看到各層。"
+    },
+    {
+      "start": 248.87,
+      "end": 252.43,
+      "en": "So we are looking for uh these are the transformer blocks.",
+      "zh": "我們要找的是，這些是 Transformer 區塊。"
+    },
+    {
+      "start": 252.43,
+      "end": 257.43,
+      "en": "Here we have the attention block and here is the MLP block.",
+      "zh": "這裡是注意力區塊，這裡是 MLP 區塊。"
+    },
+    {
+      "start": 257.43,
+      "end": 259.71,
+      "en": "All of this stuff here is the MLP block.",
+      "zh": "這裡全部都是 MLP 區塊。"
+    },
+    {
+      "start": 260.07,
+      "end": 261.63,
+      "en": "So here this is called dense.",
+      "zh": "這個叫 dense。"
+    },
+    {
+      "start": 261.67,
+      "end": 264.07,
+      "en": "This is the input to the MLP layer.",
+      "zh": "這是 MLP 層的輸入。"
+    },
+    {
+      "start": 264.23,
+      "end": 265.47,
+      "en": "This is intermediate.",
+      "zh": "這是 intermediate。"
+    },
+    {
+      "start": 265.47,
+      "end": 275.67,
+      "en": "This is where the MLP layer expands from a dimensionality of 768 to a much larger dimensionality, fanning",
+      "zh": "這裡，MLP 層從 768 維擴張到大得多的維度，"
+    },
+    {
+      "start": 275.67,
+      "end": 279.15,
+      "en": "out to four x giving us 3072.",
+      "zh": "擴張四倍，得到 3072。"
+    },
+    {
+      "start": 279.79,
+      "end": 282.90999999999997,
+      "en": "And then here in the output layer we have also dense.",
+      "zh": "接著，output 層這裡也有 dense。"
+    },
+    {
+      "start": 282.90999999999997,
+      "end": 287.55,
+      "en": "And that goes from 3000 back down to 768.",
+      "zh": "從 3,000 收縮回 768。"
+    },
+    {
+      "start": 287.87,
+      "end": 289.75,
+      "en": "So this is what we want to hook into.",
+      "zh": "所以，要掛接這裡。"
+    },
+    {
+      "start": 289.79,
+      "end": 296.86,
+      "en": "And we are going to get these activation values before we apply the non-linear nonlinear jlu activation.",
+      "zh": "取得套用非線性 GELU 活化函數之前的活化值。"
+    },
+    {
+      "start": 297.38,
+      "end": 301.3,
+      "en": "All right, so, uh, yeah, here's just some convenience variables.",
+      "zh": "好，這裡只是幾個方便的變數。"
+    },
+    {
+      "start": 301.34,
+      "end": 302.62,
+      "en": "The number of neurons.",
+      "zh": "神經元數量。"
+    },
+    {
+      "start": 302.82,
+      "end": 304.78,
+      "en": "And, uh, this just shows you the size.",
+      "zh": "這裡顯示大小。"
+    },
+    {
+      "start": 304.78,
+      "end": 306.86,
+      "en": "So 3072 neurons.",
+      "zh": "3072 個神經元。"
+    },
+    {
+      "start": 307.1,
+      "end": 309.98,
+      "en": "And this is the layer that we will hook into.",
+      "zh": "這是要掛接的層。"
+    },
+    {
+      "start": 310.46,
+      "end": 310.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 310.74,
+      "end": 311.94,
+      "en": "So now we get to part one.",
+      "zh": "現在進入第一部分。"
+    },
+    {
+      "start": 311.94,
+      "end": 313.26,
+      "en": "Here is the hook function.",
+      "zh": "這裡是 hook 函數。"
+    },
+    {
+      "start": 313.26,
+      "end": 314.98,
+      "en": "Again super duper simple.",
+      "zh": "同樣，非常簡單。"
+    },
+    {
+      "start": 315.02,
+      "end": 320.22,
+      "en": "All I'm doing is hooking this into intermediate dense.",
+      "zh": "只把 hook 掛到 intermediate.dense。"
+    },
+    {
+      "start": 320.46,
+      "end": 324.14,
+      "en": "And yeah you can see this is just a standard forward hook.",
+      "zh": "可以看到，只是標準 forward hook。"
+    },
+    {
+      "start": 324.46,
+      "end": 333.82,
+      "en": "And then all that happens inside this hook is that we grab the output, detach it from the computational graph, transform it into numpy.",
+      "zh": "裡面只取得輸出，從計算圖分離，轉成 NumPy。"
+    },
+    {
+      "start": 333.98,
+      "end": 341.58,
+      "en": "That's just to make things a little bit smoother later on when I'm calling uh numpy and scipy stats functions.",
+      "zh": "只是為了稍後呼叫 NumPy、SciPy stats 函數時更順暢。"
+    },
+    {
+      "start": 341.7,
+      "end": 344.1,
+      "en": "And then I store it in this dictionary here.",
+      "zh": "再存到這個字典。"
+    },
+    {
+      "start": 344.5,
+      "end": 345.78,
+      "en": "Okay, so run that.",
+      "zh": "好，執行。"
+    },
+    {
+      "start": 345.78,
+      "end": 352.7,
+      "en": "Actually we don't even really need to have this be dynamically named here because I'm only implanting this into one layer.",
+      "zh": "其實，這裡甚至不需要動態命名，因為只植入一層。"
+    },
+    {
+      "start": 352.7,
+      "end": 357.37,
+      "en": "But anyway, this will be useful for the code challenge in the next video.",
+      "zh": "不過，這對下一支影片的程式挑戰會有用。"
+    },
+    {
+      "start": 357.97,
+      "end": 359.81,
+      "en": "Okay, so now the forward pass.",
+      "zh": "好，現在是前向傳播。"
+    },
+    {
+      "start": 359.81,
+      "end": 363.61,
+      "en": "You've seen these sentences more than once before in this course.",
+      "zh": "這門課已經不只一次看過這些句子。"
+    },
+    {
+      "start": 363.61,
+      "end": 365.29,
+      "en": "Let me scroll down to the bottom.",
+      "zh": "讓我捲到最下面。"
+    },
+    {
+      "start": 365.53,
+      "end": 365.81,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 365.85,
+      "end": 370.69,
+      "en": "So all of that stuff is not anything particularly new or here.",
+      "zh": "這些都沒有什麼特別新的東西。"
+    },
+    {
+      "start": 370.73,
+      "end": 371.05,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 371.09,
+      "end": 374.49,
+      "en": "So yeah I won't even talk about that okay.",
+      "zh": "所以，不再討論。"
+    },
+    {
+      "start": 374.53,
+      "end": 375.65,
+      "en": "So forward pass.",
+      "zh": "前向傳播。"
+    },
+    {
+      "start": 375.77,
+      "end": 386.33,
+      "en": "Uh, here I'm doing the forward pass and then removing the handle immediately because I'm going to create a new handle in a later part of this code demo.",
+      "zh": "這裡做前向傳播，再立刻移除 handle，因為這個示範後面部分會建立新的 handle。"
+    },
+    {
+      "start": 386.61,
+      "end": 397.01,
+      "en": "And then here I'm just printing out the shape so we can confirm the size of this, uh, matrix that we have exported from the MLP activation values.",
+      "zh": "接著，印出形狀，確認從 MLP 活化值輸出的這個矩陣大小。"
+    },
+    {
+      "start": 397.05,
+      "end": 398.49,
+      "en": "Don't worry about this warning.",
+      "zh": "不用擔心這個警告。"
+    },
+    {
+      "start": 398.49,
+      "end": 401.77,
+      "en": "Uh, if that becomes a problem, then we'll deal with it in the future.",
+      "zh": "如果以後成為問題，再處理。"
+    },
+    {
+      "start": 402.29,
+      "end": 402.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 402.69,
+      "end": 412.17,
+      "en": "So this data set has 108 sequences, uh, of course, 54 for the hymn sentences and 54 identical sentences,",
+      "zh": "這份資料集有 108 個序列，當然，54 個 him 句子，以及 54 個完全相同的句子，"
+    },
+    {
+      "start": 412.29,
+      "end": 413.96,
+      "en": "but with her instead of him.",
+      "zh": "但用 her 取代 him。"
+    },
+    {
+      "start": 414.52,
+      "end": 417.76,
+      "en": "Uh, there are 11 tokens in total, and.",
+      "zh": "總共有 11 個 token。"
+    },
+    {
+      "start": 417.8,
+      "end": 419.28,
+      "en": "Yeah, 3000 neurons.",
+      "zh": "對，3,000 個神經元。"
+    },
+    {
+      "start": 419.8,
+      "end": 419.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 420,
+      "end": 422.2,
+      "en": "And then here I'm creating the histograms.",
+      "zh": "接著，這裡建立直方圖。"
+    },
+    {
+      "start": 422.2,
+      "end": 425.04,
+      "en": "So here's the histogram of those values.",
+      "zh": "這是那些值的直方圖。"
+    },
+    {
+      "start": 425.04,
+      "end": 426.72,
+      "en": "And I just flatten them all out.",
+      "zh": "我把全部攤平。"
+    },
+    {
+      "start": 426.92,
+      "end": 431.28,
+      "en": "So I take all of these values the gigantic number of numbers.",
+      "zh": "取出這些數值，數量非常龐大。"
+    },
+    {
+      "start": 431.52,
+      "end": 436.56,
+      "en": "And then I flatten them out into a vector and create a histogram.",
+      "zh": "攤平成向量，再建立直方圖。"
+    },
+    {
+      "start": 436.96,
+      "end": 444.8,
+      "en": "By the way when I do this it means I'm also including in this distribution the masked tokens.",
+      "zh": "順帶一提，這代表，分布中也包含被遮罩的 token。"
+    },
+    {
+      "start": 444.8,
+      "end": 449.64,
+      "en": "So the tokens that correspond to a zero in the attention mask that's here.",
+      "zh": "也就是注意力遮罩中，對應零的那些 token，就在這裡。"
+    },
+    {
+      "start": 449.64,
+      "end": 458.04,
+      "en": "So that is where we don't actually want the model to generate any predictions, because the sentences just had no text after them.",
+      "zh": "那些位置，我們其實不想讓模型做預測，因為句子後面沒有文字。"
+    },
+    {
+      "start": 458.08,
+      "end": 468.15999999999997,
+      "en": "So in theory it would be a little bit cleaner to go through this sequence by sequence and only extract the activations from valid tokens.",
+      "zh": "所以，理論上，逐序列處理，只擷取有效 token 的活化，會更乾淨一點。"
+    },
+    {
+      "start": 468.15999999999997,
+      "end": 469.12,
+      "en": "But anyway, it doesn't matter.",
+      "zh": "但總之，沒關係。"
+    },
+    {
+      "start": 469.12,
+      "end": 471.32,
+      "en": "It's a relatively small amount of data.",
+      "zh": "只是相對少量的資料。"
+    },
+    {
+      "start": 471.52,
+      "end": 473.46,
+      "en": "Okay, So I get those data.",
+      "zh": "好，取得那些資料。"
+    },
+    {
+      "start": 473.46,
+      "end": 475.98,
+      "en": "And then here is exactly the same data.",
+      "zh": "這裡則是完全相同的資料。"
+    },
+    {
+      "start": 476.18,
+      "end": 480.86,
+      "en": "But I am running them through the nonlinear activation function.",
+      "zh": "但讓它們通過非線性活化函數。"
+    },
+    {
+      "start": 480.86,
+      "end": 485.42,
+      "en": "And that's just to show you the impact of the nonlinear activation function.",
+      "zh": "只是展示非線性活化函數的影響。"
+    },
+    {
+      "start": 485.58,
+      "end": 493.14,
+      "en": "And also so you can see that what we've hooked into actually is the pre activation values.",
+      "zh": "也讓你看到，掛接取得的，確實是活化前的值。"
+    },
+    {
+      "start": 493.14,
+      "end": 498.98,
+      "en": "They are normally distributed which is great because we are going to run a bunch of t tests.",
+      "zh": "它們是常態分布，這很好，因為要執行很多 t 檢定。"
+    },
+    {
+      "start": 499.22,
+      "end": 508.62,
+      "en": "And if you're running a parametric statistical test like a t test then uh, it's pretty handy if the data are normally distributed.",
+      "zh": "執行 t 檢定這類參數統計檢定時，如果資料是常態分布，相當方便。"
+    },
+    {
+      "start": 509.1,
+      "end": 509.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 509.54,
+      "end": 518.62,
+      "en": "Here I am also showing the exact same histograms, but in log scale that just compresses all of the large values.",
+      "zh": "這裡也展示完全相同的直方圖，但用對數尺度，壓縮所有大值。"
+    },
+    {
+      "start": 518.62,
+      "end": 520.74,
+      "en": "It expands the small values.",
+      "zh": "放大小值。"
+    },
+    {
+      "start": 520.94,
+      "end": 527.1,
+      "en": "And that allows you to better appreciate what the jlu activation really does.",
+      "zh": "這樣，更能看出 GELU 活化的實際作用。"
+    },
+    {
+      "start": 527.1,
+      "end": 532.85,
+      "en": "So you can see that all of the negative values down here get completely obliterated.",
+      "zh": "可以看到，下面所有負值都被完全消除。"
+    },
+    {
+      "start": 533.17,
+      "end": 543.65,
+      "en": "Of course, there are some negative values that pass through the Jlu function because it leaks a little bit of negative results through.",
+      "zh": "當然，有些負值能通過 GELU，因為它會讓少量負結果漏過。"
+    },
+    {
+      "start": 543.85,
+      "end": 547.01,
+      "en": "And up here, when we get to the positive values these are unchanged.",
+      "zh": "上面的正值，則沒有改變。"
+    },
+    {
+      "start": 547.05,
+      "end": 548.85,
+      "en": "The data are exactly the same.",
+      "zh": "資料完全相同，"
+    },
+    {
+      "start": 549.45,
+      "end": 552.85,
+      "en": "For relatively large positive values.",
+      "zh": "針對相對大的正值而言。"
+    },
+    {
+      "start": 552.85,
+      "end": 555.93,
+      "en": "So all of these values have basically been squashed out.",
+      "zh": "所以，所有這些值，基本上都被壓扁。"
+    },
+    {
+      "start": 555.97,
+      "end": 556.89,
+      "en": "They've been clipped.",
+      "zh": "被截斷。"
+    },
+    {
+      "start": 557.25,
+      "end": 566.49,
+      "en": "And this is interesting to observe because this is one of the mechanisms by which the MLP layer imposes sparsity.",
+      "zh": "這很值得觀察，因為是 MLP 層施加稀疏性的機制之一。"
+    },
+    {
+      "start": 566.97,
+      "end": 569.17,
+      "en": "So you have lots of negative values.",
+      "zh": "有很多負值。"
+    },
+    {
+      "start": 569.17,
+      "end": 576.05,
+      "en": "And then when they move through this activation a lot of this distribution just gets obliterated.",
+      "zh": "通過這個活化函數時，分布很大一部分就消失。"
+    },
+    {
+      "start": 576.05,
+      "end": 578.81,
+      "en": "It gets squashed down to zero.",
+      "zh": "被壓到零。"
+    },
+    {
+      "start": 579.05,
+      "end": 586.93,
+      "en": "And that means that only a relatively small number of activations in the MLP layers actually pass through",
+      "zh": "這代表，MLP 層中只有相對少量的活化，實際通過，"
+    },
+    {
+      "start": 587.17,
+      "end": 593.88,
+      "en": "to be incorporated into the embeddings vector at the end of the transformer block.",
+      "zh": "納入 Transformer 區塊結尾的嵌入向量。"
+    },
+    {
+      "start": 594.24,
+      "end": 596.8,
+      "en": "Okay, so that is enough for that.",
+      "zh": "好，這部分夠了。"
+    },
+    {
+      "start": 596.96,
+      "end": 597.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 597.28,
+      "end": 604.6,
+      "en": "So here what I'm doing is looping through all of the sentences, finding one of the target locations.",
+      "zh": "這裡遍歷全部句子，找出其中一個目標位置。"
+    },
+    {
+      "start": 604.6,
+      "end": 611.76,
+      "en": "So I'm looking for either the token for him or the token index for her in this sentence.",
+      "zh": "尋找句子中的 him token，或 her token 的索引。"
+    },
+    {
+      "start": 611.96,
+      "end": 620.6,
+      "en": "And then I'm extracting the first one and then getting the values from this particular sentence only for that target.",
+      "zh": "再取第一個，取得該特定句子，僅針對那個目標的值。"
+    },
+    {
+      "start": 621.48,
+      "end": 627.92,
+      "en": "Now, I have explained this code here in a lot of detail earlier in the course, but I just thought",
+      "zh": "這段程式碼，課程前面已經詳細解釋過，但我想"
+    },
+    {
+      "start": 627.92,
+      "end": 633.84,
+      "en": "it would be useful to put a little reminder in here, in case you've forgotten that this particular",
+      "zh": "加個提醒很有用，以免你忘了，這段特定"
+    },
+    {
+      "start": 633.84,
+      "end": 644.64,
+      "en": "code happens to work, because I have already guaranteed that each of these sentences has exactly one appearance of one of the two tokens.",
+      "zh": "程式碼能運作，是因為我已經保證，每個句子都剛好只出現兩個 token 之一一次。"
+    },
+    {
+      "start": 644.92,
+      "end": 656.55,
+      "en": "If you have a different experimental setup, different data set where, for example, the word him could appear multiple times in the sentence, or maybe both him and her can appear in the sentence.",
+      "zh": "如果實驗設定、資料集不同，例如 him 在句子中出現多次，或 him 與 her 同時出現，"
+    },
+    {
+      "start": 656.87,
+      "end": 659.51,
+      "en": "Then you would have to adapt this code.",
+      "zh": "就需要調整這段程式碼。"
+    },
+    {
+      "start": 659.95,
+      "end": 660.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 660.79,
+      "end": 663.51,
+      "en": "Anyway, so let me run this code here.",
+      "zh": "總之，執行這裡的程式碼。"
+    },
+    {
+      "start": 663.63,
+      "end": 665.55,
+      "en": "And now here I'm doing a t test.",
+      "zh": "現在，做 t 檢定。"
+    },
+    {
+      "start": 665.55,
+      "end": 673.43,
+      "en": "So one sample t test on the activations, comparing the first 54 sentences to the last 54 sentences.",
+      "zh": "對活化做單樣本 t 檢定，比較前 54 個句子與後 54 個句子。"
+    },
+    {
+      "start": 673.55,
+      "end": 679.91,
+      "en": "And I'm subtracting the two and testing against a difference value of zero.",
+      "zh": "將兩者相減，再對差值零做檢定。"
+    },
+    {
+      "start": 680.23,
+      "end": 684.39,
+      "en": "So now we can look for positive t values and negative t values.",
+      "zh": "現在，可以找出正 t 值與負 t 值。"
+    },
+    {
+      "start": 685.23,
+      "end": 689.51,
+      "en": "And we want them to be significant at an FDR correction.",
+      "zh": "希望它們在 FDR 校正後顯著。"
+    },
+    {
+      "start": 690.03,
+      "end": 697.23,
+      "en": "By the way I do not actually specify the significance threshold here in this call to the function.",
+      "zh": "順帶一提，這個函數呼叫沒有明確指定顯著門檻。"
+    },
+    {
+      "start": 697.23,
+      "end": 703.87,
+      "en": "But the default alpha value, the default threshold is 0.05 corrected for multiple comparisons.",
+      "zh": "但預設 alpha 值、預設門檻，是多重比較校正後的 0.05。"
+    },
+    {
+      "start": 703.87,
+      "end": 704.83,
+      "en": "So that's fine.",
+      "zh": "所以，沒問題。"
+    },
+    {
+      "start": 705.15,
+      "end": 713.94,
+      "en": "FDR correction is appropriate for situations where the tests are related to each other, which is certainly the case here.",
+      "zh": "FDR 校正，適合檢定彼此相關的情況，這裡當然如此。"
+    },
+    {
+      "start": 713.94,
+      "end": 716.66,
+      "en": "All of these data are coming from the same model.",
+      "zh": "所有資料都來自相同模型。"
+    },
+    {
+      "start": 716.98,
+      "end": 721.9,
+      "en": "If you would like to be a little bit more stringent, then that's also fine.",
+      "zh": "如果想更嚴格，也沒問題。"
+    },
+    {
+      "start": 721.94,
+      "end": 730.66,
+      "en": "You could do something like t dot p value less than 0.05 divided by the number of neurons.",
+      "zh": "可以像這樣，t.pvalue 小於 0.05 除以神經元數量。"
+    },
+    {
+      "start": 730.94,
+      "end": 731.98,
+      "en": "Something like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 732.34,
+      "end": 732.7,
+      "en": "Sorry.",
+      "zh": "抱歉。"
+    },
+    {
+      "start": 732.74,
+      "end": 733.46,
+      "en": "Like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 733.46,
+      "end": 736.38,
+      "en": "That would correspond to a Bonferroni correction.",
+      "zh": "那就對應 Bonferroni 校正。"
+    },
+    {
+      "start": 736.86,
+      "end": 738.1,
+      "en": "This is more stringent.",
+      "zh": "這更嚴格。"
+    },
+    {
+      "start": 738.1,
+      "end": 747.78,
+      "en": "It assumes independence which is actually not appropriate in this case because yeah, we do not have independent tests here, but it is more stringent.",
+      "zh": "它假設獨立性，這裡其實不適當，因為檢定並不獨立，但它更嚴格。"
+    },
+    {
+      "start": 747.78,
+      "end": 756.46,
+      "en": "You're going to find fewer neurons having significant T values, but the end result is going to be basically the same qualitatively the same.",
+      "zh": "顯著 t 值的神經元會更少，但最後結果基本上相同，性質上相同。"
+    },
+    {
+      "start": 757.54,
+      "end": 757.9,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 757.94,
+      "end": 761.46,
+      "en": "So here I'm looking for I'm calling this variable him neurons.",
+      "zh": "這裡要找的，我把變數叫 him neurons。"
+    },
+    {
+      "start": 761.46,
+      "end": 765.1,
+      "en": "And her neurons I'm a little bit loose with the terminology here.",
+      "zh": "還有 her neurons。術語用得有點寬鬆。"
+    },
+    {
+      "start": 765.34,
+      "end": 775.08,
+      "en": "I mean first of all I'm being very loose and generous with this terminology because these little computational units have nothing whatsoever to do with biological neurons.",
+      "zh": "首先，這個術語非常寬鬆、慷慨，因為這些小計算單元，與生物神經元根本無關。"
+    },
+    {
+      "start": 775.08,
+      "end": 776.32,
+      "en": "But that's a separate issue.",
+      "zh": "但那是另一個問題。"
+    },
+    {
+      "start": 776.68,
+      "end": 782.12,
+      "en": "Anyway, so the idea is that if the neuron is statistically significant.",
+      "zh": "總之，概念是，如果神經元在統計上顯著，"
+    },
+    {
+      "start": 782.12,
+      "end": 790.52,
+      "en": "So if the p value is small and the t statistic is greater than zero, then I'm calling that him neurons.",
+      "zh": "也就是 p 值小，而且 t 統計量大於零，就稱為 him neurons。"
+    },
+    {
+      "start": 790.52,
+      "end": 796,
+      "en": "So this is going to be a boolean vector I can show you this him neurons.",
+      "zh": "這會是布林向量，我可以展示 him neurons。"
+    },
+    {
+      "start": 796,
+      "end": 797.04,
+      "en": "This is Boolean vector.",
+      "zh": "這是布林向量。"
+    },
+    {
+      "start": 797.04,
+      "end": 798.56,
+      "en": "It's all trues and falses.",
+      "zh": "全都是 True 和 False。"
+    },
+    {
+      "start": 798.76,
+      "end": 801.6,
+      "en": "It is true where it is.",
+      "zh": "True 的位置，表示，"
+    },
+    {
+      "start": 801.64,
+      "end": 811.44,
+      "en": "The t test was significant and I was also positive meaning more activation for the Him tokens compared to the Her tokens.",
+      "zh": "t 檢定顯著，而且是正值，也就是對 him token，比對 her token 有更多活化。"
+    },
+    {
+      "start": 811.96,
+      "end": 812.2,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 812.24,
+      "end": 814.48,
+      "en": "And then vice versa for the Her tokens.",
+      "zh": "her token 則相反。"
+    },
+    {
+      "start": 814.6,
+      "end": 816.28,
+      "en": "And then yeah that's what you see here.",
+      "zh": "這裡就是結果。"
+    },
+    {
+      "start": 816.28,
+      "end": 819.48,
+      "en": "So the red X's are non-significant T values.",
+      "zh": "紅色叉號，是不顯著 t 值。"
+    },
+    {
+      "start": 819.48,
+      "end": 820.56,
+      "en": "And you see that.",
+      "zh": "可以看到，"
+    },
+    {
+      "start": 820.72,
+      "end": 830.03,
+      "en": "Yeah most of the neurons showed some significant Ghent differentiation in their activation values between the hymn tokens and the her tokens.",
+      "zh": "大部分神經元對 him 與 her token 的活化值，都有某種顯著區別。"
+    },
+    {
+      "start": 831.55,
+      "end": 842.31,
+      "en": "The goal of part two of this demo is to have the model make predictions about him or her words in a completely different set of sentences.",
+      "zh": "示範第二部分的目標，是讓模型在完全不同的一組句子中，預測 him 或 her。"
+    },
+    {
+      "start": 843.07,
+      "end": 845.91,
+      "en": "There's also no manipulations of the model in this part.",
+      "zh": "這部分也沒有操作模型。"
+    },
+    {
+      "start": 845.95,
+      "end": 848.35,
+      "en": "We're just setting up the experiment.",
+      "zh": "只是在設定實驗，"
+    },
+    {
+      "start": 848.47,
+      "end": 851.75,
+      "en": "For that, we will do in part three.",
+      "zh": "供第三部分使用。"
+    },
+    {
+      "start": 852.31,
+      "end": 853.87,
+      "en": "Here are the sentences.",
+      "zh": "這裡是句子。"
+    },
+    {
+      "start": 853.87,
+      "end": 856.55,
+      "en": "Or it's really one key sentence that we will use.",
+      "zh": "其實，真正使用的是一個關鍵句子。"
+    },
+    {
+      "start": 856.55,
+      "end": 863.67,
+      "en": "But I'm going to have the model process this sentence three times with different words masked out.",
+      "zh": "但會讓模型處理三次，每次遮罩不同的詞。"
+    },
+    {
+      "start": 864.39,
+      "end": 870.91,
+      "en": "So the sentence is Robert helped Lucy with her project and she thanked him for his hard work.",
+      "zh": "句子是：Robert 協助 Lucy 做她的專案，她則感謝他的辛勤工作。"
+    },
+    {
+      "start": 871.39,
+      "end": 880.79,
+      "en": "Now in the second sentence, we want to know whether the model will predict that the mask token should be replaced with the word her.",
+      "zh": "第二個句子，想知道模型是否預測，mask token 應該替換成 her。"
+    },
+    {
+      "start": 881.39,
+      "end": 889.1,
+      "en": "And in the third sentence, we want to know whether the model will predict that the missing token here should be the word him.",
+      "zh": "第三個句子，想知道模型是否預測，這裡缺少的 token 應該是 him。"
+    },
+    {
+      "start": 889.78,
+      "end": 892.3,
+      "en": "Now, perhaps you can already see where this is going.",
+      "zh": "也許你已經看出接下來的方向。"
+    },
+    {
+      "start": 892.34,
+      "end": 903.22,
+      "en": "In part three of this demo, I'm going to use the t test results from part one to determine which neurons I should zero out in a causal experiment.",
+      "zh": "示範第三部分，會使用第一部分的 t 檢定結果，決定因果實驗中，應該歸零哪些神經元。"
+    },
+    {
+      "start": 903.62,
+      "end": 905.5,
+      "en": "But that's something for the future.",
+      "zh": "不過，那是之後的事。"
+    },
+    {
+      "start": 905.62,
+      "end": 913.22,
+      "en": "Here what we're going to do is develop the task and the analyses so we know what to look for when we do the manipulation.",
+      "zh": "這裡要先設計任務與分析，知道操作時該觀察什麼。"
+    },
+    {
+      "start": 913.74,
+      "end": 923.02,
+      "en": "So what I want to do now is find the token logits for him and her for the mask position in all three",
+      "zh": "現在，要在這三個句子的遮罩位置，找出 him 與 her 的 token logit。"
+    },
+    {
+      "start": 923.02,
+      "end": 924.62,
+      "en": "of these sentences.",
+      "zh": "也就是這些句子。"
+    },
+    {
+      "start": 925.62,
+      "end": 928.26,
+      "en": "And here you see the visualization of all of those results.",
+      "zh": "這裡是全部結果的視覺化。"
+    },
+    {
+      "start": 928.26,
+      "end": 929.9,
+      "en": "So there's a lot going on here.",
+      "zh": "內容很多。"
+    },
+    {
+      "start": 930.06,
+      "end": 933.86,
+      "en": "Let me take a moment to explain the organization of this graph.",
+      "zh": "花一點時間，解釋圖的組織方式。"
+    },
+    {
+      "start": 934.46,
+      "end": 943.53,
+      "en": "These four bars here on the left are all data from the first sentence, which I am here calling the clean sentence because there's no mask.",
+      "zh": "左邊四個長條，全來自第一個句子；我稱為乾淨句子，因為沒有遮罩。"
+    },
+    {
+      "start": 944.17,
+      "end": 950.41,
+      "en": "And then this middle group is for the second sentence where the token her was masked out.",
+      "zh": "中間這組，是 her token 被遮罩的第二個句子。"
+    },
+    {
+      "start": 950.89,
+      "end": 954.97,
+      "en": "And then the third sentence was where him was masked out.",
+      "zh": "第三個句子，則是 him 被遮罩。"
+    },
+    {
+      "start": 955.29,
+      "end": 955.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 955.69,
+      "end": 964.57,
+      "en": "And then within each of these sentences, we are interested in two token positions corresponding to him and her.",
+      "zh": "每個句子中，關心兩個 token 位置，分別對應 him 與 her。"
+    },
+    {
+      "start": 965.29,
+      "end": 970.25,
+      "en": "And then we have two vocab indices for her and for him.",
+      "zh": "接著，有 her 與 him 的兩個詞彙表索引。"
+    },
+    {
+      "start": 970.69,
+      "end": 975.13,
+      "en": "So that explains why there are three rows in the x axis labels.",
+      "zh": "所以，x 軸標籤有三列。"
+    },
+    {
+      "start": 975.29,
+      "end": 979.97,
+      "en": "The first row is for the vocab tokens, where we get the logits from.",
+      "zh": "第一列，是取得 logit 的詞彙表 token。"
+    },
+    {
+      "start": 980.57,
+      "end": 989.29,
+      "en": "The second row is for the token positions in the text, and the third row indicates which sentence we're getting the data from.",
+      "zh": "第二列，是文字中的 token 位置；第三列，表示資料來自哪個句子。"
+    },
+    {
+      "start": 989.61,
+      "end": 989.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 989.97,
+      "end": 996.45,
+      "en": "So now let me focus your attention on interpreting these results here from the clean model with no mask.",
+      "zh": "現在，請聚焦於解讀這裡乾淨、沒有遮罩的模型結果。"
+    },
+    {
+      "start": 997.37,
+      "end": 1004.56,
+      "en": "So we expect the her vocab to have the highest logit when the word in the sentence was her.",
+      "zh": "預期句子中的詞是 her 時，詞彙表 her 的 logit 最高。"
+    },
+    {
+      "start": 1004.96,
+      "end": 1012.76,
+      "en": "And we expect the highest logit for the him vocab term when the token was actually him.",
+      "zh": "實際 token 是 him 時，預期 him 這個詞彙表項目的 logit 最高。"
+    },
+    {
+      "start": 1013.48,
+      "end": 1019.68,
+      "en": "Now there was no mask in this sentence, so the model literally saw exactly those words her and him.",
+      "zh": "這個句子沒有遮罩，所以模型真的看得到 her 與 him。"
+    },
+    {
+      "start": 1020.08,
+      "end": 1025.4,
+      "en": "So, you know, this pattern of results is nice to see, but it's kind of trivial.",
+      "zh": "所以，看到這種結果模式很好，但有點理所當然。"
+    },
+    {
+      "start": 1025.4,
+      "end": 1028.36,
+      "en": "It's not really surprising or terribly interesting.",
+      "zh": "不太意外，也沒有特別有趣。"
+    },
+    {
+      "start": 1028.8,
+      "end": 1035.88,
+      "en": "In fact, we can use results like this as a sanity check to make sure that our code is correct.",
+      "zh": "其實，可以把這種結果當作合理性檢查，確認程式碼正確。"
+    },
+    {
+      "start": 1036.12,
+      "end": 1046.36,
+      "en": "Because if you did not see such a clear pattern or, you know, for example, if the logit pattern was reversed, then we would suspect that something was wrong with the code.",
+      "zh": "因為如果沒有看到這麼清楚的模式，例如 logit 模式反轉，就會懷疑程式碼有問題。"
+    },
+    {
+      "start": 1046.36,
+      "end": 1050.6,
+      "en": "Maybe in the analysis, maybe in the visualization somewhere.",
+      "zh": "也許在分析，或某個視覺化部分。"
+    },
+    {
+      "start": 1050.96,
+      "end": 1058.2,
+      "en": "Anyway, so then when we look at the masked sentences, we see exactly the same pattern of results.",
+      "zh": "總之，查看被遮罩的句子，會看到完全相同的結果模式。"
+    },
+    {
+      "start": 1058.44,
+      "end": 1068.02,
+      "en": "So in particular the her logit is greater than the him logit for the her token, and when the her was",
+      "zh": "特別是，her token 的 her logit 大於 him logit，即使 her 被"
+    },
+    {
+      "start": 1068.02,
+      "end": 1074.14,
+      "en": "masked out and vice versa for the him token in the him position when that was masked out.",
+      "zh": "遮罩也是如此；him 位置的 him token 被遮罩時，則相反。"
+    },
+    {
+      "start": 1074.46,
+      "end": 1076.74,
+      "en": "So here when him was masked out.",
+      "zh": "也就是這裡，him 被遮罩時。"
+    },
+    {
+      "start": 1076.78,
+      "end": 1077.74,
+      "en": "Pretty confusing.",
+      "zh": "相當令人困惑。"
+    },
+    {
+      "start": 1077.74,
+      "end": 1081.26,
+      "en": "Overall, this pattern of findings is nice to see.",
+      "zh": "整體而言，看到這種結果模式很好。"
+    },
+    {
+      "start": 1081.54,
+      "end": 1086.42,
+      "en": "It shows that the Bert model has a good grasp of grammar and so on.",
+      "zh": "顯示 BERT 模型對文法等內容，有良好掌握。"
+    },
+    {
+      "start": 1086.62,
+      "end": 1090.82,
+      "en": "But anyway, this is the end of the part two of the code demo.",
+      "zh": "總之，這是程式示範第二部分的結尾。"
+    },
+    {
+      "start": 1090.98,
+      "end": 1102.62,
+      "en": "So again, the idea is that we are going to see how this pattern of results changes when we manipulate the MLP neurons in the experiment in part three.",
+      "zh": "同樣，概念是要在第三部分實驗中，操作 MLP 神經元，看看結果模式如何改變。"
+    },
+    {
+      "start": 1103.38,
+      "end": 1109.94,
+      "en": "But before getting to that, I will now switch to Python and show you how to implement this analysis.",
+      "zh": "但在那之前，先切換到 Python，展示如何實作分析。"
+    },
+    {
+      "start": 1111.34,
+      "end": 1113.3,
+      "en": "So here are the three sentences.",
+      "zh": "這裡是三個句子。"
+    },
+    {
+      "start": 1113.34,
+      "end": 1113.7,
+      "en": "Again.",
+      "zh": "再次提醒，"
+    },
+    {
+      "start": 1113.7,
+      "end": 1123.93,
+      "en": "They're all identical except for the addition of one mask replacing the word her over here and replacing the word him over here and here.",
+      "zh": "它們全部相同，只是在這裡加入遮罩替換 her，在這裡替換 him。"
+    },
+    {
+      "start": 1123.93,
+      "end": 1130.93,
+      "en": "I tokenize this now, normally if you are tokenizing multiple sentences like this and it's going to",
+      "zh": "這裡做 token 化。通常，像這樣 token 化多個句子，而且要"
+    },
+    {
+      "start": 1130.97,
+      "end": 1141.09,
+      "en": "form a batch, you would want to have something like padding equals true because the different sequences in the batch might have different lengths.",
+      "zh": "形成批次，就會希望使用 padding=True，因為批次中的不同序列，長度可能不同。"
+    },
+    {
+      "start": 1141.17,
+      "end": 1146.33,
+      "en": "However, we don't have to worry about that here because it's all the same number of words.",
+      "zh": "但這裡不用擔心，因為詞數完全相同。"
+    },
+    {
+      "start": 1146.33,
+      "end": 1147.81,
+      "en": "It's the same number of tokens.",
+      "zh": "token 數也相同。"
+    },
+    {
+      "start": 1147.81,
+      "end": 1151.53,
+      "en": "So we don't actually need to worry about padding in this special case.",
+      "zh": "所以，這個特殊案例中，不需要擔心填補。"
+    },
+    {
+      "start": 1152.01,
+      "end": 1158.53,
+      "en": "Okay, here I am finding the indices of the mask in each of these sentences.",
+      "zh": "好，這裡找出每個句子的 mask 索引。"
+    },
+    {
+      "start": 1158.65,
+      "end": 1164.69,
+      "en": "And basically that's just telling me that index five up here is the mask.",
+      "zh": "基本上，這告訴我，上面索引 5 是 mask。"
+    },
+    {
+      "start": 1164.69,
+      "end": 1168.77,
+      "en": "So let's count this 01234.",
+      "zh": "數數看，0、1、2、3、4。"
+    },
+    {
+      "start": 1169.29,
+      "end": 1169.73,
+      "en": "Uh oh.",
+      "zh": "糟了。"
+    },
+    {
+      "start": 1170.13,
+      "end": 1171.77,
+      "en": "Is something wrong with the code here.",
+      "zh": "程式碼有問題嗎？"
+    },
+    {
+      "start": 1171.77,
+      "end": 1174.85,
+      "en": "Why does this say index five?",
+      "zh": "為什麼這裡寫索引 5？"
+    },
+    {
+      "start": 1174.97,
+      "end": 1179.12,
+      "en": "But here when we literally just counted it we got zero, one, two, 01234.",
+      "zh": "但實際數，卻得到 0、1、2，0、1、2、3、4。"
+    },
+    {
+      "start": 1179.6,
+      "end": 1180.68,
+      "en": "What's going on here?",
+      "zh": "怎麼回事？"
+    },
+    {
+      "start": 1180.92,
+      "end": 1188.96,
+      "en": "Remember that with the Bert tokenizer, the token sequences always begin with the CLS token.",
+      "zh": "記得，BERT tokenizer 的 token 序列，總是以 CLS token 開始。"
+    },
+    {
+      "start": 1188.96,
+      "end": 1189.84,
+      "en": "That's 101.",
+      "zh": "那是 101。"
+    },
+    {
+      "start": 1189.84,
+      "end": 1190.8,
+      "en": "That's what you see here.",
+      "zh": "這裡可以看到。"
+    },
+    {
+      "start": 1191.16,
+      "end": 1194.8,
+      "en": "So there's actually another token in here for CLS.",
+      "zh": "所以，這裡其實還有一個 CLS token。"
+    },
+    {
+      "start": 1194.84,
+      "end": 1196.28,
+      "en": "So that is zero.",
+      "zh": "那是零。"
+    },
+    {
+      "start": 1196.76,
+      "end": 1199.64,
+      "en": "And then we have 12345.",
+      "zh": "接著，才有 1、2、3、4、5。"
+    },
+    {
+      "start": 1199.76,
+      "end": 1203.28,
+      "en": "So I just wanted to make sure that was clear.",
+      "zh": "只是想確認這點清楚。"
+    },
+    {
+      "start": 1203.64,
+      "end": 1203.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1204,
+      "end": 1207.44,
+      "en": "Then I do the forward pass and I get the logits.",
+      "zh": "再做前向傳播，取得 logit。"
+    },
+    {
+      "start": 1207.76,
+      "end": 1209.96,
+      "en": "Here is where I'm extracting all of the data.",
+      "zh": "這裡擷取全部資料。"
+    },
+    {
+      "start": 1209.96,
+      "end": 1213.6,
+      "en": "So I'm looping over the three sentences.",
+      "zh": "遍歷三個句子。"
+    },
+    {
+      "start": 1213.76,
+      "end": 1217.48,
+      "en": "And I'm going to extract the logits into this variable here.",
+      "zh": "把 logit 擷取到這個變數。"
+    },
+    {
+      "start": 1218.08,
+      "end": 1221.44,
+      "en": "So for each sentence I have zero and one.",
+      "zh": "每個句子，有零與一。"
+    },
+    {
+      "start": 1221.92,
+      "end": 1224,
+      "en": "So this is for the three sentences.",
+      "zh": "這個對應三個句子。"
+    },
+    {
+      "start": 1224.16,
+      "end": 1231.44,
+      "en": "This corresponds to the mask index for her and the mask index for him that you see here.",
+      "zh": "這個對應這裡 her 的 mask 索引，以及 him 的 mask 索引。"
+    },
+    {
+      "start": 1231.92,
+      "end": 1235.36,
+      "en": "And then here I have two values that I'm going to extract.",
+      "zh": "這裡要擷取兩個值。"
+    },
+    {
+      "start": 1235.36,
+      "end": 1238.23,
+      "en": "And that corresponds to the output logits.",
+      "zh": "對應輸出 logit。"
+    },
+    {
+      "start": 1238.23,
+      "end": 1241.59,
+      "en": "So the final output logits from the model for the.",
+      "zh": "也就是模型最終輸出 logit，針對"
+    },
+    {
+      "start": 1241.63,
+      "end": 1245.87,
+      "en": "Her vocab item and the Him vocab item.",
+      "zh": "her 詞彙表項目，以及 him 詞彙表項目。"
+    },
+    {
+      "start": 1246.23,
+      "end": 1248.91,
+      "en": "Okay, so I hope that all makes sense.",
+      "zh": "好，希望這樣清楚。"
+    },
+    {
+      "start": 1249.11,
+      "end": 1250.79,
+      "en": "And these are the key results.",
+      "zh": "這些是關鍵結果。"
+    },
+    {
+      "start": 1250.83,
+      "end": 1254.39,
+      "en": "Now when you just look at these numbers it's kind of hard to make sense of them.",
+      "zh": "只看數字，很難理解。"
+    },
+    {
+      "start": 1254.63,
+      "end": 1258.91,
+      "en": "So therefore I'm going to visualize them all in a bar plot.",
+      "zh": "所以，全部視覺化成長條圖。"
+    },
+    {
+      "start": 1259.19,
+      "end": 1266.47,
+      "en": "And that is what you see here again as a reminder because it's kind of a complicated organization of results.",
+      "zh": "這裡就是。再次提醒，因為結果組織有點複雜。"
+    },
+    {
+      "start": 1266.91,
+      "end": 1270.23,
+      "en": "Three sentences are organized into the three groups here.",
+      "zh": "三個句子，分成這三組。"
+    },
+    {
+      "start": 1270.51,
+      "end": 1276.07,
+      "en": "And then this first row here indicates the token in the model.",
+      "zh": "第一列，指出模型中的 token。"
+    },
+    {
+      "start": 1276.07,
+      "end": 1280.91,
+      "en": "So for the vocab logit that we want to extract for her and him.",
+      "zh": "也就是要擷取的 her 與 him 詞彙表 logit。"
+    },
+    {
+      "start": 1281.11,
+      "end": 1287.55,
+      "en": "And this corresponds to the token the missing token the masked token in these sentences.",
+      "zh": "這則對應句子中缺少、被遮罩的 token。"
+    },
+    {
+      "start": 1287.87,
+      "end": 1296.69,
+      "en": "And the key result is that when we mask out the word her the model has a higher logit for her compared to him.",
+      "zh": "關鍵結果，是遮罩 her 時，模型對 her 的 logit 比 him 高。"
+    },
+    {
+      "start": 1297.01,
+      "end": 1306.21,
+      "en": "And when we mask out the token for him, so the word him does not actually appear anywhere in the sentence in this sentence here.",
+      "zh": "遮罩 him token 時，him 這個詞就完全沒有出現在這個句子中。"
+    },
+    {
+      "start": 1306.53,
+      "end": 1311.73,
+      "en": "And yet the model still has a higher logit for him compared to her.",
+      "zh": "但模型仍然對 him 有比 her 更高的 logit。"
+    },
+    {
+      "start": 1311.77,
+      "end": 1314.37,
+      "en": "So that is nice set of findings.",
+      "zh": "這是一組很好的發現。"
+    },
+    {
+      "start": 1314.37,
+      "end": 1317.37,
+      "en": "And then the goal of experiment part three.",
+      "zh": "第三部分實驗的目標，"
+    },
+    {
+      "start": 1317.49,
+      "end": 1328.29,
+      "en": "The experiment in part three is to see whether we can change this bar and this bar by disrupting the activations of the MLP neurons.",
+      "zh": "是看看能否透過干擾 MLP 神經元活化，改變這個長條與這個長條。"
+    },
+    {
+      "start": 1330.17,
+      "end": 1337.57,
+      "en": "This is the experiment where we are going to implant a hook into the intermediate layer.",
+      "zh": "這個實驗，要把 hook 植入 intermediate 層。"
+    },
+    {
+      "start": 1338.01,
+      "end": 1342.45,
+      "en": "Now this hook is not just for getting data like in part one.",
+      "zh": "這次 hook 不像第一部分，只取得資料。"
+    },
+    {
+      "start": 1342.93,
+      "end": 1349.25,
+      "en": "We are actually going to manipulate data and put it back into the model for the rest of the forward pass.",
+      "zh": "而是真的操作資料，再放回模型，供前向傳播其餘部分處理。"
+    },
+    {
+      "start": 1349.73,
+      "end": 1353.97,
+      "en": "I'm doing two manipulations in these two lines of code.",
+      "zh": "這兩行程式碼，做兩個操作。"
+    },
+    {
+      "start": 1354.65,
+      "end": 1362.6,
+      "en": "Now remember that this output tensor is sequence in the batch by tokens by neurons.",
+      "zh": "記得，output 張量的維度，是批次中的序列，乘上 token，再乘上神經元。"
+    },
+    {
+      "start": 1362.92,
+      "end": 1367.16,
+      "en": "So in this first line I'm setting the second sentence.",
+      "zh": "第一行，設定第二個句子，"
+    },
+    {
+      "start": 1367.16,
+      "end": 1374.28,
+      "en": "So index one and the token index corresponding to the word her that is actually masked out.",
+      "zh": "也就是索引 1，以及對應 her 的 token 索引，而那個詞其實已經被遮罩。"
+    },
+    {
+      "start": 1374.76,
+      "end": 1380.4,
+      "en": "And all of the neurons that showed a significant t test from part one.",
+      "zh": "再取第一部分 t 檢定顯著的所有神經元。"
+    },
+    {
+      "start": 1380.4,
+      "end": 1390.12,
+      "en": "So all of those neurons just for this token, just for this sentence, I'm setting their value to be zero and similar for the second line.",
+      "zh": "只針對這個 token、這個句子，把所有那些神經元的值設為零；第二行類似。"
+    },
+    {
+      "start": 1390.28,
+      "end": 1397.72,
+      "en": "So these are the neurons that were significantly more active for him versus her from part one in the",
+      "zh": "這些是第一部分中，對 him 比 her 顯著更活躍的神經元，取"
+    },
+    {
+      "start": 1397.72,
+      "end": 1405.32,
+      "en": "token position in the sequence for the masked word him and the third sentence and those are set to zero.",
+      "zh": "第三個句子，被遮罩 him 的序列 token 位置，設為零。"
+    },
+    {
+      "start": 1405.92,
+      "end": 1408.52,
+      "en": "And here is the line where I implant this.",
+      "zh": "這裡是植入的那一行。"
+    },
+    {
+      "start": 1408.52,
+      "end": 1416.59,
+      "en": "Now notice here I'm just implanting this into the intermediate block and not into intermediate dense.",
+      "zh": "注意，這裡只植入 intermediate 區塊，不是 intermediate.dense。"
+    },
+    {
+      "start": 1416.99,
+      "end": 1419.39,
+      "en": "So here is the question for you.",
+      "zh": "所以，問你一個問題。"
+    },
+    {
+      "start": 1419.67,
+      "end": 1425.59,
+      "en": "Why is it the case that in part one I got data from intermediate dense.",
+      "zh": "為什麼第一部分從 intermediate.dense 取得資料，"
+    },
+    {
+      "start": 1425.91,
+      "end": 1431.11,
+      "en": "But here I'm implanting the hook just into the intermediate without the dense.",
+      "zh": "這裡卻只把 hook 植入 intermediate，不包含 dense？"
+    },
+    {
+      "start": 1431.67,
+      "end": 1433.87,
+      "en": "Is that a problem or does it matter.",
+      "zh": "這有問題嗎？重要嗎？"
+    },
+    {
+      "start": 1433.99,
+      "end": 1435.63,
+      "en": "And what would be the difference?",
+      "zh": "差異會是什麼？"
+    },
+    {
+      "start": 1436.19,
+      "end": 1443.35,
+      "en": "Of course I will answer this question when I switch to code, but I would like you to think about this before I get there.",
+      "zh": "切換到程式碼時，當然會回答，但在那之前，請先思考。"
+    },
+    {
+      "start": 1444.23,
+      "end": 1446.79,
+      "en": "And now we can have a look at the results.",
+      "zh": "現在可以看看結果。"
+    },
+    {
+      "start": 1446.95,
+      "end": 1453.15,
+      "en": "So I extracted exactly the same data in exactly the same way as in part two.",
+      "zh": "與第二部分完全相同的方式，擷取完全相同的資料。"
+    },
+    {
+      "start": 1453.71,
+      "end": 1457.15,
+      "en": "Except this is for the manipulated model.",
+      "zh": "只是這次來自操作後模型。"
+    },
+    {
+      "start": 1457.63,
+      "end": 1464.79,
+      "en": "And then I will just subtract those two sets of numbers and show them in a graph that looks like this.",
+      "zh": "接著，把兩組數字相減，畫成這樣的圖。"
+    },
+    {
+      "start": 1465.31,
+      "end": 1469.51,
+      "en": "So the x axis here is exactly the same as in part two.",
+      "zh": "x 軸與第二部分完全相同。"
+    },
+    {
+      "start": 1470.03,
+      "end": 1477.5,
+      "en": "And the y axis is now the change in the logits here in this experiment with the manipulations.",
+      "zh": "y 軸則是這次有操作實驗中的 logit 變化，"
+    },
+    {
+      "start": 1477.7,
+      "end": 1480.3,
+      "en": "Versus the clean run from part two.",
+      "zh": "相對於第二部分的乾淨執行。"
+    },
+    {
+      "start": 1480.9,
+      "end": 1483.86,
+      "en": "So the first thing to notice is that all four.",
+      "zh": "首先注意，第一個句子的這四個"
+    },
+    {
+      "start": 1483.9,
+      "end": 1488.18,
+      "en": "Of these bars for the first sentence are exactly zero.",
+      "zh": "長條，全都恰好為零。"
+    },
+    {
+      "start": 1489.1,
+      "end": 1489.66,
+      "en": "That's good.",
+      "zh": "這很好。"
+    },
+    {
+      "start": 1489.66,
+      "end": 1493.58,
+      "en": "That provides yet another sanity check and manipulation control.",
+      "zh": "又提供一次合理性檢查與操作控制。"
+    },
+    {
+      "start": 1493.62,
+      "end": 1498.78,
+      "en": "Because I did not change any of the activation values from the first sentence.",
+      "zh": "因為沒有改變第一個句子的任何活化值。"
+    },
+    {
+      "start": 1498.94,
+      "end": 1506.3,
+      "en": "So if these numbers were anything other than zero, then something would be weird and we'd have to figure out where's the problem.",
+      "zh": "所以，如果這些數字不是零，就會很奇怪，必須找出問題。"
+    },
+    {
+      "start": 1507.02,
+      "end": 1514.02,
+      "en": "But the important results that we are looking for here is the change in the her logit for the token",
+      "zh": "但這裡真正要看的重要結果，是被遮罩 her 的"
+    },
+    {
+      "start": 1514.14,
+      "end": 1524.66,
+      "en": "corresponding that to the her position that was masked out and the him logit in the him token that was masked out in the third sentence.",
+      "zh": "對應位置，her logit 的變化，以及第三個句子被遮罩 him 位置，him logit 的變化。"
+    },
+    {
+      "start": 1525.1,
+      "end": 1530.38,
+      "en": "So that's this pink bar over here and this blue bar over here.",
+      "zh": "也就是這個粉紅長條與這個藍色長條。"
+    },
+    {
+      "start": 1530.86,
+      "end": 1538.29,
+      "en": "And the fact that these are both positive indicates that the logits were higher in the clean version",
+      "zh": "兩者都為正，表示沒有操作的乾淨版本，"
+    },
+    {
+      "start": 1538.29,
+      "end": 1543.61,
+      "en": "of the model, with no manipulations compared to when we manipulated those neurons.",
+      "zh": "logit 比操作那些神經元之後更高。"
+    },
+    {
+      "start": 1544.13,
+      "end": 1553.77,
+      "en": "And over here on the right, you see a scatter plot of the clean logits versus the ablated final output logits across all of these results.",
+      "zh": "右邊，是所有這些結果，乾淨 logit 相對於消融後最終輸出 logit 的散布圖。"
+    },
+    {
+      "start": 1554.09,
+      "end": 1560.09,
+      "en": "And they're quite strongly correlated, which just indicates that this manipulation was pretty subtle.",
+      "zh": "相關性相當強，只表示操作很細微。"
+    },
+    {
+      "start": 1560.37,
+      "end": 1562.33,
+      "en": "Now, that's not so surprising.",
+      "zh": "這不太意外。"
+    },
+    {
+      "start": 1562.49,
+      "end": 1568.21,
+      "en": "We only manipulated a subset of MLP neurons from one transformer block.",
+      "zh": "只操作一個 Transformer 區塊的一部分 MLP 神經元。"
+    },
+    {
+      "start": 1568.57,
+      "end": 1573.05,
+      "en": "So we wouldn't really expect a large change at the final output.",
+      "zh": "所以，不會真的預期最終輸出"
+    },
+    {
+      "start": 1573.05,
+      "end": 1573.77,
+      "en": "Logit.",
+      "zh": "logit 有很大變化。"
+    },
+    {
+      "start": 1574.61,
+      "end": 1574.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1574.97,
+      "end": 1579.17,
+      "en": "So now I will switch to code and go through the details of this experiment.",
+      "zh": "現在切換到程式碼，逐步介紹實驗細節。"
+    },
+    {
+      "start": 1581.05,
+      "end": 1582.89,
+      "en": "Here is the hook function.",
+      "zh": "這裡是 hook 函數。"
+    },
+    {
+      "start": 1582.89,
+      "end": 1591.31,
+      "en": "As a reminder, I'm manipulating the output of the intermediate layer here and only for the second sentence",
+      "zh": "提醒一下，這裡操作 intermediate 層的輸出，而且只針對第二個句子，"
+    },
+    {
+      "start": 1591.31,
+      "end": 1598.67,
+      "en": "for the mask position, for where her was masked out, and only for the neurons that had a significant",
+      "zh": "her 被遮罩的位置，以及第一部分中"
+    },
+    {
+      "start": 1598.71,
+      "end": 1608.11,
+      "en": "t test value from, uh, the part one where we tested the data in the independent data set with the him and her sentences.",
+      "zh": "獨立資料集的 him/her 句子檢定，t 值顯著的神經元。"
+    },
+    {
+      "start": 1608.39,
+      "end": 1617.03,
+      "en": "And then the corresponding, uh, masking for sentence three, where I got rid of the Him token and replaced that with the mask.",
+      "zh": "接著，對第三個句子，對應移除 him、替換成 mask 的位置做相同操作。"
+    },
+    {
+      "start": 1617.43,
+      "end": 1618.95,
+      "en": "Okay, so here's the question.",
+      "zh": "好，這裡有個問題。"
+    },
+    {
+      "start": 1618.95,
+      "end": 1622.27,
+      "en": "Why am I using intermediate here?",
+      "zh": "為什麼這裡使用 intermediate？"
+    },
+    {
+      "start": 1622.43,
+      "end": 1626.83,
+      "en": "When up above, let me scroll back up to part one.",
+      "zh": "上面，讓我捲回第一部分。"
+    },
+    {
+      "start": 1627.47,
+      "end": 1629.15,
+      "en": "Uh, where is that hook function?",
+      "zh": "hook 函數在哪裡？"
+    },
+    {
+      "start": 1629.59,
+      "end": 1630.15,
+      "en": "That's here.",
+      "zh": "就在這裡。"
+    },
+    {
+      "start": 1630.15,
+      "end": 1630.59,
+      "en": "Here.",
+      "zh": "這裡。"
+    },
+    {
+      "start": 1630.59,
+      "end": 1635.95,
+      "en": "I implanted this hook to grab the data from intermediate dense.",
+      "zh": "我把 hook 植入 intermediate.dense，擷取資料。"
+    },
+    {
+      "start": 1636.15,
+      "end": 1637.47,
+      "en": "And why did I do that?",
+      "zh": "為什麼這樣做？"
+    },
+    {
+      "start": 1637.47,
+      "end": 1638.55,
+      "en": "And does it matter?",
+      "zh": "有差別嗎？"
+    },
+    {
+      "start": 1638.91,
+      "end": 1643.51,
+      "en": "So the question, the answer to the second question is it does not matter.",
+      "zh": "第二個問題的答案，是沒有差別。"
+    },
+    {
+      "start": 1643.83,
+      "end": 1648.35,
+      "en": "And the answer to the first question is I did that basically, literally.",
+      "zh": "第一個問題的答案，是我這樣做，基本上真的就是"
+    },
+    {
+      "start": 1648.35,
+      "end": 1650.42,
+      "en": "So I could have this short discussion here.",
+      "zh": "為了能有這一小段討論。"
+    },
+    {
+      "start": 1650.78,
+      "end": 1651.1,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1651.14,
+      "end": 1654.94,
+      "en": "So what's the difference between intermediate and intermediate dense.",
+      "zh": "intermediate 和 intermediate.dense 差在哪裡？"
+    },
+    {
+      "start": 1655.06,
+      "end": 1657.06,
+      "en": "So intermediate dense.",
+      "zh": "intermediate.dense，"
+    },
+    {
+      "start": 1657.1,
+      "end": 1659.62,
+      "en": "Let me go back to this description here.",
+      "zh": "回去看這個說明。"
+    },
+    {
+      "start": 1660.9,
+      "end": 1662.38,
+      "en": "Intermediate dense.",
+      "zh": "intermediate.dense。"
+    },
+    {
+      "start": 1662.42,
+      "end": 1667.42,
+      "en": "This is the pre uh nonlinear activation functions.",
+      "zh": "這是在非線性活化函數之前。"
+    },
+    {
+      "start": 1667.54,
+      "end": 1673.66,
+      "en": "And if you just hook into this entire layer then you're going to get the output of this layer, which",
+      "zh": "如果只掛接這整層，取得的就是該層輸出，"
+    },
+    {
+      "start": 1673.66,
+      "end": 1681.14,
+      "en": "is uh, the same thing that dense calculates but then passed through the jlu activation.",
+      "zh": "與 dense 計算的相同，但再經過 GELU 活化。"
+    },
+    {
+      "start": 1681.38,
+      "end": 1684.1,
+      "en": "And why is that important.",
+      "zh": "為什麼重要？"
+    },
+    {
+      "start": 1684.1,
+      "end": 1685.34,
+      "en": "Why is that relevant?",
+      "zh": "為什麼有關係？"
+    },
+    {
+      "start": 1685.82,
+      "end": 1691.42,
+      "en": "As I hinted at here with these distributions we're doing t tests on these data.",
+      "zh": "如同這些分布暗示的，我們對這些資料做 t 檢定。"
+    },
+    {
+      "start": 1691.54,
+      "end": 1702.34,
+      "en": "And so when you are doing a t test to compare two different conditions, it's nice if you can have a normal distribution that the data are drawn from.",
+      "zh": "做 t 檢定比較兩個不同條件時，如果資料來自常態分布，會很好。"
+    },
+    {
+      "start": 1702.78,
+      "end": 1708.1,
+      "en": "And for the pre non-linear activations those are drawn from a normal distribution.",
+      "zh": "對非線性活化之前的值，它們來自常態分布，"
+    },
+    {
+      "start": 1708.33,
+      "end": 1712.17,
+      "en": "so it's more amenable to statistical parametric testing.",
+      "zh": "所以更適合統計參數檢定。"
+    },
+    {
+      "start": 1713.09,
+      "end": 1717.21,
+      "en": "Whereas here with the Jlu these are certainly not normally distributed.",
+      "zh": "GELU 之後，這些當然不是常態分布。"
+    },
+    {
+      "start": 1717.37,
+      "end": 1727.85,
+      "en": "So technically you could still do a T test, but it would be more appropriate to do some kind of nonparametric t test like based on medians or based on permutation testing.",
+      "zh": "技術上，仍然可以做 t 檢定，但做某種非參數 t 檢定，例如基於中位數或排列檢定，會比較適當。"
+    },
+    {
+      "start": 1728.45,
+      "end": 1728.77,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1728.81,
+      "end": 1732.77,
+      "en": "So that answers the question of why I use these values.",
+      "zh": "這回答了，為什麼用這些值，"
+    },
+    {
+      "start": 1732.77,
+      "end": 1736.37,
+      "en": "The non-linear activation values for the t test.",
+      "zh": "也就是非線性活化值，做 t 檢定。"
+    },
+    {
+      "start": 1736.77,
+      "end": 1742.81,
+      "en": "The question is why do I claim that it doesn't matter whether we zero out one or the other?",
+      "zh": "問題是，為什麼我主張，將其中任一者歸零，沒有差別？"
+    },
+    {
+      "start": 1743.21,
+      "end": 1748.77,
+      "en": "And the answer is that there's no mixing involved here in the difference between.",
+      "zh": "答案是，兩者之間沒有混合。"
+    },
+    {
+      "start": 1748.81,
+      "end": 1750.25,
+      "en": "Let me scroll back up here.",
+      "zh": "讓我捲回上面。"
+    },
+    {
+      "start": 1750.77,
+      "end": 1757.33,
+      "en": "The difference between the output of this intermediate layer and the output of this dense layer.",
+      "zh": "這個 intermediate 層輸出，與這個 dense 層輸出之間的差異，"
+    },
+    {
+      "start": 1757.61,
+      "end": 1760.21,
+      "en": "There's no mixing of the activations.",
+      "zh": "沒有活化混合。"
+    },
+    {
+      "start": 1760.21,
+      "end": 1762.41,
+      "en": "The neurons don't interact with each other.",
+      "zh": "神經元彼此沒有互動。"
+    },
+    {
+      "start": 1762.45,
+      "end": 1766.69,
+      "en": "Every neuron individually goes through this activation function.",
+      "zh": "每個神經元，個別通過這個活化函數。"
+    },
+    {
+      "start": 1767.44,
+      "end": 1773.52,
+      "en": "And so if you zero out a neuron here, it's also going to be zeroed out here.",
+      "zh": "所以，如果這裡把神經元歸零，這裡也會是零。"
+    },
+    {
+      "start": 1773.84,
+      "end": 1781.16,
+      "en": "Likewise if you zero out a neuron here then it doesn't matter what value it had here because here you're zeroing it out.",
+      "zh": "同樣，如果在這裡把神經元歸零，原先在這裡的值是什麼都不重要，因為這裡就是歸零。"
+    },
+    {
+      "start": 1781.52,
+      "end": 1781.92,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1781.96,
+      "end": 1783.36,
+      "en": "So I hope that makes sense.",
+      "zh": "希望這樣清楚。"
+    },
+    {
+      "start": 1783.8,
+      "end": 1786.2,
+      "en": "Uh, the answer is it does not matter.",
+      "zh": "答案是，沒有差別。"
+    },
+    {
+      "start": 1786.2,
+      "end": 1791.48,
+      "en": "We could put this into intermediate or intermediate dense.",
+      "zh": "可以放在 intermediate，或 intermediate.dense。"
+    },
+    {
+      "start": 1791.52,
+      "end": 1793.2,
+      "en": "We're multiplying by zero.",
+      "zh": "乘以零。"
+    },
+    {
+      "start": 1793.2,
+      "end": 1795.12,
+      "en": "So it literally has no impact.",
+      "zh": "所以，真的沒有影響。"
+    },
+    {
+      "start": 1795.24,
+      "end": 1795.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1795.64,
+      "end": 1801,
+      "en": "But I hope that helps you gain some more insight into the workings of these models.",
+      "zh": "但希望這幫助你更深入理解模型運作。"
+    },
+    {
+      "start": 1801.68,
+      "end": 1806.64,
+      "en": "Okay, so, uh, implants that hook, and then I do another forward pass.",
+      "zh": "好，植入 hook，再做一次前向傳播。"
+    },
+    {
+      "start": 1806.88,
+      "end": 1813.16,
+      "en": "And here I am extracting all of the logits exactly as I did before.",
+      "zh": "這裡擷取全部 logit，與之前完全相同。"
+    },
+    {
+      "start": 1813.2,
+      "end": 1820.08,
+      "en": "I'm calling this variable logits zero just as a way to differentiate them from the clean version.",
+      "zh": "把變數叫 logits zero，只是為了和乾淨版本區別。"
+    },
+    {
+      "start": 1820.2,
+      "end": 1822.32,
+      "en": "And here I call this target logits.",
+      "zh": "這裡則叫 target logits。"
+    },
+    {
+      "start": 1822.32,
+      "end": 1825.4,
+      "en": "Z also stands for zero okay.",
+      "zh": "Z 也代表 zero。"
+    },
+    {
+      "start": 1825.44,
+      "end": 1827.51,
+      "en": "Again So these are the key data.",
+      "zh": "同樣，這些是關鍵資料。"
+    },
+    {
+      "start": 1827.51,
+      "end": 1830.99,
+      "en": "But we want to visualize them to know how to interpret them.",
+      "zh": "但要視覺化，才知道如何解讀。"
+    },
+    {
+      "start": 1831.59,
+      "end": 1837.83,
+      "en": "All of the visualization code here is the same as what I showed before from part two.",
+      "zh": "所有視覺化程式碼，都與之前第二部分相同。"
+    },
+    {
+      "start": 1838.15,
+      "end": 1847.79,
+      "en": "Except I'm showing the data for this variable delta logits, which is literally just the subtraction of the non manipulated model.",
+      "zh": "只是顯示 delta logits 這個變數，真的就是未操作模型，"
+    },
+    {
+      "start": 1847.79,
+      "end": 1852.83,
+      "en": "So the clean model minus the manipulated model over here.",
+      "zh": "也就是乾淨模型，減去這裡的操作模型。"
+    },
+    {
+      "start": 1853.91,
+      "end": 1856.39,
+      "en": "And again we see these are all zeros.",
+      "zh": "再次看到，這些全是零。"
+    },
+    {
+      "start": 1856.39,
+      "end": 1856.87,
+      "en": "That's good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1856.87,
+      "end": 1858.63,
+      "en": "That's a confirmation check.",
+      "zh": "這是確認檢查。"
+    },
+    {
+      "start": 1858.79,
+      "end": 1864.47,
+      "en": "And here what we are particularly interested in is this pink bar and this blue bar.",
+      "zh": "這裡特別感興趣的，是粉紅長條與藍色長條。"
+    },
+    {
+      "start": 1864.79,
+      "end": 1871.35,
+      "en": "This shows that when we manipulated the model for the her neurons, or at least the neurons that showed",
+      "zh": "它顯示，操作 her 神經元，或者至少那些在"
+    },
+    {
+      "start": 1871.35,
+      "end": 1879.27,
+      "en": "a significant t test from the independent sample in the third position in the her mask sentence, then",
+      "zh": "獨立樣本中，t 檢定顯著的神經元，在 her 遮罩句子的第三個位置操作時，"
+    },
+    {
+      "start": 1879.27,
+      "end": 1885.65,
+      "en": "those logits increased here, which means they were more positive in the clean version, which means",
+      "zh": "這裡的 logit 增加，表示乾淨版本更正，也就是"
+    },
+    {
+      "start": 1885.65,
+      "end": 1894.89,
+      "en": "that zeroing out those MLP neurons actually had a negative impact on the logits at the output of the",
+      "zh": "將那些 MLP 神經元歸零，實際上對模型輸出"
+    },
+    {
+      "start": 1894.89,
+      "end": 1895.45,
+      "en": "model.",
+      "zh": "logit 造成負面影響。"
+    },
+    {
+      "start": 1895.61,
+      "end": 1896.73,
+      "en": "And same thing for him.",
+      "zh": "him 也相同。"
+    },
+    {
+      "start": 1896.73,
+      "end": 1908.69,
+      "en": "There's other stuff going on in here as well, which I'm not going to make any feeble attempt to interpret because I don't have like hypotheses about those particular sets of findings.",
+      "zh": "這裡還有其他事情發生，但我不打算勉強解讀，因為對那些特定結果，沒有假設。"
+    },
+    {
+      "start": 1909.13,
+      "end": 1915.81,
+      "en": "And yeah, as I also mentioned in the slides, we are manipulating a very, very small part of the model.",
+      "zh": "如同投影片提過，只操作模型非常、非常小的一部分。"
+    },
+    {
+      "start": 1915.81,
+      "end": 1923.13,
+      "en": "So it's not surprising that the final model logits at the very end of the model have been perturbed",
+      "zh": "所以，模型最末端的最終 logit，只被這個非常有目標、"
+    },
+    {
+      "start": 1923.17,
+      "end": 1928.21,
+      "en": "only a tiny bit by this really targeted focal manipulation.",
+      "zh": "局部的操作，擾動一點點，並不意外。"
+    },
+    {
+      "start": 1929.29,
+      "end": 1934.25,
+      "en": "I hope you found this code demo to be interesting and also inspiring.",
+      "zh": "希望這個程式示範讓你覺得有趣，也帶來靈感。"
+    },
+    {
+      "start": 1934.57,
+      "end": 1941.85,
+      "en": "There are so many ways that you can do great research and set up really elegant experiments to uncover",
+      "zh": "有很多方式，能做很棒的研究，設計非常優雅的實驗，揭露"
+    },
+    {
+      "start": 1941.97,
+      "end": 1951.4,
+      "en": "subtle patterns of where in the model different kinds of language information is processed and passed on to subsequent layers.",
+      "zh": "模型何處處理不同語言資訊，以及傳給後續層的細微模式。"
+    },
+    {
+      "start": 1951.92,
+      "end": 1957.8,
+      "en": "You're going to follow up on some of these ideas in the code challenge in the next video.",
+      "zh": "下一支影片的程式挑戰，會延伸這些想法。"
+    },
+    {
+      "start": 1958.28,
+      "end": 1961.2,
+      "en": "And one small point about coding here.",
+      "zh": "這裡有一個小小的程式重點。"
+    },
+    {
+      "start": 1961.4,
+      "end": 1969.4,
+      "en": "Hook functions are nothing special in the sense that anything you can do with Python code, you can put into a hook function.",
+      "zh": "hook 函數沒有什麼特別，任何能用 Python 程式做的事，都能放進 hook。"
+    },
+    {
+      "start": 1970.08,
+      "end": 1974.48,
+      "en": "They can be long and complicated and implement lots of operations.",
+      "zh": "它們可以很長、很複雜，實作很多操作。"
+    },
+    {
+      "start": 1974.96,
+      "end": 1979.92,
+      "en": "So that can be useful, but it can also really slow down the processing of the model.",
+      "zh": "這可能很有用，但也可能讓模型處理大幅變慢。"
+    },
+    {
+      "start": 1980.4,
+      "end": 1985.76,
+      "en": "Now, I didn't actually use any complicated hook functions here in this video, but this point will",
+      "zh": "這支影片，其實沒有使用複雜 hook 函數，但這一點，"
+    },
+    {
+      "start": 1985.76,
+      "end": 1992.84,
+      "en": "be relevant for the next video, where you're basically going to take all of the t test code and put",
+      "zh": "對下一支影片會有關，因為你基本上會把所有 t 檢定程式碼，"
+    },
+    {
+      "start": 1992.84,
+      "end": 2001.84,
+      "en": "it inside a hook function, so that the language model itself is actually running statistical analyses during the forward pass.",
+      "zh": "放進 hook，讓語言模型本身，在前向傳播期間，實際執行統計分析。"
+    }
+  ]
+}

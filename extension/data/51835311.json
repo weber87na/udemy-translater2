@@ -1,0 +1,2323 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51835311",
+  "title": "CodeChallenge: Unembeddings (vectors to tokens)",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "96809841906d20c24c1dcdbc2b75d52f15e4d929550fa306ce89f3fdcb8ce5b1",
+  "cues": [
+    {
+      "start": 2.2,
+      "end": 11.64,
+      "en": "I've mentioned the concept of an embeddings matrix a few times already in this course, but I haven't really discussed it in a lot of detail.",
+      "zh": "課程中，已經幾次提到反嵌入矩陣，但還沒有詳細討論。"
+    },
+    {
+      "start": 12.16,
+      "end": 18.12,
+      "en": "Fortunately, it's pretty straightforward, both conceptually and in implementation.",
+      "zh": "幸好，概念與實作都相當直接。"
+    },
+    {
+      "start": 18.88,
+      "end": 26.88,
+      "en": "And the goal of this code challenge is for you to understand the embeddings matrix by coding exercises,",
+      "zh": "這個程式挑戰，要透過程式練習，理解反嵌入矩陣，"
+    },
+    {
+      "start": 27.32,
+      "end": 38.88,
+      "en": "and along the way, you will also learn about one of the difficulties that language models have with maintaining a coherent and cohesive text as the text gets longer.",
+      "zh": "也會學到，文字變長時，語言模型維持內容連貫與一致的困難之一。"
+    },
+    {
+      "start": 39.92,
+      "end": 44.56,
+      "en": "So this is a slide that I showed more or less earlier in the section.",
+      "zh": "這張投影片，在這一章稍早，大致展示過。"
+    },
+    {
+      "start": 44.92,
+      "end": 53.84,
+      "en": "As a reminder, the idea of language models is to go from text to token indices to embeddings, and",
+      "zh": "複習一下，語言模型的流程，是從文字到 token 索引，再到嵌入，"
+    },
+    {
+      "start": 53.84,
+      "end": 60.62,
+      "en": "then you go on embeddings back to tokens and of course, back to human readable text.",
+      "zh": "接著，從嵌入轉回 token，當然，最後轉回人類可讀的文字。"
+    },
+    {
+      "start": 61.14,
+      "end": 69.5,
+      "en": "Now, of course, there's all sorts of complicated stuff happening in here, and this is basically the topic of the rest of the course.",
+      "zh": "中間有各種複雜運作，基本上就是接下來課程的主題。"
+    },
+    {
+      "start": 69.5,
+      "end": 77.3,
+      "en": "But essentially all of these billions of parameters and computations happening in these attention layers",
+      "zh": "但本質上，注意力層中數十億參數與計算，"
+    },
+    {
+      "start": 77.78,
+      "end": 89.22,
+      "en": "are really just about taking the embeddings vectors, transforming them in some way, and then giving another vector from which a token can be selected.",
+      "zh": "只是取出嵌入向量，以某種方式轉換，再提供另一個向量，據此選出 token。"
+    },
+    {
+      "start": 89.58,
+      "end": 97.82,
+      "en": "But if we ignore all of that sophistication for now, then basically a language model is an embedding",
+      "zh": "先忽略那些複雜細節，語言模型基本上，就是把 token ID 嵌入，"
+    },
+    {
+      "start": 97.86,
+      "end": 102.38,
+      "en": "token ID and then an embedding to get another token ID.",
+      "zh": "再反嵌入，取得另一個 token ID。"
+    },
+    {
+      "start": 102.78,
+      "end": 112.06,
+      "en": "So the embeddings matrix is a way to transform an embeddings vector from a dense floating point representation",
+      "zh": "因此，反嵌入矩陣，是把稠密浮點數表示的嵌入向量，"
+    },
+    {
+      "start": 112.22,
+      "end": 117.32,
+      "en": "back into integers that are then translated into text Tokens.",
+      "zh": "轉回整數，再轉成文字 token 的方法。"
+    },
+    {
+      "start": 118.28,
+      "end": 127,
+      "en": "Now, so far in the previous and in this sections, we've been focusing on these parts of the model here.",
+      "zh": "前一章與這一章，目前著重這些部分，"
+    },
+    {
+      "start": 127,
+      "end": 130.84,
+      "en": "So getting from text to tokens to embeddings.",
+      "zh": "也就是從文字到 token，再到嵌入。"
+    },
+    {
+      "start": 131.36,
+      "end": 136.52,
+      "en": "And now the goal of this challenge is to understand this part up here.",
+      "zh": "這個挑戰，則要理解上方這部分，"
+    },
+    {
+      "start": 136.52,
+      "end": 142,
+      "en": "So where do these embeddings come from and how do we translate them into tokens.",
+      "zh": "也就是反嵌入從哪裡來，以及如何轉成 token。"
+    },
+    {
+      "start": 142.2,
+      "end": 147.16,
+      "en": "Let me answer this question first where these embeddings vectors come from.",
+      "zh": "先回答反嵌入矩陣從哪裡來。"
+    },
+    {
+      "start": 148,
+      "end": 153.24,
+      "en": "So embeddings matrices can come from one of two sources.",
+      "zh": "反嵌入矩陣，可以有兩種來源。"
+    },
+    {
+      "start": 153.56,
+      "end": 158.88,
+      "en": "They can be trained based on data just like any other set of model weights.",
+      "zh": "可以根據資料訓練，和模型其他權重相同；"
+    },
+    {
+      "start": 159.4,
+      "end": 163.2,
+      "en": "Or they can be copied from the embeddings matrix.",
+      "zh": "也可以從嵌入矩陣複製。"
+    },
+    {
+      "start": 163.64,
+      "end": 166.68,
+      "en": "So let me discuss the trained source first.",
+      "zh": "先談訓練這個來源。"
+    },
+    {
+      "start": 167.12,
+      "end": 173.44,
+      "en": "If the embeddings matrix is trained then it's initialized as random numbers.",
+      "zh": "如果反嵌入矩陣是訓練出來的，先以隨機數初始化。"
+    },
+    {
+      "start": 173.44,
+      "end": 176.87,
+      "en": "And all of those numbers are model parameters.",
+      "zh": "所有數字都是模型參數，"
+    },
+    {
+      "start": 176.87,
+      "end": 185.51,
+      "en": "They are weights that are learned and optimized through gradient descent, just like any other trained parameters in the model.",
+      "zh": "是透過梯度下降學習、最佳化的權重，和模型其他訓練參數相同。"
+    },
+    {
+      "start": 186.15,
+      "end": 193.67,
+      "en": "This is advantageous because it allows for the Unembedding matrix to be optimized for task performance,",
+      "zh": "優點是，能針對任務表現，最佳化反嵌入矩陣，"
+    },
+    {
+      "start": 193.67,
+      "end": 200.43,
+      "en": "which is often expressed as the accuracy with which a model can predict a missing token.",
+      "zh": "通常以模型預測缺少 token 的準確度表示。"
+    },
+    {
+      "start": 200.95,
+      "end": 208.67000000000002,
+      "en": "But it also means a lot of additional parameters to train, and many language model development papers",
+      "zh": "但也意味著，需要訓練大量額外參數。而許多語言模型開發論文，"
+    },
+    {
+      "start": 208.67000000000002,
+      "end": 216.47,
+      "en": "have actually reported that when comparing trained to tied on embeddings matrices, the performance",
+      "zh": "比較獨立訓練與共享權重的反嵌入矩陣後，發現表現"
+    },
+    {
+      "start": 216.47,
+      "end": 223.11,
+      "en": "is not noticeably different, so it's not really clear whether requiring all the extra data and extra",
+      "zh": "沒有明顯不同。因此，多花額外資料與"
+    },
+    {
+      "start": 223.11,
+      "end": 229.43,
+      "en": "computational power to train the Unembedding matrix matrix is really that beneficial.",
+      "zh": "計算能力，訓練反嵌入矩陣，是否真的有益，並不清楚。"
+    },
+    {
+      "start": 229.91,
+      "end": 238.73,
+      "en": "And that leads us to the other source of UN embeddings matrix, which is to tie them to the embeddings matrix.",
+      "zh": "這就帶到另一種來源：與嵌入矩陣共享權重。"
+    },
+    {
+      "start": 239.21,
+      "end": 250.61,
+      "en": "Now, this word tied is a very specific term in deep learning, and it basically just means that the matrix is a copy of another weight matrix somewhere else in the model.",
+      "zh": "這裡的 tied，是深度學習中的特定術語，基本上指矩陣是模型中，另一個權重矩陣的副本。"
+    },
+    {
+      "start": 251.13,
+      "end": 258.21,
+      "en": "In this context, it means that the embeddings matrix is not actually trained or even initialized.",
+      "zh": "這個情境下，反嵌入矩陣其實不另外訓練，甚至不另外初始化，"
+    },
+    {
+      "start": 258.21,
+      "end": 262.17,
+      "en": "It's literally just copied from the embeddings model.",
+      "zh": "而是直接從嵌入矩陣複製。"
+    },
+    {
+      "start": 262.57,
+      "end": 274.49,
+      "en": "Now we do need to transpose the embeddings matrix for reasons that I will explain later in the video, but that's more for linear algebra mechanics than for any actual theoretical reason.",
+      "zh": "不過，必須轉置嵌入矩陣，原因稍後解釋；這比較是線性代數運算的需要，而非理論理由。"
+    },
+    {
+      "start": 275.21,
+      "end": 283.45,
+      "en": "The advantage of using embeddings matrix for the embeddings is that you don't need any additional training,",
+      "zh": "用嵌入矩陣作為反嵌入的好處，是不需要額外訓練，"
+    },
+    {
+      "start": 283.61,
+      "end": 294.27,
+      "en": "which saves both computation time, and it also allows gradient descent to focus more on training the other parameters, for example in the attention heads.",
+      "zh": "節省計算時間，也讓梯度下降更專注訓練其他參數，例如注意力頭。"
+    },
+    {
+      "start": 294.99,
+      "end": 303.15,
+      "en": "On the other hand, it is possible that the transformed embedding space is different from the initial embedding space.",
+      "zh": "另一方面，經過轉換的嵌入空間，可能與初始嵌入空間不同。"
+    },
+    {
+      "start": 303.43,
+      "end": 310.51,
+      "en": "And if that's the case, it would mean that reusing the initial embeddings for the embeddings might",
+      "zh": "若如此，重用初始嵌入來做反嵌入，"
+    },
+    {
+      "start": 310.51,
+      "end": 319.07,
+      "en": "actually be forcing the attention transformed embeddings vectors into a coordinate space that is suboptimal.",
+      "zh": "可能迫使注意力轉換後的嵌入向量，進入不夠理想的座標空間。"
+    },
+    {
+      "start": 320.39,
+      "end": 326.47,
+      "en": "Here is a screenshot from the famous paper about attention in language models.",
+      "zh": "這是那篇著名的語言模型注意力論文截圖。"
+    },
+    {
+      "start": 326.47,
+      "end": 336.87,
+      "en": "We will look more into this paper later on in the course, but I just want to highlight one section and one line about the embeddings matrices.",
+      "zh": "課程後面會深入看，但這裡只想指出，關於嵌入矩陣的一節與一句話。"
+    },
+    {
+      "start": 336.95,
+      "end": 338.07,
+      "en": "So here they write.",
+      "zh": "他們寫道，"
+    },
+    {
+      "start": 338.23,
+      "end": 343.75,
+      "en": "In our model we share the same weight matrix between the two embeddings layers.",
+      "zh": "模型中，兩個嵌入層共享同一個權重矩陣。"
+    },
+    {
+      "start": 343.75,
+      "end": 347.99,
+      "en": "So they're referring to the initial embeddings and the embeddings.",
+      "zh": "指的是初始嵌入與反嵌入。"
+    },
+    {
+      "start": 348.55,
+      "end": 355.93,
+      "en": "So what they write is that they actually used a copy of the embeddings for the embeddings at the end of the model.",
+      "zh": "所以，他們實際使用嵌入矩陣的副本，作為模型末端的反嵌入。"
+    },
+    {
+      "start": 356.69,
+      "end": 358.13,
+      "en": "Okay, enough background.",
+      "zh": "背景就說到這裡。"
+    },
+    {
+      "start": 358.13,
+      "end": 360.09,
+      "en": "Let's start with the exercises.",
+      "zh": "開始練習。"
+    },
+    {
+      "start": 360.89,
+      "end": 370.05,
+      "en": "Exercise one is pretty straightforward and involves a little bit of copying code from previous files, and a little bit of new code.",
+      "zh": "練習一相當直接，部分程式從先前檔案複製，部分則是新的。"
+    },
+    {
+      "start": 370.69,
+      "end": 375.61,
+      "en": "Start by importing the GPT two model and the tokenizer.",
+      "zh": "先匯入 GPT-2 模型與 tokenizer。"
+    },
+    {
+      "start": 376.29,
+      "end": 382.69,
+      "en": "Now, by the way, I've mentioned this before, but just as a reminder, each tokenizer is specific",
+      "zh": "之前提過，再提醒，每個 tokenizer 都對應"
+    },
+    {
+      "start": 382.69,
+      "end": 389.33,
+      "en": "for a model even within the same company, so you cannot use different tokenizers with different models.",
+      "zh": "特定模型，即使同一家公司也一樣，不能混用不同模型的 tokenizer。"
+    },
+    {
+      "start": 389.57,
+      "end": 397.81,
+      "en": "For example, the company OpenAI produces GPT two and GPT four, but they have different tokenizers,",
+      "zh": "例如，OpenAI 開發 GPT-2 與 GPT-4，但兩者 tokenizer 不同，"
+    },
+    {
+      "start": 397.81,
+      "end": 404.05,
+      "en": "and you cannot use the GPT four tokenizer with the GPT two model.",
+      "zh": "不能把 GPT-4 tokenizer 用在 GPT-2 模型。"
+    },
+    {
+      "start": 404.89,
+      "end": 405.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 405.25,
+      "end": 411.8,
+      "en": "Anyway, then you want to extract the embeddings matrix from the model as you've done before.",
+      "zh": "接著，像之前一樣，從模型擷取嵌入矩陣。"
+    },
+    {
+      "start": 412.96,
+      "end": 422.32,
+      "en": "The new part to this exercise is exploring some information about the model that is provided in model config.",
+      "zh": "這題新的部分，是探索 model.config 提供的模型資訊，"
+    },
+    {
+      "start": 422.4,
+      "end": 426.6,
+      "en": "Where model is the name of the variable for the model.",
+      "zh": "model 是模型變數的名稱。"
+    },
+    {
+      "start": 427.04,
+      "end": 431.52,
+      "en": "For example, here I call the model variable GPT two.",
+      "zh": "例如，這裡把模型變數叫作 gpt2，"
+    },
+    {
+      "start": 432,
+      "end": 438.2,
+      "en": "And so GPT two config is going to print out some of this text that you see here.",
+      "zh": "所以，gpt2.config 會印出這裡看到的部分文字。"
+    },
+    {
+      "start": 438.2,
+      "end": 440.88,
+      "en": "There's more information down here that I've cropped.",
+      "zh": "下方還有資訊，我截掉了。"
+    },
+    {
+      "start": 441.36,
+      "end": 445.2,
+      "en": "So there's a lot of information in model config.",
+      "zh": "model.config 有很多資訊。"
+    },
+    {
+      "start": 445.56,
+      "end": 448.52,
+      "en": "Some of that information is not very relevant.",
+      "zh": "有些不太相關，"
+    },
+    {
+      "start": 448.52,
+      "end": 451.64,
+      "en": "Some of it will be relevant later on in the course.",
+      "zh": "有些課程稍後會用到。"
+    },
+    {
+      "start": 451.96,
+      "end": 463.36,
+      "en": "What I want you to do in this exercise is find the data entries in this config information that indicate the embeddings matrix dimensions.",
+      "zh": "這題，要在 config 資訊中，找出表示嵌入矩陣維度的資料項目。"
+    },
+    {
+      "start": 463.92,
+      "end": 468.65999999999997,
+      "en": "When you find those parameters, You can print out the properties like this.",
+      "zh": "找到參數後，可以像這樣印出屬性。"
+    },
+    {
+      "start": 468.94,
+      "end": 477.1,
+      "en": "So you can see that I'm getting GPT two dot config dot something for both of these sizes.",
+      "zh": "可以看到，兩個大小都透過 gpt2.config 後接某個屬性取得。"
+    },
+    {
+      "start": 477.1,
+      "end": 484.22,
+      "en": "And that corresponds to the sizes of the embeddings matrix that I've extracted from the model itself.",
+      "zh": "它們對應從模型本身擷取的嵌入矩陣大小。"
+    },
+    {
+      "start": 485.18,
+      "end": 489.66,
+      "en": "So now you should pause the video switch to code to solve this exercise.",
+      "zh": "現在暫停影片，切換到程式解題。"
+    },
+    {
+      "start": 489.66,
+      "end": 492.18,
+      "en": "And now I will go through my solution.",
+      "zh": "接著，說明我的解法。"
+    },
+    {
+      "start": 493.38,
+      "end": 494.98,
+      "en": "Import some libraries.",
+      "zh": "匯入一些函式庫。"
+    },
+    {
+      "start": 495.14,
+      "end": 498.46,
+      "en": "Import some more stuff here import import import.",
+      "zh": "再匯入更多東西，匯入、匯入、匯入。"
+    },
+    {
+      "start": 498.7,
+      "end": 498.86,
+      "en": "Uh.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 498.86,
+      "end": 504.22,
+      "en": "Here is where I'm extracting the embeddings matrix from the model.",
+      "zh": "這裡從模型擷取嵌入矩陣。"
+    },
+    {
+      "start": 504.26,
+      "end": 509.46,
+      "en": "As a brief reminder this is word token embeddings.",
+      "zh": "簡單複習，這是 word token embeddings。"
+    },
+    {
+      "start": 509.7,
+      "end": 514.78,
+      "en": "And then here is the, uh, what allows me to access the weights matrix.",
+      "zh": "這裡則讓我存取權重矩陣。"
+    },
+    {
+      "start": 514.78,
+      "end": 523.42,
+      "en": "Here I'm detaching the numbers so the numerical values from the gradient information, that's a PyTorch function.",
+      "zh": "這裡，把數值從梯度資訊分離，是 PyTorch 的功能。"
+    },
+    {
+      "start": 523.42,
+      "end": 532.36,
+      "en": "And then here I'm just translating it into numpy, because certainly for this exercise we don't actually need to deal with PyTorch.",
+      "zh": "再轉成 NumPy，因為這個練習其實不需要操作 PyTorch。"
+    },
+    {
+      "start": 532.88,
+      "end": 533.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 533.28,
+      "end": 534.76,
+      "en": "So run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 534.76,
+      "end": 536.92,
+      "en": "Here is GPU config.",
+      "zh": "這是 gpt2.config。"
+    },
+    {
+      "start": 536.92,
+      "end": 539.16,
+      "en": "And here you see lots of information.",
+      "zh": "可以看到很多資訊。"
+    },
+    {
+      "start": 539.52,
+      "end": 545.08,
+      "en": "As I mentioned some of this information we will start using later on in the course.",
+      "zh": "如前所述，有些資訊稍後會用到。"
+    },
+    {
+      "start": 545.44,
+      "end": 550.48,
+      "en": "But for now what you need is config embed.",
+      "zh": "但目前，需要 config 的 n_embd，"
+    },
+    {
+      "start": 550.52,
+      "end": 560.04,
+      "en": "This is the number of embedding dimensions and dot vocab size that corresponds to the number of tokens in the vocab.",
+      "zh": "它是嵌入維度數；vocab_size 則對應詞彙表的 token 數。"
+    },
+    {
+      "start": 560.44,
+      "end": 569.4,
+      "en": "Okay so printing that out and then we see yeah that the uh these two sizes match the size of the embeddings matrix.",
+      "zh": "印出後，這兩個大小確實符合嵌入矩陣的大小。"
+    },
+    {
+      "start": 570.36,
+      "end": 576.64,
+      "en": "Exercise two is short and sweet, but it will set you up for the rest of the exercises.",
+      "zh": "練習二短小簡單，但會為後續練習做準備。"
+    },
+    {
+      "start": 577.16,
+      "end": 580.4,
+      "en": "The goal here is to make two embeddings.",
+      "zh": "目標，是製作兩個反嵌入"
+    },
+    {
+      "start": 580.4,
+      "end": 589.98,
+      "en": "Matrix One is a real embeddings embeddings matrix, and that's just a transposed copy of the embeddings matrix.",
+      "zh": "矩陣。一個是真實的反嵌入矩陣，也就是嵌入矩陣的轉置副本。"
+    },
+    {
+      "start": 590.5,
+      "end": 594.14,
+      "en": "The other one is a random embeddings matrix.",
+      "zh": "另一個，是隨機反嵌入矩陣。"
+    },
+    {
+      "start": 594.14,
+      "end": 600.1,
+      "en": "So literally just random numbers, but the same size as the embeddings matrix.",
+      "zh": "真的就是隨機數，但大小與反嵌入矩陣相同，"
+    },
+    {
+      "start": 600.1,
+      "end": 601.86,
+      "en": "The real embeddings matrix.",
+      "zh": "也就是真實反嵌入矩陣。"
+    },
+    {
+      "start": 602.34,
+      "end": 612.9,
+      "en": "We're going to use both of these matrices in later exercises to see what it looks like when we try to generate text from real versus random embeddings.",
+      "zh": "後面的練習會用這兩個矩陣，比較從真實與隨機反嵌入生成文字的結果。"
+    },
+    {
+      "start": 613.7,
+      "end": 613.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 613.98,
+      "end": 617.66,
+      "en": "I'm sure you won't have too much difficulties with this exercise.",
+      "zh": "相信這題不會太難。"
+    },
+    {
+      "start": 617.78,
+      "end": 619.62,
+      "en": "And now I'll show my solution.",
+      "zh": "現在示範解法，"
+    },
+    {
+      "start": 619.62,
+      "end": 625.22,
+      "en": "And I'll also have a comment about Python variables and copying and transposing.",
+      "zh": "也談談 Python 變數、複製與轉置。"
+    },
+    {
+      "start": 626.54,
+      "end": 632.74,
+      "en": "Here is where I define the embeddings matrix to be a copy of the embeddings matrix.",
+      "zh": "這裡，把反嵌入矩陣定義為嵌入矩陣的副本。"
+    },
+    {
+      "start": 633.1,
+      "end": 644.17,
+      "en": "Now, you might be familiar with the idea in Python that if you just set one variable equal to another, it does not actually create a new copy of the variable.",
+      "zh": "你可能知道，Python 中，把一個變數設成另一個，並不會真正建立新副本。"
+    },
+    {
+      "start": 644.17,
+      "end": 652.25,
+      "en": "Instead, it only makes a new pointer to the same variable to the same information on the disk.",
+      "zh": "只是建立另一個指標，指向相同變數、相同資料。"
+    },
+    {
+      "start": 652.45,
+      "end": 658.81,
+      "en": "So if we did this and just said embeddings equals embeddings, this would mean that if we changed the",
+      "zh": "所以，若直接令反嵌入等於嵌入，就代表修改"
+    },
+    {
+      "start": 659.05,
+      "end": 666.09,
+      "en": "embeddings variable, that would also change the embeddings variable because they're actually one in the same variable.",
+      "zh": "反嵌入變數，也會改到嵌入，因為其實是同一個變數，"
+    },
+    {
+      "start": 666.09,
+      "end": 667.45,
+      "en": "It's just two different names.",
+      "zh": "只是有兩個名稱。"
+    },
+    {
+      "start": 667.89,
+      "end": 671.89,
+      "en": "We can confirm that by using this Python function id.",
+      "zh": "可以用 Python 的 id 函式確認。"
+    },
+    {
+      "start": 672.21,
+      "end": 675.45,
+      "en": "And here the IDs are exactly identical.",
+      "zh": "這裡，ID 完全相同。"
+    },
+    {
+      "start": 675.57,
+      "end": 681.69,
+      "en": "So if you really wanted a copy you would have to explicitly make a copy of this matrix.",
+      "zh": "如果真的想複製，就必須明確建立矩陣副本。"
+    },
+    {
+      "start": 681.69,
+      "end": 683.33,
+      "en": "There's multiple ways to do that.",
+      "zh": "有好幾種做法。"
+    },
+    {
+      "start": 683.93,
+      "end": 692.41,
+      "en": "If this is just a bunch of numbers like a numpy array, an easy way to do that is just to add zero, and then they become unique.",
+      "zh": "若只是 NumPy 陣列這類數值，簡單方法是加 0，兩者就變成獨立物件。"
+    },
+    {
+      "start": 692.41,
+      "end": 694.93,
+      "en": "Then this really is a separate copy.",
+      "zh": "這才是獨立副本，"
+    },
+    {
+      "start": 694.93,
+      "end": 699.15,
+      "en": "So we could manipulate this matrix without affecting this one.",
+      "zh": "可以操作這個矩陣，而不影響另一個。"
+    },
+    {
+      "start": 699.39,
+      "end": 709.99,
+      "en": "Anyway, so the question here is if we transpose, does that actually create a new copy or is this just a new pointer to exactly the same data.",
+      "zh": "那麼，問題是，轉置會真正建立副本，還是只建立指向相同資料的新指標？"
+    },
+    {
+      "start": 710.27,
+      "end": 710.75,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 710.91,
+      "end": 712.35,
+      "en": "So the conclusion there.",
+      "zh": "結論是，"
+    },
+    {
+      "start": 712.55,
+      "end": 719.19,
+      "en": "The upshot is if you transpose, basically if you do anything to this variable, it's going to create a new copy.",
+      "zh": "只要轉置，基本上對變數做任何操作，就會建立新的副本。"
+    },
+    {
+      "start": 719.19,
+      "end": 721.27,
+      "en": "And this is just confirmation of that.",
+      "zh": "這裡就是確認。"
+    },
+    {
+      "start": 721.31,
+      "end": 721.83,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 722.27,
+      "end": 725.03,
+      "en": "So this is the real Unembedding matrix.",
+      "zh": "這是真實反嵌入矩陣，"
+    },
+    {
+      "start": 725.03,
+      "end": 728.03,
+      "en": "Here is the random Unembedding matrix.",
+      "zh": "這是隨機反嵌入矩陣。"
+    },
+    {
+      "start": 728.03,
+      "end": 736.79,
+      "en": "And you can see I'm using the information from GPT two config to define the size of this matrix.",
+      "zh": "可以看到，用 gpt2.config 的資訊，定義矩陣大小。"
+    },
+    {
+      "start": 737.23,
+      "end": 738.07,
+      "en": "So there we go.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 738.07,
+      "end": 743.91,
+      "en": "Now we have a real unembedding matrix and a random unembedding matrix.",
+      "zh": "現在有真實與隨機的反嵌入矩陣。"
+    },
+    {
+      "start": 745.43,
+      "end": 751.71,
+      "en": "Now we're set up for the main part of this exercise which is really working towards exercise five.",
+      "zh": "接著，準備進入主要部分，也就是一路走向練習五，"
+    },
+    {
+      "start": 751.75,
+      "end": 754.71,
+      "en": "That is the pinnacle of this code challenge.",
+      "zh": "那是這個程式挑戰的高峰。"
+    },
+    {
+      "start": 755.19,
+      "end": 760.17,
+      "en": "So I call this exercise exercise three California Embedding.",
+      "zh": "我把練習三叫作 California Embedding。"
+    },
+    {
+      "start": 760.73,
+      "end": 767.45,
+      "en": "For starters, you want to identify and plot the vector for the token space California.",
+      "zh": "首先，找出並畫出空白加 California 這個 token 的向量。"
+    },
+    {
+      "start": 767.97,
+      "end": 770.01,
+      "en": "Actually you can also do this without a space.",
+      "zh": "其實，也可以不加空白，"
+    },
+    {
+      "start": 770.05,
+      "end": 771.25,
+      "en": "It really doesn't matter.",
+      "zh": "沒有差別。"
+    },
+    {
+      "start": 771.49,
+      "end": 771.81,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 771.85,
+      "end": 775.21,
+      "en": "That embeddings vector looks like this.",
+      "zh": "嵌入向量像這樣。"
+    },
+    {
+      "start": 775.21,
+      "end": 779.49,
+      "en": "So here you see the 768 dimensions.",
+      "zh": "這裡是 768 個維度，"
+    },
+    {
+      "start": 779.49,
+      "end": 785.37,
+      "en": "And the y axis shows the weight value or the coordinate along each dimension.",
+      "zh": "y 軸是各維度的權重值，或座標。"
+    },
+    {
+      "start": 785.89,
+      "end": 789.85,
+      "en": "I have color coded the dots according to their distance from zero.",
+      "zh": "我依照各點與 0 的距離著色。"
+    },
+    {
+      "start": 790.29,
+      "end": 791.37,
+      "en": "That's optional.",
+      "zh": "這是可選的。"
+    },
+    {
+      "start": 791.37,
+      "end": 794.33,
+      "en": "If you're struggling with the coloring then don't worry about it.",
+      "zh": "如果卡在顏色設定，不用擔心。"
+    },
+    {
+      "start": 794.81,
+      "end": 801.65,
+      "en": "So it is kind of interesting to see that there is one dimension that has a really large negative weight for this token.",
+      "zh": "有趣的是，這個 token 有一個維度，權重是很大的負值。"
+    },
+    {
+      "start": 802.13,
+      "end": 807.77,
+      "en": "I don't know what that means, but if you're curious, you could look for other tokens that have a really",
+      "zh": "我不知道代表什麼，但如果好奇，可以找其他 token，看看是否也在"
+    },
+    {
+      "start": 807.77,
+      "end": 814.37,
+      "en": "large negative value on this same dimension and see if there's any obvious connection.",
+      "zh": "同一維度有很大負值，以及有沒有明顯關聯。"
+    },
+    {
+      "start": 814.71,
+      "end": 817.27,
+      "en": "But anyway, that is not part of this exercise.",
+      "zh": "不過，這不是練習的一部分，"
+    },
+    {
+      "start": 817.27,
+      "end": 819.31,
+      "en": "That's just something additional you could do.",
+      "zh": "只是可以額外做的事，"
+    },
+    {
+      "start": 819.31,
+      "end": 820.19,
+      "en": "If you're curious.",
+      "zh": "如果你有興趣。"
+    },
+    {
+      "start": 820.47,
+      "end": 827.07,
+      "en": "What you want to do for this exercise is calculate the dot product between this vector.",
+      "zh": "這個練習要算，這個向量，"
+    },
+    {
+      "start": 827.07,
+      "end": 834.27,
+      "en": "So the embedding vector for California space California and the embeddings vectors.",
+      "zh": "也就是空白加 California 的嵌入，與反嵌入向量的內積。"
+    },
+    {
+      "start": 834.51,
+      "end": 843.83,
+      "en": "So this is not the same as calculating cosine similarity between one embeddings vector and all the other embeddings vectors.",
+      "zh": "這和計算一個嵌入向量，與其他所有嵌入向量的餘弦相似度，不是一回事。"
+    },
+    {
+      "start": 844.27,
+      "end": 851.95,
+      "en": "We are now calculating the dot product between an embeddings vector and the embeddings vectors from all the tokens.",
+      "zh": "現在，計算的是一個嵌入向量，與所有 token 的反嵌入向量的內積。"
+    },
+    {
+      "start": 852.51,
+      "end": 860.83,
+      "en": "Now of course, in the special case of where the embeddings matrix is copied from the embeddings matrix, then it is the same.",
+      "zh": "當反嵌入矩陣由嵌入矩陣複製時，是個特殊情況，兩者會一樣。"
+    },
+    {
+      "start": 860.83,
+      "end": 869.71,
+      "en": "But when the embeddings are different from the embeddings, then this is not cosine similarity analysis as we've done in previous videos.",
+      "zh": "但反嵌入與嵌入不同時，就不是前幾支影片那種相似度分析。"
+    },
+    {
+      "start": 870.99,
+      "end": 875.94,
+      "en": "Furthermore, you're not actually calculating cosine similarity here, just the dot product.",
+      "zh": "而且，這裡其實沒有計算餘弦相似度，只有內積。"
+    },
+    {
+      "start": 876.22,
+      "end": 881.74,
+      "en": "Of course that is the numerator of cosine similarity, but it's still not what we're doing here.",
+      "zh": "當然，內積是餘弦相似度的分子，但仍然不是同一回事。"
+    },
+    {
+      "start": 882.06,
+      "end": 887.98,
+      "en": "Anyway, this operation can be done using matrix multiplication.",
+      "zh": "這個操作可以用矩陣乘法完成。"
+    },
+    {
+      "start": 887.98,
+      "end": 894.14,
+      "en": "So vector matrix multiplication where I've printed out the sizes and it would look something like this.",
+      "zh": "也就是向量乘矩陣；這裡印出大小，像這樣。"
+    },
+    {
+      "start": 894.14,
+      "end": 900.14,
+      "en": "So the embedding vector for this token is 768.",
+      "zh": "這個 token 的嵌入向量，大小為 768。"
+    },
+    {
+      "start": 900.38,
+      "end": 905.02,
+      "en": "The embeddings matrix is 768 by 50,000.",
+      "zh": "反嵌入矩陣，是 768 乘以約 50,000。"
+    },
+    {
+      "start": 905.42,
+      "end": 916.46,
+      "en": "And so the resulting vector of dot products from this vector matrix multiplication will be of size 50,257.",
+      "zh": "所以，相乘得到的內積向量，大小是 50,257。"
+    },
+    {
+      "start": 916.74,
+      "end": 920.94,
+      "en": "And of course that corresponds to the number of tokens.",
+      "zh": "當然，對應 token 總數。"
+    },
+    {
+      "start": 921.38,
+      "end": 926.86,
+      "en": "So then what you do is find the largest dot product from this vector.",
+      "zh": "接著，找向量中最大的內積，"
+    },
+    {
+      "start": 926.86,
+      "end": 934.56,
+      "en": "So the largest number in this vector and whatever element of this vector has the largest dot product,",
+      "zh": "也就是最大數字；向量中哪個元素的內積最大，"
+    },
+    {
+      "start": 934.96,
+      "end": 941.8,
+      "en": "that is, the index of the token that you want to transform back into text and then print out.",
+      "zh": "它就是要轉回文字、再印出的 token 索引。"
+    },
+    {
+      "start": 943,
+      "end": 943.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 943.32,
+      "end": 949.96,
+      "en": "So this whole procedure that I've just described to you, you do twice, once with the real embeddings",
+      "zh": "整個流程做兩次，一次用真實反嵌入"
+    },
+    {
+      "start": 949.96,
+      "end": 956.84,
+      "en": "matrix, and once again with the random embeddings matrix that you created in exercise two.",
+      "zh": "矩陣，再一次用練習二建立的隨機反嵌入矩陣。"
+    },
+    {
+      "start": 957.48,
+      "end": 959.36,
+      "en": "And it will look something like this.",
+      "zh": "結果會像這樣。"
+    },
+    {
+      "start": 959.44,
+      "end": 968.52,
+      "en": "So with the random embeddings matrix, this token space California has the largest dot product with token redacted.",
+      "zh": "使用隨機反嵌入時，空白加 California，與這個遮住的 token，有最大內積。"
+    },
+    {
+      "start": 968.56,
+      "end": 970.76,
+      "en": "You have to see what this ends up being for you.",
+      "zh": "你得自己看看結果是什麼。"
+    },
+    {
+      "start": 971.12,
+      "end": 975.76,
+      "en": "And in the real embeddings matrix then it's going to be some other token here.",
+      "zh": "真實反嵌入矩陣中，則會是這裡另一個 token。"
+    },
+    {
+      "start": 976.44,
+      "end": 985.2,
+      "en": "And finally for this exercise, make a plot of all the dot products and indicate which one had a maximum",
+      "zh": "最後，畫出全部內積，標出真實反嵌入與"
+    },
+    {
+      "start": 985.52,
+      "end": 990.46,
+      "en": "for the real unembedding and the random un embeddings.",
+      "zh": "隨機反嵌入，各自最大的位置。"
+    },
+    {
+      "start": 990.46,
+      "end": 998.74,
+      "en": "Now your real results should look like mine, with the maximum projection in the same position, but",
+      "zh": "真實結果應該與我的相同，最大投影在同一位置；"
+    },
+    {
+      "start": 998.78,
+      "end": 1004.5,
+      "en": "your random dot products won't look like mine because, well, of course they're all random numbers.",
+      "zh": "隨機內積則不會相同，因為當然都是隨機數。"
+    },
+    {
+      "start": 1005.22,
+      "end": 1009.42,
+      "en": "Okay, so pause the video and get to work generating new text.",
+      "zh": "現在暫停影片，開始產生新文字。"
+    },
+    {
+      "start": 1009.58,
+      "end": 1014.66,
+      "en": "And now I'll show my solution and discuss some of the observations that we can make.",
+      "zh": "接著展示解法，並討論可以觀察到什麼。"
+    },
+    {
+      "start": 1015.34,
+      "end": 1019.34,
+      "en": "So here is the seed word that I have defined.",
+      "zh": "這是我定義的種子字，"
+    },
+    {
+      "start": 1019.5,
+      "end": 1021.7,
+      "en": "And I get its token index.",
+      "zh": "取得它的 token 索引。"
+    },
+    {
+      "start": 1021.82,
+      "end": 1027.06,
+      "en": "And well here I'm just making sure that it is actually one single index.",
+      "zh": "這裡確認，真的只有一個索引。"
+    },
+    {
+      "start": 1027.06,
+      "end": 1029.74,
+      "en": "We're not going to deal with multi token words here.",
+      "zh": "暫時不處理多 token 單字。"
+    },
+    {
+      "start": 1029.74,
+      "end": 1036.74,
+      "en": "So for example if you wrote California is nice then you know this is great for later on in the course.",
+      "zh": "例如，如果寫 California is nice，之後課程可以這樣做，"
+    },
+    {
+      "start": 1036.9,
+      "end": 1041.62,
+      "en": "But for now we only want words or tokens that can be.",
+      "zh": "但目前只要單字或 token，"
+    },
+    {
+      "start": 1041.82,
+      "end": 1044.86,
+      "en": "Yeah words that can be represented by single tokens.",
+      "zh": "也就是能用單一 token 表示的單字。"
+    },
+    {
+      "start": 1045.5,
+      "end": 1049.68,
+      "en": "Okay here I get its embeddings vector and then I'm plotting it.",
+      "zh": "這裡取得嵌入向量，再繪圖。"
+    },
+    {
+      "start": 1049.68,
+      "end": 1051.36,
+      "en": "Nothing super fancy there.",
+      "zh": "沒有太複雜的地方。"
+    },
+    {
+      "start": 1051.68,
+      "end": 1056.4,
+      "en": "You can see in this line of code this is where I specify the color of each dot.",
+      "zh": "這行程式，指定每個點的顏色。"
+    },
+    {
+      "start": 1056.68,
+      "end": 1061.64,
+      "en": "And I'm simply defining that to be the absolute value of the embeddings vector.",
+      "zh": "直接定義為嵌入向量的絕對值。"
+    },
+    {
+      "start": 1062.04,
+      "end": 1064.88,
+      "en": "So and then here I'm defining the color map.",
+      "zh": "這裡定義色彩圖，"
+    },
+    {
+      "start": 1064.88,
+      "end": 1066.04,
+      "en": "This is red purple.",
+      "zh": "是紅紫色。"
+    },
+    {
+      "start": 1066.4,
+      "end": 1071.4,
+      "en": "So the closer these values are to zero the more white they will be.",
+      "zh": "數值越接近 0，越白；"
+    },
+    {
+      "start": 1071.44,
+      "end": 1077.88,
+      "en": "And then as they get further away they will go pink to red to purple okay.",
+      "zh": "越遠，則從粉紅到紅，再到紫色。"
+    },
+    {
+      "start": 1078.24,
+      "end": 1087.52,
+      "en": "And then here is where I'm calculating the dot product of the the embeddings vector for space California",
+      "zh": "這裡計算空白加 California 的嵌入向量，"
+    },
+    {
+      "start": 1087.84,
+      "end": 1090.64,
+      "en": "with the matrix for the embeddings.",
+      "zh": "與反嵌入矩陣的內積。"
+    },
+    {
+      "start": 1091,
+      "end": 1093.96,
+      "en": "And this is the random one in this code cell okay.",
+      "zh": "這個區塊，使用隨機矩陣。"
+    },
+    {
+      "start": 1094,
+      "end": 1096.28,
+      "en": "And then here I'm getting the maximum.",
+      "zh": "接著，找最大值。"
+    },
+    {
+      "start": 1096.52,
+      "end": 1104.44,
+      "en": "So the dot product between this embeddings vector and all of the embeddings vectors that is a vector",
+      "zh": "嵌入向量與全部反嵌入向量的內積，會得到一個向量，"
+    },
+    {
+      "start": 1104.44,
+      "end": 1108.62,
+      "en": "called for dot product with random embeddings.",
+      "zh": "稱為與隨機反嵌入的內積。"
+    },
+    {
+      "start": 1108.98,
+      "end": 1111.1,
+      "en": "And then I'm finding the argmax.",
+      "zh": "再取 argmax，"
+    },
+    {
+      "start": 1111.1,
+      "end": 1115.9,
+      "en": "So that is the index at which this has a maximum.",
+      "zh": "也就是最大值所在的索引。"
+    },
+    {
+      "start": 1116.26,
+      "end": 1119.18,
+      "en": "And then that is then decoded.",
+      "zh": "接著，解碼，"
+    },
+    {
+      "start": 1119.54,
+      "end": 1124.7,
+      "en": "And then yeah that I'm going to turn into a piece of text with the decoding.",
+      "zh": "轉成一段文字，"
+    },
+    {
+      "start": 1124.7,
+      "end": 1129.34,
+      "en": "And then I'm going to display that below here this code here.",
+      "zh": "再顯示在下方。這段程式，"
+    },
+    {
+      "start": 1129.34,
+      "end": 1132.14,
+      "en": "So yeah this is just printing out the sizes here.",
+      "zh": "只是印出大小。"
+    },
+    {
+      "start": 1132.5,
+      "end": 1136.86,
+      "en": "Uh this code here does exactly the same as these three lines.",
+      "zh": "這段程式，和這三行完全相同。"
+    },
+    {
+      "start": 1137.02,
+      "end": 1139.94,
+      "en": "But this is with the random embeddings matrix.",
+      "zh": "這裡是隨機反嵌入矩陣。"
+    },
+    {
+      "start": 1140.22,
+      "end": 1145.66,
+      "en": "This is starting from the same, uh, seed embedding vector.",
+      "zh": "另一部分，從相同種子嵌入向量開始，"
+    },
+    {
+      "start": 1145.9,
+      "end": 1150.54,
+      "en": "Uh, but going through the real uh embeddings matrix instead of the random one.",
+      "zh": "但經過真實反嵌入矩陣，而不是隨機矩陣。"
+    },
+    {
+      "start": 1151.06,
+      "end": 1151.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1151.34,
+      "end": 1154.02,
+      "en": "And then here is where I print out the results.",
+      "zh": "這裡印出結果。"
+    },
+    {
+      "start": 1154.02,
+      "end": 1162.98,
+      "en": "So uh, with the random embeddings matrix I get California leads to before and with the real embeddings",
+      "zh": "隨機矩陣中，California 接到 before；真實反嵌入"
+    },
+    {
+      "start": 1163.13,
+      "end": 1166.13,
+      "en": "matrix I get California leads to California.",
+      "zh": "矩陣中，California 接到 California。"
+    },
+    {
+      "start": 1166.17,
+      "end": 1169.01,
+      "en": "Now these are actually not the same token, right?",
+      "zh": "不過，這其實不是相同 token。"
+    },
+    {
+      "start": 1169.05,
+      "end": 1171.77,
+      "en": "This is space California.",
+      "zh": "這個是空白加 California，"
+    },
+    {
+      "start": 1171.97,
+      "end": 1174.77,
+      "en": "And this is no space California.",
+      "zh": "這個則是沒有空白的 California。"
+    },
+    {
+      "start": 1174.89,
+      "end": 1180.77,
+      "en": "So to us humans, they you know, these appear to be exactly the same, but they're technically different.",
+      "zh": "人類看來，它們完全相同，但技術上不同，"
+    },
+    {
+      "start": 1180.77,
+      "end": 1190.73,
+      "en": "They have different tokens, uh, and they, you know, the GPT model is going to learn at least slightly different, uh, information about these two tokens.",
+      "zh": "有不同 token，GPT 模型也會為它們學到至少稍微不同的資訊。"
+    },
+    {
+      "start": 1191.37,
+      "end": 1191.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1191.69,
+      "end": 1195.49,
+      "en": "And then here is where I generate the plot.",
+      "zh": "這裡產生圖。"
+    },
+    {
+      "start": 1196.33,
+      "end": 1205.89,
+      "en": "Now, one interesting observation here that I would like to make is that the dot products for the random embeddings matrix have both signs.",
+      "zh": "一個有趣的觀察，是隨機反嵌入矩陣的內積，有正有負。"
+    },
+    {
+      "start": 1205.89,
+      "end": 1211.69,
+      "en": "They are roughly, you know, looks fairly normally evenly distributed around zero.",
+      "zh": "看起來大致以 0 為中心、均勻地呈常態分布。"
+    },
+    {
+      "start": 1211.97,
+      "end": 1216.05,
+      "en": "So we get negative dot products, we get positive dot products and so on.",
+      "zh": "所以，有負內積，也有正內積等等。"
+    },
+    {
+      "start": 1216.53,
+      "end": 1222.87,
+      "en": "But when we use the real embeddings matrix notice that we're not getting any negative values here.",
+      "zh": "但使用真實反嵌入矩陣時，注意，這裡沒有任何負值，"
+    },
+    {
+      "start": 1222.87,
+      "end": 1224.75,
+      "en": "They're all positive values.",
+      "zh": "全部為正。"
+    },
+    {
+      "start": 1224.75,
+      "end": 1228.59,
+      "en": "And there's also more extreme values here, right.",
+      "zh": "也有比較極端的值，對吧？"
+    },
+    {
+      "start": 1228.63,
+      "end": 1233.07,
+      "en": "We can consider these to be outliers, relatively large values.",
+      "zh": "可以視為離群值，相對很大的值。"
+    },
+    {
+      "start": 1233.11,
+      "end": 1237.71,
+      "en": "Whereas here with the random unembedding matrix we don't really see.",
+      "zh": "隨機反嵌入矩陣，則不太看得到，"
+    },
+    {
+      "start": 1237.75,
+      "end": 1246.87,
+      "en": "You know, there is of course a maximum by definition, but we don't really see a lot of extreme values that are popping out of the distribution.",
+      "zh": "當然，定義上一定有最大值，但沒有很多特別突出的極端值。"
+    },
+    {
+      "start": 1246.99,
+      "end": 1247.55,
+      "en": "Like here.",
+      "zh": "像這裡，"
+    },
+    {
+      "start": 1247.55,
+      "end": 1251.91,
+      "en": "There's a couple of values that are really popping out of the distribution.",
+      "zh": "有幾個值，明顯突出於整個分布。"
+    },
+    {
+      "start": 1252.91,
+      "end": 1263.39,
+      "en": "Exercise four doesn't require a huge amount of work, but the next exercise is basically a combination of exercise three and this one.",
+      "zh": "練習四不需要很多工作，但下一題基本上是練習三與這題的組合。"
+    },
+    {
+      "start": 1263.83,
+      "end": 1265.43,
+      "en": "So this one is important.",
+      "zh": "所以，這題很重要。"
+    },
+    {
+      "start": 1265.71,
+      "end": 1271.67,
+      "en": "All you have to do is find the top ten Unembedding tokens.",
+      "zh": "只要找出前十個反嵌入 token，"
+    },
+    {
+      "start": 1271.87,
+      "end": 1282.53,
+      "en": "So basically you just identify the ten largest dot products from the previous Exercise and then print out their corresponding tokens.",
+      "zh": "也就是找出上一題最大的十個內積，印出對應 token。"
+    },
+    {
+      "start": 1282.69,
+      "end": 1285.49,
+      "en": "You can just do this for the real embeddings matrix.",
+      "zh": "只需要對真實反嵌入矩陣做，"
+    },
+    {
+      "start": 1285.49,
+      "end": 1289.97,
+      "en": "You don't need to worry about this for the random matrix for this exercise.",
+      "zh": "這題不必考慮隨機矩陣。"
+    },
+    {
+      "start": 1291.41,
+      "end": 1292.73,
+      "en": "So pretty straightforward.",
+      "zh": "相當直接。"
+    },
+    {
+      "start": 1292.73,
+      "end": 1295.13,
+      "en": "And now I will walk through my solution.",
+      "zh": "現在逐步說明解法。"
+    },
+    {
+      "start": 1296.25,
+      "end": 1299.45,
+      "en": "This kind of code you've seen multiple times before.",
+      "zh": "這種程式，已經看過好幾次。"
+    },
+    {
+      "start": 1299.57,
+      "end": 1306.93,
+      "en": "Here I'm using Argsort to sort the dot products with the real embeddings matrix.",
+      "zh": "用 argsort，排序與真實反嵌入矩陣的內積。"
+    },
+    {
+      "start": 1307.21,
+      "end": 1313.65,
+      "en": "And then here I'm getting the for the first ten when I flip this vector.",
+      "zh": "再把向量反轉，取前十個。"
+    },
+    {
+      "start": 1313.65,
+      "end": 1317.33,
+      "en": "So I resort the sorting indices over here.",
+      "zh": "也就是把這裡的排序索引重新反向排列。"
+    },
+    {
+      "start": 1317.37,
+      "end": 1317.57,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1317.61,
+      "end": 1323.37,
+      "en": "And then I'm just printing them out along with the uh with the decoded um token.",
+      "zh": "再把它們，連同解碼後的 token，一起印出。"
+    },
+    {
+      "start": 1323.41,
+      "end": 1323.73,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1323.77,
+      "end": 1326.01,
+      "en": "So that is pretty interesting to see.",
+      "zh": "結果很有意思。"
+    },
+    {
+      "start": 1326.25,
+      "end": 1332.33,
+      "en": "We see the maximum dot product is California that you already saw in the previous exercise.",
+      "zh": "最大內積對應 California，上一題已經看到。"
+    },
+    {
+      "start": 1333.53,
+      "end": 1337.09,
+      "en": "The next largest is space California.",
+      "zh": "下一個，是空白加 California。"
+    },
+    {
+      "start": 1337.09,
+      "end": 1339.15,
+      "en": "And then we have space California.",
+      "zh": "接著，是空白加 California 的另一種形式，"
+    },
+    {
+      "start": 1339.35,
+      "end": 1344.59,
+      "en": "Caliph, space Caliph, and then some other US states, also without spaces.",
+      "zh": "還有 Calif、空白加 Calif，以及其他美國州名，有些也不帶空白。"
+    },
+    {
+      "start": 1344.59,
+      "end": 1347.75,
+      "en": "So Nevada has the space, but these other ones don't have spaces in here.",
+      "zh": "Nevada 帶空白，其他這幾個則沒有。"
+    },
+    {
+      "start": 1348.51,
+      "end": 1356.59,
+      "en": "Now, it might be surprising to you that the top dot product is not the self dot product.",
+      "zh": "也許你會意外，最大內積並不是與自己的內積。"
+    },
+    {
+      "start": 1356.59,
+      "end": 1363.11,
+      "en": "In other words, Space California does not have the largest dot product with Space California.",
+      "zh": "換句話說，空白加 California 與空白加 California 的內積，不是最大。"
+    },
+    {
+      "start": 1363.35,
+      "end": 1370.15,
+      "en": "Instead, it has the largest dot product with no space California, which is technically a different token.",
+      "zh": "最大的是與沒有空白的 California 的內積，它在技術上是不同 token。"
+    },
+    {
+      "start": 1370.19,
+      "end": 1372.47,
+      "en": "Obviously, those are going to be highly related.",
+      "zh": "顯然，它們高度相關。"
+    },
+    {
+      "start": 1372.87,
+      "end": 1382.51,
+      "en": "In fact, if you like, you can plot the embeddings vectors for California with no space and California with a space.",
+      "zh": "如果願意，可以畫出有無前導空白的 California 嵌入向量。"
+    },
+    {
+      "start": 1382.63,
+      "end": 1385.79,
+      "en": "My guess is they correlate super duper strongly.",
+      "zh": "我猜，相關會非常強。"
+    },
+    {
+      "start": 1386.83,
+      "end": 1392.43,
+      "en": "But anyway, one thing to keep in mind is that what we are doing here is just a dot product.",
+      "zh": "但記得，這裡只算內積，"
+    },
+    {
+      "start": 1392.43,
+      "end": 1394.71,
+      "en": "This is not cosine similarity.",
+      "zh": "不是餘弦相似度。"
+    },
+    {
+      "start": 1395.03,
+      "end": 1398.38,
+      "en": "That's also obvious from the numerical values.",
+      "zh": "從數值也很明顯，"
+    },
+    {
+      "start": 1398.38,
+      "end": 1403.22,
+      "en": "They're much greater than one, whereas cosine similarity cannot be greater than one.",
+      "zh": "它們遠大於 1，但餘弦相似度不可能超過 1。"
+    },
+    {
+      "start": 1403.58,
+      "end": 1404.7,
+      "en": "So what does this mean?",
+      "zh": "代表什麼？"
+    },
+    {
+      "start": 1404.7,
+      "end": 1415.62,
+      "en": "What does it mean that the dot product of California with, uh, California without a space is actually larger than itself?",
+      "zh": "California 與不帶空白 California 的內積，比與自己還大，代表什麼？"
+    },
+    {
+      "start": 1416.02,
+      "end": 1425.3,
+      "en": "Basically, what that means is that the denominator is having an impact on the cosine similarity that is left out here, that is ignored here.",
+      "zh": "基本上，代表餘弦相似度的分母會有影響，但這裡省略、忽略了。"
+    },
+    {
+      "start": 1425.82,
+      "end": 1436.38,
+      "en": "So, uh, and basically what that means is that this token for California with no space is actually further away from the origin of the embedding space.",
+      "zh": "也就是，沒有空白的 California token，在嵌入空間中離原點更遠。"
+    },
+    {
+      "start": 1436.38,
+      "end": 1438.18,
+      "en": "That vector is longer.",
+      "zh": "向量更長，"
+    },
+    {
+      "start": 1438.34,
+      "end": 1443.02,
+      "en": "The numerical values in the embedding vector are larger.",
+      "zh": "嵌入向量中的數值較大。"
+    },
+    {
+      "start": 1443.14,
+      "end": 1450.38,
+      "en": "And that's why this unscaled dot product is is can be allowed to be bigger.",
+      "zh": "所以，這種未縮放的內積，可以更大。"
+    },
+    {
+      "start": 1450.66,
+      "end": 1459.36,
+      "en": "That's something interesting to keep in mind that will be relevant when we get to generating real text in full models.",
+      "zh": "這點值得記住，之後完整模型生成真實文字時，會有關係。"
+    },
+    {
+      "start": 1459.36,
+      "end": 1465.72,
+      "en": "So we're not always choosing tokens based on the scaled version of the dot product.",
+      "zh": "不是永遠依照縮放後的內積選 token。"
+    },
+    {
+      "start": 1465.72,
+      "end": 1473.56,
+      "en": "We want to allow differences in the sizes of the embeddings vectors to change throughout the course",
+      "zh": "希望允許嵌入向量的大小，在模型處理過程中"
+    },
+    {
+      "start": 1473.56,
+      "end": 1480.36,
+      "en": "of the model processing, and that will actually introduce a bias, but it's a bias that we want to",
+      "zh": "變化；這會引入偏差，但這是我們希望納入的偏差，"
+    },
+    {
+      "start": 1480.4,
+      "end": 1485.76,
+      "en": "include to for selecting different tokens during text generation.",
+      "zh": "用來在文字生成時，選擇不同 token。"
+    },
+    {
+      "start": 1486.92,
+      "end": 1492.4,
+      "en": "All the previous exercises were really just building up to this exercise.",
+      "zh": "前面所有練習，都是為這題做準備。"
+    },
+    {
+      "start": 1493,
+      "end": 1501.64,
+      "en": "So the the goal of this exercise is to generate a token sequence by looping through the process of tokenizing,",
+      "zh": "目標是反覆進行斷詞、"
+    },
+    {
+      "start": 1501.68,
+      "end": 1505.12,
+      "en": "embedding, unembedding and picking a new token.",
+      "zh": "嵌入、反嵌入與選取新 token，產生 token 序列。"
+    },
+    {
+      "start": 1505.88,
+      "end": 1509.88,
+      "en": "In particular, you want to start with a seed token.",
+      "zh": "具體而言，從種子 token 開始。"
+    },
+    {
+      "start": 1509.88,
+      "end": 1512.06,
+      "en": "I suppose we could call that step zero.",
+      "zh": "可以叫它步驟零。"
+    },
+    {
+      "start": 1512.06,
+      "end": 1515.22,
+      "en": "So pick a seed token to start the process.",
+      "zh": "選一個種子 token，啟動流程。"
+    },
+    {
+      "start": 1515.62,
+      "end": 1519.94,
+      "en": "You can pick California or your name or a random token.",
+      "zh": "可以是 California、你的名字，或隨機 token，"
+    },
+    {
+      "start": 1519.94,
+      "end": 1521.26,
+      "en": "It doesn't actually matter.",
+      "zh": "其實不重要。"
+    },
+    {
+      "start": 1521.42,
+      "end": 1524.38,
+      "en": "So tokenize that initial seed token.",
+      "zh": "將初始種子斷詞，"
+    },
+    {
+      "start": 1524.78,
+      "end": 1527.02,
+      "en": "Get its embedding vector.",
+      "zh": "取得嵌入向量，"
+    },
+    {
+      "start": 1527.46,
+      "end": 1532.54,
+      "en": "Calculate the dot product with all of the embeddings vectors.",
+      "zh": "計算與所有反嵌入向量的內積，"
+    },
+    {
+      "start": 1533.14,
+      "end": 1536.02,
+      "en": "Find the top ten dot products.",
+      "zh": "找出前十個內積。"
+    },
+    {
+      "start": 1536.58,
+      "end": 1539.02,
+      "en": "And now all of these steps one through four.",
+      "zh": "這些步驟一到四，"
+    },
+    {
+      "start": 1539.06,
+      "end": 1542.78,
+      "en": "This is all stuff you've done in previous exercises.",
+      "zh": "都是前面練習做過的。"
+    },
+    {
+      "start": 1543.42,
+      "end": 1545.58,
+      "en": "So so far up to step four.",
+      "zh": "所以，到步驟四為止，"
+    },
+    {
+      "start": 1545.62,
+      "end": 1553.38,
+      "en": "All you need to do is find the relevant code from previous exercises and then paste that into a new code cell.",
+      "zh": "只要找出先前相關程式，再貼進新區塊即可。"
+    },
+    {
+      "start": 1553.9,
+      "end": 1555.58,
+      "en": "Then we get to step five.",
+      "zh": "接著，步驟五，"
+    },
+    {
+      "start": 1555.62,
+      "end": 1560.82,
+      "en": "That is to randomly pick one of these ten tokens.",
+      "zh": "隨機挑選這十個 token 的其中一個。"
+    },
+    {
+      "start": 1561.3,
+      "end": 1563.38,
+      "en": "It doesn't need to be the largest one.",
+      "zh": "不一定要選最大的。"
+    },
+    {
+      "start": 1563.38,
+      "end": 1571.76,
+      "en": "You're already picking a random token from this set of the largest top ten dot products out of 50,000.",
+      "zh": "已經是從約 5 萬個內積，挑出最大的前十個，再從中隨機選。"
+    },
+    {
+      "start": 1572.16,
+      "end": 1581.24,
+      "en": "Okay, so once you randomly pick one of these ten, then you append that new token to a text that you are building up.",
+      "zh": "選到之後，把新 token 加入正在建立的文字。"
+    },
+    {
+      "start": 1582.12,
+      "end": 1582.56,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1582.92,
+      "end": 1587.04,
+      "en": "So you can see we are building up a text one token at a time.",
+      "zh": "可以看到，正一次一個 token，逐步建立文字。"
+    },
+    {
+      "start": 1587.72,
+      "end": 1598.4,
+      "en": "Uh, after you've gone through this whole procedure once, then you repeat all six of these steps however many times you like, for however many tokens you want in your text.",
+      "zh": "完整流程做過一次後，再重複這六個步驟，次數取決於希望文字有多少 token。"
+    },
+    {
+      "start": 1598.92,
+      "end": 1601.2,
+      "en": "In my code, I did this ten times.",
+      "zh": "我的程式做十次，"
+    },
+    {
+      "start": 1601.2,
+      "end": 1603.2,
+      "en": "So you can also do it ten times.",
+      "zh": "你也可以做十次。"
+    },
+    {
+      "start": 1603.92,
+      "end": 1608.8,
+      "en": "Okay, so yeah, pick an initial seed token to start the text.",
+      "zh": "選初始種子，作為文字開頭。"
+    },
+    {
+      "start": 1609,
+      "end": 1612.72,
+      "en": "I chose my initial seed token to be the word budget.",
+      "zh": "我選的是 budget，預算。"
+    },
+    {
+      "start": 1613.28,
+      "end": 1617.64,
+      "en": "I don't remember what I was thinking about when I initially wrote this exercise.",
+      "zh": "不記得最初設計練習時，在想什麼。"
+    },
+    {
+      "start": 1617.92,
+      "end": 1621.72,
+      "en": "Maybe I was looking at my bank statement or reading the news or something.",
+      "zh": "也許正在看銀行對帳單，或讀新聞。"
+    },
+    {
+      "start": 1622.08,
+      "end": 1631.31,
+      "en": "Anyway, uh, then generate a sequence of ten tokens and then print out a very philosophically meaningful text that arises.",
+      "zh": "總之，產生十個 token 的序列，再印出其中富有哲理的文字。"
+    },
+    {
+      "start": 1631.75,
+      "end": 1643.67,
+      "en": "So I'd like you to run through this whole procedure twice, once with the real unembedding matrix, and then again with the the random unembedding matrix.",
+      "zh": "整個流程做兩次，一次用真實反嵌入矩陣，一次用隨機矩陣。"
+    },
+    {
+      "start": 1644.87,
+      "end": 1647.91,
+      "en": "This is a fun exercise and I hope you enjoy it.",
+      "zh": "這是有趣的練習，希望你喜歡。"
+    },
+    {
+      "start": 1648.71,
+      "end": 1653.23,
+      "en": "Here I define the sequence length and the initial seed word.",
+      "zh": "這裡定義序列長度，以及初始種子字。"
+    },
+    {
+      "start": 1653.27,
+      "end": 1656.03,
+      "en": "Now I'm calling this variable next word.",
+      "zh": "我把變數叫 next word，"
+    },
+    {
+      "start": 1656.03,
+      "end": 1659.27,
+      "en": "And that's because I'm going to start replacing it in the future.",
+      "zh": "因為之後會持續取代它。"
+    },
+    {
+      "start": 1659.71,
+      "end": 1660.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1660.11,
+      "end": 1662.35,
+      "en": "So yeah initialize a text.",
+      "zh": "先初始化文字。"
+    },
+    {
+      "start": 1662.39,
+      "end": 1666.15,
+      "en": "Now I'm looping over sequence length minus one.",
+      "zh": "迴圈執行序列長度減 1 次。"
+    },
+    {
+      "start": 1666.19,
+      "end": 1671.67,
+      "en": "And that's because the way that I'm thinking about this, it's going to be ten tokens in total.",
+      "zh": "因為我的想法，是總共十個 token。"
+    },
+    {
+      "start": 1671.91,
+      "end": 1674.35,
+      "en": "So this is already the first token.",
+      "zh": "這裡已經有第一個，"
+    },
+    {
+      "start": 1674.35,
+      "end": 1679.35,
+      "en": "So therefore we're going to sit inside this for loop another nine times.",
+      "zh": "所以，for 迴圈再做九次。"
+    },
+    {
+      "start": 1679.35,
+      "end": 1682.67,
+      "en": "But you can also think of it as ten new tokens.",
+      "zh": "你也可以想成再產生十個新 token，"
+    },
+    {
+      "start": 1682.67,
+      "end": 1684.27,
+      "en": "Anyway that doesn't matter.",
+      "zh": "總之，沒有關係。"
+    },
+    {
+      "start": 1684.87,
+      "end": 1686.49,
+      "en": "Okay here's all the steps.",
+      "zh": "好，這裡是所有步驟。"
+    },
+    {
+      "start": 1686.53,
+      "end": 1687.61,
+      "en": "Uh, tokenize.",
+      "zh": "斷詞，"
+    },
+    {
+      "start": 1687.93,
+      "end": 1689.61,
+      "en": "Uh, get the embeddings vector.",
+      "zh": "取得嵌入向量，"
+    },
+    {
+      "start": 1689.73,
+      "end": 1695.41,
+      "en": "Calculate the dot products between that vector and all of the embeddings matrices.",
+      "zh": "計算這個向量，與矩陣中所有反嵌入向量的內積，"
+    },
+    {
+      "start": 1695.57,
+      "end": 1696.73,
+      "en": "Find the top ten.",
+      "zh": "找出前十個。"
+    },
+    {
+      "start": 1696.77,
+      "end": 1700.37,
+      "en": "This is really the only new piece of code here.",
+      "zh": "這裡才是唯一的新程式。"
+    },
+    {
+      "start": 1700.53,
+      "end": 1708.57,
+      "en": "I'm using Numpy.random dot to select at random one of these top ten projections.",
+      "zh": "使用 numpy.random，隨機選擇前十個投影中的一個。"
+    },
+    {
+      "start": 1709.21,
+      "end": 1715.81,
+      "en": "So we already know that all of these are going to have a strong dot product a large dot product like",
+      "zh": "已知它們與目前 token 都有強的內積，也就是大內積，"
+    },
+    {
+      "start": 1715.81,
+      "end": 1722.13,
+      "en": "an unscaled cosine similarity with uh, this uh token here.",
+      "zh": "像是未縮放的餘弦相似度。"
+    },
+    {
+      "start": 1722.25,
+      "end": 1724.09,
+      "en": "So that's going to look like this.",
+      "zh": "結果會像這樣。"
+    },
+    {
+      "start": 1724.09,
+      "end": 1728.73,
+      "en": "So basically we are picking one of these at random.",
+      "zh": "基本上，隨機挑其中一個，"
+    },
+    {
+      "start": 1728.89,
+      "end": 1734.09,
+      "en": "If we were to start with, uh, the token for California okay.",
+      "zh": "假設從 California 的 token 開始。"
+    },
+    {
+      "start": 1734.13,
+      "end": 1737.05,
+      "en": "And then I'm just adding that to the text.",
+      "zh": "再把它加入文字。"
+    },
+    {
+      "start": 1737.09,
+      "end": 1737.33,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1737.37,
+      "end": 1738.81,
+      "en": "And then I'm printing it out.",
+      "zh": "接著印出。"
+    },
+    {
+      "start": 1738.85,
+      "end": 1742.01,
+      "en": "Now this is random every time it's different because of this.",
+      "zh": "因為這裡的隨機選擇，每次結果不同。"
+    },
+    {
+      "start": 1742.01,
+      "end": 1744.87,
+      "en": "So I have no idea what's going to come out here.",
+      "zh": "所以，不知道會產生什麼，"
+    },
+    {
+      "start": 1745.39,
+      "end": 1747.39,
+      "en": "I do know that it's going to start with budget.",
+      "zh": "只知道一定從 budget 開始。"
+    },
+    {
+      "start": 1747.39,
+      "end": 1749.27,
+      "en": "That's the only thing I can say for sure.",
+      "zh": "這是唯一能確定的。"
+    },
+    {
+      "start": 1750.19,
+      "end": 1751.79,
+      "en": "So here's how it looks.",
+      "zh": "結果像這樣："
+    },
+    {
+      "start": 1751.95,
+      "end": 1752.43,
+      "en": "Budget.",
+      "zh": "budget，"
+    },
+    {
+      "start": 1752.43,
+      "end": 1752.99,
+      "en": "Budget.",
+      "zh": "budget，"
+    },
+    {
+      "start": 1752.99,
+      "end": 1757.27,
+      "en": "Spending spending spending spending spending funding funded fund.",
+      "zh": "spending、spending、spending、spending、spending、funding、funded、fund。"
+    },
+    {
+      "start": 1757.31,
+      "end": 1757.55,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1757.59,
+      "end": 1763.35,
+      "en": "There's no space here because this happened to be a token that was not preceded by a space.",
+      "zh": "這裡沒有空白，因為剛好選到沒有前導空白的 token。"
+    },
+    {
+      "start": 1763.59,
+      "end": 1766.23,
+      "en": "These spaces in here don't come from me.",
+      "zh": "中間的空白，不是我加的，"
+    },
+    {
+      "start": 1766.23,
+      "end": 1767.87,
+      "en": "They come from the tokens.",
+      "zh": "而是 token 本身帶的。"
+    },
+    {
+      "start": 1768.07,
+      "end": 1769.19,
+      "en": "Okay, let's try it again.",
+      "zh": "再試一次。"
+    },
+    {
+      "start": 1770.43,
+      "end": 1774.63,
+      "en": "Here again, we we get some really, uh, nonsensical texts.",
+      "zh": "這裡同樣得到沒有意義的文字。"
+    },
+    {
+      "start": 1774.63,
+      "end": 1777.95,
+      "en": "So budget udget budgetary budget.",
+      "zh": "例如 budget、udget、budgetary、budget，"
+    },
+    {
+      "start": 1777.95,
+      "end": 1778.31,
+      "en": "Budget.",
+      "zh": "budget，"
+    },
+    {
+      "start": 1778.35,
+      "end": 1779.43,
+      "en": "No spaces.",
+      "zh": "沒有空白，"
+    },
+    {
+      "start": 1779.43,
+      "end": 1781.99,
+      "en": "Budget with a capital B treasurer.",
+      "zh": "大寫 B 的 Budget，以及 treasurer。"
+    },
+    {
+      "start": 1782.03,
+      "end": 1783.55,
+      "en": "Okay, so delivery date.",
+      "zh": "接著 delivery date，"
+    },
+    {
+      "start": 1783.55,
+      "end": 1784.95,
+      "en": "Dragon magazine.",
+      "zh": "Dragon magazine，"
+    },
+    {
+      "start": 1784.99,
+      "end": 1785.71,
+      "en": "Govtrack.",
+      "zh": "GovTrack。"
+    },
+    {
+      "start": 1785.71,
+      "end": 1785.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1785.99,
+      "end": 1789.47,
+      "en": "It's getting a little bit, uh, out into the stratosphere here.",
+      "zh": "開始有點飄到天邊去了。"
+    },
+    {
+      "start": 1789.51,
+      "end": 1792.71,
+      "en": "Although we do have government in there, which is related to budget.",
+      "zh": "不過，裡面有 government，和 budget 有關。"
+    },
+    {
+      "start": 1793.19,
+      "end": 1793.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1793.51,
+      "end": 1796.83,
+      "en": "And this is with the the real Unembedding matrix.",
+      "zh": "這是使用真實反嵌入矩陣，"
+    },
+    {
+      "start": 1796.87,
+      "end": 1797.11,
+      "en": "Right.",
+      "zh": "對吧？"
+    },
+    {
+      "start": 1797.15,
+      "end": 1803.81,
+      "en": "So this with this, uh, variable here which comes from the actual GPT two model.",
+      "zh": "就是這個變數，來自真正的 GPT-2 模型。"
+    },
+    {
+      "start": 1804.33,
+      "end": 1804.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1804.69,
+      "end": 1809.93,
+      "en": "And then this code here is literally copy pasted from what I just showed you.",
+      "zh": "這段程式，完全複製剛才的內容，"
+    },
+    {
+      "start": 1809.93,
+      "end": 1813.53,
+      "en": "The only change is this variable here.",
+      "zh": "只改這個變數。"
+    },
+    {
+      "start": 1813.97,
+      "end": 1814.33,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1814.37,
+      "end": 1815.01,
+      "en": "So this.",
+      "zh": "這個，"
+    },
+    {
+      "start": 1815.05,
+      "end": 1823.37,
+      "en": "So now we're going to be generating randomly meandering text using completely random unembedding matrix okay.",
+      "zh": "現在用完全隨機的反嵌入矩陣，產生隨機漫遊的文字。"
+    },
+    {
+      "start": 1823.41,
+      "end": 1825.41,
+      "en": "So of course we start with budget.",
+      "zh": "當然，從 budget 開始。"
+    },
+    {
+      "start": 1825.65,
+      "end": 1827.65,
+      "en": "And then yeah I mean there's no point in reading.",
+      "zh": "接著，其實沒什麼必要讀，"
+    },
+    {
+      "start": 1827.77,
+      "end": 1830.37,
+      "en": "It's not going to be sensible at all.",
+      "zh": "完全不會有意義。"
+    },
+    {
+      "start": 1831.33,
+      "end": 1838.61,
+      "en": "If you got any particularly humorous or thought provoking results, feel free to share it in the Q&A.",
+      "zh": "如果得到特別幽默，或發人深省的結果，歡迎分享到問答區。"
+    },
+    {
+      "start": 1839.25,
+      "end": 1841.17,
+      "en": "Okay, so here is a question.",
+      "zh": "這裡有個問題："
+    },
+    {
+      "start": 1841.89,
+      "end": 1843.65,
+      "en": "Did we just build a chatbot bot?",
+      "zh": "我們剛才建立了聊天機器人嗎？"
+    },
+    {
+      "start": 1844.29,
+      "end": 1852.25,
+      "en": "The answer to this question depends on whether you're asking it technically or in any kind of practical, useful sense.",
+      "zh": "答案取決於，是從技術角度問，還是從實際、有用的角度問。"
+    },
+    {
+      "start": 1852.61,
+      "end": 1853.97,
+      "en": "Technically, yes.",
+      "zh": "技術上，是的，"
+    },
+    {
+      "start": 1853.97,
+      "end": 1856.45,
+      "en": "We did just build our very own chatbot.",
+      "zh": "剛才建立了自己的聊天機器人。"
+    },
+    {
+      "start": 1856.77,
+      "end": 1866.88,
+      "en": "We started with text and then the model kept sequentially choosing new tokens based on processing the previous token with some stochasticity built in.",
+      "zh": "從文字開始，再帶點隨機性，處理前一個 token，依序選出新 token。"
+    },
+    {
+      "start": 1867.4,
+      "end": 1872.32,
+      "en": "That is literally how large language models like ChatGPT work.",
+      "zh": "大型語言模型，例如 ChatGPT，就是這樣運作。"
+    },
+    {
+      "start": 1872.56,
+      "end": 1881.24,
+      "en": "In practice, the only one tiny, minor, subtle little difference is that we went straight from embeddings",
+      "zh": "實際上，只有一個小小、細微的差別：我們直接從嵌入"
+    },
+    {
+      "start": 1881.24,
+      "end": 1890.2,
+      "en": "to embeddings, whereas GPT four has like a trillion parameters in between that do extremely sophisticated",
+      "zh": "到反嵌入，而 GPT-4 中間有大約一兆個參數，根據龐大得難以想像的訓練，"
+    },
+    {
+      "start": 1890.2,
+      "end": 1894.72,
+      "en": "calculations based on a mind boggling amount of training.",
+      "zh": "進行極為複雜的計算。"
+    },
+    {
+      "start": 1895.32,
+      "end": 1905.32,
+      "en": "So there's a lot more to learn here, but I hope you're starting to get a sense of the role that embeddings vectors have on language processing.",
+      "zh": "還有很多要學，但希望你已開始理解，嵌入向量在語言處理中的角色。"
+    },
+    {
+      "start": 1905.92,
+      "end": 1909.2,
+      "en": "So some conclusions and take home points.",
+      "zh": "幾個結論與重點。"
+    },
+    {
+      "start": 1909.24,
+      "end": 1916.6,
+      "en": "The embeddings matrix is not literally an inverse of the embeddings matrix in the linear algebra sense",
+      "zh": "反嵌入矩陣，並不是線性代數意義上，嵌入矩陣的反矩陣，"
+    },
+    {
+      "start": 1916.6,
+      "end": 1925.14,
+      "en": "of the word inverse, But conceptually the embeddings gets you from integer tokens to embedding spaces.",
+      "zh": "但概念上，嵌入把整數 token 轉到嵌入空間，"
+    },
+    {
+      "start": 1925.46,
+      "end": 1932.18,
+      "en": "And the embeddings get you from the dense embedding space back to the integer tokens.",
+      "zh": "反嵌入則把稠密嵌入空間，轉回整數 token。"
+    },
+    {
+      "start": 1932.62,
+      "end": 1940.78,
+      "en": "So the tokens with the largest embeddings value is the next token in the generated sequence.",
+      "zh": "反嵌入值最大的 token，就是生成序列的下一個 token。"
+    },
+    {
+      "start": 1941.18,
+      "end": 1950.22,
+      "en": "That was true in exercise five, and it's true in top of the line frontier models from open AI, deep seq, Gemini, and so on.",
+      "zh": "練習五是如此，OpenAI、DeepSeek、Gemini 等頂尖前沿模型，也是如此。"
+    },
+    {
+      "start": 1950.98,
+      "end": 1960.58,
+      "en": "What we saw here in this code challenge is that generated text can very quickly lose its meaning, really just within a couple of tokens.",
+      "zh": "這個程式挑戰看到，生成文字可能很快失去意義，才幾個 token，"
+    },
+    {
+      "start": 1960.58,
+      "end": 1966.18,
+      "en": "It's already like spinning out into the stratosphere and producing nonsensical junk.",
+      "zh": "就已經飄到天邊，產生無意義的垃圾內容。"
+    },
+    {
+      "start": 1966.7,
+      "end": 1976.06,
+      "en": "So maintaining coherency over time continues to be a major hurdle for language models, although they have been getting much better at it.",
+      "zh": "所以，長時間維持連貫，仍是語言模型的一大挑戰，不過，它們已經進步很多。"
+    }
+  ]
+}

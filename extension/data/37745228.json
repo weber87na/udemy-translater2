@@ -1,0 +1,559 @@
+{
+  "courseId": "4734870",
+  "lectureId": "37745228",
+  "title": "Discussing How to Get Better Relative Speedups for Training Models",
+  "section": 12,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "1f30ed14daf22e30673e4906e4b85bb08531d1d0111a68141dd2628dbc01b225",
+  "cues": [
+    {
+      "start": 0.11,
+      "end": 1.15,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 1.16,
+      "end": 5.74,
+      "en": "In the last video, we made a function called createmodel, which does what it says.",
+      "zh": "上一段影片建立了 create_model 函式，顧名思義，"
+    },
+    {
+      "start": 5.75,
+      "end": 14.3,
+      "en": "It creates a model and the transforms to go along with it, namely a Resnet 50 model and the transforms from training it on image net.",
+      "zh": "建立模型與相應轉換，也就是 ResNet-50，以及它在 ImageNet 訓練時使用的轉換。"
+    },
+    {
+      "start": 14.3,
+      "end": 23.59,
+      "en": "And we also hinted at the fact that PyTorch 2.0 relative speedups will be most noticeable when as much of the GPU as possible is being used.",
+      "zh": "也提到，盡可能充分使用 GPU，PyTorch 2.0 的相對加速會最明顯。"
+    },
+    {
+      "start": 23.6,
+      "end": 30.92,
+      "en": "So in the intro we discussed that one of the main costs of training time is bandwidth costs.",
+      "zh": "導入影片談過，訓練時間的一大成本是頻寬。"
+    },
+    {
+      "start": 30.92,
+      "end": 36.98,
+      "en": "So transferring data from memory to the GPU and you want to reduce that as much as possible.",
+      "zh": "也就是把資料從記憶體搬到 GPU，要盡量減少這個成本。"
+    },
+    {
+      "start": 36.98,
+      "end": 40.7,
+      "en": "And one of the ways to do that is with Operator Fusion.",
+      "zh": "其中一種做法是運算子融合。"
+    },
+    {
+      "start": 40.7,
+      "end": 44.15,
+      "en": "And then another way to do it is graph capture.",
+      "zh": "另一種是計算圖擷取。"
+    },
+    {
+      "start": 44.18,
+      "end": 47.99,
+      "en": "Now graph capture isn't specifically for reducing bandwidth costs.",
+      "zh": "計算圖擷取並不是專門降低頻寬成本，"
+    },
+    {
+      "start": 48.02,
+      "end": 58.01,
+      "en": "It's to memorize the operations model graph or a PyTorch model needs to do ahead of time so it doesn't have to look them up while it's doing it.",
+      "zh": "而是預先記住模型計算圖或 PyTorch 模型需要做的操作，不必執行時再查。"
+    },
+    {
+      "start": 58.01,
+      "end": 64.23,
+      "en": "But let's jump down into 2.2, which is where we're up to Speedups are most noticeable when a large",
+      "zh": "來到目前的 2.2 小節，當 GPU 很大一部分"
+    },
+    {
+      "start": 64.23,
+      "end": 72.57,
+      "en": "portion of the GPU is being used and if you hear some crows chirping in the background, well, that's one of the unmissable sounds of Australia.",
+      "zh": "被使用時，加速最明顯。如果聽到背景烏鴉叫，那是澳洲不可能錯過的聲音之一。"
+    },
+    {
+      "start": 72.57,
+      "end": 81.21000000000001,
+      "en": "So there's a bunch of them I think you call a group of crows a murder in a tree not far outside my window and they're singing their afternoon song.",
+      "zh": "窗外不遠的樹上有一群，我想一群烏鴉英文叫 a murder，牠們在唱午後的歌。"
+    },
+    {
+      "start": 81.21000000000001,
+      "end": 84.27,
+      "en": "So if you hear them, enjoy it with me.",
+      "zh": "如果聽到了，就和我一起欣賞。"
+    },
+    {
+      "start": 84.57,
+      "end": 86.31,
+      "en": "So let's write this down.",
+      "zh": "寫下來。"
+    },
+    {
+      "start": 86.31,
+      "end": 94.35,
+      "en": "Speedups are most noticeable when a large portion of the GPU is being used.",
+      "zh": "充分利用 GPU 時，加速會最明顯。"
+    },
+    {
+      "start": 95.78999999999999,
+      "end": 97.86,
+      "en": "So let's break this down a little bit more.",
+      "zh": "再拆開說明。"
+    },
+    {
+      "start": 97.86,
+      "end": 102.21000000000001,
+      "en": "We've given an example before, but let's make this a bit more concrete.",
+      "zh": "之前舉過例子，現在更具體一點。"
+    },
+    {
+      "start": 102.21000000000001,
+      "end": 111.6,
+      "en": "So since modern GPUs are so fast that they're fast at performing operations, so tensor manipulation",
+      "zh": "現代 GPU 執行操作很快，例如張量操作、"
+    },
+    {
+      "start": 111.6,
+      "end": 118.38,
+      "en": "matrix multiplications, you will often notice the majority of relative.",
+      "zh": "矩陣乘法，因此通常會注意到大部分的相對，"
+    },
+    {
+      "start": 118.38,
+      "end": 123.96,
+      "en": "Now I say relative because that's an important point, is that it won't always be like for like speed",
+      "zh": "我說相對，是因為這很重要，不一定是逐項完全相同條件的"
+    },
+    {
+      "start": 123.96,
+      "end": 134.79,
+      "en": "ups, but they will be relative speed ups, relative speed ups when as much data as possible is on the",
+      "zh": "加速，而是當 GPU 上放入盡可能多的資料時，相對加速更"
+    },
+    {
+      "start": 134.79,
+      "end": 135.6,
+      "en": "GPU.",
+      "zh": "明顯。"
+    },
+    {
+      "start": 135.81,
+      "end": 145.98,
+      "en": "So in practice you generally want to use as much of your GPU memory as possible.",
+      "zh": "實務上，一般希望盡可能使用 GPU 記憶體。"
+    },
+    {
+      "start": 145.98,
+      "end": 149.82,
+      "en": "You don't want GPU memory and compute power to go to waste, right?",
+      "zh": "不希望浪費 GPU 記憶體與運算能力，對吧？"
+    },
+    {
+      "start": 149.82,
+      "end": 152.4,
+      "en": "So what are some ways to do that?",
+      "zh": "有哪些方式？"
+    },
+    {
+      "start": 152.4,
+      "end": 156.19,
+      "en": "Well, the first one is by increasing the batch size.",
+      "zh": "第一，增加 batch_size。"
+    },
+    {
+      "start": 156.19,
+      "end": 161.79,
+      "en": "So previously throughout the course we've been using the ever reliable batch size of 32.",
+      "zh": "前面整門課一直使用可靠的批次大小 32。"
+    },
+    {
+      "start": 161.8,
+      "end": 162.82,
+      "en": "Now that is good.",
+      "zh": "這很好。"
+    },
+    {
+      "start": 162.85,
+      "end": 173.5,
+      "en": "But as you start to train larger and larger models on bigger and better GPUs, you'll likely want to increase that batch size, namely putting more GPU or more data.",
+      "zh": "但當模型越來越大、GPU 越來越強，可能會想增加 batch_size，也就是放更多 GPU，或者說更多資料，"
+    },
+    {
+      "start": 173.5,
+      "end": 174.12,
+      "en": "Sorry.",
+      "zh": "不好意思。"
+    },
+    {
+      "start": 174.13,
+      "end": 183.13,
+      "en": "So we've been using batch size 32, but for GPUs with a larger.",
+      "zh": "我們一直用 32，但對記憶體"
+    },
+    {
+      "start": 183.8,
+      "end": 184.64,
+      "en": "Memory.",
+      "zh": "容量較大"
+    },
+    {
+      "start": 185.79,
+      "end": 200.46,
+      "en": "Capacity you'll generally want to use as large as possible e.g. 128 256 512 etcetera.",
+      "zh": "的 GPU，通常希望盡可能大，例如 128、256、512 等等。"
+    },
+    {
+      "start": 200.49,
+      "end": 206.88,
+      "en": "A multiple of eight is generally good practice and then you want to also increase the data size.",
+      "zh": "使用八的倍數通常是不錯的做法。接著也能增加資料大小。"
+    },
+    {
+      "start": 206.88,
+      "end": 216.45,
+      "en": "So for example, instead of using images that are 32 by 32 use.",
+      "zh": "例如不用 32 乘 32 的影像，改用，"
+    },
+    {
+      "start": 217.15,
+      "end": 221.8,
+      "en": "2 to 4 by 2 to 4 or even three.",
+      "zh": "224 乘 224，甚至，"
+    },
+    {
+      "start": 221.8,
+      "end": 223.72,
+      "en": "Three six by three, three six.",
+      "zh": "336 乘 336。"
+    },
+    {
+      "start": 223.75,
+      "end": 231.13,
+      "en": "Now, I'm not quite sure what the default image sizes are across the standardization of different image",
+      "zh": "我不太確定不同影像模型常見的標準預設影像"
+    },
+    {
+      "start": 231.13,
+      "end": 236.05,
+      "en": "models, but this is something that you can explore with the the main point here is that it's increasing",
+      "zh": "大小，不過這可以自行探索。重點是增加"
+    },
+    {
+      "start": 236.05,
+      "end": 243.34,
+      "en": "in size and that could be also you could use an increased embedding size.",
+      "zh": "大小，也可能是增加資料的嵌入大小。"
+    },
+    {
+      "start": 247.02,
+      "end": 247.77,
+      "en": "For your data.",
+      "zh": "也就是 embedding size。"
+    },
+    {
+      "start": 248.35,
+      "end": 249.93,
+      "en": "And now let's keep going on.",
+      "zh": "繼續。"
+    },
+    {
+      "start": 249.93,
+      "end": 252.3,
+      "en": "We want to increase the model size.",
+      "zh": "增加模型大小。"
+    },
+    {
+      "start": 252.3,
+      "end": 261.99,
+      "en": "So, for example, instead of we hinted at this one before using a model with one mil parameters.",
+      "zh": "例如前面暗示過，不用一百萬參數的模型，"
+    },
+    {
+      "start": 262.74,
+      "end": 269.76,
+      "en": "Use a model with ten millimetres parameters, and now that might actually be considered a small model in today's world.",
+      "zh": "改用一千萬參數的模型，現在這種規模甚至可能仍算小模型。"
+    },
+    {
+      "start": 269.76,
+      "end": 272.61,
+      "en": "But we're not going for a very specific examples here.",
+      "zh": "但這裡不是要指定非常精確的例子。"
+    },
+    {
+      "start": 272.61,
+      "end": 280.55,
+      "en": "We're just saying that you'll notice the trend is just increase, increase, increase as much as you can put on the GPU as possible.",
+      "zh": "只是說，趨勢是增加、增加、再增加，盡量把更多資料與運算放到 GPU。"
+    },
+    {
+      "start": 280.56,
+      "end": 282.21,
+      "en": "That's a good thing.",
+      "zh": "這是好事。"
+    },
+    {
+      "start": 282.21,
+      "end": 285.51,
+      "en": "And then we want to decrease data transfer.",
+      "zh": "接著要減少資料傳輸。"
+    },
+    {
+      "start": 285.51,
+      "end": 287.55,
+      "en": "So this is the one thing we want to decrease.",
+      "zh": "這是唯一要減少的項目。"
+    },
+    {
+      "start": 287.55,
+      "end": 298.94,
+      "en": "So since bandwidth bandwidth costs, so transferring data will slow down our GPU.",
+      "zh": "因為頻寬成本，也就是資料傳輸，會拖慢 GPU，"
+    },
+    {
+      "start": 300.17,
+      "end": 303.14,
+      "en": "Because it wants to compute on data.",
+      "zh": "它想要對資料運算。"
+    },
+    {
+      "start": 303.47,
+      "end": 306.02,
+      "en": "But if it doesn't have the data, it can't compute on it.",
+      "zh": "但如果沒有資料，就無法運算。"
+    },
+    {
+      "start": 306.02,
+      "end": 306.29,
+      "en": "Right?",
+      "zh": "對吧？"
+    },
+    {
+      "start": 306.29,
+      "end": 313.76,
+      "en": "So you want to use as much CPU as power as you can to put as much data as you can on the GPU and avoid",
+      "zh": "所以，要盡可能利用 CPU 的能力，把資料放到 GPU，避免"
+    },
+    {
+      "start": 313.76,
+      "end": 319.91,
+      "en": "unnecessary transfers, which is one of the things that PyTorch does behind the scenes with Operator Fusion.",
+      "zh": "不必要的傳輸。這正是 PyTorch 在背後透過運算子融合做的事情之一。"
+    },
+    {
+      "start": 319.91,
+      "end": 327.32,
+      "en": "Instead of writing and saving data and computing it, it just computes as much as it can through a series of operations.",
+      "zh": "不是一再寫入、儲存資料，再計算，而是透過一系列操作，盡可能連續計算。"
+    },
+    {
+      "start": 327.71,
+      "end": 329.54,
+      "en": "So let's go here.",
+      "zh": "這裡。"
+    },
+    {
+      "start": 330.68,
+      "end": 338.6,
+      "en": "As a result of doing the above, your relative speedups should be better.",
+      "zh": "做了上述事情後，相對加速應該更好。"
+    },
+    {
+      "start": 340.34000000000003,
+      "end": 349.1,
+      "en": "Overall training time may take longer, but not linearly.",
+      "zh": "總訓練時間可能變長，但不是線性增加。"
+    },
+    {
+      "start": 350.75,
+      "end": 355.84000000000003,
+      "en": "So although we're increasing here, you might increase the batch size by four x.",
+      "zh": "例如，雖然把批次大小提高四倍，"
+    },
+    {
+      "start": 355.85,
+      "end": 357.56,
+      "en": "It doesn't mean to 128.",
+      "zh": "也就是到 128，"
+    },
+    {
+      "start": 357.59000000000003,
+      "end": 360.68,
+      "en": "It doesn't mean that the training time will increase by four x.",
+      "zh": "不表示訓練時間也會增加四倍。"
+    },
+    {
+      "start": 360.71,
+      "end": 365.36,
+      "en": "The same with data size, the same with model size, the same with data transfer.",
+      "zh": "資料大小、模型大小、資料傳輸也一樣。"
+    },
+    {
+      "start": 365.39,
+      "end": 368.33,
+      "en": "It's not a linear increase just because you're doing more.",
+      "zh": "不是做得更多，時間就一定線性增加。"
+    },
+    {
+      "start": 368.33,
+      "end": 374.51,
+      "en": "So now let's go to the keynote, have a beautiful little diagram here.",
+      "zh": "現在切到 Keynote，有個漂亮的小圖。"
+    },
+    {
+      "start": 374.51,
+      "end": 376.91,
+      "en": "So this is our A100 with some data on it.",
+      "zh": "這是 A100，上面有一些資料。"
+    },
+    {
+      "start": 376.91,
+      "end": 380.66,
+      "en": "If we put this one square of data on it, the training time might take ten minutes.",
+      "zh": "如果只放這一個方塊的資料，訓練可能要十分鐘。"
+    },
+    {
+      "start": 380.66,
+      "end": 387.23,
+      "en": "But then if we decided to step up our experiment and create a larger experiment, we may have six times",
+      "zh": "接著決定擴大實驗，可能在兩張 GPU 上放六倍"
+    },
+    {
+      "start": 387.23,
+      "end": 394.1,
+      "en": "as much data across two GPUs and then we have six times more data, but only twice as much training",
+      "zh": "資料。資料多六倍，但訓練時間只變兩倍，"
+    },
+    {
+      "start": 394.1,
+      "end": 400.43,
+      "en": "because we're taking advantage of the parallelism computing powers of our GPUs.",
+      "zh": "因為利用 GPU 平行運算的能力。"
+    },
+    {
+      "start": 400.46,
+      "end": 404.17,
+      "en": "And again, these training times are for illustration purposes only.",
+      "zh": "再次提醒，這些訓練時間純粹用來示意。"
+    },
+    {
+      "start": 404.18,
+      "end": 413.34000000000003,
+      "en": "I'll leave it to you to do some experimentation with different batch sizes, different model sizes, different data sizes, to see how this actually plays out in practice.",
+      "zh": "不同 batch_size、模型大小與資料大小，留給你做實驗，看看實際如何。"
+    },
+    {
+      "start": 413.49,
+      "end": 415.65,
+      "en": "So let's jump back into here.",
+      "zh": "回到這裡。"
+    },
+    {
+      "start": 415.74,
+      "end": 424.89,
+      "en": "I might just put a resource here resource for learning how to improve PyTorch model speed.",
+      "zh": "也許放一個資源，學習如何改善 PyTorch 模型速度。"
+    },
+    {
+      "start": 425.19,
+      "end": 427.56,
+      "en": "This is something that just came to mind the other day.",
+      "zh": "前幾天剛想到。"
+    },
+    {
+      "start": 427.56,
+      "end": 430.5,
+      "en": "Improve PyTorch model speed.",
+      "zh": "改善 PyTorch 模型速度。"
+    },
+    {
+      "start": 430.5,
+      "end": 439.86,
+      "en": "Sebastian Rashka So Sebastian Rashka is one of the best machine learning researchers that I know publishes some great.",
+      "zh": "Sebastian Raschka 是我知道很棒的機器學習研究者之一，會發表很多"
+    },
+    {
+      "start": 440.37,
+      "end": 442.81,
+      "en": "Information about AI machine learning in general.",
+      "zh": "AI 和一般機器學習的好資訊。"
+    },
+    {
+      "start": 442.83,
+      "end": 445.08,
+      "en": "So this is a great blog post.",
+      "zh": "這是一篇很棒的部落格文章。"
+    },
+    {
+      "start": 445.08,
+      "end": 455.51,
+      "en": "I'll leave as extra curriculum to read How Plain PyTorch 2.0, which is what we're just learning about how to use, can go from 21.3 minutes to 1.8 minutes.",
+      "zh": "留作課外閱讀：一般的 PyTorch 2.0，也就是正在學的東西，如何從 21.3 分鐘縮短到 1.8 分鐘。"
+    },
+    {
+      "start": 455.52,
+      "end": 457.92,
+      "en": "So isn't that a beautiful increase?",
+      "zh": "這提升很棒吧？"
+    },
+    {
+      "start": 458.19,
+      "end": 460.32,
+      "en": "Check that blog post out when you can.",
+      "zh": "有空看看那篇。"
+    },
+    {
+      "start": 460.32,
+      "end": 467.76,
+      "en": "But for now, we've discussed some options for improving relative speed ups, and most of them deal",
+      "zh": "目前談了幾個改善相對加速的選項，大多是"
+    },
+    {
+      "start": 467.76,
+      "end": 474.75,
+      "en": "with either increasing the size of your data, increasing the size of your model, or decreasing how much data you're transferring.",
+      "zh": "增加資料大小、增加模型大小，或減少資料傳輸量。"
+    },
+    {
+      "start": 474.75,
+      "end": 478.35,
+      "en": "So do as much computation on the GPU as possible.",
+      "zh": "盡量讓運算在 GPU 上進行。"
+    },
+    {
+      "start": 478.35,
+      "end": 484.68,
+      "en": "And so speaking of increasing the batch size, how about in the next video we write some code to check",
+      "zh": "說到增加 batch_size，下一段影片寫程式檢查"
+    },
+    {
+      "start": 484.68,
+      "end": 495.39,
+      "en": "the memory limits of our GPU so we can do that via Nvidia SMI, but it would be good to check this programmatically",
+      "zh": "GPU 記憶體限制如何？可以用 nvidia-smi，但如果用程式檢查，"
+    },
+    {
+      "start": 495.39,
+      "end": 499.77,
+      "en": "so that if we have a larger GPU available we could increase the batch size.",
+      "zh": "有較大的 GPU 時，就能提高 batch_size。"
+    },
+    {
+      "start": 499.77,
+      "end": 502.63,
+      "en": "So let's see how to do that in the next video.",
+      "zh": "下一段影片來看怎麼做。"
+    }
+  ]
+}

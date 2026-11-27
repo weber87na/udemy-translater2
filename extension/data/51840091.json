@@ -1,0 +1,1333 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840091",
+  "title": "Averaging the past while ignoring the future (code)",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d1640d00d0618c83097e26dca27ec738755439480f8c7afc480c256a9b3485f7",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 6.56,
+      "en": "This video is a direct follow up to the previous video.",
+      "zh": "這支影片直接接續上一支。"
+    },
+    {
+      "start": 7.12,
+      "end": 15.16,
+      "en": "So in the previous video, I explained how to create a time causal mask as a matrix that would implement",
+      "zh": "上一支說明了如何建立矩陣形式的時間因果遮罩，"
+    },
+    {
+      "start": 15.16,
+      "end": 22.36,
+      "en": "softmax probability transform over data from the past while ignoring information in the future.",
+      "zh": "讓我們對過去的資料做 softmax 機率轉換，同時忽略未來資訊。"
+    },
+    {
+      "start": 22.96,
+      "end": 28.12,
+      "en": "And now in this video we are going to explore this concept in code.",
+      "zh": "現在會用程式碼探索這個概念。"
+    },
+    {
+      "start": 28.8,
+      "end": 37.08,
+      "en": "But before getting to code, I want to briefly reiterate the idea of causal masking in token prediction.",
+      "zh": "但在看程式碼之前，先快速重述因果遮罩在詞元預測中的概念。"
+    },
+    {
+      "start": 37.6,
+      "end": 41.72,
+      "en": "So here I have some text that contains six words.",
+      "zh": "這裡有一段包含六個字的文字。"
+    },
+    {
+      "start": 42.16,
+      "end": 47.08,
+      "en": "And for simplicity, we will just assume that each of these words is one token.",
+      "zh": "為了簡單起見，假設每個字都是一個詞元。"
+    },
+    {
+      "start": 47.36,
+      "end": 51.16,
+      "en": "So we have six tokens that the model is processing.",
+      "zh": "所以模型要處理六個詞元。"
+    },
+    {
+      "start": 51.92,
+      "end": 58.76,
+      "en": "Now when the model is processing the first token, it's using all the information it has available to",
+      "zh": "處理第一個詞元時，模型會利用所有可取得的資訊"
+    },
+    {
+      "start": 58.8,
+      "end": 69.52,
+      "en": "predict the next token, but all the information it has available is only contained in that first token, so it doesn't actually know what the next token is.",
+      "zh": "預測下一個詞元，但能取得的資訊都只在第一個詞元裡，所以它其實不知道下一個詞元是什麼。"
+    },
+    {
+      "start": 69.52,
+      "end": 73.68,
+      "en": "It's trying to predict the next token only from the word I.",
+      "zh": "它只根據「I」這個字，試著預測下一個詞元。"
+    },
+    {
+      "start": 74.44,
+      "end": 79.2,
+      "en": "Then we get to when the model is processing token number two.",
+      "zh": "接著來到模型處理第二個詞元的時候。"
+    },
+    {
+      "start": 79.68,
+      "end": 88.96000000000001,
+      "en": "And again the model is using all the information from I and from prefer to try to predict the next token.",
+      "zh": "同樣利用「I」與「prefer」的所有資訊，試著預測下一個詞元。"
+    },
+    {
+      "start": 89.44,
+      "end": 99.56,
+      "en": "Now we know that the next token is the word Oat, but the model doesn't know that because of the causal attention mask and so on and so on.",
+      "zh": "我們知道下一個詞元是「oat」，但因為有因果注意力遮罩，模型並不知道，後面也依此類推。"
+    },
+    {
+      "start": 99.56,
+      "end": 106.56,
+      "en": "For all the words I mentioned briefly in the previous video, that in theory we could solve this causality",
+      "zh": "對於所有字，上一支影片簡單提過，理論上可以用 for 迴圈解決這個因果"
+    },
+    {
+      "start": 106.56,
+      "end": 116,
+      "en": "issue using a for loop, where at each iteration in the for loop, we only process the tokens up to the current iteration number.",
+      "zh": "限制問題，在每次迭代中，只處理到當前迭代編號為止的詞元。"
+    },
+    {
+      "start": 116.56,
+      "end": 122.13,
+      "en": "Well, that just turns out to be really time consuming and computationally inefficient.",
+      "zh": "但那會很耗時，計算效率也很差。"
+    },
+    {
+      "start": 122.37,
+      "end": 132.41,
+      "en": "So we need to use matrices and matrix multiplications to implement this procedure in parallel for all of the tokens at the same time.",
+      "zh": "因此需要矩陣與矩陣乘法，讓所有詞元同時並行進行這個程序。"
+    },
+    {
+      "start": 132.89,
+      "end": 135.97,
+      "en": "And that is where this mask is used.",
+      "zh": "遮罩就是用在這裡。"
+    },
+    {
+      "start": 137.17000000000002,
+      "end": 137.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 137.65,
+      "end": 141.97,
+      "en": "So here's an overview of what we're going to do in this Python demo.",
+      "zh": "以下概覽這次 Python 示範的內容。"
+    },
+    {
+      "start": 142.37,
+      "end": 151.01,
+      "en": "We're going to start by just exploring an activations vector and a vector of weights where the weights are equal.",
+      "zh": "先探索一個活化向量，以及權重相等的權重向量。"
+    },
+    {
+      "start": 151.01,
+      "end": 154.77,
+      "en": "Then we can calculate the weighted sum over the past.",
+      "zh": "接著計算過去資訊的加權總和。"
+    },
+    {
+      "start": 154.77,
+      "end": 160.97,
+      "en": "And in this particular example we get a weighted sum of past values of zero.",
+      "zh": "在這個例子中，過去值的加權總和為零。"
+    },
+    {
+      "start": 161.77,
+      "end": 168.17000000000002,
+      "en": "Then we're going to change the weights vector so that we are weighting the distant past more strongly.",
+      "zh": "然後改變權重向量，讓較久以前的資訊有更大的權重。"
+    },
+    {
+      "start": 168.49,
+      "end": 170.37,
+      "en": "And that you see here.",
+      "zh": "這裡可以看到。"
+    },
+    {
+      "start": 170.53,
+      "end": 175.69,
+      "en": "So the value of the most recent or the most distant time point is 0.4.",
+      "zh": "最近，或者說最久以前那個時間點的值，是 0.4。"
+    },
+    {
+      "start": 175.93,
+      "end": 178.21,
+      "en": "And then we have a several point twos.",
+      "zh": "接著有幾個 0.2。"
+    },
+    {
+      "start": 178.49,
+      "end": 184.73,
+      "en": "Now, the softmax of those weights will accentuate the weighting of the distant past.",
+      "zh": "對這些權重做 softmax，會讓較久以前資訊的權重更加突出。"
+    },
+    {
+      "start": 184.73,
+      "end": 191.61,
+      "en": "And that means that this value of four over here, this information value of four, actually has a stronger",
+      "zh": "也就是這裡的數值 4，這個資訊值 4，會因為 softmax 轉換，"
+    },
+    {
+      "start": 191.61,
+      "end": 197.61,
+      "en": "impact on our prediction for the future because of the softmax transformation.",
+      "zh": "對未來的預測產生更大的影響。"
+    },
+    {
+      "start": 198.45,
+      "end": 198.69,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 198.73,
+      "end": 205.93,
+      "en": "We're then going to explore the problem of using zeros to try to ignore future values.",
+      "zh": "接著探索用零來忽略未來值所造成的問題。"
+    },
+    {
+      "start": 205.93,
+      "end": 207.25,
+      "en": "Future data points.",
+      "zh": "也就是未來的資料點。"
+    },
+    {
+      "start": 207.37,
+      "end": 209.65,
+      "en": "As I mentioned in the previous video.",
+      "zh": "上一支影片已提過。"
+    },
+    {
+      "start": 209.65,
+      "end": 214.32999999999998,
+      "en": "So this weights vector here has two zeros at the end.",
+      "zh": "這個權重向量最後有兩個零。"
+    },
+    {
+      "start": 214.32999999999998,
+      "end": 218.97,
+      "en": "But when we softmax it those turn into non-zero values.",
+      "zh": "但做完 softmax 後，它們變成非零值。"
+    },
+    {
+      "start": 219.49,
+      "end": 227.17000000000002,
+      "en": "And from there we're going to create that softmax matrix mask that I explained in the previous video.",
+      "zh": "接著就會建立上一支影片說明的 softmax 矩陣遮罩。"
+    },
+    {
+      "start": 227.41,
+      "end": 230.13,
+      "en": "Here's what it looks like with ones and zeros.",
+      "zh": "這是用 1 和 0 表示的樣子。"
+    },
+    {
+      "start": 230.25,
+      "end": 234.61,
+      "en": "Here you can see I've set all of the zero values to minus infinity.",
+      "zh": "這裡把所有零值設成負無限大。"
+    },
+    {
+      "start": 235.01,
+      "end": 239.01,
+      "en": "And here is the result of taking softmax across the rows.",
+      "zh": "這是逐列做 softmax 的結果。"
+    },
+    {
+      "start": 239.41,
+      "end": 242.53,
+      "en": "Notice that all of these values are up.",
+      "zh": "注意，這裡上面那些值，"
+    },
+    {
+      "start": 242.53,
+      "end": 246.65,
+      "en": "Here are ones, whereas these values are not ones.",
+      "zh": "原本都是 1，但這些結果卻不是 1。"
+    },
+    {
+      "start": 246.65,
+      "end": 250.09,
+      "en": "So I will let you think about why that is the case.",
+      "zh": "可以先想想為什麼。"
+    },
+    {
+      "start": 250.33,
+      "end": 253.65,
+      "en": "And of course I'll explain it in more detail when I get to code.",
+      "zh": "當然，切到程式碼後會更詳細地解釋。"
+    },
+    {
+      "start": 254.69,
+      "end": 261.65,
+      "en": "And then finally I will show you a few different options for how to actually create these matrix masks.",
+      "zh": "最後會展示幾種實際建立矩陣遮罩的方法。"
+    },
+    {
+      "start": 261.77,
+      "end": 265.77,
+      "en": "And I'll do a quick computation time, mostly out of curiosity.",
+      "zh": "也會簡單測量運算時間，主要是出於好奇。"
+    },
+    {
+      "start": 267.13,
+      "end": 269.17,
+      "en": "Here we import some libraries.",
+      "zh": "這裡匯入幾個函式庫。"
+    },
+    {
+      "start": 269.17,
+      "end": 273.05,
+      "en": "And here is where I'm creating a vector that I called the path.",
+      "zh": "這裡建立一個叫做 past 的向量。"
+    },
+    {
+      "start": 273.05,
+      "end": 278.65,
+      "en": "But you can imagine this is like an activations vector where each of these time points correspond.",
+      "zh": "可以想像它是活化向量，其中每個時間點，"
+    },
+    {
+      "start": 278.69,
+      "end": 283.97,
+      "en": "Or each of these data values corresponds to information that we get from the past.",
+      "zh": "或者說每個資料值，都對應從過去取得的資訊。"
+    },
+    {
+      "start": 284.61,
+      "end": 295.05,
+      "en": "Here I'm creating a weights vector as a bunch of ones divided by n, which is the same thing as dividing by the sum over all of these values okay.",
+      "zh": "這裡用一堆 1 除以 n 來建立權重向量，等同於除以這些值的總和。"
+    },
+    {
+      "start": 295.09000000000003,
+      "end": 298.02,
+      "en": "And then we see that the weighted average over the past.",
+      "zh": "接著可以看到過去資訊的加權平均。"
+    },
+    {
+      "start": 298.02,
+      "end": 303.66,
+      "en": "So the linear weighted combination of past values is that's actually here.",
+      "zh": "也就是過去值的線性加權組合，就在這裡。"
+    },
+    {
+      "start": 303.66,
+      "end": 306.78,
+      "en": "So that's the weighted combination is zero.",
+      "zh": "這個加權組合為零。"
+    },
+    {
+      "start": 306.78,
+      "end": 309.66,
+      "en": "And the sum of the weights is one okay.",
+      "zh": "權重總和則為 1。"
+    },
+    {
+      "start": 309.7,
+      "end": 311.34,
+      "en": "And now here I'm changing the weights.",
+      "zh": "現在改變權重。"
+    },
+    {
+      "start": 311.34,
+      "end": 316.06,
+      "en": "So now the issue is that the sum of the weights is five.",
+      "zh": "問題是，現在權重總和是 5。"
+    },
+    {
+      "start": 316.06,
+      "end": 320.54,
+      "en": "So the weights themselves are greater than one.",
+      "zh": "所以權重加總超過 1。"
+    },
+    {
+      "start": 320.66,
+      "end": 331.82,
+      "en": "And this is potentially a source of problems because that means that this vector when we apply this to an activations vector it's likely to just grow out of hand.",
+      "zh": "這可能造成問題，因為把這個向量套用到活化向量時，數值可能不受控制地增長。"
+    },
+    {
+      "start": 331.82,
+      "end": 339.38,
+      "en": "We can run into numerical instabilities because the weighting of the past will get large simply because",
+      "zh": "可能出現數值不穩定，因為對過去資訊的加權結果變大，單純只是"
+    },
+    {
+      "start": 339.38,
+      "end": 346.18,
+      "en": "of the values of the weights, not just because of the actual information in the activations vector.",
+      "zh": "權重數值造成的，而不是活化向量中實際資訊的影響。"
+    },
+    {
+      "start": 346.46,
+      "end": 347.5,
+      "en": "So no problem.",
+      "zh": "不過沒關係。"
+    },
+    {
+      "start": 347.5,
+      "end": 349.74,
+      "en": "We can divide by the sum of the weights.",
+      "zh": "可以除以權重總和。"
+    },
+    {
+      "start": 349.9,
+      "end": 350.7,
+      "en": "That's fine.",
+      "zh": "這樣可以。"
+    },
+    {
+      "start": 350.7,
+      "end": 354.34000000000003,
+      "en": "And here we can also softmax which is also fine.",
+      "zh": "也可以做 softmax，同樣沒問題。"
+    },
+    {
+      "start": 354.34000000000003,
+      "end": 357.42,
+      "en": "So in this case we get two different results.",
+      "zh": "這裡會得到兩種不同結果。"
+    },
+    {
+      "start": 357.42,
+      "end": 359.78,
+      "en": "They both sum to one, which is good.",
+      "zh": "兩者總和都為 1，這很好。"
+    },
+    {
+      "start": 359.78,
+      "end": 361.66,
+      "en": "That's what we want for a weights vector.",
+      "zh": "這正是我們對權重向量的要求。"
+    },
+    {
+      "start": 361.98,
+      "end": 364.7,
+      "en": "But the actual weightings themselves are different.",
+      "zh": "但權重本身不相同。"
+    },
+    {
+      "start": 364.7,
+      "end": 370.42,
+      "en": "So when we simply divide by the sum then we see that this value is 0.4.",
+      "zh": "只是除以總和時，這個值是 0.4。"
+    },
+    {
+      "start": 370.42,
+      "end": 371.86,
+      "en": "And these values are 0.2.",
+      "zh": "其他值是 0.2。"
+    },
+    {
+      "start": 372.58,
+      "end": 374.14,
+      "en": "So a doubling.",
+      "zh": "也就是兩倍。"
+    },
+    {
+      "start": 374.54,
+      "end": 381.46,
+      "en": "But here with softmax that accentuates the largest value and it suppresses the smaller values.",
+      "zh": "但 softmax 會凸顯最大值，壓低較小的值。"
+    },
+    {
+      "start": 381.7,
+      "end": 388.5,
+      "en": "So now this larger weight is more than twice what these smaller weight values are.",
+      "zh": "所以現在這個較大的權重，是其他較小權重的兩倍以上。"
+    },
+    {
+      "start": 388.98,
+      "end": 393.18,
+      "en": "Again this is interesting because it will promote sparsity.",
+      "zh": "再次強調，這很有意思，因為會促進稀疏性。"
+    },
+    {
+      "start": 393.18,
+      "end": 402.14,
+      "en": "So now the model is really focusing on one data point and focusing less on these other individual data points okay.",
+      "zh": "現在模型會更聚焦在一個資料點，比較不重視其他個別資料點。"
+    },
+    {
+      "start": 402.18,
+      "end": 409.46,
+      "en": "And then when we use this as a weight weights to calculate the weighted combination of the past activation",
+      "zh": "接著把這些權重用來計算過去活化值的加權組合，"
+    },
+    {
+      "start": 409.46,
+      "end": 416.58,
+      "en": "values, whether we use just the linear sum or softmax has an impact on the result that we get.",
+      "zh": "使用單純的線性加總，還是 softmax，就會影響結果。"
+    },
+    {
+      "start": 417.22,
+      "end": 422.7,
+      "en": "So that is just about weighting the past and softmax a weights vector.",
+      "zh": "以上是過去資訊的加權，以及對權重向量做 softmax。"
+    },
+    {
+      "start": 422.9,
+      "end": 427.98,
+      "en": "Now let's move into dealing with the future and ignoring future values.",
+      "zh": "接下來處理未來，並忽略未來值。"
+    },
+    {
+      "start": 427.98,
+      "end": 432.1,
+      "en": "That's what we want for processing tokens and next token prediction.",
+      "zh": "這正是處理詞元、預測下一個詞元時的需求。"
+    },
+    {
+      "start": 432.38,
+      "end": 434.94,
+      "en": "Okay so here are a bunch of numbers.",
+      "zh": "好，這裡有一組數字。"
+    },
+    {
+      "start": 434.94,
+      "end": 439.22,
+      "en": "Let's imagine that the present moment is time index four.",
+      "zh": "假設當下是時間索引 4。"
+    },
+    {
+      "start": 439.22,
+      "end": 441.02,
+      "en": "So that would be zero.",
+      "zh": "這裡是 0。"
+    },
+    {
+      "start": 441.02,
+      "end": 443.5,
+      "en": "And then 1234.",
+      "zh": "接著 1、2、3、4。"
+    },
+    {
+      "start": 443.5,
+      "end": 454.34000000000003,
+      "en": "So in this vector the present moment is four which means we want to utilize all of this information and ignore all of this information okay.",
+      "zh": "所以向量裡的當下是索引 4；我們想利用這一段資訊，忽略另一段資訊。"
+    },
+    {
+      "start": 454.5,
+      "end": 457.9,
+      "en": "And yeah that is just what I show here okay.",
+      "zh": "這裡展示的就是這件事。"
+    },
+    {
+      "start": 457.94,
+      "end": 463.94,
+      "en": "So then what I do is create a weights vector, set them all to to one.",
+      "zh": "接著建立權重向量，把全部設為 1。"
+    },
+    {
+      "start": 463.94,
+      "end": 466.14,
+      "en": "So I initialize the vector to be one.",
+      "zh": "也就是用 1 初始化向量。"
+    },
+    {
+      "start": 466.3,
+      "end": 474.23,
+      "en": "And then I say everything from the present moment plus one time step until the end is going to be set to zero.",
+      "zh": "然後從當下的下一個時間點，一直到最後，全部設成零。"
+    },
+    {
+      "start": 474.47,
+      "end": 477.79,
+      "en": "So this is a unscaled weighting.",
+      "zh": "這是尚未縮放的權重。"
+    },
+    {
+      "start": 477.79,
+      "end": 481.11,
+      "en": "So this will still sum to be a number greater than one.",
+      "zh": "所以總和仍然大於 1。"
+    },
+    {
+      "start": 481.19,
+      "end": 482.67,
+      "en": "These this weights vector.",
+      "zh": "就是這個權重向量。"
+    },
+    {
+      "start": 482.91,
+      "end": 483.95,
+      "en": "But that's no problem.",
+      "zh": "但沒關係。"
+    },
+    {
+      "start": 483.95,
+      "end": 487.67,
+      "en": "We can just divide by the sum over the vector.",
+      "zh": "可以除以向量的總和。"
+    },
+    {
+      "start": 487.99,
+      "end": 488.27,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 488.31,
+      "end": 491.55,
+      "en": "So that solves one problem of normalization.",
+      "zh": "這解決了一個正規化問題。"
+    },
+    {
+      "start": 491.55,
+      "end": 494.87,
+      "en": "It gives us a sum of one and has zeros for the future.",
+      "zh": "總和為 1，未來則為零。"
+    },
+    {
+      "start": 494.87,
+      "end": 495.87,
+      "en": "So that's great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 495.87,
+      "end": 497.87,
+      "en": "But you know where this is going.",
+      "zh": "但你知道接下來會發生什麼。"
+    },
+    {
+      "start": 498.91,
+      "end": 502.95,
+      "en": "The softmax of those values is non-zero.",
+      "zh": "這些值做 softmax 後，不是零。"
+    },
+    {
+      "start": 502.95,
+      "end": 513.99,
+      "en": "So even though we have created this weights vector to be zero values for the future, the softmax actually lifts those zero values up.",
+      "zh": "即使權重向量中代表未來的值已設為零，softmax 仍會把這些零值往上拉。"
+    },
+    {
+      "start": 514.15,
+      "end": 515.27,
+      "en": "And why does it do that.",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 515.27,
+      "end": 518.51,
+      "en": "Because e to the zero is one.",
+      "zh": "因為 e 的零次方是 1。"
+    },
+    {
+      "start": 519.39,
+      "end": 525.27,
+      "en": "So e to the -1 or -10 is still some non-zero value.",
+      "zh": "e 的負 1 次方或負 10 次方，仍然是某個非零值。"
+    },
+    {
+      "start": 525.51,
+      "end": 534.35,
+      "en": "But you know, as we keep setting this number to be smaller and smaller Then this value e to the -10,000.",
+      "zh": "但當我們不斷把這個指數調得更小，例如 e 的負 10,000 次方，"
+    },
+    {
+      "start": 534.39,
+      "end": 536.31,
+      "en": "That ends up being a very small number.",
+      "zh": "結果會非常非常小。"
+    },
+    {
+      "start": 536.35,
+      "end": 546.43,
+      "en": "It's technically not zero, but at some point PyTorch is only displaying the number zero because the rest of this is just so incredibly tiny.",
+      "zh": "嚴格來說不是零，但到了某個程度，PyTorch 就只顯示零，因為其餘數值實在太小。"
+    },
+    {
+      "start": 546.47,
+      "end": 551.79,
+      "en": "So you can see E to the -100 is already ten to the -44.",
+      "zh": "可以看到，e 的負 100 次方已經是 10 的負 44 次方這個量級。"
+    },
+    {
+      "start": 551.99,
+      "end": 553.71,
+      "en": "That is really, really small.",
+      "zh": "真的非常小。"
+    },
+    {
+      "start": 554.19,
+      "end": 563.15,
+      "en": "So therefore what we do is instead of setting those future values to be zero, we set them to be minus infinity.",
+      "zh": "所以我們不把未來值設成零，而是設成負無限大。"
+    },
+    {
+      "start": 563.67,
+      "end": 565.15,
+      "en": "And then you see what this looks like.",
+      "zh": "接著就能看到結果。"
+    },
+    {
+      "start": 565.23,
+      "end": 567.03,
+      "en": "So here are the unscaled weights.",
+      "zh": "這些是尚未縮放的權重。"
+    },
+    {
+      "start": 567.19,
+      "end": 569.99,
+      "en": "They are ones for the past and the present.",
+      "zh": "過去與現在都是 1。"
+    },
+    {
+      "start": 569.99,
+      "end": 572.07,
+      "en": "Minus infinity for the future.",
+      "zh": "未來是負無限大。"
+    },
+    {
+      "start": 572.39,
+      "end": 578.39,
+      "en": "And then when we take the softmax, we do in fact get zeros for the future.",
+      "zh": "做完 softmax，未來的結果確實為零。"
+    },
+    {
+      "start": 578.39,
+      "end": 579.23,
+      "en": "That's what we want.",
+      "zh": "這就是我們要的。"
+    },
+    {
+      "start": 579.27,
+      "end": 580.55,
+      "en": "And they still sum to one.",
+      "zh": "而且總和仍為 1。"
+    },
+    {
+      "start": 581.15,
+      "end": 584.31,
+      "en": "So that is all for a single vector.",
+      "zh": "以上是單一向量。"
+    },
+    {
+      "start": 584.35,
+      "end": 589.03,
+      "en": "Now what we are going to do is scale this up to create a matrix.",
+      "zh": "現在擴展成矩陣。"
+    },
+    {
+      "start": 589.39,
+      "end": 592.15,
+      "en": "So here we have a matrix of all ones.",
+      "zh": "這裡有一個全為 1 的矩陣。"
+    },
+    {
+      "start": 592.35,
+      "end": 597.63,
+      "en": "And then I input that nine by nine matrix of ones into torch dot.",
+      "zh": "接著把這個 9 × 9 的全一矩陣，傳入 torch"
+    },
+    {
+      "start": 597.63,
+      "end": 598.75,
+      "en": "Try lower.",
+      "zh": "的 tril。"
+    },
+    {
+      "start": 599.19,
+      "end": 603.07,
+      "en": "And that gives me all of the lower elements.",
+      "zh": "就能取得下方的元素。"
+    },
+    {
+      "start": 603.07,
+      "end": 608.47,
+      "en": "So below the lower triangular elements below and including the diagonal are preserved.",
+      "zh": "也就是保留對角線，以及對角線以下的下三角元素。"
+    },
+    {
+      "start": 608.47,
+      "end": 610.07,
+      "en": "So those are all equal to one.",
+      "zh": "所以這些全都等於 1。"
+    },
+    {
+      "start": 610.07,
+      "end": 613.27,
+      "en": "And everything above the diagonal ends up being zero.",
+      "zh": "對角線以上則全部變成零。"
+    },
+    {
+      "start": 613.31,
+      "end": 615.75,
+      "en": "That's what this function does okay.",
+      "zh": "這就是這個函數的作用。"
+    },
+    {
+      "start": 615.79,
+      "end": 619.27,
+      "en": "And then we set all the values that are equal to zero.",
+      "zh": "然後把所有等於零的值，"
+    },
+    {
+      "start": 619.31,
+      "end": 626.03,
+      "en": "We set them to be minus infinity also creates this really interesting looking visual funnel pattern.",
+      "zh": "設成負無限大，還形成了很有趣、像漏斗的視覺圖樣。"
+    },
+    {
+      "start": 626.03,
+      "end": 628.87,
+      "en": "But that's just a display thing okay.",
+      "zh": "但那只是顯示方式。"
+    },
+    {
+      "start": 628.91,
+      "end": 630.75,
+      "en": "And then we softmax.",
+      "zh": "接著做 softmax。"
+    },
+    {
+      "start": 630.75,
+      "end": 637.03,
+      "en": "Now when we softmax here we want to softmax across the columns within each row.",
+      "zh": "這裡要在每一列內，沿欄方向做 softmax。"
+    },
+    {
+      "start": 637.27,
+      "end": 639.27,
+      "en": "So this is the softmax result.",
+      "zh": "這就是 softmax 結果。"
+    },
+    {
+      "start": 639.27,
+      "end": 641.07,
+      "en": "And let me zoom in here a minute.",
+      "zh": "讓我稍微放大。"
+    },
+    {
+      "start": 641.99,
+      "end": 648.88,
+      "en": "So my question for you from which I asked in the slides is if all of these numbers are ones.",
+      "zh": "投影片上問過：如果這些數字全都是 1，"
+    },
+    {
+      "start": 648.92,
+      "end": 650.04,
+      "en": "They're all the same value.",
+      "zh": "完全相同，"
+    },
+    {
+      "start": 650.08,
+      "end": 651.04,
+      "en": "They're all ones.",
+      "zh": "全都是 1，"
+    },
+    {
+      "start": 651.2,
+      "end": 653.32,
+      "en": "Why do we get different numbers here?",
+      "zh": "為什麼結果卻是不同的數字？"
+    },
+    {
+      "start": 653.64,
+      "end": 661.76,
+      "en": "In particular, we have a one here and then all zeros and then 0.5 and 0.5 and all zeros 0.333.",
+      "zh": "例如這裡是 1，其餘全零；接著是 0.5、0.5，其餘全零；再來是 0.333。"
+    },
+    {
+      "start": 661.8,
+      "end": 668.64,
+      "en": "So a third, a third, a third, a quarter, a fifth, an eighth or sorry this is a sixth and then this is an eighth and so on.",
+      "zh": "也就是三分之一、三分之一、三分之一，然後四分之一、五分之一、八分之一，抱歉，這個是六分之一，這個才是八分之一，依此類推。"
+    },
+    {
+      "start": 668.76,
+      "end": 670.16,
+      "en": "And why does that happen.",
+      "zh": "為什麼會這樣？"
+    },
+    {
+      "start": 670.28,
+      "end": 679,
+      "en": "Well remember that with softmax we need the sum over all of the row elements to be equal to one.",
+      "zh": "記得，softmax 要求每一列所有元素的總和等於 1。"
+    },
+    {
+      "start": 679,
+      "end": 682.04,
+      "en": "So this one there's only one non-zero element.",
+      "zh": "這一列只有一個非零元素。"
+    },
+    {
+      "start": 682.04,
+      "end": 683.08,
+      "en": "So it has to be one.",
+      "zh": "所以它必須是 1。"
+    },
+    {
+      "start": 683.48,
+      "end": 687.48,
+      "en": "Here there are two non-zero elements here this one and this one.",
+      "zh": "這裡有兩個非零元素，就是這兩個。"
+    },
+    {
+      "start": 687.48,
+      "end": 693.72,
+      "en": "And so to get those to sum to one obviously they must both equal 0.5 and so on.",
+      "zh": "因此為了讓總和為 1，兩者顯然都必須等於 0.5，依此類推。"
+    },
+    {
+      "start": 694.64,
+      "end": 700.6,
+      "en": "So the weights themselves are getting smaller but there's more of them within each row.",
+      "zh": "所以權重本身變小，但每一列裡的權重數量變多。"
+    },
+    {
+      "start": 701.4,
+      "end": 701.84,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 702.08,
+      "end": 706.6,
+      "en": "So this is just printing over the uh so each row.",
+      "zh": "這裡就是逐列印出。"
+    },
+    {
+      "start": 706.8,
+      "end": 711.92,
+      "en": "So what it would look like, what this weighting vector would look like when you are at each time point.",
+      "zh": "展示處於不同時間點時，權重向量會是什麼樣子。"
+    },
+    {
+      "start": 711.92,
+      "end": 716.48,
+      "en": "So when you're at time point four then this is what the weighting vector looks like.",
+      "zh": "位於時間點 4 時，權重向量就是這樣。"
+    },
+    {
+      "start": 716.48,
+      "end": 724.04,
+      "en": "And you ignore all of the time points in the future all the tokens that are presented after the currently presented token.",
+      "zh": "忽略所有未來時間點，也就是目前詞元之後出現的詞元。"
+    },
+    {
+      "start": 724.64,
+      "end": 732.32,
+      "en": "Now, so far in this code file, I've just been using weights that have a value of one, and the reason",
+      "zh": "目前這個程式檔裡，我都使用值為 1 的權重，原因"
+    },
+    {
+      "start": 732.32,
+      "end": 738.72,
+      "en": "why I did that was just for simplicity to make the softmax operation be clear.",
+      "zh": "只是為了簡化，讓 softmax 操作更清楚。"
+    },
+    {
+      "start": 738.92,
+      "end": 746.56,
+      "en": "But inside the attention algorithm, which you'll learn about starting in the next video, we don't actually have all the values.",
+      "zh": "但從下一支影片開始介紹的注意力演算法中，實際上不是所有值，"
+    },
+    {
+      "start": 746.56,
+      "end": 750.08,
+      "en": "All the weights start off at exactly one.",
+      "zh": "所有權重一開始都剛好等於 1。"
+    },
+    {
+      "start": 750.48,
+      "end": 760.32,
+      "en": "These numbers here are actually the product of a weights matrix, and the activations coming from the token embeddings.",
+      "zh": "這些數字其實來自權重矩陣與詞元嵌入活化值的乘積。"
+    },
+    {
+      "start": 760.48,
+      "end": 764.28,
+      "en": "So it's going to have positive numbers and negative numbers.",
+      "zh": "所以會有正數，也會有負數。"
+    },
+    {
+      "start": 764.28,
+      "end": 766.68,
+      "en": "So that is what I'm simulating here.",
+      "zh": "這裡就是在模擬那種情況。"
+    },
+    {
+      "start": 766.72,
+      "end": 771.56,
+      "en": "Now, these are going to be just completely random numbers for the activations.",
+      "zh": "現在活化值會使用完全隨機的數字。"
+    },
+    {
+      "start": 771.56,
+      "end": 779.24,
+      "en": "You can see I'm just initializing this matrix to be random numbers, but this is simulating the nature",
+      "zh": "可以看到，我只是把矩陣初始化為隨機數，但這是在模擬"
+    },
+    {
+      "start": 779.24,
+      "end": 786.28,
+      "en": "of the data, the numerical scale and range of the data that will actually happen inside these language models.",
+      "zh": "語言模型內實際資料的性質，也就是數值尺度與範圍。"
+    },
+    {
+      "start": 786.76,
+      "end": 790.4,
+      "en": "So let's say the activations matrix looks like this.",
+      "zh": "假設活化矩陣長這樣。"
+    },
+    {
+      "start": 790.6,
+      "end": 795.32,
+      "en": "You will see in the next video we're going to start calling this QQ transpose.",
+      "zh": "下一支影片會開始把它叫做 Q Qᵀ。"
+    },
+    {
+      "start": 795.32,
+      "end": 796.6,
+      "en": "That is then scaled.",
+      "zh": "接著進行縮放。"
+    },
+    {
+      "start": 797.16,
+      "end": 798.92,
+      "en": "And then we have this matrix.",
+      "zh": "然後有這個矩陣。"
+    },
+    {
+      "start": 798.92,
+      "end": 802.88,
+      "en": "So now we can multiply these and get a matrix that looks like this.",
+      "zh": "現在可以把它們相乘，得到像這樣的矩陣。"
+    },
+    {
+      "start": 802.88,
+      "end": 808.24,
+      "en": "So all of the lower triangular elements here are the same as here.",
+      "zh": "這裡所有下三角元素，都和原本相同。"
+    },
+    {
+      "start": 808.56,
+      "end": 815.6,
+      "en": "And all of the upper triangular elements above the diagonal are transformed into minus infinity.",
+      "zh": "所有對角線以上的上三角元素，則變成負無限大。"
+    },
+    {
+      "start": 815.88,
+      "end": 821.72,
+      "en": "And then we softmax again across the columns separately for each row.",
+      "zh": "接著同樣在每一列內，沿欄方向做 softmax。"
+    },
+    {
+      "start": 822.08,
+      "end": 824.89,
+      "en": "And that is going to give us this matrix here.",
+      "zh": "就得到這個矩陣。"
+    },
+    {
+      "start": 824.89,
+      "end": 830.73,
+      "en": "So now this value actually starts off as being -0.67.",
+      "zh": "現在，這個值原本是 -0.67。"
+    },
+    {
+      "start": 831.53,
+      "end": 834.17,
+      "en": "But when you softmax it it becomes one.",
+      "zh": "但做完 softmax 就變成 1。"
+    },
+    {
+      "start": 834.17,
+      "end": 835.69,
+      "en": "And why does it become one.",
+      "zh": "為什麼會變成 1？"
+    },
+    {
+      "start": 835.69,
+      "end": 839.89,
+      "en": "Because this is the only non infinite value that we have here.",
+      "zh": "因為它是這裡唯一不是無限大的值。"
+    },
+    {
+      "start": 839.89,
+      "end": 845.37,
+      "en": "It's the only non-zero value after taking e to the of these values.",
+      "zh": "也就是對這些值取 e 的次方後，唯一非零的結果。"
+    },
+    {
+      "start": 845.37,
+      "end": 848.09,
+      "en": "And so it has to become one by definition.",
+      "zh": "所以依定義，它必須變成 1。"
+    },
+    {
+      "start": 848.77,
+      "end": 852.05,
+      "en": "So you can see these numbers here can be greater than one.",
+      "zh": "可以看到，原本的數字可能大於 1。"
+    },
+    {
+      "start": 852.05,
+      "end": 857.65,
+      "en": "They can be negative here this becomes a softmax probability distribution.",
+      "zh": "也可能是負數，但這裡會變成 softmax 機率分布。"
+    },
+    {
+      "start": 857.65,
+      "end": 861.09,
+      "en": "And so all of these numbers are between 0 and 1.",
+      "zh": "因此所有數字都介於 0 和 1 之間。"
+    },
+    {
+      "start": 861.21,
+      "end": 862.93,
+      "en": "And they are all positive.",
+      "zh": "而且都是正的。"
+    },
+    {
+      "start": 863.09,
+      "end": 865.09,
+      "en": "And here I'm just confirming that.",
+      "zh": "這裡只是加以確認。"
+    },
+    {
+      "start": 865.09,
+      "end": 869.09,
+      "en": "So when we sum over all the rows we just get a bunch of ones.",
+      "zh": "把每一列加總，都會得到 1。"
+    },
+    {
+      "start": 869.25,
+      "end": 877.17,
+      "en": "Of course when we sum over the rows for each column then you know we can get some other numbers, but this is not sensible.",
+      "zh": "當然，如果對每一欄沿列方向加總，就可能得到其他數字，但這裡沒有意義。"
+    },
+    {
+      "start": 877.17,
+      "end": 884.69,
+      "en": "So this 3.48, this is just all of the sum of all of these numbers here, which, you know, we don't actually do anything with that.",
+      "zh": "例如 3.48，就是這些數字的總和，但我們其實不會拿它做什麼。"
+    },
+    {
+      "start": 884.69,
+      "end": 887.85,
+      "en": "There's no real interpretation or application of that.",
+      "zh": "沒有實際的解讀或用途。"
+    },
+    {
+      "start": 888.33,
+      "end": 893.21,
+      "en": "Okay, the last thing I want to do here in this code is just out of curiosity.",
+      "zh": "好，這裡最後要做的，只是出於好奇。"
+    },
+    {
+      "start": 893.21,
+      "end": 896.77,
+      "en": "I wanted to clock some computation time.",
+      "zh": "想測量一下運算時間。"
+    },
+    {
+      "start": 896.77,
+      "end": 902.81,
+      "en": "So different ways of creating, uh, this matrix up here.",
+      "zh": "看看建立上面這個矩陣的不同方法。"
+    },
+    {
+      "start": 902.81,
+      "end": 903.57,
+      "en": "So where is it?",
+      "zh": "它在哪裡？"
+    },
+    {
+      "start": 903.65,
+      "end": 905.21,
+      "en": "So this matrix up here.",
+      "zh": "就是上面這個矩陣。"
+    },
+    {
+      "start": 905.21,
+      "end": 911.37,
+      "en": "So I'm going to create this matrix in a few different ways and just see how long it takes to create that.",
+      "zh": "我會用幾種方法建立它，看看各需要多久。"
+    },
+    {
+      "start": 911.85,
+      "end": 913.77,
+      "en": "Actually I see I'm not softmaxes here.",
+      "zh": "其實我發現，這裡沒有做 softmax。"
+    },
+    {
+      "start": 913.77,
+      "end": 922.45,
+      "en": "So this is just creating the matrix of all ones on and below the diagonal and all minus infinities above the diagonal.",
+      "zh": "只是建立在對角線及其下方全為 1、對角線上方全為負無限大的矩陣。"
+    },
+    {
+      "start": 922.85,
+      "end": 923.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 923.13,
+      "end": 928.85,
+      "en": "So here I start off with a matrix of all ones ten by ten matrix of all ones.",
+      "zh": "這裡從 10 × 10 的全一矩陣開始。"
+    },
+    {
+      "start": 929.09,
+      "end": 936.09,
+      "en": "Get the lower triangles, find all the elements that are equal to zero, and replace those with minus infinity.",
+      "zh": "取下三角，找出所有等於零的元素，再用負無限大取代。"
+    },
+    {
+      "start": 936.61,
+      "end": 937.77,
+      "en": "This is torture.",
+      "zh": "這裡使用 torch 的負無限大。"
+    },
+    {
+      "start": 938.81,
+      "end": 944.01,
+      "en": "Here I'm using the Python base function for minus infinity.",
+      "zh": "這裡則用 Python 本身的方式表示負無限大。"
+    },
+    {
+      "start": 944.17,
+      "end": 947.25,
+      "en": "So and then transforming that into a floating point number.",
+      "zh": "再把它轉成浮點數。"
+    },
+    {
+      "start": 947.57,
+      "end": 955.29,
+      "en": "Here I'm using a PyTorch method on this on this tensor object called masked fill.",
+      "zh": "這裡使用 PyTorch 張量物件的方法，叫做 masked_fill。"
+    },
+    {
+      "start": 955.69,
+      "end": 958.61,
+      "en": "And this essentially does the same thing as this.",
+      "zh": "它基本上和這邊做相同的事。"
+    },
+    {
+      "start": 958.61,
+      "end": 965.29,
+      "en": "So it's looking for all of these zeros and replacing them with minus infinity.",
+      "zh": "找出所有零值，用負無限大取代。"
+    },
+    {
+      "start": 965.77,
+      "end": 966.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 966.33,
+      "end": 975.77,
+      "en": "And then yeah I mean I did this out of curiosity because different people implement this mask in different ways.",
+      "zh": "我只是出於好奇，因為不同人用不同方法實作這個遮罩。"
+    },
+    {
+      "start": 975.93,
+      "end": 977.61,
+      "en": "There isn't really a clear winner.",
+      "zh": "沒有哪一個特別明顯勝出。"
+    },
+    {
+      "start": 977.65,
+      "end": 979.45,
+      "en": "You know, one of them is going to be faster.",
+      "zh": "總會有其中一個稍微快一點。"
+    },
+    {
+      "start": 979.45,
+      "end": 982.05,
+      "en": "I think option two ends up being the fastest.",
+      "zh": "我想最後選項二最快。"
+    },
+    {
+      "start": 982.09,
+      "end": 982.45,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 982.81,
+      "end": 991.09,
+      "en": "So option two was this basically using uh minus infinity from base Python and not from PyTorch explicitly.",
+      "zh": "選項二基本上就是使用 Python 本身的負無限大，而不是明確從 PyTorch 取得。"
+    },
+    {
+      "start": 991.33,
+      "end": 1001.58,
+      "en": "But none of this really matters because you will see in the next couple of videos that the creation of this mask is fused into PyTorch.",
+      "zh": "不過這不太重要，因為接下來幾支影片會看到，建立遮罩的操作會融合到 PyTorch"
+    },
+    {
+      "start": 1001.62,
+      "end": 1004.82,
+      "en": "Functions that are optimized for GPU processing.",
+      "zh": "針對 GPU 處理最佳化的函數裡。"
+    },
+    {
+      "start": 1006.34,
+      "end": 1013.86,
+      "en": "I believe that you are now ready to understand the attention algorithm, which I will explain in the next video.",
+      "zh": "相信你現在已經準備好，理解下一支影片要說明的注意力演算法。"
+    },
+    {
+      "start": 1014.22,
+      "end": 1022.66,
+      "en": "I want to conclude this video with a quick statement that is often true about deep learning models and large language models in particular.",
+      "zh": "最後想快速說明一件對深度學習模型，尤其大型語言模型，經常成立的事。"
+    },
+    {
+      "start": 1023.22,
+      "end": 1032.58,
+      "en": "Running these big models is so incredibly computationally expensive because there are just so many floating point operations involved.",
+      "zh": "執行這些大模型的計算成本極高，因為涉及的浮點運算實在太多。"
+    },
+    {
+      "start": 1032.58,
+      "end": 1043.14,
+      "en": "So very smart computer scientists and engineers have developed highly optimized ways of implementing these kinds of calculations on GPUs.",
+      "zh": "因此非常聰明的電腦科學家與工程師，開發了在 GPU 上執行這類計算的高度最佳化方法。"
+    },
+    {
+      "start": 1043.78,
+      "end": 1054.14,
+      "en": "So the code that you've seen in this video, and also in the next couple of videos, it's all perfectly valid code, but it's not how it actually gets implemented in practice.",
+      "zh": "所以這支影片，以及接下來幾支影片的程式碼，雖然完全有效，但實務上的實作方式並不是如此。"
+    },
+    {
+      "start": 1054.74,
+      "end": 1058.9,
+      "en": "Anyway, I hope you're looking forward to the next lecture about attention.",
+      "zh": "總之，希望你期待下一堂關於注意力的課。"
+    }
+  ]
+}

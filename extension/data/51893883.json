@@ -1,0 +1,2359 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893883",
+  "title": "Explorations in subspace removal",
+  "section": 26,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "a1ff1e0fc2e28c6f08768ebf0a18ec67cb5bc63760bfa5cfe9f55a00558e336f",
+  "cues": [
+    {
+      "start": 2,
+      "end": 11.16,
+      "en": "So far in this section, you have seen a few different ways to identify individual MLP neurons to zero",
+      "zh": "這個章節到目前為止，你看過幾種方式，辨識要在前向傳播中歸零的個別 MLP"
+    },
+    {
+      "start": 11.16,
+      "end": 12.8,
+      "en": "out in a forward pass.",
+      "zh": "神經元。"
+    },
+    {
+      "start": 13.44,
+      "end": 22.04,
+      "en": "For example, removal based on high activation values and based on statistical tests using independent data.",
+      "zh": "例如，根據高活化值，或使用獨立資料做統計檢定，來移除。"
+    },
+    {
+      "start": 22.88,
+      "end": 32.52,
+      "en": "The approach that I will introduce here in this video is about using matrix decomposition methods to identify subspaces.",
+      "zh": "這支影片要介紹的方法，是使用矩陣分解辨識子空間。"
+    },
+    {
+      "start": 32.56,
+      "end": 38.88,
+      "en": "So these are linear combinations of all the neurons to project out of the data.",
+      "zh": "也就是所有神經元的線性組合，再將它們從資料中投影移除。"
+    },
+    {
+      "start": 39.44,
+      "end": 45.56,
+      "en": "It's kind of like the opposite of using PCA for compression and noise attenuation.",
+      "zh": "有點像用 PCA 壓縮、削弱雜訊的相反操作。"
+    },
+    {
+      "start": 46.32,
+      "end": 56.2,
+      "en": "That is to say normally subspace rejection is used to get rid of very small dimensions in the data that are probably just noise.",
+      "zh": "也就是說，一般的子空間剔除，用來移除資料中很小、可能只是雜訊的維度。"
+    },
+    {
+      "start": 56.84,
+      "end": 65.42,
+      "en": "In contrast, what I'm going to show you here is using PCA to identify the largest and the highest variance component.",
+      "zh": "相反地，這裡會用 PCA 辨識最大、變異數最高的成分。"
+    },
+    {
+      "start": 65.58,
+      "end": 68.94,
+      "en": "And then I will project that out of the data.",
+      "zh": "再把它從資料中投影移除。"
+    },
+    {
+      "start": 69.53999999999999,
+      "end": 74.42,
+      "en": "Importantly, the data set size will remain exactly the same.",
+      "zh": "重點是，資料集大小完全不變。"
+    },
+    {
+      "start": 74.42,
+      "end": 82.62,
+      "en": "So we can project out a component without actually zeroing out any individual neuron or sets of neurons.",
+      "zh": "所以，可以移除一個成分，而不真的將任何個別神經元或一組神經元歸零。"
+    },
+    {
+      "start": 83.1,
+      "end": 94.86,
+      "en": "It's a pretty neat approach conceptually, and it allows for lots of hypotheses to be tested about latent components and linear combinations of neurons or dimensions.",
+      "zh": "概念上相當巧妙，讓我們能檢驗許多關於潛在成分，以及神經元或維度線性組合的假設。"
+    },
+    {
+      "start": 95.78,
+      "end": 103.74000000000001,
+      "en": "I will start by giving you a brief reminder of how we can decompose a data set using the SVD, the singular",
+      "zh": "先簡短複習，如何使用 SVD，也就是奇異"
+    },
+    {
+      "start": 103.74000000000001,
+      "end": 109.22,
+      "en": "value decomposition, and then I'll switch to what we're going to do in the code demo.",
+      "zh": "值分解，來分解資料集，再介紹程式示範。"
+    },
+    {
+      "start": 110.53999999999999,
+      "end": 115.78,
+      "en": "You have seen a slide that looks like this several times before in this course.",
+      "zh": "這門課之前已經看過幾次類似投影片。"
+    },
+    {
+      "start": 116.42,
+      "end": 121.72,
+      "en": "And if you've taken my linear algebra course then you've also seen this slide quite a few times.",
+      "zh": "如果上過我的線性代數課，也看過很多次。"
+    },
+    {
+      "start": 122.32,
+      "end": 127.16,
+      "en": "So imagine we have the MLP data set here on the left.",
+      "zh": "想像左邊是 MLP 資料集。"
+    },
+    {
+      "start": 127.4,
+      "end": 131.12,
+      "en": "It is tokens by neurons or dimensions.",
+      "zh": "大小是 token 乘上神經元或維度。"
+    },
+    {
+      "start": 131.76,
+      "end": 138.92000000000002,
+      "en": "In fact, the full data set could also have a third dimension that would correspond to sequences in the batch.",
+      "zh": "其實，完整資料集也可能有第三維，對應批次中的序列。"
+    },
+    {
+      "start": 139.32,
+      "end": 141.8,
+      "en": "But I'm going to ignore that for simplicity.",
+      "zh": "但為了簡單，先忽略。"
+    },
+    {
+      "start": 142.4,
+      "end": 151.28,
+      "en": "The singular value decomposition allows us to decompose this matrix into the product of three other matrices.",
+      "zh": "奇異值分解，能把這個矩陣分解成其他三個矩陣的乘積。"
+    },
+    {
+      "start": 151.88,
+      "end": 160.36,
+      "en": "We have the token basis, the singular values matrix embedded in the diagonals of this matrix sigma,",
+      "zh": "有 token 基底、嵌在 Sigma 矩陣對角線上的奇異值矩陣，"
+    },
+    {
+      "start": 161.12,
+      "end": 164.04,
+      "en": "and we have the MLP basis vectors.",
+      "zh": "以及 MLP 基底向量。"
+    },
+    {
+      "start": 164.52,
+      "end": 171.64,
+      "en": "Now if you're doing a principal components analysis, then you would take the columns of U or the rows",
+      "zh": "做主成分分析時，可以把 U 的欄，或 V 轉置的列，"
+    },
+    {
+      "start": 171.64,
+      "end": 179.93,
+      "en": "of V transpose as the eigenvectors or the principal components, and also as another reminder from earlier",
+      "zh": "當作特徵向量、主成分。也再次提醒課程前面提過的，"
+    },
+    {
+      "start": 179.93,
+      "end": 187.97,
+      "en": "in this course, the first row of V transpose, which is associated with the largest singular value.",
+      "zh": "V 轉置第一列，對應最大奇異值，"
+    },
+    {
+      "start": 188.25,
+      "end": 198.21,
+      "en": "That's the one up here on the top left, that is a vector that points in the direction in the data space with the largest variance.",
+      "zh": "也就是左上方那個，它是指向資料空間中最大變異數方向的向量。"
+    },
+    {
+      "start": 198.21,
+      "end": 201.13,
+      "en": "So the largest covariance across all the variables.",
+      "zh": "也就是所有變數之間，最大的共變異數。"
+    },
+    {
+      "start": 201.53,
+      "end": 204.29,
+      "en": "So that would be this axis over here.",
+      "zh": "對應這裡這個軸。"
+    },
+    {
+      "start": 204.89,
+      "end": 213.25,
+      "en": "Now what I am going to do here in this video is set this largest singular value to zero.",
+      "zh": "這支影片，我要把這個最大奇異值設為零。"
+    },
+    {
+      "start": 213.81,
+      "end": 218.17000000000002,
+      "en": "That will effectively remove that dimension from the data.",
+      "zh": "這實際上會從資料移除那個維度。"
+    },
+    {
+      "start": 218.61,
+      "end": 224.89,
+      "en": "That is not the same as zeroing out any individual neuron or even a set of neurons.",
+      "zh": "與將任何個別神經元，甚至一組神經元歸零，不一樣。"
+    },
+    {
+      "start": 225.41,
+      "end": 234.77,
+      "en": "In fact, all of the neurons retain some numerical value that is pretty close to their original value, which I will demonstrate to you in the code demo.",
+      "zh": "事實上，所有神經元都保留某個與原始值相當接近的數值，程式示範會展示。"
+    },
+    {
+      "start": 235.29,
+      "end": 241.95,
+      "en": "The cool thing about this subspace removal technique is that it will preserve the dimensionality of",
+      "zh": "這個子空間移除技術，很棒的一點，是保留"
+    },
+    {
+      "start": 241.95,
+      "end": 249.83,
+      "en": "the data matrix, and that means that we can manipulate this MLP data matrix inside a hook function,",
+      "zh": "資料矩陣的維度，代表可以在 hook 函數內操作這個 MLP 資料矩陣，"
+    },
+    {
+      "start": 250.15,
+      "end": 256.11,
+      "en": "and then pass it along back into the model to continue with the forward pass calculations.",
+      "zh": "再傳回模型，繼續前向傳播計算。"
+    },
+    {
+      "start": 256.83,
+      "end": 263.27,
+      "en": "And so with that in mind, I will now give you an overview of the code demo before switching to code.",
+      "zh": "記住這點，切換到程式碼前，先概述示範。"
+    },
+    {
+      "start": 264.27,
+      "end": 271.63,
+      "en": "I'm going to work with the Excel version of GPT two, in part because it's just fun to work with these",
+      "zh": "使用 GPT2 的 XL 版本，部分原因是使用"
+    },
+    {
+      "start": 271.63,
+      "end": 278.75,
+      "en": "slightly bigger models, and also in part just to demonstrate how robust this method is to the data",
+      "zh": "稍大模型很好玩，另一部分則是展示，這個方法對資料集"
+    },
+    {
+      "start": 278.79,
+      "end": 285.31,
+      "en": "set size, which means it's a useful method that can be scaled up to much larger models.",
+      "zh": "大小很穩健，代表能擴展到大得多的模型。"
+    },
+    {
+      "start": 285.67,
+      "end": 294.87,
+      "en": "For example, there are 6400 neurons in the expansion layer of the MLP, and the SVD on this data set",
+      "zh": "例如，MLP 擴張層有 6400 個神經元，對這份資料做 SVD，"
+    },
+    {
+      "start": 294.87,
+      "end": 303.13,
+      "en": "is going to run quite fast, in part because this is actually not the relevant dimensionality for an SVD complexity.",
+      "zh": "仍然會很快，部分是因為這其實不是 SVD 複雜度相關的維度。"
+    },
+    {
+      "start": 303.65,
+      "end": 307.57,
+      "en": "The relevant dimensionality is actually the token dimensionality.",
+      "zh": "真正相關的，是 token 維度。"
+    },
+    {
+      "start": 307.57,
+      "end": 308.93,
+      "en": "So the number of tokens.",
+      "zh": "也就是 token 數量。"
+    },
+    {
+      "start": 309.65,
+      "end": 317.29,
+      "en": "So therefore to have some tokens to work with, I took the first paragraph of this Wikipedia page about Ravel.",
+      "zh": "所以，為了取得一些 token，我從介紹 Ravel 的維基百科頁面，取了第一段。"
+    },
+    {
+      "start": 317.85,
+      "end": 324.61,
+      "en": "Ravel is one of my favorite composers, and if you've never heard his music before, I can recommend giving it a listen.",
+      "zh": "Ravel 是我最喜歡的作曲家之一，如果沒聽過他的音樂，可以聽聽看。"
+    },
+    {
+      "start": 325.73,
+      "end": 334.85,
+      "en": "Anyway, I'm going to forward pass some text here and grab the MLP activations before the Jlu non-linearity.",
+      "zh": "總之，讓一些文字做前向傳播，取得 GELU 非線性函數之前的 MLP 活化。"
+    },
+    {
+      "start": 335.53,
+      "end": 345.45,
+      "en": "As you've now seen many times before, the MLP activations tend to look roughly normally distributed and shifted to the left of zero.",
+      "zh": "你已經看過很多次，MLP 活化通常大致呈常態分布，往零的左邊偏移。"
+    },
+    {
+      "start": 346.37,
+      "end": 351.37,
+      "en": "Here is the key part of the code that implements the subspace removal.",
+      "zh": "這是實作子空間移除的關鍵程式碼。"
+    },
+    {
+      "start": 351.77,
+      "end": 354.53,
+      "en": "So this matrix here is MLP.",
+      "zh": "這個矩陣是 MLP。"
+    },
+    {
+      "start": 354.61,
+      "end": 356.89,
+      "en": "This is tokens by neurons.",
+      "zh": "大小是 token 乘上神經元。"
+    },
+    {
+      "start": 357.51,
+      "end": 364.75,
+      "en": "And in this SVD function, the second output is a vector of singular values.",
+      "zh": "SVD 函數的第二個輸出，是奇異值向量。"
+    },
+    {
+      "start": 365.51,
+      "end": 370.23,
+      "en": "And by the way, earlier in this course I was using numpy to calculate the SVD.",
+      "zh": "順帶一提，課程前面，是用 NumPy 計算 SVD。"
+    },
+    {
+      "start": 370.55,
+      "end": 374.95,
+      "en": "But the torch dot linalg module has very similar functionality.",
+      "zh": "但 torch.linalg 模組，有非常相似的功能。"
+    },
+    {
+      "start": 375.43,
+      "end": 383.99,
+      "en": "Anyway, we need S to be converted from a vector into the sigma matrix, which is easy to do.",
+      "zh": "總之，需要把 S 從向量轉成 Sigma 矩陣，很容易做到。"
+    },
+    {
+      "start": 384.31,
+      "end": 393.39,
+      "en": "And then here I'm simply zeroing out the top component simply by setting the first singular value to",
+      "zh": "接著，只要把第一個奇異值設為"
+    },
+    {
+      "start": 393.43,
+      "end": 394.07,
+      "en": "zero.",
+      "zh": "零，就把最前面的成分歸零。"
+    },
+    {
+      "start": 394.19,
+      "end": 400.47,
+      "en": "We don't actually have to manipulate the U or the v transpose matrix, because the largest component",
+      "zh": "其實不必操作 U 或 V 轉置矩陣，因為 U 與 V 轉置中"
+    },
+    {
+      "start": 400.47,
+      "end": 407.87,
+      "en": "in U and v transpose will multiply by this zero, and then they will effectively be zeroed out.",
+      "zh": "最大的成分，會乘上這個零，因此實際上被歸零。"
+    },
+    {
+      "start": 408.31,
+      "end": 408.63,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 408.67,
+      "end": 417.37,
+      "en": "So then I just have to multiply these three matrices back together to reconstruct the data without the top component.",
+      "zh": "再把三個矩陣乘回去，重建不含最前面成分的資料。"
+    },
+    {
+      "start": 417.85,
+      "end": 425.09,
+      "en": "Here you see the size of the matrix, and that's actually the same size as the MLP matrix up here.",
+      "zh": "這裡可以看到矩陣大小，其實與上面的 MLP 矩陣相同。"
+    },
+    {
+      "start": 425.61,
+      "end": 429.45,
+      "en": "So what is the impact of this subspace removal.",
+      "zh": "子空間移除有什麼影響？"
+    },
+    {
+      "start": 430.05,
+      "end": 438.57,
+      "en": "We can explore that by comparing various data metrics between the MLP and the proj variables here.",
+      "zh": "可以比較這裡 MLP 與 proj 變數的各種資料指標，來探索。"
+    },
+    {
+      "start": 438.93,
+      "end": 441.77,
+      "en": "So here you see several ways of comparing them.",
+      "zh": "這裡有幾種比較方式。"
+    },
+    {
+      "start": 441.77,
+      "end": 444.21,
+      "en": "The first one up here is a scatter plot.",
+      "zh": "首先，上面是散布圖。"
+    },
+    {
+      "start": 444.53,
+      "end": 451.53,
+      "en": "This shows the original data by the reconstructed data with the first subspace removed.",
+      "zh": "顯示原始資料，相對於移除第一個子空間後的重建資料。"
+    },
+    {
+      "start": 451.69,
+      "end": 457.25,
+      "en": "They are certainly not identical, but they're also certainly very strongly correlated.",
+      "zh": "兩者當然不相同，但也確實非常強烈相關。"
+    },
+    {
+      "start": 457.25,
+      "end": 462.61,
+      "en": "And it's clearly not the case that I have just zeroed out lots of individual neurons.",
+      "zh": "而且，顯然不是單純把很多個別神經元歸零。"
+    },
+    {
+      "start": 463.17,
+      "end": 472.40999999999997,
+      "en": "Their distributions look somewhat similar, although it looks like the largest component was accounting for some of this stuff here on the side lobe here.",
+      "zh": "分布看起來有些相似，但最大成分似乎解釋了這裡旁瓣的某些部分。"
+    },
+    {
+      "start": 472.97,
+      "end": 482.62,
+      "en": "Actually, there is some nuance here about putting the mean value, the average value back into the data, which I will demonstrate in the code.",
+      "zh": "其實，關於把平均值加回資料，有一些細節，程式碼中會展示。"
+    },
+    {
+      "start": 483.34,
+      "end": 487.54,
+      "en": "Over here we have the eigen spectra of the two matrices.",
+      "zh": "這裡是兩個矩陣的特徵值譜。"
+    },
+    {
+      "start": 487.7,
+      "end": 492.02,
+      "en": "So these are the scree plots from a principal components analysis.",
+      "zh": "也就是主成分分析的陡坡圖。"
+    },
+    {
+      "start": 492.46,
+      "end": 494.5,
+      "en": "And this pink box up here.",
+      "zh": "上面這個粉紅方框，"
+    },
+    {
+      "start": 494.5,
+      "end": 497.74,
+      "en": "This is the component that I removed from the data.",
+      "zh": "就是從資料移除的成分。"
+    },
+    {
+      "start": 498.02,
+      "end": 506.9,
+      "en": "It accounts for like 36 or 37% of the variance of the total MLP data set from this transformer block.",
+      "zh": "它解釋這個 Transformer 區塊，全部 MLP 資料集大約 36% 或 37% 變異數。"
+    },
+    {
+      "start": 507.94,
+      "end": 516.3,
+      "en": "And of course after I remove this component, then there's no longer one big component that accounts for lots of variance in the data.",
+      "zh": "移除成分後，當然就不再有一個能解釋大量變異數的大成分。"
+    },
+    {
+      "start": 517.18,
+      "end": 521.98,
+      "en": "These two plots down here show the covariance matrices of the data.",
+      "zh": "下面這兩張圖，是資料的共變異數矩陣。"
+    },
+    {
+      "start": 522.14,
+      "end": 525.18,
+      "en": "And they are really remarkably different.",
+      "zh": "差異真的非常明顯。"
+    },
+    {
+      "start": 525.62,
+      "end": 533.34,
+      "en": "You really see that removing the largest one dimensional subspace did not really impact the individual",
+      "zh": "可以看到，移除最大的單維子空間，沒有太大影響個別"
+    },
+    {
+      "start": 533.34,
+      "end": 541.6,
+      "en": "data values that much, but it had a really striking impact on the relationships across the different neurons.",
+      "zh": "資料值，卻對不同神經元之間的關係，有非常醒目的影響。"
+    },
+    {
+      "start": 541.84,
+      "end": 552.92,
+      "en": "This demonstrates that there are embedded multi-variable patterns in the data that were destroyed by removing that top principal component subspace.",
+      "zh": "這顯示，資料中嵌有多變量模式，移除最前面的主成分子空間，會破壞它們。"
+    },
+    {
+      "start": 553.2,
+      "end": 560.96,
+      "en": "That's also really clear when looking at these distributions here, which show the histograms of the covariance values.",
+      "zh": "這些分布也很清楚，顯示共變異數值的直方圖。"
+    },
+    {
+      "start": 561.6,
+      "end": 568.84,
+      "en": "So the covariance is in the raw data are generally pretty strong and shifted towards the right towards positive values.",
+      "zh": "原始資料的共變異數，一般相當強，往右、往正值偏移。"
+    },
+    {
+      "start": 569.08,
+      "end": 578.96,
+      "en": "Whereas the reconstructed data with the subspace removed have a distribution that is actually a little bit shifted towards negative.",
+      "zh": "移除子空間的重建資料，分布則反而稍微偏向負值。"
+    },
+    {
+      "start": 579.36,
+      "end": 581.08,
+      "en": "So quite a striking result.",
+      "zh": "相當醒目的結果。"
+    },
+    {
+      "start": 581.56,
+      "end": 586.36,
+      "en": "Anyway, the next thing I did was implement this manipulation in one layer.",
+      "zh": "接著，我把這個操作實作在一層。"
+    },
+    {
+      "start": 586.36,
+      "end": 596.54,
+      "en": "Only one layer of the model in the middle of the transformer block sequence, and then measure what happens to the hidden states for all the layers in the model.",
+      "zh": "只有模型一層，在 Transformer 區塊序列中間，再測量模型全部層的隱藏狀態發生什麼。"
+    },
+    {
+      "start": 597.1,
+      "end": 607.58,
+      "en": "The way that I quantified this was by comparing the hidden states for the clean model of clean version of the model versus the subspace removed version of the model.",
+      "zh": "量化方式，是比較乾淨模型版本，以及移除子空間模型版本的隱藏狀態。"
+    },
+    {
+      "start": 608.18,
+      "end": 613.02,
+      "en": "So the y axis here is the norm of that vector difference.",
+      "zh": "所以，y 軸是向量差的範數。"
+    },
+    {
+      "start": 613.14,
+      "end": 614.94,
+      "en": "You've seen this matrix before.",
+      "zh": "這個指標以前看過。"
+    },
+    {
+      "start": 615.3,
+      "end": 618.9,
+      "en": "It doesn't tell us exactly what is changing or how it's changing.",
+      "zh": "不會告訴我們，確切改變了什麼、如何改變。"
+    },
+    {
+      "start": 619.06,
+      "end": 629.5,
+      "en": "It's just telling us the relative size of the difference in the output of the transformer blocks from the manipulated versus the clean version of the model.",
+      "zh": "只告訴我們，操作與乾淨模型版本的 Transformer 區塊輸出，差異相對多大。"
+    },
+    {
+      "start": 630.46,
+      "end": 638.06,
+      "en": "Pretty remarkable to see that although I've only removed a one dimensional subspace from just the MLP",
+      "zh": "很驚人，只從一層的 MLP"
+    },
+    {
+      "start": 638.14,
+      "end": 645.78,
+      "en": "sub block, from just one layer that had these ripple effects that kept increasing as we got further",
+      "zh": "子區塊移除一維子空間，就有這些漣漪效應，而且越深入模型，"
+    },
+    {
+      "start": 645.98,
+      "end": 656.92,
+      "en": "into the model until the very end of the model, where the last transformer block plus the final layer norm seemed to have compensated for the differences quite a bit.",
+      "zh": "影響越大，直到模型最末端，最後 Transformer 區塊加上最終 LayerNorm，似乎相當程度地補償了差異。"
+    },
+    {
+      "start": 657.64,
+      "end": 665.24,
+      "en": "I also looked at the impact of the removal on cosine similarity of token pairs at the level of the hidden states.",
+      "zh": "我也看了，移除對隱藏狀態層級、token 配對餘弦相似度的影響。"
+    },
+    {
+      "start": 665.56,
+      "end": 670.32,
+      "en": "I don't have that figure right here, but it's something we will look at in the code.",
+      "zh": "這裡沒有那張圖，但程式碼中會看。"
+    },
+    {
+      "start": 671.28,
+      "end": 675.48,
+      "en": "Okay, so this is just about the internal vectors in the model.",
+      "zh": "好，這些只關於模型內部向量。"
+    },
+    {
+      "start": 675.76,
+      "end": 680.28,
+      "en": "Does this manipulation have any implications for the final output.",
+      "zh": "操作是否影響最終輸出"
+    },
+    {
+      "start": 680.28,
+      "end": 681,
+      "en": "Logits.",
+      "zh": "logit？"
+    },
+    {
+      "start": 681.52,
+      "end": 683.92,
+      "en": "That's what I show in this plot here.",
+      "zh": "這張圖就是。"
+    },
+    {
+      "start": 684.88,
+      "end": 692.36,
+      "en": "So this is the output logit from the manipulated version of the model relative to the clean version.",
+      "zh": "這是操作模型版本，相對於乾淨版本的輸出 logit。"
+    },
+    {
+      "start": 692.68,
+      "end": 695.88,
+      "en": "And it's the logit for the next token prediction.",
+      "zh": "針對下一個 token 的預測 logit。"
+    },
+    {
+      "start": 696,
+      "end": 704.96,
+      "en": "So a positive value in this difference metric here would mean that the clean model had a better prediction",
+      "zh": "這個差值指標為正，表示乾淨模型對下一個"
+    },
+    {
+      "start": 704.96,
+      "end": 713.85,
+      "en": "for the next token, while a negative value would mean that the manipulated model had a better prediction for the next token in the sequence.",
+      "zh": "token 的預測較好；負值則表示，操作模型對序列下一個 token 預測較好。"
+    },
+    {
+      "start": 714.21,
+      "end": 718.61,
+      "en": "And of course the x axis here is the tokens in the sequence.",
+      "zh": "x 軸，當然是序列中的 token。"
+    },
+    {
+      "start": 719.13,
+      "end": 722.89,
+      "en": "We can also visualize these results as a text heatmap.",
+      "zh": "也可以將結果視覺化為文字熱圖。"
+    },
+    {
+      "start": 723.65,
+      "end": 734.01,
+      "en": "Again, red tokens here mean that the clean model predicted the token better, and blue means that the subspace removed model predicted the tokens better.",
+      "zh": "紅色 token，代表乾淨模型預測得較好；藍色，代表移除子空間模型預測得較好。"
+    },
+    {
+      "start": 734.85,
+      "end": 743.49,
+      "en": "Now, naively and at a fairly coarse grained level, we could expect that most of these data points would be above zero.",
+      "zh": "從直觀、較粗略層次看，可以預期大部分資料點會在零以上。"
+    },
+    {
+      "start": 744.37,
+      "end": 749.01,
+      "en": "Visually, it's not super clear whether that's really obviously the case.",
+      "zh": "視覺上，這是否真的明顯成立，並不太清楚。"
+    },
+    {
+      "start": 749.37,
+      "end": 757.61,
+      "en": "It is possible that just projecting out the largest principal component is not necessarily the optimal subspace to remove here.",
+      "zh": "也許直接移除最大主成分，不一定是這裡最佳的移除子空間。"
+    },
+    {
+      "start": 758.21,
+      "end": 761.85,
+      "en": "It's also possible that the results differ in the different layers.",
+      "zh": "也可能，不同層結果不同。"
+    },
+    {
+      "start": 762.37,
+      "end": 769.53,
+      "en": "So therefore the last analysis I ran was to repeat this procedure for all of the layers individually.",
+      "zh": "所以，最後一項分析，是對所有層分別重複程序。"
+    },
+    {
+      "start": 770.05,
+      "end": 777.91,
+      "en": "Now this visualization here is fairly detailed to repeat 48 times for 48 transformer blocks.",
+      "zh": "這個視覺化相當詳細，要對 48 個 Transformer 區塊重做 48 次。"
+    },
+    {
+      "start": 778.07,
+      "end": 786.03,
+      "en": "So what I did instead was run a t test across all of the logit differences for all the tokens, with",
+      "zh": "所以，改成對所有 token 的全部 logit 差，做 t 檢定，"
+    },
+    {
+      "start": 786.03,
+      "end": 795.99,
+      "en": "the idea of seeing whether statistically, all of the tokens are different from zero at the kind of sentence level at the text level.",
+      "zh": "看看從統計上，整個句子、文字層級的所有 token，是否異於零。"
+    },
+    {
+      "start": 797.19,
+      "end": 799.63,
+      "en": "And that's what you see in this graph here.",
+      "zh": "這張圖就是。"
+    },
+    {
+      "start": 799.95,
+      "end": 807.27,
+      "en": "So here on the left plot, the x axis is the transformer block at which I ran the manipulation.",
+      "zh": "左圖，x 軸是執行操作的 Transformer 區塊。"
+    },
+    {
+      "start": 807.83,
+      "end": 815.83,
+      "en": "And the y axis is the t value of the t test comparing all of the logit differences against zero.",
+      "zh": "y 軸，是對所有 logit 差與零比較的 t 檢定 t 值。"
+    },
+    {
+      "start": 816.55,
+      "end": 823.31,
+      "en": "So I did not separately calculate or visualize which of these tests were individually statistically",
+      "zh": "我沒有另外計算或視覺化，哪些檢定個別在統計上"
+    },
+    {
+      "start": 823.31,
+      "end": 829.79,
+      "en": "significant, but in general, T values above somewhere around 2 or 3 will be significant.",
+      "zh": "顯著；但一般，t 值大約超過二或三，就會顯著。"
+    },
+    {
+      "start": 830.31,
+      "end": 840.73,
+      "en": "But anyway, Qualitatively, it is certainly quite remarkable that the T test was positive for most of the layers where I manipulated the model.",
+      "zh": "總之，從性質來看，大部分操作模型的層，t 檢定為正，相當值得注意。"
+    },
+    {
+      "start": 841.05,
+      "end": 847.65,
+      "en": "So there definitely is something consistent in this manipulation that is impairing the model's ability",
+      "zh": "所以，這個操作確實有某種一致性，損害模型"
+    },
+    {
+      "start": 847.85,
+      "end": 853.65,
+      "en": "to utilize context and world knowledge to make predictions about subsequent tokens.",
+      "zh": "運用上下文與世界知識，預測後續 token 的能力。"
+    },
+    {
+      "start": 854.89,
+      "end": 862.01,
+      "en": "Here in the middle panel, you see the percent variance explained by the largest component, and that",
+      "zh": "中間面板，是最大成分解釋變異數的百分比，"
+    },
+    {
+      "start": 862.01,
+      "end": 867.41,
+      "en": "is how much of the data I removed in the subspace removal procedure.",
+      "zh": "也就是子空間移除程序中，移除了多少資料。"
+    },
+    {
+      "start": 867.89,
+      "end": 874.69,
+      "en": "And except for the very first transformer block, it generally goes down as we get deeper into the model.",
+      "zh": "除了最前面的 Transformer 區塊，整體而言，越深入模型就越低。"
+    },
+    {
+      "start": 875.25,
+      "end": 883.25,
+      "en": "This is actually entirely consistent with the effective dimensionality analyses that we've done several times before.",
+      "zh": "這其實完全符合前面做過幾次的有效維度分析。"
+    },
+    {
+      "start": 884.09,
+      "end": 890.97,
+      "en": "There, the finding was that the dimensionality of the data increases as we get deeper into the model,",
+      "zh": "當時發現，越深入模型，資料維度越高，"
+    },
+    {
+      "start": 891.63,
+      "end": 901.75,
+      "en": "which means that the amount of total variance that can be captured by just one component, just the top component that will kind of necessarily decrease.",
+      "zh": "代表單一成分，也就是最大成分，能捕捉的總變異數比例，多少必然會下降。"
+    },
+    {
+      "start": 902.35,
+      "end": 902.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 902.71,
+      "end": 909.19,
+      "en": "And then I was curious whether there is any relationship between the variance explained by the top component",
+      "zh": "接著，我好奇，最大成分解釋的變異數，"
+    },
+    {
+      "start": 909.19,
+      "end": 914.95,
+      "en": "and how much impact removing that component had on the final token, logits.",
+      "zh": "與移除它對最終 token logit 的影響，是否有關係。"
+    },
+    {
+      "start": 915.03,
+      "end": 920.07,
+      "en": "So therefore, I made a scatter plot of these two results and correlated them.",
+      "zh": "所以，做了兩項結果的散布圖，計算相關性。"
+    },
+    {
+      "start": 921.11,
+      "end": 932.63,
+      "en": "This is actually a fairly moderately sized negative correlation, although to be honest, I think it's driven by a couple of these extreme points here in the beginning of the model.",
+      "zh": "這其實是中等大小的負相關，但老實說，我認為是模型開頭這幾個極端點造成。"
+    },
+    {
+      "start": 932.95,
+      "end": 938.83,
+      "en": "I don't really see that this is a meaningful negative linear relationship between these two variables.",
+      "zh": "不覺得，這兩個變數之間有具意義的負向線性關係。"
+    },
+    {
+      "start": 939.07,
+      "end": 947.83,
+      "en": "But this right here is a fantastic illustration of why it is dangerous and potentially misleading to",
+      "zh": "但這正是很好的例子，說明只相信統計數字，"
+    },
+    {
+      "start": 947.87,
+      "end": 954.29,
+      "en": "just trust a Statistical numerical results without actually looking at the data.",
+      "zh": "而不實際看資料，為何危險、可能誤導。"
+    },
+    {
+      "start": 955.21,
+      "end": 963.37,
+      "en": "Anyway, as always, there is more to say about these results and how they are implemented, and I will do that now when I switch to code.",
+      "zh": "總之，這些結果與實作還有更多可談，現在切換到程式碼說明。"
+    },
+    {
+      "start": 965.89,
+      "end": 969.93,
+      "en": "A respectable number of libraries that we will be using here.",
+      "zh": "這裡會用不少函式庫。"
+    },
+    {
+      "start": 970.13,
+      "end": 981.05,
+      "en": "Here I forgot to mention, but I definitely want to run this on the GPU, since we are going to be running the Excel version of this model for several passes.",
+      "zh": "前面忘了提，但一定要在 GPU 上執行，因為要讓 XL 模型執行幾次。"
+    },
+    {
+      "start": 981.81,
+      "end": 981.97,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 982.01,
+      "end": 985.53,
+      "en": "And then here I define this variable number of layers.",
+      "zh": "這裡定義層數變數。"
+    },
+    {
+      "start": 985.53,
+      "end": 987.69,
+      "en": "Remember there are 48 layers here.",
+      "zh": "記得，有 48 層。"
+    },
+    {
+      "start": 987.97,
+      "end": 993.53,
+      "en": "And here is the text that I copied from this URL over here.",
+      "zh": "文字是從這裡這個 URL 複製。"
+    },
+    {
+      "start": 994.01,
+      "end": 996.93,
+      "en": "And we see yeah here are the tokens okay.",
+      "zh": "這裡看到 token。"
+    },
+    {
+      "start": 996.97,
+      "end": 999.89,
+      "en": "So there are 68 tokens in total.",
+      "zh": "總共有 68 個 token。"
+    },
+    {
+      "start": 1000.37,
+      "end": 1004.01,
+      "en": "And here is the function where I'm hooking the MLP.",
+      "zh": "這裡是掛接 MLP 的函數。"
+    },
+    {
+      "start": 1004.05,
+      "end": 1007.45,
+      "en": "You can see I'm putting that into the CFC.",
+      "zh": "可以看到，放到 c_fc。"
+    },
+    {
+      "start": 1007.77,
+      "end": 1018.74,
+      "en": "So that is again Uh, MLP and then this layer over here, that's where we expand the dimensionality from the embeddings dimensionality of 1600.",
+      "zh": "也就是 MLP 的這一層，將維度從嵌入的 1600 維，"
+    },
+    {
+      "start": 1018.98,
+      "end": 1022.42,
+      "en": "Uh, we expand for X to get to 6400.",
+      "zh": "擴張四倍，得到 6400。"
+    },
+    {
+      "start": 1023.02,
+      "end": 1023.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1023.34,
+      "end": 1028.58,
+      "en": "And then yeah, I'm not doing anything super sophisticated inside this hook function.",
+      "zh": "hook 內，沒有做什麼特別複雜的事。"
+    },
+    {
+      "start": 1028.58,
+      "end": 1034.62,
+      "en": "I'm just grabbing the MLP values from this layer and then detaching them.",
+      "zh": "只取得這一層的 MLP 值，再分離。"
+    },
+    {
+      "start": 1034.62,
+      "end": 1041.9,
+      "en": "Now this is only selecting the first sequence in the batch, but I'm only running one sequence in the batch.",
+      "zh": "只選取批次第一個序列，但批次本來也只執行一個序列。"
+    },
+    {
+      "start": 1041.9,
+      "end": 1048.3,
+      "en": "That means that this is going to give me a two dimensional matrix, whereas the variable output is actually a tensor.",
+      "zh": "這代表，取得的是二維矩陣，而 output 變數其實是張量。"
+    },
+    {
+      "start": 1048.3,
+      "end": 1053.9,
+      "en": "It's a three dimensional matrix because the first dimension is the sequences.",
+      "zh": "是三維矩陣，因為第一維是序列。"
+    },
+    {
+      "start": 1054.26,
+      "end": 1054.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1054.5,
+      "end": 1058.46,
+      "en": "And then I implant that into layer nine y and layer nine.",
+      "zh": "接著，植入第九號層。為什麼第九號？"
+    },
+    {
+      "start": 1058.46,
+      "end": 1061.18,
+      "en": "Why not just arbitrary.",
+      "zh": "為什麼不呢？只是任意選的。"
+    },
+    {
+      "start": 1061.22,
+      "end": 1065.22,
+      "en": "It's just to give us some data so I can demonstrate the procedure to you.",
+      "zh": "只是取得一些資料，展示程序。"
+    },
+    {
+      "start": 1065.74,
+      "end": 1066.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1066.1,
+      "end": 1068.74,
+      "en": "So then I run this through the model.",
+      "zh": "讓它通過模型。"
+    },
+    {
+      "start": 1068.96,
+      "end": 1072.04,
+      "en": "get the hidden states and then remove the hook.",
+      "zh": "取得隱藏狀態，再移除 hook。"
+    },
+    {
+      "start": 1072.24,
+      "end": 1081.12,
+      "en": "And here you see what those the size of that matrix is again 68 tokens, 6400 MLP neurons.",
+      "zh": "這裡又看到矩陣大小，68 個 token、6400 個 MLP 神經元。"
+    },
+    {
+      "start": 1081.6,
+      "end": 1086.36,
+      "en": "And here is just the histogram of those data okay very nice.",
+      "zh": "這裡只是那些資料的直方圖。很好。"
+    },
+    {
+      "start": 1086.36,
+      "end": 1089.8,
+      "en": "Here I'm doing the singular value decomposition.",
+      "zh": "這裡做奇異值分解。"
+    },
+    {
+      "start": 1090.08,
+      "end": 1098.48,
+      "en": "And when you request full matrices equals false then that gives us a square v transpose with the same",
+      "zh": "要求 full_matrices=False 時，會得到正方形 V 轉置，"
+    },
+    {
+      "start": 1098.48,
+      "end": 1105.56,
+      "en": "size as the number of non-zero singular values in this singular vector.",
+      "zh": "大小與這個奇異向量中非零奇異值的數量相同。"
+    },
+    {
+      "start": 1105.76,
+      "end": 1109.6,
+      "en": "And it also means that we can use s uppercase sigma.",
+      "zh": "也代表，可以使用 S，也就是大寫 Sigma。"
+    },
+    {
+      "start": 1109.6,
+      "end": 1113.08,
+      "en": "In the parlance of SVD, we can make this a square matrix.",
+      "zh": "用 SVD 的說法，可以把它做成正方形矩陣。"
+    },
+    {
+      "start": 1113.08,
+      "end": 1119.84,
+      "en": "Instead of requiring this to be a rectangular matrix of the same size as the data.",
+      "zh": "不必要求它是與資料相同大小的長方形矩陣。"
+    },
+    {
+      "start": 1120.04,
+      "end": 1122.48,
+      "en": "If you have no idea what I'm talking about, then don't worry.",
+      "zh": "如果完全不懂我在說什麼，不用擔心。"
+    },
+    {
+      "start": 1122.48,
+      "end": 1126.88,
+      "en": "That's just some nuanced details about singular value decomposition.",
+      "zh": "只是奇異值分解的一些細節。"
+    },
+    {
+      "start": 1127.04,
+      "end": 1139.02,
+      "en": "Basically, there's lots of empty spaces in the data set in the full data space, which we don't need to calculate, so we are going to ignore them when we reconstruct the data.",
+      "zh": "基本上，完整資料空間中有很多空白，不必計算，所以重建資料時忽略它們。"
+    },
+    {
+      "start": 1139.18,
+      "end": 1146.58,
+      "en": "If we had all of those null space vectors, they would all turn into zeros and sum back onto the rest of the data set.",
+      "zh": "如果保留那些零空間向量，它們都會變成零，再加回其餘資料集。"
+    },
+    {
+      "start": 1146.74,
+      "end": 1149.7,
+      "en": "So we don't even need to calculate them in the first place.",
+      "zh": "所以，一開始就不必計算。"
+    },
+    {
+      "start": 1149.86,
+      "end": 1158.18,
+      "en": "That's convenient because it means that the dimensionality of the SVD corresponds to the smaller of these two numbers, which is 68.",
+      "zh": "這很方便，代表 SVD 的維度，對應這兩個數字較小的那個，也就是 68。"
+    },
+    {
+      "start": 1158.22,
+      "end": 1162.38,
+      "en": "That is not a bad dimensionality for such a large data set.",
+      "zh": "對這麼大的資料集而言，這個維度不算糟。"
+    },
+    {
+      "start": 1162.82,
+      "end": 1163.14,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1163.18,
+      "end": 1166.74,
+      "en": "Now if you would just if you would comment out this line.",
+      "zh": "如果只是把這一行註解掉，"
+    },
+    {
+      "start": 1167.06,
+      "end": 1167.5,
+      "en": "Right.",
+      "zh": "對，"
+    },
+    {
+      "start": 1167.54,
+      "end": 1170.5,
+      "en": "This, uh, is a perfect reconstruction.",
+      "zh": "這就是完美重建。"
+    },
+    {
+      "start": 1170.5,
+      "end": 1172.7,
+      "en": "This is the definition of the SVD.",
+      "zh": "這是 SVD 的定義。"
+    },
+    {
+      "start": 1172.9,
+      "end": 1179.54,
+      "en": "So U times sigma times V transpose is exactly the original matrix.",
+      "zh": "U 乘上 Sigma，乘上 V 轉置，恰好就是原始矩陣。"
+    },
+    {
+      "start": 1179.54,
+      "end": 1184.5,
+      "en": "So these two matrices would be literally numerically identical.",
+      "zh": "所以，兩個矩陣真的在數值上完全相同。"
+    },
+    {
+      "start": 1184.78,
+      "end": 1185.14,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1185.18,
+      "end": 1194.36,
+      "en": "But what I'm going to do is take the top component and zero out its singular value and then reconstruct them.",
+      "zh": "但我要取最前面的成分，將奇異值歸零，再重建。"
+    },
+    {
+      "start": 1194.72,
+      "end": 1195.04,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1195.08,
+      "end": 1200.4,
+      "en": "And then that gives us a new matrix that is the same size as MLP.",
+      "zh": "得到與 MLP 大小相同的新矩陣。"
+    },
+    {
+      "start": 1200.68,
+      "end": 1212.64,
+      "en": "As I mentioned, that is convenient because it means that we can take this manipulated data set and then just feed it back into the model in place of the original MLP data.",
+      "zh": "如同提過，這很方便，因為可以把修改後資料集，直接送回模型，取代原始 MLP 資料。"
+    },
+    {
+      "start": 1213.72,
+      "end": 1217.48,
+      "en": "I'm going to get back to this cell in a moment.",
+      "zh": "稍後會回到這個儲存格。"
+    },
+    {
+      "start": 1217.76,
+      "end": 1229.72,
+      "en": "What I'm doing in this cell is a bunch of visualizations that's going to create the graph that you saw in the slides, comparing the different versions of this data set.",
+      "zh": "這個儲存格做一堆視覺化，產生投影片看到的圖，比較資料集不同版本。"
+    },
+    {
+      "start": 1229.76,
+      "end": 1230.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1230.2,
+      "end": 1232.76,
+      "en": "Now what you see is really striking here.",
+      "zh": "這裡看到的非常醒目。"
+    },
+    {
+      "start": 1232.84,
+      "end": 1241.52,
+      "en": "The distribution of the activation values is shifted negative in the original MLP data set that you have already seen.",
+      "zh": "原始 MLP 資料集的活化值分布，往負值偏移，之前已經看過。"
+    },
+    {
+      "start": 1241.88,
+      "end": 1250.46,
+      "en": "But then the reconstructed version, that variable I call proj that is it's normally distributed, but it's also centered at zero.",
+      "zh": "但重建版本，也就是我稱為 proj 的變數，是常態分布，而且以零為中心。"
+    },
+    {
+      "start": 1250.66,
+      "end": 1255.86,
+      "en": "So we are taking the entire activations distribution and shifting it up.",
+      "zh": "所以，把整個活化分布往上移。"
+    },
+    {
+      "start": 1256.06,
+      "end": 1259.78,
+      "en": "We're shifting it to the right so that it has a mean of zero.",
+      "zh": "往右移，讓平均為零。"
+    },
+    {
+      "start": 1260.18,
+      "end": 1264.7,
+      "en": "That is part of the impact of removing the top component.",
+      "zh": "這是移除最大成分的部分影響。"
+    },
+    {
+      "start": 1265.14,
+      "end": 1274.58,
+      "en": "Now depending on what your goal is with a singular value decomposition, that may be it relevant or it may be pointless and you don't care.",
+      "zh": "視使用奇異值分解的目的而定，這可能有關，也可能沒有意義，你不在意。"
+    },
+    {
+      "start": 1274.58,
+      "end": 1275.86,
+      "en": "So you can leave it like that.",
+      "zh": "那就可以保留原樣。"
+    },
+    {
+      "start": 1276.22,
+      "end": 1282.3,
+      "en": "But for our purposes, these numerical values and this shift of the distribution really is meaningful.",
+      "zh": "但對我們的目的，這些數值與分布偏移，確實有意義。"
+    },
+    {
+      "start": 1282.34,
+      "end": 1293.26,
+      "en": "Because when I take these data, these projected data subspace, remove data and put them back into the MLP sub block, then we are going to apply.",
+      "zh": "因為把這些投影後、移除子空間的資料，放回 MLP 子區塊後，要套用，"
+    },
+    {
+      "start": 1293.26,
+      "end": 1300.42,
+      "en": "The model will apply the Jlu nonlinear activation function, which is going to clip all of the values below zero.",
+      "zh": "模型會套用 GELU 非線性活化函數，截掉所有零以下的值。"
+    },
+    {
+      "start": 1300.42,
+      "end": 1303.26,
+      "en": "So that's going to be a huge, huge difference.",
+      "zh": "所以，差異會非常、非常大。"
+    },
+    {
+      "start": 1303.38,
+      "end": 1308.39,
+      "en": "That's probably much bigger of an impact than anything else we're doing.",
+      "zh": "影響可能比我們做的其他任何事情都大。"
+    },
+    {
+      "start": 1308.87,
+      "end": 1318.27,
+      "en": "So the solution to this problem is simply to take the average values from the original data and add",
+      "zh": "解法很簡單，從原始資料取得平均值，再加"
+    },
+    {
+      "start": 1318.27,
+      "end": 1321.19,
+      "en": "them back on to the projected values.",
+      "zh": "回投影值。"
+    },
+    {
+      "start": 1321.19,
+      "end": 1322.43,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是。"
+    },
+    {
+      "start": 1322.83,
+      "end": 1331.35,
+      "en": "So I'm taking the average along all of the neurons per each token and then adding it back.",
+      "zh": "我對每個 token 的全部神經元取平均，再加回去。"
+    },
+    {
+      "start": 1331.51,
+      "end": 1339.11,
+      "en": "And then just to let me see if I comment this out, then we can see that the average here is close to zero.",
+      "zh": "如果把這個註解掉，可以看到這裡的平均接近零。"
+    },
+    {
+      "start": 1339.23,
+      "end": 1342.99,
+      "en": "And the average here in the MLP data is certainly not zero.",
+      "zh": "MLP 資料這裡的平均，則絕對不是零。"
+    },
+    {
+      "start": 1343.15,
+      "end": 1352.91,
+      "en": "But when I run this again, then we see that the averages are nearly identical within some, you know, reasonable tolerance of precision.",
+      "zh": "重新執行後，可以看到，在合理精度容許範圍內，平均幾乎相同。"
+    },
+    {
+      "start": 1353.43,
+      "end": 1353.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1353.83,
+      "end": 1358.11,
+      "en": "So now I run this code again with the means added back on.",
+      "zh": "現在加回平均，重跑這段程式碼。"
+    },
+    {
+      "start": 1358.35,
+      "end": 1362.35,
+      "en": "And now the two distributions are centered in the same way.",
+      "zh": "兩個分布，現在以相同方式置中。"
+    },
+    {
+      "start": 1362.75,
+      "end": 1367.57,
+      "en": "So really what we've done now is manipulate the shape of this distribution.",
+      "zh": "所以，真正做的，是操作分布形狀。"
+    },
+    {
+      "start": 1367.57,
+      "end": 1371.61,
+      "en": "And, you know, we've taken some of these data points and pushed them up here.",
+      "zh": "把其中一些資料點推到這裡。"
+    },
+    {
+      "start": 1371.61,
+      "end": 1374.33,
+      "en": "So we've just shrunk the values a little bit.",
+      "zh": "只是稍微縮小值。"
+    },
+    {
+      "start": 1374.89,
+      "end": 1375.33,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1375.37,
+      "end": 1375.61,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1375.65,
+      "end": 1387.17,
+      "en": "And I find it really striking, this distinction between the noticeable but fairly modest impact of subspace removal on the data values themselves.",
+      "zh": "我覺得很醒目的是，移除子空間，對資料值本身造成明顯、但相當有限的影響，"
+    },
+    {
+      "start": 1387.21,
+      "end": 1394.77,
+      "en": "So the individual data values have only been tweaked a tiny, tiny bit, but the covariances across",
+      "zh": "與對"
+    },
+    {
+      "start": 1394.77,
+      "end": 1400.33,
+      "en": "all of the MLP neuron pairs, that is really different.",
+      "zh": "全部 MLP 神經元配對的共變異數造成的影響，非常不同。"
+    },
+    {
+      "start": 1400.33,
+      "end": 1403.29,
+      "en": "So there we've had a really significant impact.",
+      "zh": "後者真的有非常顯著的影響。"
+    },
+    {
+      "start": 1403.29,
+      "end": 1408.21,
+      "en": "These two distributions are almost entirely non-overlapping.",
+      "zh": "這兩個分布，幾乎完全不重疊。"
+    },
+    {
+      "start": 1408.21,
+      "end": 1411.65,
+      "en": "This is really quite striking this distinction here.",
+      "zh": "這個區別非常醒目。"
+    },
+    {
+      "start": 1412.09,
+      "end": 1423.49,
+      "en": "Again what that means is that there are patterns of correlated activations in the MLP layer that are not present in any one neuron.",
+      "zh": "同樣，這表示，MLP 層中存在相關活化的模式，但不是存在於任一個神經元中。"
+    },
+    {
+      "start": 1423.49,
+      "end": 1432.03,
+      "en": "These patterns are Are distributed across hundreds or thousands of MLP neurons, and the top component",
+      "zh": "模式分散在幾百或幾千個 MLP 神經元，而最前面的成分"
+    },
+    {
+      "start": 1432.03,
+      "end": 1438.55,
+      "en": "just like, obliterated them and completely removed those distributed patterns.",
+      "zh": "就把它們消除，完全移除了那些分散式模式。"
+    },
+    {
+      "start": 1438.75,
+      "end": 1439.11,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1439.15,
+      "end": 1440.47,
+      "en": "So pretty neat to see.",
+      "zh": "很有趣。"
+    },
+    {
+      "start": 1441.11,
+      "end": 1441.39,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1441.43,
+      "end": 1450.63,
+      "en": "So now what I'm going to do is create a new hook function where I implement this subspace removal procedure.",
+      "zh": "現在，要建立新 hook 函數，實作子空間移除程序。"
+    },
+    {
+      "start": 1450.63,
+      "end": 1453.15,
+      "en": "And also adding the mean offset.",
+      "zh": "也加上平均偏移。"
+    },
+    {
+      "start": 1453.15,
+      "end": 1457.15,
+      "en": "But now all of this stuff is inside the hook function.",
+      "zh": "但現在，全部放在 hook 函數裡。"
+    },
+    {
+      "start": 1457.35,
+      "end": 1463.71,
+      "en": "And then I'm returning the manipulated data instead of the original data okay.",
+      "zh": "再傳回修改後資料，而不是原始資料。"
+    },
+    {
+      "start": 1463.75,
+      "end": 1464.83,
+      "en": "So that's pretty neat.",
+      "zh": "很酷。"
+    },
+    {
+      "start": 1465.03,
+      "end": 1468.07,
+      "en": "And then yeah for which layer to implant it in.",
+      "zh": "至於植入哪一層，"
+    },
+    {
+      "start": 1468.07,
+      "end": 1474.67,
+      "en": "Right now for this part of the code I'm only picking one layer I just picked, you know, halfway through the model.",
+      "zh": "這部分程式碼，只挑一層，大概在模型中間。"
+    },
+    {
+      "start": 1474.71,
+      "end": 1477.19,
+      "en": "Again, it's a fairly arbitrary choice.",
+      "zh": "同樣，相當任意。"
+    },
+    {
+      "start": 1477.19,
+      "end": 1480.59,
+      "en": "It was just to have something to work with okay.",
+      "zh": "只是為了有個操作對象。"
+    },
+    {
+      "start": 1480.63,
+      "end": 1484.03,
+      "en": "So then yeah into this transformer block again MLP.",
+      "zh": "放到這個 Transformer 區塊，同樣是 MLP，"
+    },
+    {
+      "start": 1485.45,
+      "end": 1486.53,
+      "en": "Fully connected.",
+      "zh": "全連接層。"
+    },
+    {
+      "start": 1487.17,
+      "end": 1487.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1487.45,
+      "end": 1488.65,
+      "en": "And then run the model.",
+      "zh": "執行模型。"
+    },
+    {
+      "start": 1488.65,
+      "end": 1490.65,
+      "en": "Remove the hook again because.",
+      "zh": "再移除 hook，因為，"
+    },
+    {
+      "start": 1490.77,
+      "end": 1497.85,
+      "en": "Yeah, in a little bit I'm going to, uh, create a new hook and implant that into the model again okay.",
+      "zh": "稍後要建立新 hook，再植入模型。"
+    },
+    {
+      "start": 1497.89,
+      "end": 1500.97,
+      "en": "And then this plot over here shows the norms.",
+      "zh": "這張圖顯示範數。"
+    },
+    {
+      "start": 1501.09,
+      "end": 1503.61,
+      "en": "So let me show you this analysis here.",
+      "zh": "展示這裡的分析。"
+    },
+    {
+      "start": 1504.73,
+      "end": 1513.49,
+      "en": "This is the hidden states from the clean version of the model and the hidden states from the subspace rejected version of the model.",
+      "zh": "這是乾淨模型版本的隱藏狀態，以及移除子空間模型版本的隱藏狀態。"
+    },
+    {
+      "start": 1513.69,
+      "end": 1518.21,
+      "en": "And then I subtract those two vectors and then take their norm again.",
+      "zh": "兩個向量相減，再取範數。"
+    },
+    {
+      "start": 1518.21,
+      "end": 1523.61,
+      "en": "This doesn't tell me what is happening and what is changing and in which direction is changing.",
+      "zh": "同樣，這不告訴我發生什麼、改變什麼、朝哪個方向改變。"
+    },
+    {
+      "start": 1523.81,
+      "end": 1530.41,
+      "en": "All it's telling me is that the difference between these two vectors is non-zero, and in fact, the",
+      "zh": "只告訴我，兩個向量的差異非零。其實，"
+    },
+    {
+      "start": 1530.41,
+      "end": 1537.09,
+      "en": "difference between the two vectors is zero for all of the blocks up until I implanted the hook.",
+      "zh": "直到植入 hook 之前，所有區塊的兩個向量差異都是零。"
+    },
+    {
+      "start": 1537.41,
+      "end": 1539.37,
+      "en": "That is a nice sanity check.",
+      "zh": "這是很好的合理性檢查。"
+    },
+    {
+      "start": 1539.37,
+      "end": 1543.01,
+      "en": "If you saw any non-zero values here that something would be wrong.",
+      "zh": "如果這裡看到非零值，就有問題。"
+    },
+    {
+      "start": 1543.51,
+      "end": 1547.87,
+      "en": "And yeah, it's quite remarkable that we did this fairly subtle manipulation.",
+      "zh": "很驚人，我們做了相當細微的操作，"
+    },
+    {
+      "start": 1548.11,
+      "end": 1557.11,
+      "en": "And yet it has a pretty big impact and an impact that continues to grow as we get deeper and deeper into the model.",
+      "zh": "卻有相當大影響，而且越深入模型，影響持續增加。"
+    },
+    {
+      "start": 1557.11,
+      "end": 1565.19,
+      "en": "So it's like this manipulation continues to have compounding effects as we get deeper into the model.",
+      "zh": "就像操作越深入模型，產生不斷累積的效果。"
+    },
+    {
+      "start": 1565.19,
+      "end": 1575.47,
+      "en": "And that's maybe not so surprising, because each transformer block is taking the output from the previous block and then adding on some little adjustment.",
+      "zh": "這也許不意外，因為每個 Transformer 區塊，都取前一個區塊的輸出，再加上一些小調整。"
+    },
+    {
+      "start": 1575.47,
+      "end": 1584.87,
+      "en": "So if the previous block was already different, then the next block is likely to be even a little bit more different and even a little bit more different and even a little bit more different.",
+      "zh": "如果前一個區塊已經不同，下一個就可能再多不同一點，再多一點，再多一點。"
+    },
+    {
+      "start": 1585.19,
+      "end": 1591.43,
+      "en": "So there's this drift in the embeddings that continues as we go deeper into the model.",
+      "zh": "所以，嵌入隨著模型深度，持續漂移。"
+    },
+    {
+      "start": 1591.91,
+      "end": 1600.39,
+      "en": "And yeah, as you've seen many times in this course, the final transformer block is is a little bit special.",
+      "zh": "如同課程很多次看到，最後 Transformer 區塊有點特別。"
+    },
+    {
+      "start": 1600.39,
+      "end": 1601.39,
+      "en": "It does its own thing.",
+      "zh": "它做自己的事。"
+    },
+    {
+      "start": 1601.39,
+      "end": 1609.2,
+      "en": "It's the last opportunity for transforming the data before making a specific prediction about the next token.",
+      "zh": "這是針對下一個 token 做特定預測前，最後轉換資料的機會。"
+    },
+    {
+      "start": 1609.6,
+      "end": 1613.4,
+      "en": "And then also there's the final layer norm included in here as well.",
+      "zh": "而且，也包含最後的 LayerNorm。"
+    },
+    {
+      "start": 1614.48,
+      "end": 1614.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1614.92,
+      "end": 1619.52,
+      "en": "So then what I did was look at the covariance matrices.",
+      "zh": "接著，我看了共變異數矩陣。"
+    },
+    {
+      "start": 1619.52,
+      "end": 1626.68,
+      "en": "This is a analysis that I hinted at in the slides, but I didn't actually show the screenshot.",
+      "zh": "投影片曾暗示這個分析，但沒有展示截圖。"
+    },
+    {
+      "start": 1627.08,
+      "end": 1629.56,
+      "en": "So let me just show you what this is.",
+      "zh": "先展示這是什麼。"
+    },
+    {
+      "start": 1629.6,
+      "end": 1631.56,
+      "en": "And then I will explain it briefly.",
+      "zh": "再簡短解釋。"
+    },
+    {
+      "start": 1631.92,
+      "end": 1639.08,
+      "en": "So here I'm getting the hidden states embedding vectors for all of the tokens from the clean model and",
+      "zh": "這裡取得乾淨模型，以及"
+    },
+    {
+      "start": 1639.08,
+      "end": 1646.48,
+      "en": "the subspace removed model, and calculating the cosine similarity I think this was cosine.",
+      "zh": "移除子空間模型，全部 token 的隱藏狀態嵌入向量，計算餘弦相似度，我想是餘弦。"
+    },
+    {
+      "start": 1646.76,
+      "end": 1647.16,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1647.76,
+      "end": 1653.68,
+      "en": "So actually not covariance cosine similarity between all of the pairs of tokens.",
+      "zh": "所以，其實不是共變異數，是全部 token 配對的餘弦相似度。"
+    },
+    {
+      "start": 1653.68,
+      "end": 1655,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是。"
+    },
+    {
+      "start": 1655.44,
+      "end": 1659.88,
+      "en": "These are the two distributions showing that there is some impact.",
+      "zh": "兩個分布顯示，確實有影響。"
+    },
+    {
+      "start": 1659.88,
+      "end": 1662.2,
+      "en": "But this is a really mild impact.",
+      "zh": "但影響非常輕微。"
+    },
+    {
+      "start": 1662.2,
+      "end": 1662.22,
+      "en": "Packed.",
+      "zh": "影響。"
+    },
+    {
+      "start": 1662.22,
+      "end": 1668.98,
+      "en": "So it's very interesting to think about this, uh, versus this result over here.",
+      "zh": "所以，對照這裡的結果來思考，很有趣。"
+    },
+    {
+      "start": 1669.14,
+      "end": 1675.98,
+      "en": "And what this tells us is that there are considerable and increasing differences between all the embeddings,",
+      "zh": "這告訴我們，移除子空間模型的全部嵌入"
+    },
+    {
+      "start": 1675.98,
+      "end": 1683.42,
+      "en": "vectors from the subspace removed model versus all of the embeddings vectors from the clean model.",
+      "zh": "向量，相對於乾淨模型的全部嵌入向量，有相當大、而且不斷增加的差異。"
+    },
+    {
+      "start": 1683.54,
+      "end": 1687.14,
+      "en": "So all the vectors together are moving further apart.",
+      "zh": "所有向量一起，越離越遠。"
+    },
+    {
+      "start": 1687.3,
+      "end": 1694.42,
+      "en": "But when we look at the relationships between all of the embeddings vectors within each version of this",
+      "zh": "但查看各個模型版本內，所有嵌入向量"
+    },
+    {
+      "start": 1694.42,
+      "end": 1704.38,
+      "en": "model, then the ways that the different tokens are relating to each other is not really that much different, a little bit different, but not that much different.",
+      "zh": "之間的關係，不同 token 彼此關聯的方式，其實沒有差那麼多，有一點不同，但不大。"
+    },
+    {
+      "start": 1704.5,
+      "end": 1705.74,
+      "en": "So that's quite interesting.",
+      "zh": "相當有趣。"
+    },
+    {
+      "start": 1705.78,
+      "end": 1713.58,
+      "en": "The entire data space is like shifting or rotating, but it's a little bit of a fixed rotation in the",
+      "zh": "整個資料空間，像是在平移或旋轉，但有點像固定的旋轉，因為"
+    },
+    {
+      "start": 1713.58,
+      "end": 1722.08,
+      "en": "sense that the way that the token embeddings vectors are correlating with each other is actually not changing that much.",
+      "zh": "token 嵌入向量彼此的相關方式，其實沒有太大變化。"
+    },
+    {
+      "start": 1722.68,
+      "end": 1723.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1723.16,
+      "end": 1731.96,
+      "en": "And one other thing I want to show is the same analysis, but on the layer before the manipulation.",
+      "zh": "還想展示，相同分析，但用操作之前的那一層。"
+    },
+    {
+      "start": 1732.32,
+      "end": 1739.12,
+      "en": "And this is just a sanity check again, just to make sure we don't expect to see any differences here.",
+      "zh": "同樣只是合理性檢查，因為預期這裡不會有差異。"
+    },
+    {
+      "start": 1739.36,
+      "end": 1746.44,
+      "en": "These are the cosine similarities, uh, before the manipulation was actually implemented.",
+      "zh": "這些是操作真正實施之前的餘弦相似度。"
+    },
+    {
+      "start": 1746.44,
+      "end": 1748.52,
+      "en": "So of course those are the same.",
+      "zh": "所以，當然相同。"
+    },
+    {
+      "start": 1748.96,
+      "end": 1749.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1749.32,
+      "end": 1752.12,
+      "en": "And if you like you can continue to explore this.",
+      "zh": "如果願意，可以繼續探索。"
+    },
+    {
+      "start": 1752.12,
+      "end": 1756.56,
+      "en": "You can see what happens when we look considerably later in the model.",
+      "zh": "看看模型更後面的情況。"
+    },
+    {
+      "start": 1756.56,
+      "end": 1764.44,
+      "en": "And yeah, again, the ways in which the embeddings vectors are relating to each other across the different",
+      "zh": "同樣，不同 token 的嵌入向量"
+    },
+    {
+      "start": 1764.48,
+      "end": 1770.48,
+      "en": "tokens is fairly well preserved, even though the entire space is drifting away.",
+      "zh": "彼此關聯的方式，相當良好地保留，即使整個空間正在漂移。"
+    },
+    {
+      "start": 1771.16,
+      "end": 1771.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1771.8,
+      "end": 1775.68,
+      "en": "So lots of thought provoking stuff you can get out of this.",
+      "zh": "可以從這裡得到很多值得思考的東西。"
+    },
+    {
+      "start": 1776.24,
+      "end": 1776.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1776.64,
+      "end": 1780.08,
+      "en": "So now what I'm going to do is make that scatter plot here.",
+      "zh": "現在，要製作這張散布圖。"
+    },
+    {
+      "start": 1780.08,
+      "end": 1782.9,
+      "en": "So let me just show you this plot again real quick.",
+      "zh": "快速再展示一次。"
+    },
+    {
+      "start": 1783.38,
+      "end": 1787.3,
+      "en": "So the x axis is all the tokens in this sequence.",
+      "zh": "x 軸，是這個序列的全部 token。"
+    },
+    {
+      "start": 1787.74,
+      "end": 1791.74,
+      "en": "And what I'm measuring here is the model's final output.",
+      "zh": "這裡測量的，是模型最終輸出"
+    },
+    {
+      "start": 1791.74,
+      "end": 1792.74,
+      "en": "Logits.",
+      "zh": "logit。"
+    },
+    {
+      "start": 1792.86,
+      "end": 1801.94,
+      "en": "And the difference in the final logits for the clean version, which would be higher numbers for larger logits for the clean model.",
+      "zh": "以及乾淨版本最終 logit 的差，乾淨模型 logit 越大，這裡數字越高。"
+    },
+    {
+      "start": 1803.02,
+      "end": 1808.54,
+      "en": "Uh, and subtracting from that the logits from the subspace removed model.",
+      "zh": "再從中，減掉移除子空間模型的 logit。"
+    },
+    {
+      "start": 1808.54,
+      "end": 1816.02,
+      "en": "So higher logits for the subspace removed model would correspond to negative values over here or blue colors.",
+      "zh": "所以，移除子空間模型 logit 較高，會對應這裡的負值，或藍色。"
+    },
+    {
+      "start": 1816.38,
+      "end": 1816.66,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1816.7,
+      "end": 1820.1,
+      "en": "So now let me show you how I did this analysis.",
+      "zh": "現在展示如何分析。"
+    },
+    {
+      "start": 1820.66,
+      "end": 1820.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1820.98,
+      "end": 1825.54,
+      "en": "So I loop over all of the tokens up until the end minus one.",
+      "zh": "遍歷所有 token，直到最後減一。"
+    },
+    {
+      "start": 1825.82,
+      "end": 1832.62,
+      "en": "And the reason why we only go to minus one is because remember that, uh, at the end of the model,",
+      "zh": "只到負一的原因，是記得，在模型末端，"
+    },
+    {
+      "start": 1832.9,
+      "end": 1838.02,
+      "en": "the logits for the current token are not related to processing the current token.",
+      "zh": "當前 token 的 logit，不是關於處理當前 token，"
+    },
+    {
+      "start": 1838.06,
+      "end": 1844.91,
+      "en": "They're related to making predictions about what token the next, what the next token should be.",
+      "zh": "而是預測下一個 token 應該是什麼。"
+    },
+    {
+      "start": 1845.63,
+      "end": 1850.91,
+      "en": "So therefore I get all of the output logits for this token.",
+      "zh": "所以，取得這個 token 的所有輸出 logit。"
+    },
+    {
+      "start": 1851.31,
+      "end": 1858.03,
+      "en": "And then I logsoftmax that along the the vocab dimension.",
+      "zh": "再沿著詞彙表維度做 log_softmax。"
+    },
+    {
+      "start": 1858.55,
+      "end": 1864.71,
+      "en": "And then I take the token or the logit corresponding to the next token in the sequence.",
+      "zh": "取出對應序列中下一個 token 的 token，或者 logit。"
+    },
+    {
+      "start": 1865.07,
+      "end": 1866.07,
+      "en": "I hope that makes sense.",
+      "zh": "希望清楚。"
+    },
+    {
+      "start": 1866.07,
+      "end": 1872.47,
+      "en": "So it's the logits from the current token and the whole distribution over the entire vocab.",
+      "zh": "也就是當前 token 的 logit，以及整個詞彙表的完整分布。"
+    },
+    {
+      "start": 1872.47,
+      "end": 1874.79,
+      "en": "All 50,000 tokens.",
+      "zh": "全部 50,000 個 token。"
+    },
+    {
+      "start": 1874.79,
+      "end": 1882.51,
+      "en": "But the specific logit that I'm interested in is the one that corresponds to what was actually presented next.",
+      "zh": "但特別感興趣的 logit，是實際在後面出現的那個。"
+    },
+    {
+      "start": 1882.51,
+      "end": 1884.71,
+      "en": "So the next token prediction.",
+      "zh": "也就是下一個 token 的預測。"
+    },
+    {
+      "start": 1884.99,
+      "end": 1887.75,
+      "en": "And that is what I take as the difference here.",
+      "zh": "那就是這裡取差值的。"
+    },
+    {
+      "start": 1888.31,
+      "end": 1888.75,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1888.79,
+      "end": 1893.95,
+      "en": "Now uh, these difference values, you can see that some of them are negative.",
+      "zh": "這些差值，可以看到有些負，"
+    },
+    {
+      "start": 1893.95,
+      "end": 1895.27,
+      "en": "Some of them are positive.",
+      "zh": "有些正。"
+    },
+    {
+      "start": 1895.47,
+      "end": 1906.65,
+      "en": "I want to color them so that the negative ones are blue and the positive ones are red, and the zero valued ones are white, or at least something that's like very close to white.",
+      "zh": "我要用顏色，讓負值是藍色、正值是紅色，零是白色，或至少很接近白色。"
+    },
+    {
+      "start": 1906.69,
+      "end": 1908.13,
+      "en": "Looks more like a cream color.",
+      "zh": "看起來比較像奶油色。"
+    },
+    {
+      "start": 1908.13,
+      "end": 1914.21,
+      "en": "But anyway, uh, to do that, I have to normalize the data.",
+      "zh": "總之，為此，需要正規化資料。"
+    },
+    {
+      "start": 1914.25,
+      "end": 1917.61,
+      "en": "I use this function called two slope norm.",
+      "zh": "使用 TwoSlopeNorm 函數。"
+    },
+    {
+      "start": 1917.65,
+      "end": 1923.57,
+      "en": "Basically, you specify the smallest possible value which is going to be a negative number, the largest",
+      "zh": "基本上，指定最小可能值，也就是負數，最大"
+    },
+    {
+      "start": 1923.57,
+      "end": 1929.73,
+      "en": "possible value, and the value that corresponds to the center of the color map here.",
+      "zh": "可能值，以及對應色彩映射中心的值。"
+    },
+    {
+      "start": 1930.09,
+      "end": 1940.61,
+      "en": "So with this norm function now I can just use a color corresponding to the actual logit difference pass through this norm function.",
+      "zh": "用這個 norm 函數，就能將實際 logit 差通過它，取得對應顏色。"
+    },
+    {
+      "start": 1940.61,
+      "end": 1948.97,
+      "en": "And that guarantees that we get blue colors for negative numbers and red colors for negative positive numbers.",
+      "zh": "保證負數是藍色，負……正數是紅色。"
+    },
+    {
+      "start": 1949.61,
+      "end": 1953.25,
+      "en": "Otherwise, this function is just not going to work so well.",
+      "zh": "否則，這個函數不會運作得那麼好。"
+    },
+    {
+      "start": 1953.25,
+      "end": 1961.33,
+      "en": "So I can show you that basically, uh, this matplotlib color map function is expecting values between",
+      "zh": "可以展示，基本上，Matplotlib 色彩映射函數預期"
+    },
+    {
+      "start": 1961.33,
+      "end": 1970.43,
+      "en": "0 and 1, and any values that are less than zero are going to be clipped, and values greater than zero will also be clipped at the positive value.",
+      "zh": "值介於 0 與 1，小於零的值會被截斷，大於零的值也會在正值端被截斷。"
+    },
+    {
+      "start": 1970.47,
+      "end": 1971.43,
+      "en": "Let me show you.",
+      "zh": "展示一下。"
+    },
+    {
+      "start": 1971.79,
+      "end": 1973.07,
+      "en": "That is what I want to.",
+      "zh": "這就是我要……"
+    },
+    {
+      "start": 1973.19,
+      "end": 1973.47,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1973.47,
+      "end": 1976.87,
+      "en": "So this is not so now you see you know positive values are still blue.",
+      "zh": "所以，這樣不行，現在可以看到，正值仍然是藍色。"
+    },
+    {
+      "start": 1976.87,
+      "end": 1982.51,
+      "en": "So that is just a quick demo of why we need this normalization in here.",
+      "zh": "這就是快速示範，為什麼這裡需要正規化。"
+    },
+    {
+      "start": 1982.99,
+      "end": 1983.23,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1983.27,
+      "end": 1984.43,
+      "en": "So I hope that makes sense.",
+      "zh": "希望清楚。"
+    },
+    {
+      "start": 1984.55,
+      "end": 1985.43,
+      "en": "Uh yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1985.43,
+      "end": 1990.95,
+      "en": "It's hard to it's a nice visualization, but uh, you don't really see so much consistency.",
+      "zh": "這是很好的視覺化，但很難……真的看不到太多一致性。"
+    },
+    {
+      "start": 1991.31,
+      "end": 1996.99,
+      "en": "As I mentioned in the slides, a kind of naive prediction would be that most of these values should",
+      "zh": "如同投影片提過，直觀預測是，大部分值應該"
+    },
+    {
+      "start": 1996.99,
+      "end": 2005.99,
+      "en": "be red above zero, indicating that when we removed the uh, largest, uh, variance dimension from",
+      "zh": "是紅色、在零以上，表示從 MLP 子區塊移除最大"
+    },
+    {
+      "start": 2005.99,
+      "end": 2012.63,
+      "en": "the MLP subblock, then that impairs the model's ability to predict the next token.",
+      "zh": "變異數維度，會損害模型預測下一個 token 的能力。"
+    },
+    {
+      "start": 2012.83,
+      "end": 2015.95,
+      "en": "And yeah, it's not super clear that that's actually happening here.",
+      "zh": "但這裡，其實不太清楚是否真的發生。"
+    },
+    {
+      "start": 2016.47,
+      "end": 2025.97,
+      "en": "Um, I also made this text heatmap thinking that maybe if we looked at the individual tokens, we could make some sense out of that.",
+      "zh": "我也做了文字熱圖，想說查看個別 token，也許能理解。"
+    },
+    {
+      "start": 2025.97,
+      "end": 2032.37,
+      "en": "And at least in this case, you know, just with this one piece of text, I don't immediately see any",
+      "zh": "至少這個案例，只有這一小段文字，我沒有立刻看出"
+    },
+    {
+      "start": 2033.53,
+      "end": 2041.05,
+      "en": "meaningful or really interpretable relationships amongst the red tokens versus amongst the blue tokens.",
+      "zh": "紅色 token 之間，或藍色 token 之間，有具意義、真正可解讀的關係。"
+    },
+    {
+      "start": 2041.05,
+      "end": 2044.01,
+      "en": "But anyway, this is a great visualization.",
+      "zh": "但總之，這是很好的視覺化。"
+    },
+    {
+      "start": 2044.93,
+      "end": 2047.09,
+      "en": "Okay, so now for the final analysis.",
+      "zh": "好，最後一項分析。"
+    },
+    {
+      "start": 2047.09,
+      "end": 2051.73,
+      "en": "I'm going to repeat this manipulation individually for all the layers.",
+      "zh": "對全部層，個別重複操作。"
+    },
+    {
+      "start": 2051.89,
+      "end": 2060.77,
+      "en": "So for loop over all of the layers and inside each layer I create this hook function exactly as you've seen before.",
+      "zh": "for 迴圈遍歷所有層，每層內，建立與之前完全相同的 hook。"
+    },
+    {
+      "start": 2061.21,
+      "end": 2071.57,
+      "en": "The only difference is that I'm also storing the uh, percent variance explained by this component, and I'm storing that in this data matrix.",
+      "zh": "唯一差別，是也儲存這個成分的解釋變異數百分比，放進這個資料矩陣。"
+    },
+    {
+      "start": 2071.77,
+      "end": 2079.83,
+      "en": "And then I implant the hook, uh, run a forward pass, remove the hook so that it's clean for the next layer.",
+      "zh": "再植入 hook、做前向傳播、移除 hook，為下一層清乾淨。"
+    },
+    {
+      "start": 2080.15,
+      "end": 2086.83,
+      "en": "And then here I'm running the same analysis that you saw above, and then running a t test on these",
+      "zh": "接著，做上面看過的相同分析，再對這些"
+    },
+    {
+      "start": 2086.83,
+      "end": 2093.95,
+      "en": "logit differences to see whether they are consistently above zero or less than zero.",
+      "zh": "logit 差做 t 檢定，看看是否一致大於零或小於零。"
+    },
+    {
+      "start": 2094.31,
+      "end": 2099.79,
+      "en": "I'm only storing the statistic here if you would like to expand on this analysis.",
+      "zh": "這裡只儲存統計量。如果想擴充，"
+    },
+    {
+      "start": 2099.83,
+      "end": 2105.47,
+      "en": "It could be interesting to also store the p value, not instead of, but in addition to.",
+      "zh": "也儲存 p 值會很有意思，不是取代，而是另外加上。"
+    },
+    {
+      "start": 2106.51,
+      "end": 2113.35,
+      "en": "And then in the plot below, you could separately visualize the significant versus non-significant plots.",
+      "zh": "接著，下面圖中，可以分別視覺化顯著與不顯著的圖，"
+    },
+    {
+      "start": 2113.55,
+      "end": 2115.15,
+      "en": "Uh t statistics.",
+      "zh": "也就是 t 統計量。"
+    },
+    {
+      "start": 2115.75,
+      "end": 2117.87,
+      "en": "Okay, so two seconds on the GPU.",
+      "zh": "好，GPU 上兩秒。"
+    },
+    {
+      "start": 2118.11,
+      "end": 2123.63,
+      "en": "I don't know how long that would take on the CPU, but maybe I don't know a minute or something.",
+      "zh": "CPU 多久，我不知道，也許一分鐘之類的。"
+    },
+    {
+      "start": 2124.15,
+      "end": 2124.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2124.47,
+      "end": 2131.43,
+      "en": "And then the final thing is to make this visualization that I showed again, uh, without looking at",
+      "zh": "最後，做之前展示的視覺化，再次提醒，沒有查看"
+    },
+    {
+      "start": 2131.43,
+      "end": 2141.8,
+      "en": "or considering individual statistical significance, we can just see that clearly across the board there is consistency in the sign of the t test.",
+      "zh": "或考慮個別統計顯著性，只是可以清楚看到，整體 t 檢定正負號有一致性。"
+    },
+    {
+      "start": 2141.8,
+      "end": 2146.28,
+      "en": "So in general it's mostly positive on the aggregate level.",
+      "zh": "所以，整體而言，大部分為正。"
+    },
+    {
+      "start": 2146.8,
+      "end": 2147.08,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 2147.12,
+      "end": 2149.92,
+      "en": "Here's variance explained by the top component.",
+      "zh": "這是最前面成分的解釋變異數。"
+    },
+    {
+      "start": 2150.08,
+      "end": 2158.92,
+      "en": "And yeah this I think that there's something unique happening here at the very beginning of the transformer",
+      "zh": "我認為，Transformer 序列最前面，"
+    },
+    {
+      "start": 2158.92,
+      "end": 2162.72,
+      "en": "sequence here and also here with the variance explained.",
+      "zh": "以及這裡的解釋變異數，有某種獨特事情。"
+    },
+    {
+      "start": 2162.88,
+      "end": 2171.76,
+      "en": "And that is what's really driving these results here, which are actually pulling up the linear apparent linear relationship here.",
+      "zh": "那才是真正驅動這裡結果的原因，拉出了表面上的線性關係。"
+    },
+    {
+      "start": 2171.76,
+      "end": 2180.68,
+      "en": "I think if you would exclude these or do like a Spearman correlation or robust regression, this would probably drop down closer to zero.",
+      "zh": "我想，如果排除這些點，或做 Spearman 相關、穩健迴歸，可能就會降得更接近零。"
+    },
+    {
+      "start": 2181.8,
+      "end": 2189.56,
+      "en": "I think that approaches like this have a lot of potential to yield really interesting insights into",
+      "zh": "我認為，這類方法非常有潛力，提供真正有趣的洞見，"
+    },
+    {
+      "start": 2189.56,
+      "end": 2196.82,
+      "en": "the nature of the subspaces that are carved out by these models, being comfortable with these kinds",
+      "zh": "幫助理解模型劃出的子空間本質。熟悉這些"
+    },
+    {
+      "start": 2196.82,
+      "end": 2204.18,
+      "en": "of methods and code to run experiments like this really opens up a lot of doors for testing specific",
+      "zh": "方法，以及執行這類實驗的程式碼，真的能開啟很多機會，檢驗特定"
+    },
+    {
+      "start": 2204.18,
+      "end": 2211.02,
+      "en": "hypotheses about subspaces and linear combinations and distributed representations.",
+      "zh": "子空間、線性組合與分散式表徵的假設。"
+    },
+    {
+      "start": 2211.9,
+      "end": 2221.66,
+      "en": "That said, I'm not so convinced that the specific approach of projecting out the largest principal component is really that meaningful.",
+      "zh": "話雖如此，我不太相信，直接移除最大主成分這個特定方法，真的有那麼大意義。"
+    },
+    {
+      "start": 2222.14,
+      "end": 2228.74,
+      "en": "I discussed this earlier in the course when I talked about generalized eigen decomposition and targeted",
+      "zh": "課程前面談廣義特徵分解、有目標的"
+    },
+    {
+      "start": 2228.74,
+      "end": 2237.06,
+      "en": "decompositions, and the limitations of relying on the assumption embedded in PCA, that the largest",
+      "zh": "分解，以及依賴 PCA 內建假設的限制時，討論過這點；那個假設是，最大的"
+    },
+    {
+      "start": 2237.06,
+      "end": 2243.38,
+      "en": "sources of variance reflect some kind of source or meaningful latent component in the data.",
+      "zh": "變異來源，反映資料中的某個來源或具意義的潛在成分。"
+    },
+    {
+      "start": 2244.1,
+      "end": 2255.5,
+      "en": "Nonetheless, the math and the procedure and the code that I showed here is the same regardless of the linear decomposition that you apply in place of the PCA.",
+      "zh": "不過，不論用哪種線性分解取代 PCA，這裡展示的數學、程序與程式碼都相同。"
+    }
+  ]
+}

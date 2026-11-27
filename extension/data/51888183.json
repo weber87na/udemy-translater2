@@ -1,0 +1,1027 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51888183",
+  "title": "Embeddings arithmetic and analogies",
+  "section": 17,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "80a5053277a5c817627a663926357073d0f0410cd12a79e78fe7e13a5f2bb809",
+  "cues": [
+    {
+      "start": 2.24,
+      "end": 11.16,
+      "en": "This and the next two videos form a set, a collection of videos in which we will explore whether there",
+      "zh": "這部與接下來兩部影片是一組，我們要探索"
+    },
+    {
+      "start": 11.16,
+      "end": 18.6,
+      "en": "are linear, semantically interpretable axes inside word embeddings matrices.",
+      "zh": "單字嵌入矩陣內，是否存在線性、能以語意解讀的座標軸。"
+    },
+    {
+      "start": 19.16,
+      "end": 28.68,
+      "en": "We will do some simple arithmetic with word embeddings in order to create new vectors that might possibly be called semantic axes.",
+      "zh": "會對單字嵌入做一些簡單算術，建立也許可以稱為語意軸的新向量。"
+    },
+    {
+      "start": 29.4,
+      "end": 40.8,
+      "en": "We will explore that concept and also whether these simple language embeddings matrices can be used to solve various word analogy problems.",
+      "zh": "我們會探索這個概念，也看看這些簡單的語言嵌入矩陣，能否解決各種單字類比問題。"
+    },
+    {
+      "start": 41.28,
+      "end": 47.56,
+      "en": "But there is also a much deeper and more important learning goal from this and the next two videos,",
+      "zh": "但這部與接下來兩部影片，還有更深入、更重要的學習目標，"
+    },
+    {
+      "start": 47.8,
+      "end": 56.56,
+      "en": "which is that doing simple arithmetic like addition, subtraction and scaling of token embeddings vectors",
+      "zh": "就是對 token 嵌入向量做簡單的加法、減法與縮放，"
+    },
+    {
+      "start": 56.56,
+      "end": 61.17,
+      "en": "is literally at the heart of language models like GPT.",
+      "zh": "真的就是 GPT 這類語言模型的核心。"
+    },
+    {
+      "start": 61.69,
+      "end": 68.21000000000001,
+      "en": "You've already seen that earlier in the course when creating these GPT models, and you're going to",
+      "zh": "課程先前建立 GPT 模型時，你已經看過；接下來幾節，"
+    },
+    {
+      "start": 68.25,
+      "end": 79.85,
+      "en": "really experience that a lot in the next several sections where we try to engage with the internal workings of the models to understand what they are actually doing and representing.",
+      "zh": "我們試著接觸模型內部運作，理解它們實際在做什麼、表示什麼時，也會深刻體驗。"
+    },
+    {
+      "start": 81.05,
+      "end": 88.77,
+      "en": "Anyway, the examples in this and the next couple videos are fairly simple, but the math and the concepts",
+      "zh": "總之，這部與接下來幾部的例子相當簡單，但其中的數學與概念，"
+    },
+    {
+      "start": 88.77,
+      "end": 95.49000000000001,
+      "en": "of taking a token, embedding vector and adding something or subtracting something, this is literally",
+      "zh": "也就是取一個 token 嵌入向量，再加上或減去某些東西，真的就是"
+    },
+    {
+      "start": 95.49000000000001,
+      "end": 103.53,
+      "en": "how transformer models process language in such flexible, context aware and human like ways.",
+      "zh": "Transformer 模型以如此靈活、理解上下文、類似人類的方式，處理語言的做法。"
+    },
+    {
+      "start": 104.37,
+      "end": 111.25,
+      "en": "So let me begin by introducing you to the concept of analogies in word embeddings.",
+      "zh": "先介紹單字嵌入類比的概念。"
+    },
+    {
+      "start": 111.72999999999999,
+      "end": 116.28999999999999,
+      "en": "It's an idea that's been around for, I don't know, a few decades perhaps.",
+      "zh": "這個想法已經存在，我不知道，也許幾十年了。"
+    },
+    {
+      "start": 116.72999999999999,
+      "end": 123.26,
+      "en": "So you might already be familiar with this little demo, but if not, I think you will initially find",
+      "zh": "所以，你可能已熟悉這個小示範；如果還沒有，一開始可能覺得"
+    },
+    {
+      "start": 123.26,
+      "end": 128.94,
+      "en": "it very compelling, although you might change your opinion of it after the next few videos.",
+      "zh": "很有說服力，但接下來幾部影片後，可能會改變看法。"
+    },
+    {
+      "start": 129.62,
+      "end": 138.26,
+      "en": "So this paper here nicely illustrates the concept, although these authors were not the first to propose or explore this idea.",
+      "zh": "這篇論文很好地說明概念，但這些作者並不是最早提出或探索的人。"
+    },
+    {
+      "start": 138.78,
+      "end": 147.46,
+      "en": "So the idea is that if word embeddings vectors have some semantic relations to other word embedding",
+      "zh": "概念是，如果單字嵌入向量與其他單字嵌入"
+    },
+    {
+      "start": 147.46,
+      "end": 155.42000000000002,
+      "en": "vectors, then we should be able to get meaningful results by doing simple vector addition and subtraction.",
+      "zh": "向量有某些語意關係，那透過簡單的向量加減，應該就能得到有意義的結果。"
+    },
+    {
+      "start": 156.62,
+      "end": 165.7,
+      "en": "So the concept that they are illustrating here is that there is a parallel between king and man, and",
+      "zh": "這裡展示，king 與 man 之間，"
+    },
+    {
+      "start": 165.7,
+      "end": 173.7,
+      "en": "between queen and woman, and also between queen and king, and between woman and man.",
+      "zh": "以及 queen 與 woman 之間有平行關係；queen 與 king、woman 與 man 之間也一樣。"
+    },
+    {
+      "start": 174.42000000000002,
+      "end": 182.11,
+      "en": "Now, if that is true, if that's really how these words are represented in the embeddings space, then",
+      "zh": "如果這是真的，如果這些詞在嵌入空間中確實如此表示，"
+    },
+    {
+      "start": 182.11,
+      "end": 193.95,
+      "en": "we should be able to do analogies with this simple mathematical approach, for example, by subtracting man from king, adding back woman, and getting to queen.",
+      "zh": "就應該能用簡單數學做類比，例如 king 減去 man，再加回 woman，得到 queen。"
+    },
+    {
+      "start": 194.67,
+      "end": 196.79,
+      "en": "So this idea is very simple.",
+      "zh": "這個想法非常簡單。"
+    },
+    {
+      "start": 196.79,
+      "end": 199.95,
+      "en": "It's very compelling, and it is very elegant.",
+      "zh": "非常有說服力，也非常優雅。"
+    },
+    {
+      "start": 200.35,
+      "end": 203.31,
+      "en": "If it really works that way, that would be fantastic.",
+      "zh": "如果真的如此運作，那太棒了。"
+    },
+    {
+      "start": 204.15,
+      "end": 215.95,
+      "en": "The truth is that we can get results like this, but they require some careful massaging of the data, and it only works for a small, hand-picked number of word pairs.",
+      "zh": "事實是，確實可以得到這類結果，但需要仔細調整資料，而且只對少數手動挑選的詞對有效。"
+    },
+    {
+      "start": 216.55,
+      "end": 225.35,
+      "en": "Now, before getting to the Python demo, let me explain very briefly about the geometry of vector arithmetic.",
+      "zh": "在進入 Python 示範之前，先非常簡短地解釋向量算術的幾何。"
+    },
+    {
+      "start": 225.82999999999998,
+      "end": 229.07,
+      "en": "Although in this slide I'm really just focusing on subtraction.",
+      "zh": "但這張投影片主要只談減法。"
+    },
+    {
+      "start": 229.51,
+      "end": 232.75,
+      "en": "So here you see a two dimensional axis.",
+      "zh": "這裡看到二維座標軸。"
+    },
+    {
+      "start": 233.31,
+      "end": 237.72,
+      "en": "Now if the embeddings matrices were only in two dimensions.",
+      "zh": "如果嵌入矩陣只有二維，"
+    },
+    {
+      "start": 238.04,
+      "end": 244.32,
+      "en": "We could literally just look at all of the vectors on this two dimensional axis.",
+      "zh": "真的可以直接在這個二維座標軸上查看所有向量。"
+    },
+    {
+      "start": 245.08,
+      "end": 250.6,
+      "en": "But the dimensionality of these embedding spaces is in the hundreds to thousands.",
+      "zh": "但嵌入空間有數百到數千維。"
+    },
+    {
+      "start": 250.6,
+      "end": 255.44,
+      "en": "So we cannot just plot the actual vectors in their real embedding spaces.",
+      "zh": "因此，無法直接畫出向量在真實嵌入空間的樣子。"
+    },
+    {
+      "start": 256.84,
+      "end": 266.72,
+      "en": "There is one convention in high dimensional mathematics, which is to draw lots of other axes along this seemingly flat plane here.",
+      "zh": "高維數學有個慣例，就是在這個看似平面的地方，畫出很多其他座標軸。"
+    },
+    {
+      "start": 267.24,
+      "end": 272.6,
+      "en": "And this just indicates, for example, that there would be a 300 dimensional space.",
+      "zh": "這只是表示，例如這會是一個 300 維空間。"
+    },
+    {
+      "start": 273.08,
+      "end": 282.64,
+      "en": "So now we can abstract away the actual dimensionality and consider what one vector might look like in this space.",
+      "zh": "現在可以抽象處理實際維度，想像其中一個向量會是什麼樣子。"
+    },
+    {
+      "start": 283.24,
+      "end": 287.92,
+      "en": "So let's say this is the embeddings vector that corresponds to the word big.",
+      "zh": "假設這是 big 這個詞的嵌入向量。"
+    },
+    {
+      "start": 288.6,
+      "end": 292.96,
+      "en": "And here might be the vector that corresponds to the word small.",
+      "zh": "這裡可能是 small 的向量。"
+    },
+    {
+      "start": 293.4,
+      "end": 304.86,
+      "en": "Now once we have these two vectors, we can actually create a new axis in this high dimensional space that goes from one vector to the other.",
+      "zh": "有了兩個向量，就能在這個高維空間中，建立一條從一個向量到另一個的新軸。"
+    },
+    {
+      "start": 305.34,
+      "end": 306.66,
+      "en": "That would look like this.",
+      "zh": "看起來會像這樣。"
+    },
+    {
+      "start": 306.94,
+      "end": 313.38,
+      "en": "And mathematically, it is literally just the subtraction of these two vectors.",
+      "zh": "在數學上，就是這兩個向量相減。"
+    },
+    {
+      "start": 314.34,
+      "end": 324.62,
+      "en": "Now if these embedding spaces really encode semantic relationships and in a linear way, then the vector",
+      "zh": "如果嵌入空間真的以線性方式編碼語意關係，那麼由"
+    },
+    {
+      "start": 324.62,
+      "end": 334.65999999999997,
+      "en": "that is defined by the difference between big and small should correspond to an interpretable axis that we could call a size axis.",
+      "zh": "big 與 small 的差所定義的向量，就應該對應一個可解讀的軸，可以叫大小軸。"
+    },
+    {
+      "start": 335.02,
+      "end": 346.78,
+      "en": "And if that were the case, we could expect other vectors to appear on the size axis like huge and tiny, maybe elephants and ants and so on.",
+      "zh": "如果如此，預期 huge、tiny，甚至 elephants、ants 等其他向量，也會出現在這個大小軸上。"
+    },
+    {
+      "start": 347.54,
+      "end": 349.26,
+      "en": "Uh, maybe it works like that.",
+      "zh": "也許是這樣。"
+    },
+    {
+      "start": 349.3,
+      "end": 355.55,
+      "en": "Okay, so that's just a bit of background about what we are going to be doing in the next several videos.",
+      "zh": "這就是接下來幾部影片要做的事情的一些背景。"
+    },
+    {
+      "start": 356.83,
+      "end": 360.91,
+      "en": "Now, let me tell you what we're going to do in this code demo.",
+      "zh": "現在介紹這個程式示範要做什麼。"
+    },
+    {
+      "start": 361.23,
+      "end": 369.91,
+      "en": "We're going to work with the glove embeddings and see if we can reproduce the analogy that I discussed a few slides ago.",
+      "zh": "我們會使用 GloVe 嵌入，看看能否重現前幾張投影片討論的類比。"
+    },
+    {
+      "start": 370.35,
+      "end": 375.71,
+      "en": "So here I define three vectors for king, man and woman.",
+      "zh": "這裡為 king、man 與 woman 定義三個向量。"
+    },
+    {
+      "start": 376.19,
+      "end": 381.87,
+      "en": "And then the idea is to create a new vector that I'll call the analogy vector.",
+      "zh": "接著建立一個新向量，叫做類比向量。"
+    },
+    {
+      "start": 382.19,
+      "end": 387.39,
+      "en": "And that is defined by king minus man plus woman.",
+      "zh": "定義為 king 減去 man，再加上 woman。"
+    },
+    {
+      "start": 388.03,
+      "end": 399.35,
+      "en": "Then we will calculate the cosine similarity of this analogy vector with all the other vectors that we have in our embeddings matrix.",
+      "zh": "再計算這個類比向量，與嵌入矩陣中其他所有向量的餘弦相似度。"
+    },
+    {
+      "start": 399.35,
+      "end": 404.90999999999997,
+      "en": "So this analogy analogy vector is formed by some simple arithmetic.",
+      "zh": "所以，類比向量是由簡單算術形成的。"
+    },
+    {
+      "start": 405.31,
+      "end": 413.32,
+      "en": "And then these are the cosine similarities with all of the other word vectors in our embeddings matrix.",
+      "zh": "這些則是它與嵌入矩陣中其他所有單字向量的餘弦相似度。"
+    },
+    {
+      "start": 413.92,
+      "end": 421.52,
+      "en": "And finally, we will get the words that have the highest cosine similarity with the analogy vector.",
+      "zh": "最後，找出與類比向量餘弦相似度最高的單字。"
+    },
+    {
+      "start": 422,
+      "end": 428.68,
+      "en": "The top word is actually king, although that is the word used directly to calculate the analogy vector.",
+      "zh": "最高其實是 king，雖然這個詞就直接用來計算類比向量。"
+    },
+    {
+      "start": 428.84,
+      "end": 434.36,
+      "en": "But after that we get words like queen, princess, daughter Elizabeth.",
+      "zh": "但接著有 queen、princess、daughter、Elizabeth 等詞。"
+    },
+    {
+      "start": 434.72,
+      "end": 436.56,
+      "en": "So this is pretty interesting.",
+      "zh": "這很有意思。"
+    },
+    {
+      "start": 437.04,
+      "end": 442.16,
+      "en": "And that reproduces the well-known analogy for that particular word pair.",
+      "zh": "它重現了這個特定詞對的著名類比。"
+    },
+    {
+      "start": 442.64,
+      "end": 447.2,
+      "en": "We will then start exploring whether this works for other word pairs.",
+      "zh": "接著，開始探索其他詞對是否也有效。"
+    },
+    {
+      "start": 447.68,
+      "end": 457.68,
+      "en": "For example, can we create a linear semantic axis vector that corresponds to something about time by",
+      "zh": "例如，能否建立一個與時間有關的線性語意軸向量，"
+    },
+    {
+      "start": 457.72,
+      "end": 460.8,
+      "en": "subtracting tomorrow from yesterday?",
+      "zh": "用 yesterday 減去 tomorrow？"
+    },
+    {
+      "start": 461.32,
+      "end": 464.88,
+      "en": "That's something that we will explore here.",
+      "zh": "這就是這裡要探索的。"
+    },
+    {
+      "start": 465.24,
+      "end": 471.37,
+      "en": "And just a heads up, it doesn't really work that well, but you will see in the next couple of videos",
+      "zh": "先提醒，效果不太好，但接下來幾部影片會看到，"
+    },
+    {
+      "start": 471.37,
+      "end": 482.45,
+      "en": "that it is possible to improve this performance of what we get here by using a different embeddings and applying some normalization and filtering.",
+      "zh": "使用不同嵌入，再套用一些正規化與篩選，可以改善這裡的表現。"
+    },
+    {
+      "start": 483.45,
+      "end": 491.73,
+      "en": "So here I import some libraries, and here I'm importing the glove 50 dimensional embeddings matrix.",
+      "zh": "這裡匯入一些函式庫，以及 GloVe 的 50 維嵌入矩陣。"
+    },
+    {
+      "start": 491.73,
+      "end": 494.05,
+      "en": "So this is a little bit on the small side.",
+      "zh": "這個維度偏小。"
+    },
+    {
+      "start": 494.45,
+      "end": 496.97,
+      "en": "And this is glove and not word two vec.",
+      "zh": "而且，這是 GloVe，不是 Word2vec。"
+    },
+    {
+      "start": 497.01,
+      "end": 501.21,
+      "en": "I will talk about why that matters in the beginning of the next video.",
+      "zh": "下一部影片開頭，會談為什麼這有影響。"
+    },
+    {
+      "start": 501.37,
+      "end": 503.81,
+      "en": "But I wanted to have this here.",
+      "zh": "但我想先在這裡展示，"
+    },
+    {
+      "start": 503.81,
+      "end": 510.45,
+      "en": "So we have it as a comparison for what we're going to do in the next several videos.",
+      "zh": "好讓我們有個比較對象，與接下來幾部影片的做法相比。"
+    },
+    {
+      "start": 511.01,
+      "end": 514.21,
+      "en": "Okay, so here you've already seen a screenshot of this code.",
+      "zh": "這裡的程式截圖，你已經看過。"
+    },
+    {
+      "start": 514.49,
+      "end": 522.09,
+      "en": "Uh, and basically here I'm defining the analogy vector, literally just the subtraction of all of these vectors.",
+      "zh": "基本上，這裡定義類比向量，就是直接把這些向量相減。"
+    },
+    {
+      "start": 522.09,
+      "end": 524.89,
+      "en": "So this is a vector of 50 numbers.",
+      "zh": "這是含 50 個數字的向量。"
+    },
+    {
+      "start": 524.93,
+      "end": 527.73,
+      "en": "And yeah these are also vectors of 50 numbers.",
+      "zh": "這些也都是含 50 個數字的向量。"
+    },
+    {
+      "start": 527.77,
+      "end": 530.66,
+      "en": "Just element wise subtract and then add.",
+      "zh": "只要逐元素相減，再相加。"
+    },
+    {
+      "start": 530.66,
+      "end": 533.86,
+      "en": "And that's how we get our analogy vector.",
+      "zh": "這就得到類比向量。"
+    },
+    {
+      "start": 534.42,
+      "end": 537.78,
+      "en": "Here you see what that vector actually looks like.",
+      "zh": "這裡看到向量真正的樣子。"
+    },
+    {
+      "start": 537.78,
+      "end": 541.22,
+      "en": "So you see the vectors for king, man and woman.",
+      "zh": "可以看到 king、man 與 woman 的向量。"
+    },
+    {
+      "start": 541.46,
+      "end": 546.82,
+      "en": "And there are some embeddings dimensions where they all seem to look pretty similar to each other anyway.",
+      "zh": "有些嵌入維度上，它們看起來都相當類似。"
+    },
+    {
+      "start": 547.42,
+      "end": 551.42,
+      "en": "And then in the black line is the analogy vector.",
+      "zh": "黑線則是類比向量。"
+    },
+    {
+      "start": 551.62,
+      "end": 562.54,
+      "en": "So if you can possibly imagine some 50 dimensional space, then all four of these vectors actually already kind of point in the same direction.",
+      "zh": "如果能想像某個 50 維空間，那四個向量其實已經大致指向相同方向。"
+    },
+    {
+      "start": 562.54,
+      "end": 569.42,
+      "en": "So there's already something that's going on that's that's strongly related across all of these vectors.",
+      "zh": "因此，這些向量之間，已經有某種強烈關聯的情況。"
+    },
+    {
+      "start": 570.02,
+      "end": 570.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 570.34,
+      "end": 575.7,
+      "en": "So now we are going to calculate the cosine similarity to all the other vectors.",
+      "zh": "現在計算與其他所有向量的餘弦相似度。"
+    },
+    {
+      "start": 575.9,
+      "end": 582.54,
+      "en": "In this case I'm using the method in the glove object called cosine similarities.",
+      "zh": "這裡使用 GloVe 物件中叫 cosine_similarities 的方法。"
+    },
+    {
+      "start": 582.54,
+      "end": 583.78,
+      "en": "We've used this before.",
+      "zh": "先前已用過。"
+    },
+    {
+      "start": 584.26,
+      "end": 593.39,
+      "en": "And so I'm calculating cosine similarity from this analogy vector to all the other vectors in the embedding matrix.",
+      "zh": "計算這個類比向量，與嵌入矩陣中其他所有向量的餘弦相似度。"
+    },
+    {
+      "start": 593.95,
+      "end": 596.43,
+      "en": "And yeah, there's a lot to plot here.",
+      "zh": "要畫的資料很多。"
+    },
+    {
+      "start": 596.47,
+      "end": 600.43,
+      "en": "There's 400,000 of these words, so I'm just plotting.",
+      "zh": "有 400,000 個單字，所以我只畫，"
+    },
+    {
+      "start": 600.63,
+      "end": 605.99,
+      "en": "I'm skipping every 100 here just to make the plot render faster.",
+      "zh": "每隔 100 個取一個，讓圖更快顯示。"
+    },
+    {
+      "start": 606.67,
+      "end": 606.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 606.99,
+      "end": 611.15,
+      "en": "Here we see the top 1000 cosine similarities.",
+      "zh": "這裡看到最高的 1,000 個餘弦相似度。"
+    },
+    {
+      "start": 611.15,
+      "end": 614.71,
+      "en": "So this is not showing all of the cosine similarities.",
+      "zh": "因此，這不是顯示全部餘弦相似度。"
+    },
+    {
+      "start": 614.71,
+      "end": 616.43,
+      "en": "It's just skipping every 100.",
+      "zh": "只是每隔 100 個。"
+    },
+    {
+      "start": 616.75,
+      "end": 625.03,
+      "en": "But from the entire data set, from all of the cosine similarities, these are the top 1000 and they are sorted.",
+      "zh": "但從整個資料集、所有餘弦相似度中，這些是最高的 1,000 個，而且已排序。"
+    },
+    {
+      "start": 625.23,
+      "end": 634.07,
+      "en": "So now the idea is to find the ten of these top, uh, matches and then find their corresponding words.",
+      "zh": "接著，找出其中最相符的十個，再找對應的單字。"
+    },
+    {
+      "start": 634.23,
+      "end": 634.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 634.47,
+      "end": 635.99,
+      "en": "And then that's what I do here.",
+      "zh": "這就是這裡做的事。"
+    },
+    {
+      "start": 636.71,
+      "end": 640.51,
+      "en": "So uh, cosine similarity uh, to all.",
+      "zh": "所以，cosine similarity to all，"
+    },
+    {
+      "start": 640.55,
+      "end": 645.79,
+      "en": "That's the variable that I created up here as cosine similarities.",
+      "zh": "就是上面建立、來自 cosine_similarities 的變數。"
+    },
+    {
+      "start": 646.11,
+      "end": 651.36,
+      "en": "And then I'm just taking the top ten, which corresponds to these ten up here.",
+      "zh": "接著只取前十個，對應上面這十個。"
+    },
+    {
+      "start": 651.72,
+      "end": 654,
+      "en": "And then here I'm just flipping that again.",
+      "zh": "這裡再反轉一次。"
+    },
+    {
+      "start": 654.04,
+      "end": 659.76,
+      "en": "The only reason for that is I want the closest matches to be on top.",
+      "zh": "唯一原因，是希望最接近的結果放最上面。"
+    },
+    {
+      "start": 659.76,
+      "end": 662.52,
+      "en": "You can see now the numbers are actually increasing.",
+      "zh": "可以看到，現在數字其實是遞增。"
+    },
+    {
+      "start": 662.68,
+      "end": 666.32,
+      "en": "So here I'm just flipping the order just to make it look a little nicer.",
+      "zh": "所以，只是反轉順序，讓外觀更好看。"
+    },
+    {
+      "start": 667.04,
+      "end": 669.72,
+      "en": "Okay, so, uh, what do we find here?",
+      "zh": "好，我們找到什麼？"
+    },
+    {
+      "start": 669.72,
+      "end": 679.08,
+      "en": "The top matches with King, but we do get, uh, the word that we expect from looking at all those memes about how word embeddings work.",
+      "zh": "最相符的是 king，但也確實得到，所有那些介紹單字嵌入運作方式的迷因中，預期會看到的詞。"
+    },
+    {
+      "start": 679.44,
+      "end": 681.6,
+      "en": "Uh, Queen and other related words.",
+      "zh": "Queen，以及其他相關詞。"
+    },
+    {
+      "start": 681.6,
+      "end": 685.8,
+      "en": "Daughter, prince, throne, princess, father, kingdom mother.",
+      "zh": "Daughter、prince、throne、princess、father、kingdom、mother。"
+    },
+    {
+      "start": 685.8,
+      "end": 693.72,
+      "en": "So they're not all necessarily related to directly subtracting away man from king and then adding back",
+      "zh": "它們不一定全都直接對應 king 減去 man、再加回"
+    },
+    {
+      "start": 693.72,
+      "end": 697.96,
+      "en": "woman, but they are certainly all are related to royalty.",
+      "zh": "woman，但確實都與王室相關。"
+    },
+    {
+      "start": 698.8,
+      "end": 699.04,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 699.08,
+      "end": 705.92,
+      "en": "And now here we are going to see if we can do basically something similar, uh, but with a different words here.",
+      "zh": "現在看看能否對不同單字，做基本類似的事情。"
+    },
+    {
+      "start": 705.93,
+      "end": 708.61,
+      "en": "So tomorrow minus yesterday.",
+      "zh": "也就是 tomorrow 減去 yesterday。"
+    },
+    {
+      "start": 708.61,
+      "end": 713.81,
+      "en": "And the idea is that this is creating some kind of a semantic time axis.",
+      "zh": "想法是，建立某種語意時間軸。"
+    },
+    {
+      "start": 713.81,
+      "end": 721.61,
+      "en": "So words that should, uh, have high cosine similarity with this time axis, if it really is a time",
+      "zh": "如果這真的是時間軸，那麼與這個時間軸有高餘弦"
+    },
+    {
+      "start": 721.61,
+      "end": 727.41,
+      "en": "axis, should be words like I don't know, future later next week or something like that.",
+      "zh": "相似度的詞，應該像 future、later、next week 之類。"
+    },
+    {
+      "start": 727.45,
+      "end": 728.01,
+      "en": "Eons.",
+      "zh": "Eons，億萬年。"
+    },
+    {
+      "start": 728.01,
+      "end": 729.37,
+      "en": "And this would be past.",
+      "zh": "這邊則是過去。"
+    },
+    {
+      "start": 729.41,
+      "end": 736.45,
+      "en": "And so um, okay, so what we're also going to do here is not only look at the words that have positive",
+      "zh": "因此，這裡不只要看有正"
+    },
+    {
+      "start": 736.45,
+      "end": 743.57,
+      "en": "cosine similarity, that would be words that correlate with tomorrow when subtracting away the relation",
+      "zh": "餘弦相似度的單字，也就是與 tomorrow 相關，同時扣除"
+    },
+    {
+      "start": 743.57,
+      "end": 748.97,
+      "en": "of yesterday, but also words that have negative cosine similarity.",
+      "zh": "yesterday 關係的詞，還要看負餘弦相似度的詞。"
+    },
+    {
+      "start": 749.13,
+      "end": 756.25,
+      "en": "And that would be the words that correspond more to yesterday when removing the effect of tomorrow.",
+      "zh": "那會是移除 tomorrow 影響後，更對應 yesterday 的詞。"
+    },
+    {
+      "start": 756.61,
+      "end": 756.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 756.93,
+      "end": 759.57,
+      "en": "And then that is what you see down here.",
+      "zh": "下面看到的就是結果。"
+    },
+    {
+      "start": 760.81,
+      "end": 767.43,
+      "en": "So the top positive words are immerse movie Nation, AP News Now.",
+      "zh": "正向最高的詞有 immerse、movie、Nation、AP、News、Now。"
+    },
+    {
+      "start": 767.95,
+      "end": 768.71,
+      "en": "Antiquing.",
+      "zh": "Antiquing。"
+    },
+    {
+      "start": 769.19,
+      "end": 773.75,
+      "en": "Okay, and then the negative words includes numbers and tumbled and surged.",
+      "zh": "負向的詞則包括數字，以及 tumbled、surged。"
+    },
+    {
+      "start": 773.87,
+      "end": 775.03,
+      "en": "So what does this mean?",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 775.39,
+      "end": 783.39,
+      "en": "None of these words really seem to correspond to what I was hoping to find, which is a time axis.",
+      "zh": "這些詞似乎都不對應我希望找到的時間軸。"
+    },
+    {
+      "start": 783.75,
+      "end": 785.35,
+      "en": "Okay, now we can try this again.",
+      "zh": "可以再試一次。"
+    },
+    {
+      "start": 785.35,
+      "end": 787.95,
+      "en": "And I encourage you to play around with this a little more.",
+      "zh": "鼓勵你再多調整一下。"
+    },
+    {
+      "start": 788.51,
+      "end": 792.39,
+      "en": "I'm going to try, for example starting with glove.",
+      "zh": "例如，我要從 GloVe 開始。"
+    },
+    {
+      "start": 792.71,
+      "end": 795.39,
+      "en": "Now maybe I'll do today like this.",
+      "zh": "也許改成 today，像這樣。"
+    },
+    {
+      "start": 795.39,
+      "end": 795.91,
+      "en": "Plus.",
+      "zh": "加上。"
+    },
+    {
+      "start": 795.91,
+      "end": 800.59,
+      "en": "So now we start with today plus tomorrow minus yesterday.",
+      "zh": "現在是 today 加 tomorrow 減 yesterday。"
+    },
+    {
+      "start": 800.59,
+      "end": 803.79,
+      "en": "So let's see if we get more sensible results here.",
+      "zh": "看看結果會不會更合理。"
+    },
+    {
+      "start": 804.47,
+      "end": 806.15,
+      "en": "So this is a little bit better.",
+      "zh": "這稍微好一點。"
+    },
+    {
+      "start": 806.15,
+      "end": 808.03,
+      "en": "We get go and see.",
+      "zh": "有 go、see。"
+    },
+    {
+      "start": 808.19,
+      "end": 809.59,
+      "en": "We still get tomorrow.",
+      "zh": "仍然有 tomorrow。"
+    },
+    {
+      "start": 809.83,
+      "end": 810.75,
+      "en": "Come happens.",
+      "zh": "Come、happens。"
+    },
+    {
+      "start": 810.75,
+      "end": 821.51,
+      "en": "And then yeah the words that should be uh corresponding to yesterday and previously in time are like Mediadefender and Pierre-Marie.",
+      "zh": "那些應該對應 yesterday、較早時間的詞，則像 Mediadefender、Pierre-Marie。"
+    },
+    {
+      "start": 821.63,
+      "end": 824.2,
+      "en": "So yeah, I'm not really sure what to make of this.",
+      "zh": "所以，我其實不知道該怎麼解讀。"
+    },
+    {
+      "start": 825.4,
+      "end": 828.8,
+      "en": "A few general points I'd like to make from this demonstration.",
+      "zh": "從這個示範，想提出幾個一般性的看法。"
+    },
+    {
+      "start": 829.28,
+      "end": 840.04,
+      "en": "First of all, these embeddings spaces are very large, complicated, and impossible to visualize, and therefore also just very difficult to understand.",
+      "zh": "首先，這些嵌入空間非常大、複雜，而且無法視覺化，因此也非常難理解。"
+    },
+    {
+      "start": 840.6,
+      "end": 849.04,
+      "en": "We try to impose linearity on the interpretations because that makes it easier for us humans to understand.",
+      "zh": "我們試著以線性方式強加解讀，因為這樣人類比較容易理解。"
+    },
+    {
+      "start": 849.76,
+      "end": 856.12,
+      "en": "Now, sometimes those linear impositions are successful and other times they're not.",
+      "zh": "有時，這種線性假設會成功，有時則不會。"
+    },
+    {
+      "start": 856.44,
+      "end": 857.6,
+      "en": "It's hard to know why.",
+      "zh": "很難知道原因。"
+    },
+    {
+      "start": 858.36,
+      "end": 866.76,
+      "en": "Maybe the axes in this embeddings space that correspond to semantics are actually very strongly non-linear,",
+      "zh": "也許，嵌入空間中對應語意的軸，其實高度非線性，"
+    },
+    {
+      "start": 866.8,
+      "end": 870.48,
+      "en": "curved, looping back on themselves and other kinds of weird shapes.",
+      "zh": "會彎曲、迴繞，還有其他奇怪形狀。"
+    },
+    {
+      "start": 870.84,
+      "end": 881.68,
+      "en": "But maybe there are segments of these functions that are linear, or at least are close enough to being linear, that they can be understood with linear analyses.",
+      "zh": "但也許，這些函數中有某些區段是線性的，或至少夠接近線性，可以用線性分析理解。"
+    },
+    {
+      "start": 882.69,
+      "end": 893.05,
+      "en": "A second general point I'd like to make is that science communication is often guilty of oversimplification and overgeneralization.",
+      "zh": "第二點是，科學傳播經常過度簡化、過度概括。"
+    },
+    {
+      "start": 893.89,
+      "end": 902.65,
+      "en": "It makes for very catchy, clickbait worthy headlines to say that these models will do seemingly very human capacity.",
+      "zh": "聲稱這些模型能做到看似很像人類能力的事情，很容易寫成吸引人、值得點擊的標題。"
+    },
+    {
+      "start": 902.65,
+      "end": 907.33,
+      "en": "Analogies like king minus man plus woman equals queen.",
+      "zh": "例如 king 減 man 加 woman 等於 queen 這種類比。"
+    },
+    {
+      "start": 907.89,
+      "end": 919.53,
+      "en": "Now, you saw in the code that we can reproduce that result, but you also saw other cases where that approach just didn't generalize or gave completely uninterpretable results.",
+      "zh": "程式中，你看到可以重現這個結果，但也看到其他例子，這個方法完全無法泛化，或得到完全無法解讀的結果。"
+    },
+    {
+      "start": 920.25,
+      "end": 921.73,
+      "en": "Language is complicated.",
+      "zh": "語言很複雜。"
+    },
+    {
+      "start": 921.97,
+      "end": 931.41,
+      "en": "There is a reason why humans are the only species on Earth that can use abstract, flexible, and referential language.",
+      "zh": "人類是地球上唯一能使用抽象、靈活、具有指涉性的語言的物種，這是有原因的。"
+    },
+    {
+      "start": 932.01,
+      "end": 938.01,
+      "en": "Now, I'm not just talking about basic communication, which most animals, even single celled organisms,",
+      "zh": "我不是只指基本溝通，多數動物，甚至單細胞生物，"
+    },
+    {
+      "start": 938.01,
+      "end": 946.66,
+      "en": "can do to some extent, but language as we use it for abstract communication is complicated and it's messy.",
+      "zh": "某種程度都做得到；但我們用來抽象溝通的語言，非常複雜、混亂。"
+    },
+    {
+      "start": 947.02,
+      "end": 949.58,
+      "en": "And these models are also very complicated.",
+      "zh": "這些模型也很複雜。"
+    },
+    {
+      "start": 949.58,
+      "end": 952.86,
+      "en": "Large language models like GPT are very complicated.",
+      "zh": "GPT 這類大型語言模型很複雜。"
+    },
+    {
+      "start": 953.38,
+      "end": 959.78,
+      "en": "So any time you come across someone saying that they have a very simple explanation for a very complicated",
+      "zh": "所以，每當有人說，能用非常簡單的方式解釋非常複雜的"
+    },
+    {
+      "start": 959.78,
+      "end": 967.06,
+      "en": "thing, you should view it with a great deal of skepticism and ask yourself whether such a complicated",
+      "zh": "事情，你都應高度懷疑，問自己，這麼複雜的"
+    },
+    {
+      "start": 967.06,
+      "end": 974.98,
+      "en": "thing, like a language model, really can have such a simple explanation, and yet still be so sophisticated.",
+      "zh": "東西，例如語言模型，真的能有那麼簡單的解釋，卻又如此精密嗎？"
+    },
+    {
+      "start": 976.1,
+      "end": 984.14,
+      "en": "Well, in the specific case of language models and AI, a risk of relying too much on the assumption",
+      "zh": "尤其對語言模型與 AI，太依賴線性"
+    },
+    {
+      "start": 984.14,
+      "end": 994.82,
+      "en": "of linearity is that it will lull us into complacency, that we're really understanding a complex system when we're really not understanding it.",
+      "zh": "假設的風險，是讓我們安於現狀，以為真的理解了複雜系統，但其實沒有。"
+    },
+    {
+      "start": 995.1,
+      "end": 999.26,
+      "en": "And I think that has important implications for AI safety.",
+      "zh": "我認為，這對 AI 安全有重要意涵。"
+    }
+  ]
+}

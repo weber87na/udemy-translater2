@@ -1,0 +1,2437 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893631",
+  "title": "SAE in GPT2 learns about Hungarian Palinka",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "848ec7ddf620c92d6610caa7badf501ab2dc88e9b62d4c17fce7ac673eb3f626",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 8.32,
+      "en": "I hope you enjoyed learning about sparse autoencoders in the previous video.",
+      "zh": "希望你喜歡上一支影片中關於稀疏自編碼器的內容。"
+    },
+    {
+      "start": 8.84,
+      "end": 16.72,
+      "en": "I'm a big fan of using simulated data to learn about and explore advanced data analysis techniques.",
+      "zh": "我很喜歡用模擬資料，來學習與探索進階資料分析技術。"
+    },
+    {
+      "start": 16.88,
+      "end": 24.56,
+      "en": "For the reasons that I explained in the previous video, but there is no substitute for working with real data.",
+      "zh": "原因我在上一支影片解釋過了，但處理真實資料仍然無可取代。"
+    },
+    {
+      "start": 24.84,
+      "end": 35.32,
+      "en": "There are uncertainties and challenges and other issues that real data force upon you that you can kind of side skirt with simulated data.",
+      "zh": "真實資料會帶來一些不確定性、挑戰和其他問題，使用模擬資料時則可以稍微避開。"
+    },
+    {
+      "start": 36.12,
+      "end": 43.6,
+      "en": "Anyway, so the goal of this video is to show you what's involved in building training and interpreting",
+      "zh": "總之，這支影片的目標，是展示建立、訓練與解讀"
+    },
+    {
+      "start": 43.6,
+      "end": 48.52,
+      "en": "autoencoders with some text that I copied from Wikipedia.",
+      "zh": "自編碼器的過程，使用的是我從維基百科複製的一些文字。"
+    },
+    {
+      "start": 49.04,
+      "end": 56.64,
+      "en": "It's a relatively small amount of text, so we shouldn't really expect a lot of beautiful, clean results from the latent components.",
+      "zh": "文字量相對少，所以不應期待潛在成分會呈現很多漂亮、乾淨的結果。"
+    },
+    {
+      "start": 56.96,
+      "end": 61.4,
+      "en": "But this is still a great opportunity to learn about sparse encoders.",
+      "zh": "但這仍是學習稀疏編碼器的好機會。"
+    },
+    {
+      "start": 61.52,
+      "end": 64.84,
+      "en": "And you're also going to learn about something called Palinka.",
+      "zh": "你也會認識一種叫 Pálinka 的東西。"
+    },
+    {
+      "start": 65.28,
+      "end": 72.08,
+      "en": "There's no new math for this video, so let me jump straight into the overview of the code demo.",
+      "zh": "這支影片沒有新的數學內容，所以直接來看程式示範概覽。"
+    },
+    {
+      "start": 73.03999999999999,
+      "end": 77.48,
+      "en": "Here is a screenshot of the Wikipedia page about Palinka.",
+      "zh": "這是關於 Pálinka 的維基百科頁面截圖。"
+    },
+    {
+      "start": 77.96000000000001,
+      "end": 86.36,
+      "en": "Palinka is a sweet liquor that's made in several parts of Eastern Europe, in the Balkans, Greece and Turkey, thereabouts.",
+      "zh": "Pálinka 是一種甜的烈酒，在東歐、巴爾幹半島、希臘、土耳其一帶的幾個地區製造。"
+    },
+    {
+      "start": 86.36,
+      "end": 96.32,
+      "en": "It's something like a schnapps, and if you are ever in that part of the world, in particular Hungary or Romania, then I can recommend trying a little bit with food.",
+      "zh": "有點像 schnapps。如果你到那一帶，尤其是匈牙利或羅馬尼亞，可以試著配餐喝一點。"
+    },
+    {
+      "start": 96.52000000000001,
+      "end": 103.68,
+      "en": "But keep in mind that palinka can be pretty strong, and I definitely do not want to encourage drinking too much of it.",
+      "zh": "但記得，Pálinka 可能很烈，我絕對不是要鼓勵你喝太多。"
+    },
+    {
+      "start": 104.4,
+      "end": 111.92,
+      "en": "Anyway, I have copied a handful of sentences from this wiki page, and that's what we're going to use",
+      "zh": "總之，我從這個維基頁面複製了幾個句子，我們會用它們"
+    },
+    {
+      "start": 112.03999999999999,
+      "end": 118,
+      "en": "to train MLP neuron activations in a sparse autoencoder.",
+      "zh": "產生 MLP 神經元活化，來訓練稀疏自編碼器。"
+    },
+    {
+      "start": 118.84,
+      "end": 124.16,
+      "en": "Here you see a screenshot of the autoencoder model that I am going to train.",
+      "zh": "這裡是我要訓練的自編碼器模型截圖。"
+    },
+    {
+      "start": 124.6,
+      "end": 130.68,
+      "en": "Now, some of this code you have seen in the previous video, but I've also modified a couple of things here.",
+      "zh": "上一支影片中，你已經看過其中一些程式碼，但這裡也修改了幾個地方。"
+    },
+    {
+      "start": 131.16,
+      "end": 138.96,
+      "en": "For one, you can see that I have commented out the line that creates the decoder and instead down here",
+      "zh": "首先，我把建立解碼器的那一行註解掉，改成在下方"
+    },
+    {
+      "start": 138.96,
+      "end": 147.6,
+      "en": "in the forward method here I multiply the latent layer by the encoder weights transposed.",
+      "zh": "forward 方法中，讓潛在層乘上編碼器權重的轉置。"
+    },
+    {
+      "start": 147.92000000000002,
+      "end": 152.36,
+      "en": "So that means that the decoder is tied to the encoder.",
+      "zh": "這代表解碼器與編碼器共用權重。"
+    },
+    {
+      "start": 152.76,
+      "end": 163.56,
+      "en": "The main reason I did that was to reduce the total number of parameters that we need to estimate for this model, because we just don't have that much data to train the model.",
+      "zh": "主要原因是，訓練模型的資料量不多，所以要減少這個模型需要估計的參數總數。"
+    },
+    {
+      "start": 164.2,
+      "end": 172.8,
+      "en": "And yeah, you know, if you're doing this for an actual research project, you'd want to use thousands or tens of thousands of tokens for training.",
+      "zh": "如果是實際研究專案，會想使用幾千或幾萬個 token 進行訓練。"
+    },
+    {
+      "start": 173.04,
+      "end": 177.16,
+      "en": "And the texts that I use here, I think is 220 tokens.",
+      "zh": "我這裡使用的文字，我想只有 220 個 token。"
+    },
+    {
+      "start": 177.8,
+      "end": 183.36,
+      "en": "So another added feature to this model is a parameter that here I call k.",
+      "zh": "另一個新增的模型功能，是這裡稱為 k 的參數。"
+    },
+    {
+      "start": 183.92,
+      "end": 189.64,
+      "en": "This is another way to impose sparsity on an autoencoder model.",
+      "zh": "這是對自編碼器模型施加稀疏性的另一種方式。"
+    },
+    {
+      "start": 190.04,
+      "end": 197.28,
+      "en": "So you can see that I define k to be either whatever the input is or to be half of the input dimension",
+      "zh": "可以看到，k 會設為輸入指定的值，或者設為輸入維度的一半，"
+    },
+    {
+      "start": 197.28,
+      "end": 202.72,
+      "en": "which corresponds to the number of tokens that we are processing.",
+      "zh": "這個維度對應我們處理的 token 數量。"
+    },
+    {
+      "start": 203.07999999999998,
+      "end": 209.28,
+      "en": "And you can see the impact of this parameter k down here in the forward model.",
+      "zh": "在下面的前向模型中，可以看到參數 k 的影響。"
+    },
+    {
+      "start": 209.8,
+      "end": 214.72,
+      "en": "So what I do is find the k largest activation values.",
+      "zh": "我的做法是找出最大的 k 個活化值。"
+    },
+    {
+      "start": 214.96,
+      "end": 220.72,
+      "en": "And then I zero out any activation that is less than those top values.",
+      "zh": "接著，把小於這些最大值的活化歸零。"
+    },
+    {
+      "start": 221.12,
+      "end": 226.04,
+      "en": "In other words I'm forcing lots of activation values to be zero.",
+      "zh": "也就是強制讓很多活化值變成零。"
+    },
+    {
+      "start": 226.36,
+      "end": 228.64,
+      "en": "So that imposes sparsity.",
+      "zh": "這樣就施加了稀疏性。"
+    },
+    {
+      "start": 229.24,
+      "end": 233.68,
+      "en": "I will give a brief reminder of other parts of the model in the code demo.",
+      "zh": "在程式示範中，我會簡短複習模型的其他部分。"
+    },
+    {
+      "start": 233.68,
+      "end": 235.07999999999998,
+      "en": "So when I switch to code.",
+      "zh": "也就是切換到程式碼之後。"
+    },
+    {
+      "start": 235.07999999999998,
+      "end": 238,
+      "en": "But that's the basics of what I've changed here.",
+      "zh": "這就是這裡修改的基本內容。"
+    },
+    {
+      "start": 238.6,
+      "end": 242.24,
+      "en": "So after training I will plot the loss functions.",
+      "zh": "訓練之後，我會繪製損失函數。"
+    },
+    {
+      "start": 242.24,
+      "end": 251.08,
+      "en": "Here you see the total loss, the sparsity loss and also the loss from what I call the decorrelation loss.",
+      "zh": "這裡可以看到總損失、稀疏性損失，以及我稱為去相關損失的那一項。"
+    },
+    {
+      "start": 251.08,
+      "end": 256.2,
+      "en": "This is the off diagonal covariance elements that you see down here.",
+      "zh": "也就是下方這些非對角的共變異數元素。"
+    },
+    {
+      "start": 256.52,
+      "end": 265.12,
+      "en": "I explained what this does in the previous video, although I didn't actually use this penalty term in the model in the previous video.",
+      "zh": "上一支影片解釋過它的作用，但當時的模型其實沒有使用這個懲罰項。"
+    },
+    {
+      "start": 266.16,
+      "end": 272.52,
+      "en": "You can see that this penalty term has a big effect in the beginning, and then it basically just does",
+      "zh": "可以看到，這個懲罰項在一開始影響很大，然後基本上就是"
+    },
+    {
+      "start": 272.52,
+      "end": 279.6,
+      "en": "its job by promoting independence among the latent components, and then once it pushes the model in",
+      "zh": "藉由促進潛在成分之間的獨立性來發揮作用。一開始把模型往"
+    },
+    {
+      "start": 279.6,
+      "end": 286.12,
+      "en": "the right direction, initially, it doesn't seem like the penalty term really gets used that much anyway.",
+      "zh": "正確方向推進之後，這個懲罰項似乎就不太派得上用場了。"
+    },
+    {
+      "start": 286.48,
+      "end": 292.96,
+      "en": "So now we have a trained model and we can start investigating what it looks like.",
+      "zh": "現在模型已經訓練好，可以開始研究它的樣子。"
+    },
+    {
+      "start": 293.44,
+      "end": 302.84,
+      "en": "So this plot here on the left shows the percentage of tokens that have non-zero activations from all of the latent components.",
+      "zh": "左邊這張圖顯示，所有潛在成分各自有多少百分比的 token 出現非零活化。"
+    },
+    {
+      "start": 303.2,
+      "end": 313.56,
+      "en": "You can see that there's over 6000 components in the hidden layer, and the total activation matrix is around 6.5% dense.",
+      "zh": "隱藏層有超過 6,000 個成分，整個活化矩陣的密度約為 6.5%。"
+    },
+    {
+      "start": 314.08,
+      "end": 323,
+      "en": "Now, this is not the same use of the term density as in sparse logistic regression from several videos ago.",
+      "zh": "這裡「密度」的用法，與幾支影片前的稀疏邏輯斯迴歸不同。"
+    },
+    {
+      "start": 323.48,
+      "end": 331.12,
+      "en": "In that case, with the regression, the density referred to the coefficients of the model, so the beta coefficients.",
+      "zh": "在那個迴歸案例中，密度指的是模型係數，也就是 beta 係數。"
+    },
+    {
+      "start": 331.12,
+      "end": 331.76,
+      "en": "Whereas here.",
+      "zh": "而這裡，"
+    },
+    {
+      "start": 331.8,
+      "end": 338.8,
+      "en": "Now with the autoencoders, I'm using this term density to refer to the number of non-zero activations.",
+      "zh": "在自編碼器中，我用密度這個詞來表示非零活化的數量。"
+    },
+    {
+      "start": 339.48,
+      "end": 349.88,
+      "en": "So this block just shows the percent of tokens that have any activation over here in the middle you can see what the activation values actually are.",
+      "zh": "這張圖顯示有活化的 token 百分比，中間則顯示實際的活化值。"
+    },
+    {
+      "start": 350.36,
+      "end": 352.64,
+      "en": "They're all non-negative values.",
+      "zh": "它們全都是非負值。"
+    },
+    {
+      "start": 352.64,
+      "end": 359.8,
+      "en": "And that's not something that I enforced is something that comes from the top k sparsity selection.",
+      "zh": "這並不是我強制設定的，而是 top-k 稀疏選擇所產生的結果。"
+    },
+    {
+      "start": 360.2,
+      "end": 368.24,
+      "en": "That is to say, I did select for large activations, but I did not select specifically for positive activations.",
+      "zh": "也就是說，我確實選擇了較大的活化，但沒有特別限定正活化。"
+    },
+    {
+      "start": 368.24,
+      "end": 370.8,
+      "en": "That's just how it ended up working out okay.",
+      "zh": "結果自然就變成這樣。"
+    },
+    {
+      "start": 370.84,
+      "end": 379.16,
+      "en": "And then over here is the non-zero activations by the percent of tokens that have any activations.",
+      "zh": "右邊則是非零活化與有活化的 token 百分比之間的關係。"
+    },
+    {
+      "start": 379.36,
+      "end": 385,
+      "en": "Of course the y axis values have a floor of zero and a ceiling of 100%.",
+      "zh": "當然，y 軸值的下限是零，上限是 100%。"
+    },
+    {
+      "start": 385.24,
+      "end": 395.72,
+      "en": "So this plot ends up not being super insightful in the sense that it is fairly trivial that the more activations there are, the stronger those activations are going to be.",
+      "zh": "所以這張圖最後沒有太多洞見，因為活化越多、活化就越強，這件事相當平凡。"
+    },
+    {
+      "start": 395.84000000000003,
+      "end": 399.8,
+      "en": "But I thought it would be interesting initially, so I plotted it anyway.",
+      "zh": "但我一開始覺得可能很有趣，所以還是畫出來了。"
+    },
+    {
+      "start": 400.4,
+      "end": 404.88,
+      "en": "Okay, so now we have over 6000 latent components.",
+      "zh": "好，現在有超過 6,000 個潛在成分。"
+    },
+    {
+      "start": 405.15999999999997,
+      "end": 411,
+      "en": "What do we do with them and how do we know which of those 6000 are meaningful to interpret?",
+      "zh": "要拿它們做什麼？怎麼知道這 6,000 個中，哪些值得解讀？"
+    },
+    {
+      "start": 411.72,
+      "end": 417.92,
+      "en": "In the previous video I knew the ground truth, latent sources, so I could simply correlate the ground",
+      "zh": "上一支影片中，我知道潛在來源的真值，所以只要計算真值"
+    },
+    {
+      "start": 417.96,
+      "end": 425.04,
+      "en": "truth data with the latent components and interpret the latent components that correlated best with the simulated data.",
+      "zh": "資料與潛在成分的相關性，再解讀那些與模擬資料最相關的潛在成分即可。"
+    },
+    {
+      "start": 425.68,
+      "end": 430.28,
+      "en": "But we don't have that luxury here because we don't know what the ground truth is.",
+      "zh": "但這裡沒有這種優勢，因為我們不知道真值。"
+    },
+    {
+      "start": 430.8,
+      "end": 434.4,
+      "en": "We actually, you know, we don't know why how the model works.",
+      "zh": "我們其實不知道模型為何、如何運作。"
+    },
+    {
+      "start": 434.4,
+      "end": 436.48,
+      "en": "That's kind of the goal of these analyses.",
+      "zh": "那正是這些分析的目標。"
+    },
+    {
+      "start": 436.96,
+      "end": 446.04,
+      "en": "So instead what we can do is sort the latent components according to some of these metrics for example.",
+      "zh": "所以可以改用一些指標，對潛在成分排序。"
+    },
+    {
+      "start": 447.08,
+      "end": 455.56,
+      "en": "So for example we can find the component that has the most sparsity or the components that have the largest activations.",
+      "zh": "例如，找出最稀疏的成分，或者活化最大的成分。"
+    },
+    {
+      "start": 455.92,
+      "end": 460.64,
+      "en": "I will show a few different ways of sorting and selecting components in the code.",
+      "zh": "我會在程式碼中展示幾種排序與選擇成分的方法。"
+    },
+    {
+      "start": 461.04,
+      "end": 471.04,
+      "en": "Here you see heatmaps of text heatmap of activations for one of the components, and this one I selected based on having strong activations.",
+      "zh": "這裡是其中一個成分的文字活化熱圖，我是根據活化強度選出它的。"
+    },
+    {
+      "start": 471.52,
+      "end": 482.88,
+      "en": "Now if you look through the text at what gets highlighted the strongest, you can see that this latent component seems to be selecting for something about geographical regions.",
+      "zh": "如果看看文字中哪些地方被突顯得最強，會發現這個潛在成分似乎在選擇與地理區域有關的東西。"
+    },
+    {
+      "start": 482.88,
+      "end": 494.2,
+      "en": "So words like Hungary, Hungary, Romania, Transylvania, Italy, regions, Hungary, Greece, Slovakia, provinces, Austria, regions and so on.",
+      "zh": "例如匈牙利、匈牙利、羅馬尼亞、外西凡尼亞、義大利、地區、匈牙利、希臘、斯洛伐克、省分、奧地利、地區等等。"
+    },
+    {
+      "start": 494.56,
+      "end": 505.96,
+      "en": "So it does seem to get a lot of strong activations for countries, geographical regions, regions, but it certainly doesn't activate exclusively to geographical regions.",
+      "zh": "它似乎確實會對國家、地理區域產生很多強活化，但絕對不只對地理區域活化。"
+    },
+    {
+      "start": 505.96,
+      "end": 513.84,
+      "en": "For example, you also see some activation to a period and another period here, and local variations and so on.",
+      "zh": "例如，也可以看到句點、這裡另一個句點，以及地方變體等詞的活化。"
+    },
+    {
+      "start": 514.12,
+      "end": 522.08,
+      "en": "But actually inspired by results like this, I decided to create what I called a geography score.",
+      "zh": "不過，受到這類結果啟發，我決定建立一個稱為地理分數的指標。"
+    },
+    {
+      "start": 522.48,
+      "end": 532.03,
+      "en": "That is, the average of the activations to the geography tokens divided by the average of the activations to all of the other tokens.",
+      "zh": "也就是地理 token 的平均活化，除以所有其他 token 的平均活化。"
+    },
+    {
+      "start": 532.23,
+      "end": 533.83,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是那個分數。"
+    },
+    {
+      "start": 533.83,
+      "end": 541.47,
+      "en": "So a value of one would mean that the latent component has an equal amount of activation for geography",
+      "zh": "值為 1，表示潛在成分對地理"
+    },
+    {
+      "start": 541.47,
+      "end": 551.19,
+      "en": "and non geography tokens and values above one mean that the model is more active for geography tokens than non geography tokens.",
+      "zh": "與非地理 token 的活化量相同；大於 1，表示模型對地理 token 的活化高於非地理 token。"
+    },
+    {
+      "start": 551.23,
+      "end": 556.55,
+      "en": "Of course on average average across all 220 of these tokens.",
+      "zh": "當然，這是對全部 220 個 token 取平均。"
+    },
+    {
+      "start": 557.83,
+      "end": 562.11,
+      "en": "And of course there's lots of zeros down here because there's a lot of sparsity.",
+      "zh": "下面有很多零，因為稀疏性很高。"
+    },
+    {
+      "start": 562.63,
+      "end": 567.35,
+      "en": "Now I think this is a pretty interesting approach to picking out a component.",
+      "zh": "我覺得，這是挑選成分的相當有趣的方法。"
+    },
+    {
+      "start": 567.39,
+      "end": 574.39,
+      "en": "Although as I'll show you in the code, it turned out to be not as clean as we might like, but I suspect",
+      "zh": "但如同稍後在程式碼中展示的，結果沒有我們希望的那麼乾淨。我懷疑，"
+    },
+    {
+      "start": 574.39,
+      "end": 583.75,
+      "en": "that's due to the very small amount of data that we used for training and for calculating this score, and of course, for training the autoencoder model.",
+      "zh": "這是因為我們用來計算分數的資料量很少，當然，訓練自編碼器的資料也很少。"
+    },
+    {
+      "start": 584.23,
+      "end": 587.19,
+      "en": "Anyway, lots of interesting things to explore.",
+      "zh": "總之，有很多有趣的東西值得探索。"
+    },
+    {
+      "start": 587.31,
+      "end": 593.63,
+      "en": "So I will now switch to Python Several libraries that we will need here.",
+      "zh": "現在切換到 Python。這裡有我們需要的幾個函式庫。"
+    },
+    {
+      "start": 593.95,
+      "end": 600.55,
+      "en": "And we definitely want to use the GPU for because we're training this model, the autoencoder model,",
+      "zh": "我們一定要使用 GPU，因為要訓練這個自編碼器模型，"
+    },
+    {
+      "start": 600.55,
+      "end": 608.79,
+      "en": "and it's pretty big, considerably bigger than the autoencoder model in the previous video and in the code challenge in the next video.",
+      "zh": "而且它很大，比上一支影片和下一支程式挑戰中的自編碼器大上許多。"
+    },
+    {
+      "start": 608.83,
+      "end": 611.59,
+      "en": "We really, really want to use a GPU.",
+      "zh": "真的非常需要 GPU。"
+    },
+    {
+      "start": 612.03,
+      "end": 612.39,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 612.43,
+      "end": 618.51,
+      "en": "So then here I import the GPT two, uh, the model and the tokenizer.",
+      "zh": "這裡匯入 GPT2 模型和 tokenizer。"
+    },
+    {
+      "start": 618.87,
+      "end": 623.59,
+      "en": "And here I'm setting up a hook to grab the MLP activations.",
+      "zh": "這裡設定 hook，擷取 MLP 活化。"
+    },
+    {
+      "start": 623.59,
+      "end": 629.87,
+      "en": "I get it from the fully connected layer before it goes through the jlu non-linearity.",
+      "zh": "我從全連接層擷取，也就是通過 GELU 非線性函數之前。"
+    },
+    {
+      "start": 630.11,
+      "end": 637.91,
+      "en": "The hook function is very simple because yeah, in this demo file I'm only going to hook one layer.",
+      "zh": "hook 函數非常簡單，因為這個示範檔只會掛接一層。"
+    },
+    {
+      "start": 637.91,
+      "end": 642.31,
+      "en": "In the next video, we will hook all of the layers, which we've done multiple times before.",
+      "zh": "下一支影片會掛接所有層，這件事我們以前已經做過很多次了。"
+    },
+    {
+      "start": 642.67,
+      "end": 652.55,
+      "en": "And here's something that I haven't done in a while, which is grab an output of this, uh, register forward hook method on this model component.",
+      "zh": "這裡有個很久沒做的操作：取得這個模型元件的 register_forward_hook 方法傳回的值。"
+    },
+    {
+      "start": 652.79,
+      "end": 659.07,
+      "en": "And the reason why I'm doing this is because I'm going to delete this hook function.",
+      "zh": "這樣做的原因，是我之後要刪除這個 hook 函數。"
+    },
+    {
+      "start": 659.07,
+      "end": 663.31,
+      "en": "So I'm going to use this handle to remove this function from the model.",
+      "zh": "我要用這個 handle，把函數從模型中移除。"
+    },
+    {
+      "start": 663.59,
+      "end": 667.23,
+      "en": "We actually do not need to do that in this case.",
+      "zh": "這個例子其實不需要這樣做。"
+    },
+    {
+      "start": 667.23,
+      "end": 673.43,
+      "en": "But I'm just doing it as a reminder of how that works in case you need to use it in the future.",
+      "zh": "我只是藉此提醒你它的用法，以後需要時可以使用。"
+    },
+    {
+      "start": 673.79,
+      "end": 678.51,
+      "en": "As you know, I typically do not do this because yeah, typically don't need to.",
+      "zh": "你知道，我通常不會這樣做，因為通常沒有必要。"
+    },
+    {
+      "start": 678.59,
+      "end": 682.23,
+      "en": "But yeah, just thought I'd be give you a little reminder of that.",
+      "zh": "只是想稍微提醒你一下。"
+    },
+    {
+      "start": 682.63,
+      "end": 682.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 682.99,
+      "end": 684.47,
+      "en": "So here we have text again.",
+      "zh": "這裡又是文字。"
+    },
+    {
+      "start": 684.47,
+      "end": 693.43,
+      "en": "This is just copy pasted from this Wikipedia page which you can read further if you'd like to learn more about Palinka.",
+      "zh": "這只是從維基百科頁面複製貼上的；如果想更了解 Pálinka，可以進一步閱讀。"
+    },
+    {
+      "start": 693.95,
+      "end": 694.31,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 694.35,
+      "end": 698.03,
+      "en": "So yeah there are 220 tokens in total here.",
+      "zh": "這裡總共有 220 個 token。"
+    },
+    {
+      "start": 698.03,
+      "end": 702.35,
+      "en": "I'm pushing the tokens through the model and here I am removing the hook.",
+      "zh": "我讓 token 通過模型，再在這裡移除 hook。"
+    },
+    {
+      "start": 702.39,
+      "end": 702.95,
+      "en": "Again.",
+      "zh": "再說一次，"
+    },
+    {
+      "start": 702.99,
+      "end": 707.83,
+      "en": "This is not necessary uh, for this video, but yeah, just a nice little reminder.",
+      "zh": "這支影片其實不需要這樣做，只是順便提醒一下。"
+    },
+    {
+      "start": 708.51,
+      "end": 709.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 709.07,
+      "end": 715.11,
+      "en": "And then I grab the MLP activations, just printing out the size.",
+      "zh": "接著取得 MLP 活化，這裡只是印出大小。"
+    },
+    {
+      "start": 715.11,
+      "end": 717.43,
+      "en": "And then I push those to the GPU.",
+      "zh": "然後把它們移到 GPU。"
+    },
+    {
+      "start": 717.79,
+      "end": 720.03,
+      "en": "And why am I pushing these to the GPU?",
+      "zh": "為什麼要把這些移到 GPU？"
+    },
+    {
+      "start": 720.35,
+      "end": 728.43,
+      "en": "Because these are the MLP activations that I am going to use to train the auto encoder model.",
+      "zh": "因為這些 MLP 活化，就是我要用來訓練自編碼器模型的資料。"
+    },
+    {
+      "start": 728.51,
+      "end": 736.51,
+      "en": "So the auto encoder will take these data as inputs and then do some fancy magical auto encoding stuff.",
+      "zh": "自編碼器會把這些資料當成輸入，進行一些花俏、神奇的自編碼操作。"
+    },
+    {
+      "start": 736.95,
+      "end": 746.47,
+      "en": "Of course it's not magic, but you know, gradient descent and etc. etc. and then produce an output that will initially be just some random transformation of the input.",
+      "zh": "當然，不是魔法，而是梯度下降等等。接著產生輸出，一開始只是輸入的某種隨機轉換。"
+    },
+    {
+      "start": 746.47,
+      "end": 754.07,
+      "en": "And then through gradient descent, the autoencoder will try to find a set of sparse transformations",
+      "zh": "然後，透過梯度下降，自編碼器會嘗試找出一組稀疏轉換，"
+    },
+    {
+      "start": 754.07,
+      "end": 761.47,
+      "en": "that gets the output of the autoencoder to look like these MLP activations as closely as possible.",
+      "zh": "讓自編碼器輸出盡可能接近這些 MLP 活化。"
+    },
+    {
+      "start": 762.71,
+      "end": 766.79,
+      "en": "Okay, here is the code where I create the autoencoder.",
+      "zh": "好，這是建立自編碼器的程式碼。"
+    },
+    {
+      "start": 767.03,
+      "end": 768.07,
+      "en": "So let me see.",
+      "zh": "讓我看看。"
+    },
+    {
+      "start": 768.07,
+      "end": 770.51,
+      "en": "I just want to highlight a couple of things.",
+      "zh": "我只想強調幾件事。"
+    },
+    {
+      "start": 770.51,
+      "end": 773.43,
+      "en": "So first of all about the decoder.",
+      "zh": "首先是解碼器。"
+    },
+    {
+      "start": 773.75,
+      "end": 782.71,
+      "en": "So yeah here instead of pushing this the output of the latent layer through a separate decoder set of",
+      "zh": "這裡不再讓潛在層輸出通過另一組需要由模型訓練的"
+    },
+    {
+      "start": 782.71,
+      "end": 789.15,
+      "en": "weights that would need to be trained by the model, I'm using the transpose of the encoder weights",
+      "zh": "解碼器權重，而是使用編碼器權重的轉置，"
+    },
+    {
+      "start": 789.67,
+      "end": 797.71,
+      "en": "and multiplying those by the output of the latent layer, which is what we get from here.",
+      "zh": "讓它乘上潛在層的輸出，也就是這裡得到的東西。"
+    },
+    {
+      "start": 798.27,
+      "end": 799.91,
+      "en": "Again, this is a choice.",
+      "zh": "再說一次，這是一種選擇。"
+    },
+    {
+      "start": 799.91,
+      "end": 802.23,
+      "en": "There is no real right or wrong.",
+      "zh": "並沒有絕對的對錯。"
+    },
+    {
+      "start": 802.43,
+      "end": 808.95,
+      "en": "But in general, if you don't have a huge amount of data to train the autoencoder, then it's often",
+      "zh": "但一般來說，如果沒有大量資料可以訓練自編碼器，"
+    },
+    {
+      "start": 808.95,
+      "end": 815.71,
+      "en": "beneficial to tie the weights because it means that you are reducing the number of parameters that the",
+      "zh": "共用權重通常有好處，因為這樣會減少模型需要"
+    },
+    {
+      "start": 815.71,
+      "end": 821.39,
+      "en": "model needs to learn through gradient descent, and that is the primary reason why I did it here.",
+      "zh": "透過梯度下降學習的參數數量，這就是我這裡這麼做的主要原因。"
+    },
+    {
+      "start": 821.83,
+      "end": 825.91,
+      "en": "Uh, of course you can try this with a separate decoder.",
+      "zh": "當然，你也可以試試使用獨立的解碼器。"
+    },
+    {
+      "start": 826.07,
+      "end": 827.91,
+      "en": "I think it will also work fine.",
+      "zh": "我想也會運作得很好。"
+    },
+    {
+      "start": 827.91,
+      "end": 835.07,
+      "en": "I do remember that when I was developing this code, when I was writing this code file, I tried it with the decoder in.",
+      "zh": "我記得，在開發、撰寫這份程式碼時，我也試過加入解碼器。"
+    },
+    {
+      "start": 835.63,
+      "end": 838.79,
+      "en": "I think I found that it was slightly better with the tide weights.",
+      "zh": "我想，當時發現共用權重的效果稍微好一些。"
+    },
+    {
+      "start": 838.79,
+      "end": 839.59,
+      "en": "But anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 840.03,
+      "end": 841.87,
+      "en": "Okay, so here's this parameter k.",
+      "zh": "好，這裡是參數 k。"
+    },
+    {
+      "start": 841.91,
+      "end": 845.23,
+      "en": "I've already described it in the slides as a quick reminder.",
+      "zh": "投影片已經介紹過，快速複習一下。"
+    },
+    {
+      "start": 845.59,
+      "end": 850.67,
+      "en": "It determines the sparsity of the activations.",
+      "zh": "它決定活化的稀疏程度。"
+    },
+    {
+      "start": 850.67,
+      "end": 858.67,
+      "en": "So k is either a parameter that we can provide as input or by default it will just take half of the input.",
+      "zh": "k 可以是我們透過輸入提供的參數，預設則取輸入的一半。"
+    },
+    {
+      "start": 858.67,
+      "end": 859.87,
+      "en": "And what does this mean.",
+      "zh": "這是什麼意思？"
+    },
+    {
+      "start": 860.15,
+      "end": 870.67,
+      "en": "This means that for example if we set this to be 0.5, so 50% of the input dimension of the 220 tokens,",
+      "zh": "例如，如果設成 0.5，也就是 220 個 token 輸入維度的 50%，"
+    },
+    {
+      "start": 870.71,
+      "end": 879.67,
+      "en": "110 of them will be zeroed out, the smallest activations will get zeroed out, and that will promote sparsity.",
+      "zh": "其中 110 個就會被歸零，最小的活化會被歸零，這樣便促進稀疏性。"
+    },
+    {
+      "start": 880.67,
+      "end": 891.51,
+      "en": "That is going to force the model to learn a sparse representation of the data, as opposed to an overcomplete and redundant representation of the data.",
+      "zh": "這會強制模型學習資料的稀疏表徵，而非過完備、具有冗餘的表徵。"
+    },
+    {
+      "start": 892.07,
+      "end": 894.03,
+      "en": "So again, you know, that's what you see here.",
+      "zh": "這就是這裡看到的內容。"
+    },
+    {
+      "start": 894.03,
+      "end": 895.47,
+      "en": "So here's the forward model.",
+      "zh": "這是前向模型。"
+    },
+    {
+      "start": 895.63,
+      "end": 901.51,
+      "en": "I take the input data which are the MLP activations from one layer.",
+      "zh": "我取出輸入資料，也就是某一層的 MLP 活化。"
+    },
+    {
+      "start": 901.91,
+      "end": 903.59,
+      "en": "Push it through the encoder.",
+      "zh": "讓它通過編碼器。"
+    },
+    {
+      "start": 903.59,
+      "end": 911.43,
+      "en": "So the beginning and then I apply a non-linearity I think in the previous video I used Jlu and here I use ReLU.",
+      "zh": "也就是前面這裡，接著套用非線性函數。我想，上一支影片用 GELU，這裡用 ReLU。"
+    },
+    {
+      "start": 911.47,
+      "end": 915.79,
+      "en": "There's uh for very large models like language models.",
+      "zh": "對於語言模型這類很大的模型，"
+    },
+    {
+      "start": 915.95,
+      "end": 922.27,
+      "en": "It does seem to be the case that the Jlu non-linearity outperforms ReLU non-linearity.",
+      "zh": "GELU 非線性函數的表現似乎確實優於 ReLU。"
+    },
+    {
+      "start": 922.43,
+      "end": 928.07,
+      "en": "It's not really clear if, uh, there is much of an advantage for smaller models.",
+      "zh": "對較小模型而言，是否有明顯優勢就不太清楚。"
+    },
+    {
+      "start": 928.47,
+      "end": 935.27,
+      "en": "And furthermore, ReLU is a little bit better than jlu at promoting sparsity.",
+      "zh": "此外，ReLU 比 GELU 更能促進稀疏性。"
+    },
+    {
+      "start": 935.75,
+      "end": 937.11,
+      "en": "And why is that the case?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 937.27,
+      "end": 943.19,
+      "en": "Because remember that all of the negative activation values get completely obliterated.",
+      "zh": "因為記得，所有負活化值都會被完全消除。"
+    },
+    {
+      "start": 943.19,
+      "end": 946.23,
+      "en": "They all turn to zero with ReLU.",
+      "zh": "通過 ReLU 後，全都變成零。"
+    },
+    {
+      "start": 946.39,
+      "end": 957.63,
+      "en": "Whereas with Gelu there actually is a little bit of a negative pass in the filter, which means that with the ReLU activation you do get negative numbers.",
+      "zh": "而 GELU 的濾波器其實會讓少量負值通過，也就是說，使用 ReLU 活化時確實會得到負數。"
+    },
+    {
+      "start": 957.63,
+      "end": 964.39,
+      "en": "They're just, you know, numerically closer to zero versus the original values that you pass in through.",
+      "zh": "只是數值比原先傳入"
+    },
+    {
+      "start": 964.43,
+      "end": 964.99,
+      "en": "Gelu.",
+      "zh": "GELU 的值更接近零。"
+    },
+    {
+      "start": 966.07,
+      "end": 966.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 966.47,
+      "end": 966.75,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 966.75,
+      "end": 971.95,
+      "en": "So ReLU promotes sparsity a little bit better than Gelu.",
+      "zh": "所以 ReLU 比 GELU 稍微更能促進稀疏性。"
+    },
+    {
+      "start": 971.95,
+      "end": 976.31,
+      "en": "And sparsity is something that we are looking for in these kinds of models.",
+      "zh": "而稀疏性正是我們在這類模型中追求的特性。"
+    },
+    {
+      "start": 976.71,
+      "end": 977.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 977.07,
+      "end": 979.55,
+      "en": "So here I take all of the activations.",
+      "zh": "這裡我取出所有活化。"
+    },
+    {
+      "start": 979.55,
+      "end": 986.71,
+      "en": "So these are the latent component activations I find the top k which is this parameter I just discussed.",
+      "zh": "也就是潛在成分活化，找出 top-k，k 就是剛才討論的參數。"
+    },
+    {
+      "start": 986.95,
+      "end": 992.15,
+      "en": "And then I find the smallest of the top k values.",
+      "zh": "然後找出 top-k 數值中最小的一個。"
+    },
+    {
+      "start": 992.15,
+      "end": 995.35,
+      "en": "So the largest let's say 100 tokens.",
+      "zh": "也就是最大的，比方說 100 個 token。"
+    },
+    {
+      "start": 995.51,
+      "end": 998.95,
+      "en": "And then I find the smallest of the largest tokens.",
+      "zh": "接著，在最大的那些 token 中找出最小值。"
+    },
+    {
+      "start": 999.07,
+      "end": 1000.63,
+      "en": "And then I create this mask here.",
+      "zh": "然後建立這個遮罩。"
+    },
+    {
+      "start": 1000.63,
+      "end": 1007.35,
+      "en": "And I say where is any of the activations anywhere from any component and any token.",
+      "zh": "我問的是：任何成分、任何 token 的活化中，"
+    },
+    {
+      "start": 1007.75,
+      "end": 1015.11,
+      "en": "Where are those less than or in this case, greater than the threshold and those end up being ones.",
+      "zh": "哪些小於，或者這裡其實是大於門檻？那些位置最後會是 1。"
+    },
+    {
+      "start": 1015.11,
+      "end": 1018.35,
+      "en": "And here I multiply that by this latent here.",
+      "zh": "接著，把它乘上這裡的 latent。"
+    },
+    {
+      "start": 1018.47,
+      "end": 1018.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1018.83,
+      "end": 1019.99,
+      "en": "So what does that mean.",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 1020.23,
+      "end": 1027.55,
+      "en": "That means that I am preserving the strongest K activations and wiping out all the other activations.",
+      "zh": "代表保留最強的 k 個活化，清除其他所有活化。"
+    },
+    {
+      "start": 1027.55,
+      "end": 1034.39,
+      "en": "But I'm not specifically saying which activations those are or which tokens they could be in or which components they can be in.",
+      "zh": "但我沒有指定是哪些活化，也沒有指定它們來自哪些 token 或哪些成分。"
+    },
+    {
+      "start": 1034.55,
+      "end": 1038.83,
+      "en": "So that is driven by the activation patterns in the model.",
+      "zh": "這完全由模型中的活化模式決定。"
+    },
+    {
+      "start": 1039.23,
+      "end": 1039.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1039.51,
+      "end": 1041.23,
+      "en": "So then we have the sparsity loss.",
+      "zh": "接著是稀疏性損失。"
+    },
+    {
+      "start": 1041.23,
+      "end": 1044.47,
+      "en": "This I've already explained several times.",
+      "zh": "這已經解釋過好幾次。"
+    },
+    {
+      "start": 1044.47,
+      "end": 1052.27,
+      "en": "Here is the covariance penalty term which I described and walk through the code for in the previous video.",
+      "zh": "這是共變異數懲罰項，上一支影片已經說明並逐步介紹過程式碼。"
+    },
+    {
+      "start": 1052.27,
+      "end": 1058.71,
+      "en": "So just as a quick reminder here, I look at the covariance across all of the latent components.",
+      "zh": "快速複習一下，我在這裡查看所有潛在成分之間的共變異數。"
+    },
+    {
+      "start": 1058.83,
+      "end": 1064.31,
+      "en": "This tells me about the correlation patterns across the different pairs of components.",
+      "zh": "這能告訴我不同成分配對之間的相關模式。"
+    },
+    {
+      "start": 1064.31,
+      "end": 1070.27,
+      "en": "And then here I'm zeroing out the diagonal and then I just square the off diagonal elements.",
+      "zh": "這裡把對角元素歸零，再將非對角元素平方。"
+    },
+    {
+      "start": 1070.27,
+      "end": 1074.79,
+      "en": "The squaring is partly just to get rid of the negative covariances.",
+      "zh": "平方的一部分目的，只是要消除負共變異數。"
+    },
+    {
+      "start": 1075.03,
+      "end": 1085.27,
+      "en": "So essentially what this is doing is removing all of the or like mildly suppressing any of the relationships,",
+      "zh": "所以，這基本上是在移除所有關係，或者說，輕微抑制"
+    },
+    {
+      "start": 1085.27,
+      "end": 1088.43,
+      "en": "the linear relationships across the different components.",
+      "zh": "不同成分之間的線性關係。"
+    },
+    {
+      "start": 1088.59,
+      "end": 1095.35,
+      "en": "And what that does is help the model learn that the latent components should be independent of each other.",
+      "zh": "這有助於讓模型學到，潛在成分應該彼此獨立。"
+    },
+    {
+      "start": 1095.91,
+      "end": 1097.75,
+      "en": "Okay, so that's that.",
+      "zh": "好，這部分就是這樣。"
+    },
+    {
+      "start": 1097.75,
+      "end": 1103.59,
+      "en": "And now here I'm creating an instance of the model and I'm pushing it to the GPU.",
+      "zh": "現在，我建立模型的實例，並把它移到 GPU。"
+    },
+    {
+      "start": 1103.95,
+      "end": 1104.19,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1104.23,
+      "end": 1105.79,
+      "en": "So now we're ready for the training.",
+      "zh": "現在準備好訓練了。"
+    },
+    {
+      "start": 1105.79,
+      "end": 1110.91,
+      "en": "We use MSE loss here I have a learning rate of 0.0001.",
+      "zh": "使用 MSE 損失，這裡的學習率是 0.0001。"
+    },
+    {
+      "start": 1111.19,
+      "end": 1115.47,
+      "en": "In general, these autoencoders need a very gentle learning rate.",
+      "zh": "一般來說，這些自編碼器需要很溫和的學習率。"
+    },
+    {
+      "start": 1115.47,
+      "end": 1117.87,
+      "en": "You don't want to push them too hard, too fast.",
+      "zh": "不宜太急、太快地推動它們。"
+    },
+    {
+      "start": 1118.67,
+      "end": 1123.59,
+      "en": "And then yeah, 100 epochs, which is fine for here in the code challenge.",
+      "zh": "接著，100 個 epoch，在這裡還可以。程式挑戰，"
+    },
+    {
+      "start": 1123.59,
+      "end": 1130.03,
+      "en": "In the next video, we will want this to be a little bit smaller just because the computation time gets pretty long.",
+      "zh": "也就是下一支影片，會希望把它設得小一點，因為計算時間會相當長。"
+    },
+    {
+      "start": 1130.63,
+      "end": 1130.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1130.95,
+      "end": 1132.19,
+      "en": "And now we can train.",
+      "zh": "現在可以訓練了。"
+    },
+    {
+      "start": 1132.19,
+      "end": 1134.35,
+      "en": "So the training is pretty straightforward.",
+      "zh": "訓練過程相當直接。"
+    },
+    {
+      "start": 1134.35,
+      "end": 1136.31,
+      "en": "We do the forward pass.",
+      "zh": "做前向傳播。"
+    },
+    {
+      "start": 1136.71,
+      "end": 1138.87,
+      "en": "We get the different loss terms.",
+      "zh": "取得各個損失項。"
+    },
+    {
+      "start": 1139.39,
+      "end": 1148.75,
+      "en": "So the L1 sparsity loss the decorrelation loss and then the MSE loss plus the L1 plus the decorrelation",
+      "zh": "也就是 L1 稀疏性損失、去相關損失，以及 MSE 損失加上 L1，再加上去相關"
+    },
+    {
+      "start": 1148.75,
+      "end": 1149.11,
+      "en": "loss.",
+      "zh": "損失。"
+    },
+    {
+      "start": 1149.11,
+      "end": 1151.39,
+      "en": "And that is the total loss here.",
+      "zh": "這就是這裡的總損失。"
+    },
+    {
+      "start": 1151.91,
+      "end": 1155.67,
+      "en": "And then here I do backprop based on the total loss.",
+      "zh": "接著，在這裡根據總損失做反向傳播。"
+    },
+    {
+      "start": 1155.75,
+      "end": 1161.39,
+      "en": "And here I'm just storing all the losses so we can visualize them a little bit later.",
+      "zh": "這裡則把所有損失儲存起來，稍後方便視覺化。"
+    },
+    {
+      "start": 1161.39,
+      "end": 1169.27,
+      "en": "And then every 11th epoch I just print out how we're doing here and what the losses are and how far along we're getting.",
+      "zh": "每隔 11 個 epoch，我就印出目前的狀況、損失，以及進行到哪裡。"
+    },
+    {
+      "start": 1169.55,
+      "end": 1173.31,
+      "en": "So let me start running that and then finally here after.",
+      "zh": "讓我開始執行，最後在這裡……"
+    },
+    {
+      "start": 1173.35,
+      "end": 1174.83,
+      "en": "So you can see it goes very fast.",
+      "zh": "可以看到，它執行得很快。"
+    },
+    {
+      "start": 1175.23,
+      "end": 1181.71,
+      "en": "Uh, here after we train the whole model, then I run through the model once more to get.",
+      "zh": "在整個模型訓練完成後，我會再讓資料通過模型一次，取得……"
+    },
+    {
+      "start": 1181.75,
+      "end": 1183.95,
+      "en": "I don't really care about the outputs.",
+      "zh": "我其實不在意輸出。"
+    },
+    {
+      "start": 1183.95,
+      "end": 1187.39,
+      "en": "These outputs should match pretty closely to the inputs.",
+      "zh": "這些輸出應該非常接近輸入。"
+    },
+    {
+      "start": 1187.63,
+      "end": 1189.87,
+      "en": "Uh, and here is what I really want.",
+      "zh": "這裡才是我真正想要的。"
+    },
+    {
+      "start": 1189.87,
+      "end": 1190.55,
+      "en": "The latent layer.",
+      "zh": "潛在層。"
+    },
+    {
+      "start": 1190.59,
+      "end": 1193.55,
+      "en": "This is what we are going to continue analyzing.",
+      "zh": "我們要繼續分析的，就是這個。"
+    },
+    {
+      "start": 1194.47,
+      "end": 1203.79,
+      "en": "Now you might say that we don't need this code over here because we already have the data here from the final run through the epoch.",
+      "zh": "你可能會說，這裡的程式碼不需要，因為最後一個 epoch 執行時，這裡已經有資料了。"
+    },
+    {
+      "start": 1204.15,
+      "end": 1205.19,
+      "en": "That is kind of true.",
+      "zh": "某種程度上是這樣。"
+    },
+    {
+      "start": 1205.19,
+      "end": 1206.95,
+      "en": "But keep in mind two things.",
+      "zh": "但要記得兩件事。"
+    },
+    {
+      "start": 1206.95,
+      "end": 1213.07,
+      "en": "One, on the final training run, we still do another final backprop call.",
+      "zh": "第一，最後一次訓練執行時，我們還會再呼叫一次最後的反向傳播。"
+    },
+    {
+      "start": 1213.19,
+      "end": 1215.23,
+      "en": "And that happens after this.",
+      "zh": "而那發生在這個步驟之後。"
+    },
+    {
+      "start": 1215.23,
+      "end": 1221.15,
+      "en": "So the model is still going to learn a little bit after this final call to this model.",
+      "zh": "所以，最後一次呼叫模型之後，模型還會再學習一點。"
+    },
+    {
+      "start": 1221.59,
+      "end": 1229.91,
+      "en": "Secondly, um, if we have some features in the model like Dropout or BatchNorm, then we do not want",
+      "zh": "第二，如果模型有 Dropout 或 BatchNorm 這類功能，"
+    },
+    {
+      "start": 1229.91,
+      "end": 1235.83,
+      "en": "to apply those when we are grabbing the activations, the internal activations for analysis.",
+      "zh": "在擷取內部活化來分析時，我們不希望套用這些功能。"
+    },
+    {
+      "start": 1236.35,
+      "end": 1239.63,
+      "en": "If what I just said is obvious to you, then that's great.",
+      "zh": "如果這對你來說理所當然，那很好。"
+    },
+    {
+      "start": 1239.99,
+      "end": 1244.15,
+      "en": "But this is a question that I get sometimes, so I thought I would mention it explicitly.",
+      "zh": "但我有時會收到這個問題，所以想特別說明一下。"
+    },
+    {
+      "start": 1244.63,
+      "end": 1254.07,
+      "en": "Okay, so now we see the shape of the latent layer activations is 220 for the tokens and 6144 for the",
+      "zh": "好，現在可以看到，潛在層活化的形狀是 220，對應 token，以及 6144，對應"
+    },
+    {
+      "start": 1254.07,
+      "end": 1255.99,
+      "en": "number of components.",
+      "zh": "成分數量。"
+    },
+    {
+      "start": 1255.99,
+      "end": 1257.87,
+      "en": "So lots of latent components.",
+      "zh": "所以有很多潛在成分。"
+    },
+    {
+      "start": 1258.55,
+      "end": 1258.75,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1258.79,
+      "end": 1260.07,
+      "en": "Here we see the losses.",
+      "zh": "這裡是損失。"
+    },
+    {
+      "start": 1260.07,
+      "end": 1262.59,
+      "en": "I'm not really going to say that much about this.",
+      "zh": "這部分我不會多說。"
+    },
+    {
+      "start": 1262.63,
+      "end": 1264.87,
+      "en": "Just that it drops down pretty nicely.",
+      "zh": "只是它下降得相當漂亮。"
+    },
+    {
+      "start": 1265.23,
+      "end": 1269.99,
+      "en": "You can see from this plot that we don't really need 100 epochs.",
+      "zh": "從這張圖可以看出，其實不需要 100 個 epoch。"
+    },
+    {
+      "start": 1269.99,
+      "end": 1275.39,
+      "en": "Maybe we could use 100 epochs if we would lower the learning rate a little bit more.",
+      "zh": "如果把學習率再稍微降低，也許可以使用 100 個 epoch。"
+    },
+    {
+      "start": 1275.63,
+      "end": 1283.51,
+      "en": "But this is going to be my justification in the next video for training fewer epochs so we can save some computation time.",
+      "zh": "不過，這就是我在下一支影片中減少訓練 epoch、節省計算時間的依據。"
+    },
+    {
+      "start": 1284.67,
+      "end": 1289.91,
+      "en": "Okay, here I'm just showing all of the latent activations and what you see here.",
+      "zh": "好，這裡只是顯示所有潛在活化。這裡看到的是……"
+    },
+    {
+      "start": 1289.95,
+      "end": 1293.47,
+      "en": "Let me actually reduce the color scale a little bit more.",
+      "zh": "讓我把色階再縮小一點。"
+    },
+    {
+      "start": 1294.59,
+      "end": 1298.75,
+      "en": "So what you see here is that there's lots of vertical stripes right.",
+      "zh": "可以看到，有很多垂直條紋。"
+    },
+    {
+      "start": 1298.79,
+      "end": 1302.11,
+      "en": "So this on the x axis is the latent components.",
+      "zh": "x 軸是潛在成分。"
+    },
+    {
+      "start": 1302.11,
+      "end": 1304.15,
+      "en": "There's 6000 of them.",
+      "zh": "有 6,000 個。"
+    },
+    {
+      "start": 1304.15,
+      "end": 1306.39,
+      "en": "And here are the 220 tokens.",
+      "zh": "這裡是 220 個 token。"
+    },
+    {
+      "start": 1306.39,
+      "end": 1314.03,
+      "en": "So what you see visually is that there are some components that respond a lot to all the tokens and",
+      "zh": "視覺上可以看到，有些成分會對所有 token 產生很大的反應，"
+    },
+    {
+      "start": 1314.07,
+      "end": 1321.03,
+      "en": "other components that just really yeah, maybe they respond a little bit, but they're just really not very active.",
+      "zh": "其他成分可能有一點反應，但真的不太活躍。"
+    },
+    {
+      "start": 1321.15,
+      "end": 1326.47,
+      "en": "So this is already visual evidence of some really great sparsity okay.",
+      "zh": "這已經是稀疏性相當好的視覺證據。"
+    },
+    {
+      "start": 1326.63,
+      "end": 1331.91,
+      "en": "So now we can start having a look at what these components look like.",
+      "zh": "現在可以開始看看這些成分。"
+    },
+    {
+      "start": 1331.91,
+      "end": 1336.47,
+      "en": "So here I'm calculating the density of each component.",
+      "zh": "這裡計算每個成分的密度。"
+    },
+    {
+      "start": 1336.91,
+      "end": 1338.23,
+      "en": "And how do I do that.",
+      "zh": "怎麼做？"
+    },
+    {
+      "start": 1338.23,
+      "end": 1340.83,
+      "en": "So I start with this density mask.",
+      "zh": "先建立這個密度遮罩。"
+    },
+    {
+      "start": 1340.87,
+      "end": 1345.11,
+      "en": "This is a matrix of the same size as the latent activations.",
+      "zh": "這是一個與潛在活化大小相同的矩陣。"
+    },
+    {
+      "start": 1345.11,
+      "end": 1347.27,
+      "en": "So tokens by components.",
+      "zh": "也就是 token 乘上成分。"
+    },
+    {
+      "start": 1347.55,
+      "end": 1349.99,
+      "en": "And then I fill it in with a bunch of Nans.",
+      "zh": "然後，把它填滿 NaN。"
+    },
+    {
+      "start": 1350.51,
+      "end": 1360.63,
+      "en": "And then what I do is replace any of the elements in this density mask with a value of one if they have",
+      "zh": "接著，如果某個元素有非零的潛在活化，"
+    },
+    {
+      "start": 1360.63,
+      "end": 1362.91,
+      "en": "a non-zero latent activation.",
+      "zh": "我就把密度遮罩對應的元素改成 1。"
+    },
+    {
+      "start": 1363.11,
+      "end": 1370.67,
+      "en": "So if there's any activation, then that becomes a one, and the rest of these values in here become Nan.",
+      "zh": "所以，只要有任何活化，就會變成 1，其餘值則是 NaN。"
+    },
+    {
+      "start": 1371.23,
+      "end": 1375.11,
+      "en": "So that is handy because I can use this function Nan sum.",
+      "zh": "這很方便，因為可以使用 nansum 函數。"
+    },
+    {
+      "start": 1375.27,
+      "end": 1381.55,
+      "en": "So now I'm summing down all of the tokens for every component.",
+      "zh": "我對每個成分，沿著所有 token 求和。"
+    },
+    {
+      "start": 1381.55,
+      "end": 1386.27,
+      "en": "And then dividing by the number of tokens and then multiplying by 100.",
+      "zh": "再除以 token 數量，乘以 100。"
+    },
+    {
+      "start": 1386.27,
+      "end": 1387.67,
+      "en": "So what is this going to be.",
+      "zh": "這會得到什麼？"
+    },
+    {
+      "start": 1387.91,
+      "end": 1397.51,
+      "en": "This is the percentage of tokens per component for which there was at least a little bit of non-zero activation.",
+      "zh": "就是每個成分中，至少有一點非零活化的 token 百分比。"
+    },
+    {
+      "start": 1397.63,
+      "end": 1401.51,
+      "en": "So for example you know imagine this component over here.",
+      "zh": "例如，想像這裡的這個成分。"
+    },
+    {
+      "start": 1401.55,
+      "end": 1403.91,
+      "en": "Maybe it's component 1900 or whatever.",
+      "zh": "也許是第 1900 個成分。"
+    },
+    {
+      "start": 1404.27,
+      "end": 1411.11,
+      "en": "This component did not give a single non-zero activation for any of the 220 tokens.",
+      "zh": "這個成分對全部 220 個 token 都沒有產生任何非零活化。"
+    },
+    {
+      "start": 1411.31,
+      "end": 1414.15,
+      "en": "Then its value here would be zero.",
+      "zh": "那麼，這裡的值就會是零。"
+    },
+    {
+      "start": 1414.67,
+      "end": 1420.99,
+      "en": "On the other hand, maybe this component over here you can see this like slightly lighter stripe over here.",
+      "zh": "另一方面，也許這裡的這個成分，你可以看到這條稍微亮一點的條紋。"
+    },
+    {
+      "start": 1421.23,
+      "end": 1427.79,
+      "en": "Maybe this component responds with some non-zero activations to literally every single token.",
+      "zh": "也許它真的對每個 token 都有非零活化。"
+    },
+    {
+      "start": 1427.79,
+      "end": 1432.19,
+      "en": "So all 220 tokens, it had non-zero activation.",
+      "zh": "也就是全部 220 個 token 都出現非零活化。"
+    },
+    {
+      "start": 1432.35,
+      "end": 1441.43,
+      "en": "And so its score in this vector will be 100 for 100% of the tokens got some non-zero activation.",
+      "zh": "那它在這個向量中的分數就是 100，代表 100% 的 token 都有非零活化。"
+    },
+    {
+      "start": 1442.67,
+      "end": 1442.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1443.03,
+      "end": 1449.51,
+      "en": "And then so this is just the proportion or the percentage of tokens that had some activation.",
+      "zh": "所以，這只是有活化的 token 所占比例或百分比。"
+    },
+    {
+      "start": 1449.51,
+      "end": 1454.59,
+      "en": "We don't actually know from this vector what the activations were.",
+      "zh": "光從這個向量，我們其實不知道活化是多少。"
+    },
+    {
+      "start": 1454.95,
+      "end": 1456.87,
+      "en": "And that is what I do here.",
+      "zh": "這就是我在這裡要做的。"
+    },
+    {
+      "start": 1456.87,
+      "end": 1462.63,
+      "en": "So here I take the average of latent component times the density matrix.",
+      "zh": "我將潛在成分乘上密度矩陣，再取平均。"
+    },
+    {
+      "start": 1462.83,
+      "end": 1467.47,
+      "en": "And this is going to tell me of those non-zero components.",
+      "zh": "這會告訴我，在那些非零成分中，"
+    },
+    {
+      "start": 1467.47,
+      "end": 1471.83,
+      "en": "What was the average magnitude of the activation.",
+      "zh": "平均活化量值是多少。"
+    },
+    {
+      "start": 1472.03,
+      "end": 1476.87,
+      "en": "And I'm taking the average because or the absolute value before I take the average.",
+      "zh": "我取平均之前，先取絕對值，"
+    },
+    {
+      "start": 1476.87,
+      "end": 1482.31,
+      "en": "Because if there are negative values and positive values, I don't want that to average out to zero.",
+      "zh": "因為如果同時有負值與正值，我不希望平均後抵銷成零。"
+    },
+    {
+      "start": 1482.35,
+      "end": 1488.75,
+      "en": "I just want to know what is the magnitude of the response to a given token.",
+      "zh": "我只想知道，對某個 token 的反應量值是多少。"
+    },
+    {
+      "start": 1489.11,
+      "end": 1498.95,
+      "en": "Now, that said, I think you don't really need this with the amount of sparsity that I have forced in this autoencoder because they all end up being positive anyway.",
+      "zh": "話雖如此，我想，以這個自編碼器被強制施加的稀疏程度，其實不太需要這麼做，因為最後全部都是正值。"
+    },
+    {
+      "start": 1499.47,
+      "end": 1499.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1499.91,
+      "end": 1500.75,
+      "en": "So, uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1500.79,
+      "end": 1505.79,
+      "en": "And then I'm multiplying the latent density by the non-zero activations.",
+      "zh": "接著，我把潛在密度乘上非零活化。"
+    },
+    {
+      "start": 1506.07,
+      "end": 1511.27,
+      "en": "In the next video we are going to calculate these metrics over all of the layers.",
+      "zh": "下一支影片會對所有層計算這些指標。"
+    },
+    {
+      "start": 1511.27,
+      "end": 1512.67,
+      "en": "This is just for one layer.",
+      "zh": "這裡只有一層。"
+    },
+    {
+      "start": 1512.79,
+      "end": 1516.99,
+      "en": "And then I'm actually also going to scale these values slightly differently.",
+      "zh": "我也會稍微改變這些值的縮放方式。"
+    },
+    {
+      "start": 1517.43,
+      "end": 1517.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1517.71,
+      "end": 1519.19,
+      "en": "So then we can visualize these.",
+      "zh": "接著就能將它們視覺化。"
+    },
+    {
+      "start": 1519.23,
+      "end": 1522.95,
+      "en": "This shows the results that I showed in the slides.",
+      "zh": "這就是投影片中展示的結果。"
+    },
+    {
+      "start": 1523.15,
+      "end": 1530.99,
+      "en": "So it's pretty interesting to see that a lot of the components were either not at all active or were very active.",
+      "zh": "很有趣的是，很多成分要不是完全不活躍，就是非常活躍。"
+    },
+    {
+      "start": 1531.19,
+      "end": 1532.43,
+      "en": "So a small.",
+      "zh": "所以，一小……"
+    },
+    {
+      "start": 1532.47,
+      "end": 1533.91,
+      "en": "So let me start that again.",
+      "zh": "讓我重新說一次。"
+    },
+    {
+      "start": 1534.03,
+      "end": 1541.95,
+      "en": "So most components actually don't show any activation whatsoever because of the sparsity in position,",
+      "zh": "大部分成分其實完全沒有活化，這是施加稀疏性的結果。"
+    },
+    {
+      "start": 1542.83,
+      "end": 1549.75,
+      "en": "a relatively small number of components show activation to all or maybe nearly all.",
+      "zh": "只有相對少量的成分，會對全部或幾乎全部 token 產生活化。"
+    },
+    {
+      "start": 1549.79,
+      "end": 1554.55,
+      "en": "Maybe, you know, over 97% of the tokens had activation.",
+      "zh": "也許是超過 97% 的 token 都有活化。"
+    },
+    {
+      "start": 1554.55,
+      "end": 1557.15,
+      "en": "And then we have some other activations in the middle.",
+      "zh": "接著，還有一些介於中間的活化。"
+    },
+    {
+      "start": 1557.79,
+      "end": 1564.31,
+      "en": "If you would like this is not analysis that I ran, but if you find it interesting, maybe you can actually",
+      "zh": "如果你有興趣，雖然這不是我做過的分析，你可以"
+    },
+    {
+      "start": 1564.31,
+      "end": 1576.31,
+      "en": "break this up and see like literally count how many of these 6000 components had no activation to any of the tokens, activation to all or maybe almost all.",
+      "zh": "把它分開，實際數數這 6,000 個成分中，有多少完全不對任何 token 活化，又有多少對全部或幾乎全部 token 活化。"
+    },
+    {
+      "start": 1576.43,
+      "end": 1578.99,
+      "en": "And then how many were somewhere in the middle?",
+      "zh": "以及有多少介於中間。"
+    },
+    {
+      "start": 1579.67,
+      "end": 1580.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1580.11,
+      "end": 1580.63,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1580.67,
+      "end": 1583.87,
+      "en": "So what I'm going to do now is set up this heat map.",
+      "zh": "現在我要設定這張熱圖。"
+    },
+    {
+      "start": 1584.07,
+      "end": 1590.27,
+      "en": "This is code to just identify the width of a letter in a figure.",
+      "zh": "這段程式碼只是用來辨識圖形中字母的寬度。"
+    },
+    {
+      "start": 1590.31,
+      "end": 1594.78,
+      "en": "This code you've seen before, This code you've also seen before.",
+      "zh": "這段程式碼以前看過，這一段你也看過。"
+    },
+    {
+      "start": 1594.78,
+      "end": 1599.74,
+      "en": "So min max scaling some activation pattern and drawing the text.",
+      "zh": "也就是對某個活化模式做最小最大縮放，再繪製文字。"
+    },
+    {
+      "start": 1599.74,
+      "end": 1604.42,
+      "en": "And as a reminder here I'm also squaring the activation.",
+      "zh": "提醒一下，我在這裡也對活化做了平方。"
+    },
+    {
+      "start": 1604.42,
+      "end": 1613.06,
+      "en": "That just helps with the visual interpretation, because the large activations will be brighter and the dim activations will be dimmer.",
+      "zh": "這只是有助於視覺解讀，讓強活化更亮、弱活化更暗。"
+    },
+    {
+      "start": 1613.62,
+      "end": 1613.9,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1613.94,
+      "end": 1619.58,
+      "en": "Otherwise, this is mostly code that you've seen before, uh, in several earlier videos.",
+      "zh": "除此之外，這大多是前幾支影片中看過的程式碼。"
+    },
+    {
+      "start": 1619.7,
+      "end": 1625.94,
+      "en": "The main difference is that I put all of the code to draw the text heat map into a function.",
+      "zh": "主要差別是，我把繪製文字熱圖的所有程式碼放進一個函數。"
+    },
+    {
+      "start": 1626.06,
+      "end": 1631.7,
+      "en": "And the reason why I do that here is because I'm going to sort and pick components.",
+      "zh": "因為這裡我要排序、挑選成分。"
+    },
+    {
+      "start": 1631.7,
+      "end": 1633.66,
+      "en": "And then I want to call that function.",
+      "zh": "然後呼叫那個函數。"
+    },
+    {
+      "start": 1633.9,
+      "end": 1634.1,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1634.14,
+      "end": 1635.1,
+      "en": "And did I run.",
+      "zh": "我執行了嗎？"
+    },
+    {
+      "start": 1635.62,
+      "end": 1635.9,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1635.94,
+      "end": 1637.18,
+      "en": "I also ran this one.",
+      "zh": "這一段也執行過了。"
+    },
+    {
+      "start": 1637.58,
+      "end": 1638.14,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 1638.18,
+      "end": 1639.3,
+      "en": "Let's see where we are.",
+      "zh": "看看現在到哪裡。"
+    },
+    {
+      "start": 1639.46,
+      "end": 1639.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1640.34,
+      "end": 1645.54,
+      "en": "So here I am, uh, coming up with two sorting indices here.",
+      "zh": "這裡我要取得兩組排序索引。"
+    },
+    {
+      "start": 1645.54,
+      "end": 1650.42,
+      "en": "I'm sorting by the activation of the so all the non-zero activations.",
+      "zh": "這裡是按照活化，也就是所有非零活化排序。"
+    },
+    {
+      "start": 1650.78,
+      "end": 1655.06,
+      "en": "And here I'm sorting by the density of the latent components.",
+      "zh": "這裡則按照潛在成分的密度排序。"
+    },
+    {
+      "start": 1655.06,
+      "end": 1657.18,
+      "en": "This is just a reminder of the size.",
+      "zh": "這只是提醒一下大小。"
+    },
+    {
+      "start": 1657.66,
+      "end": 1662.74,
+      "en": "Okay, so now the idea here is I'm going to call that function that generates a heat map.",
+      "zh": "好，這裡的概念是呼叫產生熱圖的函數。"
+    },
+    {
+      "start": 1662.86,
+      "end": 1665.58,
+      "en": "And we pick one of the components.",
+      "zh": "然後挑選其中一個成分。"
+    },
+    {
+      "start": 1665.58,
+      "end": 1667.38,
+      "en": "So let's start with this one.",
+      "zh": "先從這個開始。"
+    },
+    {
+      "start": 1667.7,
+      "end": 1671.94,
+      "en": "Of course the autoencoder model is random.",
+      "zh": "當然，自編碼器模型具有隨機性。"
+    },
+    {
+      "start": 1671.94,
+      "end": 1683.3,
+      "en": "So the fact that I'm picking 1 or 0 is not going to give me exactly the same results each time I run this entire code file and retrain the sparse autoencoder.",
+      "zh": "所以，選 1 或 0，並不代表每次執行整份程式、重新訓練稀疏自編碼器，都會得到完全相同的結果。"
+    },
+    {
+      "start": 1684.54,
+      "end": 1690.34,
+      "en": "So this is a component, a latent component that was just very active overall.",
+      "zh": "這是一個整體來說非常活躍的潛在成分。"
+    },
+    {
+      "start": 1690.5,
+      "end": 1693.26,
+      "en": "And here you see what kinds of things it liked.",
+      "zh": "這裡可以看到它喜歡哪些東西。"
+    },
+    {
+      "start": 1693.26,
+      "end": 1697.78,
+      "en": "So it likes Romania Hungary similar Czech Republic Greece.",
+      "zh": "它喜歡羅馬尼亞、匈牙利、similar、捷克共和國、希臘。"
+    },
+    {
+      "start": 1697.98,
+      "end": 1708.26,
+      "en": "So it kind of seems like it uh, this component like of course I'm using the word likes in this very personified incorrect, uh, loose colloquial sense.",
+      "zh": "所以，它似乎……當然，我用「喜歡」這個詞，是非常擬人、不精確、寬鬆的口語說法。"
+    },
+    {
+      "start": 1708.58,
+      "end": 1716.9,
+      "en": "Uh, but this component, uh, Responded a lot to countries, but also to PD for in PD.",
+      "zh": "不過，這個成分會對國家產生很大的反應，也會對 PD，也就是 PD 裡面的那個部分反應。"
+    },
+    {
+      "start": 1716.9,
+      "end": 1718.9,
+      "en": "Oh, I'm not sure what that even means.",
+      "zh": "我甚至不確定那是什麼意思。"
+    },
+    {
+      "start": 1719.18,
+      "end": 1721.62,
+      "en": "Uh, distilled periods pulp.",
+      "zh": "還有 distilled、句點、pulp。"
+    },
+    {
+      "start": 1721.66,
+      "end": 1724.1,
+      "en": "It responds a lot to pulp and so on.",
+      "zh": "它對 pulp 等詞也有很大的反應。"
+    },
+    {
+      "start": 1724.1,
+      "end": 1727.46,
+      "en": "So it's not doesn't seem like it's really specific.",
+      "zh": "所以，它似乎並不是真的很專一。"
+    },
+    {
+      "start": 1727.5,
+      "end": 1729.38,
+      "en": "It likes fruit juice, for example.",
+      "zh": "例如，它也喜歡 fruit juice。"
+    },
+    {
+      "start": 1729.78,
+      "end": 1730.02,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1730.02,
+      "end": 1731.42,
+      "en": "Let's look at some other components.",
+      "zh": "看看其他成分。"
+    },
+    {
+      "start": 1731.42,
+      "end": 1733.1,
+      "en": "Here we see component ten.",
+      "zh": "這裡是第十個成分。"
+    },
+    {
+      "start": 1733.58,
+      "end": 1737.26,
+      "en": "Uh this one seems to like protected and PD.",
+      "zh": "這個似乎喜歡 protected 和 PD。"
+    },
+    {
+      "start": 1737.3,
+      "end": 1746.78,
+      "en": "Initially I thought this might be you know, it likes words that start with a capital P, but that's also clearly not the case by the way, as you get to later and later components.",
+      "zh": "起初我以為，它可能喜歡大寫 P 開頭的詞，但顯然也不是。順帶一提，當你查看越來越後面的成分時，"
+    },
+    {
+      "start": 1747.02,
+      "end": 1748.26,
+      "en": "Uh, here this one.",
+      "zh": "這裡這個，"
+    },
+    {
+      "start": 1748.3,
+      "end": 1748.5,
+      "en": "Yeah.",
+      "zh": "對，"
+    },
+    {
+      "start": 1748.54,
+      "end": 1752.46,
+      "en": "Has a seems to respond strongly to a couple of words.",
+      "zh": "似乎會對幾個詞產生強烈反應。"
+    },
+    {
+      "start": 1752.46,
+      "end": 1754.62,
+      "en": "They get a little bit less sensible.",
+      "zh": "它們會變得比較難以理解。"
+    },
+    {
+      "start": 1754.74,
+      "end": 1761.1,
+      "en": "But also eventually you're going to run into this kind of thing where you get a warning message and this is all gray.",
+      "zh": "不過，最後也會遇到這種情況：出現警告訊息，這裡全都是灰色。"
+    },
+    {
+      "start": 1761.26,
+      "end": 1762.5,
+      "en": "And what does that mean?",
+      "zh": "這是什麼意思？"
+    },
+    {
+      "start": 1762.94,
+      "end": 1766.94,
+      "en": "That means that this component 1000 was all zeros.",
+      "zh": "代表第 1000 個成分全都是零。"
+    },
+    {
+      "start": 1766.94,
+      "end": 1768.86,
+      "en": "It did not respond to anything.",
+      "zh": "它沒有對任何東西產生反應。"
+    },
+    {
+      "start": 1769.1,
+      "end": 1778.02,
+      "en": "So uh, there's so there's nothing to plot and that you're going to see as you get, uh, later, though, the first couple of hundred components, this one is really sparse.",
+      "zh": "所以，沒有東西可以畫。越往後看，你會看到這種情況；不過前幾百個成分……這個非常稀疏。"
+    },
+    {
+      "start": 1778.02,
+      "end": 1783.18,
+      "en": "The first couple hundred components will have lots of non-zero activations.",
+      "zh": "前幾百個成分會有很多非零活化。"
+    },
+    {
+      "start": 1783.34,
+      "end": 1793.38,
+      "en": "And then eventually you get to the part of the, uh, latent components, the sorted latent components, where they really just have no activations whatsoever.",
+      "zh": "接著，到了排序後的潛在成分中較後面的部分，它們真的完全沒有活化。"
+    },
+    {
+      "start": 1795.1,
+      "end": 1797.1,
+      "en": "It's hard to know how to interpret these.",
+      "zh": "很難知道該怎麼解讀這些。"
+    },
+    {
+      "start": 1797.14,
+      "end": 1797.38,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 1797.42,
+      "end": 1801.58,
+      "en": "So maybe you look at this and you say, oh, this likes Parentheticals, right?",
+      "zh": "也許你看了會說，這個喜歡括號。"
+    },
+    {
+      "start": 1801.58,
+      "end": 1806.82,
+      "en": "It's the, uh, the opening and the closing of a parenthesis, but you don't see the same pattern here.",
+      "zh": "這是左括號和右括號，但這裡卻沒有相同模式。"
+    },
+    {
+      "start": 1806.98,
+      "end": 1810.3,
+      "en": "And that's inconsistent with this strong activation here.",
+      "zh": "而且，這也不符合這裡的強活化。"
+    },
+    {
+      "start": 1810.62,
+      "end": 1817.66,
+      "en": "So it is certainly not the case that every component is intrinsically interpretable.",
+      "zh": "所以，絕對不是每個成分天生就能解讀。"
+    },
+    {
+      "start": 1818.1,
+      "end": 1824.62,
+      "en": "Uh, on the other hand, it is the case that the more data you throw into these models, the more you",
+      "zh": "另一方面，丟進模型的資料越多，"
+    },
+    {
+      "start": 1824.62,
+      "end": 1830.54,
+      "en": "can train these models, the more likely it is that you will get interpretable components.",
+      "zh": "訓練得越充分，就越有可能得到可解讀的成分。"
+    },
+    {
+      "start": 1831.38,
+      "end": 1838.22,
+      "en": "Okay, so the last set of analyses I will show you is looking for geography related words.",
+      "zh": "好，最後一組分析，是尋找與地理有關的詞。"
+    },
+    {
+      "start": 1838.54,
+      "end": 1845.58,
+      "en": "So I looked through all of this text and I picked out the words that seemed to correspond to something about geography.",
+      "zh": "我看過全部文字，挑出那些似乎與地理有關的詞。"
+    },
+    {
+      "start": 1845.86,
+      "end": 1848.34,
+      "en": "Uh, and yeah, that's, uh, these terms here.",
+      "zh": "也就是這裡的這些詞。"
+    },
+    {
+      "start": 1848.66,
+      "end": 1856.74,
+      "en": "And then what I do is basically just come up with this, uh, mask where, uh, for all of the 220 tokens,",
+      "zh": "接著，基本上就是建立這個遮罩，對全部 220 個 token，"
+    },
+    {
+      "start": 1856.9,
+      "end": 1867.38,
+      "en": "they are true if they are geography related and false if they are non geography related, which means not fitting into this list of terms.",
+      "zh": "如果與地理有關就是 True，否則是 False，也就是不符合這份詞彙清單。"
+    },
+    {
+      "start": 1867.94,
+      "end": 1873.98,
+      "en": "And then I loop through all of the components and I calculate this score here.",
+      "zh": "然後逐一迴圈處理所有成分，計算這個分數。"
+    },
+    {
+      "start": 1874.14,
+      "end": 1883.62,
+      "en": "So it is uh the uh average non-zero activations for the target words divided by the average of the non-zero",
+      "zh": "也就是目標詞的平均非零活化，除以非目標詞的平均非零"
+    },
+    {
+      "start": 1883.62,
+      "end": 1885.98,
+      "en": "activations for the non-target words.",
+      "zh": "活化。"
+    },
+    {
+      "start": 1886.34,
+      "end": 1896.14,
+      "en": "And I put that in this if statement over here, just to say that this is filtering out any components where there's no activations at all.",
+      "zh": "我把它放在這個 if 陳述式裡，用來過濾那些完全沒有活化的成分。"
+    },
+    {
+      "start": 1896.14,
+      "end": 1900.54,
+      "en": "So these really like completely sparse components that have no activations.",
+      "zh": "也就是那些完全稀疏、沒有活化的成分。"
+    },
+    {
+      "start": 1900.74,
+      "end": 1905.3,
+      "en": "Otherwise you're just going to end up dividing by zero and just getting a bunch of noise.",
+      "zh": "否則，最後只會除以零，得到一堆雜訊。"
+    },
+    {
+      "start": 1905.66,
+      "end": 1905.86,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1905.86,
+      "end": 1910.46,
+      "en": "So here we see this geography selectivity score here.",
+      "zh": "這裡可以看到地理選擇性分數。"
+    },
+    {
+      "start": 1910.82,
+      "end": 1919.18,
+      "en": "So these couple of components up here they seem to respond more to tokens related to geography versus",
+      "zh": "上面這幾個成分，似乎對地理相關 token 的反應，"
+    },
+    {
+      "start": 1919.94,
+      "end": 1921.3,
+      "en": "non tokens okay.",
+      "zh": "大於非地理 token。"
+    },
+    {
+      "start": 1921.34,
+      "end": 1925.7,
+      "en": "So then I sort those and I can plot for that.",
+      "zh": "接著將它們排序，就能據此畫圖。"
+    },
+    {
+      "start": 1925.98,
+      "end": 1933.9,
+      "en": "This is a great example because it shows where a very simple measure like this, without any real deeper",
+      "zh": "這是很好的例子，因為它顯示，這種非常簡單的指標，如果沒有真正深入"
+    },
+    {
+      "start": 1933.9,
+      "end": 1939.18,
+      "en": "investigation or more carefully done analyses can really lead you astray.",
+      "zh": "研究，或更仔細地分析，確實可能把你引向錯誤方向。"
+    },
+    {
+      "start": 1939.22,
+      "end": 1945.46,
+      "en": "So it shows the importance of inspecting and being critical of your analyses.",
+      "zh": "所以，仔細檢查並批判性地看待分析結果，非常重要。"
+    },
+    {
+      "start": 1945.82,
+      "end": 1951.98,
+      "en": "So this score, this component must technically have a high g G0 score.",
+      "zh": "這個分數，這個成分，技術上一定有很高的地理分數。"
+    },
+    {
+      "start": 1951.98,
+      "end": 1953.14,
+      "en": "But what does that mean?",
+      "zh": "但這代表什麼？"
+    },
+    {
+      "start": 1953.18,
+      "end": 1956.26,
+      "en": "Probably it responded a lot to regions.",
+      "zh": "可能只是它對 regions 反應很大。"
+    },
+    {
+      "start": 1956.5,
+      "end": 1958.86,
+      "en": "So this had some non-zero activation.",
+      "zh": "所以，這裡有一些非零活化。"
+    },
+    {
+      "start": 1958.86,
+      "end": 1964.54,
+      "en": "And I suspect that all the rest of these tokens with three exceptions, are zero.",
+      "zh": "我懷疑，其餘所有 token 除了三個例外之外，全都是零。"
+    },
+    {
+      "start": 1964.78,
+      "end": 1972.1,
+      "en": "So technically this one does get a bit higher, but it's not necessarily that meaningful because of the sparsity.",
+      "zh": "因此，技術上它確實稍高，但因為稀疏性，未必有多大意義。"
+    },
+    {
+      "start": 1972.7,
+      "end": 1978.26,
+      "en": "Similar here we get Czech Republic and Union, but we also get naught.",
+      "zh": "這裡也類似，有 Czech Republic 和 Union，但也有 naught。"
+    },
+    {
+      "start": 1978.3,
+      "end": 1980.26,
+      "en": "That has a really strong activation.",
+      "zh": "它的活化很強。"
+    },
+    {
+      "start": 1980.62,
+      "end": 1983.14,
+      "en": "Let's see here I'm just poking around geographical.",
+      "zh": "看看這裡，我只是隨意探索。geographical。"
+    },
+    {
+      "start": 1983.18,
+      "end": 1985.3,
+      "en": "This really likes the word geographical.",
+      "zh": "這個真的很喜歡 geographical 這個詞。"
+    },
+    {
+      "start": 1985.74,
+      "end": 1989.3,
+      "en": "And yeah Hungary fruit and those.",
+      "zh": "還有 Hungary、fruit 和那些詞。"
+    },
+    {
+      "start": 1989.34,
+      "end": 1990.94,
+      "en": "Yeah I'm not sure what to make of these.",
+      "zh": "我不確定該如何解讀這些。"
+    },
+    {
+      "start": 1990.98,
+      "end": 1994.54,
+      "en": "Sometimes you get some more sensible results, sometimes you don't.",
+      "zh": "有時結果比較有道理，有時沒有。"
+    },
+    {
+      "start": 1994.94,
+      "end": 2002.14,
+      "en": "In part this just also depends on how well the autoencoder model actually does.",
+      "zh": "部分也取決於自編碼器模型實際運作得多好。"
+    },
+    {
+      "start": 2002.18,
+      "end": 2002.42,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 2002.46,
+      "end": 2012.62,
+      "en": "So you could try rerunning this code a couple of times until you get a smaller loss function closer to zero, and then you can interpret that model.",
+      "zh": "所以，可以試著重新執行幾次程式碼，直到損失函數更小、更接近零，再解讀那個模型。"
+    },
+    {
+      "start": 2013.5,
+      "end": 2024.9,
+      "en": "If you have worked with autoencoders before, then I'm pretty sure you will agree with me that they are very cool and very interesting, but they can also be kind of tricky to work with.",
+      "zh": "如果以前用過自編碼器，我很確定你會同意，它們很酷、很有趣，但也可能有點難操作。"
+    },
+    {
+      "start": 2025.02,
+      "end": 2036.06,
+      "en": "That is especially the case here because of the relatively small amount of data, and also because of the challenges of picking a component to focus on.",
+      "zh": "這裡尤其如此，因為資料量相對少，而且要挑出值得聚焦的成分也很困難。"
+    },
+    {
+      "start": 2036.66,
+      "end": 2042.14,
+      "en": "And actually picking a component in these kinds of latent source analyses is quite tricky.",
+      "zh": "事實上，這類潛在來源分析中，挑選成分本來就很棘手。"
+    },
+    {
+      "start": 2042.18,
+      "end": 2047.02,
+      "en": "It's certainly not unique to sparse autoencoder models.",
+      "zh": "這絕對不是稀疏自編碼器模型獨有的問題。"
+    },
+    {
+      "start": 2047.46,
+      "end": 2055.5,
+      "en": "In the next video, we are going to continue exploring sparse autoencoders, but at like a higher level of granularity.",
+      "zh": "下一支影片會繼續探索稀疏自編碼器，但會從更高層次的粒度來看。"
+    },
+    {
+      "start": 2055.74,
+      "end": 2062.42,
+      "en": "And that will allow us to examine some sparsity characteristics over the different layers of a language model.",
+      "zh": "這讓我們能檢視語言模型不同層的稀疏性特徵。"
+    },
+    {
+      "start": 2062.7,
+      "end": 2063.78,
+      "en": "I will see you then.",
+      "zh": "下支影片見。"
+    }
+  ]
+}

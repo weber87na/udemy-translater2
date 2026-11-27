@@ -1,0 +1,979 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51872869",
+  "title": "CodeChallenge: Instruction tuning GPT2-large (part 2)",
+  "section": 9,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "fc17092b157780d5693659ac02f2666659986aeed0ca6a4abb548c61e6ae4849",
+  "cues": [
+    {
+      "start": 1.96,
+      "end": 5.4,
+      "en": "Now for the continuation of the code challenge.",
+      "zh": "繼續這個程式挑戰。"
+    },
+    {
+      "start": 5.4,
+      "end": 10.24,
+      "en": "We are going to wrap up this code challenge with exercise three.",
+      "zh": "以練習三收尾。"
+    },
+    {
+      "start": 10.84,
+      "end": 18.44,
+      "en": "Here you actually want to do the fine tuning and the qualitative evaluation and interactions with our model.",
+      "zh": "現在要實際微調，做質性評估，並與模型互動。"
+    },
+    {
+      "start": 18.92,
+      "end": 28.2,
+      "en": "As a reminder and also as a warning, the way that we are training here really is how chatbots are trained, at least in the first step.",
+      "zh": "提醒一下，也先說明：這裡的訓練方式，確實就是聊天機器人至少第一階段的訓練方式。"
+    },
+    {
+      "start": 28.2,
+      "end": 32.48,
+      "en": "There's also a reinforcement learning step, which we're not doing in this video.",
+      "zh": "另外還有強化學習階段，這支影片不做。"
+    },
+    {
+      "start": 32.96,
+      "end": 34.36,
+      "en": "But so that's good.",
+      "zh": "所以這很好。"
+    },
+    {
+      "start": 34.36,
+      "end": 35.16,
+      "en": "That's a good thing.",
+      "zh": "是好事。"
+    },
+    {
+      "start": 35.16,
+      "end": 42.16,
+      "en": "What we are doing here is the way that real commercial frontier, state of the art models are trained",
+      "zh": "這裡使用的方式，就是實際商用、最前沿模型"
+    },
+    {
+      "start": 42.16,
+      "end": 48.88,
+      "en": "for chat interactions, but the warning is that we are still working with GPT two.",
+      "zh": "用於聊天互動的訓練方式。但要注意，我們仍使用 GPT-2。"
+    },
+    {
+      "start": 49.6,
+      "end": 56.72,
+      "en": "It is the large version, so it's more capable than the small version, but I do not want you to expect",
+      "zh": "這是 large，比 small 更強，但別期待"
+    },
+    {
+      "start": 56.72,
+      "end": 64.62,
+      "en": "that after a mere hundred fine tuning batches with one data set that you are going to create a model",
+      "zh": "只用一個資料集微調一百個批次，"
+    },
+    {
+      "start": 64.62,
+      "end": 69.3,
+      "en": "that has comparative performance to like ChatGPT, for example.",
+      "zh": "就能得到與 ChatGPT 類似的表現。"
+    },
+    {
+      "start": 69.78,
+      "end": 76.06,
+      "en": "Anyway, train 123 batches, use a learning rate of ten to the minus four.",
+      "zh": "總之，訓練 123 個批次，學習率 10 的負 4 次方。"
+    },
+    {
+      "start": 76.38,
+      "end": 80.1,
+      "en": "Now, a batch size of eight is a little bit on the small side.",
+      "zh": "批次大小 8 稍微小了一點。"
+    },
+    {
+      "start": 80.38,
+      "end": 85.7,
+      "en": "If you want, you can try using larger batches like 64 or 32.",
+      "zh": "可以試更大批次，例如 64 或 32。"
+    },
+    {
+      "start": 86.06,
+      "end": 95.53999999999999,
+      "en": "You will probably find that you will exceed the Ram capacity of the GPU, and you will just run out of Ram and have to restart the session.",
+      "zh": "但可能會超過 GPU 記憶體容量，記憶體耗盡，必須重新啟動工作階段。"
+    },
+    {
+      "start": 96.5,
+      "end": 105.62,
+      "en": "So I recommend at least starting this exercise with a batch size of eight, and then you can explore larger batches later if you like.",
+      "zh": "所以建議至少先從批次大小 8 開始，再探索更大批次。"
+    },
+    {
+      "start": 106.3,
+      "end": 114.74000000000001,
+      "en": "Now as you are going through this, I would also like you to check the GPU Ram usage through the activity",
+      "zh": "進行時，也希望你透過 Colab 右上角的活動"
+    },
+    {
+      "start": 114.78,
+      "end": 118.62,
+      "en": "monitor on the top right of the Colab screen.",
+      "zh": "監視器，檢查 GPU 記憶體用量。"
+    },
+    {
+      "start": 119.22,
+      "end": 121.86,
+      "en": "You don't have to do this super quantitatively.",
+      "zh": "不用非常量化。"
+    },
+    {
+      "start": 121.86,
+      "end": 130.8,
+      "en": "Just open up that little widget and notice how much space the model itself takes up versus the model plus the data.",
+      "zh": "打開小工具，觀察只有模型、模型加資料，"
+    },
+    {
+      "start": 131.28,
+      "end": 134.72,
+      "en": "Versus when you actually try to start training the data.",
+      "zh": "以及實際開始訓練時，各占多少空間。"
+    },
+    {
+      "start": 135.28,
+      "end": 143.28,
+      "en": "And that is going to give you some insights into what really drives a lot of the memory usages of these models.",
+      "zh": "這能讓你了解，模型記憶體用量主要由什麼驅動。"
+    },
+    {
+      "start": 143.96,
+      "end": 147.16,
+      "en": "By the way, it is possible that you will run out of memory.",
+      "zh": "順帶一提，你可能會遇到記憶體不足。"
+    },
+    {
+      "start": 147.6,
+      "end": 155.07999999999998,
+      "en": "If possible, you should check which GPUs you have access to and use the one that has the most memory.",
+      "zh": "如果可以，查看能使用哪些 GPU，選記憶體最多的。"
+    },
+    {
+      "start": 155.64,
+      "end": 162.52,
+      "en": "And you might need to reduce the batch size even further, maybe even reduce the sequence length if you need to.",
+      "zh": "可能還得縮小批次，必要時甚至縮短序列。"
+    },
+    {
+      "start": 162.88,
+      "end": 174.72,
+      "en": "And remember that batching is a form of regularization that helps the model learn general principles instead of memorizing individual data points.",
+      "zh": "記得，批次是一種正則化，能幫模型學一般原則，而不是記住個別資料點。"
+    },
+    {
+      "start": 175.04,
+      "end": 181.72,
+      "en": "So having batches larger than eight is actually a good thing, both for theoretical reasons for training",
+      "zh": "所以批次大於 8，其實有好處，無論在訓練"
+    },
+    {
+      "start": 181.72,
+      "end": 189.46,
+      "en": "the model and avoiding overfitting, and also because having larger batches Saves computation time.",
+      "zh": "與避免過度擬合的理論上，還是因為較大批次能節省運算時間。"
+    },
+    {
+      "start": 190.22,
+      "end": 197.82,
+      "en": "And also keep in mind that as soon as you max out the memory in the GPU in Colab, you will generally",
+      "zh": "另外，一旦 Colab 的 GPU 記憶體用滿，通常就得"
+    },
+    {
+      "start": 197.82,
+      "end": 205.86,
+      "en": "need to restart your Python session to clear out the memory, and that means loading back in the model",
+      "zh": "重新啟動 Python 工作階段，清掉記憶體；也就是要重新載入模型、"
+    },
+    {
+      "start": 205.86,
+      "end": 210.94,
+      "en": "and the data and all of the analyses that you ran from exercises one and two.",
+      "zh": "資料，以及練習一、二執行過的分析。"
+    },
+    {
+      "start": 212.18,
+      "end": 218.34,
+      "en": "Now, in theory, it is possible to delete variables from the GPU, but a lot of the variables that",
+      "zh": "理論上，可以刪除 GPU 上的變數，但許多"
+    },
+    {
+      "start": 218.34,
+      "end": 225.22,
+      "en": "are created on the GPU are intermediate variables that might be difficult to access anyway.",
+      "zh": "是中間變數，可能不容易存取。"
+    },
+    {
+      "start": 225.22,
+      "end": 234.3,
+      "en": "Once you get it working, you can plot the loss and you can do some qualitative evaluations like what we did in the previous video.",
+      "zh": "順利執行後，就能畫損失，並像上一支做質性評估。"
+    },
+    {
+      "start": 234.82,
+      "end": 235.5,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 235.54,
+      "end": 236.86,
+      "en": "You know what to do now.",
+      "zh": "現在知道怎麼做了。"
+    },
+    {
+      "start": 237.02,
+      "end": 241.66,
+      "en": "Pause the video and now I will switch to code and discuss my solution.",
+      "zh": "請暫停，接著我會切到程式，說明解法。"
+    },
+    {
+      "start": 242.14,
+      "end": 250.6,
+      "en": "I will start by going up here to the top right clicking on this little downward arrow here and looking at view Resources.",
+      "zh": "先到右上角，點小向下箭頭，查看資源。"
+    },
+    {
+      "start": 250.96,
+      "end": 252.88,
+      "en": "So here is the GPU Ram.",
+      "zh": "這裡是 GPU 記憶體。"
+    },
+    {
+      "start": 252.88,
+      "end": 256.72,
+      "en": "You can see that I'm using zero out of 40GB.",
+      "zh": "可以看到，40 GB 中用了 0。"
+    },
+    {
+      "start": 256.72,
+      "end": 258.08,
+      "en": "So I'm not using it yet.",
+      "zh": "還沒使用。"
+    },
+    {
+      "start": 258.12,
+      "end": 262.76,
+      "en": "And that's because I have not pushed the model or anything else onto the GPU.",
+      "zh": "因為還沒把模型或其他東西移到 GPU。"
+    },
+    {
+      "start": 263.28,
+      "end": 269.52,
+      "en": "So now I run that code and now I can see this is going to be 3.5GB or somewhere around there.",
+      "zh": "現在執行程式，應該會變成 3.5 GB 左右。"
+    },
+    {
+      "start": 270.2,
+      "end": 270.6,
+      "en": "Yep.",
+      "zh": "對。"
+    },
+    {
+      "start": 270.6,
+      "end": 275.68,
+      "en": "So that model GPT two small takes up 3.5GB.",
+      "zh": "所以 GPT-2 small 這個模型占 3.5 GB。"
+    },
+    {
+      "start": 275.72,
+      "end": 277.72,
+      "en": "Now that is actually not that much.",
+      "zh": "其實不算太多。"
+    },
+    {
+      "start": 277.72,
+      "end": 282.88,
+      "en": "It's just under 10% of the available Ram that we have here.",
+      "zh": "不到可用記憶體的 10%。"
+    },
+    {
+      "start": 283.4,
+      "end": 283.84000000000003,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 283.88,
+      "end": 292.28,
+      "en": "And now what I'm going to do actually is just make a little bit of data and just out of curiosity.",
+      "zh": "現在先建立一點資料，純粹好奇看看。"
+    },
+    {
+      "start": 292.28,
+      "end": 294.84000000000003,
+      "en": "So here I'm just creating some data.",
+      "zh": "這裡建立資料。"
+    },
+    {
+      "start": 295,
+      "end": 299.2,
+      "en": "And then I'm going to push it to the GPU like this.",
+      "zh": "像這樣移到 GPU。"
+    },
+    {
+      "start": 299.64,
+      "end": 302.28,
+      "en": "And now we can see batch size is not defined okay.",
+      "zh": "接著顯示 batch_size 未定義。"
+    },
+    {
+      "start": 302.32,
+      "end": 302.84,
+      "en": "Fair enough.",
+      "zh": "好，合理。"
+    },
+    {
+      "start": 303.12,
+      "end": 305.6,
+      "en": "Uh let's set the batch size to be eight.",
+      "zh": "把 batch_size 設成 8。"
+    },
+    {
+      "start": 305.84,
+      "end": 310.24,
+      "en": "And uh, and of course I get an error because that's not how it works.",
+      "zh": "當然又錯了，因為不是這樣寫。"
+    },
+    {
+      "start": 310.24,
+      "end": 311.56,
+      "en": "It goes like this.",
+      "zh": "要這樣。"
+    },
+    {
+      "start": 311.84,
+      "end": 312.98,
+      "en": "Okay, there we go.",
+      "zh": "好，可以了。"
+    },
+    {
+      "start": 313.42,
+      "end": 317.18,
+      "en": "So this was 3.5GB just with the model.",
+      "zh": "只有模型時是 3.5 GB。"
+    },
+    {
+      "start": 317.18,
+      "end": 320.74,
+      "en": "And when I push the data into it, I see that nothing happens.",
+      "zh": "加上資料後，看起來完全沒變。"
+    },
+    {
+      "start": 320.9,
+      "end": 326.66,
+      "en": "Now something actually happened, but it was below the resolution of this printout.",
+      "zh": "其實有變，只是低於這個顯示的解析度。"
+    },
+    {
+      "start": 326.66,
+      "end": 329.86,
+      "en": "So the data really did get sent to the GPU.",
+      "zh": "資料真的有送到 GPU。"
+    },
+    {
+      "start": 329.9,
+      "end": 331.06,
+      "en": "It's on the GPU.",
+      "zh": "確實在 GPU 上。"
+    },
+    {
+      "start": 331.3,
+      "end": 338.74,
+      "en": "It's just that it takes up so little space on the GPU that it doesn't really change the visual display here.",
+      "zh": "只是占的空間太少，這裡的顯示看不出變化。"
+    },
+    {
+      "start": 339.94,
+      "end": 340.22,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 340.26,
+      "end": 342.78,
+      "en": "So let me get rid of this cell.",
+      "zh": "刪掉這個儲存格。"
+    },
+    {
+      "start": 342.82,
+      "end": 344.94,
+      "en": "And now I'm going to run through the training.",
+      "zh": "現在開始訓練。"
+    },
+    {
+      "start": 344.94,
+      "end": 350.3,
+      "en": "And let's see I think there's nothing really interesting I'm going to discuss here.",
+      "zh": "看看，應該沒什麼有趣、需要再解釋的。"
+    },
+    {
+      "start": 350.34000000000003,
+      "end": 352.82,
+      "en": "Yeah just doing the evaluations of course.",
+      "zh": "對，當然也要做評估。"
+    },
+    {
+      "start": 352.86,
+      "end": 360.74,
+      "en": "You know I encourage you to look through all this code, but I have discussed all of the lines of code in this code cell in previous videos.",
+      "zh": "鼓勵你查看全部程式，但這個儲存格的每一行，之前影片都講過。"
+    },
+    {
+      "start": 361.54,
+      "end": 365.98,
+      "en": "I will pause the recording, but I just want to wait to see this thing update here.",
+      "zh": "我會暫停錄影，只是先等這裡更新。"
+    },
+    {
+      "start": 366.42,
+      "end": 366.86,
+      "en": "Wow.",
+      "zh": "哇。"
+    },
+    {
+      "start": 366.9,
+      "end": 372.62,
+      "en": "So it immediately jumped up to 27 out of 40GB.",
+      "zh": "立刻跳到 40 GB 中用了 27 GB。"
+    },
+    {
+      "start": 372.78,
+      "end": 374.14,
+      "en": "Now where did that come from?",
+      "zh": "這些從哪來？"
+    },
+    {
+      "start": 374.14,
+      "end": 375.72,
+      "en": "It didn't come from the model.",
+      "zh": "不是模型。"
+    },
+    {
+      "start": 375.76,
+      "end": 378,
+      "en": "The model was already on the GPU.",
+      "zh": "模型原本就在 GPU。"
+    },
+    {
+      "start": 378.12,
+      "end": 383.08,
+      "en": "And that's already only 3.5GB.",
+      "zh": "而且只有 3.5 GB。"
+    },
+    {
+      "start": 383.08,
+      "end": 384.64,
+      "en": "It didn't come from the data.",
+      "zh": "也不是資料。"
+    },
+    {
+      "start": 384.84,
+      "end": 389.16,
+      "en": "We have seen that the data itself here is very small.",
+      "zh": "剛才看到，資料本身很小。"
+    },
+    {
+      "start": 389.16,
+      "end": 390.24,
+      "en": "It is significant.",
+      "zh": "小得微不足道。"
+    },
+    {
+      "start": 390.28,
+      "end": 391.12,
+      "en": "I don't know what it is.",
+      "zh": "不知道具體多少，"
+    },
+    {
+      "start": 391.12,
+      "end": 394.04,
+      "en": "Maybe it's megabyte or something like that.",
+      "zh": "也許一 MB 左右。"
+    },
+    {
+      "start": 394.2,
+      "end": 400.56,
+      "en": "Like several megabytes, many megabytes, but no where near clogging up this GPU Ram.",
+      "zh": "幾 MB、很多 MB，但遠遠不至於塞滿 GPU 記憶體。"
+    },
+    {
+      "start": 400.68,
+      "end": 407.68,
+      "en": "So where is the you know, where does the extra 24, 23.5GB come from?",
+      "zh": "所以，多出來的 24、23.5 GB 從哪來？"
+    },
+    {
+      "start": 407.68,
+      "end": 408.32,
+      "en": "That's huge.",
+      "zh": "非常多。"
+    },
+    {
+      "start": 408.32,
+      "end": 411.8,
+      "en": "That's like multiple times bigger than the model.",
+      "zh": "是模型本身的好幾倍。"
+    },
+    {
+      "start": 412.68,
+      "end": 422.56,
+      "en": "And the answer is that all of this additional space is coming from intermediate variables as the model is processing the tokens.",
+      "zh": "答案是，這些額外空間來自模型處理詞元時的中間變數。"
+    },
+    {
+      "start": 422.76,
+      "end": 430.72,
+      "en": "For example, if we go back to, uh, let me look up at the size of this matrix okay.",
+      "zh": "例如，回頭看看矩陣大小。"
+    },
+    {
+      "start": 430.76,
+      "end": 437.81,
+      "en": "So for example at the end here we have this output here is 1280 by 50,000.",
+      "zh": "末端這裡，輸出是 1280 乘以五萬。"
+    },
+    {
+      "start": 438.21,
+      "end": 444.65,
+      "en": "And now keep in mind that when we run a batch of data through and we get the output, actually now it's finished training.",
+      "zh": "記得，送進一批資料、取得輸出時，現在其實已訓練完，"
+    },
+    {
+      "start": 444.65,
+      "end": 448.41,
+      "en": "So I can show you the size of that variable.",
+      "zh": "所以可以顯示變數形狀。"
+    },
+    {
+      "start": 448.41,
+      "end": 450.81,
+      "en": "So the output is called outputs.",
+      "zh": "輸出叫 outputs。"
+    },
+    {
+      "start": 450.81,
+      "end": 459.93,
+      "en": "So we can look at outputs dot shape I think we have to do outputs dot uh logits.",
+      "zh": "看看 outputs.shape，我想要用 outputs.logits。"
+    },
+    {
+      "start": 459.97,
+      "end": 460.97,
+      "en": "Let's do that.",
+      "zh": "試試。"
+    },
+    {
+      "start": 461.33,
+      "end": 463.97,
+      "en": "Output dot logits dot shape okay.",
+      "zh": "outputs.logits.shape。"
+    },
+    {
+      "start": 464.01,
+      "end": 467.05,
+      "en": "So these are the logits the outputs of the model.",
+      "zh": "這些是模型輸出的 logits。"
+    },
+    {
+      "start": 467.25,
+      "end": 471.37,
+      "en": "They are eight for batch times 256 for sequence.",
+      "zh": "批次是 8，乘上序列長度 256。"
+    },
+    {
+      "start": 471.40999999999997,
+      "end": 473.73,
+      "en": "Now this alone is not so bad.",
+      "zh": "光這樣還好。"
+    },
+    {
+      "start": 473.73,
+      "end": 475.85,
+      "en": "That's not a terribly large matrix.",
+      "zh": "矩陣還不算非常大。"
+    },
+    {
+      "start": 475.85,
+      "end": 478.89,
+      "en": "But check out the third dimension 50,000.",
+      "zh": "但看看第三個維度，五萬。"
+    },
+    {
+      "start": 478.93,
+      "end": 479.13,
+      "en": "Right.",
+      "zh": "對。"
+    },
+    {
+      "start": 479.17,
+      "end": 490.81,
+      "en": "There is a logit for every single vocab item, for every single token that we have in the sequence, and for every single batch that we have in here.",
+      "zh": "每個批次、每個序列位置的每個詞元，都有對應每一個詞彙項目的 logit。"
+    },
+    {
+      "start": 491.17,
+      "end": 495.61,
+      "en": "So this logits variable is absolutely huge.",
+      "zh": "所以 logits 變數非常龐大。"
+    },
+    {
+      "start": 495.61,
+      "end": 497.01,
+      "en": "It's really, really big.",
+      "zh": "真的非常大。"
+    },
+    {
+      "start": 497.25,
+      "end": 503.19,
+      "en": "So this matrix alone is probably also like full precision.",
+      "zh": "這個矩陣本身，可能還是全精度。"
+    },
+    {
+      "start": 503.19,
+      "end": 504.43,
+      "en": "It's floating point precision.",
+      "zh": "是浮點精度，"
+    },
+    {
+      "start": 504.43,
+      "end": 507.67,
+      "en": "These are not integers, so really takes up a lot of space.",
+      "zh": "不是整數，所以真的占很多空間。"
+    },
+    {
+      "start": 507.83,
+      "end": 511.15,
+      "en": "This matrix alone might be 1 or 2GB.",
+      "zh": "光這個矩陣，可能就有一、兩 GB。"
+    },
+    {
+      "start": 511.39,
+      "end": 522.15,
+      "en": "And then internally in the model there are lots of activations, matrices, gradients, matrices, all sorts of intermediate matrices that get stored.",
+      "zh": "模型內還有許多啟用值矩陣、梯度矩陣，各種需要儲存的中間矩陣。"
+    },
+    {
+      "start": 522.31,
+      "end": 526.91,
+      "en": "And individually those might be hundreds of megabytes or gigabyte.",
+      "zh": "每一個可能就幾百 MB，或一 GB。"
+    },
+    {
+      "start": 526.91,
+      "end": 531.91,
+      "en": "And then you start adding them all up and you end up with a lot of space.",
+      "zh": "全部加起來，就需要很多空間。"
+    },
+    {
+      "start": 531.91,
+      "end": 541.63,
+      "en": "Now, if you are using a 20 gigabyte GPU on Colab, like the L4 processor is 20GB, at least at the",
+      "zh": "如果用 Colab 的 20 GB GPU，例如 L4，在"
+    },
+    {
+      "start": 541.63,
+      "end": 545.39,
+      "en": "time that I'm recording this, you literally cannot run this code.",
+      "zh": "我錄製時大約是 20 GB，就真的跑不了這段程式。"
+    },
+    {
+      "start": 545.39,
+      "end": 546.83,
+      "en": "You will run out of Ram.",
+      "zh": "會記憶體不足。"
+    },
+    {
+      "start": 547.35,
+      "end": 550.79,
+      "en": "So you know this and you can see it's getting up into the red here.",
+      "zh": "你看，這裡已經進入紅色區域。"
+    },
+    {
+      "start": 551.07,
+      "end": 553.27,
+      "en": "So that is just it's just how it goes.",
+      "zh": "這就是現實。"
+    },
+    {
+      "start": 553.27,
+      "end": 557.67,
+      "en": "I'll have a few more words to say about that when I switch back to the slides.",
+      "zh": "回到投影片時，還會多說一點。"
+    },
+    {
+      "start": 557.83,
+      "end": 559.71,
+      "en": "For now we can look at the losses.",
+      "zh": "現在先看損失。"
+    },
+    {
+      "start": 559.91,
+      "end": 562.57,
+      "en": "Uh, they go down steeply In the beginning.",
+      "zh": "一開始快速下降。"
+    },
+    {
+      "start": 562.93,
+      "end": 565.13,
+      "en": "The train loss is still going down.",
+      "zh": "訓練損失仍在下降。"
+    },
+    {
+      "start": 565.13,
+      "end": 574.17,
+      "en": "It looks like the test loss isn't actually going that far down, but I think it's still going to, uh, learn this, uh, structure of the task pretty well.",
+      "zh": "測試損失似乎沒降太多，但我想還是能學會這個任務的結構。"
+    },
+    {
+      "start": 575.25,
+      "end": 576.13,
+      "en": "So let me start.",
+      "zh": "先開始。"
+    },
+    {
+      "start": 576.13,
+      "end": 577.45,
+      "en": "I like this question.",
+      "zh": "我喜歡這個問題。"
+    },
+    {
+      "start": 577.45,
+      "end": 580.93,
+      "en": "Would it be strange to have a pet rock and feed it styrofoam?",
+      "zh": "養寵物石頭，再餵它保麗龍，會很奇怪嗎？"
+    },
+    {
+      "start": 581.09,
+      "end": 585.21,
+      "en": "Let's see what GPT two large thinks of this question.",
+      "zh": "看看 GPT-2 large 怎麼想。"
+    },
+    {
+      "start": 585.73,
+      "end": 591.89,
+      "en": "Okay, so the answer is that it would be strange to have a pet rock and feed it styrofoam, because",
+      "zh": "答案是：「會很奇怪，因為"
+    },
+    {
+      "start": 591.89,
+      "end": 598.13,
+      "en": "the material that the rock is made of, known as calcium silicate, is a liquid at room temperature.",
+      "zh": "石頭的材料，稱為矽酸鈣，在室溫下是液體。」"
+    },
+    {
+      "start": 598.13,
+      "end": 609.97,
+      "en": "So then shouldn't rock be liquid and can be dissolved in alcohol or other solvents when the rock is dried and mixed with soil or other types of mineral to form a paste, the byproduct is poop.",
+      "zh": "那石頭不就該是液體？「而且能溶於酒精或其他溶劑。石頭乾燥後，與土壤或其他礦物混成糊狀，副產物是便便。」"
+    },
+    {
+      "start": 610.37,
+      "end": 614.53,
+      "en": "And this poop is what the rocks are made of, and it's harmful to have a dog that can eat.",
+      "zh": "「這種便便就是石頭的成分，而且養一隻會吃東西的狗有害……」"
+    },
+    {
+      "start": 614.57,
+      "end": 617.45,
+      "en": "Wow, this is really starting to get off into the stratosphere.",
+      "zh": "哇，真的開始飛出外太空了。"
+    },
+    {
+      "start": 617.89,
+      "end": 622.61,
+      "en": "Okay, on the other hand, so that was really, uh, enjoyable to read.",
+      "zh": "另一方面，讀這些確實很有趣。"
+    },
+    {
+      "start": 622.65,
+      "end": 628.55,
+      "en": "Sorry I had to cut the video there to have my own little private unrecorded giggle a little bit.",
+      "zh": "抱歉，剛才得剪掉一段，讓我私下、沒錄影地偷笑一下。"
+    },
+    {
+      "start": 628.59,
+      "end": 631.79,
+      "en": "But if you read a statement like this, this sounds okay.",
+      "zh": "但讀這樣的陳述，聽起來還可以。"
+    },
+    {
+      "start": 631.83,
+      "end": 640.19,
+      "en": "Maybe not the pet rock thing, but if something like this, this sounds very, uh, encyclopedic and compelling.",
+      "zh": "也許不是寵物石頭那段，但類似這樣的內容，聽起來很有百科全書的味道，很有說服力。"
+    },
+    {
+      "start": 640.19,
+      "end": 642.87,
+      "en": "And there's a lot of chemistry words used in here.",
+      "zh": "而且用了很多化學術語。"
+    },
+    {
+      "start": 643.07,
+      "end": 653.03,
+      "en": "And so if you are not a chemist, if you are not already familiar with this domain topic, you might read this and say, oh, yeah, okay, well, ChatGPT knows everything.",
+      "zh": "如果你不是化學家，不熟悉這個領域，可能讀了就想：好，ChatGPT 無所不知。"
+    },
+    {
+      "start": 653.03,
+      "end": 655.63,
+      "en": "So therefore I should believe whatever this thing is saying.",
+      "zh": "所以，應該相信它說的任何話。"
+    },
+    {
+      "start": 656.39,
+      "end": 663.19,
+      "en": "Again, as I've said before, like with ChatGPT, with GPT two, you don't really get this experience",
+      "zh": "再次提醒，用 ChatGPT，應該說 GPT-2，不太會被"
+    },
+    {
+      "start": 663.19,
+      "end": 672.91,
+      "en": "of being fooled into just believing it prima facie, because it is not quite smart enough to really make sensible answers.",
+      "zh": "騙到直接相信，因為它還沒聰明到能給真正合理的答案。"
+    },
+    {
+      "start": 672.95,
+      "end": 679.07,
+      "en": "It would be strange if we didn't already have some kind of relationship with the natural world where part of it, if we're not, we.",
+      "zh": "「如果我們與自然世界還沒有某種關係，那會很奇怪，其中一部分，如果我們不，我們……」"
+    },
+    {
+      "start": 679.11,
+      "end": 682.91,
+      "en": "Okay, so this is also, you know, something that could be interesting.",
+      "zh": "好，這也可能很有意思。"
+    },
+    {
+      "start": 683.31,
+      "end": 683.95,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 684.03,
+      "end": 687.37,
+      "en": "Uh, let's see, where does the word butterfly come from.",
+      "zh": "看看，butterfly 這個字從哪來？"
+    },
+    {
+      "start": 687.69,
+      "end": 695.17,
+      "en": "By the way, I really hope that you enjoy interacting with these early GPT models as much as I do.",
+      "zh": "順帶一提，真的希望你像我一樣，享受與早期 GPT 模型互動。"
+    },
+    {
+      "start": 695.37,
+      "end": 698.41,
+      "en": "So much more fun than GPT.",
+      "zh": "比 GPT 好玩多了。"
+    },
+    {
+      "start": 699.61,
+      "end": 707.53,
+      "en": "Uh, I apologize, I keep having to edit the video because I keep laughing uncontrollably as I try to",
+      "zh": "抱歉，一邊讀這些答案、一邊想保持嚴肅專業的老師模樣，總是忍不住大笑，"
+    },
+    {
+      "start": 707.53,
+      "end": 711.73,
+      "en": "read these answers and also look like a very serious and professional teacher.",
+      "zh": "所以一直得剪輯影片。"
+    },
+    {
+      "start": 713.21,
+      "end": 717.89,
+      "en": "La do not learn to chat the same way that we humans do.",
+      "zh": "LLM 學聊天的方式，與人類不同。"
+    },
+    {
+      "start": 718.41,
+      "end": 725.93,
+      "en": "We think of questions as being the start of the conversation, but that's not how the models are trained.",
+      "zh": "我們認為問題是對話起點，但模型不是這樣訓練的。"
+    },
+    {
+      "start": 726.13,
+      "end": 732.53,
+      "en": "They're just trained on extremely long sequences that are broken up into shorter segments.",
+      "zh": "它們只是用極長序列訓練，再切成較短片段。"
+    },
+    {
+      "start": 732.85,
+      "end": 737.73,
+      "en": "So to a model, the question is just one part of a pattern.",
+      "zh": "所以對模型而言，問題只是模式的一部分。"
+    },
+    {
+      "start": 738.17,
+      "end": 744.13,
+      "en": "If you would start asking a model a question, it will learn to continue the pattern.",
+      "zh": "開始向模型提問，它就會學著延續模式。"
+    },
+    {
+      "start": 744.13,
+      "end": 749.07,
+      "en": "But to the model that's just as good as the starting point as any other point.",
+      "zh": "但對模型來說，這個起點和其他起點一樣。"
+    },
+    {
+      "start": 749.79,
+      "end": 760.15,
+      "en": "Another practical point from this video is that the real problems with memory from training llms don't come from just the models themselves.",
+      "zh": "另一個實務重點是，訓練 LLM 的記憶體問題，不只是模型本身。"
+    },
+    {
+      "start": 760.79,
+      "end": 762.67,
+      "en": "The models can be fairly big.",
+      "zh": "模型可能很大。"
+    },
+    {
+      "start": 762.71,
+      "end": 766.27,
+      "en": "They can be many gigabytes or even tens of gigabytes.",
+      "zh": "可能幾 GB，甚至幾十 GB。"
+    },
+    {
+      "start": 766.59,
+      "end": 772.71,
+      "en": "But that's not the real limiting factor in terms of computational power during training.",
+      "zh": "但訓練時，這還不是真正限制運算能力的因素。"
+    },
+    {
+      "start": 773.39,
+      "end": 780.99,
+      "en": "The real bottleneck is all of the intermediate matrices, which get to be really large, and there's quite a few of them.",
+      "zh": "真正瓶頸是所有中間矩陣，它們很大，而且數量很多。"
+    },
+    {
+      "start": 781.51,
+      "end": 792.79,
+      "en": "And that is especially true at the beginning and at the end of the model, where the sizes of the matrices expand enormously for the vocab.",
+      "zh": "尤其是模型開頭與末端，矩陣大小因詞彙表而大幅擴張。"
+    },
+    {
+      "start": 793.75,
+      "end": 801.87,
+      "en": "So if you are working on developing Llms, one of the activities that you will spend some time on is",
+      "zh": "所以，如果開發 LLM，有一部分時間，"
+    },
+    {
+      "start": 801.87,
+      "end": 810.59,
+      "en": "figuring out how to minimize the number of these really large matrices that you have to calculate and store at a time.",
+      "zh": "會花在想辦法減少同一時間必須計算、儲存的巨型矩陣數量。"
+    }
+  ]
+}

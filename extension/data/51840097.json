@@ -1,0 +1,1591 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840097",
+  "title": "CodeChallenge: Code Attention manually and in Pytorch",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b00a18d9c27754e9c7124829b3d90895b76c40055c772004566385d9260b3d15",
+  "cues": [
+    {
+      "start": 2,
+      "end": 9.68,
+      "en": "The goal of this code challenge is to translate the formulas that I showed in the previous video into",
+      "zh": "這個程式挑戰的目標，是把上一支影片展示的公式轉成"
+    },
+    {
+      "start": 9.68,
+      "end": 18.36,
+      "en": "code, and then I'll introduce a Python function that actually implements the attention algorithm in an optimized way.",
+      "zh": "程式碼，然後介紹一個以最佳化方式實作注意力演算法的 Python 函數。"
+    },
+    {
+      "start": 18.64,
+      "end": 21.8,
+      "en": "And then we'll run some computation time tests.",
+      "zh": "接著做一些運算時間測試。"
+    },
+    {
+      "start": 22,
+      "end": 26.72,
+      "en": "Now we won't be building models or working with real data here.",
+      "zh": "這裡不會建立模型，也不會處理真實資料。"
+    },
+    {
+      "start": 27.12,
+      "end": 36.32,
+      "en": "Instead, we'll simulate some small data sets and just focus on the attention equation without having to worry about anything else.",
+      "zh": "而是模擬一些小型資料，只聚焦在注意力方程式，不必操心其他部分。"
+    },
+    {
+      "start": 37.36,
+      "end": 44.96,
+      "en": "Exercise one involves setting up the variables and the PyTorch objects, so there's no attention here.",
+      "zh": "練習一是設定變數與 PyTorch 物件，所以還沒有注意力計算。"
+    },
+    {
+      "start": 45.08,
+      "end": 46.6,
+      "en": "That's an exercise two.",
+      "zh": "那是練習二的內容。"
+    },
+    {
+      "start": 47.12,
+      "end": 52.72,
+      "en": "So here you want to create a token data set using these parameters.",
+      "zh": "這裡請使用這些參數，建立詞元資料集。"
+    },
+    {
+      "start": 52.92,
+      "end": 57.84,
+      "en": "So a batch size of four sequence length or context length of eight.",
+      "zh": "批次大小為 4，序列長度，也就是上下文長度為 8。"
+    },
+    {
+      "start": 58.28,
+      "end": 61.36,
+      "en": "And a vocab that has 40 tokens.",
+      "zh": "詞彙表包含 40 個詞元。"
+    },
+    {
+      "start": 62.08,
+      "end": 73.2,
+      "en": "Then create an embeddings matrix with ten dimensions and create a query key and value matrices so objects",
+      "zh": "接著建立 10 維的嵌入矩陣，以及查詢、鍵、值矩陣，這些物件"
+    },
+    {
+      "start": 73.36,
+      "end": 76.76,
+      "en": "as instances of n dot linear.",
+      "zh": "都是 nn.Linear 的實例。"
+    },
+    {
+      "start": 77.48,
+      "end": 88.2,
+      "en": "Finally, simulate a forward pass of the model by going from tokens to embeddings, and then to the Q, k, and v matrices.",
+      "zh": "最後模擬模型前向傳播，從詞元到嵌入，再到 Q、K、V 矩陣。"
+    },
+    {
+      "start": 88.76,
+      "end": 95.84,
+      "en": "When you've finished creating and processing those data, you can print out all the sizes of the matrices,",
+      "zh": "建立並處理完資料後，可以印出所有矩陣的大小。"
+    },
+    {
+      "start": 96.28,
+      "end": 102.75999999999999,
+      "en": "and if you use all of these parameters, you should be able to reproduce these results here.",
+      "zh": "如果使用這裡的所有參數，應該能重現這些結果。"
+    },
+    {
+      "start": 103.4,
+      "end": 109.32,
+      "en": "When you have all of those matrices, you will be ready to implement the attention equation.",
+      "zh": "準備好這些矩陣，就能實作注意力方程式。"
+    },
+    {
+      "start": 109.68,
+      "end": 112.68,
+      "en": "So pause the video work through this exercise.",
+      "zh": "請暫停影片，完成這個練習。"
+    },
+    {
+      "start": 112.68,
+      "end": 115.28,
+      "en": "And now I will show my solution.",
+      "zh": "現在展示我的解法。"
+    },
+    {
+      "start": 116.47999999999999,
+      "end": 117.75999999999999,
+      "en": "Import some libraries.",
+      "zh": "匯入幾個函式庫。"
+    },
+    {
+      "start": 117.75999999999999,
+      "end": 124.03,
+      "en": "Here is where I translate the parameters that I showed in the slides into variables.",
+      "zh": "這裡把投影片上的參數寫成變數。"
+    },
+    {
+      "start": 124.03,
+      "end": 126.47,
+      "en": "And here's where I'm simulating the data.",
+      "zh": "這裡模擬資料。"
+    },
+    {
+      "start": 126.47,
+      "end": 128.19,
+      "en": "So I'm simulating tokens.",
+      "zh": "也就是模擬詞元。"
+    },
+    {
+      "start": 128.47,
+      "end": 137.71,
+      "en": "They are random integers drawn between zero and vocab size which is 40 and the size of the resulting data matrix.",
+      "zh": "用 0 到詞彙表大小 40 之間的隨機整數，並指定資料矩陣的大小。"
+    },
+    {
+      "start": 137.71,
+      "end": 143.55,
+      "en": "So the tokens is batches by context length okay or sequence length.",
+      "zh": "所以詞元張量是「批次大小 × 上下文長度」，也就是序列長度。"
+    },
+    {
+      "start": 144.03,
+      "end": 151.15,
+      "en": "Here I create the embeddings matrix and here I create the key query and value matrices.",
+      "zh": "這裡建立嵌入矩陣，這裡建立鍵、查詢、值矩陣。"
+    },
+    {
+      "start": 151.39,
+      "end": 155.15,
+      "en": "These are all initialized to be non linear.",
+      "zh": "這些全都初始化為 nn.Linear。"
+    },
+    {
+      "start": 155.15,
+      "end": 157.07,
+      "en": "So just linear matrices.",
+      "zh": "也就是線性矩陣。"
+    },
+    {
+      "start": 157.59,
+      "end": 168.19,
+      "en": "And for now when we are just dealing with single head attention then we have their all of square matrices of the size embeddings by embeddings.",
+      "zh": "目前只處理單頭注意力，因此它們都是方陣，大小為「嵌入維度 × 嵌入維度」。"
+    },
+    {
+      "start": 168.19,
+      "end": 170.43,
+      "en": "So in this case ten by ten.",
+      "zh": "這裡也就是 10 × 10。"
+    },
+    {
+      "start": 170.91,
+      "end": 176.99,
+      "en": "In the future when we start working with multi-head attention these will be sliced up slightly differently.",
+      "zh": "之後處理多頭注意力時，切分方式會稍有不同。"
+    },
+    {
+      "start": 177.03,
+      "end": 178.31,
+      "en": "We'll get to that later.",
+      "zh": "之後再談。"
+    },
+    {
+      "start": 178.59,
+      "end": 178.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 178.95,
+      "end": 180.03,
+      "en": "So run that code.",
+      "zh": "執行程式碼。"
+    },
+    {
+      "start": 180.51,
+      "end": 182.67,
+      "en": "And now here I'm processing the data.",
+      "zh": "現在處理資料。"
+    },
+    {
+      "start": 182.67,
+      "end": 186.47,
+      "en": "So this is kind of like simulating a forward pass through a model.",
+      "zh": "有點像模擬資料通過模型的前向傳播。"
+    },
+    {
+      "start": 186.83,
+      "end": 192.19,
+      "en": "So I take the tokens, pass them through the embeddings to get embeddings vectors.",
+      "zh": "取出詞元，送入嵌入層，得到嵌入向量。"
+    },
+    {
+      "start": 192.39,
+      "end": 199.63,
+      "en": "And then the embeddings vectors multiply the key matrix the query matrix and the value matrix.",
+      "zh": "然後把嵌入向量分別乘上鍵矩陣、查詢矩陣與值矩陣。"
+    },
+    {
+      "start": 199.63,
+      "end": 204.67000000000002,
+      "en": "And I call those results lowercase k, q and v.",
+      "zh": "結果分別叫做小寫 k、q、v。"
+    },
+    {
+      "start": 204.95,
+      "end": 211.31,
+      "en": "Now in the previous video, the notation that I used in the previous video, this matrix here would",
+      "zh": "用上一支影片的符號來說，這裡的矩陣"
+    },
+    {
+      "start": 211.31,
+      "end": 220.82999999999998,
+      "en": "correspond to the boldface capital k, q, and v, and these would correspond to the italics uppercase",
+      "zh": "對應粗體大寫的 K、Q、V，而這些結果則對應斜體大寫的"
+    },
+    {
+      "start": 220.91,
+      "end": 222.27,
+      "en": "k, q and v.",
+      "zh": "K、Q、V。"
+    },
+    {
+      "start": 223.55,
+      "end": 223.82999999999998,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 223.87,
+      "end": 225.43,
+      "en": "So run that and yeah.",
+      "zh": "執行一下。"
+    },
+    {
+      "start": 225.47,
+      "end": 227.47,
+      "en": "Then here I'm just printing out the sizes.",
+      "zh": "這裡只是印出大小。"
+    },
+    {
+      "start": 227.63,
+      "end": 228.87,
+      "en": "And what are all these sizes.",
+      "zh": "這些大小各代表什麼？"
+    },
+    {
+      "start": 228.87,
+      "end": 231.31,
+      "en": "Let's check them and make sure they make sense.",
+      "zh": "來確認它們是否合理。"
+    },
+    {
+      "start": 231.31,
+      "end": 236.67000000000002,
+      "en": "So the data matrix is batches by sequence length.",
+      "zh": "資料矩陣是「批次大小 × 序列長度」。"
+    },
+    {
+      "start": 236.67000000000002,
+      "end": 240.51,
+      "en": "And these are going to be integers corresponding to tokens.",
+      "zh": "裡面是對應詞元的整數。"
+    },
+    {
+      "start": 240.99,
+      "end": 250.79,
+      "en": "The embeddings are 40 by ten, and that's because we have a vocab size of 40 with embeddings of ten,",
+      "zh": "嵌入矩陣是 40 × 10，因為詞彙表大小為 40，而嵌入是 10，"
+    },
+    {
+      "start": 250.83,
+      "end": 252.07,
+      "en": "embedding size of ten.",
+      "zh": "也就是嵌入維度為 10。"
+    },
+    {
+      "start": 252.35,
+      "end": 254.39,
+      "en": "And remember this is the embeddings matrix.",
+      "zh": "記得，這是嵌入矩陣。"
+    },
+    {
+      "start": 254.39,
+      "end": 259.19,
+      "en": "This is not yet the embeddings vectors of our data that comes here.",
+      "zh": "還不是資料的嵌入向量；那是在這裡。"
+    },
+    {
+      "start": 259.19,
+      "end": 265.87,
+      "en": "The token embeddings is batch by context, length by embeddings, dimensionality.",
+      "zh": "詞元嵌入的形狀是「批次大小 × 上下文長度 × 嵌入維度」。"
+    },
+    {
+      "start": 266.35,
+      "end": 268.47,
+      "en": "And these matrices are ten by ten.",
+      "zh": "這些矩陣則是 10 × 10。"
+    },
+    {
+      "start": 268.71,
+      "end": 276.95,
+      "en": "And then the size of the italics q, k and v matrices are four by eight by ten.",
+      "zh": "而斜體 Q、K、V 矩陣的大小是 4 × 8 × 10。"
+    },
+    {
+      "start": 277.23,
+      "end": 284.43,
+      "en": "That corresponds to four batches sequence length of eight and embedding dimensionality of ten.",
+      "zh": "對應 4 個批次項目、序列長度 8、嵌入維度 10。"
+    },
+    {
+      "start": 285.67,
+      "end": 287.90999999999997,
+      "en": "Now for exercise two.",
+      "zh": "接著是練習二。"
+    },
+    {
+      "start": 288.31,
+      "end": 292.47,
+      "en": "This is where you will implement the attention mechanism.",
+      "zh": "這裡要實作注意力機制。"
+    },
+    {
+      "start": 293.07,
+      "end": 295.55,
+      "en": "There are three parts to this exercise.",
+      "zh": "這個練習有三個部分。"
+    },
+    {
+      "start": 295.55,
+      "end": 300.19,
+      "en": "The first part is to implement the attention equation in manually.",
+      "zh": "第一部分是手動實作注意力方程式。"
+    },
+    {
+      "start": 300.35,
+      "end": 303.71,
+      "en": "Here you see a reminder of that equation.",
+      "zh": "這裡再提醒一下方程式。"
+    },
+    {
+      "start": 303.91,
+      "end": 309.15,
+      "en": "So your goal is to translate this formula into Python code.",
+      "zh": "目標是把這條公式轉成 Python 程式。"
+    },
+    {
+      "start": 309.83,
+      "end": 317.71,
+      "en": "By the way, you'll remember from the previous video that there was another matrix to the right here called w sub zero.",
+      "zh": "順帶一提，上一支影片中，右側還有另一個矩陣，叫 Wₒ。"
+    },
+    {
+      "start": 318.31,
+      "end": 319.99,
+      "en": "Now don't worry about that for now.",
+      "zh": "現在先不用管它。"
+    },
+    {
+      "start": 319.99,
+      "end": 324.99,
+      "en": "I will discuss that matrix when we get back to Multi-head attention.",
+      "zh": "回到多頭注意力時會再討論。"
+    },
+    {
+      "start": 325.71,
+      "end": 334.15,
+      "en": "Anyway, when you have this code working, print out the size of the activations tensor and you should get this result.",
+      "zh": "程式能運作後，印出活化張量的大小，應該會得到這個結果。"
+    },
+    {
+      "start": 334.27,
+      "end": 339.90999999999997,
+      "en": "So batch by token sequence length by embeddings dimension.",
+      "zh": "也就是「批次大小 × 詞元序列長度 × 嵌入維度」。"
+    },
+    {
+      "start": 340.31,
+      "end": 341.63,
+      "en": "Now just a heads up.",
+      "zh": "先提醒一下。"
+    },
+    {
+      "start": 341.83,
+      "end": 344.47,
+      "en": "Be mindful of the transpose here.",
+      "zh": "注意這裡的轉置。"
+    },
+    {
+      "start": 344.99,
+      "end": 348.79,
+      "en": "And remember that these are multi-dimensional tensors.",
+      "zh": "記得，這些都是多維張量。"
+    },
+    {
+      "start": 348.95,
+      "end": 357.99,
+      "en": "And that you do not want to transpose the batch dimension to get k to to dot product with q.",
+      "zh": "要讓 K 與 Q 做內積時，不要把批次維度也轉置。"
+    },
+    {
+      "start": 359.46,
+      "end": 367.94,
+      "en": "The second part of exercise two is to look up this PyTorch function here f scaled dot product.",
+      "zh": "練習二的第二部分，是查閱這個 PyTorch 函數：F.scaled_dot_product_"
+    },
+    {
+      "start": 367.98,
+      "end": 368.7,
+      "en": "Attention.",
+      "zh": "attention。"
+    },
+    {
+      "start": 369.18,
+      "end": 371.06,
+      "en": "Now I'm not going to tell you how to use it.",
+      "zh": "我不會告訴你怎麼用。"
+    },
+    {
+      "start": 371.06,
+      "end": 372.26,
+      "en": "That's your goal here.",
+      "zh": "這正是你在這裡的任務。"
+    },
+    {
+      "start": 372.62,
+      "end": 381.1,
+      "en": "But I will tell you that it should produce the same results as your manual implementation from the first part of exercise two.",
+      "zh": "但可以告訴你，它應該產生和練習二第一部分手動實作相同的結果。"
+    },
+    {
+      "start": 381.7,
+      "end": 392.3,
+      "en": "And in fact, the third part of exercise two is to compare your manual calculations with the output of this PyTorch function.",
+      "zh": "其實，第三部分就是比較手動計算結果，與這個 PyTorch 函數的輸出。"
+    },
+    {
+      "start": 392.82,
+      "end": 397.26,
+      "en": "So you can see if they match literally exactly identically.",
+      "zh": "看看是否逐值完全一樣。"
+    },
+    {
+      "start": 397.74,
+      "end": 404.78,
+      "en": "And also see if PyTorch considers them to be close enough using the function PyTorch close.",
+      "zh": "也使用 torch.allclose，看看 PyTorch 是否認為它們已足夠接近。"
+    },
+    {
+      "start": 405.74,
+      "end": 406.38,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 406.42,
+      "end": 408.74,
+      "en": "Enjoy working through this exercise.",
+      "zh": "希望你享受這個練習。"
+    },
+    {
+      "start": 408.86,
+      "end": 412.46,
+      "en": "And now I will show and discuss my code solution.",
+      "zh": "現在展示並說明我的解法。"
+    },
+    {
+      "start": 413.65999999999997,
+      "end": 418.74,
+      "en": "So here we are with the manual implementation of the attention algorithm.",
+      "zh": "這就是手動實作注意力演算法。"
+    },
+    {
+      "start": 419.18,
+      "end": 425.18,
+      "en": "It gets a little bit tricky and there are multiple correct ways to implement, especially the masking part of it.",
+      "zh": "有點棘手，而且有多種正確寫法，尤其是遮罩部分。"
+    },
+    {
+      "start": 425.66,
+      "end": 430.78,
+      "en": "Okay, so here is the part inside the softmax function.",
+      "zh": "好，這是 softmax 裡面的部分。"
+    },
+    {
+      "start": 430.78,
+      "end": 433.3,
+      "en": "So q times k transpose.",
+      "zh": "Q 乘以 K 的轉置。"
+    },
+    {
+      "start": 433.3,
+      "end": 435.42,
+      "en": "So q times k transpose.",
+      "zh": "也就是 Q 乘以 K 的轉置。"
+    },
+    {
+      "start": 435.78,
+      "end": 443.82,
+      "en": "The only tricky part here is you want to make sure that you're not transposing the first dimension, which is the batch dimension.",
+      "zh": "唯一棘手的是，不要轉置第一個維度，也就是批次維度。"
+    },
+    {
+      "start": 444.06,
+      "end": 445.5,
+      "en": "So we want to transpose.",
+      "zh": "所以要轉置的是，"
+    },
+    {
+      "start": 445.54,
+      "end": 446.94,
+      "en": "Let me scroll back up here.",
+      "zh": "我往上捲一下。"
+    },
+    {
+      "start": 447.22,
+      "end": 452.58,
+      "en": "So we want to calculate the all of the dot products between Q and k.",
+      "zh": "我們想計算 Q 與 K 之間所有的內積。"
+    },
+    {
+      "start": 453.18,
+      "end": 457.7,
+      "en": "And that is this times this transpose.",
+      "zh": "就是這個，乘上這個的轉置。"
+    },
+    {
+      "start": 457.94,
+      "end": 459.26,
+      "en": "So it's q.",
+      "zh": "所以是 Q。"
+    },
+    {
+      "start": 459.3,
+      "end": 461.46,
+      "en": "You do not need to transpose K.",
+      "zh": "不需要轉置，K，"
+    },
+    {
+      "start": 461.5,
+      "end": 462.58,
+      "en": "You need to transpose.",
+      "zh": "需要轉置的是，"
+    },
+    {
+      "start": 462.58,
+      "end": 466.14,
+      "en": "But again you don't want to transpose the batch dimension.",
+      "zh": "但再次強調，不要轉置批次維度。"
+    },
+    {
+      "start": 466.34000000000003,
+      "end": 468.82,
+      "en": "Those have to match exactly.",
+      "zh": "那些維度必須完全一致。"
+    },
+    {
+      "start": 469.1,
+      "end": 479.06,
+      "en": "Another way to think about it is that if you would calculate q times k transpose inside A for loop over the different batch elements.",
+      "zh": "另一種想法是，假設用 for 迴圈遍歷每個批次項目，計算 Q 乘以 K 的轉置。"
+    },
+    {
+      "start": 479.34000000000003,
+      "end": 483.22,
+      "en": "Then you would have this matrix by this matrix transpose.",
+      "zh": "那就是這個矩陣，乘上這個矩陣的轉置。"
+    },
+    {
+      "start": 483.46,
+      "end": 487.9,
+      "en": "And the first batch dimension would just be iterated through in a for loop.",
+      "zh": "最前面的批次維度，則由 for 迴圈逐一處理。"
+    },
+    {
+      "start": 488.98,
+      "end": 490.42,
+      "en": "So you can do it in a for loop.",
+      "zh": "所以也可以用 for 迴圈做。"
+    },
+    {
+      "start": 490.42,
+      "end": 491.58,
+      "en": "That's also fine.",
+      "zh": "這樣也沒問題。"
+    },
+    {
+      "start": 491.58,
+      "end": 494.82,
+      "en": "But we want to avoid for loops for efficiency's sake.",
+      "zh": "但為了效率，我們想避免 for 迴圈。"
+    },
+    {
+      "start": 494.98,
+      "end": 495.42,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 495.62,
+      "end": 499.9,
+      "en": "So uh, so you only transpose the final two dimensions there.",
+      "zh": "所以只轉置最後兩個維度。"
+    },
+    {
+      "start": 500.46,
+      "end": 505.98,
+      "en": "Here is where I variance scale the QQ transpose multiplication.",
+      "zh": "這裡對 Q Kᵀ 的乘積做變異數縮放。"
+    },
+    {
+      "start": 505.98,
+      "end": 516.34,
+      "en": "So literally just qq times the embedding dimension to the power of -0.5, which means one over the square root of embeddings.",
+      "zh": "就是 Q Kᵀ 乘以嵌入維度的 -0.5 次方，也就是除以嵌入維度的平方根。"
+    },
+    {
+      "start": 516.34,
+      "end": 518.22,
+      "en": "I don't know why it did it this way.",
+      "zh": "不知道為什麼我選這樣寫。"
+    },
+    {
+      "start": 518.22,
+      "end": 525.86,
+      "en": "You could have also written it out as like this, uh, torch square root of n embeddings if you solved it this way.",
+      "zh": "也可以寫成像這樣，使用 torch.sqrt 與嵌入維度。如果你這樣解，"
+    },
+    {
+      "start": 525.98,
+      "end": 526.38,
+      "en": "Also.",
+      "zh": "也"
+    },
+    {
+      "start": 526.38,
+      "end": 526.94,
+      "en": "Great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 527.62,
+      "end": 528.02,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 528.06,
+      "end": 529.9,
+      "en": "And then here's where we create the mask.",
+      "zh": "接著建立遮罩。"
+    },
+    {
+      "start": 529.9,
+      "end": 539.14,
+      "en": "So this mask you have created in the previous video or two videos ago when we discussed, uh, creating this mask.",
+      "zh": "這個遮罩，在前一支，或前兩支討論建立遮罩的影片裡已經做過。"
+    },
+    {
+      "start": 539.54,
+      "end": 548.94,
+      "en": "And now here is where I apply softmax to qk scaled with all of the values that are zero in the mask",
+      "zh": "這裡對縮放後的 QK 做 softmax，並把遮罩中等於零的位置"
+    },
+    {
+      "start": 548.94,
+      "end": 550.98,
+      "en": "set to minus infinity.",
+      "zh": "設為負無限大。"
+    },
+    {
+      "start": 551.62,
+      "end": 557.58,
+      "en": "And yeah, make sure you calculate softmax across the columns separately for each row.",
+      "zh": "要記得在每一列內，沿欄方向計算 softmax。"
+    },
+    {
+      "start": 558.02,
+      "end": 569.94,
+      "en": "And then finally after the softmax is applied to the masked qk transpose calculation, that is when you multiply by the v or the values matrix.",
+      "zh": "最後，對加上遮罩的 Q Kᵀ 計算結果做完 softmax，才乘上 V，也就是值矩陣。"
+    },
+    {
+      "start": 570.46,
+      "end": 570.74,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 570.78,
+      "end": 572.94,
+      "en": "So then we can run this code.",
+      "zh": "現在執行程式碼。"
+    },
+    {
+      "start": 572.94,
+      "end": 574.46,
+      "en": "And this is giving me an error.",
+      "zh": "這裡出現錯誤。"
+    },
+    {
+      "start": 574.62,
+      "end": 577.18,
+      "en": "And ah okay.",
+      "zh": "啊，好。"
+    },
+    {
+      "start": 577.22,
+      "end": 580.74,
+      "en": "This error is just because it doesn't like yeah it wants this to be a list.",
+      "zh": "錯誤只是因為它希望這裡是一個串列。"
+    },
+    {
+      "start": 580.74,
+      "end": 585.22,
+      "en": "But I think I will actually just go leave it the way I initially calculated it.",
+      "zh": "但我想還是先保留最初的計算方式。"
+    },
+    {
+      "start": 585.54,
+      "end": 586.38,
+      "en": "Okay great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 586.62,
+      "end": 591.26,
+      "en": "And let's see here is f dot scaled dot product attention.",
+      "zh": "接著是 F.scaled_dot_product_attention。"
+    },
+    {
+      "start": 591.26,
+      "end": 593.02,
+      "en": "This is really easy to use.",
+      "zh": "非常容易使用。"
+    },
+    {
+      "start": 593.26,
+      "end": 600.17,
+      "en": "This one line of code here corresponds to all of these lines of code here.",
+      "zh": "這一行就對應這裡所有這些行。"
+    },
+    {
+      "start": 600.61,
+      "end": 601.97,
+      "en": "So you have a choice.",
+      "zh": "因此你可以選擇。"
+    },
+    {
+      "start": 601.97,
+      "end": 608.81,
+      "en": "You can write out all of this stuff, possibly make some typos, possibly make some errors, like what I just did over here.",
+      "zh": "可以自己寫出全部內容，可能打錯字，也可能出錯，就像我剛才這樣。"
+    },
+    {
+      "start": 609.81,
+      "end": 618.81,
+      "en": "Or you can call this one function over here and just input these three matrices that we have calculated here.",
+      "zh": "或者直接呼叫這個函數，傳入這裡算好的三個矩陣。"
+    },
+    {
+      "start": 618.81,
+      "end": 625.73,
+      "en": "These are the embeddings vectors passed through the q, k and v weights.",
+      "zh": "這些是嵌入向量通過 Q、K、V 權重後的結果。"
+    },
+    {
+      "start": 626.13,
+      "end": 634.17,
+      "en": "And then you want to make sure to include this input for optional input for is causal equals true okay.",
+      "zh": "接著記得加入這個可選參數：is_causal=True。"
+    },
+    {
+      "start": 634.21,
+      "end": 639.25,
+      "en": "So we can already see that this matrix is the same size as this matrix.",
+      "zh": "現在已經可以看到，這個矩陣與另一個矩陣大小相同。"
+    },
+    {
+      "start": 639.37,
+      "end": 642.49,
+      "en": "Hopefully these are exactly equal to each other.",
+      "zh": "希望它們也完全相等。"
+    },
+    {
+      "start": 642.81,
+      "end": 644.09,
+      "en": "That's what I'm doing here.",
+      "zh": "這裡就是要檢查這件事。"
+    },
+    {
+      "start": 644.09,
+      "end": 651.81,
+      "en": "So I'm printing out the manual calculation the PyTorch this activation here and then subtracting them.",
+      "zh": "印出手動計算、PyTorch 算出的活化值，再把它們相減。"
+    },
+    {
+      "start": 651.81,
+      "end": 653.81,
+      "en": "Let me comment this and run this.",
+      "zh": "我先把這行註解掉，再執行。"
+    },
+    {
+      "start": 653.81,
+      "end": 659.09,
+      "en": "So you can see if you just look at these numbers it certainly looks like they are the same.",
+      "zh": "單看數字，確實像是一樣。"
+    },
+    {
+      "start": 659.09,
+      "end": 661.29,
+      "en": "So this number matches this number.",
+      "zh": "這個數字和這個相符。"
+    },
+    {
+      "start": 661.53,
+      "end": 663.33,
+      "en": "This number matches this number.",
+      "zh": "這個也和這個相符。"
+    },
+    {
+      "start": 663.65,
+      "end": 668.01,
+      "en": "Of course the numbers that you have will be completely different from mine.",
+      "zh": "當然，你得到的數字會和我完全不同。"
+    },
+    {
+      "start": 668.01,
+      "end": 669.37,
+      "en": "These are all random numbers.",
+      "zh": "因為都是隨機數。"
+    },
+    {
+      "start": 669.45,
+      "end": 672.45,
+      "en": "What's important is that they match here and here.",
+      "zh": "重點是你自己的這裡與這裡要一致。"
+    },
+    {
+      "start": 672.73,
+      "end": 674.41,
+      "en": "And if they really are the same.",
+      "zh": "如果真的一樣，"
+    },
+    {
+      "start": 675.09,
+      "end": 683.17,
+      "en": "So you know we really implemented our attention algorithm accurately, then their difference should be zero.",
+      "zh": "也就是確實正確實作注意力演算法，那麼差應該是零。"
+    },
+    {
+      "start": 684.21,
+      "end": 685.77,
+      "en": "And that's what we see here.",
+      "zh": "這裡看到的就是如此。"
+    },
+    {
+      "start": 685.97,
+      "end": 688.29,
+      "en": "So these look like exact zeros.",
+      "zh": "這些看起來完全是零。"
+    },
+    {
+      "start": 688.33,
+      "end": 695.01,
+      "en": "These do not look like exact zeros but they are you know ten to the -810 to the minus nine.",
+      "zh": "這些不完全是零，但在 10 的負 8 次方、負 9 次方這個量級。"
+    },
+    {
+      "start": 695.09,
+      "end": 699.89,
+      "en": "So although they are not a literal exact perfect match.",
+      "zh": "所以雖然不是逐值精確、完美地一致，"
+    },
+    {
+      "start": 700.09,
+      "end": 704.73,
+      "en": "So when we write torched equal the answer there is false.",
+      "zh": "用 torch.equal 檢查時，答案為 False。"
+    },
+    {
+      "start": 704.73,
+      "end": 707.61,
+      "en": "They're not a perfect exact match.",
+      "zh": "它們沒有精確到完全相同。"
+    },
+    {
+      "start": 707.81,
+      "end": 709.61,
+      "en": "But, uh, yeah.",
+      "zh": "但是，對。"
+    },
+    {
+      "start": 709.65,
+      "end": 718.69,
+      "en": "Just due to, you know, some minor calculation, implementation differences and rounding errors, they are going to be very close.",
+      "zh": "只是因為細微的計算、實作差異與四捨五入誤差，它們仍非常接近。"
+    },
+    {
+      "start": 718.69,
+      "end": 721.57,
+      "en": "So they we consider them to be very close to each other.",
+      "zh": "所以會認為兩者足夠接近。"
+    },
+    {
+      "start": 721.89,
+      "end": 731.01,
+      "en": "Now, all that said, uh, this PyTorch function includes multiple additional tweaks to ensure numerical",
+      "zh": "不過，這個 PyTorch 函數還包含額外調整，以確保數值"
+    },
+    {
+      "start": 731.01,
+      "end": 733.45,
+      "en": "stability and efficiency and so on.",
+      "zh": "穩定性、效率等等。"
+    },
+    {
+      "start": 733.45,
+      "end": 742.13,
+      "en": "So I would guess that this is more trustworthy than our calculations up here just because, yeah, this",
+      "zh": "因此我猜，它會比上面的計算更值得信賴，因為"
+    },
+    {
+      "start": 742.13,
+      "end": 746.73,
+      "en": "function is literally optimized to produce exactly what we do up here.",
+      "zh": "這個函數就是為了上面做的事，而專門最佳化的。"
+    },
+    {
+      "start": 747.93,
+      "end": 758.13,
+      "en": "Now that you have two implementations of the attention algorithm code that manually implements the equation and the PyTorch optimized function.",
+      "zh": "現在你有兩種注意力演算法實作：手動實作方程式的程式，以及 PyTorch 最佳化函數。"
+    },
+    {
+      "start": 758.65,
+      "end": 763.29,
+      "en": "The goal of exercise three is to see which one of these is faster.",
+      "zh": "練習三要看哪一種比較快。"
+    },
+    {
+      "start": 763.73,
+      "end": 774.65,
+      "en": "So here in this exercise you will use the CPU and then an exercise four you'll do something similar but with much bigger matrices and on the GPU.",
+      "zh": "這裡使用 CPU；練習四則做類似的事，但矩陣大得多，而且使用 GPU。"
+    },
+    {
+      "start": 775.29,
+      "end": 777.68,
+      "en": "So the task here is simple.",
+      "zh": "任務很簡單。"
+    },
+    {
+      "start": 777.84,
+      "end": 784.68,
+      "en": "Put each of the implementations into a for loop over 50,000 iterations.",
+      "zh": "把每種實作放進迭代 50,000 次的 for 迴圈。"
+    },
+    {
+      "start": 785.04,
+      "end": 792,
+      "en": "Grab the clock time before and after each loop, and then report the results as you see here.",
+      "zh": "在每個迴圈前後取得時鐘時間，再像這樣回報結果。"
+    },
+    {
+      "start": 792.76,
+      "end": 799.04,
+      "en": "Now, before running this code, I would like you to make a prediction about what you think will happen.",
+      "zh": "執行之前，希望你先預測會發生什麼。"
+    },
+    {
+      "start": 799.84,
+      "end": 802.24,
+      "en": "It's always good to make an hypothesis.",
+      "zh": "先提出假設，總是好事。"
+    },
+    {
+      "start": 802.44,
+      "end": 808.12,
+      "en": "Even if you're wrong, you will learn more than if you didn't take a stand in the first place.",
+      "zh": "即使猜錯，也比一開始完全不表態學得更多。"
+    },
+    {
+      "start": 808.52,
+      "end": 812.84,
+      "en": "Anyway, I hope you find this exercise interesting and not too challenging.",
+      "zh": "總之，希望你覺得這個練習有趣，而且不太困難。"
+    },
+    {
+      "start": 813,
+      "end": 814.64,
+      "en": "And now I will switch to code.",
+      "zh": "現在切到程式碼。"
+    },
+    {
+      "start": 815.72,
+      "end": 824.52,
+      "en": "So all of these lines here are exactly copy pasted from above from exercise two, and I've just embedded",
+      "zh": "這些行完全是從上面練習二複製貼上，只是放進"
+    },
+    {
+      "start": 824.52,
+      "end": 828.52,
+      "en": "them inside this for loop over 50,000 iterations.",
+      "zh": "迭代 50,000 次的 for 迴圈。"
+    },
+    {
+      "start": 828.72,
+      "end": 838.4,
+      "en": "Grab the start time or the clock time here and subtract that start clock time with the current time after the end of the loop and print that out.",
+      "zh": "這裡取得開始的時鐘時間，迴圈結束後，用當時的時間減去起始時間，再印出結果。"
+    },
+    {
+      "start": 838.4,
+      "end": 840.92,
+      "en": "That comes in units of seconds.",
+      "zh": "單位是秒。"
+    },
+    {
+      "start": 841.36,
+      "end": 841.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 841.64,
+      "end": 846,
+      "en": "And then here I'm repeating again this is just literally copy pasted from above.",
+      "zh": "這裡也是一樣，完全從上面複製貼上。"
+    },
+    {
+      "start": 846.56,
+      "end": 848.72,
+      "en": "And the answer is let's see.",
+      "zh": "結果是，來看看。"
+    },
+    {
+      "start": 849.88,
+      "end": 858.8,
+      "en": "So the manual calculation took a little over seven seconds and the PyTorch function took a little bit less than seven.",
+      "zh": "手動計算花了七秒多，PyTorch 函數則略低於七秒。"
+    },
+    {
+      "start": 859.04,
+      "end": 860.76,
+      "en": "So about 6.5 seconds.",
+      "zh": "大約 6.5 秒。"
+    },
+    {
+      "start": 860.88,
+      "end": 864.4,
+      "en": "So there was a decent speed enhancement from this.",
+      "zh": "所以速度有一定程度的提升。"
+    },
+    {
+      "start": 864.56,
+      "end": 870.6,
+      "en": "And that's basically just because all of these calculations are fused and optimized.",
+      "zh": "基本上是因為所有這些計算都經過融合與最佳化。"
+    },
+    {
+      "start": 870.6,
+      "end": 877,
+      "en": "So they're a little bit faster, they're a little bit more efficient compared to the way that we set this up here.",
+      "zh": "因此比起我們這裡的寫法，稍快一點，也稍有效率。"
+    },
+    {
+      "start": 878.28,
+      "end": 880.96,
+      "en": "Exercise four is similar.",
+      "zh": "練習四很類似。"
+    },
+    {
+      "start": 881.16,
+      "end": 884.56,
+      "en": "But here you should make bigger matrices.",
+      "zh": "但請建立更大的矩陣。"
+    },
+    {
+      "start": 884.64,
+      "end": 887.76,
+      "en": "Now you will also need to connect to the GPU.",
+      "zh": "也需要連上 GPU。"
+    },
+    {
+      "start": 888.08,
+      "end": 895.96,
+      "en": "Remember that if you weren't previously using a GPU session for this code challenge, then Colab will",
+      "zh": "記得，如果這個程式挑戰之前用的不是 GPU 工作階段，Colab 就會"
+    },
+    {
+      "start": 895.96,
+      "end": 902.84,
+      "en": "restart the Python session and you will need to recreate the variables and reimport libraries.",
+      "zh": "重新啟動 Python 工作階段，你必須重新建立變數、匯入函式庫。"
+    },
+    {
+      "start": 903.32,
+      "end": 909.6,
+      "en": "But that's actually fine, because now you want to recreate the matrices to be much bigger.",
+      "zh": "但沒關係，因為現在本來就要把矩陣重新建得更大。"
+    },
+    {
+      "start": 910.04,
+      "end": 913.56,
+      "en": "So it's still overall similar to exercise three.",
+      "zh": "所以整體仍和練習三相似。"
+    },
+    {
+      "start": 913.8,
+      "end": 919.44,
+      "en": "But using these parameters make sure you push the data matrices to the GPU.",
+      "zh": "只是使用這些參數，並確實把資料矩陣移到 GPU。"
+    },
+    {
+      "start": 920.36,
+      "end": 924.6,
+      "en": "But now you should only run 200 iterations, not 50,000.",
+      "zh": "這次只執行 200 次迭代，不是 50,000 次。"
+    },
+    {
+      "start": 924.88,
+      "end": 930.24,
+      "en": "If you try to run 50,000, you will be waiting for a long time for this to finish.",
+      "zh": "如果跑 50,000 次，會等很久才結束。"
+    },
+    {
+      "start": 931.6,
+      "end": 939.2,
+      "en": "As with exercise three, I'd like you to make a prediction about what will happen before you see the results.",
+      "zh": "和練習三一樣，希望你看到結果前，先預測會發生什麼。"
+    },
+    {
+      "start": 939.6,
+      "end": 943.68,
+      "en": "Okay, so now pause the video and now I'll switch to code.",
+      "zh": "好，請暫停影片，接著我會切到程式碼。"
+    },
+    {
+      "start": 944.76,
+      "end": 951.04,
+      "en": "Now I have already switched my session, but that's something that you would need to do again.",
+      "zh": "我已經切換好工作階段了，但你需要自己再做一次。"
+    },
+    {
+      "start": 951.08,
+      "end": 953.76,
+      "en": "You can use any GPU that you have available.",
+      "zh": "可以用任何可用的 GPU。"
+    },
+    {
+      "start": 953.8,
+      "end": 955.36,
+      "en": "Doesn't matter which one it is.",
+      "zh": "哪一種都沒關係。"
+    },
+    {
+      "start": 955.84,
+      "end": 962.2,
+      "en": "Okay so here I'm setting up the device to be Cuda, the Cuda device because it is available.",
+      "zh": "好，這裡把裝置設為 CUDA，因為 CUDA 裝置可用。"
+    },
+    {
+      "start": 962.2,
+      "end": 967.44,
+      "en": "And we can confirm that we are going to run these calculations on the GPU.",
+      "zh": "可以確認，這些計算會在 GPU 上執行。"
+    },
+    {
+      "start": 968,
+      "end": 971.76,
+      "en": "Of course, not everything happens on the GPU by default.",
+      "zh": "當然，預設不代表所有事情都會在 GPU 上發生。"
+    },
+    {
+      "start": 971.76,
+      "end": 981.36,
+      "en": "We actually need to create all of these matrices to be on the specified device on the GPU, or we can push them onto the GPU.",
+      "zh": "需要實際在指定的 GPU 裝置上建立矩陣，或者把矩陣移到 GPU。"
+    },
+    {
+      "start": 982.04,
+      "end": 985.72,
+      "en": "And also a reminder of something I said a couple of videos ago.",
+      "zh": "再提醒前幾支影片提過的事。"
+    },
+    {
+      "start": 986.08,
+      "end": 993.28,
+      "en": "If you are new to GPU processing on Google Colab and you're not really sure what I'm doing and what",
+      "zh": "如果你剛開始在 Google Colab 使用 GPU，不確定我在做什麼，"
+    },
+    {
+      "start": 993.28,
+      "end": 1000.56,
+      "en": "all this means, don't worry, I have a whole video just explaining this in a couple later on in this",
+      "zh": "或這些設定的意思，別擔心，稍後這一節"
+    },
+    {
+      "start": 1000.56,
+      "end": 1007.76,
+      "en": "section, so it's fine just to follow along with my code and you'll learn about all this device stuff a little bit later.",
+      "zh": "有一整支影片會解釋。現在先跟著程式做就好，裝置相關內容之後會學。"
+    },
+    {
+      "start": 1008.92,
+      "end": 1014.12,
+      "en": "Okay, so here I am redefining the parameters and recreating these matrices.",
+      "zh": "好，這裡重新定義參數，重新建立矩陣。"
+    },
+    {
+      "start": 1014.16,
+      "end": 1017.07,
+      "en": "Now there is nothing new in this code.",
+      "zh": "這些程式沒有新東西。"
+    },
+    {
+      "start": 1017.07,
+      "end": 1024.27,
+      "en": "This is literally copy pasted from exercise one except for changing these values here.",
+      "zh": "完全從練習一複製貼上，只改了這幾個值。"
+    },
+    {
+      "start": 1024.47,
+      "end": 1026.75,
+      "en": "So longer context length.",
+      "zh": "所以有更長的上下文長度。"
+    },
+    {
+      "start": 1026.79,
+      "end": 1029.03,
+      "en": "This is a little bit more realistic.",
+      "zh": "這就比較接近實際。"
+    },
+    {
+      "start": 1029.03,
+      "end": 1034.71,
+      "en": "So 2000 tokens the vocab size of 50,257.",
+      "zh": "也就是 2,000 個詞元，詞彙表大小為 50,257。"
+    },
+    {
+      "start": 1034.75,
+      "end": 1042.87,
+      "en": "This comes from the GPT two vocab and tokenizer embedding size of 1064 batches.",
+      "zh": "這來自 GPT-2 詞彙表與 tokenizer；嵌入大小和批次數的這段口述連在一起，原字幕為「1064 batches」（數值待核）。"
+    },
+    {
+      "start": 1042.87,
+      "end": 1046.31,
+      "en": "So this is a little bit more of a realistic environment.",
+      "zh": "因此環境比較接近實際。"
+    },
+    {
+      "start": 1047.55,
+      "end": 1048.67,
+      "en": "And now yeah.",
+      "zh": "接著，對。"
+    },
+    {
+      "start": 1048.67,
+      "end": 1054.39,
+      "en": "So again literally copy pasted from earlier literally copy pasted from earlier.",
+      "zh": "這裡同樣從前面複製貼上，這裡也是。"
+    },
+    {
+      "start": 1054.59,
+      "end": 1058.59,
+      "en": "And yeah just changing the number of repetitions to 200.",
+      "zh": "只把重複次數改成 200。"
+    },
+    {
+      "start": 1059.35,
+      "end": 1065.99,
+      "en": "So now the first time you run this result you get an interesting finding that PyTorch is actually slower,",
+      "zh": "第一次執行時，會發現有趣的結果：PyTorch 反而較慢，"
+    },
+    {
+      "start": 1066.23,
+      "end": 1071.51,
+      "en": "more than one point almost twice as slow as the manual implementation.",
+      "zh": "比手動實作慢了一倍左右，將近兩倍。"
+    },
+    {
+      "start": 1072.19,
+      "end": 1076.55,
+      "en": "Now the thing about GPUs is there is some Initialization time.",
+      "zh": "GPU 有一段初始化時間。"
+    },
+    {
+      "start": 1076.55,
+      "end": 1083.59,
+      "en": "There's some startup cost, so it's always good when you are running a clock time test to run the code",
+      "zh": "也就是啟動成本，所以做計時測試時，最好執行"
+    },
+    {
+      "start": 1083.63,
+      "end": 1089.91,
+      "en": "twice to see if running it the first time acted as a warm up to just get things going.",
+      "zh": "兩次，看看第一次執行是否只是暖機，讓系統準備好。"
+    },
+    {
+      "start": 1089.95,
+      "end": 1095.55,
+      "en": "You can already see the manual implementation is faster and then yeah, so just run it again.",
+      "zh": "現在可以看到手動實作比較快，再跑一次。"
+    },
+    {
+      "start": 1095.55,
+      "end": 1105.87,
+      "en": "Maybe run it a couple of times to see how it looks, and consider the first time you run the code on the GPU just to have some initial startup costs.",
+      "zh": "也許多跑幾次看看，並把第一次在 GPU 上執行視為包含初始啟動成本。"
+    },
+    {
+      "start": 1106.31,
+      "end": 1116.55,
+      "en": "Still, you know, this is quite surprising that the PyTorch implementation here is almost twice as as slow as the manual implementation.",
+      "zh": "不過，這裡 PyTorch 實作幾乎比手動實作慢兩倍，仍然令人驚訝。"
+    },
+    {
+      "start": 1116.91,
+      "end": 1128.71,
+      "en": "Okay, so I didn't talk about this code here in the slides because I didn't want to make it an explicit part of the exercise for you to do and you to sort of research and look into.",
+      "zh": "好，投影片沒談這部分程式，是因為我不想把它明確列為需要你自行研究的練習內容。"
+    },
+    {
+      "start": 1129.03,
+      "end": 1134.11,
+      "en": "But basically what I'm doing here is compiling this function here.",
+      "zh": "基本上，這裡在編譯這個函數。"
+    },
+    {
+      "start": 1134.11,
+      "end": 1136.95,
+      "en": "So this is scaled dot product attention.",
+      "zh": "也就是 scaled dot-product attention。"
+    },
+    {
+      "start": 1136.95,
+      "end": 1138.71,
+      "en": "Exactly the same function here.",
+      "zh": "和這裡完全相同的函數。"
+    },
+    {
+      "start": 1138.99,
+      "end": 1145.83,
+      "en": "I'm using Pytorch's just in time compiler and I'm renaming this function to be C.",
+      "zh": "我使用 PyTorch 的即時編譯器，並把函數重新命名為帶有 c 的版本。"
+    },
+    {
+      "start": 1146.43,
+      "end": 1156.15,
+      "en": "So that's scaler or scaled dot product attention compiled and also setting some other floating point precision settings.",
+      "zh": "也就是編譯版的 scaled dot-product attention，另外還設定了其他浮點精度選項。"
+    },
+    {
+      "start": 1156.15,
+      "end": 1161.63,
+      "en": "Here there is another optimized version of the attention algorithm.",
+      "zh": "這裡還有注意力演算法的另一個最佳化版本。"
+    },
+    {
+      "start": 1161.63,
+      "end": 1163.51,
+      "en": "It's called Flashattention.",
+      "zh": "叫做 FlashAttention。"
+    },
+    {
+      "start": 1163.83,
+      "end": 1173.55,
+      "en": "Uh, we're not going to pay any attention to it here, but in case you are curious to read about it, I have the, uh, the the website for you to read about it here.",
+      "zh": "這裡不會特別談，但如果有興趣閱讀，我把網站放在這裡。"
+    },
+    {
+      "start": 1174.11,
+      "end": 1174.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1174.47,
+      "end": 1177.67,
+      "en": "So now down here I'm going to run the code again.",
+      "zh": "接著在下面再次執行程式碼。"
+    },
+    {
+      "start": 1177.67,
+      "end": 1183.47,
+      "en": "So these first two for loops are exactly the same as what we ran up here.",
+      "zh": "前兩個 for 迴圈，和上面執行的完全一樣。"
+    },
+    {
+      "start": 1183.99,
+      "end": 1185.07,
+      "en": "And then here.",
+      "zh": "然後這裡，"
+    },
+    {
+      "start": 1185.31,
+      "end": 1189.35,
+      "en": "Uh, down here I'm running the compiled version.",
+      "zh": "下面執行的是編譯後的版本。"
+    },
+    {
+      "start": 1189.35,
+      "end": 1191.47,
+      "en": "So now let's see what happens.",
+      "zh": "看看結果如何。"
+    },
+    {
+      "start": 1192.35,
+      "end": 1195.47,
+      "en": "So now we get a really striking Making difference.",
+      "zh": "現在差異就非常明顯了。"
+    },
+    {
+      "start": 1195.51,
+      "end": 1195.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1195.91,
+      "end": 1197.87,
+      "en": "So we have the manual calculation.",
+      "zh": "這是手動計算。"
+    },
+    {
+      "start": 1197.87,
+      "end": 1200.67,
+      "en": "Time went down to 1.5 seconds.",
+      "zh": "時間降到 1.5 秒。"
+    },
+    {
+      "start": 1200.67,
+      "end": 1203.27,
+      "en": "And up here it was 4.5 seconds.",
+      "zh": "上面則是 4.5 秒。"
+    },
+    {
+      "start": 1203.27,
+      "end": 1206.87,
+      "en": "So we've really dropped by a factor of of four.",
+      "zh": "所以真的縮短了四倍。"
+    },
+    {
+      "start": 1206.91,
+      "end": 1208.03,
+      "en": "That's pretty impressive.",
+      "zh": "相當驚人。"
+    },
+    {
+      "start": 1208.35,
+      "end": 1213.43,
+      "en": "That comes from this uh changing the precision of the matrix multiplication.",
+      "zh": "這來自改變矩陣乘法精度。"
+    },
+    {
+      "start": 1213.75,
+      "end": 1222.43,
+      "en": "And now the, uh, scaled dot product attention function went from almost nine seconds down to 2.5 seconds.",
+      "zh": "scaled dot-product attention 函數，則從將近九秒降到 2.5 秒。"
+    },
+    {
+      "start": 1222.43,
+      "end": 1224.99,
+      "en": "But here is the most striking result.",
+      "zh": "但最驚人的結果在這裡。"
+    },
+    {
+      "start": 1225.23,
+      "end": 1226.71,
+      "en": "Look at this compiled version.",
+      "zh": "看這個編譯版。"
+    },
+    {
+      "start": 1226.71,
+      "end": 1233.11,
+      "en": "It went down to basically just a fraction of a second went down to 50 milliseconds.",
+      "zh": "降到不到一秒，只有 50 毫秒。"
+    },
+    {
+      "start": 1233.23,
+      "end": 1239.31,
+      "en": "So now this is lightning fast compared to either of these other two implementations.",
+      "zh": "因此相較於另外兩種實作，速度快得像閃電。"
+    },
+    {
+      "start": 1239.47,
+      "end": 1245.23,
+      "en": "And that happened by compiling that code, compiling that function.",
+      "zh": "這就是編譯程式、編譯函數的結果。"
+    },
+    {
+      "start": 1246.27,
+      "end": 1250.11,
+      "en": "I hope you feel like you understand the attention equation better.",
+      "zh": "希望你現在更了解注意力方程式。"
+    },
+    {
+      "start": 1250.11,
+      "end": 1261.54,
+      "en": "Now after these past few videos, I'm going to have one more video on single head attention before building up to the full transformer block.",
+      "zh": "經過這幾支影片後，還會再有一支介紹單頭注意力，接著才建立完整的 Transformer 區塊。"
+    },
+    {
+      "start": 1262.06,
+      "end": 1270.22,
+      "en": "I would like to point out that modern llms are so computationally intensive that engineers and computer",
+      "zh": "想指出，現代 LLM 的計算需求極高，因此工程師與電腦"
+    },
+    {
+      "start": 1270.22,
+      "end": 1279.46,
+      "en": "scientists spend a lot of time optimizing the calculations that are repeated millions or sometimes billions of times.",
+      "zh": "科學家花很多時間，最佳化那些會重複數百萬次，甚至數十億次的計算。"
+    },
+    {
+      "start": 1280.1,
+      "end": 1285.94,
+      "en": "But those optimizations don't just happen simply by sending some process to the GPU.",
+      "zh": "但這些最佳化，不是單純把某個程序送到 GPU 就會自動發生。"
+    },
+    {
+      "start": 1286.58,
+      "end": 1291.46,
+      "en": "It is often the case that optimized code needs to be compiled.",
+      "zh": "很多時候，最佳化程式還需要編譯。"
+    },
+    {
+      "start": 1291.66,
+      "end": 1294.26,
+      "en": "Other parameters need to be specified.",
+      "zh": "也要指定其他參數。"
+    },
+    {
+      "start": 1294.38,
+      "end": 1297.42,
+      "en": "Maybe it relies on some additional libraries.",
+      "zh": "也許依賴額外的函式庫。"
+    },
+    {
+      "start": 1297.42,
+      "end": 1305.82,
+      "en": "Sometimes optimizations only work on a select number of GPUs that are custom made just for those operations.",
+      "zh": "有時某些最佳化，只適用於少數針對這些操作特別打造的 GPU。"
+    },
+    {
+      "start": 1306.06,
+      "end": 1314.38,
+      "en": "So what you got here in this code challenge is a bit of a flavor of some of those really crucial optimizations.",
+      "zh": "所以這個程式挑戰，讓你稍微體會了一些非常關鍵的最佳化工作。"
+    }
+  ]
+}

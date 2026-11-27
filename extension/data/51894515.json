@@ -1,0 +1,1327 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51894515",
+  "title": "Backprop in Pytorch",
+  "section": 39,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "58ddd95c358e6d8516fbbb99233978774a4c27ed188dfc65adada9dd9f298198",
+  "cues": [
+    {
+      "start": 1.84,
+      "end": 8.2,
+      "en": "In this lecture, I'm going to show you how backpropagation is implemented in PyTorch.",
+      "zh": "這堂課要示範，PyTorch 如何實作反向傳播。"
+    },
+    {
+      "start": 8.84,
+      "end": 11.76,
+      "en": "Now, I'm not going to discuss the math of backprop.",
+      "zh": "不會討論反向傳播的數學。"
+    },
+    {
+      "start": 11.76,
+      "end": 16.36,
+      "en": "Instead, this is more about how it is mechanistically implemented.",
+      "zh": "而是更專注於，實際的機制怎麼實作。"
+    },
+    {
+      "start": 17,
+      "end": 22.04,
+      "en": "We're going to work with a really simple example that also has an analytic solution.",
+      "zh": "會使用非常簡單，而且有解析解的例子。"
+    },
+    {
+      "start": 22.6,
+      "end": 31.52,
+      "en": "And by analytic solution I mean that we can actually get the optimal answer without doing any gradient descent or backprop.",
+      "zh": "解析解的意思，是不需要梯度下降或反向傳播，就能求出最佳答案。"
+    },
+    {
+      "start": 31.64,
+      "end": 37.28,
+      "en": "But that's good because that will help us evaluate the performance of our simple model.",
+      "zh": "這很好，因為能幫助評估這個簡單模型的表現。"
+    },
+    {
+      "start": 38.36,
+      "end": 47.56,
+      "en": "So training a model in PyTorch involves the following five steps that are done in a for loop over training epochs.",
+      "zh": "在 PyTorch 訓練模型，包含以下五個步驟，放在依訓練週期執行的 for 迴圈裡。"
+    },
+    {
+      "start": 48.2,
+      "end": 52.28,
+      "en": "Step one is to clear the previous gradients.",
+      "zh": "第一步，清除先前梯度。"
+    },
+    {
+      "start": 52.56,
+      "end": 60.85,
+      "en": "This step is necessary because PyTorch actually stores a copy of the gradients inside of its weights.",
+      "zh": "這是必要的，因為 PyTorch 會把梯度副本，儲存在權重，"
+    },
+    {
+      "start": 60.89,
+      "end": 61.73,
+      "en": "Variables.",
+      "zh": "變數裡。"
+    },
+    {
+      "start": 62.25,
+      "end": 71.93,
+      "en": "So if you don't clear out the previous gradients, they will just keep summing over and over on top of each other and the losses will accumulate.",
+      "zh": "如果不清除，先前梯度就會不斷相加，損失也會累積。"
+    },
+    {
+      "start": 72.53,
+      "end": 83.37,
+      "en": "Now, accumulating losses over multiple passes is a computational trick that can be used for training extremely large models, including llms.",
+      "zh": "在多次傳播之間累積損失，是訓練大型模型，包括 LLM 時，可以使用的一種運算技巧。"
+    },
+    {
+      "start": 84.49,
+      "end": 90.77,
+      "en": "To be honest, I find it unfortunate and annoying that the default behavior is to allow the gradients",
+      "zh": "老實說，我覺得預設允許梯度累積，"
+    },
+    {
+      "start": 90.77,
+      "end": 101.77000000000001,
+      "en": "to accumulate, because in the overwhelming vast majority of times that you train a model, you actually want to clear out the gradients and not let them accumulate.",
+      "zh": "有點可惜、也很煩，因為絕大多數訓練情況，都想先清除梯度，而不是讓它們累積。"
+    },
+    {
+      "start": 102.05,
+      "end": 103.97,
+      "en": "But anyway, this is just how it works.",
+      "zh": "但總之，規則就是如此。"
+    },
+    {
+      "start": 104.05,
+      "end": 105.69,
+      "en": "So that's what we need to do.",
+      "zh": "所以，我們需要這樣做。"
+    },
+    {
+      "start": 105.72999999999999,
+      "end": 108.45,
+      "en": "We need to zero out the existing gradients.",
+      "zh": "把現有梯度歸零。"
+    },
+    {
+      "start": 109.09,
+      "end": 115.41,
+      "en": "Step two is to perform a forward pass through the model like I showed in the previous video, and then",
+      "zh": "第二步，像上一支影片那樣，做前向傳播，再，"
+    },
+    {
+      "start": 115.41,
+      "end": 122.47,
+      "en": "calculate the loss, which is the discrepancy between the model output and the target value.",
+      "zh": "計算損失，也就是模型輸出與目標值之間的差異。"
+    },
+    {
+      "start": 123.03,
+      "end": 129.07,
+      "en": "And that's basically just how close is the model's prediction to the real world data label.",
+      "zh": "基本上，就是預測有多接近真實資料標籤。"
+    },
+    {
+      "start": 130.31,
+      "end": 138.59,
+      "en": "Then step three is to calculate the gradient of the loss function at the loss value obtained in step two.",
+      "zh": "第三步，在第二步取得的損失值，計算損失函式的梯度。"
+    },
+    {
+      "start": 139.11,
+      "end": 142.39,
+      "en": "This is where you're actually calculating the derivative.",
+      "zh": "這裡才是真的計算導數。"
+    },
+    {
+      "start": 142.99,
+      "end": 151.35,
+      "en": "Step four is to go through the model and update all of the weights in the model according to the gradient of the loss function.",
+      "zh": "第四步，依損失函式梯度，更新模型裡所有權重。"
+    },
+    {
+      "start": 151.35,
+      "end": 153.47,
+      "en": "So this is the actual backprop.",
+      "zh": "這就是實際的反向傳播。"
+    },
+    {
+      "start": 154.03,
+      "end": 161.23,
+      "en": "So steps one through four are the backprop mechanism as they get implemented in PyTorch.",
+      "zh": "所以，一到四步，是 PyTorch 裡實作反向傳播的機制。"
+    },
+    {
+      "start": 161.75,
+      "end": 164.07,
+      "en": "So they're all done by PyTorch functions.",
+      "zh": "全部透過 PyTorch 函式完成。"
+    },
+    {
+      "start": 164.07,
+      "end": 169.91,
+      "en": "So you are not actually having to implement any of the low level graph calculations.",
+      "zh": "不用自己實作底層的計算圖運算。"
+    },
+    {
+      "start": 171.23,
+      "end": 177.11,
+      "en": "And finally step five is optional and is whatever else you might want to include in the training loop.",
+      "zh": "最後，第五步是選用的，可以加入任何想放在訓練迴圈裡的額外內容。"
+    },
+    {
+      "start": 177.23,
+      "end": 182.68,
+      "en": "For example, you might want to store the losses in a separate variable for later inspection.",
+      "zh": "例如，把損失記錄在另一個變數，方便之後檢查。"
+    },
+    {
+      "start": 183,
+      "end": 189.08,
+      "en": "Calculate the norm of the weights matrix or print out some messages about progress during learning.",
+      "zh": "計算權重矩陣範數，或印出學習進度。"
+    },
+    {
+      "start": 190.2,
+      "end": 194.44,
+      "en": "In a moment, I will switch to Python and show you what this looks like.",
+      "zh": "稍後切到 Python，示範實際樣子。"
+    },
+    {
+      "start": 194.44,
+      "end": 200.36,
+      "en": "But first I'll give you an overview of what you'll see and what to expect and what we're going to do.",
+      "zh": "但先概述一下，你會看到什麼、該期待什麼，以及要做什麼。"
+    },
+    {
+      "start": 200.84,
+      "end": 206.16,
+      "en": "We are going to use gradient descent and backprop to optimize this function.",
+      "zh": "會用梯度下降與反向傳播，最佳化這個函式。"
+    },
+    {
+      "start": 206.28,
+      "end": 208.16,
+      "en": "This is our loss function.",
+      "zh": "這是損失函式。"
+    },
+    {
+      "start": 208.76,
+      "end": 213.52,
+      "en": "Now this does not actually correspond to an actual loss function that's used in deep learning.",
+      "zh": "它不是真正深度學習應用裡使用的損失函式。"
+    },
+    {
+      "start": 213.52,
+      "end": 216.92000000000002,
+      "en": "It's just some other function that looks good for this demo.",
+      "zh": "只是另一個適合這次示範的函式。"
+    },
+    {
+      "start": 217.24,
+      "end": 224.88,
+      "en": "But the idea is that we want to find the value of x that minimizes this equation.",
+      "zh": "概念是，找到讓這個式子最小的 x。"
+    },
+    {
+      "start": 225.72,
+      "end": 233,
+      "en": "So in other words, what value of x makes this equation be as small as it possibly can be?",
+      "zh": "也就是，x 是多少時，這個式子會盡可能小？"
+    },
+    {
+      "start": 233.16,
+      "end": 233.96,
+      "en": "That's the goal.",
+      "zh": "這就是目標。"
+    },
+    {
+      "start": 234.44,
+      "end": 240.21,
+      "en": "Now this variable x actually corresponds to the weights in a deep learning model.",
+      "zh": "x 其實對應深度學習模型的權重。"
+    },
+    {
+      "start": 240.49,
+      "end": 248.41,
+      "en": "So if this is the loss function, then the goal of backprop is to find the values of all the weights",
+      "zh": "如果這是損失函式，反向傳播的目標，就是找出，"
+    },
+    {
+      "start": 248.41,
+      "end": 253.85,
+      "en": "in the entire model that make this function be as small as we can get it to be.",
+      "zh": "整個模型所有權重的值，讓函式盡可能小。"
+    },
+    {
+      "start": 254.61,
+      "end": 261.93,
+      "en": "Now it turns out that for this particular equation, we do not need gradient descent or any other iterative algorithm.",
+      "zh": "這個特定式子，其實不需要梯度下降，也不需要其他迭代演算法。"
+    },
+    {
+      "start": 262.21,
+      "end": 266.09,
+      "en": "I can already tell you that the optimal solution is one third.",
+      "zh": "我已經可以告訴你，最佳解是三分之一。"
+    },
+    {
+      "start": 266.29,
+      "end": 272.21,
+      "en": "So when x equals one third, then this equation is the smallest it can possibly be.",
+      "zh": "x 等於三分之一時，這個式子會達到最小。"
+    },
+    {
+      "start": 273.25,
+      "end": 276.17,
+      "en": "And how do I know that the correct answer is one third?",
+      "zh": "怎麼知道答案是三分之一？"
+    },
+    {
+      "start": 276.49,
+      "end": 280.09000000000003,
+      "en": "Well this comes from differential calculus and optimization.",
+      "zh": "這來自微分與最佳化。"
+    },
+    {
+      "start": 280.17,
+      "end": 284.73,
+      "en": "So the derivative of this function is six x minus two.",
+      "zh": "函式的導數，是六 x 減二。"
+    },
+    {
+      "start": 285.09000000000003,
+      "end": 286.85,
+      "en": "And then we set that to zero.",
+      "zh": "把它設成零。"
+    },
+    {
+      "start": 286.97,
+      "end": 290.45,
+      "en": "Solve for x and that gives us x equals one third.",
+      "zh": "解出 x，就得到三分之一。"
+    },
+    {
+      "start": 291.37,
+      "end": 297.67,
+      "en": "If you are unfamiliar with differential calculus then don't worry about this I'm just showing how we",
+      "zh": "如果不熟悉微分，不用擔心；這裡只是示範，"
+    },
+    {
+      "start": 297.67,
+      "end": 303.99,
+      "en": "can use calculus to derive an analytic solution without having to do gradient descent.",
+      "zh": "不做梯度下降，也能用微積分推導解析解。"
+    },
+    {
+      "start": 304.91,
+      "end": 314.39,
+      "en": "But that's actually very useful in this case, because it allows us to look at how gradient descent performs when we know what the answer needs to be.",
+      "zh": "這很有用，因為知道答案應該是什麼，就能觀察梯度下降的表現。"
+    },
+    {
+      "start": 314.43,
+      "end": 316.11,
+      "en": "We know the optimal answer.",
+      "zh": "我們知道最佳答案。"
+    },
+    {
+      "start": 316.83,
+      "end": 319.67,
+      "en": "Here you see a visualization of this problem.",
+      "zh": "這裡是問題的視覺化。"
+    },
+    {
+      "start": 319.79,
+      "end": 322.99,
+      "en": "The purple line is the function we're trying to minimize.",
+      "zh": "紫線是想最小化的函式。"
+    },
+    {
+      "start": 323.07,
+      "end": 326.07,
+      "en": "And the dotted blue line is the exact solution.",
+      "zh": "藍色點線則是精確解。"
+    },
+    {
+      "start": 326.43,
+      "end": 330.91,
+      "en": "So that certainly is consistent with the visual appearance of this function.",
+      "zh": "確實和函式的視覺形狀相符。"
+    },
+    {
+      "start": 331.67,
+      "end": 332.03,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 332.07,
+      "end": 340.07,
+      "en": "So what we are going to do is use PyTorch to find this solution, or at least one close to it using backprop.",
+      "zh": "要做的，是透過 PyTorch 的反向傳播，找到這個解，或者至少很接近的解。"
+    },
+    {
+      "start": 340.95,
+      "end": 345.35,
+      "en": "You're going to see a for loop that looks like this.",
+      "zh": "會看到這樣的 for 迴圈。"
+    },
+    {
+      "start": 345.51,
+      "end": 350.90999999999997,
+      "en": "So here you see each of the five steps that I described a few slides ago.",
+      "zh": "這裡有前幾張投影片介紹的五個步驟。"
+    },
+    {
+      "start": 351.39,
+      "end": 354.15,
+      "en": "I'll go through this in more detail in the code.",
+      "zh": "程式碼裡會更詳細解釋。"
+    },
+    {
+      "start": 354.31,
+      "end": 359.52,
+      "en": "But you can see that it's fairly straightforward to get backprop to work in PyTorch.",
+      "zh": "但可以看到，要在 PyTorch 讓反向傳播運作，相當直接。"
+    },
+    {
+      "start": 360.6,
+      "end": 367.24,
+      "en": "And here in step five, I'm also storing the value of the weight and the actual loss from the model.",
+      "zh": "第五步，也記錄了權重值，以及模型實際的損失。"
+    },
+    {
+      "start": 367.52,
+      "end": 372.88,
+      "en": "And I'm also printing out some model some information as the training continues.",
+      "zh": "訓練進行時，也會印出一些模型資訊。"
+    },
+    {
+      "start": 373.6,
+      "end": 375.56,
+      "en": "Now the loss trajectory.",
+      "zh": "損失的變化軌跡，"
+    },
+    {
+      "start": 375.56,
+      "end": 377.28,
+      "en": "We can plot like this.",
+      "zh": "可以像這樣畫出來。"
+    },
+    {
+      "start": 377.28,
+      "end": 383.76,
+      "en": "So you see that the loss goes down as the number of training epochs increases.",
+      "zh": "訓練週期越多，損失越低。"
+    },
+    {
+      "start": 384.36,
+      "end": 387.6,
+      "en": "Now this is actually the value of the loss function.",
+      "zh": "這裡真的就是損失函式的值。"
+    },
+    {
+      "start": 387.6,
+      "end": 394.76,
+      "en": "So the function this function over here, that is the actual value of the loss that gets plotted over here.",
+      "zh": "也就是這邊這個函式，實際值畫在這裡。"
+    },
+    {
+      "start": 395.08,
+      "end": 397.12,
+      "en": "Nothing super mysterious here.",
+      "zh": "沒有什麼特別神祕的地方。"
+    },
+    {
+      "start": 397.12,
+      "end": 402.52,
+      "en": "In fact, we can see that the value of the function starts off at around eight.",
+      "zh": "可以看到，一開始函式值大約是八。"
+    },
+    {
+      "start": 402.84000000000003,
+      "end": 407.12,
+      "en": "And by the end it asymptotes to something a little bit less than three.",
+      "zh": "最後漸近到稍微小於三的值。"
+    },
+    {
+      "start": 407.15999999999997,
+      "end": 409.32,
+      "en": "I don't know, maybe this is 2.8 or something.",
+      "zh": "不知道，也許是二點八。"
+    },
+    {
+      "start": 410.52,
+      "end": 416.65,
+      "en": "And then we are going to make a plot that's similar to the one in the previous slide, but this one",
+      "zh": "接著畫一張和上一張投影片類似的圖，但這張，"
+    },
+    {
+      "start": 416.65,
+      "end": 423.45,
+      "en": "shows the actual values of the weights as they are being optimized iteratively through backprop.",
+      "zh": "顯示權重透過反向傳播逐步最佳化時，實際的數值。"
+    },
+    {
+      "start": 423.97,
+      "end": 427.73,
+      "en": "So the weights started off at around minus one.",
+      "zh": "權重一開始大約是負一。"
+    },
+    {
+      "start": 428.01,
+      "end": 439.49,
+      "en": "And then you can see at each step of backprop each step in this for loop over the training epochs, we get closer and closer to the exact optimal solution.",
+      "zh": "每次反向傳播，也就是每次訓練週期迴圈，都越來越接近精確最佳解。"
+    },
+    {
+      "start": 439.85,
+      "end": 448.53,
+      "en": "I've also changed the colors and the sizes of these circles, so they get smaller and darker as we get closer to the correct solution.",
+      "zh": "我也改變了圓圈顏色與大小，越接近正確解，就越小、越深色。"
+    },
+    {
+      "start": 448.93,
+      "end": 451.41,
+      "en": "But you can also see on the loss function.",
+      "zh": "但也能從損失函式，"
+    },
+    {
+      "start": 451.41,
+      "end": 456.69,
+      "en": "So the y axis here you can see it starts off at somewhere around eight.",
+      "zh": "也就是 y 軸看到，一開始大約是八。"
+    },
+    {
+      "start": 457.09000000000003,
+      "end": 461.17,
+      "en": "And the optimal solution is x equals one third.",
+      "zh": "最佳解是 x 等於三分之一。"
+    },
+    {
+      "start": 461.37,
+      "end": 466.69,
+      "en": "And at x equals one third y equals yeah somewhere a little bit less than three.",
+      "zh": "x 等於三分之一時，y 大約稍微小於三。"
+    },
+    {
+      "start": 467.01,
+      "end": 470.93,
+      "en": "And that's basically what we saw over here on this plot.",
+      "zh": "這基本上就是那張圖看到的。"
+    },
+    {
+      "start": 471.45,
+      "end": 477.23,
+      "en": "Of course this stuff is all really nicely visualizable for one variable functions.",
+      "zh": "當然，單變數函式很容易視覺化。"
+    },
+    {
+      "start": 477.63,
+      "end": 486.59,
+      "en": "Actual deep learning models have millions, billions or even trillions of parameters, so that's just impossible to visualize.",
+      "zh": "真正的深度學習模型，有數百萬、數十億，甚至數兆參數，完全不可能這樣畫。"
+    },
+    {
+      "start": 486.59,
+      "end": 492.19,
+      "en": "But the principle and the code implementations are the same anyway.",
+      "zh": "但原理與程式實作相同。"
+    },
+    {
+      "start": 492.23,
+      "end": 494.83,
+      "en": "Now let's explore this more in code.",
+      "zh": "現在用程式碼深入探索。"
+    },
+    {
+      "start": 496.31,
+      "end": 499.03,
+      "en": "So import some libraries here.",
+      "zh": "先匯入一些程式庫。"
+    },
+    {
+      "start": 499.11,
+      "end": 501.63,
+      "en": "Here is the optimization function.",
+      "zh": "這裡是要最佳化的函式。"
+    },
+    {
+      "start": 501.63,
+      "end": 505.63,
+      "en": "You can see I'm implementing this in PyTorch not in numpy.",
+      "zh": "可以看到，使用 PyTorch 實作，不是 NumPy。"
+    },
+    {
+      "start": 506.27,
+      "end": 506.55,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 506.59,
+      "end": 514.63,
+      "en": "So the idea is that the math function or the loss function is a Python function that we can input values of.",
+      "zh": "概念是，把數學函式或損失函式寫成 Python 函式，讓我們輸入數值。"
+    },
+    {
+      "start": 514.67,
+      "end": 517.99,
+      "en": "Here I'm calling it x, but these are the weights in the model.",
+      "zh": "這裡叫做 x，但它代表模型權重。"
+    },
+    {
+      "start": 518.15,
+      "end": 521.43,
+      "en": "And the output is going to be the actual loss value.",
+      "zh": "輸出則是實際損失值。"
+    },
+    {
+      "start": 521.51,
+      "end": 521.71,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 521.75,
+      "end": 522.59,
+      "en": "So run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 522.95,
+      "end": 525.51,
+      "en": "And then here I'm just visualizing this.",
+      "zh": "接著，這裡只是視覺化。"
+    },
+    {
+      "start": 525.51,
+      "end": 528.87,
+      "en": "This is the graph that I showed in the slides.",
+      "zh": "就是投影片展示的圖。"
+    },
+    {
+      "start": 529.11,
+      "end": 533.04,
+      "en": "Now here we created our deep learning model.",
+      "zh": "這裡建立深度學習模型。"
+    },
+    {
+      "start": 533.48,
+      "end": 539.28,
+      "en": "This is literally just one weight, so I'm defining it to be a tensor of.",
+      "zh": "真的就只有一個權重，把它定義成張量。"
+    },
+    {
+      "start": 539.44,
+      "end": 542.56,
+      "en": "I'm initializing the weight to be minus one.",
+      "zh": "初始化為負一。"
+    },
+    {
+      "start": 542.92,
+      "end": 546.84,
+      "en": "And here importantly I say requiresgrad equals true.",
+      "zh": "這裡很重要，要設定 requires_grad=True。"
+    },
+    {
+      "start": 547.28,
+      "end": 556.96,
+      "en": "So this is what signals to PyTorch that the gradients should be calculated and applied to this particular variable.",
+      "zh": "這會告訴 PyTorch，應該計算這個變數的梯度，並將更新套用到它。"
+    },
+    {
+      "start": 557.12,
+      "end": 562.72,
+      "en": "That's how PyTorch knows that this is something important that needs to be optimized.",
+      "zh": "PyTorch 就知道，這是需要最佳化的重要變數。"
+    },
+    {
+      "start": 563.04,
+      "end": 567.2,
+      "en": "Okay, so here's our super intense deep learning model here.",
+      "zh": "這就是我們超強的深度學習模型。"
+    },
+    {
+      "start": 567.24,
+      "end": 568.88,
+      "en": "Exactly one number.",
+      "zh": "只有一個數字。"
+    },
+    {
+      "start": 570.24,
+      "end": 570.56,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 570.6,
+      "end": 571.24,
+      "en": "Run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 571.28,
+      "end": 574.64,
+      "en": "Um, let's see here I am initializing some training parameters.",
+      "zh": "這裡初始化一些訓練參數。"
+    },
+    {
+      "start": 574.64,
+      "end": 579.92,
+      "en": "We're going to run over 80 training epochs with a learning rate of 0.01.",
+      "zh": "跑八十個訓練週期，學習率零點零一。"
+    },
+    {
+      "start": 580.32,
+      "end": 583.32,
+      "en": "And here I am creating an optimizer.",
+      "zh": "這裡建立最佳化器。"
+    },
+    {
+      "start": 583.32,
+      "end": 588.48,
+      "en": "And this is what implements the gradient descent according to some algorithm.",
+      "zh": "它會按照特定演算法，實作梯度下降。"
+    },
+    {
+      "start": 588.48,
+      "end": 600.45,
+      "en": "In this case it's stochastic gradient descent for large language models, we use the atom W algorithm, and in other models you would use Rmsprop or Adam, and so on.",
+      "zh": "這次是隨機梯度下降；大型語言模型使用 AdamW，其他模型可能用 RMSprop 或 Adam 等。"
+    },
+    {
+      "start": 600.93,
+      "end": 602.97,
+      "en": "Here I'm inputting the weight.",
+      "zh": "這裡輸入這個權重。"
+    },
+    {
+      "start": 602.97,
+      "end": 609.89,
+      "en": "So now PyTorch will know behind the scenes as it is running through stochastic gradient descent.",
+      "zh": "PyTorch 就會知道，在幕後執行隨機梯度下降時，"
+    },
+    {
+      "start": 609.89,
+      "end": 620.93,
+      "en": "As it's running through backprop, it is going to know to associate the losses with this, calculate the gradients and apply it to this parameter from the model.",
+      "zh": "也就是進行反向傳播時，要把損失與這個參數連結，計算梯度，並套用到模型的這個參數。"
+    },
+    {
+      "start": 621.09,
+      "end": 628.93,
+      "en": "Again, when you're working with real models, then what you input here is the entire model variable.",
+      "zh": "再次提醒，真正模型裡，這裡輸入的是整個模型變數。"
+    },
+    {
+      "start": 628.93,
+      "end": 630.77,
+      "en": "So the entire model itself.",
+      "zh": "也就是整個模型本身。"
+    },
+    {
+      "start": 630.93,
+      "end": 636.61,
+      "en": "But here yeah as I mentioned our entire deep learning model is just this one number here.",
+      "zh": "但這裡，整個深度學習模型，就只是這一個數字。"
+    },
+    {
+      "start": 637.49,
+      "end": 638.09,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 639.09,
+      "end": 640.17,
+      "en": "So train the model.",
+      "zh": "訓練模型。"
+    },
+    {
+      "start": 640.21,
+      "end": 640.65,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 641.01,
+      "end": 646.85,
+      "en": "Here I'm just initializing the estimate of the local minimum and the losses.",
+      "zh": "這裡只初始化局部極小值估計，以及損失記錄。"
+    },
+    {
+      "start": 647.13,
+      "end": 648.41,
+      "en": "Loop over training.",
+      "zh": "跑訓練迴圈。"
+    },
+    {
+      "start": 648.97,
+      "end": 651.31,
+      "en": "Uh, clear out the previous gradients.",
+      "zh": "清除先前梯度。"
+    },
+    {
+      "start": 651.83,
+      "end": 655.31,
+      "en": "Compute the forward pass and get the loss.",
+      "zh": "做前向傳播，取得損失。"
+    },
+    {
+      "start": 655.59,
+      "end": 658.63,
+      "en": "And here is where I calculate the gradient.",
+      "zh": "這裡計算梯度。"
+    },
+    {
+      "start": 658.63,
+      "end": 661.91,
+      "en": "Here is where we update using the optimizer.",
+      "zh": "這裡使用最佳化器更新。"
+    },
+    {
+      "start": 661.91,
+      "end": 666.79,
+      "en": "And this is the step that actually modifies the weights in the model so far.",
+      "zh": "這一步才真的修改模型權重；到目前為止，"
+    },
+    {
+      "start": 667.11,
+      "end": 678.51,
+      "en": "These steps are just about calculating the loss and determining the the gradient with respect to the current value of w or x.",
+      "zh": "前面的步驟只是計算損失，以及損失對目前 w 或 x 的梯度。"
+    },
+    {
+      "start": 679.27,
+      "end": 679.43,
+      "en": "Yeah.",
+      "zh": "沒錯。"
+    },
+    {
+      "start": 679.47,
+      "end": 684.07,
+      "en": "And then here we actually are going through and changing the weights in the model.",
+      "zh": "接著，這裡才真的修改模型權重。"
+    },
+    {
+      "start": 684.35,
+      "end": 688.27,
+      "en": "Here I'm storing the actual weight value and the loss value.",
+      "zh": "這裡記錄實際權重值與損失值。"
+    },
+    {
+      "start": 688.27,
+      "end": 698.71,
+      "en": "And here I'm just printing out a progress report so we can see that the weight or sorry the loss started off as being some large number and it ends up being some smaller number.",
+      "zh": "這裡印出進度，看到權重，抱歉，是損失，一開始很大，最後變小。"
+    },
+    {
+      "start": 699.47,
+      "end": 708.83,
+      "en": "Now what these numbers actually want to should be, and what numbers we should be looking for depends on the loss function.",
+      "zh": "這些數字應該是多少、應該觀察什麼，取決於損失函式。"
+    },
+    {
+      "start": 708.83,
+      "end": 710.6,
+      "en": "And it depends on the model.",
+      "zh": "也取決於模型。"
+    },
+    {
+      "start": 710.8,
+      "end": 719.4,
+      "en": "I will talk later in the course about how to interpret these values in the context of a large language model.",
+      "zh": "之後會談，在大型語言模型裡如何解讀這些數值。"
+    },
+    {
+      "start": 719.6,
+      "end": 722.52,
+      "en": "For now, suffice it to say that this is great.",
+      "zh": "目前只要知道，這很棒。"
+    },
+    {
+      "start": 722.68,
+      "end": 727.64,
+      "en": "Okay, so and then we got the minimum found at 0.32.",
+      "zh": "現在找到的最小值位置是零點三二。"
+    },
+    {
+      "start": 727.68,
+      "end": 728.68,
+      "en": "Let me zoom in here.",
+      "zh": "我放大一下。"
+    },
+    {
+      "start": 729,
+      "end": 734.16,
+      "en": "Remember that the optimal solution is one third which is 0.33333.",
+      "zh": "記得，最佳解是三分之一，也就是零點三三三三三。"
+    },
+    {
+      "start": 734.28,
+      "end": 744.4,
+      "en": "So the gradient descent got us a value of the weight that made the loss function smaller.",
+      "zh": "所以，梯度下降找到了一個能讓損失變小的權重值。"
+    },
+    {
+      "start": 744.68,
+      "end": 751.68,
+      "en": "But it was not really literally exactly the optimal solution that we know it should be.",
+      "zh": "但並不是已知的、完全精確的最佳解。"
+    },
+    {
+      "start": 752.44,
+      "end": 756.36,
+      "en": "Okay, so let me now plot the value of the losses.",
+      "zh": "現在畫出損失值。"
+    },
+    {
+      "start": 756.4,
+      "end": 761.12,
+      "en": "Again, this is just literally the value of the loss function starts off at eight.",
+      "zh": "同樣，就是真正的損失函式值，一開始是八。"
+    },
+    {
+      "start": 761.16,
+      "end": 763.4,
+      "en": "It goes down to a little bit below three.",
+      "zh": "下降到稍微小於三。"
+    },
+    {
+      "start": 763.84,
+      "end": 767.16,
+      "en": "And that you see here it starts off at eight.",
+      "zh": "這裡看到，起點是八。"
+    },
+    {
+      "start": 767.16,
+      "end": 772.85,
+      "en": "So when x equals minus one then the loss function is around eight, and then it keeps going down until",
+      "zh": "x 等於負一時，損失大約八，接著持續下降，直到，"
+    },
+    {
+      "start": 772.85,
+      "end": 781.69,
+      "en": "we get to around one third on x axis, which has a loss function value of somewhere around three, a little bit less than three.",
+      "zh": "x 軸大約三分之一的位置，這裡損失大約三，再小一點。"
+    },
+    {
+      "start": 782.45,
+      "end": 783.89,
+      "en": "Okay, so that's the losses.",
+      "zh": "以上是損失。"
+    },
+    {
+      "start": 784.25,
+      "end": 791.33,
+      "en": "Here I am printing out the estimate of the local minimum, which is the value of w.",
+      "zh": "這裡印出局部極小值的位置估計，也就是 w。"
+    },
+    {
+      "start": 791.57,
+      "end": 793.93,
+      "en": "So you can see that it's around minus one.",
+      "zh": "可以看到，一開始大約是負一。"
+    },
+    {
+      "start": 794.17,
+      "end": 798.49,
+      "en": "And as we go through the 80 training epochs there's 80 numbers in here.",
+      "zh": "八十個訓練週期中，這裡有八十個數字。"
+    },
+    {
+      "start": 798.85,
+      "end": 800.37,
+      "en": "This number increases.",
+      "zh": "數值逐漸增加。"
+    },
+    {
+      "start": 800.37,
+      "end": 801.77,
+      "en": "It's getting larger here.",
+      "zh": "這裡變大。"
+    },
+    {
+      "start": 801.77,
+      "end": 806.93,
+      "en": "It goes through zero and it's getting bigger and bigger until it gets to close to a third.",
+      "zh": "通過零，再繼續增加，直到接近三分之一。"
+    },
+    {
+      "start": 806.93,
+      "end": 809.01,
+      "en": "It doesn't get to exactly one third.",
+      "zh": "沒有恰好到三分之一。"
+    },
+    {
+      "start": 809.61,
+      "end": 811.33,
+      "en": "Now I have a question for you.",
+      "zh": "現在問你一個問題。"
+    },
+    {
+      "start": 811.49,
+      "end": 817.17,
+      "en": "Why is it the case that this number here is -0.92?",
+      "zh": "為什麼這裡的數字是負零點九二？"
+    },
+    {
+      "start": 818.01,
+      "end": 824.09,
+      "en": "Whereas this number here when I initialize the model is minus one.",
+      "zh": "但初始化模型時，是負一？"
+    },
+    {
+      "start": 824.37,
+      "end": 829.31,
+      "en": "If you'd like to pause the video and think about why there is that discrepancy.",
+      "zh": "如果想暫停影片，思考為什麼有這個差異，"
+    },
+    {
+      "start": 829.51,
+      "end": 830.95,
+      "en": "Then feel free to do so.",
+      "zh": "請儘管試試。"
+    },
+    {
+      "start": 831.63,
+      "end": 835.99,
+      "en": "So the answer is that the model really is initialized to minus one.",
+      "zh": "答案是，模型確實初始化為負一。"
+    },
+    {
+      "start": 835.99,
+      "end": 846.39,
+      "en": "But by the time I grab the next version of the model which is here, or the weights, which is here, we've already gone through and updated the model.",
+      "zh": "但到了這裡，擷取下一個版本的模型，也就是權重時，已經更新過了。"
+    },
+    {
+      "start": 846.67,
+      "end": 851.07,
+      "en": "So if you like, if you're curious, you can actually get two versions of this.",
+      "zh": "如果好奇，其實可以取得兩個版本。"
+    },
+    {
+      "start": 851.07,
+      "end": 853.03,
+      "en": "You can get, uh, let me see.",
+      "zh": "可以取得——讓我看看。"
+    },
+    {
+      "start": 853.19,
+      "end": 855.87,
+      "en": "You could do something like this.",
+      "zh": "可以像這樣做。"
+    },
+    {
+      "start": 856.51,
+      "end": 860.47,
+      "en": "So you could say and maybe put this in a separate vector like this.",
+      "zh": "也許放到另一個獨立向量裡。"
+    },
+    {
+      "start": 861.23,
+      "end": 868.15,
+      "en": "You could do something like this to see how the weight changes before and after the optimization step.",
+      "zh": "這樣就能看到，最佳化步驟前後，權重如何改變。"
+    },
+    {
+      "start": 868.63,
+      "end": 869.07,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 870.15,
+      "end": 870.55,
+      "en": "Uh.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 870.55,
+      "end": 871.23,
+      "en": "Let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 871.67,
+      "end": 872.99,
+      "en": "So where were we?",
+      "zh": "剛才到哪裡？"
+    },
+    {
+      "start": 873.03,
+      "end": 873.31,
+      "en": "Oh, yeah.",
+      "zh": "喔，對。"
+    },
+    {
+      "start": 873.31,
+      "end": 873.63,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 873.67,
+      "end": 878.67,
+      "en": "So now what I'm going to do is visualize this as I showed in the slides.",
+      "zh": "接著，要像投影片一樣，把它視覺化。"
+    },
+    {
+      "start": 878.67,
+      "end": 880.35,
+      "en": "I'm not going to say a whole lot about this.",
+      "zh": "這部分不會講太多。"
+    },
+    {
+      "start": 880.35,
+      "end": 890.28,
+      "en": "You can see here is where I define the, uh, changes in the sizes and the colors as we go through training to get this plot to look.",
+      "zh": "可以看到，這裡定義訓練過程中標記大小與顏色的變化，產生這張圖。"
+    },
+    {
+      "start": 890.32,
+      "end": 892.72,
+      "en": "This is just some aesthetic appearances.",
+      "zh": "只是外觀調整。"
+    },
+    {
+      "start": 893.96,
+      "end": 894.24,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 894.28,
+      "end": 903.56,
+      "en": "Now, what I want to show you is that as soon as we created this model with, uh, as a PyTorch tensor",
+      "zh": "現在想讓你看到，只要把模型建立成 PyTorch 張量，"
+    },
+    {
+      "start": 903.76,
+      "end": 905.68,
+      "en": "and with Requiresgrad equals.",
+      "zh": "並把 requires_grad 設為，"
+    },
+    {
+      "start": 905.68,
+      "end": 911.92,
+      "en": "True, that activated a lot of other properties in this variable W.",
+      "zh": "True，就會啟用 w 變數的許多其他特性。"
+    },
+    {
+      "start": 911.92,
+      "end": 916.6,
+      "en": "So this is not just a number, it's actually a class all on its own.",
+      "zh": "所以，它不只是一個數字，其實本身也是一個類別。"
+    },
+    {
+      "start": 916.8,
+      "end": 924.88,
+      "en": "There's a lot of information that is associated with this variable W and that we can see here.",
+      "zh": "w 這個變數會附帶很多資訊，這裡可以看到。"
+    },
+    {
+      "start": 924.88,
+      "end": 932.28,
+      "en": "We can use dir w to list all of the attributes, all the methods and the properties associated with W.",
+      "zh": "使用 dir(w)，列出相關屬性、方法與特性。"
+    },
+    {
+      "start": 933.56,
+      "end": 937.2,
+      "en": "And there's a lot there's a lot going on in here.",
+      "zh": "裡面真的有很多東西。"
+    },
+    {
+      "start": 937.32,
+      "end": 938.28,
+      "en": "All sorts of things.",
+      "zh": "各式各樣的內容。"
+    },
+    {
+      "start": 938.28,
+      "end": 944,
+      "en": "Unsqueeze unique uh tried u for triangular upper and so on.",
+      "zh": "例如 unsqueeze、unique，以及代表上三角的 triu 等等。"
+    },
+    {
+      "start": 944,
+      "end": 945.6,
+      "en": "There's a lot of stuff going on here.",
+      "zh": "有很多功能。"
+    },
+    {
+      "start": 946,
+      "end": 948.61,
+      "en": "Uh, some of this you will use throughout the course.",
+      "zh": "其中一些，這門課會用到。"
+    },
+    {
+      "start": 948.93,
+      "end": 950.49,
+      "en": "Uh, others you don't.",
+      "zh": "其他則不會。"
+    },
+    {
+      "start": 950.53,
+      "end": 953.09,
+      "en": "I don't even know what this stands for.",
+      "zh": "這個我甚至不知道代表什麼。"
+    },
+    {
+      "start": 953.33,
+      "end": 954.41,
+      "en": "S diem.",
+      "zh": "原字幕是「S diem」（名稱待核）。"
+    },
+    {
+      "start": 954.45,
+      "end": 957.17,
+      "en": "I'm sure it is something relevant, but I don't know.",
+      "zh": "我想一定有相關用途，但我不知道。"
+    },
+    {
+      "start": 957.17,
+      "end": 958.17,
+      "en": "Off the top of my head.",
+      "zh": "一時想不起來。"
+    },
+    {
+      "start": 958.53,
+      "end": 958.73,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 958.77,
+      "end": 961.89,
+      "en": "But what I do want to show you is w dot grad.",
+      "zh": "但這裡真正想示範的，是 w.grad。"
+    },
+    {
+      "start": 961.93,
+      "end": 970.61,
+      "en": "This is the gradient, which is just the derivative value of the loss function with respect to this value here.",
+      "zh": "這是梯度，也就是損失函式對這個值的導數。"
+    },
+    {
+      "start": 970.81,
+      "end": 973.81,
+      "en": "And that value is minus .06.",
+      "zh": "這個數值是負零點零六。"
+    },
+    {
+      "start": 974.77,
+      "end": 985.21,
+      "en": "Now in theory the derivative at the exact analytic solution which is one third the derivative at that point is exactly zero.",
+      "zh": "理論上，在精確解析解三分之一的位置，導數應該恰好是零。"
+    },
+    {
+      "start": 985.69,
+      "end": 988.49,
+      "en": "Now here we see that this is not exactly zero.",
+      "zh": "但這裡看到，不是剛好零。"
+    },
+    {
+      "start": 988.49,
+      "end": 989.69,
+      "en": "It's a small number.",
+      "zh": "是一個小數值。"
+    },
+    {
+      "start": 989.69,
+      "end": 990.77,
+      "en": "It's negative.",
+      "zh": "而且是負的。"
+    },
+    {
+      "start": 990.89,
+      "end": 992.13,
+      "en": "And what does that mean?",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 992.29,
+      "end": 998.21,
+      "en": "That means that we haven't really gotten close enough, uh, to the exact optimum.",
+      "zh": "表示我們還沒有足夠接近精確最佳解。"
+    },
+    {
+      "start": 998.21,
+      "end": 1008.03,
+      "en": "And the derivative is zero, which you'll remember from the methods of gradient descent, that that means that the next step needs to be a little bit further to the right.",
+      "zh": "而導數為零；你應該記得梯度下降的方法，這表示下一步需要再往右一點。"
+    },
+    {
+      "start": 1008.07,
+      "end": 1008.31,
+      "en": "Right.",
+      "zh": "對吧？"
+    },
+    {
+      "start": 1008.35,
+      "end": 1014.67,
+      "en": "We always move in the direction opposite to the sign of the derivative or the gradient.",
+      "zh": "總是往導數、梯度正負號的反方向移動。"
+    },
+    {
+      "start": 1014.79,
+      "end": 1017.87,
+      "en": "So this model still needs to move a little bit to the right.",
+      "zh": "所以，這個模型還需要往右一點。"
+    },
+    {
+      "start": 1017.87,
+      "end": 1025.71,
+      "en": "And the fact that this here grad is not exactly zero means that we haven't exactly hit the optimum.",
+      "zh": "這裡的 grad 不恰好是零，表示還沒精確命中最佳點。"
+    },
+    {
+      "start": 1026.83,
+      "end": 1034.35,
+      "en": "So also if you're curious, you can also extract the actual gradient information here.",
+      "zh": "如果好奇，也可以擷取實際梯度資訊。"
+    },
+    {
+      "start": 1034.35,
+      "end": 1041.11,
+      "en": "So you could do this here instead of or in addition to grabbing the actual value.",
+      "zh": "可以在取得實際權重值之外，或者改成記錄這個。"
+    },
+    {
+      "start": 1042.07,
+      "end": 1045.51,
+      "en": "I really like working with these small, simple models.",
+      "zh": "我很喜歡這些簡單的小模型。"
+    },
+    {
+      "start": 1045.75,
+      "end": 1051.51,
+      "en": "I find the visualization great for understanding the code and building intuition.",
+      "zh": "視覺化對理解程式碼，以及建立直覺很有幫助。"
+    },
+    {
+      "start": 1052.11,
+      "end": 1058.59,
+      "en": "Now the models are going to be phantasmagorical, more complicated than what we just did in this demo.",
+      "zh": "接下來的模型，會比這次示範複雜得驚人。"
+    },
+    {
+      "start": 1058.83,
+      "end": 1063.43,
+      "en": "But the basic structure of training a model is the same.",
+      "zh": "但訓練模型的基本結構相同。"
+    }
+  ]
+}

@@ -1,0 +1,865 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840089",
+  "title": "Temporal causality via linear algebra (theory)",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "8fbbce431c8b52a1db3a28ef51feb7aa0f1b436298af23c4f63392d54bde13f1",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 9.2,
+      "en": "Over the next few videos, you are going to learn about the causal attention mechanism, which is one",
+      "zh": "接下來幾支影片會介紹因果注意力機制，這是"
+    },
+    {
+      "start": 9.2,
+      "end": 15.12,
+      "en": "of the important foundations of law that allows them to be so effective.",
+      "zh": "LLM 得以如此有效的重要基礎之一。"
+    },
+    {
+      "start": 15.68,
+      "end": 27.44,
+      "en": "Part of that attention mechanism is a matrix that acts as a mask that imposes the kind of temporal causality that I discussed at the end of the previous video.",
+      "zh": "注意力機制的一部分，是一個充當遮罩的矩陣，用來施加上一支影片結尾提到的時間因果限制。"
+    },
+    {
+      "start": 28.12,
+      "end": 35.72,
+      "en": "Now, this mask is actually not a necessary part of attention, but it is one of the key distinctions",
+      "zh": "其實遮罩並非注意力的必要元件，但它是"
+    },
+    {
+      "start": 35.72,
+      "end": 42.84,
+      "en": "between two different families of language models, which are referred to as decoder versus encoder models.",
+      "zh": "兩類不同語言模型，也就是解碼器與編碼器模型之間的重要差異之一。"
+    },
+    {
+      "start": 42.84,
+      "end": 47.6,
+      "en": "And here I'm referring to them as GPT versus Bert architectures.",
+      "zh": "這裡我用 GPT 與 BERT 架構來稱呼它們。"
+    },
+    {
+      "start": 48.6,
+      "end": 53.32,
+      "en": "So this diagram is from the attention is all you need paper.",
+      "zh": "這張圖來自《Attention Is All You Need》論文。"
+    },
+    {
+      "start": 53.48,
+      "end": 57.84,
+      "en": "And this is the formula for the attention activations.",
+      "zh": "這是注意力活化值的公式。"
+    },
+    {
+      "start": 58.28,
+      "end": 64.83,
+      "en": "You are going to learn all about these matrices and these calculations over the next several videos.",
+      "zh": "接下來幾支影片會完整介紹這些矩陣與計算。"
+    },
+    {
+      "start": 64.99,
+      "end": 69.43,
+      "en": "So if this looks intimidating, then don't worry, it will make sense soon.",
+      "zh": "所以如果覺得有點嚇人，別擔心，很快就會懂。"
+    },
+    {
+      "start": 70.03,
+      "end": 76.83,
+      "en": "So I'm showing this here because I want to point out what we are doing in this and the next video.",
+      "zh": "現在展示這個，是想指出這支與下一支影片會處理哪個部分。"
+    },
+    {
+      "start": 77.27,
+      "end": 81.47,
+      "en": "So this sigma here is for the softmax function.",
+      "zh": "這裡的 sigma 代表 softmax 函數。"
+    },
+    {
+      "start": 81.91,
+      "end": 84.35,
+      "en": "The d here is for dimensionality.",
+      "zh": "d 則代表維度。"
+    },
+    {
+      "start": 84.35,
+      "end": 88.75,
+      "en": "And you've already seen why we need a scaling factor like this.",
+      "zh": "你也已經看過，為什麼需要這樣的縮放係數。"
+    },
+    {
+      "start": 89.35,
+      "end": 101.19,
+      "en": "So what we are going to focus on in this and the next video is this matrix M here which in the diagram is the mask that they note is optional.",
+      "zh": "這支與下一支影片會聚焦在矩陣 M，也就是圖中標示為可選用的遮罩。"
+    },
+    {
+      "start": 102.15,
+      "end": 104.19,
+      "en": "Now it's actually not optional for GPT.",
+      "zh": "但對 GPT 而言，它其實不是可有可無的。"
+    },
+    {
+      "start": 104.47,
+      "end": 105.75,
+      "en": "You really need this mask.",
+      "zh": "真的需要這個遮罩。"
+    },
+    {
+      "start": 105.75,
+      "end": 110.31,
+      "en": "If you want a model that is really good at generating new text.",
+      "zh": "如果希望模型擅長產生新文字的話。"
+    },
+    {
+      "start": 111.19,
+      "end": 114.55,
+      "en": "Okay, imagine this is a timeline.",
+      "zh": "好，想像這是一條時間軸。"
+    },
+    {
+      "start": 114.67,
+      "end": 120.5,
+      "en": "Here we are in the present, and what we want to do is predict what's going to happen in the future.",
+      "zh": "這裡是現在，我們想預測未來會發生什麼事。"
+    },
+    {
+      "start": 121.14,
+      "end": 126.58,
+      "en": "And not just llms, but that's basically what all of biology is trying to do.",
+      "zh": "不只是 LLM，基本上所有生物也都在做這件事。"
+    },
+    {
+      "start": 126.86,
+      "end": 129.42,
+      "en": "Anticipate what's going to happen in the future.",
+      "zh": "也就是預先判斷未來會發生什麼事。"
+    },
+    {
+      "start": 129.86,
+      "end": 134.3,
+      "en": "But of course, we cannot actually know what's going to happen in the future.",
+      "zh": "但當然，我們不可能真的知道未來。"
+    },
+    {
+      "start": 134.46,
+      "end": 136.74,
+      "en": "We just make an informed guess.",
+      "zh": "只能根據資訊來猜測。"
+    },
+    {
+      "start": 137.14,
+      "end": 139.62,
+      "en": "And where does that information come from?",
+      "zh": "資訊從哪裡來？"
+    },
+    {
+      "start": 139.94,
+      "end": 142.5,
+      "en": "Well, it mainly comes from the past.",
+      "zh": "主要來自過去。"
+    },
+    {
+      "start": 142.54,
+      "end": 146.42000000000002,
+      "en": "So we use to try to predict the future.",
+      "zh": "所以我們用過去，試著預測未來。"
+    },
+    {
+      "start": 146.86,
+      "end": 147.57999999999998,
+      "en": "Fair enough.",
+      "zh": "很合理。"
+    },
+    {
+      "start": 147.94,
+      "end": 156.3,
+      "en": "How can we mathematically represent this process of accumulating and integrating information from the past?",
+      "zh": "要如何用數學表示這個累積、整合過去資訊的過程？"
+    },
+    {
+      "start": 156.78,
+      "end": 160.54,
+      "en": "Well, we could think about a vector that would look something like this.",
+      "zh": "可以想像一個像這樣的向量。"
+    },
+    {
+      "start": 160.82,
+      "end": 165.9,
+      "en": "So all of these time points in the past and the present are given a value of one.",
+      "zh": "過去與現在的所有時間點，都給值 1。"
+    },
+    {
+      "start": 166.26,
+      "end": 169.14,
+      "en": "And the future is given a value of zero.",
+      "zh": "未來則給值 0。"
+    },
+    {
+      "start": 169.74,
+      "end": 177.26,
+      "en": "This way when we consider these numbers to be activations referring to some information from the past,",
+      "zh": "這樣把這些數字視為對應過去資訊的活化值時，"
+    },
+    {
+      "start": 177.65,
+      "end": 188.17,
+      "en": "Then the weighted sum of the past and the present is going to hopefully identify some patterns or trends that allows us to predict the future.",
+      "zh": "過去與現在的加權總和，就有機會找出某些模式或趨勢，讓我們預測未來。"
+    },
+    {
+      "start": 188.73,
+      "end": 192.05,
+      "en": "But there is a problem with these activation values.",
+      "zh": "但這些活化值有個問題。"
+    },
+    {
+      "start": 192.21,
+      "end": 203.32999999999998,
+      "en": "The problem is that they have a sum greater than one, and we don't want that in numerical calculations for a variety of reasons, including avoiding numerical instabilities.",
+      "zh": "它們的總和大於 1，而出於多種理由，包括避免數值不穩定，我們不希望數值計算出現這樣的情況。"
+    },
+    {
+      "start": 204.45,
+      "end": 205.37,
+      "en": "But that's no problem.",
+      "zh": "不過沒關係。"
+    },
+    {
+      "start": 205.37,
+      "end": 214.81,
+      "en": "We can just have a minor adjustment here and say that the activation value for each time point is one divided by the sum over all the values.",
+      "zh": "稍微調整一下，把每個時間點的活化值，設為 1 除以所有值的總和。"
+    },
+    {
+      "start": 214.97,
+      "end": 218.57,
+      "en": "And of course, the future is still weighted at zero.",
+      "zh": "當然，未來的權重仍然是零。"
+    },
+    {
+      "start": 219.25,
+      "end": 225.05,
+      "en": "Now that's fine, but we don't necessarily want to wait every time point in the past.",
+      "zh": "這樣沒問題，但不一定想對過去每個時間點都給"
+    },
+    {
+      "start": 225.09,
+      "end": 231.65,
+      "en": "Equally, maybe some time points in the past are more important or more relevant than others.",
+      "zh": "相同權重。有些過去時間點可能比較重要，或比較相關。"
+    },
+    {
+      "start": 232.13,
+      "end": 237.2,
+      "en": "So perhaps we want to have an activation vector that looks something like this.",
+      "zh": "所以也許會想要像這樣的活化向量。"
+    },
+    {
+      "start": 237.52,
+      "end": 241.84,
+      "en": "So now the distant past is less relevant than the recent past.",
+      "zh": "現在，較久以前的資訊，比較近期的資訊不那麼相關。"
+    },
+    {
+      "start": 242.08,
+      "end": 246.28,
+      "en": "And in this case, we're not really considering the present moment very much.",
+      "zh": "而在這個例子中，我們也不太看重現在這個時間點。"
+    },
+    {
+      "start": 246.8,
+      "end": 249.32,
+      "en": "Again, these values do not sum to one.",
+      "zh": "這些值的總和同樣不是 1。"
+    },
+    {
+      "start": 249.32,
+      "end": 258.96,
+      "en": "But now, instead of just dividing by the sum, I'm going to take the softmax of these values to get a probability distribution.",
+      "zh": "但這次不只是除以總和，而是取這些值的 softmax，得到機率分布。"
+    },
+    {
+      "start": 259.16,
+      "end": 271.04,
+      "en": "And that probability distribution reflects how much of different past time points get incorporated when making predictions about this future event over here.",
+      "zh": "這個機率分布反映了預測這個未來事件時，會納入多少來自各個過去時間點的資訊。"
+    },
+    {
+      "start": 272.32,
+      "end": 277.36,
+      "en": "Now, I calculated the softmax of this vector and here are the results.",
+      "zh": "我對這個向量計算 softmax，結果在這裡。"
+    },
+    {
+      "start": 277.96,
+      "end": 282.72,
+      "en": "Just note that I truncated and rounded a bit so it would look nice in the slides.",
+      "zh": "注意，為了讓投影片好看，我有稍微截短數字並四捨五入。"
+    },
+    {
+      "start": 282.72,
+      "end": 286.84000000000003,
+      "en": "So don't be concerned if these numbers don't add up to exactly one.",
+      "zh": "所以如果總和不是剛好等於 1，不用擔心。"
+    },
+    {
+      "start": 287.2,
+      "end": 289.08,
+      "en": "But that's not the real problem here.",
+      "zh": "但真正的問題不在這裡。"
+    },
+    {
+      "start": 289.12,
+      "end": 297.79,
+      "en": "The real problem here is that suddenly the future has a non-zero information value and why did that happen?",
+      "zh": "真正的問題是，未來突然有了非零的資訊值。為什麼會這樣？"
+    },
+    {
+      "start": 297.79,
+      "end": 301.63,
+      "en": "How did we get from completely ignoring the future?",
+      "zh": "原本明明完全忽略未來，"
+    },
+    {
+      "start": 302.31,
+      "end": 307.15,
+      "en": "By giving it a value of zero and all of a sudden it has a non-zero value?",
+      "zh": "把它設成零，怎麼突然就出現非零值？"
+    },
+    {
+      "start": 307.91,
+      "end": 315.63,
+      "en": "I'm going to say the answer to this question on the next slide, so feel free to pause the video if you want a moment to think about this.",
+      "zh": "下一張投影片會公布答案，想先思考的話，可以暫停影片。"
+    },
+    {
+      "start": 317.43,
+      "end": 320.43,
+      "en": "Well, the answer comes from the natural exponential.",
+      "zh": "答案來自自然指數函數。"
+    },
+    {
+      "start": 320.43,
+      "end": 329.51,
+      "en": "In the softmax function, e to the zero is not zero, e to the zero is one, so the numerical value",
+      "zh": "softmax 裡的 e 的零次方不是零，而是 1。因此原本的數值"
+    },
+    {
+      "start": 329.55,
+      "end": 330.51,
+      "en": "might be zero.",
+      "zh": "可能是零，"
+    },
+    {
+      "start": 330.51,
+      "end": 335.31,
+      "en": "But the softmax transformation of that is going to be greater than zero.",
+      "zh": "但 softmax 轉換後會大於零。"
+    },
+    {
+      "start": 335.99,
+      "end": 337.51,
+      "en": "So what's the solution here.",
+      "zh": "解法是什麼？"
+    },
+    {
+      "start": 337.51,
+      "end": 346.71,
+      "en": "What can we do if we want to softmax a set of numbers and guarantee that some of those numbers will be equal to zero?",
+      "zh": "如果想對一組數字做 softmax，又保證其中某些結果恰好等於零，該怎麼做？"
+    },
+    {
+      "start": 347.35,
+      "end": 350.03,
+      "en": "Again, I will answer that question in a moment.",
+      "zh": "稍後就會回答。"
+    },
+    {
+      "start": 350.03,
+      "end": 356.65999999999997,
+      "en": "Feel free to pause the video if you want some time to think about it based on what you see in this graph over here.",
+      "zh": "如果想根據這張圖先思考一下，可以暫停影片。"
+    },
+    {
+      "start": 357.5,
+      "end": 366.66,
+      "en": "So the answer comes from the fact that the limit of e to the x as x goes to minus infinity is zero.",
+      "zh": "答案是：當 x 趨近負無限大時，e 的 x 次方，其極限為零。"
+    },
+    {
+      "start": 367.26,
+      "end": 379.1,
+      "en": "If you are not familiar with this limit notation and concept, then basically all of this just means that when x goes to minus infinity, then e to the x goes to zero.",
+      "zh": "如果不熟極限的符號與概念，簡單說就是 x 趨近負無限大時，e 的 x 次方會趨近零。"
+    },
+    {
+      "start": 379.14,
+      "end": 381.1,
+      "en": "That's what you see in this graph over here.",
+      "zh": "圖上顯示的就是這件事。"
+    },
+    {
+      "start": 381.66,
+      "end": 383.22,
+      "en": "And that is our solution.",
+      "zh": "這就是解法。"
+    },
+    {
+      "start": 383.22,
+      "end": 390.18,
+      "en": "So instead of setting future values to be zero we set them to be minus infinity.",
+      "zh": "不要把未來的值設成零，而是設成負無限大。"
+    },
+    {
+      "start": 390.66,
+      "end": 394.26,
+      "en": "And then the softmax of that is zero.",
+      "zh": "這樣做 softmax 後，結果就是零。"
+    },
+    {
+      "start": 394.86,
+      "end": 396.02,
+      "en": "Okay this is great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 396.02,
+      "end": 403.86,
+      "en": "So now we have a way to integrate information over the past with any arbitrary weightings and activation",
+      "zh": "現在有方法可以用任意權重與活化值，整合過去的資訊，"
+    },
+    {
+      "start": 403.86,
+      "end": 410.14,
+      "en": "values, while ignoring the future by setting it equal to zero in the softmax.",
+      "zh": "同時讓未來在 softmax 結果中為零，從而忽略未來。"
+    },
+    {
+      "start": 411.06,
+      "end": 423.02,
+      "en": "So and by softmax we also guarantee a probability distribution, and this increases the likelihood of numerical stability as well as a little bit of sparsity in the activations.",
+      "zh": "而且 softmax 保證結果形成機率分布，這有助於數值穩定，也讓活化值具有一些稀疏性。"
+    },
+    {
+      "start": 423.02,
+      "end": 425.58,
+      "en": "I'll talk more about that towards the end of the video.",
+      "zh": "影片結尾還會多談一點。"
+    },
+    {
+      "start": 426.22,
+      "end": 426.66,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 426.7,
+      "end": 427.94,
+      "en": "So this is fine.",
+      "zh": "這樣沒問題。"
+    },
+    {
+      "start": 427.94,
+      "end": 430.74,
+      "en": "How is any of this actually used in practice.",
+      "zh": "但實務上到底怎麼使用？"
+    },
+    {
+      "start": 431.58,
+      "end": 439.34,
+      "en": "Let's consider that in language models the model isn't just making one prediction about one token into the future.",
+      "zh": "想想看，語言模型並不是只預測未來的一個詞元。"
+    },
+    {
+      "start": 439.98,
+      "end": 446.58,
+      "en": "Every time the model processes a token, it's trying to predict what the next token will be.",
+      "zh": "每次模型處理某個詞元，都試著預測下一個詞元。"
+    },
+    {
+      "start": 447.14,
+      "end": 452.7,
+      "en": "And of course, text has many tokens, which means we need to repeat this procedure repeatedly.",
+      "zh": "而文字有很多詞元，因此必須反覆進行這個程序。"
+    },
+    {
+      "start": 453.22,
+      "end": 463.3,
+      "en": "So here we are in the present moment, and we are trying to use information that we've integrated from the past in order to make a prediction about the future.",
+      "zh": "現在我們處於當下，想利用整合自過去的資訊，預測未來。"
+    },
+    {
+      "start": 463.7,
+      "end": 471.1,
+      "en": "But once we get to the future, then we are again in the present moment and also trying to predict the future.",
+      "zh": "但到了原本的未來，那又成了新的當下，仍然要繼續預測未來。"
+    },
+    {
+      "start": 471.58,
+      "end": 480.53,
+      "en": "So we need a way to represent the time causality vectors in a way that captures this repeated flow over time.",
+      "zh": "因此需要一種表示時間因果向量的方式，來涵蓋這個隨時間不斷重複的過程。"
+    },
+    {
+      "start": 481.73,
+      "end": 487.33,
+      "en": "Now we can do that with a bunch of individual vectors and a for loop.",
+      "zh": "可以用許多獨立向量，加上一個 for 迴圈來做。"
+    },
+    {
+      "start": 487.53,
+      "end": 488.73,
+      "en": "And that's not terrible.",
+      "zh": "這樣也不差。"
+    },
+    {
+      "start": 488.77,
+      "end": 499.57,
+      "en": "You know, some of my best friends use for loops, but matrices turn out to be a much better, more elegant, and also more computationally efficient method.",
+      "zh": "我的一些好朋友也用 for 迴圈，但矩陣其實是更好、更優雅，而且計算更有效率的方法。"
+    },
+    {
+      "start": 499.97,
+      "end": 506.93,
+      "en": "So we can accomplish this time causality mask using a matrix that looks something like this.",
+      "zh": "因此可以用像這樣的矩陣，實現時間因果遮罩。"
+    },
+    {
+      "start": 507.57,
+      "end": 513.01,
+      "en": "So now each row corresponds to a different vector of time points.",
+      "zh": "每一列對應一個包含不同時間點的向量。"
+    },
+    {
+      "start": 513.41,
+      "end": 519.05,
+      "en": "So in the first row we are in time point one trying to predict time point two.",
+      "zh": "第一列表示，我們位於時間點 1，試著預測時間點 2。"
+    },
+    {
+      "start": 519.57,
+      "end": 528.01,
+      "en": "In the second row we are in time point two trying to predict time point three based on information from time point two.",
+      "zh": "第二列表示，位於時間點 2，根據時間點 2 的資訊預測時間點 3，"
+    },
+    {
+      "start": 528.01,
+      "end": 535.04,
+      "en": "And also what we have accrued from time point one and so on, down all the rows and across time.",
+      "zh": "以及從時間點 1 累積的資訊；如此逐列、隨時間繼續。"
+    },
+    {
+      "start": 535.24,
+      "end": 541.04,
+      "en": "So now when we get to the fifth row, the present moment is at the end of this vector.",
+      "zh": "到了第五列，當下就位於這個向量的最後。"
+    },
+    {
+      "start": 541.04,
+      "end": 547.68,
+      "en": "And so we are trying to predict time point six, which I'm not actually depicting in this matrix, but",
+      "zh": "因此我們試著預測時間點 6，雖然這個矩陣沒有畫出它，"
+    },
+    {
+      "start": 547.68,
+      "end": 553.84,
+      "en": "this would be a prediction about the future based on all the past tokens and activations.",
+      "zh": "但這仍然是根據所有過去詞元與活化值，預測未來。"
+    },
+    {
+      "start": 554.56,
+      "end": 564.2,
+      "en": "So this matrix shows Unscaled values, and you already know from the previous few slides that we want these numbers scaled so that they sum to one.",
+      "zh": "矩陣顯示的是尚未縮放的值；從前幾張投影片已經知道，我們希望縮放這些數字，讓總和為 1。"
+    },
+    {
+      "start": 564.52,
+      "end": 566.88,
+      "en": "And we also want to softmax them.",
+      "zh": "也希望對它們做 softmax。"
+    },
+    {
+      "start": 567.48,
+      "end": 568.32,
+      "en": "No problem.",
+      "zh": "沒問題。"
+    },
+    {
+      "start": 568.32,
+      "end": 570.68,
+      "en": "We just changed the matrix to look like this.",
+      "zh": "只要把矩陣改成這樣。"
+    },
+    {
+      "start": 570.68,
+      "end": 572.2,
+      "en": "And then we can softmax.",
+      "zh": "接著就能做 softmax。"
+    },
+    {
+      "start": 572.6,
+      "end": 577.04,
+      "en": "And to be clear we softmax each row individually.",
+      "zh": "說清楚一點，是對每一列各自做 softmax。"
+    },
+    {
+      "start": 577.04,
+      "end": 579.64,
+      "en": "So we're not softmax ING down the columns.",
+      "zh": "不是沿著每一欄往下做。"
+    },
+    {
+      "start": 579.64,
+      "end": 582.88,
+      "en": "We're not softmax ING the entire matrix all at once.",
+      "zh": "也不是把整個矩陣一次拿去做 softmax。"
+    },
+    {
+      "start": 583.08,
+      "end": 586.8,
+      "en": "It's softmax over each row individually.",
+      "zh": "而是逐列各自做 softmax。"
+    },
+    {
+      "start": 587.72,
+      "end": 590.67,
+      "en": "But why do we even need to softmax.",
+      "zh": "但為什麼一定要做 softmax？"
+    },
+    {
+      "start": 590.79,
+      "end": 591.91,
+      "en": "What is the point?",
+      "zh": "目的何在？"
+    },
+    {
+      "start": 591.95,
+      "end": 594.55,
+      "en": "What is the advantage of softmax?",
+      "zh": "對矩陣的列做 softmax，"
+    },
+    {
+      "start": 594.91,
+      "end": 596.63,
+      "en": "The rows in the matrix.",
+      "zh": "有什麼好處？"
+    },
+    {
+      "start": 596.63,
+      "end": 605.47,
+      "en": "And why don't we just divide by the sum of all the activation values and leave the feature values at zero instead of minus infinity?",
+      "zh": "為什麼不直接除以所有活化值的總和，並讓未來值維持零，而不是負無限大？"
+    },
+    {
+      "start": 606.15,
+      "end": 609.27,
+      "en": "Again, I'm going to give two answers to this question.",
+      "zh": "這個問題會給兩個答案。"
+    },
+    {
+      "start": 609.27,
+      "end": 614.71,
+      "en": "Why we want to have softmax in this causal attention mechanism.",
+      "zh": "也就是為什麼希望因果注意力機制裡有 softmax。"
+    },
+    {
+      "start": 615.11,
+      "end": 618.75,
+      "en": "And feel free to pause the video if you want a moment to think about it.",
+      "zh": "想先思考的話，可以暫停影片。"
+    },
+    {
+      "start": 619.47,
+      "end": 624.47,
+      "en": "Okay, so one answer is that the activation values can be negative.",
+      "zh": "第一個答案是，活化值可能為負。"
+    },
+    {
+      "start": 624.67,
+      "end": 629.59,
+      "en": "Here I depicted everything as positive numbers, but activation values can be negative.",
+      "zh": "這裡全部畫成正數，但活化值也可能是負的。"
+    },
+    {
+      "start": 629.63,
+      "end": 635.63,
+      "en": "You will learn in a few videos from now what these activation values actually correspond to.",
+      "zh": "再過幾支影片，就會知道這些活化值實際對應什麼。"
+    },
+    {
+      "start": 635.99,
+      "end": 644.07,
+      "en": "But basically they are dot products between vectors representing contextual information from different tokens.",
+      "zh": "基本上，它們是向量之間的內積，這些向量代表來自不同詞元的上下文資訊。"
+    },
+    {
+      "start": 645.19,
+      "end": 651.9,
+      "en": "So softmax takes care of that Negativity by making all the numbers be non-negative.",
+      "zh": "softmax 會把所有數字變成非負值，因此能處理負數的問題。"
+    },
+    {
+      "start": 652.62,
+      "end": 664.62,
+      "en": "A second answer is that the softmax transform is also useful, because it pushes the relatively large values to be even bigger compared to the rest of the distribution.",
+      "zh": "第二個答案是，softmax 也很有用，因為它會讓相對較大的值，比起分布中的其餘值更加突出。"
+    },
+    {
+      "start": 665.18,
+      "end": 671.3,
+      "en": "So that promotes a little bit of sparsity, which is actually a good thing in a language model.",
+      "zh": "這會促進一些稀疏性，而這對語言模型有好處。"
+    },
+    {
+      "start": 671.42,
+      "end": 678.74,
+      "en": "So as you are continuously processing each token throughout all the transformers and the residual stream",
+      "zh": "當你持續透過各個 Transformer、殘差串流"
+    },
+    {
+      "start": 678.74,
+      "end": 686.54,
+      "en": "and so on, you want to narrow the search space of possible tokens that you can select and start focusing",
+      "zh": "等元件處理每個詞元時，會希望縮小可選詞元的搜尋空間，逐漸聚焦"
+    },
+    {
+      "start": 686.54,
+      "end": 695.9,
+      "en": "in on a smaller number of relevant tokens, while suppressing the probability of all the irrelevant tokens from being selected.",
+      "zh": "在較少數的相關詞元，同時壓低所有不相關詞元被選中的機率。"
+    },
+    {
+      "start": 696.74,
+      "end": 703.14,
+      "en": "Softmax is one way to nudge the algorithm towards preferring a small number of tokens.",
+      "zh": "softmax 是引導演算法偏好少數詞元的一種方式。"
+    },
+    {
+      "start": 704.06,
+      "end": 706.98,
+      "en": "Okay, one final point in this video.",
+      "zh": "好，這支影片最後再談一點。"
+    },
+    {
+      "start": 707.26,
+      "end": 713.85,
+      "en": "You know, uh, in the real world, we cannot exactly know what's going to happen in the future because it hasn't happened yet.",
+      "zh": "現實世界裡，我們無法確切知道未來會發生什麼，因為事情還沒發生。"
+    },
+    {
+      "start": 714.29,
+      "end": 720.45,
+      "en": "But when we're training a language model on text, the text has already been written.",
+      "zh": "但用文字訓練語言模型時，文字已經寫好了。"
+    },
+    {
+      "start": 720.45,
+      "end": 727.45,
+      "en": "So at each token position, we actually do have access to what happens in the future in the text.",
+      "zh": "所以在每個詞元位置，我們其實都能取得文字後面發生的內容。"
+    },
+    {
+      "start": 727.77,
+      "end": 732.17,
+      "en": "So why not use those future values to help train the model?",
+      "zh": "為什麼不利用這些未來值來幫助訓練模型？"
+    },
+    {
+      "start": 732.33,
+      "end": 733.73,
+      "en": "Wouldn't that be better?",
+      "zh": "不是會更好嗎？"
+    },
+    {
+      "start": 733.89,
+      "end": 738.85,
+      "en": "And wouldn't it be more efficient because the model can incorporate more context?",
+      "zh": "模型能納入更多上下文，不是也更有效率嗎？"
+    },
+    {
+      "start": 740.05,
+      "end": 748.57,
+      "en": "So it turns out that this causal mask is characteristics of models that are designed to generate new text.",
+      "zh": "原來，這種因果遮罩是為了產生新文字而設計的模型所具有的特徵。"
+    },
+    {
+      "start": 748.81,
+      "end": 753.89,
+      "en": "So when you're generating new text, you don't yet know what's going to happen in the future.",
+      "zh": "因為產生新文字時，你還不知道後面會發生什麼。"
+    },
+    {
+      "start": 753.89,
+      "end": 760.17,
+      "en": "So you only can use the information from the past to make predictions about the future.",
+      "zh": "只能利用過去的資訊來預測未來。"
+    },
+    {
+      "start": 760.97,
+      "end": 767.64,
+      "en": "On the other hand, if you want to train a language model that can read an existing text and perform",
+      "zh": "另一方面，如果想訓練能閱讀現有文字，並進行"
+    },
+    {
+      "start": 767.64,
+      "end": 773.08,
+      "en": "a classification analysis or a sentiment analysis or summarize the text.",
+      "zh": "分類分析、情緒分析，或文字摘要的語言模型，"
+    },
+    {
+      "start": 773.12,
+      "end": 783.96,
+      "en": "Then knowing the future is really helpful because there's a lot of information in later parts of a text that can help you understand the earlier parts of a text.",
+      "zh": "那麼知道後面的內容就很有幫助，因為文字後半段的許多資訊，可以協助理解前半段。"
+    },
+    {
+      "start": 784.44,
+      "end": 791.96,
+      "en": "So in models like Bert, there is no causal mask, there's only the one missing token, and the model",
+      "zh": "所以像 BERT 這類模型沒有因果遮罩，只有那個被遮住的詞元，模型"
+    },
+    {
+      "start": 791.96,
+      "end": 800.48,
+      "en": "can leverage information from all the other tokens in the context, including tokens that come after the missing token.",
+      "zh": "可以利用上下文中所有其他詞元的資訊，包括出現在被遮住詞元之後的詞元。"
+    },
+    {
+      "start": 800.48,
+      "end": 806.24,
+      "en": "To maximize the information, it gets to predict one missing token.",
+      "zh": "藉此取得最多資訊，預測那個被遮住的詞元。"
+    },
+    {
+      "start": 807.52,
+      "end": 816.88,
+      "en": "Understanding this causal attention mask will help you understand how GPT are trained and how the attention mechanism works.",
+      "zh": "了解這個因果注意力遮罩，有助於理解 GPT 如何訓練，以及注意力機制如何運作。"
+    },
+    {
+      "start": 817.52,
+      "end": 817.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 818.4,
+      "end": 820.04,
+      "en": "This lecture was all theory.",
+      "zh": "這堂全是理論。"
+    },
+    {
+      "start": 820.08,
+      "end": 824.76,
+      "en": "In the next video we are going to implement these ideas in code.",
+      "zh": "下一支影片會用程式碼實作這些概念。"
+    }
+  ]
+}

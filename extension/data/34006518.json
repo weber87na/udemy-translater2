@@ -1,0 +1,787 @@
+{
+  "courseId": "4734870",
+  "lectureId": "34006518",
+  "title": "Equation 2: Layernorm Overview",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "0f1836a31572a4661d38ed14ed685fa20e0787980ccb4443fdf8033d452a84ad",
+  "cues": [
+    {
+      "start": 0.54,
+      "end": 1.23,
+      "en": "Friends.",
+      "zh": "各位。"
+    },
+    {
+      "start": 1.23,
+      "end": 2.33,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 2.34,
+      "end": 9.06,
+      "en": "In last video, we covered a high level overview of multi head self attention, but we also covered a fair bit of ground.",
+      "zh": "上一段影片概述多頭自注意力，也談了不少內容。"
+    },
+    {
+      "start": 9.06,
+      "end": 10.74,
+      "en": "So let's just quickly summarize.",
+      "zh": "快速總結一下。"
+    },
+    {
+      "start": 10.74,
+      "end": 13.41,
+      "en": "So multi head self attention.",
+      "zh": "多頭自注意力。"
+    },
+    {
+      "start": 13.41,
+      "end": 24.15,
+      "en": "The whole premise of it is which part of a sequence should pay the most attention to itself, hence",
+      "zh": "整個概念，是序列裡哪個部分該最注意自身的哪些部分，所以叫"
+    },
+    {
+      "start": 24.15,
+      "end": 25.26,
+      "en": "self attention.",
+      "zh": "自注意力。"
+    },
+    {
+      "start": 25.83,
+      "end": 40.71,
+      "en": "And so in our case we have a series of embedded image patches which patch significantly relates to another",
+      "zh": "在這裡，有一串嵌入後的影像區塊，哪個區塊和另一個區塊特別"
+    },
+    {
+      "start": 40.71,
+      "end": 41.43,
+      "en": "patch.",
+      "zh": "相關。"
+    },
+    {
+      "start": 41.7,
+      "end": 51.84,
+      "en": "And the, the reason why we've incorporated this into a neural network is because we can look at a patch and know that it's sort of related to another patch, but we want this to be learned.",
+      "zh": "把它放進神經網路，是因為我們看一個區塊，知道它大概和另一個相關，但希望這件事由模型學會。"
+    },
+    {
+      "start": 52.62,
+      "end": 66.81,
+      "en": "So we want, we want our neural network, so our vet to learn this relationship slash representation.",
+      "zh": "所以希望神經網路，也就是 ViT，學到這種關係或表徵。"
+    },
+    {
+      "start": 66.81,
+      "end": 70.83,
+      "en": "Because if it learns the relationship between patches, what is it inherently learned?",
+      "zh": "如果學到區塊間的關係，本質上學到了什麼？"
+    },
+    {
+      "start": 70.83,
+      "end": 75,
+      "en": "While it hopefully learned a good representation of what's inside an image?",
+      "zh": "希望學到了影像內容的良好表徵。"
+    },
+    {
+      "start": 75.24,
+      "end": 82.08,
+      "en": "And if we wanted to replicate multi head attention, we can take this layer from PyTorch and go into here.",
+      "zh": "想重現多頭注意力，可以使用 PyTorch 的這個層，進到這裡。"
+    },
+    {
+      "start": 83.82,
+      "end": 91.83,
+      "en": "To replicate Msaa in PyTorch, we can use this.",
+      "zh": "在 PyTorch 重現 MSA，可以用這個。"
+    },
+    {
+      "start": 92.13,
+      "end": 98.72999999999999,
+      "en": "And I usually do the challenge of checking out the same thing of what we've just done but four layer norm.",
+      "zh": "我給你的挑戰，是對 LayerNorm 做剛才相同的研究。"
+    },
+    {
+      "start": 99,
+      "end": 103.17,
+      "en": "So if we jump back up to equation two, which is what we're working on replicating.",
+      "zh": "回到正在重現的方程式 2。"
+    },
+    {
+      "start": 104.13,
+      "end": 106.50999999999999,
+      "en": "We're going to start writing code very shortly.",
+      "zh": "很快就要開始寫程式碼。"
+    },
+    {
+      "start": 106.53,
+      "end": 107.4,
+      "en": "Don't you worry.",
+      "zh": "別擔心。"
+    },
+    {
+      "start": 108.35,
+      "end": 111.17,
+      "en": "So there's a lot of details in this paper.",
+      "zh": "這篇論文有很多細節。"
+    },
+    {
+      "start": 111.89,
+      "end": 112.52000000000001,
+      "en": "Here we go.",
+      "zh": "找到了。"
+    },
+    {
+      "start": 113.45,
+      "end": 114.97999999999999,
+      "en": "So we've sort of covered mhsaa.",
+      "zh": "已經大致介紹 MSA。"
+    },
+    {
+      "start": 115.00999999999999,
+      "end": 116.32,
+      "en": "We're going to see it in practice.",
+      "zh": "實際使用時，"
+    },
+    {
+      "start": 116.33,
+      "end": 117.65,
+      "en": "That'll make a lot more sense.",
+      "zh": "就會清楚很多。"
+    },
+    {
+      "start": 117.68,
+      "end": 123.39,
+      "en": "Now we've got Layer Norm, but before we jump into layer, Norm, there's just one more thing I just show you here.",
+      "zh": "現在有 LayerNorm，不過介紹前，再給你看一件事。"
+    },
+    {
+      "start": 123.41,
+      "end": 127.77,
+      "en": "The reason why there's three arrows is because we've got Q Cave.",
+      "zh": "這裡有三條箭頭，是因為 Q、K、V。"
+    },
+    {
+      "start": 128.45,
+      "end": 130.37,
+      "en": "So we'll see this when we implement it.",
+      "zh": "實作時會看到。"
+    },
+    {
+      "start": 130.52,
+      "end": 133.16,
+      "en": "But this is query key value.",
+      "zh": "就是 query、key、value。"
+    },
+    {
+      "start": 134.8,
+      "end": 136.48,
+      "en": "Query key value.",
+      "zh": "Query、key、value。"
+    },
+    {
+      "start": 136.48,
+      "end": 141.01,
+      "en": "And these are three instances of the output of the norm layer.",
+      "zh": "它們都是 Norm 層輸出的三個實例。"
+    },
+    {
+      "start": 141.88,
+      "end": 147.19,
+      "en": "So just three instances of we pass our embedding patch, let's call that X into the nom layer.",
+      "zh": "也就是把嵌入後的區塊，稱為 x，傳給 Norm 層，"
+    },
+    {
+      "start": 147.19,
+      "end": 151.78,
+      "en": "We're just going to Q, k, and V is going to be x x x.",
+      "zh": "Q、K、V 都會是 x、x、x。"
+    },
+    {
+      "start": 152.07999999999998,
+      "end": 155.65,
+      "en": "So if we look at this, what do we have in PyTorch?",
+      "zh": "看看 PyTorch 裡有什麼。"
+    },
+    {
+      "start": 155.65,
+      "end": 158.32,
+      "en": "What does it take as input if we come down?",
+      "zh": "往下看，它接收什麼輸入？"
+    },
+    {
+      "start": 160.54,
+      "end": 165.12,
+      "en": "To here in the Ford method, it takes in a query key and value.",
+      "zh": "到這裡，forward 方法接收 query、key、value。"
+    },
+    {
+      "start": 165.13,
+      "end": 169.84,
+      "en": "We'll see this when we implement it, but that is from here.",
+      "zh": "實作時會看到，不過就是來自這裡。"
+    },
+    {
+      "start": 169.87,
+      "end": 173.07999999999998,
+      "en": "Query key value, scale, doc, product attention.",
+      "zh": "Query、key、value，縮放點積注意力。"
+    },
+    {
+      "start": 173.41,
+      "end": 177.97,
+      "en": "And then if we come back to the keynote, we have query key value.",
+      "zh": "回到簡報，有 query、key、value。"
+    },
+    {
+      "start": 178.51,
+      "end": 186.76,
+      "en": "Just realign it to here, Query Key value query embeddings, Key embeddings value embeddings.",
+      "zh": "把位置調整到這裡，query、key、value，query 嵌入、key 嵌入、value 嵌入。"
+    },
+    {
+      "start": 187.39,
+      "end": 188.2,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 188.2,
+      "end": 189.61,
+      "en": "So let's come back.",
+      "zh": "回來。"
+    },
+    {
+      "start": 189.61,
+      "end": 190.66,
+      "en": "What were we up to?",
+      "zh": "進度到哪裡？"
+    },
+    {
+      "start": 191.35,
+      "end": 192.73,
+      "en": "So we have layer Norm.",
+      "zh": "有 LayerNorm。"
+    },
+    {
+      "start": 193,
+      "end": 195.1,
+      "en": "So layer norm equals.",
+      "zh": "所以 LayerNorm 等於，"
+    },
+    {
+      "start": 195.1,
+      "end": 202.39,
+      "en": "What did you find when we researched lion on what is lion on understanding and improving layer normalization.",
+      "zh": "研究 LayerNorm 時找到什麼？什麼是 LayerNorm，理解與改善層正規化。"
+    },
+    {
+      "start": 202.42000000000002,
+      "end": 203.41,
+      "en": "There we go.",
+      "zh": "找到了。"
+    },
+    {
+      "start": 203.8,
+      "end": 207.19,
+      "en": "Layer norm in PyTorch, look at all these resources we have.",
+      "zh": "PyTorch 的 LayerNorm，看看有這麼多資源。"
+    },
+    {
+      "start": 207.31,
+      "end": 215.29,
+      "en": "So what is this say lion normalization layer norm is a technique to normalize the distributions of intermediate layers.",
+      "zh": "這裡說什麼？Layer Normalization，也就是 LayerNorm，是用來正規化中間層分布的技術。"
+    },
+    {
+      "start": 215.47,
+      "end": 217.54,
+      "en": "It enables smoother gradients.",
+      "zh": "讓梯度更平滑。"
+    },
+    {
+      "start": 217.54,
+      "end": 218.14,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 218.14,
+      "end": 219.13,
+      "en": "That's what we want.",
+      "zh": "正是我們要的。"
+    },
+    {
+      "start": 220.22,
+      "end": 223.46,
+      "en": "Faster training and better generalization accuracy.",
+      "zh": "訓練更快，泛化準確率更好。"
+    },
+    {
+      "start": 223.46,
+      "end": 225.56,
+      "en": "I'm just going to copy this straight in here.",
+      "zh": "直接把這段複製進來。"
+    },
+    {
+      "start": 225.8,
+      "end": 226.64,
+      "en": "So here we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 226.64,
+      "end": 228.92000000000002,
+      "en": "Here a norm equals this.",
+      "zh": "LayerNorm 等於這個。"
+    },
+    {
+      "start": 229.13,
+      "end": 233.24,
+      "en": "And the way I like to think about normalization equals.",
+      "zh": "我喜歡這樣理解正規化。"
+    },
+    {
+      "start": 233.78,
+      "end": 236.63,
+      "en": "So we want to make everything have.",
+      "zh": "希望所有東西都有，"
+    },
+    {
+      "start": 236.63,
+      "end": 238.43,
+      "en": "So when it says distribution.",
+      "zh": "所以這裡說 distribution，分布，"
+    },
+    {
+      "start": 239.67000000000002,
+      "end": 240.27,
+      "en": "Normalize.",
+      "zh": "normalize，正規化，"
+    },
+    {
+      "start": 240.27,
+      "end": 245.58,
+      "en": "We want to make everything have the same mean and same standard deviation.",
+      "zh": "希望所有東西具有相同平均值和標準差。"
+    },
+    {
+      "start": 247.47,
+      "end": 251.31,
+      "en": "And then if we look up layer norm in PyTorch, what do we have?",
+      "zh": "再查 PyTorch 的 LayerNorm，有什麼？"
+    },
+    {
+      "start": 251.58,
+      "end": 257.13,
+      "en": "So applies layer normalization over a mini batch of inputs as described in the paper.",
+      "zh": "依論文所述，對一個小批次輸入套用層正規化。"
+    },
+    {
+      "start": 257.22,
+      "end": 259.29,
+      "en": "The paper is going to link us to here.",
+      "zh": "論文連結會帶到這裡。"
+    },
+    {
+      "start": 260.28,
+      "end": 264.96,
+      "en": "And the mean and standard deviation are calculated over the last D dimensions.",
+      "zh": "平均值與標準差，是沿最後 D 個維度計算。"
+    },
+    {
+      "start": 264.96,
+      "end": 267.45,
+      "en": "Where is D and our replication so far?",
+      "zh": "到目前為止的重現中，D 在哪裡？"
+    },
+    {
+      "start": 267.9,
+      "end": 270.57,
+      "en": "Where D is the dimension of normalized shape?",
+      "zh": "這裡 D 是 normalized_shape 的維度數。"
+    },
+    {
+      "start": 270.99,
+      "end": 272.46,
+      "en": "So let's just bring this in to here.",
+      "zh": "把這個放到這裡。"
+    },
+    {
+      "start": 272.46,
+      "end": 281.43,
+      "en": "We're going to tie all of this together with code and one minute in PyTorch equals this so normalizes",
+      "zh": "等一下會用程式碼串起來。在 PyTorch 中，等於這個，也就是沿 D 維度"
+    },
+    {
+      "start": 282.12,
+      "end": 288.36,
+      "en": "values over D dimension in our case.",
+      "zh": "正規化數值，在我們這裡，"
+    },
+    {
+      "start": 289.59000000000003,
+      "end": 294.12,
+      "en": "The de dimension is the embedding dimension.",
+      "zh": "D 維度是嵌入維度。"
+    },
+    {
+      "start": 295.92,
+      "end": 298.40999999999997,
+      "en": "I love it when pieces of the puzzle start to pull together.",
+      "zh": "很喜歡拼圖開始串起來的感覺。"
+    },
+    {
+      "start": 298.62,
+      "end": 303.19,
+      "en": "And so if we want to look at the embedding dimension, this is our layer norm here.",
+      "zh": "想看嵌入維度，這裡是 LayerNorm。"
+    },
+    {
+      "start": 303.21,
+      "end": 305.94,
+      "en": "This is C in the case of the color channels.",
+      "zh": "對色彩通道而言，這是 C。"
+    },
+    {
+      "start": 306.03,
+      "end": 309.66,
+      "en": "When we output from the convolution layer, what are we projecting to?",
+      "zh": "卷積層輸出時，投影到什麼？"
+    },
+    {
+      "start": 310.44,
+      "end": 314.55,
+      "en": "Our out channels of our convolutional layer and our patch embedding goes to.",
+      "zh": "卷積層與區塊嵌入的 out_channels 是"
+    },
+    {
+      "start": 315.49,
+      "end": 318.25,
+      "en": "768 or our RD to mention.",
+      "zh": "768，也就是 D 維度。"
+    },
+    {
+      "start": 318.25,
+      "end": 321.88,
+      "en": "So we're going to normalize across our embedding dimension.",
+      "zh": "所以要沿嵌入維度正規化。"
+    },
+    {
+      "start": 321.88,
+      "end": 325.51,
+      "en": "Now, how is that going to help so we can get out of a few things here?",
+      "zh": "這有什麼幫助？先關掉幾個頁面。"
+    },
+    {
+      "start": 325.96,
+      "end": 326.86,
+      "en": "What is the norm?",
+      "zh": "Norm 是什麼？"
+    },
+    {
+      "start": 326.86,
+      "end": 329.3,
+      "en": "If you want to research more, please feel free to do so.",
+      "zh": "想多研究，歡迎自行查詢。"
+    },
+    {
+      "start": 329.32,
+      "end": 332.56,
+      "en": "We're going to focus on coding this out if and out, code it out.",
+      "zh": "我們專注寫程式碼，有疑問就寫程式碼。"
+    },
+    {
+      "start": 332.56,
+      "end": 344.65,
+      "en": "So when we normalize along the embedding dimension, it's like making all of the stairs in a staircase.",
+      "zh": "沿嵌入維度正規化，就像把樓梯所有階梯做成"
+    },
+    {
+      "start": 345.7,
+      "end": 347.23,
+      "en": "The same size.",
+      "zh": "相同大小。"
+    },
+    {
+      "start": 347.56,
+      "end": 354.36,
+      "en": "And now this is my little analogy to sort of explain normalization and how I understand it in many different cases.",
+      "zh": "這是我的小比喻，解釋我在各種情況下對正規化的理解。"
+    },
+    {
+      "start": 354.37,
+      "end": 358.81,
+      "en": "So let's find an image of a staircase so you can think of.",
+      "zh": "找一張樓梯圖片，想像一下。"
+    },
+    {
+      "start": 360.92,
+      "end": 362.12,
+      "en": "Where's a good image?",
+      "zh": "哪張比較好？"
+    },
+    {
+      "start": 362.6,
+      "end": 363.35,
+      "en": "Here we go.",
+      "zh": "這張。"
+    },
+    {
+      "start": 364.37,
+      "end": 367.31,
+      "en": "So imagine you're trying to walk down these stairs.",
+      "zh": "想像要走下這些樓梯。"
+    },
+    {
+      "start": 367.85,
+      "end": 369.62,
+      "en": "So that's what gradient descent does, right?",
+      "zh": "梯度下降做的就是這個，對吧？"
+    },
+    {
+      "start": 369.62,
+      "end": 371.87,
+      "en": "But it tries to get to the bottom of a lost curve.",
+      "zh": "不過目標是走到損失曲線底部。"
+    },
+    {
+      "start": 372.38,
+      "end": 373.55,
+      "en": "We want a lost curve.",
+      "zh": "要找損失曲線。"
+    },
+    {
+      "start": 375.25,
+      "end": 376.48,
+      "en": "Gradient descent.",
+      "zh": "梯度下降。"
+    },
+    {
+      "start": 377.54,
+      "end": 379.67,
+      "en": "He's trying to get to the bottom of a lost curve.",
+      "zh": "試著到達損失曲線底部。"
+    },
+    {
+      "start": 380.92,
+      "end": 381.34,
+      "en": "What do we have?",
+      "zh": "有什麼？"
+    },
+    {
+      "start": 381.34,
+      "end": 382.51,
+      "en": "Gradient descent here.",
+      "zh": "這裡的梯度下降。"
+    },
+    {
+      "start": 383.75,
+      "end": 384.65,
+      "en": "I didn't dissent.",
+      "zh": "Gradient descent。"
+    },
+    {
+      "start": 386.01,
+      "end": 386.31,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 386.31,
+      "end": 386.83,
+      "en": "There we go.",
+      "zh": "有了。"
+    },
+    {
+      "start": 386.85,
+      "end": 388.29,
+      "en": "We're trying to get to the bottom.",
+      "zh": "我們要往底部走。"
+    },
+    {
+      "start": 390.04,
+      "end": 392.14,
+      "en": "So this is what we're trying to do with the staircase.",
+      "zh": "樓梯比喻要說的就是這件事。"
+    },
+    {
+      "start": 392.14,
+      "end": 395.98,
+      "en": "But imagine each one of these stairs is a sample in your data set.",
+      "zh": "不過想像每一階，是資料集裡的一個樣本。"
+    },
+    {
+      "start": 396.37,
+      "end": 404.71,
+      "en": "So if you are walking down this staircase but you had the stairs were all different heights and they were all different weird, like squiggly shapes like this.",
+      "zh": "如果走下樓梯時，每一階高度都不同，而且形狀也歪七扭八，"
+    },
+    {
+      "start": 404.71,
+      "end": 406.78,
+      "en": "And each step was a different width.",
+      "zh": "寬度也各不相同。"
+    },
+    {
+      "start": 406.78,
+      "end": 408.82,
+      "en": "So it all just had different parameters.",
+      "zh": "每一階參數都不同。"
+    },
+    {
+      "start": 409.74,
+      "end": 413.46,
+      "en": "You would find it quite hard to walk down those steps quite quickly, wouldn't you?",
+      "zh": "就很難快速走下去，對吧？"
+    },
+    {
+      "start": 413.49,
+      "end": 419.26,
+      "en": "However, if we normalize the steps so made sure that they had the same height and the same width.",
+      "zh": "但如果把階梯正規化，讓高度和寬度相同，"
+    },
+    {
+      "start": 419.28,
+      "end": 425.81,
+      "en": "Or in our case they had the same mean and same standard deviation across the embedding dimension.",
+      "zh": "或在我們這裡，沿嵌入維度有相同平均值和標準差，"
+    },
+    {
+      "start": 425.82,
+      "end": 428.19,
+      "en": "You could walk down those steps pretty quickly.",
+      "zh": "就可以很快走下去。"
+    },
+    {
+      "start": 429.16,
+      "end": 430.48,
+      "en": "So you wouldn't really have to think.",
+      "zh": "不太需要多想。"
+    },
+    {
+      "start": 430.48,
+      "end": 430.78,
+      "en": "So.",
+      "zh": "所以，"
+    },
+    {
+      "start": 430.78,
+      "end": 434.74,
+      "en": "That's where, Leon, normalization comes into play is that layer.",
+      "zh": "這就是層正規化發揮作用的地方。層"
+    },
+    {
+      "start": 434.75,
+      "end": 439.12,
+      "en": "Normalization is a technique to normalize the distributions of intermediate layers.",
+      "zh": "正規化是用來正規化中間層分布的技術。"
+    },
+    {
+      "start": 439.39,
+      "end": 451.12,
+      "en": "So if we normalize the distribution over our embedding dimension, in other words, make sure all of our samples have the same mean and same standard deviation or in the stairs analogy, make sure all",
+      "zh": "沿嵌入維度正規化分布，換句話說，確保所有樣本有相同平均值與標準差；用樓梯比喻，就是確保每一階"
+    },
+    {
+      "start": 451.12,
+      "end": 453.52,
+      "en": "of the steps have the same width and same height.",
+      "zh": "寬度和高度相同。"
+    },
+    {
+      "start": 453.67,
+      "end": 465.55,
+      "en": "Well, not only can you walk down the stairs faster, you can train faster in terms of your gradients, and you can generalize better because instead of thinking about each sample or each step and you go,",
+      "zh": "不但能更快下樓梯，也能讓梯度訓練更快，泛化更好，因為不用針對每個樣本或階梯，"
+    },
+    {
+      "start": 465.67,
+      "end": 467.32,
+      "en": "you have to adjust for each step.",
+      "zh": "逐階調整。"
+    },
+    {
+      "start": 467.47,
+      "end": 472.96,
+      "en": "You can generalize because you can just walk down the steps because you know that they're going to be the same height and width.",
+      "zh": "可以泛化，因為知道階梯高度、寬度相同，就能直接走下去。"
+    },
+    {
+      "start": 473.64,
+      "end": 482.97,
+      "en": "So we've covered a fair few complex concepts quite quickly here, and I've definitely linked a whole bunch of resources in the ebook version to learn more about it.",
+      "zh": "這裡很快介紹了不少複雜概念，電子書版也放了許多資源，幫助深入學習。"
+    },
+    {
+      "start": 483.15,
+      "end": 489.66,
+      "en": "And I know I said we were going to start coding in this video, but to prevent this one from getting too long, let's start coding in the next video.",
+      "zh": "我知道說過這段影片開始寫程式碼，不過為了不讓影片太長，下段影片再開始。"
+    },
+    {
+      "start": 489.66,
+      "end": 493.9,
+      "en": "In fact, with what we've covered, you might actually be able to do it yourself.",
+      "zh": "其實根據剛才的內容，你可能已經能自己做。"
+    },
+    {
+      "start": 493.92,
+      "end": 499.19,
+      "en": "We've got a layer four multi-headed tension and we've got a layer four layer norm.",
+      "zh": "有多頭注意力層，也有 LayerNorm 層。"
+    },
+    {
+      "start": 499.2,
+      "end": 511.02,
+      "en": "So how about we start off by creating a class called Multi Head self Attention block and then module.",
+      "zh": "不如先建立一個類別，叫 MultiheadSelfAttentionBlock，繼承 nn.Module。"
+    },
+    {
+      "start": 512.34,
+      "end": 513.9,
+      "en": "So we've got a class there.",
+      "zh": "類別已經有了。"
+    },
+    {
+      "start": 513.93,
+      "end": 521.1,
+      "en": "How about you give it a go at initializing it and then just implement a multi head self attention layer using PyTorch?",
+      "zh": "試著初始化它，再用 PyTorch 實作多頭自注意力層。"
+    },
+    {
+      "start": 521.22,
+      "end": 523.05,
+      "en": "And the same thing with a layer norm.",
+      "zh": "LayerNorm 也一樣。"
+    },
+    {
+      "start": 523.05,
+      "end": 529.65,
+      "en": "And in the forward method we come back to the figure figure one in the forward method of your class,",
+      "zh": "forward 方法，回到圖 1，在類別的 forward 方法裡，"
+    },
+    {
+      "start": 529.65,
+      "end": 536.58,
+      "en": "just pass the embedded patches through or x through the norm layer and then through the multi header tension layer.",
+      "zh": "只要把嵌入後的區塊，也就是 x，先傳給 Norm 層，再傳給多頭注意力層。"
+    },
+    {
+      "start": 537.21,
+      "end": 541.95,
+      "en": "Give that a go, try it out and we'll do it together in the next video.",
+      "zh": "試試看，下段影片一起做。"
+    },
+    {
+      "start": 542.52,
+      "end": 543.39,
+      "en": "I'll see you there.",
+      "zh": "到時見。"
+    }
+  ]
+}

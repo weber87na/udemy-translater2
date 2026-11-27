@@ -1,0 +1,1729 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51888165",
+  "title": "CodeChallenge: Tokenize, embed, and cluster happy emojis",
+  "section": 17,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "a98909092978e9ef268ad45c8870807f3121281ba4fece20cee1664e63c0c2e9",
+  "cues": [
+    {
+      "start": 1.68,
+      "end": 6.36,
+      "en": "I'm sure you have seen that ChatGPT uses emojis.",
+      "zh": "你一定看過 ChatGPT 使用表情符號。"
+    },
+    {
+      "start": 7,
+      "end": 16.64,
+      "en": "At one point, it started using emojis so often that I had to explicitly instruct it to stop using so many emojis in our chats.",
+      "zh": "有一陣子，它用得太頻繁，我還得明確要求它，聊天時不要用那麼多表情符號。"
+    },
+    {
+      "start": 17.44,
+      "end": 20.8,
+      "en": "So how do language models represent emojis?",
+      "zh": "語言模型如何表示表情符號？"
+    },
+    {
+      "start": 21.16,
+      "end": 29.8,
+      "en": "That is a question that we are going to explore in this code challenge, at least at the stage of embeddings matrices.",
+      "zh": "這就是這個程式挑戰要探索的問題，至少先看嵌入矩陣這個階段。"
+    },
+    {
+      "start": 30.48,
+      "end": 38.8,
+      "en": "I'm also going to use this as an opportunity to give you more familiarity with t-SNE and DBscan, and",
+      "zh": "我也會藉此讓你更熟悉 t-SNE 與 DBSCAN，"
+    },
+    {
+      "start": 38.8,
+      "end": 47.88,
+      "en": "also have a discussion about finding the balance between trusting our intuition versus trusting the results of analyses.",
+      "zh": "並討論如何在信任直覺與信任分析結果之間取得平衡。"
+    },
+    {
+      "start": 48.76,
+      "end": 59.04,
+      "en": "Now, before getting into the exercises, I just want to say a few quick words about how emojis are represented as characters by computers.",
+      "zh": "在進入練習之前，先簡單談談電腦如何將表情符號表示成字元。"
+    },
+    {
+      "start": 59.6,
+      "end": 62.45,
+      "en": "I'm sure you are familiar with Unicode.",
+      "zh": "你一定熟悉 Unicode。"
+    },
+    {
+      "start": 62.49,
+      "end": 71.53,
+      "en": "It is a hexadecimal system of assigning a number to every letter and character and symbol that computers can type.",
+      "zh": "這是以十六進位方式，為電腦能輸入的每個字母、字元與符號指派數字的系統。"
+    },
+    {
+      "start": 72.09,
+      "end": 80.49,
+      "en": "This includes all the keys on your keyboard, but it also includes all the emojis, characters from other languages, and so on.",
+      "zh": "它包含鍵盤上的所有按鍵，也包含全部表情符號、其他語言的字元等等。"
+    },
+    {
+      "start": 81.57,
+      "end": 87.33,
+      "en": "The current version of Unicode has about 150,000 characters in it.",
+      "zh": "目前版本的 Unicode 大約有 150,000 個字元。"
+    },
+    {
+      "start": 87.89,
+      "end": 92.72999999999999,
+      "en": "So from the perspective of Unicode, emojis are not special.",
+      "zh": "因此，從 Unicode 的角度，表情符號沒有什麼特殊。"
+    },
+    {
+      "start": 92.72999999999999,
+      "end": 99.45,
+      "en": "They are just the visual representations of some character code, just like any other letter.",
+      "zh": "就和其他字母一樣，只是某個字元碼的視覺表示。"
+    },
+    {
+      "start": 100.00999999999999,
+      "end": 103.33,
+      "en": "So I want to show you a quick demo in Python.",
+      "zh": "我想在 Python 中快速示範。"
+    },
+    {
+      "start": 103.33,
+      "end": 107.93,
+      "en": "This is not really part of the exercises, and you can actually just watch the video.",
+      "zh": "這不真正屬於練習，你可以直接看影片。"
+    },
+    {
+      "start": 107.93,
+      "end": 112.45,
+      "en": "You don't really need to follow along on your own in code if you don't want to.",
+      "zh": "不想跟著寫程式的話，也不一定要自己做。"
+    },
+    {
+      "start": 113.49000000000001,
+      "end": 115.37,
+      "en": "Let's start with one letter.",
+      "zh": "先從一個字母開始。"
+    },
+    {
+      "start": 115.37,
+      "end": 124.29,
+      "en": "I'll use the letter A, capital A, the Python function An O or ord will print out the Unicode of that",
+      "zh": "用大寫字母 A；Python 的 ord 函式會印出這個"
+    },
+    {
+      "start": 124.29,
+      "end": 127.97,
+      "en": "letter, but it actually prints out the decimal coding.",
+      "zh": "字母的 Unicode，但實際印出的是十進位編碼。"
+    },
+    {
+      "start": 128.01,
+      "end": 131.73,
+      "en": "Let me show you that prints out the decimal version.",
+      "zh": "展示一下，這會印出十進位版本。"
+    },
+    {
+      "start": 131.77,
+      "end": 136.09,
+      "en": "And that is the number 65 for the capital A.",
+      "zh": "大寫 A 對應數字 65。"
+    },
+    {
+      "start": 136.73,
+      "end": 141.41,
+      "en": "So but using f strings we can print out the hex Unicode.",
+      "zh": "但透過 f-string，可以印出十六進位 Unicode。"
+    },
+    {
+      "start": 141.41,
+      "end": 144.49,
+      "en": "This is the standard formatting for hex Unicode.",
+      "zh": "這是十六進位 Unicode 的標準格式。"
+    },
+    {
+      "start": 144.77,
+      "end": 147.01,
+      "en": "So this is for ord.",
+      "zh": "這裡是 ord。"
+    },
+    {
+      "start": 147.41,
+      "end": 148.85,
+      "en": "This is the U+.",
+      "zh": "開頭這裡是 U+。"
+    },
+    {
+      "start": 148.89,
+      "end": 151.97,
+      "en": "In the beginning this converts to hex.",
+      "zh": "這裡轉成十六進位。"
+    },
+    {
+      "start": 151.97,
+      "end": 155.97,
+      "en": "And then we have uh for uh padding zeros.",
+      "zh": "接著是補零。"
+    },
+    {
+      "start": 155.97,
+      "end": 158.49,
+      "en": "So then we get u plus 0041.",
+      "zh": "最後得到 U+0041。"
+    },
+    {
+      "start": 158.85,
+      "end": 163.29,
+      "en": "And that is the standard hexadecimal code for a capital A.",
+      "zh": "這就是大寫 A 的標準十六進位編碼。"
+    },
+    {
+      "start": 163.85,
+      "end": 172.25,
+      "en": "Now if I use this smiley face emoji here, then I can run this code and still get a valid result.",
+      "zh": "現在，如果使用這個笑臉表情符號，執行程式仍會得到有效結果。"
+    },
+    {
+      "start": 172.25,
+      "end": 175.57,
+      "en": "It's a much higher number different Unicode value.",
+      "zh": "是更大的數字、不同的 Unicode 值。"
+    },
+    {
+      "start": 175.61,
+      "end": 176.57,
+      "en": "But that's fine.",
+      "zh": "但沒問題。"
+    },
+    {
+      "start": 177.01,
+      "end": 181.54,
+      "en": "But it actually crashes for this emoji here.",
+      "zh": "不過，對這個表情符號，程式其實會出錯。"
+    },
+    {
+      "start": 182.22,
+      "end": 184.06,
+      "en": "And why is that happening.",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 184.06,
+      "end": 187.78,
+      "en": "So the error message is O or D expects a character.",
+      "zh": "錯誤訊息說，ord 預期收到一個字元。"
+    },
+    {
+      "start": 187.9,
+      "end": 189.38,
+      "en": "I think that's what we gave it.",
+      "zh": "我想，我們給的就是字元。"
+    },
+    {
+      "start": 189.7,
+      "end": 192.74,
+      "en": "But a string of length two was found.",
+      "zh": "但找到的字串長度是二。"
+    },
+    {
+      "start": 192.98,
+      "end": 193.34,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 193.38,
+      "end": 200.78,
+      "en": "So the issue here, the reason why this crashes is that the Ord function can only take one character",
+      "zh": "問題是，ord 函式一次只能接受一個"
+    },
+    {
+      "start": 200.78,
+      "end": 210.82,
+      "en": "at a time, but some emojis are actually represented by multiple characters, which you can see is the case for this particular emoji.",
+      "zh": "字元，但有些表情符號其實由多個字元表示；這個表情符號就是如此。"
+    },
+    {
+      "start": 211.26,
+      "end": 220.98,
+      "en": "So if we want to get the Unicode for this emoji, we actually need a for loop to loop over all of the characters in this emoji.",
+      "zh": "所以，要取得它的 Unicode，實際上需要用 for 迴圈，走過這個表情符號的所有字元。"
+    },
+    {
+      "start": 221.62,
+      "end": 225.54,
+      "en": "Okay, that's all I want to say about Unicode and emoji for now.",
+      "zh": "目前關於 Unicode 與表情符號，就說到這裡。"
+    },
+    {
+      "start": 225.86,
+      "end": 233.02,
+      "en": "If you're curious to learn more, there's a ton written online about Unicode format and the Unicode standard.",
+      "zh": "如果想多了解，網路上有很多關於 Unicode 格式與標準的資料。"
+    },
+    {
+      "start": 233.14,
+      "end": 239.46,
+      "en": "But we are going to focus here on tokenization and embeddings of emojis.",
+      "zh": "這裡會著重表情符號的 token 化與嵌入。"
+    },
+    {
+      "start": 239.46,
+      "end": 239.74,
+      "en": "Is.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 240.82,
+      "end": 244.38,
+      "en": "And that brings me to exercise one.",
+      "zh": "接著進入練習一。"
+    },
+    {
+      "start": 244.66,
+      "end": 255.86,
+      "en": "The goal of exercise one is to loop through these ten emojis and print out the number of characters that they occupy, and also their tokenization.",
+      "zh": "練習一的目標，是用迴圈走過這十個表情符號，印出它們占用的字元數，以及 token 化結果。"
+    },
+    {
+      "start": 256.3,
+      "end": 266.94,
+      "en": "So you should use the GPT two tokenizer, and you can see that none of these emojis is actually represented by a single token.",
+      "zh": "應該使用 GPT-2 tokenizer；可以看到，沒有任何一個表情符號只由單一 token 表示。"
+    },
+    {
+      "start": 267.58,
+      "end": 270.94,
+      "en": "So in theory you can use any emojis that you want.",
+      "zh": "理論上，你可以使用任何想用的表情符號。"
+    },
+    {
+      "start": 270.98,
+      "end": 280.22,
+      "en": "But I do recommend using these ten emojis that I have pasted into the partial and Full solutions file for this code challenge.",
+      "zh": "但我建議使用我貼在這個程式挑戰 partial 與 full solutions 檔中的這十個。"
+    },
+    {
+      "start": 280.22,
+      "end": 283.65999999999997,
+      "en": "That way you can reproduce my results here and later.",
+      "zh": "這樣，現在與稍後都能重現我的結果。"
+    },
+    {
+      "start": 284.46,
+      "end": 289.18,
+      "en": "Next, print out all of the unicodes for all of these emojis.",
+      "zh": "接著，印出所有表情符號的全部 Unicode。"
+    },
+    {
+      "start": 289.38,
+      "end": 298.54,
+      "en": "Now I've printed out the decimal versions, but you can also print the hexadecimal Unicode standard if you like that I showed a moment ago.",
+      "zh": "這裡我印十進位版本，但如果願意，也可以用剛才展示的十六進位 Unicode 標準格式。"
+    },
+    {
+      "start": 299.14,
+      "end": 304.19,
+      "en": "So pause the video, switch to Python and start working on this exercise.",
+      "zh": "暫停影片，切換到 Python，開始做這個練習。"
+    },
+    {
+      "start": 304.31,
+      "end": 306.43,
+      "en": "And now I will go to Python.",
+      "zh": "現在我也切換到 Python。"
+    },
+    {
+      "start": 307.31,
+      "end": 310.95,
+      "en": "I hope you didn't find this exercise too challenging.",
+      "zh": "希望這個練習沒有讓你覺得太難。"
+    },
+    {
+      "start": 311.27,
+      "end": 316.55,
+      "en": "This is mostly just helping set up for the next several exercises.",
+      "zh": "主要只是替接下來幾個練習做好準備。"
+    },
+    {
+      "start": 317.19,
+      "end": 323.79,
+      "en": "I guess the main thing I will point out here is that this needs to be done inside list comprehension.",
+      "zh": "這裡主要想指出，這需要在串列生成式中完成。"
+    },
+    {
+      "start": 323.79,
+      "end": 327.99,
+      "en": "Or alternatively, you could have written another for loop in here.",
+      "zh": "或者，也可以在這裡再寫一個 for 迴圈。"
+    },
+    {
+      "start": 328.15,
+      "end": 334.87,
+      "en": "Because of this one sneaky little emoji that is represented by two Unicode characters.",
+      "zh": "因為這裡有一個小陷阱：某個表情符號由兩個 Unicode 字元表示。"
+    },
+    {
+      "start": 334.95,
+      "end": 346.71,
+      "en": "So for that we actually need to have a list comprehension or a for loop because again this Ord function cannot take multiple characters at the same time.",
+      "zh": "所以需要串列生成式或 for 迴圈，因為 ord 函式不能一次接收多個字元。"
+    },
+    {
+      "start": 346.83,
+      "end": 354.07,
+      "en": "This only prints out as if it is one character, but it is actually represented by computers as two characters.",
+      "zh": "印出時看起來像一個字元，但電腦實際上用兩個字元表示它。"
+    },
+    {
+      "start": 355.19,
+      "end": 361.07,
+      "en": "Now that we have tokenized the emojis, we want to start looking at their embeddings.",
+      "zh": "把表情符號切成 token 之後，就想開始查看它們的嵌入。"
+    },
+    {
+      "start": 361.59,
+      "end": 372.75,
+      "en": "But we also saw that these emojis are represented by multiple tokens, which means that each individual emoji has multiple embeddings vectors.",
+      "zh": "但也看到，表情符號由多個 token 表示，所以每個表情符號都有多個嵌入向量。"
+    },
+    {
+      "start": 373.35,
+      "end": 374.87,
+      "en": "So what do we do about this?",
+      "zh": "該怎麼辦？"
+    },
+    {
+      "start": 375.43,
+      "end": 377.27,
+      "en": "Well, for starters, I don't know.",
+      "zh": "首先，我不知道。"
+    },
+    {
+      "start": 377.31,
+      "end": 385.59,
+      "en": "Maybe the embeddings are basically identical and redundant for these tokens or these emojis with multiple tokens.",
+      "zh": "也許，對這些由多個 token 組成的表情符號，各 token 的嵌入基本相同而且重複。"
+    },
+    {
+      "start": 386.07,
+      "end": 387.63,
+      "en": "Let's explore this.",
+      "zh": "來探索一下。"
+    },
+    {
+      "start": 387.63,
+      "end": 398.23,
+      "en": "The way we will investigate this is by making scatter plots and calculating cosine similarity for the embeddings within each emoji.",
+      "zh": "調查方式是畫散佈圖，並計算每個表情符號內部，各嵌入的餘弦相似度。"
+    },
+    {
+      "start": 398.83,
+      "end": 402.23,
+      "en": "So here's the results for the first four emojis.",
+      "zh": "這是前四個表情符號的結果。"
+    },
+    {
+      "start": 402.35,
+      "end": 406.11,
+      "en": "And actually I only implemented this for these first four.",
+      "zh": "其實，我也只對前四個實作。"
+    },
+    {
+      "start": 406.59000000000003,
+      "end": 414.59000000000003,
+      "en": "So what you see in these scatter plots is the relationship between the first token and the last token.",
+      "zh": "這些散佈圖顯示，第一個 token 與最後一個 token 之間的關係。"
+    },
+    {
+      "start": 414.83,
+      "end": 420.2,
+      "en": "For each of the first four emojis and the cosine similarity in the title.",
+      "zh": "分別對應前四個表情符號，餘弦相似度放在標題。"
+    },
+    {
+      "start": 421.24,
+      "end": 429.96,
+      "en": "Now you'll get some warning messages in Python, because matplotlib is not really able to accurately display some of these emojis.",
+      "zh": "Python 會出現一些警告訊息，因為 Matplotlib 無法準確顯示其中一些表情符號。"
+    },
+    {
+      "start": 430.48,
+      "end": 441,
+      "en": "I looked this up briefly online, and there do seem to be solutions for getting this to work, but most of them were just complicated or required installing additional packages.",
+      "zh": "我簡單上網查過，似乎確實有解法，但大多很複雜，或需要額外安裝套件。"
+    },
+    {
+      "start": 441,
+      "end": 444.6,
+      "en": "And that's not something I want to get into in this exercise.",
+      "zh": "這不是這個練習想深入處理的事。"
+    },
+    {
+      "start": 444.6,
+      "end": 449.36,
+      "en": "You can do that if you want, but otherwise don't worry about the title formatting.",
+      "zh": "你願意的話可以做，否則不用擔心標題格式。"
+    },
+    {
+      "start": 449.72,
+      "end": 456.48,
+      "en": "Instead, just get these scatterplots to show again, these four panels correspond to scatterplots of",
+      "zh": "先讓這些散佈圖顯示出來；這四個面板對應"
+    },
+    {
+      "start": 456.48,
+      "end": 465.32,
+      "en": "the embeddings vectors for the first four emojis here, and what I'm plotting on the x and y axis are",
+      "zh": "前四個表情符號的嵌入向量散佈圖，X 與 Y 軸畫的是"
+    },
+    {
+      "start": 465.32,
+      "end": 469.6,
+      "en": "the embeddings for the first token and the last token.",
+      "zh": "第一個 token 與最後一個 token 的嵌入。"
+    },
+    {
+      "start": 470.32,
+      "end": 476,
+      "en": "I will have a few remarks to say about these results after I show my code solution.",
+      "zh": "展示程式解法之後，我會對這些結果提出一些看法。"
+    },
+    {
+      "start": 476,
+      "end": 482.96,
+      "en": "But first, I want you to work through the code and think about what these results mean for language processing.",
+      "zh": "但首先，請完成程式，想想這些結果對語言處理代表什麼。"
+    },
+    {
+      "start": 483.72,
+      "end": 488.24,
+      "en": "So intra emoji token embeddings that's what we are looking at here.",
+      "zh": "我們在這裡看的，就是表情符號內部各 token 的嵌入。"
+    },
+    {
+      "start": 488.72,
+      "end": 489.16,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 489.2,
+      "end": 493.84,
+      "en": "So yeah I set up a two by two subplots in a figure.",
+      "zh": "我先在圖裡建立二乘二的子圖。"
+    },
+    {
+      "start": 493.84,
+      "end": 496.8,
+      "en": "And then I'm looping through all of those axes.",
+      "zh": "接著用迴圈走過所有座標軸。"
+    },
+    {
+      "start": 497.24,
+      "end": 501.32,
+      "en": "Here I'm getting the ith element from the emoji list.",
+      "zh": "這裡取得表情符號串列的第 i 個元素。"
+    },
+    {
+      "start": 501.36,
+      "end": 507.88,
+      "en": "Tokenizing that and then plotting the first embeddings by the last embeddings.",
+      "zh": "將它切成 token，再畫出第一個嵌入對最後一個嵌入。"
+    },
+    {
+      "start": 508.04,
+      "end": 513.4,
+      "en": "And then here I'm calculating cosine similarity as I've mentioned a bajillion times before.",
+      "zh": "這裡計算餘弦相似度，就像先前已經說過無數次的。"
+    },
+    {
+      "start": 513.92,
+      "end": 518.24,
+      "en": "If you chose to do this using scikit learn or PyTorch, that's great.",
+      "zh": "如果你選擇用 scikit-learn 或 PyTorch 來做，也很好。"
+    },
+    {
+      "start": 518.68,
+      "end": 521.96,
+      "en": "I find it easier just to write out all the math like this.",
+      "zh": "我覺得直接寫出所有數學比較容易。"
+    },
+    {
+      "start": 522,
+      "end": 522.32,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 522.36,
+      "end": 534.16,
+      "en": "And then setting up the rest of the figure here, you see the warning messages that basically Python or matplotlib just doesn't know what to do with these individual emojis.",
+      "zh": "接著設定圖的其他部分；這些警告訊息，基本上是 Python 或 Matplotlib 不知道如何處理個別表情符號。"
+    },
+    {
+      "start": 534.16,
+      "end": 540.01,
+      "en": "So it just prints out this kind of ugly, bland looking Emoji ersatz.",
+      "zh": "所以只印出這種難看、單調的表情符號替代品。"
+    },
+    {
+      "start": 540.01,
+      "end": 541.37,
+      "en": "I think that's what I'll call this.",
+      "zh": "我想就這樣叫它好了。"
+    },
+    {
+      "start": 541.85,
+      "end": 543.65,
+      "en": "Okay, so what do we make of this?",
+      "zh": "好，那怎麼解讀？"
+    },
+    {
+      "start": 543.65,
+      "end": 551.65,
+      "en": "So we do see that there are some relationships between the embeddings vectors for the first and the final tokens.",
+      "zh": "確實看到，第一個與最後一個 token 的嵌入向量有一些關係。"
+    },
+    {
+      "start": 551.93,
+      "end": 553.93,
+      "en": "But there are certainly not redundant.",
+      "zh": "但它們絕對不是重複冗餘的。"
+    },
+    {
+      "start": 553.93,
+      "end": 565.25,
+      "en": "So that means that we cannot simply take the first token and assume that that token entirely encodes for the emoji itself.",
+      "zh": "因此，不能只取第一個 token，就假設它完整編碼了表情符號本身。"
+    },
+    {
+      "start": 565.25,
+      "end": 566.89,
+      "en": "So that is simply not the case.",
+      "zh": "事實並非如此。"
+    },
+    {
+      "start": 566.89,
+      "end": 575.97,
+      "en": "This first token, whatever this individual token actually encodes for, is not the same thing as this entire emoji.",
+      "zh": "不管第一個 token 實際編碼什麼，都不等同於整個表情符號。"
+    },
+    {
+      "start": 576.29,
+      "end": 584.73,
+      "en": "So therefore, these language models ChatGPT will need to learn that these tokens need to go together",
+      "zh": "所以，這些語言模型、ChatGPT，需要學會讓這些 token 一起"
+    },
+    {
+      "start": 584.73,
+      "end": 596.37,
+      "en": "simultaneously to output that Unicode character or characters, to make an actual emoji, and do that in a context appropriate way.",
+      "zh": "出現，輸出那個 Unicode 字元或多個字元，形成真正的表情符號，而且符合上下文。"
+    },
+    {
+      "start": 597.29,
+      "end": 599.65,
+      "en": "Now for exercise three.",
+      "zh": "接著是練習三。"
+    },
+    {
+      "start": 600.01,
+      "end": 604.65,
+      "en": "This one made me laugh and I hope you get a kick out of it as well.",
+      "zh": "這個讓我笑了出來，希望你也覺得有趣。"
+    },
+    {
+      "start": 605.29,
+      "end": 615.05,
+      "en": "So what we are going to do is calculate cosine similarity between the first emoji in this list and all the other embeddings vectors.",
+      "zh": "我們要計算，串列中第一個表情符號，與其他所有嵌入向量之間的餘弦相似度。"
+    },
+    {
+      "start": 615.41,
+      "end": 624.53,
+      "en": "So here you see a plot of cosine similarity for all 50,000 tokens in the GPT two tokenizer.",
+      "zh": "這裡是 GPT-2 tokenizer 全部 50,000 個 token 的餘弦相似度圖。"
+    },
+    {
+      "start": 625.33,
+      "end": 632.17,
+      "en": "Now, in previous videos, when we calculated seeded cosine similarity, we always saw that there was",
+      "zh": "前幾部影片計算以種子為基準的餘弦相似度時，總會看到"
+    },
+    {
+      "start": 632.17,
+      "end": 637.37,
+      "en": "one token with a cosine similarity of exactly one.",
+      "zh": "一個 token 的餘弦相似度恰好等於 1。"
+    },
+    {
+      "start": 637.89,
+      "end": 641.01,
+      "en": "Now why do we not see any of that?",
+      "zh": "為什麼這裡看不到？"
+    },
+    {
+      "start": 641.49,
+      "end": 643.33,
+      "en": "Why do we not see that pattern here?",
+      "zh": "為什麼這裡沒有那個模式？"
+    },
+    {
+      "start": 643.33,
+      "end": 647.85,
+      "en": "Why is there no single token with a cosine similarity of one?",
+      "zh": "為什麼沒有任何單一 token 的餘弦相似度為 1？"
+    },
+    {
+      "start": 648.53,
+      "end": 658.77,
+      "en": "Well, what's going on here is that the first emoji is represented by multiple tokens which means multiple embeddings vectors.",
+      "zh": "因為第一個表情符號由多個 token 表示，也就是有多個嵌入向量。"
+    },
+    {
+      "start": 659.02,
+      "end": 668.06,
+      "en": "And as you know from the previous exercise, those multiple embeddings vectors are correlated, but only at around 0.3 or so.",
+      "zh": "就像前一個練習看到的，這些嵌入向量有相關，但只有大約 0.3。"
+    },
+    {
+      "start": 668.94,
+      "end": 677.9,
+      "en": "So what I did here is average over all of the embeddings from the first emoji to use as the seed.",
+      "zh": "因此，我在這裡把第一個表情符號的所有嵌入取平均，當作種子。"
+    },
+    {
+      "start": 678.5,
+      "end": 682.94,
+      "en": "Now is this really valid averaging across the embedding vectors.",
+      "zh": "把嵌入向量取平均，真的有效嗎？"
+    },
+    {
+      "start": 683.74,
+      "end": 686.02,
+      "en": "Well it's not really wrong per se.",
+      "zh": "本身並不算錯。"
+    },
+    {
+      "start": 686.06,
+      "end": 692.98,
+      "en": "But it also means that we are aggregating over some unique features of each of the embeddings vectors.",
+      "zh": "但也表示，我們把各個嵌入向量的一些獨特特徵彙整掉了。"
+    },
+    {
+      "start": 693.5,
+      "end": 694.86,
+      "en": "A better thing to do.",
+      "zh": "比較好的做法，"
+    },
+    {
+      "start": 694.9,
+      "end": 700.38,
+      "en": "A better approach to take is to use the final token, the final embedding.",
+      "zh": "是使用最後一個 token、最後一個嵌入，"
+    },
+    {
+      "start": 700.54,
+      "end": 709.66,
+      "en": "But after it's gone through some of the layers in which the context from previous tokens has been added",
+      "zh": "但要等它通過某些層，讓前面 token 的上下文，已經加入"
+    },
+    {
+      "start": 709.66,
+      "end": 712.06,
+      "en": "to the embeddings for the final token.",
+      "zh": "最後一個 token 的嵌入之後。"
+    },
+    {
+      "start": 712.58,
+      "end": 714.5,
+      "en": "Anyway, we're not going to do that here.",
+      "zh": "總之，這裡不會那樣做。"
+    },
+    {
+      "start": 714.5,
+      "end": 718.9,
+      "en": "We will explore that kind of analysis later on in the course.",
+      "zh": "課程稍後會探索那種分析。"
+    },
+    {
+      "start": 719.38,
+      "end": 726.62,
+      "en": "What we are going to do here is fairly simple, so just average all of the embeddings vectors from within",
+      "zh": "這裡要做的相當簡單：把第一個表情符號內的所有嵌入向量取平均，"
+    },
+    {
+      "start": 726.62,
+      "end": 736.34,
+      "en": "the first emoji, all those tokens from the first emoji, and then calculate the cosine similarity with all of the other embeddings vectors.",
+      "zh": "也就是第一個表情符號的所有 token，再計算與其他所有嵌入向量的餘弦相似度。"
+    },
+    {
+      "start": 737.02,
+      "end": 744.1,
+      "en": "The next thing you want to do is find the top ten most similar tokens and print them out.",
+      "zh": "接著，找出最相似的前十個 token，印出來。"
+    },
+    {
+      "start": 744.5,
+      "end": 752.74,
+      "en": "So I'm blanking out all of the results here, but I think you can already see that something strange and funny is going to happen here.",
+      "zh": "我把這裡所有結果都遮掉了，但我想你已經可以看出，會發生一些奇怪又好笑的事情。"
+    },
+    {
+      "start": 753.18,
+      "end": 756.22,
+      "en": "I hope you enjoy working through this exercise.",
+      "zh": "希望你喜歡完成這個練習。"
+    },
+    {
+      "start": 756.34,
+      "end": 759.5,
+      "en": "And now I will switch to code and show my solution.",
+      "zh": "現在切換到程式，展示我的解法。"
+    },
+    {
+      "start": 760.9,
+      "end": 765.54,
+      "en": "Here I get all of the token indices for the first emoji.",
+      "zh": "這裡取得第一個表情符號的所有 token 索引。"
+    },
+    {
+      "start": 765.98,
+      "end": 771.06,
+      "en": "Here I am averaging over all of the embeddings for all of those tokens.",
+      "zh": "這裡把那些 token 的所有嵌入取平均。"
+    },
+    {
+      "start": 771.06,
+      "end": 773.38,
+      "en": "I think it was three if I remember correctly.",
+      "zh": "如果沒記錯，我想是三個。"
+    },
+    {
+      "start": 773.74,
+      "end": 775.1,
+      "en": "So three maybe it was two.",
+      "zh": "三個，也可能是兩個。"
+    },
+    {
+      "start": 775.14,
+      "end": 775.74,
+      "en": "Doesn't matter.",
+      "zh": "沒關係。"
+    },
+    {
+      "start": 775.74,
+      "end": 781.83,
+      "en": "A handful of token embeddings vectors and they all get averaged together.",
+      "zh": "少數幾個 token 嵌入向量，全部取平均。"
+    },
+    {
+      "start": 782.11,
+      "end": 789.27,
+      "en": "Now in this case, I'm actually converting that into a PyTorch tensor, because for this particular",
+      "zh": "這裡其實把它轉成 PyTorch 張量，因為這個特定"
+    },
+    {
+      "start": 790.15,
+      "end": 798.55,
+      "en": "exercise, I chose to use cosine similarity to calculate the cosine similarity between that one vector.",
+      "zh": "練習中，我選擇用 cosine similarity 來計算這個向量的餘弦相似度。"
+    },
+    {
+      "start": 798.55,
+      "end": 804.87,
+      "en": "It's average, but here is just one vector and all of the other vectors in this matrix.",
+      "zh": "它雖然是平均，但這裡就是單一向量，要和矩陣中其他所有向量比較。"
+    },
+    {
+      "start": 805.39,
+      "end": 810.23,
+      "en": "Okay, so then I can run this that just reproduces the plot that I showed.",
+      "zh": "執行後，就重現剛才展示的圖。"
+    },
+    {
+      "start": 810.35,
+      "end": 819.31,
+      "en": "Again we do not see any values of one because we are averaging over several embeddings vectors.",
+      "zh": "同樣地，看不到任何值為 1，因為是把好幾個嵌入向量取平均。"
+    },
+    {
+      "start": 819.31,
+      "end": 822.71,
+      "en": "And none of them look exactly like the average okay.",
+      "zh": "沒有任何一個與平均完全相同。"
+    },
+    {
+      "start": 822.75,
+      "end": 826.67,
+      "en": "Nonetheless we can see what is the you know, what are the top ten values?",
+      "zh": "不過，仍然可以看看，前十個值是什麼。"
+    },
+    {
+      "start": 826.67,
+      "end": 830.55,
+      "en": "There's a couple up here this looks like might be more than one up here.",
+      "zh": "上面有幾個，這裡看起來可能不只一個。"
+    },
+    {
+      "start": 831.15,
+      "end": 831.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 831.51,
+      "end": 835.03,
+      "en": "And here this is where I laughed when I first wrote this exercise.",
+      "zh": "第一次寫這個練習時，我就是在這裡笑出來。"
+    },
+    {
+      "start": 835.59,
+      "end": 836.27,
+      "en": "We see.",
+      "zh": "我們看到，"
+    },
+    {
+      "start": 836.63,
+      "end": 839.72,
+      "en": "Ah, so I wonder if you also got this result.",
+      "zh": "啊，我想知道你是否也得到這個結果。"
+    },
+    {
+      "start": 839.72,
+      "end": 843.64,
+      "en": "If you followed all of my parameters, then you would have gotten this as well.",
+      "zh": "如果遵照我的所有參數，應該也會得到。"
+    },
+    {
+      "start": 843.92,
+      "end": 845.6,
+      "en": "And these other emojis are.",
+      "zh": "其他這些表情符號，"
+    },
+    {
+      "start": 845.76,
+      "end": 847.64,
+      "en": "Yeah, these are just weird formatting things.",
+      "zh": "對，只是一些奇怪的格式字元。"
+    },
+    {
+      "start": 847.64,
+      "end": 857.32,
+      "en": "I suspect that these individual characters also form part of other emojis, but they are not emojis",
+      "zh": "我懷疑，這些個別字元也構成其他表情符號的一部分，但它們"
+    },
+    {
+      "start": 857.32,
+      "end": 858.36,
+      "en": "in and of themselves.",
+      "zh": "本身並不是表情符號。"
+    },
+    {
+      "start": 858.36,
+      "end": 867.16,
+      "en": "We would have to combine them with other tokens in order to create a Unicode representation of an emoji.",
+      "zh": "必須和其他 token 組合，才能建立一個表情符號的 Unicode 表示。"
+    },
+    {
+      "start": 867.16,
+      "end": 867.84,
+      "en": "That's my guess.",
+      "zh": "這是我的猜測。"
+    },
+    {
+      "start": 867.84,
+      "end": 870.48,
+      "en": "I don't know for sure that that is the case.",
+      "zh": "我不確定是不是如此。"
+    },
+    {
+      "start": 871.56,
+      "end": 873.76,
+      "en": "Now for exercise four.",
+      "zh": "接著是練習四。"
+    },
+    {
+      "start": 874.48,
+      "end": 881.56,
+      "en": "So in the partial and full solutions files, I have a list of 32 emojis.",
+      "zh": "在 partial 與 full solutions 檔中，有一個包含 32 個表情符號的串列。"
+    },
+    {
+      "start": 882.08,
+      "end": 887.2,
+      "en": "I chose these emojis to be in what I consider to be four groups of eight.",
+      "zh": "我把它們挑成自己認為的四組，每組八個。"
+    },
+    {
+      "start": 887.56,
+      "end": 897.52,
+      "en": "So we have faces and hearts and animal faces, and whether the question we are going to ask in this",
+      "zh": "包含臉、愛心、動物臉，以及天氣；這個"
+    },
+    {
+      "start": 897.52,
+      "end": 906.56,
+      "en": "and the next exercise is whether t-SNE and DBscan will cluster the embeddings for these emojis into",
+      "zh": "與下一個練習要問的是，t-SNE 與 DBSCAN 是否會把這些表情符號的嵌入，分成"
+    },
+    {
+      "start": 906.6,
+      "end": 912.24,
+      "en": "groups that I consider to be the correct grouping, which is how I've organized them here.",
+      "zh": "我認為正確的群組，也就是這裡的排列方式。"
+    },
+    {
+      "start": 912.76,
+      "end": 923.68,
+      "en": "So what you want to do for this exercise is create a 32 by 768 embeddings submatrix, where each of",
+      "zh": "這個練習要建立一個 32 乘以 768 的嵌入子矩陣，其中"
+    },
+    {
+      "start": 923.68,
+      "end": 930.28,
+      "en": "the 32 rows is the average embedding for these tokenized emojis.",
+      "zh": "32 列的每一列，都是這些切成 token 的表情符號的平均嵌入。"
+    },
+    {
+      "start": 930.64,
+      "end": 935.52,
+      "en": "Now, all of these emojis are going to be represented by multiple tokens.",
+      "zh": "所有這些表情符號都會由多個 token 表示。"
+    },
+    {
+      "start": 935.76,
+      "end": 945.28,
+      "en": "So each of the 32 rows is the average of 2 or 3, or maybe even four different embeddings vectors corresponding",
+      "zh": "因此，每個 32 列中的一列，都是 2、3，甚至可能 4 個不同嵌入向量的平均，"
+    },
+    {
+      "start": 945.32,
+      "end": 950.16,
+      "en": "to each of the tokens that represent each of these emojis.",
+      "zh": "對應表示每個表情符號的各個 token。"
+    },
+    {
+      "start": 951.88,
+      "end": 957.6,
+      "en": "Then you want to perform a t-SNE dimension reduction on those embeddings.",
+      "zh": "接著，對那些嵌入進行 t-SNE 降維。"
+    },
+    {
+      "start": 958.13,
+      "end": 962.57,
+      "en": "Here I'm also showing the gram matrix from that submatrix.",
+      "zh": "這裡也展示該子矩陣的 Gram 矩陣。"
+    },
+    {
+      "start": 963.29,
+      "end": 966.17,
+      "en": "Now there are obviously clusters here.",
+      "zh": "顯然，這裡有群組。"
+    },
+    {
+      "start": 966.61,
+      "end": 973.81,
+      "en": "So then we are going to want to know how they form groups and what emojis are in those clusters.",
+      "zh": "所以，我們會想知道它們如何分組，以及各群有哪些表情符號。"
+    },
+    {
+      "start": 974.25,
+      "end": 977.45,
+      "en": "So the clustering is part of the next exercise.",
+      "zh": "分群是下一個練習的內容。"
+    },
+    {
+      "start": 977.45,
+      "end": 982.17,
+      "en": "But for this exercise you just want to create a figure that looks like this.",
+      "zh": "這個練習只要建立像這樣的圖。"
+    },
+    {
+      "start": 982.85,
+      "end": 989.69,
+      "en": "Don't forget that t-SNE is a probabilistic method so your results won't look exactly like mine.",
+      "zh": "別忘了，t-SNE 是機率性方法，所以結果不會與我的完全一樣。"
+    },
+    {
+      "start": 989.69,
+      "end": 995.73,
+      "en": "Although you should see a relatively small number of clusters clearly forming.",
+      "zh": "但應該看到，相對少量的群組明確形成。"
+    },
+    {
+      "start": 996.65,
+      "end": 998.69,
+      "en": "So good luck with this exercise.",
+      "zh": "祝你順利完成。"
+    },
+    {
+      "start": 998.73,
+      "end": 1002.01,
+      "en": "Now I will switch to Python and show my solution.",
+      "zh": "現在切換到 Python，展示我的解法。"
+    },
+    {
+      "start": 1003.33,
+      "end": 1006.45,
+      "en": "Here are all of the emojis that I picked.",
+      "zh": "這些就是我挑選的所有表情符號。"
+    },
+    {
+      "start": 1006.93,
+      "end": 1009.61,
+      "en": "And here I'm creating that submatrix.",
+      "zh": "這裡建立子矩陣。"
+    },
+    {
+      "start": 1009.61,
+      "end": 1011.97,
+      "en": "So I start by initializing it.",
+      "zh": "先初始化。"
+    },
+    {
+      "start": 1012.25,
+      "end": 1020.37,
+      "en": "And then here in this for loop I am extracting the token indices for each of the emojis, and then I",
+      "zh": "接著，在 for 迴圈中，擷取每個表情符號的 token 索引，再"
+    },
+    {
+      "start": 1020.41,
+      "end": 1025.49,
+      "en": "am averaging the embeddings vectors across all of those different tokens.",
+      "zh": "把所有不同 token 的嵌入向量取平均。"
+    },
+    {
+      "start": 1025.89,
+      "end": 1026.21,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1026.25,
+      "end": 1030.17,
+      "en": "And then this just confirms that the shape is correct.",
+      "zh": "這只是確認形狀正確。"
+    },
+    {
+      "start": 1030.17,
+      "end": 1034.89,
+      "en": "So 32 emojis and 768 dimensions.",
+      "zh": "32 個表情符號，768 維。"
+    },
+    {
+      "start": 1035.41,
+      "end": 1037.61,
+      "en": "Okay, here is the t-SNE.",
+      "zh": "這裡是 t-SNE。"
+    },
+    {
+      "start": 1037.65,
+      "end": 1038.97,
+      "en": "For two dimensions.",
+      "zh": "降到二維。"
+    },
+    {
+      "start": 1039.13,
+      "end": 1039.89,
+      "en": "And yeah.",
+      "zh": "然後，對。"
+    },
+    {
+      "start": 1039.93,
+      "end": 1047.01,
+      "en": "Then all of this code you have seen before, I excluded the plotting code because I know that it won't look great.",
+      "zh": "這些程式都看過；我拿掉繪圖程式，因為知道效果不會很好。"
+    },
+    {
+      "start": 1047.45,
+      "end": 1052.61,
+      "en": "Okay, so clearly we see that there are distinct clusters here.",
+      "zh": "顯然，可以看到這裡有不同的群組。"
+    },
+    {
+      "start": 1052.65,
+      "end": 1064.57,
+      "en": "Now at this point, we do not know whether this clustering organization is consistent with the way that I organized these emojis here.",
+      "zh": "但目前還不知道，這個分群組織是否與我在這裡排列表情符號的方式一致。"
+    },
+    {
+      "start": 1064.81,
+      "end": 1068.93,
+      "en": "That is what we are going to determine in the next exercise.",
+      "zh": "下一個練習就要判斷。"
+    },
+    {
+      "start": 1070.13,
+      "end": 1079.86,
+      "en": "Before showing the slides for exercise five, let me draw your attention to the axis dimensions here from exercise four.",
+      "zh": "展示練習五的投影片之前，先請注意練習四的座標軸尺度。"
+    },
+    {
+      "start": 1080.38,
+      "end": 1083.3,
+      "en": "So these axes generally go from like.",
+      "zh": "這些座標軸大致從，"
+    },
+    {
+      "start": 1083.34,
+      "end": 1085.86,
+      "en": "-100 to plus 100.",
+      "zh": "−100 到 +100。"
+    },
+    {
+      "start": 1086.5,
+      "end": 1090.38,
+      "en": "But now in my results with exercise five.",
+      "zh": "但現在練習五的結果，"
+    },
+    {
+      "start": 1090.98,
+      "end": 1095.38,
+      "en": "The same exact result is now on a different axis scale.",
+      "zh": "完全相同的結果，改成了不同的座標軸尺度。"
+    },
+    {
+      "start": 1095.94,
+      "end": 1098.74,
+      "en": "So what I did here was z score.",
+      "zh": "這裡我做了 Z 分數轉換，"
+    },
+    {
+      "start": 1098.82,
+      "end": 1105.78,
+      "en": "The t-SNE coordinates so that I can specify the epsilon parameter of DBscan.",
+      "zh": "將 t-SNE 座標標準化，方便指定 DBSCAN 的 epsilon 參數，"
+    },
+    {
+      "start": 1106.14,
+      "end": 1108.82,
+      "en": "Using standard deviation units.",
+      "zh": "使用標準差作為單位。"
+    },
+    {
+      "start": 1109.46,
+      "end": 1114.3,
+      "en": "Here is the formula for z scoring in case you need a reminder.",
+      "zh": "如果需要複習，這裡是 Z 分數公式。"
+    },
+    {
+      "start": 1114.58,
+      "end": 1121.66,
+      "en": "So the idea of a z score is that it converts the data into standard deviation units.",
+      "zh": "Z 分數的概念，是把資料轉成標準差單位。"
+    },
+    {
+      "start": 1121.9,
+      "end": 1122.78,
+      "en": "Distance units.",
+      "zh": "距離單位。"
+    },
+    {
+      "start": 1122.78,
+      "end": 1124.34,
+      "en": "Standardized distance units.",
+      "zh": "標準化的距離單位。"
+    },
+    {
+      "start": 1124.82,
+      "end": 1131.38,
+      "en": "And that means that we can interpret the epsilon distance parameter as standard deviations.",
+      "zh": "這表示，可以把 epsilon 距離參數解讀成標準差。"
+    },
+    {
+      "start": 1132.02,
+      "end": 1141.86,
+      "en": "So to z score a set of numbers you subtract the mean of the data set and divide by the standard deviation,",
+      "zh": "一組數字要轉成 Z 分數，就是減去資料集平均值，再除以標準差，"
+    },
+    {
+      "start": 1142.14,
+      "end": 1147.82,
+      "en": "which in this case corresponds to the matrix of the t-SNE coordinates.",
+      "zh": "這裡的資料就是 t-SNE 座標矩陣。"
+    },
+    {
+      "start": 1148.22,
+      "end": 1156.78,
+      "en": "Now, I'm not going to tell you the exact parameter values that I used to create this plot, in part",
+      "zh": "我不會告訴你，產生這張圖所用的確切參數值，部分原因是"
+    },
+    {
+      "start": 1156.82,
+      "end": 1165.62,
+      "en": "because your results may differ slightly depending on the t-SNE result, and in part because I want you to explore the parameters yourself.",
+      "zh": "結果可能因 t-SNE 而略有不同，另一部分原因，是希望你自己探索參數。"
+    },
+    {
+      "start": 1165.9,
+      "end": 1173.78,
+      "en": "But once you get some clusters, then you can print out the list of emojis in each of these groups.",
+      "zh": "但一旦得到群組，就可以印出每組的表情符號清單。"
+    },
+    {
+      "start": 1174.54,
+      "end": 1179.9,
+      "en": "This is my results here, and I will talk about this a little bit more later.",
+      "zh": "這裡是我的結果，稍後會再多談一些。"
+    },
+    {
+      "start": 1180.26,
+      "end": 1185.14,
+      "en": "But first, I want you to get your own results and think about what they mean.",
+      "zh": "但首先，希望你自己取得結果，思考它們代表什麼。"
+    },
+    {
+      "start": 1185.3,
+      "end": 1187.66,
+      "en": "And now is your opportunity to do that.",
+      "zh": "現在就是你動手的機會。"
+    },
+    {
+      "start": 1188.74,
+      "end": 1198.51,
+      "en": "Here is where I transform the t-SNE results from their original units, their original scale to z normalized",
+      "zh": "這裡把 t-SNE 結果，從原本的單位、尺度，轉成 Z 標準化"
+    },
+    {
+      "start": 1198.55,
+      "end": 1198.99,
+      "en": "scale.",
+      "zh": "的尺度。"
+    },
+    {
+      "start": 1198.99,
+      "end": 1200.47,
+      "en": "So I write this out.",
+      "zh": "所以我直接寫出來。"
+    },
+    {
+      "start": 1200.47,
+      "end": 1207.07,
+      "en": "You can also get a z transformation method in the scikit learn library.",
+      "zh": "也可以在 scikit-learn 函式庫中，取得 Z 轉換的方法。"
+    },
+    {
+      "start": 1207.07,
+      "end": 1210.95,
+      "en": "Although I think that's a little bit gratuitous just for this one line of code here.",
+      "zh": "但只為了這一行程式，我覺得有點多餘。"
+    },
+    {
+      "start": 1211.47,
+      "end": 1218.51,
+      "en": "Now I do have to say converting these to z score and interpreting these results in terms of standard",
+      "zh": "不過，必須說，轉成 Z 分數，再以標準差"
+    },
+    {
+      "start": 1218.51,
+      "end": 1226.55,
+      "en": "deviation units is a little bit tricky, because formerly these distances in the t-SNE result do not",
+      "zh": "單位解讀結果，有一點微妙，因為嚴格來說，t-SNE 結果中的距離，"
+    },
+    {
+      "start": 1226.55,
+      "end": 1235.59,
+      "en": "conform to standard distance metrics in the sense that the distances between clusters is not necessarily",
+      "zh": "不符合標準距離度量；也就是群組間的距離，未必"
+    },
+    {
+      "start": 1235.59,
+      "end": 1242.19,
+      "en": "meaningful in the way that they would be if they corresponded to actual points in a physical space.",
+      "zh": "像真實物理空間中的點那樣有意義。"
+    },
+    {
+      "start": 1242.59,
+      "end": 1251.15,
+      "en": "So all of this normalization is more for kind of convenience of parameter setting than for actual interpretation",
+      "zh": "因此，這個正規化，更多是為了方便設定參數，而不是為了真正以"
+    },
+    {
+      "start": 1251.27,
+      "end": 1254.67,
+      "en": "in terms of metrics and units and scales.",
+      "zh": "度量、單位與尺度來解讀。"
+    },
+    {
+      "start": 1255.83,
+      "end": 1261.59,
+      "en": "Anyway, Nonetheless, here for my analysis, I chose an epsilon value of 0.3.",
+      "zh": "總之，這次分析選擇 epsilon 為 0.3。"
+    },
+    {
+      "start": 1261.95,
+      "end": 1266.83,
+      "en": "And again, you know, there was no deep mathematical reasoning for this.",
+      "zh": "同樣地，背後沒有什麼深奧的數學理由。"
+    },
+    {
+      "start": 1266.83,
+      "end": 1277.19,
+      "en": "I just played around with some values, used some intuition based on my experience with standardized data, and also with the DBscan method.",
+      "zh": "我只是試了一些值，根據處理標準化資料，以及 DBSCAN 方法的經驗，運用一些直覺。"
+    },
+    {
+      "start": 1277.35,
+      "end": 1281.91,
+      "en": "And I found that an epsilon value of 0.3 works fairly well.",
+      "zh": "發現 epsilon 等於 0.3 的效果相當好。"
+    },
+    {
+      "start": 1282.51,
+      "end": 1290.75,
+      "en": "Okay, so that gave me in this case the following clusters, which clearly is consistent with our visual intuition.",
+      "zh": "這次得到以下群組，顯然與視覺直覺一致。"
+    },
+    {
+      "start": 1291.07,
+      "end": 1291.55,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 1291.59,
+      "end": 1293.07,
+      "en": "So here's the thing.",
+      "zh": "但問題來了。"
+    },
+    {
+      "start": 1293.07,
+      "end": 1295.11,
+      "en": "There are five clusters here.",
+      "zh": "這裡有五個群組。"
+    },
+    {
+      "start": 1295.55,
+      "end": 1304.23,
+      "en": "But when I organize these data I organize them manually based on my intuition into four groups.",
+      "zh": "可是，我根據直覺手動整理資料時，分成四組。"
+    },
+    {
+      "start": 1304.35,
+      "end": 1310.11,
+      "en": "So how do we get five clusters from these four groups and what is going on with that.",
+      "zh": "為什麼四組會得到五群？這是怎麼回事？"
+    },
+    {
+      "start": 1310.15,
+      "end": 1310.55,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1310.59,
+      "end": 1317.8,
+      "en": "So to gain some insight into that we can print out all of the Uh, token clusterings.",
+      "zh": "為了了解，可以印出所有 token 的分群。"
+    },
+    {
+      "start": 1317.92,
+      "end": 1320.12,
+      "en": "So there are no Ungrouped tokens.",
+      "zh": "沒有任何未分組的 token。"
+    },
+    {
+      "start": 1320.12,
+      "end": 1322.6,
+      "en": "So there were no little isolated islands.",
+      "zh": "沒有孤立的小島。"
+    },
+    {
+      "start": 1323.84,
+      "end": 1329.92,
+      "en": "But we do see that, uh, this group has all faces, but not all of the faces.",
+      "zh": "但確實看到，這一組全是臉，卻不是所有的臉。"
+    },
+    {
+      "start": 1330.44,
+      "end": 1334.52,
+      "en": "This group has mostly weather symbols, but one heart.",
+      "zh": "這一組大多是天氣符號，但有一個愛心。"
+    },
+    {
+      "start": 1334.56,
+      "end": 1334.96,
+      "en": "There's.",
+      "zh": "這裡有，"
+    },
+    {
+      "start": 1335,
+      "end": 1335.32,
+      "en": "Let's see.",
+      "zh": "看看，"
+    },
+    {
+      "start": 1335.32,
+      "end": 1337.6,
+      "en": "There's another weather symbol over here.",
+      "zh": "這邊還有另一個天氣符號。"
+    },
+    {
+      "start": 1338.12,
+      "end": 1339.76,
+      "en": "Uh, or two more weather symbols.",
+      "zh": "或者說，另外兩個天氣符號。"
+    },
+    {
+      "start": 1339.92,
+      "end": 1340.16,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1340.16,
+      "end": 1344.16,
+      "en": "This one is all animals, but not all of the animals.",
+      "zh": "這一組全是動物，但不是所有動物。"
+    },
+    {
+      "start": 1344.2,
+      "end": 1346.32,
+      "en": "This is hearts, but not all of the.",
+      "zh": "這一組是愛心，但不是所有……"
+    },
+    {
+      "start": 1346.64,
+      "end": 1348.64,
+      "en": "But also two faces and so on.",
+      "zh": "另外還有兩張臉等等。"
+    },
+    {
+      "start": 1348.92,
+      "end": 1349.84,
+      "en": "So, yeah.",
+      "zh": "所以，對。"
+    },
+    {
+      "start": 1349.84,
+      "end": 1351.12,
+      "en": "What do we make of this?",
+      "zh": "該如何解讀？"
+    },
+    {
+      "start": 1351.12,
+      "end": 1358.88,
+      "en": "First of all, keep in mind that we averaged the embeddings vectors across all of the tokens within each emoji.",
+      "zh": "首先，記得我們把每個表情符號內，所有 token 的嵌入向量取平均。"
+    },
+    {
+      "start": 1359.24,
+      "end": 1368.08,
+      "en": "So we might already be losing some sensitivity to the, uh, real clustering based on that averaging procedure.",
+      "zh": "因此，這個平均程序可能已經降低了對真正分群的敏感度。"
+    },
+    {
+      "start": 1368.44,
+      "end": 1379.72,
+      "en": "Another thing to think about is how the clustering method in my brain works, versus the clustering method from the combination of t-SNE and DBscan.",
+      "zh": "另一件事是，我腦中的分群方法，與 t-SNE 加上 DBSCAN 的分群方法有何不同。"
+    },
+    {
+      "start": 1380,
+      "end": 1383,
+      "en": "Now we are not implementing the same algorithms.",
+      "zh": "我們並沒有實作相同的演算法。"
+    },
+    {
+      "start": 1383,
+      "end": 1385.2,
+      "en": "I have no idea how my brain works.",
+      "zh": "我不知道自己的大腦如何運作。"
+    },
+    {
+      "start": 1385.24,
+      "end": 1387.28,
+      "en": "Nobody knows how anyone's brain works.",
+      "zh": "沒有人知道任何人的大腦如何運作。"
+    },
+    {
+      "start": 1388,
+      "end": 1394.52,
+      "en": "But you know, I was using a combination of different heuristics to form clusters.",
+      "zh": "但我用了不同啟發法的組合來形成群組。"
+    },
+    {
+      "start": 1394.52,
+      "end": 1401.2,
+      "en": "So those heuristics that I used are based on their based on a little bit the, the shape.",
+      "zh": "我用的啟發法，部分是根據形狀。"
+    },
+    {
+      "start": 1401.2,
+      "end": 1405.64,
+      "en": "So these are all round, you know, the rest of these are not round but this one is round.",
+      "zh": "這些都是圓的，其餘不是圓的，但這個是圓的。"
+    },
+    {
+      "start": 1406.04,
+      "end": 1413.6,
+      "en": "But there are real world references that these correspond to which are human faces except nobody's human.",
+      "zh": "不過，它們也對應現實世界的事物，也就是人的臉；只是，沒有人的臉……"
+    },
+    {
+      "start": 1413.84,
+      "end": 1416.44,
+      "en": "No human actually has a face that looks like this.",
+      "zh": "沒有人的臉真的長這樣。"
+    },
+    {
+      "start": 1417.08,
+      "end": 1417.96,
+      "en": "Uh, these are hearts.",
+      "zh": "這些是愛心。"
+    },
+    {
+      "start": 1417.96,
+      "end": 1420.96,
+      "en": "But again, you know, no one's heart actually looks like this.",
+      "zh": "但同樣地，沒有人的心臟真的長這樣。"
+    },
+    {
+      "start": 1420.96,
+      "end": 1422.36,
+      "en": "No animals look like this.",
+      "zh": "也沒有動物長這樣。"
+    },
+    {
+      "start": 1422.36,
+      "end": 1425.52,
+      "en": "So how do I group all of these together?",
+      "zh": "那我是如何把這些分在一起？"
+    },
+    {
+      "start": 1425.68,
+      "end": 1426.76,
+      "en": "And what?",
+      "zh": "而且，"
+    },
+    {
+      "start": 1426.8,
+      "end": 1436.16,
+      "en": "By what justification do I say that this is the correct grouping, and this is like an awkward or sometimes incorrect grouping?",
+      "zh": "憑什麼說這是正確分組，而這是奇怪、甚至有時不正確的分組？"
+    },
+    {
+      "start": 1437.49,
+      "end": 1443.05,
+      "en": "Whenever you get results that are not entirely consistent with what you expected.",
+      "zh": "每當結果與預期不完全一致，"
+    },
+    {
+      "start": 1443.53,
+      "end": 1446.97,
+      "en": "There are two possibilities of why that is the case.",
+      "zh": "可能有兩種原因。"
+    },
+    {
+      "start": 1447.41,
+      "end": 1454.01,
+      "en": "One possibility is that the analysis wasn't really appropriate, or perhaps at least not optimal.",
+      "zh": "一種是分析方法不太適當，或者至少不是最佳。"
+    },
+    {
+      "start": 1454.73,
+      "end": 1464.41,
+      "en": "Another possibility is that the analysis is fine, but your assumptions and the way that you are thinking about the problem was wrong.",
+      "zh": "另一種是分析沒問題，但你的假設，以及思考問題的方式錯了。"
+    },
+    {
+      "start": 1465.05,
+      "end": 1473.01,
+      "en": "So in this case, maybe the way that this particular emoji heart is actually used in written language",
+      "zh": "因此，也許這個愛心表情符號，在書寫語言中實際的使用方式，"
+    },
+    {
+      "start": 1473.37,
+      "end": 1479.17,
+      "en": "really does make it belong to these, whether emojis and not to these other heart emojis.",
+      "zh": "真的讓它應該歸到這些天氣表情符號，而不是其他愛心表情符號。"
+    },
+    {
+      "start": 1479.53,
+      "end": 1480.41,
+      "en": "What do I know?",
+      "zh": "我又知道什麼呢？"
+    },
+    {
+      "start": 1480.97,
+      "end": 1481.25,
+      "en": "You know.",
+      "zh": "你知道。"
+    },
+    {
+      "start": 1481.29,
+      "end": 1483.37,
+      "en": "Of course both of these possibilities.",
+      "zh": "當然，這兩種可能性，"
+    },
+    {
+      "start": 1483.37,
+      "end": 1488.65,
+      "en": "So the analysis is suboptimal and my assumptions need to be questioned and revised.",
+      "zh": "也就是分析不是最佳，而我的假設也需要質疑、修訂，"
+    },
+    {
+      "start": 1488.89,
+      "end": 1490.65,
+      "en": "These are not mutually exclusive.",
+      "zh": "並不互斥。"
+    },
+    {
+      "start": 1490.81,
+      "end": 1499.89,
+      "en": "So for this particular exercise I do think it's awkward and not really ideal to average together embeddings vectors.",
+      "zh": "所以，對這個練習，我確實覺得把嵌入向量取平均，有些彆扭，也不太理想。"
+    },
+    {
+      "start": 1500.29,
+      "end": 1508.69,
+      "en": "It probably would be better to use these emojis in context and then look at the language models internal representations.",
+      "zh": "也許，應該把這些表情符號放在上下文中，再查看語言模型的內部表徵。"
+    },
+    {
+      "start": 1509.17,
+      "end": 1516.17,
+      "en": "But that's also not a perfect solution, because that depends on where in the model you are getting",
+      "zh": "但這也不是完美解法，因為取決於從模型哪裡取得"
+    },
+    {
+      "start": 1516.17,
+      "end": 1527.41,
+      "en": "these representations from, and what context you use before the emoji that will affect the representation of this particular emoji encoding.",
+      "zh": "這些表徵，以及表情符號之前使用什麼上下文；這會影響該表情符號編碼的表徵。"
+    },
+    {
+      "start": 1527.93,
+      "end": 1534.65,
+      "en": "So even these very simple questions can become very complicated and very nuanced.",
+      "zh": "因此，即使這些非常簡單的問題，也可能變得非常複雜，充滿細微差異。"
+    },
+    {
+      "start": 1535.13,
+      "end": 1542.57,
+      "en": "But anyway, one more germane point I would like to make here is that when it comes to language models",
+      "zh": "總之，還有一個相關重點：就語言模型"
+    },
+    {
+      "start": 1542.57,
+      "end": 1550.45,
+      "en": "and tokenizations, emojis are not treated any differently than any other Subword language models will",
+      "zh": "與 token 化而言，表情符號的處理方式與任何其他子詞沒有不同；語言模型會"
+    },
+    {
+      "start": 1550.45,
+      "end": 1555.57,
+      "en": "learn about emojis, just like they learn about any other unit of written language.",
+      "zh": "學習表情符號，就像學習任何其他單位一樣。"
+    }
+  ]
+}

@@ -1,0 +1,1261 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892685",
+  "title": "Activation maximization via data sampling",
+  "section": 18,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "5ab86272ba8cdc5609f5e7a13d7e4da91ac42bf8ad3b07c69c205fcf4a922718",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 3.36,
+      "en": "Before moving on.",
+      "zh": "繼續之前，"
+    },
+    {
+      "start": 3.36,
+      "end": 8.68,
+      "en": "I want to have one more video about activation maximization.",
+      "zh": "還想再用一部影片談活化最大化。"
+    },
+    {
+      "start": 9.36,
+      "end": 17.52,
+      "en": "The concept that I will introduce you to in this video is the same as in the previous few videos, in",
+      "zh": "這部影片介紹的概念，和前幾部相同，"
+    },
+    {
+      "start": 17.52,
+      "end": 28.44,
+      "en": "the sense that the idea is to try to discover the language features that are represented by a single dimension or single neuron in an LM.",
+      "zh": "都是試著找出，LLM 中單一維度或單一神經元，表示哪些語言特徵。"
+    },
+    {
+      "start": 29.44,
+      "end": 38.76,
+      "en": "However, the approach here in this video will be a bit different and actually much simpler than in the previous several videos.",
+      "zh": "但這部的做法不同，而且其實比前幾部簡單很多。"
+    },
+    {
+      "start": 39.32,
+      "end": 45.92,
+      "en": "So we're not going to do any training or shaping noise or gradient ascent or anything like that.",
+      "zh": "不做訓練、不塑造雜訊、不做梯度上升，也不做類似操作。"
+    },
+    {
+      "start": 46.32,
+      "end": 53.72,
+      "en": "Instead, I'm just going to push through tens of thousands of tokens through the model, pick one dimension",
+      "zh": "只是把數萬個 token 送過模型，挑一個 Transformer 區塊中的"
+    },
+    {
+      "start": 53.72,
+      "end": 60.26,
+      "en": "from one transformer block, and just see which tokens maximally activate that one dimension.",
+      "zh": "一個維度，看看哪些 token 能最大程度活化那一維。"
+    },
+    {
+      "start": 60.82,
+      "end": 65.62,
+      "en": "And when I show you the code, you will see how simple this method really is.",
+      "zh": "展示程式時，你會看到方法真的很簡單。"
+    },
+    {
+      "start": 66.5,
+      "end": 69.66,
+      "en": "So here's what I will do in the Python demo.",
+      "zh": "Python 示範會這樣做。"
+    },
+    {
+      "start": 69.98,
+      "end": 75.38,
+      "en": "I'll start by importing the GPT neo model from eleuther.",
+      "zh": "先從 Eleuther 匯入 GPT-Neo 模型。"
+    },
+    {
+      "start": 75.7,
+      "end": 78.94,
+      "en": "And also the text for the book Through the Looking Glass.",
+      "zh": "以及 Through the Looking Glass 這本書的文字。"
+    },
+    {
+      "start": 79.46000000000001,
+      "end": 83.82,
+      "en": "Then I'll pick one layer, one hidden layer, and one dimension.",
+      "zh": "再挑一個層、一個隱藏層，以及一個維度。"
+    },
+    {
+      "start": 83.82,
+      "end": 92.46000000000001,
+      "en": "Basically arbitrarily randomly chosen, process one batch of tokens and literally just search through",
+      "zh": "基本上任意、隨機選擇；處理一批 token，直接搜尋"
+    },
+    {
+      "start": 92.78,
+      "end": 104.78,
+      "en": "all of the activations for all the tokens and find the token that gets the most activation, the strongest activation from that one dimension, from one layer.",
+      "zh": "所有 token 的全部活化，找出在該層該維度，活化最強的 token。"
+    },
+    {
+      "start": 105.82,
+      "end": 109.06,
+      "en": "And that is the basics of how this analysis works.",
+      "zh": "這就是這個分析的基本運作方式。"
+    },
+    {
+      "start": 109.3,
+      "end": 116.74000000000001,
+      "en": "Then I will repeat that a thousand times and collect the token that generates the maximum activation",
+      "zh": "接著重複 1,000 次，蒐集這 1,000 批資料中，"
+    },
+    {
+      "start": 116.74000000000001,
+      "end": 126.75,
+      "en": "from each of those 1000 batches, and then I'll just list them out and we'll see if there are any consistencies that we can identify.",
+      "zh": "每批產生最大活化的 token，再列出來，看看能否辨識一致性。"
+    },
+    {
+      "start": 127.47,
+      "end": 128.07,
+      "en": "Great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 128.11,
+      "end": 129.39,
+      "en": "Let's switch to code.",
+      "zh": "切換到程式。"
+    },
+    {
+      "start": 130.31,
+      "end": 135.15,
+      "en": "We don't actually need too many libraries for this code demo.",
+      "zh": "這個示範其實不需要太多函式庫。"
+    },
+    {
+      "start": 135.39,
+      "end": 138.87,
+      "en": "Here I'm importing the model from Eleuther.",
+      "zh": "這裡從 Eleuther 匯入模型。"
+    },
+    {
+      "start": 138.91,
+      "end": 142.91,
+      "en": "This is GPT neo 125 million parameters.",
+      "zh": "是有 1.25 億個參數的 GPT-Neo。"
+    },
+    {
+      "start": 143.07,
+      "end": 148.71,
+      "en": "I will run this on the GPU and switch model into eval mode.",
+      "zh": "在 GPU 上執行，並切換到 eval 模式。"
+    },
+    {
+      "start": 149.27,
+      "end": 149.55,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 149.59,
+      "end": 153.82999999999998,
+      "en": "And then here I'm importing the text for through the looking glass.",
+      "zh": "這裡匯入 Through the Looking Glass 的文字。"
+    },
+    {
+      "start": 154.03,
+      "end": 155.43,
+      "en": "Tokenizing the text.",
+      "zh": "將文字切成 token。"
+    },
+    {
+      "start": 155.71,
+      "end": 159.43,
+      "en": "Printing out the number of tokens is actually just copy.",
+      "zh": "印出 token 數量；其實這只是複製過來的。"
+    },
+    {
+      "start": 159.43,
+      "end": 166.07,
+      "en": "The whole reason why this line is there is because I just keep copying this code from other code files.",
+      "zh": "這行存在的全部原因，只是我一直從其他程式檔複製這段程式。"
+    },
+    {
+      "start": 166.55,
+      "end": 166.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 167.03,
+      "end": 170.67000000000002,
+      "en": "So here I'm going to process a batch.",
+      "zh": "這裡要處理一個批次。"
+    },
+    {
+      "start": 170.87,
+      "end": 174.51,
+      "en": "This is going to be a batch of 32 sequences.",
+      "zh": "批次有 32 段序列。"
+    },
+    {
+      "start": 174.63,
+      "end": 178.89,
+      "en": "And each sequence will be 256 tokens long.",
+      "zh": "每段長度是 256 個 token。"
+    },
+    {
+      "start": 179.21,
+      "end": 189.05,
+      "en": "Now I will discuss in a few moments why some reasons why we might want this to be larger versus smaller.",
+      "zh": "稍後會討論，為什麼可能想讓它更大或更小。"
+    },
+    {
+      "start": 189.25,
+      "end": 192.25,
+      "en": "But anyway, these are the parameters that I will use for now.",
+      "zh": "總之，目前使用這些參數。"
+    },
+    {
+      "start": 192.69,
+      "end": 195.09,
+      "en": "So here's one example.",
+      "zh": "這是一個例子。"
+    },
+    {
+      "start": 195.09,
+      "end": 202.41,
+      "en": "So here I get a batch of tokens, push those through the model and get the hidden states.",
+      "zh": "取得一批 token，送過模型，取得隱藏狀態。"
+    },
+    {
+      "start": 202.41,
+      "end": 204.73,
+      "en": "And then just printing out some of these.",
+      "zh": "再印出其中一些。"
+    },
+    {
+      "start": 205.25,
+      "end": 207.97,
+      "en": "Yeah one of these shapes of these tensors.",
+      "zh": "也就是其中一個張量的形狀。"
+    },
+    {
+      "start": 208.37,
+      "end": 211.53,
+      "en": "So we have 13 hidden states altogether.",
+      "zh": "總共有 13 個隱藏狀態。"
+    },
+    {
+      "start": 211.77,
+      "end": 218.32999999999998,
+      "en": "Of course you know that that's the embeddings plus the 12 transformer blocks.",
+      "zh": "當然，你知道，是嵌入加上 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 218.69,
+      "end": 228.89,
+      "en": "And then each one of those hidden states is of size 32 batches, 256 tokens and 768 dimensions.",
+      "zh": "每個隱藏狀態大小為 32 個批次、256 個 token、768 個維度。"
+    },
+    {
+      "start": 229.09,
+      "end": 231.09,
+      "en": "Now here is the idea.",
+      "zh": "現在，概念如下。"
+    },
+    {
+      "start": 231.25,
+      "end": 238.57999999999998,
+      "en": "What we are going to do is pick one of these layers and one of these dimensions.",
+      "zh": "挑這些層中的一層，以及這些維度中的一維。"
+    },
+    {
+      "start": 238.57999999999998,
+      "end": 244.06,
+      "en": "And that's going to give us a matrix of size 32 by 256.",
+      "zh": "會得到大小為 32 乘以 256 的矩陣。"
+    },
+    {
+      "start": 244.18,
+      "end": 253.74,
+      "en": "And that corresponds to the activation for each of these tokens in each of these sequences for one specific dimension.",
+      "zh": "對應某個特定維度，在各序列、各 token 的活化。"
+    },
+    {
+      "start": 253.74,
+      "end": 260.62,
+      "en": "So dimension 345 and from one specific layer I'm picking layer two.",
+      "zh": "也就是第 345 維，以及某個特定層，這裡挑第 2 層。"
+    },
+    {
+      "start": 260.66,
+      "end": 264.1,
+      "en": "So transformer block two okay.",
+      "zh": "所以是第二個 Transformer 區塊。"
+    },
+    {
+      "start": 264.14,
+      "end": 266.26,
+      "en": "So why do I pick these numbers.",
+      "zh": "為什麼選這些數字？"
+    },
+    {
+      "start": 266.5,
+      "end": 268.38,
+      "en": "No really no particular reason.",
+      "zh": "沒有特別原因。"
+    },
+    {
+      "start": 268.38,
+      "end": 272.54,
+      "en": "I just kind of randomly assembled this collection of four numbers here.",
+      "zh": "只是隨機組合這四個數字。"
+    },
+    {
+      "start": 272.98,
+      "end": 273.38,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 273.42,
+      "end": 276.34000000000003,
+      "en": "So here I just get the activations.",
+      "zh": "這裡只取出活化。"
+    },
+    {
+      "start": 276.78,
+      "end": 281.65999999999997,
+      "en": "I'm detaching them and bringing them back from the GPU to the CPU.",
+      "zh": "將它們 detach，從 GPU 帶回 CPU。"
+    },
+    {
+      "start": 282.14,
+      "end": 287.5,
+      "en": "And basically the point of this line of code is just for convenience.",
+      "zh": "這行程式主要只是為了方便。"
+    },
+    {
+      "start": 287.5,
+      "end": 293.2,
+      "en": "So I can have this one matrix instead of worrying about all of this business here.",
+      "zh": "這樣就能使用這一個矩陣，不必處理這一大串。"
+    },
+    {
+      "start": 293.64,
+      "end": 294.08,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 294.12,
+      "end": 299.48,
+      "en": "And then I want to find the maximum value in this matrix.",
+      "zh": "接著，想找這個矩陣中的最大值。"
+    },
+    {
+      "start": 299.48,
+      "end": 302.44,
+      "en": "So actually let me just to make sure this is really clear.",
+      "zh": "為了確保非常清楚，展示一下。"
+    },
+    {
+      "start": 302.64,
+      "end": 305.16,
+      "en": "So layer x dot shape.",
+      "zh": "layer x 的 .shape。"
+    },
+    {
+      "start": 305.6,
+      "end": 309.04,
+      "en": "So here we have 32 by 256.",
+      "zh": "這裡是 32 乘以 256。"
+    },
+    {
+      "start": 309.36,
+      "end": 319.88,
+      "en": "And yeah this is 32 batches or one batch of 32 sequences and each of 256 tokens.",
+      "zh": "也就是 32 個批次，或者一批 32 段序列，每段 256 個 token。"
+    },
+    {
+      "start": 320.68,
+      "end": 322.36,
+      "en": "And now from here.",
+      "zh": "接著，從這裡。"
+    },
+    {
+      "start": 322.36,
+      "end": 324.76,
+      "en": "So these are not the tokens anymore.",
+      "zh": "這些已經不是 token。"
+    },
+    {
+      "start": 324.8,
+      "end": 330.68,
+      "en": "These are the activations for these tokens from this one dimension and this one layer.",
+      "zh": "而是那些 token 在這一個維度、這一層的活化。"
+    },
+    {
+      "start": 330.84,
+      "end": 333.96,
+      "en": "So then I want to know what is the index.",
+      "zh": "接著，想知道索引是什麼。"
+    },
+    {
+      "start": 333.96,
+      "end": 334.96,
+      "en": "So let me do this.",
+      "zh": "讓我這樣做。"
+    },
+    {
+      "start": 334.96,
+      "end": 338.32,
+      "en": "Now numpy dot arg max.",
+      "zh": "使用 numpy.argmax。"
+    },
+    {
+      "start": 338.8,
+      "end": 343.84000000000003,
+      "en": "What is the index at which this reaches a maximum.",
+      "zh": "在哪個索引，達到最大值？"
+    },
+    {
+      "start": 344,
+      "end": 349.76,
+      "en": "So this has a maximum activation value at index 4024.",
+      "zh": "最大活化值位於索引 4024。"
+    },
+    {
+      "start": 350,
+      "end": 352.57,
+      "en": "Now this is a linear index.",
+      "zh": "這是線性索引。"
+    },
+    {
+      "start": 352.57,
+      "end": 356.21,
+      "en": "So it's wrapping around the rows and the columns.",
+      "zh": "會走過各列與各欄。"
+    },
+    {
+      "start": 356.37,
+      "end": 360.93,
+      "en": "So therefore just to make this convenient I flatten out x as well.",
+      "zh": "所以，為了方便，也把 x 攤平。"
+    },
+    {
+      "start": 360.93,
+      "end": 364.01,
+      "en": "This is the matrix of tokens.",
+      "zh": "這是 token 矩陣。"
+    },
+    {
+      "start": 364.09,
+      "end": 367.81,
+      "en": "And then I can use this as a linear index.",
+      "zh": "接著，就可以把它當線性索引。"
+    },
+    {
+      "start": 367.81,
+      "end": 373.49,
+      "en": "And this gives me the token index at which the activation was the maximum.",
+      "zh": "取得活化最大位置的 token 索引。"
+    },
+    {
+      "start": 373.61,
+      "end": 375.69,
+      "en": "And then we can decode that.",
+      "zh": "再解碼。"
+    },
+    {
+      "start": 375.69,
+      "end": 381.85,
+      "en": "So then we find that the token with the maximum activation is the word space before.",
+      "zh": "發現活化最大的 token，是前導空白加 before 這個詞。"
+    },
+    {
+      "start": 382.05,
+      "end": 384.13,
+      "en": "So the token space before.",
+      "zh": "也就是空白加 before 的 token。"
+    },
+    {
+      "start": 384.69,
+      "end": 385.01,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 385.05,
+      "end": 386.37,
+      "en": "So that's pretty interesting.",
+      "zh": "這很有意思。"
+    },
+    {
+      "start": 386.37,
+      "end": 387.89,
+      "en": "This is for one batch.",
+      "zh": "這只是一個批次。"
+    },
+    {
+      "start": 388.17,
+      "end": 392.97,
+      "en": "Now that doesn't tell us that this is the before dimension in the model.",
+      "zh": "不代表模型中的這一維，就是 before 維度。"
+    },
+    {
+      "start": 393.09000000000003,
+      "end": 404.21,
+      "en": "All it tells us is that in this particular batch, this specific batch, that one token got the largest activation from this dimension and so on.",
+      "zh": "只告訴我們，在這個特定批次中，那一個 token 得到這一維的最大活化等等。"
+    },
+    {
+      "start": 404.57,
+      "end": 404.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 404.93,
+      "end": 408.53,
+      "en": "So now what I'm going to do is repeat all of that code.",
+      "zh": "現在，要重複所有這些程式。"
+    },
+    {
+      "start": 408.73,
+      "end": 412.67,
+      "en": "All of this stuff is exactly the same that I just showed you.",
+      "zh": "全部和剛才展示的一樣。"
+    },
+    {
+      "start": 413.23,
+      "end": 415.95,
+      "en": "Except here I'm storing the result.",
+      "zh": "只是這裡儲存結果。"
+    },
+    {
+      "start": 415.99,
+      "end": 418.11,
+      "en": "Actually, I'm just storing the index here.",
+      "zh": "其實，只儲存索引。"
+    },
+    {
+      "start": 418.11,
+      "end": 422.75,
+      "en": "Just because it's easier to store in a matrix and not the token itself.",
+      "zh": "因為存在矩陣中比較容易，而不是儲存 token 本身。"
+    },
+    {
+      "start": 422.91,
+      "end": 427.79,
+      "en": "But anyway, then I'm repeating that analysis 1000 times.",
+      "zh": "總之，將分析重複 1,000 次。"
+    },
+    {
+      "start": 427.79,
+      "end": 429.03,
+      "en": "So I'm going to run this now.",
+      "zh": "現在執行。"
+    },
+    {
+      "start": 429.03,
+      "end": 432.31,
+      "en": "It takes somewhere around two minutes on the GPU.",
+      "zh": "GPU 上大約需要兩分鐘。"
+    },
+    {
+      "start": 432.67,
+      "end": 438.75,
+      "en": "I did not time this on the CPU, but I guess it would take quite a bit longer than the GPU.",
+      "zh": "我沒測 CPU 的時間，但猜會比 GPU 久很多。"
+    },
+    {
+      "start": 439.75,
+      "end": 443.03,
+      "en": "So now I've run this 1000 times.",
+      "zh": "現在，已經執行 1,000 次。"
+    },
+    {
+      "start": 443.23,
+      "end": 450.47,
+      "en": "And now what I do here is find all of the unique values in this tokens matrix.",
+      "zh": "這裡找出 tokens 矩陣中的所有獨特值。"
+    },
+    {
+      "start": 450.71,
+      "end": 454.11,
+      "en": "So now we can imagine two different possibilities.",
+      "zh": "可以想像兩種不同可能性。"
+    },
+    {
+      "start": 454.11,
+      "end": 456.83,
+      "en": "How many unique elements will there be?",
+      "zh": "會有多少獨特元素？"
+    },
+    {
+      "start": 457.31,
+      "end": 461.90999999999997,
+      "en": "We can imagine the one extreme where this analysis works super duper well.",
+      "zh": "一個極端，是分析效果非常、非常好。"
+    },
+    {
+      "start": 462.03,
+      "end": 465.87,
+      "en": "And then every single token will be exactly the same.",
+      "zh": "每一個 token 都完全相同。"
+    },
+    {
+      "start": 466.47,
+      "end": 469.69,
+      "en": "I will get back to that in a moment, whether that's even possible.",
+      "zh": "稍後會再談，這是否可能。"
+    },
+    {
+      "start": 470.37,
+      "end": 476.81,
+      "en": "But, you know, imagine out of this 1000 tokens, maybe there's only like five unique tokens that would",
+      "zh": "但想像，在這 1,000 個 token 中，也許只有五個獨特 token，"
+    },
+    {
+      "start": 476.81,
+      "end": 487.45,
+      "en": "indicate that the model, every time the model sees the word or this dimension from this layer sees the word the, then it always just responds a lot.",
+      "zh": "那就表示，模型，或者這層的這一維，每次看到 the 這個詞，就會有很大反應。"
+    },
+    {
+      "start": 487.49,
+      "end": 490.09,
+      "en": "So then we're always going to get the out here.",
+      "zh": "所以，最後總會得到 the。"
+    },
+    {
+      "start": 490.37,
+      "end": 497.17,
+      "en": "On the other hand, if it's completely random, the this dimension for this model, for this layer has",
+      "zh": "另一方面，如果完全隨機，模型該層的這一維，"
+    },
+    {
+      "start": 497.17,
+      "end": 503.33,
+      "en": "no preference whatsoever for any particular word or category or set of words.",
+      "zh": "對任何特定單字、類別或詞集合，完全沒有偏好，"
+    },
+    {
+      "start": 503.49,
+      "end": 510.81,
+      "en": "Then we would expect this to be basically a thousand the unique elements to be 1000, because each time",
+      "zh": "那預期獨特元素基本上會有 1,000 個，因為每次"
+    },
+    {
+      "start": 510.81,
+      "end": 516.29,
+      "en": "we present new tokens, it's going to be a completely random selection of tokens.",
+      "zh": "呈現新 token，都會是完全隨機的 token 選擇。"
+    },
+    {
+      "start": 517.21,
+      "end": 518.37,
+      "en": "So let's see what we get.",
+      "zh": "看看結果。"
+    },
+    {
+      "start": 518.73,
+      "end": 522.53,
+      "en": "Uh, the answer is somewhere in between 5 and 1000.",
+      "zh": "答案在 5 與 1,000 之間。"
+    },
+    {
+      "start": 522.57,
+      "end": 524.45,
+      "en": "Actually, these are very, very small.",
+      "zh": "其實，數量非常、非常少。"
+    },
+    {
+      "start": 524.77,
+      "end": 530.46,
+      "en": "So it turns out that This dimension for this layer really likes the word before.",
+      "zh": "這層的這一維，真的很喜歡 before。"
+    },
+    {
+      "start": 530.7,
+      "end": 532.98,
+      "en": "So we get a space before.",
+      "zh": "得到空白加 before。"
+    },
+    {
+      "start": 533.18,
+      "end": 542.3,
+      "en": "And that elicits that token elicits the maximum activation in for this dimension for this layer.",
+      "zh": "那個 token 會在這層這一維，引發最大活化，"
+    },
+    {
+      "start": 542.5,
+      "end": 544.34,
+      "en": "Almost half of the time.",
+      "zh": "幾乎占一半次數。"
+    },
+    {
+      "start": 544.34,
+      "end": 545.86,
+      "en": "So almost half of the batches.",
+      "zh": "也就是幾乎一半批次。"
+    },
+    {
+      "start": 546.18,
+      "end": 549.14,
+      "en": "And then when we look at some of the other ones I'm not sure yet.",
+      "zh": "再看其他的，不太確定。"
+    },
+    {
+      "start": 549.18,
+      "end": 550.7,
+      "en": "This is a subword here.",
+      "zh": "這裡是一個子詞。"
+    },
+    {
+      "start": 550.7,
+      "end": 559.78,
+      "en": "So I'm not sure what parts of the word this would correspond to in principle, that something you could check by adding to the code, but it's not.",
+      "zh": "所以，不確定對應單字的哪一部分；原則上可以加程式檢查，但這裡沒有。"
+    },
+    {
+      "start": 560.26,
+      "end": 561.54,
+      "en": "The code doesn't do that here.",
+      "zh": "程式沒有做這件事。"
+    },
+    {
+      "start": 561.78,
+      "end": 566.54,
+      "en": "And then we also see before with capital and before here.",
+      "zh": "也看到，大寫的 Before，以及這裡的 before。"
+    },
+    {
+      "start": 566.54,
+      "end": 572.46,
+      "en": "So this is a different token from this one because this has a space in front and this one doesn't.",
+      "zh": "這與那個是不同 token，因為這個前面有空白，另一個沒有。"
+    },
+    {
+      "start": 572.94,
+      "end": 581.62,
+      "en": "And even when we look at the other tokens we see we get first faster head you know similar words to before.",
+      "zh": "即使看其他 token，也有 first、faster、head，與 before 類似的詞。"
+    },
+    {
+      "start": 581.62,
+      "end": 583.94,
+      "en": "Here's also first quicker I don't know.",
+      "zh": "這裡還有 first、quicker，不知道。"
+    },
+    {
+      "start": 583.98,
+      "end": 584.22,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 584.22,
+      "end": 590.16,
+      "en": "This maybe is related to temporal precedence, which is a similar concept as before.",
+      "zh": "也許與時間先後有關，和 before 是類似概念。"
+    },
+    {
+      "start": 590.52,
+      "end": 594.68,
+      "en": "So overall we seem to get something, you know, we seem to be hitting on something here.",
+      "zh": "整體而言，似乎真的找到了某些東西。"
+    },
+    {
+      "start": 594.92,
+      "end": 596.96,
+      "en": "Now you can run this code lots of times.",
+      "zh": "這段程式可以重跑很多次。"
+    },
+    {
+      "start": 596.96,
+      "end": 601.2,
+      "en": "It's always going to generate new random batches.",
+      "zh": "每次都會產生新的隨機批次。"
+    },
+    {
+      "start": 601.4,
+      "end": 608.76,
+      "en": "But it will always kind of like this word before first quicker faster things words like that.",
+      "zh": "但它總是有點喜歡 before、first、quicker、faster 這類詞。"
+    },
+    {
+      "start": 609.04,
+      "end": 611.52,
+      "en": "But that is not just something trivial.",
+      "zh": "這不只是平凡的結果。"
+    },
+    {
+      "start": 611.56,
+      "end": 614.2,
+      "en": "Because now what I'll do is change this.",
+      "zh": "因為，現在我要改這裡。"
+    },
+    {
+      "start": 614.2,
+      "end": 617.4,
+      "en": "Let's say I don't know six and I'll just make that a five.",
+      "zh": "假設，不知道，6，再把這個改成 5。"
+    },
+    {
+      "start": 618.2,
+      "end": 623.24,
+      "en": "So again, I have no a priori motivation for picking these numbers.",
+      "zh": "同樣地，沒有事先選擇這些數字的動機。"
+    },
+    {
+      "start": 623.24,
+      "end": 624.24,
+      "en": "It's pretty random.",
+      "zh": "相當隨機。"
+    },
+    {
+      "start": 624.4,
+      "end": 624.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 624.68,
+      "end": 626.4,
+      "en": "So now I'm going to run this again.",
+      "zh": "現在再跑一次。"
+    },
+    {
+      "start": 627.4,
+      "end": 630.24,
+      "en": "So let's see what these results look like.",
+      "zh": "看看結果。"
+    },
+    {
+      "start": 630.28,
+      "end": 632.68,
+      "en": "This is still from the previous run.",
+      "zh": "這還是前一次的結果。"
+    },
+    {
+      "start": 632.68,
+      "end": 636.2,
+      "en": "We get lots of befores first quicker faster and so on.",
+      "zh": "很多 before、first、quicker、faster 等等。"
+    },
+    {
+      "start": 636.52,
+      "end": 639.12,
+      "en": "Here we see the list is a little bit longer.",
+      "zh": "這次清單稍微長一點。"
+    },
+    {
+      "start": 639.32,
+      "end": 643.69,
+      "en": "Uh, and yeah we get some I don't know, some formatting, uh, thing.",
+      "zh": "有一些，不知道，格式字元。"
+    },
+    {
+      "start": 643.73,
+      "end": 646.81,
+      "en": "Hope course gun family afraid states.",
+      "zh": "Hope、course、gun、family、afraid、states。"
+    },
+    {
+      "start": 646.81,
+      "end": 658.37,
+      "en": "Wish I will let you decide whether you think that there is any meaningful relationship across some of these top activated tokens, but it's certainly nothing really obvious.",
+      "zh": "Wish。你可以自行判斷，這些活化最高的 token 之間，是否有任何有意義的關係，但肯定不太明顯。"
+    },
+    {
+      "start": 658.37,
+      "end": 662.65,
+      "en": "It's not like the same word is appearing multiple times.",
+      "zh": "不像同一個詞反覆出現。"
+    },
+    {
+      "start": 663.17,
+      "end": 671.41,
+      "en": "Okay, the last thing I want to discuss is the question of this trade off between, uh, where is it",
+      "zh": "最後，想討論這個取捨問題，在哪裡，"
+    },
+    {
+      "start": 671.45,
+      "end": 682.57,
+      "en": "this, uh, the, the batch size in terms of the number of sequences and the number of tokens per sequence versus the number of samples.",
+      "zh": "也就是批次大小，包含序列數與每段 token 數，相對於抽樣次數之間的取捨。"
+    },
+    {
+      "start": 682.93,
+      "end": 684.01,
+      "en": "Now, here's the thing.",
+      "zh": "情況是這樣。"
+    },
+    {
+      "start": 684.01,
+      "end": 687.41,
+      "en": "You can imagine making this as big as possible.",
+      "zh": "可以想像，把這裡盡量放大。"
+    },
+    {
+      "start": 687.41,
+      "end": 690.01,
+      "en": "So maybe this is 1024.",
+      "zh": "也許設成 1024。"
+    },
+    {
+      "start": 690.21,
+      "end": 696.57,
+      "en": "And I don't know maybe you make this 128 debatable whether this matrix and all of the activations would",
+      "zh": "這個也許設成 128；這個矩陣與所有活化是否"
+    },
+    {
+      "start": 696.61,
+      "end": 703.55,
+      "en": "actually fit on the GPU, but even if they would, then, you know, that would be great because then",
+      "zh": "真的放得進 GPU，還值得討論，但即使放得進，這也很好，因為"
+    },
+    {
+      "start": 703.79,
+      "end": 710.23,
+      "en": "each individual batch has a huge number of tokens, over 100,000 tokens.",
+      "zh": "每個批次都有大量 token，超過 100,000 個。"
+    },
+    {
+      "start": 710.23,
+      "end": 716.95,
+      "en": "So we're highly likely to get a sufficient amount of variability of tokens.",
+      "zh": "因此，很可能取得足夠的 token 多樣性。"
+    },
+    {
+      "start": 717.15,
+      "end": 727.19,
+      "en": "But on the other hand, if you do that, you might want to reduce the number of samples just to get it to run in a reasonable time frame.",
+      "zh": "但另一方面，可能想降低抽樣次數，讓執行時間合理。"
+    },
+    {
+      "start": 727.55,
+      "end": 733.71,
+      "en": "And that means that you're going to have a smaller number here for collecting these statistics.",
+      "zh": "這表示，用來蒐集這些統計結果的數量會比較少。"
+    },
+    {
+      "start": 733.83,
+      "end": 741.95,
+      "en": "On the other hand, you can imagine setting the number of samples to be really high, but setting the number of batches to be really small.",
+      "zh": "反過來，也可以把抽樣次數設得很高，但把批次數設得很小。"
+    },
+    {
+      "start": 741.95,
+      "end": 745.51,
+      "en": "Maybe you do it something like, uh, how about that?",
+      "zh": "也許像這樣，如何？"
+    },
+    {
+      "start": 745.55,
+      "end": 748.03,
+      "en": "So now the batches are really small.",
+      "zh": "現在，批次很小。"
+    },
+    {
+      "start": 748.07,
+      "end": 756.31,
+      "en": "The risk here is that you just don't have a lot of variability in the tokens because you're just randomly selecting tokens.",
+      "zh": "風險是，因為只是隨機選取 token，token 的多樣性就不高。"
+    },
+    {
+      "start": 756.75,
+      "end": 763.49,
+      "en": "Also, you know, other typical limitations Imitations of this as a kind of research investigation.",
+      "zh": "另外，作為一種研究調查，還有其他典型限制。"
+    },
+    {
+      "start": 763.49,
+      "end": 769.25,
+      "en": "As I've discussed repeatedly in this course, for example, I'm only using exactly one text.",
+      "zh": "本課程已經反覆討論，例如，我只使用一份文字。"
+    },
+    {
+      "start": 769.89,
+      "end": 781.73,
+      "en": "Of course, if you were doing this in a real research, you would want to basically find a nice balance to increase these numbers and also keep this number pretty high.",
+      "zh": "如果是真研究，當然會找個好平衡，增加這些數字，同時讓這個數字也保持很高。"
+    },
+    {
+      "start": 781.89,
+      "end": 790.41,
+      "en": "And of course, if you're doing this for a, you know, let's say a three month research project, then you can let this code run for a week.",
+      "zh": "如果是例如三個月的研究計畫，可以讓程式跑一個星期。"
+    },
+    {
+      "start": 790.57,
+      "end": 791.57,
+      "en": "And it's fine.",
+      "zh": "沒問題。"
+    },
+    {
+      "start": 791.57,
+      "end": 794.45,
+      "en": "You get an enormous amount of data from that.",
+      "zh": "會得到非常大量的資料。"
+    },
+    {
+      "start": 794.85,
+      "end": 803.29,
+      "en": "And then of course, we have the issue of scaling and feasibility, where searching through all 768",
+      "zh": "接著，還有規模與可行性問題，要搜尋所有 768"
+    },
+    {
+      "start": 803.29,
+      "end": 809.61,
+      "en": "dimensions times 12 layers is just not feasible for a human being to do.",
+      "zh": "維，乘以 12 層，根本不是一個人能做到的。"
+    },
+    {
+      "start": 810.73,
+      "end": 815.29,
+      "en": "Here are some advantages and limitations of this approach.",
+      "zh": "這裡列出這個方法的優點與限制。"
+    },
+    {
+      "start": 815.69,
+      "end": 820.82,
+      "en": "Let's start with the advantages, Because I like starting with things that are positive.",
+      "zh": "先從優點開始，因為我喜歡先談正面的事。"
+    },
+    {
+      "start": 821.34,
+      "end": 828.7,
+      "en": "So unlike the gradient ascent approach that I showed in the previous several videos, this approach",
+      "zh": "相較於前幾部影片的梯度上升，這個方法"
+    },
+    {
+      "start": 828.7,
+      "end": 838.58,
+      "en": "here uses real words from real human written text, and that means that the results are likely to be more interpretable to us humans.",
+      "zh": "使用真正人類文字中的真實單字，所以結果更可能讓人類解讀。"
+    },
+    {
+      "start": 839.14,
+      "end": 846.62,
+      "en": "Of course, human interpretability is not guaranteed by the method, but using real texts instead of",
+      "zh": "當然，方法不保證人類可解釋性，但使用真實文字，而不是"
+    },
+    {
+      "start": 846.62,
+      "end": 855.1,
+      "en": "random noise that we try to shape into a meaningful token sequence does make this approach at least more likely to be interpretable.",
+      "zh": "試著把隨機雜訊塑造成有意義 token 序列，至少讓結果更可能可解讀。"
+    },
+    {
+      "start": 855.86,
+      "end": 860.22,
+      "en": "As you saw, it takes very little code to run this analysis.",
+      "zh": "就像看到的，分析只需要很少程式。"
+    },
+    {
+      "start": 860.5,
+      "end": 864.18,
+      "en": "And again, I want to be clear with the phrasing here.",
+      "zh": "同樣地，想把措辭說清楚。"
+    },
+    {
+      "start": 864.18,
+      "end": 873.9,
+      "en": "I'm not claiming that the results will always be understandable and reproducible, but the method itself is easy to understand.",
+      "zh": "不是說結果總是能理解、重現，而是方法本身容易理解。"
+    },
+    {
+      "start": 873.9,
+      "end": 875.54,
+      "en": "It's easy to explain.",
+      "zh": "容易解釋。"
+    },
+    {
+      "start": 875.54,
+      "end": 879,
+      "en": "It's easy for anyone else to code up in a different model.",
+      "zh": "任何人都容易在不同模型中寫出來。"
+    },
+    {
+      "start": 879.48,
+      "end": 885.52,
+      "en": "And because it's so simple, it's also easy to adapt to other features of the model.",
+      "zh": "因為簡單，也容易改用到模型的其他特徵。"
+    },
+    {
+      "start": 885.88,
+      "end": 890.88,
+      "en": "For example, here I used an output dimension from a transformer block.",
+      "zh": "例如，這裡使用 Transformer 區塊的輸出維度。"
+    },
+    {
+      "start": 891.08,
+      "end": 900.68,
+      "en": "But actually this kind of a method is more commonly done with individual neurons, for example inside an MLP sub block.",
+      "zh": "但實際上，這類方法更常用於個別神經元，例如 MLP 子區塊內。"
+    },
+    {
+      "start": 901.32,
+      "end": 908.04,
+      "en": "Now, the reason why I focused on the output dimension from a transformer block is really just because",
+      "zh": "我著重 Transformer 區塊輸出維度，原因其實只是"
+    },
+    {
+      "start": 908.04,
+      "end": 916.92,
+      "en": "I haven't yet introduced you to extracting activations from individual neurons within the transformer blocks.",
+      "zh": "還沒介紹，如何從 Transformer 區塊內個別神經元擷取活化。"
+    },
+    {
+      "start": 917.4,
+      "end": 926.52,
+      "en": "But it doesn't matter because the code, the approach, the parameters, everything is the same if you're looking at different components of the model.",
+      "zh": "不過沒關係，查看模型不同部分時，程式、做法、參數等全部相同。"
+    },
+    {
+      "start": 927.88,
+      "end": 932.68,
+      "en": "Okay, all of these points aside, obviously this method is not super fantastic.",
+      "zh": "好，除了這些優點，顯然這方法不是超級完美。"
+    },
+    {
+      "start": 932.68,
+      "end": 935.65,
+      "en": "Otherwise this video would be the end of the course.",
+      "zh": "否則，這部影片就會是課程終點。"
+    },
+    {
+      "start": 936.17,
+      "end": 938.61,
+      "en": "So there are some limitations.",
+      "zh": "所以，還有一些限制。"
+    },
+    {
+      "start": 938.61,
+      "end": 944.49,
+      "en": "I think the main disadvantage of this method is with the scalability.",
+      "zh": "我認為主要缺點是可擴展性。"
+    },
+    {
+      "start": 945.01,
+      "end": 953.93,
+      "en": "So even if we are just thinking about GPT two small, we already have over 9000 dimensions to search through.",
+      "zh": "即使只考慮 GPT-2 small，也已經有超過 9,000 個維度要搜尋。"
+    },
+    {
+      "start": 954.33,
+      "end": 961.81,
+      "en": "And that is not even including all of the neurons in the MLP and the attention layers.",
+      "zh": "還沒包含 MLP 與注意力層的所有神經元。"
+    },
+    {
+      "start": 962.33,
+      "end": 970.45,
+      "en": "So it's just a massive problem to try to figure out how to understand so many tens of thousands of results,",
+      "zh": "要理解這麼多數萬個結果，是個巨大問題，"
+    },
+    {
+      "start": 970.61,
+      "end": 974.41,
+      "en": "like what we did, uh, a moment ago in the Python demo.",
+      "zh": "就像剛才 Python 示範做的。"
+    },
+    {
+      "start": 975.21,
+      "end": 983.65,
+      "en": "Furthermore, it might be difficult to identify some higher level concepts that a model dimension is actually coding for.",
+      "zh": "另外，可能很難辨識模型某一維真正編碼的高階概念。"
+    },
+    {
+      "start": 984.13,
+      "end": 994.19,
+      "en": "So maybe it's just difficult for us humans trying to interpret the results to figure out what is really connecting all of the highly activated words.",
+      "zh": "對試著解讀結果的人類，可能很難找出所有高活化單字真正的共同點。"
+    },
+    {
+      "start": 994.63,
+      "end": 1000.75,
+      "en": "Now, that is especially true if we aren't using a diverse enough data set.",
+      "zh": "尤其資料集不夠多樣時。"
+    },
+    {
+      "start": 1001.23,
+      "end": 1008.55,
+      "en": "And that leads me to this third limitation here, which is that some representations of concepts like",
+      "zh": "這就帶到第三個限制，某些概念的表徵，例如"
+    },
+    {
+      "start": 1008.59,
+      "end": 1019.15,
+      "en": "temporal precedence might not exist only in one dimension, in only one layer, just because we happen to be searching in that particular dimension.",
+      "zh": "時間先後，不一定只存在於一層的一個維度中，不能因為剛好搜尋這一維就這樣認定。"
+    },
+    {
+      "start": 1019.71,
+      "end": 1030.23,
+      "en": "So these representations, this coding might be distributed over some or many dimensions, many neurons in one or more transformer blocks.",
+      "zh": "這些表徵、編碼，可能分散在一個或多個 Transformer 區塊的某些、甚至許多維度與神經元中。"
+    },
+    {
+      "start": 1030.87,
+      "end": 1038.79,
+      "en": "And then the final limitation that I list here is that this method actually ignores all of the contextual",
+      "zh": "最後列出的限制，是這個方法其實忽略所有上下文"
+    },
+    {
+      "start": 1038.79,
+      "end": 1046.23,
+      "en": "information, because we're only looking for individual tokens that give maximum activation.",
+      "zh": "資訊，因為只尋找產生最大活化的個別 token。"
+    },
+    {
+      "start": 1046.59,
+      "end": 1054.48,
+      "en": "We're not searching for token sequences that provide a context for interpreting each current token.",
+      "zh": "沒有搜尋能替目前 token 提供解讀上下文的 token 序列。"
+    },
+    {
+      "start": 1055.6,
+      "end": 1064.92,
+      "en": "So overall, I and many other people really like the idea of activation maximization via data sampling.",
+      "zh": "整體而言，我與很多人都很喜歡透過資料抽樣做活化最大化的想法。"
+    },
+    {
+      "start": 1065.4,
+      "end": 1072.92,
+      "en": "Now, if you have a relatively small model or if you have a really specific targeted hypothesis whereby",
+      "zh": "如果模型相對小，或有非常具體、針對性的假設，"
+    },
+    {
+      "start": 1073.16,
+      "end": 1084.24,
+      "en": "you have a very specific layer or neuron or set of neurons to investigate, then this approach can be really great, easy to implement and easy to interpret.",
+      "zh": "知道要調查哪一層、哪個神經元或哪組神經元，這個方法就可能非常好，容易實作、容易解讀。"
+    },
+    {
+      "start": 1084.72,
+      "end": 1093.4,
+      "en": "But unfortunately, it's just not really scalable to large models, especially where you don't really know exactly what you're looking for.",
+      "zh": "但可惜，對大型模型不太能擴展，尤其不知道自己確切要找什麼時。"
+    },
+    {
+      "start": 1093.44,
+      "end": 1098.2,
+      "en": "You're just kind of poking around and searching through lots and lots of data.",
+      "zh": "只是四處探索，搜尋大量資料。"
+    },
+    {
+      "start": 1099.28,
+      "end": 1109.12,
+      "en": "Still, it's a great analysis to know about, and I hope that you now feel a tiny bit smarter compared to at the beginning of this video.",
+      "zh": "不過，這仍是值得了解的好分析，希望你現在比影片一開始，覺得自己聰明了一點。"
+    }
+  ]
+}

@@ -1,0 +1,805 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51861853",
+  "title": "What is \"pretraining\" and is it necessary?",
+  "section": 7,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e47693e2297d3d0f44cd11a00c61c3ecca36b650cc2a6e597331627d6e2416bd",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 4.52,
+      "en": "Welcome to this section of the course.",
+      "zh": "歡迎來到課程這一節。"
+    },
+    {
+      "start": 4.88,
+      "end": 12.24,
+      "en": "The previous section was all about understanding the architecture and feedforward paths of a typical",
+      "zh": "上一節主要理解典型 GPT 風格語言模型的架構與"
+    },
+    {
+      "start": 12.24,
+      "end": 21.2,
+      "en": "GPT style LM, but all the weights we built were completely random numbers, so none of those models",
+      "zh": "前向傳播，但建立的權重完全是隨機數，所以那些模型都"
+    },
+    {
+      "start": 21.2,
+      "end": 31.56,
+      "en": "were useful in the sense that they had no representation of these statistics of written human language or patterns that are often seen in text.",
+      "zh": "沒有實用價值，因為還沒有表示人類書面語言的統計特性，或文字裡常見的模式。"
+    },
+    {
+      "start": 32.24,
+      "end": 42.44,
+      "en": "So the goal of this section of the course is for you to learn how models transition from being completely random to being pre-trained.",
+      "zh": "這一節的目標，是學習模型如何從完全隨機，變成經過預訓練。"
+    },
+    {
+      "start": 42.84,
+      "end": 49.6,
+      "en": "If you've taken a course on deep learning or machine learning before, and you already know about gradient",
+      "zh": "如果之前學過深度學習或機器學習，已經知道梯度"
+    },
+    {
+      "start": 49.6,
+      "end": 58.44,
+      "en": "descent and regularization, then that's great because you will see that there isn't really anything special or unique about pre-training.",
+      "zh": "下降與正則化，很好，因為你會發現，預訓練其實沒什麼特別或獨特之處。"
+    },
+    {
+      "start": 59.68,
+      "end": 64.2,
+      "en": "It's basically the same as training any other deep learning model.",
+      "zh": "基本上和訓練其他深度學習模型相同。"
+    },
+    {
+      "start": 64.52,
+      "end": 70.92,
+      "en": "Although there are a few specific things to learn, but we'll get to that in later videos.",
+      "zh": "雖然還有幾個特定細節要學，之後影片會談。"
+    },
+    {
+      "start": 71.12,
+      "end": 79.64,
+      "en": "The purpose of this video is to define the term pre-training and distinguish it from fine tuning and",
+      "zh": "這支影片要定義預訓練，區分微調與"
+    },
+    {
+      "start": 79.64,
+      "end": 87.72,
+      "en": "instruction tuning, and basically convince you not to pre-train models yourself, except in this section.",
+      "zh": "指令微調，基本上也要說服你：除了這一節，別自己預訓練模型。"
+    },
+    {
+      "start": 88.96000000000001,
+      "end": 97.2,
+      "en": "So here's a table that I'll use to describe these properties of pre-training, fine tuning, and instruction tuning.",
+      "zh": "這裡用表格，描述預訓練、微調與指令微調的性質。"
+    },
+    {
+      "start": 97.84,
+      "end": 103.64,
+      "en": "So first of all, let me say that this section is entirely focused on pre-training.",
+      "zh": "首先，這一節完全聚焦在預訓練。"
+    },
+    {
+      "start": 103.96000000000001,
+      "end": 110.44,
+      "en": "You will learn more details about fine tuning and instruction tuning in the next sections.",
+      "zh": "下一些章節，會詳細學習微調與指令微調。"
+    },
+    {
+      "start": 111.36,
+      "end": 123.16,
+      "en": "The purpose of pre-training is to learn general statistical principles of written text, so that the model basically like understands what human language is like.",
+      "zh": "預訓練的目的，是學習書面文字的一般統計原則，讓模型大致理解人類語言的樣貌。"
+    },
+    {
+      "start": 123.8,
+      "end": 127.4,
+      "en": "A pre-trained model can't really do that much though.",
+      "zh": "不過，只有預訓練的模型，還做不了太多事。"
+    },
+    {
+      "start": 127.84,
+      "end": 135.2,
+      "en": "Fine tuning involves taking a pre-trained model and training it further for a specific application.",
+      "zh": "微調是取得預訓練模型，再針對特定應用繼續訓練。"
+    },
+    {
+      "start": 135.48,
+      "end": 142.4,
+      "en": "Like being trained on medical texts or a coding language, and then instruction tuning is what makes",
+      "zh": "例如醫學文字或程式語言；指令微調則讓"
+    },
+    {
+      "start": 142.4,
+      "end": 147.76,
+      "en": "a modern LLM really useful, like a chatbot or a coding assistant.",
+      "zh": "現代 LLM 真正有用，例如聊天機器人、程式助理。"
+    },
+    {
+      "start": 149.07999999999998,
+      "end": 158.64,
+      "en": "As for data, pre-training requires an absolutely mammoth amount of data like basically most of the published web.",
+      "zh": "資料方面，預訓練需要極大量資料，基本上像是網路上大部分已公開內容。"
+    },
+    {
+      "start": 159.16,
+      "end": 167.56,
+      "en": "I'll have another lecture where I'll give more details about the kinds of data sets that are used to pre-train models.",
+      "zh": "之後會有一堂，更詳細介紹預訓練所用的資料集類型。"
+    },
+    {
+      "start": 167.56,
+      "end": 172.72,
+      "en": "But basically, just imagine feeding the entire internet to a language model.",
+      "zh": "但基本上，可以想像把整個網際網路餵給語言模型。"
+    },
+    {
+      "start": 173.36,
+      "end": 182.76,
+      "en": "It's not quite that simple, because a lot of text on the web is low quality or noisy, or it needs to be cleaned and prepared.",
+      "zh": "並非那麼簡單，因為很多網路文字品質差、有雜訊，需要清理、準備。"
+    },
+    {
+      "start": 183.08,
+      "end": 189.21,
+      "en": "There are also major legal and moral issues with using just any random text you can find.",
+      "zh": "隨意使用任何找得到的文字，也有重大的法律與道德問題。"
+    },
+    {
+      "start": 189.25,
+      "end": 196.81,
+      "en": "But the point is that pre-training an LLM requires more text data than you and everyone you've ever",
+      "zh": "但重點是，預訓練 LLM 所需的文字，比你和這輩子認識的每個人，"
+    },
+    {
+      "start": 196.81,
+      "end": 202.61,
+      "en": "met in your entire life can ever read in all of your collective, entire lifetimes.",
+      "zh": "所有人一生加起來能讀完的還多。"
+    },
+    {
+      "start": 203.13,
+      "end": 208.21,
+      "en": "Fine tuning a pre-trained model, on the other hand, requires a lot less data.",
+      "zh": "另一方面，微調預訓練模型，需要少得多的資料。"
+    },
+    {
+      "start": 208.57,
+      "end": 217.25,
+      "en": "So, for example, let's say a specific tech company wants a fine tuned model to help with their documentation.",
+      "zh": "例如，某間科技公司想要微調模型，協助處理文件。"
+    },
+    {
+      "start": 217.77,
+      "end": 226.05,
+      "en": "So perhaps that model is trained on the company or fine tuned on the company's database of documentation,",
+      "zh": "也許就在公司文件資料庫上訓練，或者說微調，包含"
+    },
+    {
+      "start": 226.05,
+      "end": 233.61,
+      "en": "technical resources, code files, written Q&A, email exchanges about how their products work, and so on.",
+      "zh": "技術資源、程式檔、書面問答、討論產品運作的電子郵件等等。"
+    },
+    {
+      "start": 234.09,
+      "end": 246.01,
+      "en": "So it might still be a lot of data, but it's a curated data set that is selected to make the model an expert on a specific topic and instruction.",
+      "zh": "仍可能有很多資料，但這是經挑選的資料集，目的是讓模型成為特定主題的專家。而指令"
+    },
+    {
+      "start": 246.01,
+      "end": 249.89,
+      "en": "Tuning is usually a series of human written prompts.",
+      "zh": "微調通常使用一系列人類撰寫的提示。"
+    },
+    {
+      "start": 250.05,
+      "end": 261.25,
+      "en": "So you'd get humans to write an interaction that they'd like to have with the model, and then train the model to respond in ways that are similar to what the humans wrote.",
+      "zh": "請人類寫出希望與模型進行的互動，再訓練模型，以類似人類寫的方式回應。"
+    },
+    {
+      "start": 261.29,
+      "end": 264.53,
+      "en": "Again, this is like how chatbots are trained.",
+      "zh": "再次強調，這就是聊天機器人的訓練方式。"
+    },
+    {
+      "start": 265.81,
+      "end": 267.93,
+      "en": "Here's a few details about training.",
+      "zh": "再談一些訓練細節。"
+    },
+    {
+      "start": 268.49,
+      "end": 274.49,
+      "en": "Pre-training is unsupervised, meaning there is no human directly involved.",
+      "zh": "預訓練是非監督式，也就是沒有直接由人類參與。"
+    },
+    {
+      "start": 274.85,
+      "end": 284.89,
+      "en": "Basically, the model tries to predict a missing token using other tokens and tries to minimize the error of picking the wrong token.",
+      "zh": "基本上，模型用其他詞元預測缺少的詞元，並盡量減少選錯詞元的誤差。"
+    },
+    {
+      "start": 285.49,
+      "end": 293.65,
+      "en": "I will have more to say about this on the next slide, but pre-training can take months and literally millions of dollars.",
+      "zh": "下一張投影片會多談，但預訓練可能花幾個月、幾百萬美元。"
+    },
+    {
+      "start": 293.69,
+      "end": 297.37,
+      "en": "This is not something that anyone can just do on their laptop.",
+      "zh": "不是隨便在筆電上就能做的事。"
+    },
+    {
+      "start": 298.09000000000003,
+      "end": 309.69,
+      "en": "Fine tuning is also an involved process, but because it's targeted for generally one or a small number of related applications, it takes less time.",
+      "zh": "微調也很複雜，但通常針對一種，或少數相關應用，因此較省時間。"
+    },
+    {
+      "start": 309.69,
+      "end": 318.33,
+      "en": "So fine tuning might take hours, days, maybe weeks of computation time and instruction tuning is often quite fast.",
+      "zh": "可能花幾小時、幾天、甚至幾週計算時間，而指令微調往往很快。"
+    },
+    {
+      "start": 318.65,
+      "end": 324.73,
+      "en": "It can take a really long time to generate the data sets because they are created by expert humans.",
+      "zh": "資料集可能很耗時，因為由人類專家建立。"
+    },
+    {
+      "start": 325.05,
+      "end": 328.25,
+      "en": "But the actual model training can be pretty quick.",
+      "zh": "但模型實際訓練可能很快。"
+    },
+    {
+      "start": 329.33,
+      "end": 329.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 329.69,
+      "end": 334.61,
+      "en": "And finally, a few words about what you can do with Llms at these stages.",
+      "zh": "最後談談這些階段的 LLM 能做什麼。"
+    },
+    {
+      "start": 335.81,
+      "end": 338.81,
+      "en": "A pre-trained model is called a base model.",
+      "zh": "預訓練模型叫做基礎模型。"
+    },
+    {
+      "start": 339.13,
+      "end": 345.37,
+      "en": "It's basically just a useful model to start with, but it's not very practical on its own.",
+      "zh": "基本上是有用的起點，但本身不太實用。"
+    },
+    {
+      "start": 345.77,
+      "end": 348.61,
+      "en": "We will use base models here in this course.",
+      "zh": "這門課會使用基礎模型。"
+    },
+    {
+      "start": 348.73,
+      "end": 356.05,
+      "en": "But if you're interested in like commercial applications of Llms, a base model is what you'd start with.",
+      "zh": "但如果關心 LLM 的商業應用，基礎模型是起點，"
+    },
+    {
+      "start": 356.17,
+      "end": 358.25,
+      "en": "Not what you'd actually deploy.",
+      "zh": "不是實際部署的成品。"
+    },
+    {
+      "start": 359.17,
+      "end": 369.41,
+      "en": "Fine tuning is for task specific applications like summarizing legal documents or categorizing product reviews as negative or positive.",
+      "zh": "微調則針對特定任務，例如摘要法律文件，或把產品評論分成負面、正面。"
+    },
+    {
+      "start": 370.37,
+      "end": 380.01,
+      "en": "Instruction tuning is the most commercially visible set of applications like ChatGPT and all the other chatbots that you interact with.",
+      "zh": "指令微調是商業上最常見的應用，例如 ChatGPT，以及你互動的其他聊天機器人。"
+    },
+    {
+      "start": 380.65,
+      "end": 386.01,
+      "en": "This is also where your digital social media manager would come from, and so on.",
+      "zh": "數位社群媒體管理員之類的應用，也由此而來。"
+    },
+    {
+      "start": 386.37,
+      "end": 391.57,
+      "en": "So that's a summary of the next few sections in this part of the course.",
+      "zh": "以上概覽課程這一部分的接下來幾節。"
+    },
+    {
+      "start": 392.57,
+      "end": 400.89,
+      "en": "Again, I will give more details about fine tuning and prompt tuning or instruction tuning in the next couple of sections.",
+      "zh": "下一些章節，會更詳細介紹微調，以及提示微調或指令微調。"
+    },
+    {
+      "start": 401.69,
+      "end": 404.93,
+      "en": "So should you train your own models?",
+      "zh": "所以該自己訓練模型嗎？"
+    },
+    {
+      "start": 405.37,
+      "end": 410.57,
+      "en": "Well, I already said that the answer is no, but let me justify that a little bit more.",
+      "zh": "剛才說答案是不，但再多解釋一點。"
+    },
+    {
+      "start": 411.40999999999997,
+      "end": 418.69,
+      "en": "As you now know, you start building a model by initializing the weights to be completely random numbers,",
+      "zh": "如你所知，建立模型時，先把權重初始化為完全隨機的數字，"
+    },
+    {
+      "start": 419.13,
+      "end": 428.01,
+      "en": "and then using gradient descent to train the model to have a representation of the text and to be able to predict missing tokens.",
+      "zh": "再用梯度下降，訓練模型表示文字，並能預測缺少的詞元。"
+    },
+    {
+      "start": 428.65,
+      "end": 432.21,
+      "en": "After pre-training, the model is called a base model.",
+      "zh": "預訓練之後，就叫基礎模型。"
+    },
+    {
+      "start": 433.21,
+      "end": 440.77,
+      "en": "Now, in this section of the course you will learn how to pre-train a model and you will pre-train your own models by the end of this section.",
+      "zh": "這一節會學如何預訓練，結束前也會自己預訓練模型。"
+    },
+    {
+      "start": 440.81,
+      "end": 443.61,
+      "en": "Actually, even in the next couple of videos.",
+      "zh": "其實再過幾支影片就會做。"
+    },
+    {
+      "start": 444.09,
+      "end": 452.17,
+      "en": "But here's the thing pre-training a random model with a little bit of data is great for educational purposes.",
+      "zh": "但重點是，用少量資料預訓練隨機模型，很適合教學。"
+    },
+    {
+      "start": 452.33,
+      "end": 460.37,
+      "en": "But if you actually want a useful base model, well, it's just really outside the scope of what an individual can do.",
+      "zh": "如果真想要有用的基礎模型，基本上就超出個人能力範圍。"
+    },
+    {
+      "start": 460.53,
+      "end": 468.65,
+      "en": "It costs millions of dollars and takes months of computation time, working on clusters of thousands",
+      "zh": "花幾百萬美元、幾個月計算時間，使用數千個聯網的"
+    },
+    {
+      "start": 468.65,
+      "end": 475.57,
+      "en": "of networked top of the line GPUs and operated by a team of expert engineers.",
+      "zh": "頂級 GPU 叢集，由專業工程師團隊操作。"
+    },
+    {
+      "start": 475.61,
+      "end": 478.01,
+      "en": "This is just not something that anyone can do.",
+      "zh": "不是隨便誰都做得到。"
+    },
+    {
+      "start": 478.40999999999997,
+      "end": 479.81,
+      "en": "Microsoft can do it.",
+      "zh": "微軟可以。"
+    },
+    {
+      "start": 479.85,
+      "end": 480.89,
+      "en": "Google can do it.",
+      "zh": "Google 可以。"
+    },
+    {
+      "start": 480.89,
+      "end": 488.09,
+      "en": "Facebook, Amazon, multi-billion dollar companies with gigantic resources can do these kinds of things.",
+      "zh": "Facebook、Amazon，擁有龐大資源、數十億美元規模的公司可以。"
+    },
+    {
+      "start": 488.09,
+      "end": 492.13,
+      "en": "Pre-train these modern LM based models from scratch.",
+      "zh": "從零預訓練現代語言模型的基礎模型。"
+    },
+    {
+      "start": 493.21,
+      "end": 497.21,
+      "en": "You can do it as well, even just on a single CPU.",
+      "zh": "你也可以做，甚至只用一個 CPU。"
+    },
+    {
+      "start": 497.41,
+      "end": 502.53,
+      "en": "But the models that you and I can train have basically no application value.",
+      "zh": "但你我能訓練的模型，基本上沒有應用價值。"
+    },
+    {
+      "start": 503.13,
+      "end": 511.45,
+      "en": "So yeah, I don't mean to burst your bubble, but if anyone can train a GPT four, we would have a bazillion GPT four.",
+      "zh": "我不是想潑冷水，但如果誰都能訓練 GPT-4，早就會有無數個 GPT-4。"
+    },
+    {
+      "start": 511.97,
+      "end": 519.05,
+      "en": "So there's a reason why there's only a handful of companies in the world that have powerful base models.",
+      "zh": "所以世界上只有少數公司擁有強大的基礎模型，是有原因的。"
+    },
+    {
+      "start": 519.05,
+      "end": 526.93,
+      "en": "But the good news is that a lot of base models are already available for download, including the GPT",
+      "zh": "好消息是，很多基礎模型已能下載，包括上一節最後探索的"
+    },
+    {
+      "start": 526.97,
+      "end": 531.97,
+      "en": "two models that you have explored at the end of the previous section.",
+      "zh": "GPT-2 模型。"
+    },
+    {
+      "start": 532.53,
+      "end": 541.69,
+      "en": "So after learning how to pre-train, we will start using publicly available base models for basically the rest of the course.",
+      "zh": "所以學過預訓練後，課程其餘部分基本上會使用公開的基礎模型。"
+    },
+    {
+      "start": 542.93,
+      "end": 543.25,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 543.29,
+      "end": 550.45,
+      "en": "And to give you a sense of the scale and cost of pre-training, let's ask ChatGPT what's involved.",
+      "zh": "為了體會預訓練的規模與成本，來問 ChatGPT 需要什麼。"
+    },
+    {
+      "start": 551.45,
+      "end": 554.65,
+      "en": "So here was the prompt that I gave to ChatGPT.",
+      "zh": "這是我給 ChatGPT 的提示。"
+    },
+    {
+      "start": 554.73,
+      "end": 556.41,
+      "en": "I'm using version oh three.",
+      "zh": "這裡使用 o3 版本。"
+    },
+    {
+      "start": 556.45,
+      "end": 557.01,
+      "en": "Over here.",
+      "zh": "就在這裡。"
+    },
+    {
+      "start": 557.77,
+      "end": 561.17,
+      "en": "I'd like to know the total cost of pre-training a GPT for.",
+      "zh": "「想知道預訓練 GPT-4 的總成本。"
+    },
+    {
+      "start": 561.41,
+      "end": 568.1,
+      "en": "Please estimate the amount of time it takes the equipment involved and approximate costs, and the team",
+      "zh": "請估計需要的時間、設備、約略費用，以及團隊"
+    },
+    {
+      "start": 568.1,
+      "end": 573.54,
+      "en": "size and expertise requirements, and the time to collect and prepare a data set.",
+      "zh": "規模、專業要求，還有收集、準備資料集的時間。」"
+    },
+    {
+      "start": 574.42,
+      "end": 581.86,
+      "en": "Okay, so I'm not going to go through all of GPT responses, but basically it looks like somewhere around,",
+      "zh": "好，不會逐一看所有回應，但大致看來是，"
+    },
+    {
+      "start": 581.9,
+      "end": 592.1,
+      "en": "let's say three months of training time, continuous computation on a GPU cluster, including 25,000",
+      "zh": "假設三個月訓練，在 GPU 叢集上連續計算，包含 25,000 個"
+    },
+    {
+      "start": 592.14,
+      "end": 593.14,
+      "en": "GPUs.",
+      "zh": "GPU。"
+    },
+    {
+      "start": 593.18,
+      "end": 601.82,
+      "en": "So 25,000 Nvidia top of the line GPUs running 2 to 3 months uninterrupted to train GPT four.",
+      "zh": "也就是 25,000 個 NVIDIA 頂級 GPU，不間斷執行兩到三個月，訓練 GPT-4。"
+    },
+    {
+      "start": 602.26,
+      "end": 609.9,
+      "en": "And each one of those 25,000 GPUs, each one costs around 10,000 US.",
+      "zh": "而 25,000 個 GPU，每個大約 10,000 美元。"
+    },
+    {
+      "start": 610.26,
+      "end": 610.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 610.58,
+      "end": 616.86,
+      "en": "So that's like a quarter of 1 billion USD just to purchase the equipment.",
+      "zh": "光買設備，就要 2.5 億美元。"
+    },
+    {
+      "start": 617.34,
+      "end": 617.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 617.74,
+      "end": 618.34,
+      "en": "And then.",
+      "zh": "接著，"
+    },
+    {
+      "start": 618.38,
+      "end": 618.7,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 618.74,
+      "end": 619.5,
+      "en": "Supporting.",
+      "zh": "支援設備。"
+    },
+    {
+      "start": 619.58,
+      "end": 620.26,
+      "en": "Uh, okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 620.3,
+      "end": 623.86,
+      "en": "So you don't just buy the the GPUs themselves, right.",
+      "zh": "不只是買 GPU 本身。"
+    },
+    {
+      "start": 623.9,
+      "end": 632.9,
+      "en": "You also need all sorts of other networking infrastructure, racks, facility costs, coolants, you know, all sorts of stuff.",
+      "zh": "還需要各種網路基礎設施、機架、設施費用、冷卻等等。"
+    },
+    {
+      "start": 632.9,
+      "end": 635.86,
+      "en": "And that can be another $200 million.",
+      "zh": "可能又是 2 億美元。"
+    },
+    {
+      "start": 636.26,
+      "end": 636.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 636.54,
+      "end": 637.1,
+      "en": "Let's see.",
+      "zh": "來看。"
+    },
+    {
+      "start": 637.18,
+      "end": 638.14,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 638.7,
+      "end": 639.82,
+      "en": "And then the team.",
+      "zh": "接著是團隊。"
+    },
+    {
+      "start": 640.18,
+      "end": 640.78,
+      "en": "Let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 640.82,
+      "end": 643.38,
+      "en": "So the team could be.",
+      "zh": "團隊可能是，"
+    },
+    {
+      "start": 643.42,
+      "end": 643.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 643.74,
+      "end": 646.3,
+      "en": "Somewhere around 5 to 10 engineers.",
+      "zh": "大約五到十位工程師。"
+    },
+    {
+      "start": 646.62,
+      "end": 652.94,
+      "en": "Uh, but, um, yeah, it might be a lot more, uh, especially to get things going.",
+      "zh": "但也可能多很多，尤其剛開始建置的時候。"
+    },
+    {
+      "start": 653.1,
+      "end": 653.58,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 653.78,
+      "end": 656.58,
+      "en": "100 to 200 full time professionals.",
+      "zh": "100 到 200 位全職專業人員。"
+    },
+    {
+      "start": 656.82,
+      "end": 666.9,
+      "en": "The data set takes, uh, around, so 13 trillion tokens of text and code, and that can take, uh,",
+      "zh": "資料集大約有 13 兆個文字與程式碼詞元，而可能需要"
+    },
+    {
+      "start": 666.94,
+      "end": 676.14,
+      "en": "3 to 6 months just to get the data set into a order in which it can be used in the first place.",
+      "zh": "三到六個月，才能先把資料集準備成可使用的狀態。"
+    },
+    {
+      "start": 676.7,
+      "end": 677.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 677.1,
+      "end": 678.66,
+      "en": "So we have all of that.",
+      "zh": "所以有這些。"
+    },
+    {
+      "start": 678.78,
+      "end": 679.1,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 679.14,
+      "end": 689.54,
+      "en": "So that is really a lot of money just to pre-train, uh, one GPT four style, uh, Model.",
+      "zh": "光預訓練一個 GPT-4 風格模型，就真的需要很多錢。"
+    },
+    {
+      "start": 689.98,
+      "end": 690.38,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 690.42,
+      "end": 692.06,
+      "en": "And yeah, of course, that's, uh.",
+      "zh": "而且，當然，"
+    },
+    {
+      "start": 692.06,
+      "end": 692.34,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 692.38,
+      "end": 693.02,
+      "en": "This is.",
+      "zh": "這個，"
+    },
+    {
+      "start": 693.06,
+      "end": 693.66,
+      "en": "Who knows?",
+      "zh": "誰知道呢？"
+    },
+    {
+      "start": 693.7,
+      "end": 696.7,
+      "en": "I mean, it's like top secret, uh, trade secrets.",
+      "zh": "實際費用、設備等內容，都是高度機密、"
+    },
+    {
+      "start": 696.7,
+      "end": 699.62,
+      "en": "What the actual costs and equipment and stuff were.",
+      "zh": "商業機密。"
+    },
+    {
+      "start": 699.62,
+      "end": 705.94,
+      "en": "But I hope this gives you a bit of an idea of what's involved in pre-training a modern LLM.",
+      "zh": "但希望這讓你稍微體會，預訓練現代 LLM 需要什麼。"
+    },
+    {
+      "start": 707.3,
+      "end": 711.74,
+      "en": "I hope you're not discouraged about this section before even starting it.",
+      "zh": "希望你不會還沒開始這一節，就感到灰心。"
+    },
+    {
+      "start": 712.38,
+      "end": 717.26,
+      "en": "You know, pre-training and LLM is a little bit like fixing up an apartment.",
+      "zh": "預訓練 LLM，有點像整修公寓。"
+    },
+    {
+      "start": 717.46,
+      "end": 725.54,
+      "en": "It takes a lot of expertise, time and money to build an entire apartment building from scratch.",
+      "zh": "從零蓋整棟公寓，需要大量專業、時間與金錢。"
+    },
+    {
+      "start": 725.98,
+      "end": 733.46,
+      "en": "And it's really interesting to learn about structural engineering, plumbing, electricity, architecture and so on.",
+      "zh": "學結構工程、水電、建築等等，很有意思。"
+    },
+    {
+      "start": 733.7,
+      "end": 745.3,
+      "en": "But once all of that work is done, you move into your apartment and you can paint your own walls, you get your own furniture, maybe you build some shelves, you can customize it as you like.",
+      "zh": "但全部完成後，你搬進公寓，就能漆自己的牆、選家具，也許做些架子，依喜好客製化。"
+    },
+    {
+      "start": 745.74,
+      "end": 751.3,
+      "en": "That's still involves time in some expertise, but you're really standing on the shoulders of giants.",
+      "zh": "仍然需要時間與一些專業，但確實是站在巨人的肩膀上。"
+    }
+  ]
+}

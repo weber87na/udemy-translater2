@@ -1,0 +1,1981 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51877119",
+  "title": "Distributions of hidden-state activations",
+  "section": 12,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "dcbc0652a9c7a4bcaa6c435a8fcaa88443c54370660057e6358477209cb21d49",
+  "cues": [
+    {
+      "start": 2.28,
+      "end": 2.96,
+      "en": "The next.",
+      "zh": "接下來，"
+    },
+    {
+      "start": 2.96,
+      "end": 10.84,
+      "en": "Several videos actually do involve Python and working with numbers, but I think you will agree with",
+      "zh": "幾支影片其實會用 Python、處理數字，但我想你會"
+    },
+    {
+      "start": 10.84,
+      "end": 19.6,
+      "en": "me that these videos still showcase qualitative interpretations, even though there are some quantitative aspects.",
+      "zh": "同意，雖然有量化部分，仍是在展示質性解讀。"
+    },
+    {
+      "start": 19.96,
+      "end": 26.36,
+      "en": "And that's really because just having numbers doesn't necessarily make something quantitative.",
+      "zh": "因為有數字，不代表一定是量化。"
+    },
+    {
+      "start": 26.8,
+      "end": 30.88,
+      "en": "It really depends on the precision of the interpretation.",
+      "zh": "真正取決於解讀的精確程度。"
+    },
+    {
+      "start": 31.92,
+      "end": 39.36,
+      "en": "So something that you have already seen and you'll see much more when we get to the sections on mechanistic",
+      "zh": "你已看過，到了機制可解釋性"
+    },
+    {
+      "start": 39.36,
+      "end": 47.4,
+      "en": "interpretability, is that these language models are so complex and non-linear that even though we have",
+      "zh": "章節還會看到更多：語言模型非常複雜、非線性，雖然能"
+    },
+    {
+      "start": 47.4,
+      "end": 58.64,
+      "en": "access to all the numbers inside the models, we still don't really understand how they work or what kinds of representations they have internally.",
+      "zh": "存取內部全部數字，仍不太理解運作方式，或內部有哪些表徵。"
+    },
+    {
+      "start": 59.37,
+      "end": 66.09,
+      "en": "If you are interested in learning more about mechanistic interpretability, then this and the next few",
+      "zh": "如果對機制可解釋性有興趣，這支與接下來幾支，"
+    },
+    {
+      "start": 66.09,
+      "end": 76.49,
+      "en": "videos will also be another great, but also gentle introduction to the methods and the visualizations that we will use in those sections.",
+      "zh": "也是很好的溫和入門，介紹那些章節會用的方法與視覺化。"
+    },
+    {
+      "start": 77.21000000000001,
+      "end": 87.49,
+      "en": "Okay, so now the goal of this video will be to extract the activation patterns in the model and visualize them using scatter plots and histograms.",
+      "zh": "這支目標，是取出模型的啟用模式，用散佈圖與直方圖呈現。"
+    },
+    {
+      "start": 87.89,
+      "end": 91.73,
+      "en": "Here's a quick reminder of the high level overview of an.",
+      "zh": "快速複習 LLM 的高層概觀。"
+    },
+    {
+      "start": 92.97,
+      "end": 94.05,
+      "en": "At the beginning.",
+      "zh": "開頭，"
+    },
+    {
+      "start": 94.05,
+      "end": 101.97,
+      "en": "And at the end we have text and token indices, which are integers, and everywhere inside the model",
+      "zh": "與結尾，是文字與整數詞元索引；內部各處，"
+    },
+    {
+      "start": 102.17,
+      "end": 111.33,
+      "en": "we have embeddings vectors that get transformed and rotated and stretched by each of the transformer blocks.",
+      "zh": "則是嵌入向量，被每個 Transformer 區塊轉換、旋轉、拉伸。"
+    },
+    {
+      "start": 111.81,
+      "end": 118.53999999999999,
+      "en": "Now, in a trained model, when you use the model for inference, you do forward passes through the model.",
+      "zh": "訓練後，用模型推論、做前向傳播時，"
+    },
+    {
+      "start": 118.86,
+      "end": 120.62,
+      "en": "The weights are fixed.",
+      "zh": "權重固定。"
+    },
+    {
+      "start": 121.1,
+      "end": 128.94,
+      "en": "The weights of the models never change after the model has finished pre-training and whatever fine tuning you go through.",
+      "zh": "預訓練與各種微調結束後，權重不再改變。"
+    },
+    {
+      "start": 129.7,
+      "end": 137.66,
+      "en": "On the other hand, all of the numbers inside the model change every time you put in different tokens.",
+      "zh": "但每次輸入不同詞元，模型內部數值就不同。"
+    },
+    {
+      "start": 137.98,
+      "end": 145.78,
+      "en": "So those tokens get transformed into embeddings vectors, and then they multiply all the weights.",
+      "zh": "詞元轉成嵌入向量，再乘權重。"
+    },
+    {
+      "start": 145.94,
+      "end": 154.78,
+      "en": "So that means that at each transformer, each block, each stage through this pipeline, the embeddings vectors are just a bunch of numbers.",
+      "zh": "所以，每個 Transformer、每個區塊、這條流程每個階段，嵌入向量都是一組數字。"
+    },
+    {
+      "start": 154.98,
+      "end": 161.3,
+      "en": "And we can actually extract those numbers and look at them and do various analyses on them.",
+      "zh": "可以取出、查看，做各種分析。"
+    },
+    {
+      "start": 161.86,
+      "end": 172.26,
+      "en": "And what I am going to do in this video is show you how to extract the token vectors from the outputs of each of the layers in this model.",
+      "zh": "這支要示範，取出模型各層輸出的詞元向量。"
+    },
+    {
+      "start": 173.34,
+      "end": 178.75,
+      "en": "Hugging face provides a really convenient way of doing this, which I'll show you in a moment.",
+      "zh": "Hugging Face 提供很方便的方法，等一下會看到。"
+    },
+    {
+      "start": 179.19,
+      "end": 183.15,
+      "en": "But basically we can extract the output of each layer.",
+      "zh": "基本上，能取出每一層輸出。"
+    },
+    {
+      "start": 183.59,
+      "end": 190.59,
+      "en": "So we have the output of the embeddings layer, that is the token embeddings plus the position embeddings.",
+      "zh": "包括嵌入層輸出，也就是詞元加位置嵌入，"
+    },
+    {
+      "start": 191.15,
+      "end": 195.07,
+      "en": "And then we have the outputs of the 12 transformer blocks.",
+      "zh": "以及 12 個 Transformer 區塊輸出。"
+    },
+    {
+      "start": 195.27,
+      "end": 204.03,
+      "en": "So that gives us a total of 13 sets of vectors for whatever input tokens we provide to the model.",
+      "zh": "所以對輸入詞元，總共有 13 組向量。"
+    },
+    {
+      "start": 204.67000000000002,
+      "end": 204.91,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 204.95,
+      "end": 206.51,
+      "en": "That's the high level idea.",
+      "zh": "這是高層概念。"
+    },
+    {
+      "start": 206.51,
+      "end": 212.07,
+      "en": "We are going to extract the embeddings vectors and just make some plots and histograms.",
+      "zh": "取出嵌入向量，畫一些圖與直方圖。"
+    },
+    {
+      "start": 212.71,
+      "end": 216.15,
+      "en": "In particular here is what we will do in Python.",
+      "zh": "Python 具體會做這些。"
+    },
+    {
+      "start": 216.99,
+      "end": 225.55,
+      "en": "We will run a forward pass with some text through GPT two, the pre-trained GPT two, and use this special",
+      "zh": "把一段文字送過預訓練 GPT-2，使用特殊"
+    },
+    {
+      "start": 225.55,
+      "end": 231.87,
+      "en": "input option called output hidden States in the text that I used.",
+      "zh": "輸入選項 output_hidden_states。我用的文字，"
+    },
+    {
+      "start": 231.91,
+      "end": 240.03,
+      "en": "There are 62 tokens and the size of the hidden states attribute for each of those hidden states.",
+      "zh": "有 62 個詞元，每個 hidden_states 屬性、"
+    },
+    {
+      "start": 240.03,
+      "end": 245.63,
+      "en": "Each of those blocks is one by 62 by 768.",
+      "zh": "每個區塊的形狀是 1 乘 62 乘 768。"
+    },
+    {
+      "start": 246.11,
+      "end": 253.07,
+      "en": "The one is for the batch dimension, and I have just one short piece of text with 62 tokens.",
+      "zh": "1 是批次維度，只有一小段、62 詞元的文字。"
+    },
+    {
+      "start": 253.39,
+      "end": 258.39,
+      "en": "And of course, you know that 768 is the embedding dimension.",
+      "zh": "768 當然是嵌入維度。"
+    },
+    {
+      "start": 259.31,
+      "end": 261.71,
+      "en": "So this is for one layer here.",
+      "zh": "這是一層，"
+    },
+    {
+      "start": 261.83,
+      "end": 264.71,
+      "en": "And then there are 13 of these in total.",
+      "zh": "總共有 13 個。"
+    },
+    {
+      "start": 265.27,
+      "end": 270.55,
+      "en": "So the rest of the video is then basically just exploring those numbers a little bit.",
+      "zh": "剩下就是探索數字。"
+    },
+    {
+      "start": 271.07,
+      "end": 278.23,
+      "en": "I'll start by making some scatter plots where we can see the distributions of those activation values",
+      "zh": "先畫散佈圖，看看啟用值在"
+    },
+    {
+      "start": 278.43,
+      "end": 284.19,
+      "en": "over the different embeddings dimensions and over the different token indices.",
+      "zh": "不同嵌入維度、不同詞元索引間的分布。"
+    },
+    {
+      "start": 284.87,
+      "end": 289.83,
+      "en": "Next I will create a covariance matrix and an r squared matrix.",
+      "zh": "再建立共變異數矩陣，以及 r 平方矩陣。"
+    },
+    {
+      "start": 290.07,
+      "end": 296.96,
+      "en": "This corresponds to the percent of I've shared variance between the different pairs of layers.",
+      "zh": "後者是不同層配對之間的共享變異百分比。"
+    },
+    {
+      "start": 297.52,
+      "end": 303.88,
+      "en": "I'll spend more time interpreting these plots when I'm in Python, but it is interesting to see that",
+      "zh": "Python 裡會花更多時間解讀，但有趣的是，"
+    },
+    {
+      "start": 303.88,
+      "end": 311.52,
+      "en": "the embeddings layer and the final transformer block have very low covariance with any of the other",
+      "zh": "嵌入層與最後 Transformer 區塊，和其他"
+    },
+    {
+      "start": 311.52,
+      "end": 319.4,
+      "en": "transformer blocks, and we also see this interesting widening pattern in the covariance as we get to",
+      "zh": "區塊共變異數很低；而越到後面，"
+    },
+    {
+      "start": 319.6,
+      "end": 324.48,
+      "en": "later layers, later transformer blocks, with the exception of the final one.",
+      "zh": "共變異數呈現有趣的擴寬模式，最後一層例外。"
+    },
+    {
+      "start": 324.76,
+      "end": 333.68,
+      "en": "This will make more sense when I show you the distributions, the histograms of the activation values over the different layers.",
+      "zh": "等看到各層啟用值的直方圖，就更容易理解。"
+    },
+    {
+      "start": 334.2,
+      "end": 335.64,
+      "en": "And that's what you see here.",
+      "zh": "就是這裡。"
+    },
+    {
+      "start": 335.68,
+      "end": 339.64,
+      "en": "These are histograms using some very pretty color maps.",
+      "zh": "用了很漂亮的色彩映射。"
+    },
+    {
+      "start": 340.2,
+      "end": 347.08,
+      "en": "These are histograms for all the activations of all the tokens with one line per layer in the model.",
+      "zh": "直方圖涵蓋全部詞元、全部啟用值，每條線是一層。"
+    },
+    {
+      "start": 347.52,
+      "end": 355.40999999999997,
+      "en": "And actually both of these plots here show the same data, but here I have a linear y axis scale, and",
+      "zh": "兩張是相同資料，但這裡 y 軸線性，"
+    },
+    {
+      "start": 355.40999999999997,
+      "end": 364.33,
+      "en": "here I have a logarithmic y axis scale, which better reveals the subtleties of the side lobes of the distributions.",
+      "zh": "另一張是對數，更能看清分布旁瓣的細節。"
+    },
+    {
+      "start": 365.41,
+      "end": 371.93,
+      "en": "It's interesting to see that the embeddings layer has the narrowest set of activation values.",
+      "zh": "有趣的是，嵌入層的啟用值範圍最窄。"
+    },
+    {
+      "start": 372.13,
+      "end": 383.05,
+      "en": "And then as we progress through the model, the distributions get wider and wider, which means more and more variability in the token calculations and representations.",
+      "zh": "模型往後走，分布越來越寬，表示詞元計算與表徵有更多變異。"
+    },
+    {
+      "start": 383.21,
+      "end": 392.57,
+      "en": "And then in the final layer which is this dark blue purplish layer, here we get again a relatively thin distribution.",
+      "zh": "最後這條深藍紫色，又變得相對窄。"
+    },
+    {
+      "start": 392.69,
+      "end": 400.17,
+      "en": "This is basically where all of the uncertainty about the token selection has collapsed in the model.",
+      "zh": "基本上，是詞元選擇的不確定性，在模型裡塌縮了。"
+    },
+    {
+      "start": 400.25,
+      "end": 406.05,
+      "en": "And the model has settled on which token it will pick for the next token in its generation.",
+      "zh": "模型已決定，生成時下一個要選哪個詞元。"
+    },
+    {
+      "start": 406.57,
+      "end": 418.02,
+      "en": "It's kind of like the two layers that are closest to the outside world, which is the actual text, have the most constrained possibilities of numerical values.",
+      "zh": "像是最靠近外部文字世界的兩層，數值可能範圍最受限制。"
+    },
+    {
+      "start": 418.7,
+      "end": 421.5,
+      "en": "Anyway, let's switch to code and have a look.",
+      "zh": "總之，切到程式。"
+    },
+    {
+      "start": 422.66,
+      "end": 426.5,
+      "en": "Several of these libraries you are already familiar with.",
+      "zh": "幾個函式庫已經熟悉。"
+    },
+    {
+      "start": 426.7,
+      "end": 431.18,
+      "en": "I'm also going to be using Seaborn for one visualization.",
+      "zh": "這次某個視覺化會用 Seaborn。"
+    },
+    {
+      "start": 431.58,
+      "end": 435.14,
+      "en": "I don't use it so often in this course, but a little bit here and there.",
+      "zh": "課程不常用，偶爾一下。"
+    },
+    {
+      "start": 435.42,
+      "end": 439.54,
+      "en": "Seaborn relies on pandas, so we also need to import pandas.",
+      "zh": "它依賴 pandas，所以也匯入 pandas。"
+    },
+    {
+      "start": 439.7,
+      "end": 446.86,
+      "en": "And then here I'm using not just matplotlib.pyplot, but I'm actually importing the matplotlib library",
+      "zh": "不只 matplotlib.pyplot，還匯入整個 matplotlib，"
+    },
+    {
+      "start": 446.86,
+      "end": 451.78,
+      "en": "so that I can access some utilities for specifying the colors of lines.",
+      "zh": "才能用一些指定線條顏色的工具。"
+    },
+    {
+      "start": 452.26,
+      "end": 452.62,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 452.65999999999997,
+      "end": 453.82,
+      "en": "So that is that.",
+      "zh": "以上是函式庫。"
+    },
+    {
+      "start": 453.82,
+      "end": 461.06,
+      "en": "And here I import the GPT two small pre-trained model and switch it to eval mode.",
+      "zh": "匯入預訓練 GPT-2 small，切 eval。"
+    },
+    {
+      "start": 461.1,
+      "end": 464.58,
+      "en": "You'll see this code now very very often for the rest of the course.",
+      "zh": "後面會經常看到。"
+    },
+    {
+      "start": 465.1,
+      "end": 467.42,
+      "en": "Here I have a piece of text.",
+      "zh": "這裡有段文字。"
+    },
+    {
+      "start": 467.7,
+      "end": 470.79,
+      "en": "The goal of a correlation analysis is to compute a.",
+      "zh": "「相關分析的目標，是計算一個……」"
+    },
+    {
+      "start": 470.83,
+      "end": 472.07,
+      "en": "Blah blah blah blah blah.",
+      "zh": "後面還有很多。"
+    },
+    {
+      "start": 472.27,
+      "end": 476.31,
+      "en": "This is a little bit of text from my textbook on statistics.",
+      "zh": "來自我的統計教科書。"
+    },
+    {
+      "start": 476.31,
+      "end": 482.51,
+      "en": "It doesn't actually matter what the text says, we just need some tokens to work with and that's what we get here.",
+      "zh": "內容其實不重要，只需要詞元。"
+    },
+    {
+      "start": 483.55,
+      "end": 483.83,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 483.87,
+      "end": 488.63,
+      "en": "Here again is something you will see increasingly often in this course.",
+      "zh": "這也是接下來越來越常看到的。"
+    },
+    {
+      "start": 488.83,
+      "end": 489.19,
+      "en": "Torch.",
+      "zh": "torch，"
+    },
+    {
+      "start": 489.43,
+      "end": 489.99,
+      "en": "Nograd.",
+      "zh": "no_grad。"
+    },
+    {
+      "start": 490.03,
+      "end": 496.67,
+      "en": "Because we want to deactivate all of the calculations in the model related to the gradient.",
+      "zh": "停用模型裡所有梯度相關計算。"
+    },
+    {
+      "start": 496.67,
+      "end": 500.71,
+      "en": "Because we are not doing any gradient descent now.",
+      "zh": "因為現在不做梯度下降。"
+    },
+    {
+      "start": 500.91,
+      "end": 506.51,
+      "en": "So far in this course, what you have seen is code that looks like this.",
+      "zh": "到目前為止，看過這種程式。"
+    },
+    {
+      "start": 506.67,
+      "end": 511.55,
+      "en": "So we call the model and we input the tokens into the model.",
+      "zh": "呼叫模型，把詞元輸入。"
+    },
+    {
+      "start": 511.59,
+      "end": 515.99,
+      "en": "And maybe when we were doing learning we also had a code that looked like this.",
+      "zh": "學習時，也可能寫成這樣。"
+    },
+    {
+      "start": 515.99,
+      "end": 517.95,
+      "en": "Labels equals tokens.",
+      "zh": "labels=tokens。"
+    },
+    {
+      "start": 517.95,
+      "end": 524.15,
+      "en": "And this means that the model internally will shift the input tokens to be the targets.",
+      "zh": "模型內部就會把輸入詞元移位，當目標。"
+    },
+    {
+      "start": 524.15,
+      "end": 525.87,
+      "en": "And we get a loss function.",
+      "zh": "得到損失函數，"
+    },
+    {
+      "start": 525.87,
+      "end": 529.56,
+      "en": "We get a loss value, but we don't need any of that here.",
+      "zh": "也就是損失值，但這裡不需要。"
+    },
+    {
+      "start": 529.68,
+      "end": 536.76,
+      "en": "Instead, I'm inputting this optional input called output hidden states equals true.",
+      "zh": "改輸入可選參數 output_hidden_states=True。"
+    },
+    {
+      "start": 536.8,
+      "end": 538.6,
+      "en": "So let me show you what that looks like.",
+      "zh": "看結果。"
+    },
+    {
+      "start": 538.72,
+      "end": 540.44,
+      "en": "So now we can look at outputs.",
+      "zh": "現在查看 outputs。"
+    },
+    {
+      "start": 540.44,
+      "end": 542.84,
+      "en": "There is a lot of stuff in here.",
+      "zh": "裡面很多東西。"
+    },
+    {
+      "start": 543.04,
+      "end": 544.88,
+      "en": "This turns out to be a dictionary.",
+      "zh": "其實是字典。"
+    },
+    {
+      "start": 544.88,
+      "end": 546.68,
+      "en": "So let's look at the keys.",
+      "zh": "看看 keys。"
+    },
+    {
+      "start": 547.2,
+      "end": 551.28,
+      "en": "We have used the logits property before.",
+      "zh": "之前用過 logits 屬性。"
+    },
+    {
+      "start": 551.48,
+      "end": 553.52,
+      "en": "Uh, we're not uh don't need to worry about this.",
+      "zh": "這個暫時不必管。"
+    },
+    {
+      "start": 553.52,
+      "end": 555.2,
+      "en": "And here we have the hidden states.",
+      "zh": "這裡有 hidden_states。"
+    },
+    {
+      "start": 555.2,
+      "end": 563.68,
+      "en": "This is a new attribute that appears in this object when this variable is set to true or this optional input.",
+      "zh": "把可選輸入設成 True，物件就多出這個屬性。"
+    },
+    {
+      "start": 563.84,
+      "end": 564.12,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 564.16,
+      "end": 569.12,
+      "en": "So now we can have a look at this at the hidden States.",
+      "zh": "看看 hidden_states。"
+    },
+    {
+      "start": 569.12,
+      "end": 570.24,
+      "en": "And what is this.",
+      "zh": "是什麼？"
+    },
+    {
+      "start": 570.36,
+      "end": 572.56,
+      "en": "This is also a lot of numbers.",
+      "zh": "也是大量數字。"
+    },
+    {
+      "start": 572.6,
+      "end": 575.92,
+      "en": "Let's scroll up to the top so you can see the parentheses.",
+      "zh": "捲到頂端，看看括號。"
+    },
+    {
+      "start": 575.92,
+      "end": 579.88,
+      "en": "This is a tuple and it's a tuple with a bunch of tensors.",
+      "zh": "是 tuple，裡面有許多張量。"
+    },
+    {
+      "start": 580.12,
+      "end": 582,
+      "en": "And how many tensors are there.",
+      "zh": "有幾個？"
+    },
+    {
+      "start": 582,
+      "end": 583.68,
+      "en": "And what are those tensors.",
+      "zh": "又是什麼張量？"
+    },
+    {
+      "start": 583.92,
+      "end": 584.2,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 584.24,
+      "end": 585.81,
+      "en": "So that's what I print out here.",
+      "zh": "在這裡印出。"
+    },
+    {
+      "start": 586.01,
+      "end": 594.17,
+      "en": "There are 62 tokens, 13 of these tensors which hugging face calls the hidden states.",
+      "zh": "62 個詞元，13 個張量，Hugging Face 稱為隱藏狀態。"
+    },
+    {
+      "start": 594.37,
+      "end": 598.65,
+      "en": "So 13 of those, as I mentioned in the slides a moment ago.",
+      "zh": "如投影片所說，共 13 個。"
+    },
+    {
+      "start": 598.81,
+      "end": 605.93,
+      "en": "The first one is the output of the embeddings plus positions vectors.",
+      "zh": "第一個，是嵌入與位置向量相加的輸出。"
+    },
+    {
+      "start": 605.97,
+      "end": 611.13,
+      "en": "And then the next 12 correspond to all of the transformer blocks.",
+      "zh": "後面 12 個，對應所有 Transformer 區塊。"
+    },
+    {
+      "start": 611.33,
+      "end": 616.05,
+      "en": "And in GPT two small we have 12 transformer blocks.",
+      "zh": "GPT-2 small 有 12 個。"
+    },
+    {
+      "start": 616.29,
+      "end": 616.53,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 616.57,
+      "end": 617.65,
+      "en": "So that's what those are.",
+      "zh": "就是這些。"
+    },
+    {
+      "start": 617.69,
+      "end": 620.73,
+      "en": "And here I'm looking at the size of just one of those.",
+      "zh": "再看其中一個的形狀。"
+    },
+    {
+      "start": 620.93,
+      "end": 626.65,
+      "en": "So one particular element is one by 62 by 768.",
+      "zh": "一個元素是 1 乘 62 乘 768。"
+    },
+    {
+      "start": 626.81,
+      "end": 633.85,
+      "en": "And yeah I discussed in the slides that this corresponds to one the first element of the batch.",
+      "zh": "如投影片說，1 是批次的第一個元素，"
+    },
+    {
+      "start": 633.85,
+      "end": 640.37,
+      "en": "There's only one sequence here 62 tokens and almost 800 embeddings dimensions.",
+      "zh": "只有一個序列、62 詞元，以及將近 800 個嵌入維度。"
+    },
+    {
+      "start": 640.37,
+      "end": 650.21,
+      "en": "So we get this matrix for each of these 13 hidden states, or the 12 attention blocks plus the initial embeddings matrix.",
+      "zh": "13 個隱藏狀態，每個都有這個矩陣；也就是 12 個注意力區塊，加初始嵌入。"
+    },
+    {
+      "start": 650.73,
+      "end": 655.37,
+      "en": "Now these values are the outputs of each of the blocks.",
+      "zh": "這些是每個區塊的輸出。"
+    },
+    {
+      "start": 655.37,
+      "end": 661.65,
+      "en": "There's all kinds of crazy calculations happening inside each transformer block.",
+      "zh": "每個 Transformer 內部有各種複雜計算。"
+    },
+    {
+      "start": 661.89,
+      "end": 664.85,
+      "en": "There's the attention Subblock and the MLP subblock.",
+      "zh": "有注意力子區塊、MLP 子區塊。"
+    },
+    {
+      "start": 665.09,
+      "end": 675.97,
+      "en": "So there's the Q and the K and the V and the softmax and the mixing matrix, the masks, the expansion and contraction in the MLP and so on.",
+      "zh": "Q、K、V、softmax、混合矩陣、遮罩、MLP 擴張與收縮等等。"
+    },
+    {
+      "start": 676.01,
+      "end": 681.49,
+      "en": "There's a lot of stuff and all of that is hidden from these outputs.",
+      "zh": "很多東西都不會在這些輸出中呈現。"
+    },
+    {
+      "start": 681.61,
+      "end": 682.97,
+      "en": "It's all in the model.",
+      "zh": "但都在模型內。"
+    },
+    {
+      "start": 682.97,
+      "end": 687.57,
+      "en": "We can access all of those individual numbers for each token.",
+      "zh": "能存取每個詞元的各個數字，"
+    },
+    {
+      "start": 687.77,
+      "end": 690.41,
+      "en": "But that is not the output that we get here.",
+      "zh": "只是這裡不會直接得到。"
+    },
+    {
+      "start": 690.41,
+      "end": 694.45,
+      "en": "You will see later in the course how we can generate something called a hook.",
+      "zh": "後面會看到，如何建立 hook，鉤子。"
+    },
+    {
+      "start": 694.65,
+      "end": 697.33,
+      "en": "We can implant those hooks into the model.",
+      "zh": "把鉤子放進模型，"
+    },
+    {
+      "start": 697.33,
+      "end": 706.5,
+      "en": "And then we actually can extract all of the numbers, all the processing for all the, you know, the Q matrices and so on.",
+      "zh": "就能取出所有數字、所有處理，例如 Q 矩陣等等。"
+    },
+    {
+      "start": 706.94,
+      "end": 708.18,
+      "en": "But that's not what we get here.",
+      "zh": "但現在不是那些。"
+    },
+    {
+      "start": 708.18,
+      "end": 715.66,
+      "en": "What we get here are the final outputs from each of the 12 transformer blocks plus the initial embeddings.",
+      "zh": "現在是 12 個 Transformer 的最終輸出，加初始嵌入。"
+    },
+    {
+      "start": 715.82,
+      "end": 716.26,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 716.26,
+      "end": 717.34,
+      "en": "So I hope that's clear.",
+      "zh": "希望清楚。"
+    },
+    {
+      "start": 717.74,
+      "end": 720.62,
+      "en": "Now let's have a look at some scatter plots.",
+      "zh": "來看散佈圖。"
+    },
+    {
+      "start": 720.78,
+      "end": 725.3,
+      "en": "So I'm going to focus on uh index layer three.",
+      "zh": "聚焦索引 3 的層。"
+    },
+    {
+      "start": 725.3,
+      "end": 727.82,
+      "en": "So inside outputs dot hidden states.",
+      "zh": "在 outputs.hidden_states 裡，"
+    },
+    {
+      "start": 728.26,
+      "end": 731.22,
+      "en": "Uh the third element in there the third layer.",
+      "zh": "第三個索引、第三層。"
+    },
+    {
+      "start": 731.46,
+      "end": 739.26,
+      "en": "And then yet zero because this is just uh, the first sequence, all of the tokens and all of the embeddings dimensions.",
+      "zh": "再取 0，表示第一個序列，以及全部詞元、全部嵌入維度。"
+    },
+    {
+      "start": 739.66,
+      "end": 742.38,
+      "en": "Now where what does this actually correspond to?",
+      "zh": "到底對應什麼？"
+    },
+    {
+      "start": 742.82,
+      "end": 747.82,
+      "en": "Remember that the first layer that we get here is the embeddings.",
+      "zh": "記得，第一層是嵌入。"
+    },
+    {
+      "start": 747.82,
+      "end": 753.42,
+      "en": "So actually if I would say which layer is zero this is the embeddings layer.",
+      "zh": "如果 which_layer=0，就是嵌入層。"
+    },
+    {
+      "start": 753.66,
+      "end": 759.38,
+      "en": "And then one corresponds to the second element which is the first transformer block.",
+      "zh": "1 是第二個元素，對應第一個 Transformer。"
+    },
+    {
+      "start": 759.67,
+      "end": 765.47,
+      "en": "So which layer equals three actually gives us the third transformer block.",
+      "zh": "所以 which_layer=3，實際是第三個 Transformer。"
+    },
+    {
+      "start": 765.83,
+      "end": 772.99,
+      "en": "So if you have just finally wrapped your head around counting starting from zero in Python, then now",
+      "zh": "如果才剛習慣 Python 從零起算，"
+    },
+    {
+      "start": 772.99,
+      "end": 779.07,
+      "en": "you have to remap that and think about this index three corresponding to transformer block three.",
+      "zh": "現在又得轉一下，索引 3 對應第三個 Transformer。"
+    },
+    {
+      "start": 779.47,
+      "end": 779.91,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 779.95,
+      "end": 781.43,
+      "en": "Anyway let's have a look.",
+      "zh": "總之，看看。"
+    },
+    {
+      "start": 781.43,
+      "end": 788.79,
+      "en": "I'm then plotting these data exactly the same data on their own and transpose the matrix transposed.",
+      "zh": "把相同資料直接畫出，再轉置矩陣畫一次。"
+    },
+    {
+      "start": 788.95,
+      "end": 796.31,
+      "en": "Basically all that does is swap whether we are looking at the embeddings dimension on the x axis.",
+      "zh": "只是交換 x 軸顯示的維度，"
+    },
+    {
+      "start": 796.31,
+      "end": 797.55,
+      "en": "That's what you see here.",
+      "zh": "這張是嵌入維度，"
+    },
+    {
+      "start": 797.75,
+      "end": 800.83,
+      "en": "Or the token index on the x axis.",
+      "zh": "另一張是詞元索引，"
+    },
+    {
+      "start": 800.83,
+      "end": 801.79,
+      "en": "And that is this plot.",
+      "zh": "就是這張。"
+    },
+    {
+      "start": 801.83,
+      "end": 803.43,
+      "en": "Otherwise it's all the same data.",
+      "zh": "其他都是同一資料。"
+    },
+    {
+      "start": 804.43,
+      "end": 805.71,
+      "en": "So what do we see here?",
+      "zh": "看到了什麼？"
+    },
+    {
+      "start": 806.23,
+      "end": 807.91,
+      "en": "We see not that much.",
+      "zh": "不多。"
+    },
+    {
+      "start": 808.11,
+      "end": 817.95,
+      "en": "Everything gets squashed down because the y axis scaling is completely dominated by these two individual points over here.",
+      "zh": "y 軸被這兩個點完全主導，其他都壓扁。"
+    },
+    {
+      "start": 818.36,
+      "end": 821.16,
+      "en": "And what is going on with those activation values?",
+      "zh": "這些啟用值怎麼了？"
+    },
+    {
+      "start": 821.16,
+      "end": 823.84,
+      "en": "Why are they so astronomically gigantic?",
+      "zh": "為什麼這麼極端？"
+    },
+    {
+      "start": 824.56,
+      "end": 831.72,
+      "en": "We can get some insight into these two outliers by looking at this scatter plot over here.",
+      "zh": "看這張散佈圖，就能理解離群點。"
+    },
+    {
+      "start": 832.16,
+      "end": 836.16,
+      "en": "Now remember that this is the token index in the text.",
+      "zh": "記得，這是文字的詞元索引。"
+    },
+    {
+      "start": 836.16,
+      "end": 838.84,
+      "en": "So you can think of this as like time, right?",
+      "zh": "可以想成時間，"
+    },
+    {
+      "start": 838.88,
+      "end": 845.08,
+      "en": "Because you start the text in the beginning, this is the first word in or the first token in the text.",
+      "zh": "因為從文字開頭開始，這是第一個字、第一個詞元，"
+    },
+    {
+      "start": 845.08,
+      "end": 848.52,
+      "en": "And then, you know, this is the end of the token sequence.",
+      "zh": "這裡是序列結尾。"
+    },
+    {
+      "start": 848.92,
+      "end": 855.72,
+      "en": "So both of these really extreme values happen in the very beginning on the first token.",
+      "zh": "兩個極端值都出現在最開始、第一個詞元。"
+    },
+    {
+      "start": 856.04,
+      "end": 863.56,
+      "en": "Now the thing is that processing the first token is weird and difficult for a language model, because",
+      "zh": "第一個詞元對語言模型而言很奇怪、很難處理，因為"
+    },
+    {
+      "start": 863.6,
+      "end": 870.6,
+      "en": "at the very first token, the model has no context, there's no history, there's no information going",
+      "zh": "沒有語境、沒有歷史、沒有過去的"
+    },
+    {
+      "start": 870.64,
+      "end": 876.12,
+      "en": "in the past that can help the model figure out what the next token should be.",
+      "zh": "資訊，能幫它判斷下一詞元。"
+    },
+    {
+      "start": 876.45,
+      "end": 878.85,
+      "en": "So the model is just completely open.",
+      "zh": "所以模型完全開放，"
+    },
+    {
+      "start": 878.85,
+      "end": 882.33,
+      "en": "It has no idea how to process the first token.",
+      "zh": "不知道怎麼處理第一個詞元。"
+    },
+    {
+      "start": 882.73,
+      "end": 890.17,
+      "en": "So therefore it is fairly common to just exclude the first token basically just because yeah, it's",
+      "zh": "因此，通常會排除第一個詞元，"
+    },
+    {
+      "start": 890.17,
+      "end": 896.89,
+      "en": "not really representative of the internal computations that a model is trained to do.",
+      "zh": "因為不太代表模型受訓要做的內部計算。"
+    },
+    {
+      "start": 897.17,
+      "end": 899.01,
+      "en": "So that's what I'm going to do here.",
+      "zh": "這裡就這麼做。"
+    },
+    {
+      "start": 899.05,
+      "end": 900.57,
+      "en": "Just put a little one in here.",
+      "zh": "只加一個 1，"
+    },
+    {
+      "start": 900.93,
+      "end": 905.93,
+      "en": "And that gives us all of the tokens but excluding the very first token.",
+      "zh": "取得除了第一個之外，所有詞元。"
+    },
+    {
+      "start": 906.05,
+      "end": 907.73,
+      "en": "And that changes a lot.",
+      "zh": "差很多。"
+    },
+    {
+      "start": 907.77,
+      "end": 913.69,
+      "en": "So then we can finally see some interesting patterns in these scatter plots here.",
+      "zh": "終於看到有趣模式。"
+    },
+    {
+      "start": 914.13,
+      "end": 921.45,
+      "en": "So for example, what you see here is that there is a relatively small number of embeddings, dimensions",
+      "zh": "例如，少數嵌入維度，"
+    },
+    {
+      "start": 921.65,
+      "end": 927.25,
+      "en": "that have relatively extreme values for lots and lots of tokens.",
+      "zh": "對很多詞元都有極端值。"
+    },
+    {
+      "start": 927.49,
+      "end": 933.17,
+      "en": "So for example, whatever embeddings dimension this is, it's like 82 or something like that.",
+      "zh": "例如這個維度，大概 82 之類，"
+    },
+    {
+      "start": 933.85,
+      "end": 940.18,
+      "en": "This has very large negative values for many of the tokens, certainly not all of the tokens.",
+      "zh": "對許多，但非全部詞元，有很大的負值。"
+    },
+    {
+      "start": 941.22,
+      "end": 942.3,
+      "en": "And what does that mean?",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 942.42,
+      "end": 944.54,
+      "en": "Which tokens does this correspond to?",
+      "zh": "對應哪些詞元？"
+    },
+    {
+      "start": 944.58,
+      "end": 949.62,
+      "en": "And what does that tell us about the nature of the calculations inside the model?",
+      "zh": "對模型內部計算的本質，告訴我們什麼？"
+    },
+    {
+      "start": 950.06,
+      "end": 953.58,
+      "en": "To answer questions like that, you need to dig a little bit deeper.",
+      "zh": "要回答，就得挖更深。"
+    },
+    {
+      "start": 953.58,
+      "end": 957.58,
+      "en": "You would need to figure out which tokens are actually.",
+      "zh": "必須找出，這些點"
+    },
+    {
+      "start": 958.78,
+      "end": 961.5,
+      "en": "These dots correspond to and lots of other stuff.",
+      "zh": "到底對應哪些詞元，還有很多其他事。"
+    },
+    {
+      "start": 961.5,
+      "end": 964.06,
+      "en": "We will get back to that later in the course.",
+      "zh": "後面會再談。"
+    },
+    {
+      "start": 964.3,
+      "end": 971.82,
+      "en": "Uh, the short answer is it's very difficult to tell what these kinds of patterns really, really mean.",
+      "zh": "簡單說，很難知道這類模式真正代表什麼。"
+    },
+    {
+      "start": 971.82,
+      "end": 977.46,
+      "en": "But we do have some ways of approaching some kind of approximation of an answer.",
+      "zh": "但有一些方法，可以接近某種近似答案。"
+    },
+    {
+      "start": 977.94,
+      "end": 978.18,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 978.22,
+      "end": 982.86,
+      "en": "Then we can look over here at the token index plot on the x axis.",
+      "zh": "再看 x 軸是詞元索引的圖。"
+    },
+    {
+      "start": 983.3,
+      "end": 989.18,
+      "en": "And here we see that this pattern that we observed here is also reflected over here.",
+      "zh": "這裡也反映剛才看到的模式。"
+    },
+    {
+      "start": 989.18,
+      "end": 998.87,
+      "en": "So for example all of these lavender colored dots over here are consistently low for all of the or many of the tokens, not all of them.",
+      "zh": "例如淡紫色點，對很多詞元持續偏低，不是全部。"
+    },
+    {
+      "start": 998.87,
+      "end": 1005.55,
+      "en": "That's what you see here, and there also seem to be some pretty interesting local token sequences here.",
+      "zh": "這裡也看到，而且有些局部詞元序列很有趣。"
+    },
+    {
+      "start": 1005.59,
+      "end": 1011.87,
+      "en": "Again, exactly how to interpret this would require a much deeper investigation, but these are the",
+      "zh": "精確解讀，需要更深入研究，但這些是"
+    },
+    {
+      "start": 1011.87,
+      "end": 1020.23,
+      "en": "kinds of patterns that we would start to look for when we are trying to understand the internal calculations in the model.",
+      "zh": "試著理解模型內部計算時，會尋找的模式。"
+    },
+    {
+      "start": 1020.79,
+      "end": 1021.03,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1021.07,
+      "end": 1025.35,
+      "en": "So now I want to look at the data in a slightly different way.",
+      "zh": "換另一種方式看。"
+    },
+    {
+      "start": 1025.39,
+      "end": 1031.23,
+      "en": "Now we are going to look at covariances and r squared plots or shared variance plots.",
+      "zh": "現在看共變異數、r 平方，也就是共享變異圖。"
+    },
+    {
+      "start": 1031.23,
+      "end": 1038.55,
+      "en": "This is not just what the individual activations look like, but how the activation patterns across",
+      "zh": "不只看個別啟用，而是不同詞元"
+    },
+    {
+      "start": 1038.55,
+      "end": 1044.03,
+      "en": "the different tokens are related to each other over the different layers.",
+      "zh": "的啟用模式，在各層間如何相關。"
+    },
+    {
+      "start": 1044.55,
+      "end": 1049.07,
+      "en": "So what I'm doing here is creating a new matrix called All Data mat.",
+      "zh": "建立叫 all_data_mat 的新矩陣。"
+    },
+    {
+      "start": 1049.39,
+      "end": 1055.52,
+      "en": "And basically this is a layer by number of points.",
+      "zh": "基本上是層數乘資料點數，"
+    },
+    {
+      "start": 1055.52,
+      "end": 1058.84,
+      "en": "So by tokens, by embeddings, dimensions matrix.",
+      "zh": "資料點就是詞元乘嵌入維度。"
+    },
+    {
+      "start": 1058.84,
+      "end": 1060.28,
+      "en": "It's a wide matrix.",
+      "zh": "是寬矩陣。"
+    },
+    {
+      "start": 1060.28,
+      "end": 1068.88,
+      "en": "So it will basically contain the flattened version of all of the individual hidden states matrices.",
+      "zh": "每個隱藏狀態矩陣攤平，再放進來。"
+    },
+    {
+      "start": 1068.96,
+      "end": 1071.56,
+      "en": "Let me run this and I'll just show you the size of this.",
+      "zh": "執行，顯示形狀。"
+    },
+    {
+      "start": 1071.56,
+      "end": 1074.2,
+      "en": "So all data dot shape.",
+      "zh": "all_data 的 .shape。"
+    },
+    {
+      "start": 1074.4,
+      "end": 1079.6,
+      "en": "So it is 13 layers and 47,000 data points.",
+      "zh": "13 層、約四萬七千個資料點。"
+    },
+    {
+      "start": 1079.6,
+      "end": 1082.32,
+      "en": "And what are those 47,000 data points.",
+      "zh": "這四萬七千是什麼？"
+    },
+    {
+      "start": 1082.6,
+      "end": 1085,
+      "en": "That is all of these data points here.",
+      "zh": "就是這裡全部資料點，"
+    },
+    {
+      "start": 1085,
+      "end": 1094.68,
+      "en": "All the tokens all of the embeddings dimensions, uh, actually not all of the tokens because I'm still excluding the first token here.",
+      "zh": "所有詞元、所有嵌入維度；其實不是全部詞元，仍排除第一個。"
+    },
+    {
+      "start": 1094.68,
+      "end": 1097.24,
+      "en": "And that's why I have this variable here.",
+      "zh": "所以有這個變數。"
+    },
+    {
+      "start": 1097.24,
+      "end": 1106.16,
+      "en": "The number of points corresponds to the number of tokens minus one times the number of embeddings dimensions that we have in the model.",
+      "zh": "點數等於詞元數減 1，再乘模型嵌入維度。"
+    },
+    {
+      "start": 1106.76,
+      "end": 1107.04,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1107.08,
+      "end": 1115.4,
+      "en": "So then I'm using numpy to compute the covariance matrix and also the correlation matrix, which I then square.",
+      "zh": "用 NumPy 算共變異數矩陣、相關矩陣，再平方。"
+    },
+    {
+      "start": 1115.64,
+      "end": 1119.32,
+      "en": "And the idea of squaring the correlation matrix is.",
+      "zh": "相關矩陣平方的概念，"
+    },
+    {
+      "start": 1119.32,
+      "end": 1126.12,
+      "en": "That gives us a measure of shared variance that is normalized to between 0 and 1.",
+      "zh": "是得到介於 0 與 1 的共享變異，"
+    },
+    {
+      "start": 1126.32,
+      "end": 1128.6,
+      "en": "And I'm going to scale it up to 100.",
+      "zh": "再乘 100，"
+    },
+    {
+      "start": 1128.6,
+      "end": 1130.08,
+      "en": "So it's in percentage.",
+      "zh": "變成百分比。"
+    },
+    {
+      "start": 1130.88,
+      "end": 1131.92,
+      "en": "And what does that mean.",
+      "zh": "什麼意思？"
+    },
+    {
+      "start": 1132.4,
+      "end": 1139.72,
+      "en": "If there are two variables that are completely orthogonal to each other, they have nothing whatsoever to do with each other.",
+      "zh": "如果兩變數完全正交，彼此毫無關係，"
+    },
+    {
+      "start": 1140.04,
+      "end": 1143.52,
+      "en": "The r squared will be zero or very close to zero.",
+      "zh": "r 平方就為零或接近零。"
+    },
+    {
+      "start": 1144.08,
+      "end": 1150.72,
+      "en": "And if we have two variables that are exactly the same then their r squared approaches one.",
+      "zh": "完全相同的變數，r 平方就接近 1。"
+    },
+    {
+      "start": 1151.24,
+      "end": 1151.64,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1151.72,
+      "end": 1152.76,
+      "en": "So uh yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1152.8,
+      "end": 1157.04,
+      "en": "And here I'm also just coming up with uh layer names layer labels.",
+      "zh": "這裡產生層名稱、標籤。"
+    },
+    {
+      "start": 1157.04,
+      "end": 1159.12,
+      "en": "So the first is the embedding layer.",
+      "zh": "第一個是 embedding，"
+    },
+    {
+      "start": 1159.12,
+      "end": 1164.52,
+      "en": "And then after that I'm going to call it h dot and then the number for the hidden layer.",
+      "zh": "之後叫 h. 加隱藏層編號。"
+    },
+    {
+      "start": 1165.44,
+      "end": 1165.8,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1166.04,
+      "end": 1170.13,
+      "en": "So these are the two plots that you saw before in the slides.",
+      "zh": "這就是投影片兩張圖。"
+    },
+    {
+      "start": 1170.13,
+      "end": 1177.49,
+      "en": "Pretty interesting that the embeddings layer is mostly uncorrelated with the rest of the processing",
+      "zh": "有趣的是，嵌入層與模型其他處理，幾乎不相關；"
+    },
+    {
+      "start": 1177.49,
+      "end": 1188.25,
+      "en": "in the model, and also the final hidden layer does have some covariance with the preceding layers, but mostly it's also kind of doing its own thing.",
+      "zh": "最後隱藏層與前面有些共變異，但大致也在做自己的事。"
+    },
+    {
+      "start": 1189.29,
+      "end": 1195.53,
+      "en": "And then here you see this really interesting looking I don't know, this looks like a wing or some kind of a pattern.",
+      "zh": "這裡有個有趣模式，看起來像翅膀，"
+    },
+    {
+      "start": 1195.53,
+      "end": 1197.53,
+      "en": "Maybe you see a bird or something.",
+      "zh": "也許像鳥之類。"
+    },
+    {
+      "start": 1197.97,
+      "end": 1208.45,
+      "en": "Uh, basically what's happening is that the covariance across the layers is getting wider as we spread out to later hidden layers.",
+      "zh": "基本上，越往後面，跨層共變異數越寬。"
+    },
+    {
+      "start": 1208.65,
+      "end": 1210.29,
+      "en": "And why is that the case?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 1210.45,
+      "end": 1216.73,
+      "en": "That is the case because the total amount of variability, the total spread of the activation values",
+      "zh": "因為啟用值整體變異、"
+    },
+    {
+      "start": 1216.73,
+      "end": 1224.77,
+      "en": "is getting wider as we get deeper into the model until we get to the final layer, the final transformer",
+      "zh": "分布展幅，隨模型加深變大，直到最後 Transformer"
+    },
+    {
+      "start": 1224.77,
+      "end": 1233.3,
+      "en": "block, where all of that uncertainty in the model collapses, and the model just preferentially upvotes",
+      "zh": "區塊，不確定性塌縮，只優先推高"
+    },
+    {
+      "start": 1233.34,
+      "end": 1240.38,
+      "en": "a small number of tokens that can be selected for the next token in the generation sequence.",
+      "zh": "少數可供生成時選為下一詞元的候選。"
+    },
+    {
+      "start": 1240.98,
+      "end": 1243.78,
+      "en": "Okay, here you see an R squared matrix.",
+      "zh": "這是 r 平方矩陣。"
+    },
+    {
+      "start": 1243.82,
+      "end": 1252.3,
+      "en": "Now, the major difference between this matrix and this matrix is that the covariance matrix is normalized.",
+      "zh": "兩矩陣主要差別，是共變異數已正規化，"
+    },
+    {
+      "start": 1252.3,
+      "end": 1253.58,
+      "en": "It's non-normalized.",
+      "zh": "應該說，沒有正規化。"
+    },
+    {
+      "start": 1253.82,
+      "end": 1262.18,
+      "en": "So any of the raw changes in the variability within individual variables is also incorporated into this",
+      "zh": "所以，個別變數原始變異的改變，也包含在"
+    },
+    {
+      "start": 1262.18,
+      "end": 1271.42,
+      "en": "plot, whereas the correlation coefficient actually normalizes out the variability within each of the variables.",
+      "zh": "這張圖；相關係數則消除了個別變數的變異尺度。"
+    },
+    {
+      "start": 1271.86,
+      "end": 1273.22,
+      "en": "And what does this plot show?",
+      "zh": "這張顯示什麼？"
+    },
+    {
+      "start": 1273.34,
+      "end": 1278.1,
+      "en": "Well, first of all, we can see that the diagonal is 100 100%.",
+      "zh": "首先，對角線是 100%。"
+    },
+    {
+      "start": 1278.26,
+      "end": 1283.22,
+      "en": "That means that every variable, every layer is perfectly correlated with itself.",
+      "zh": "每個變數、每一層，與自己完全相關。"
+    },
+    {
+      "start": 1284.02,
+      "end": 1286.71,
+      "en": "That is trivial, but it's a good thing to see.",
+      "zh": "這很直觀，但看到是好事，"
+    },
+    {
+      "start": 1286.75,
+      "end": 1289.47,
+      "en": "Just confirms that this is an accurate plot.",
+      "zh": "確認圖正確。"
+    },
+    {
+      "start": 1289.79,
+      "end": 1297.15,
+      "en": "And again, you see that the embeddings and the final transformer block are not strongly correlated",
+      "zh": "同樣，嵌入與最後 Transformer，"
+    },
+    {
+      "start": 1297.15,
+      "end": 1306.31,
+      "en": "with the other layers, but within that so between the embedding and the final transformer block, you",
+      "zh": "和其他層不太相關；但兩者之間的"
+    },
+    {
+      "start": 1306.31,
+      "end": 1311.63,
+      "en": "do see quite a bit of shared variability between the different transformer blocks.",
+      "zh": "各 Transformer 區塊，有很多共享變異。"
+    },
+    {
+      "start": 1311.63,
+      "end": 1318.87,
+      "en": "And essentially what that means is that as the embeddings vector for each token is being passed from",
+      "zh": "基本上，這表示每個詞元嵌入"
+    },
+    {
+      "start": 1318.87,
+      "end": 1327.71,
+      "en": "one transformer to the next transformer to the next transformer block, the changes to those vectors is relatively small.",
+      "zh": "從一個 Transformer 傳到下一個時，變化相對小。"
+    },
+    {
+      "start": 1327.87,
+      "end": 1333.79,
+      "en": "So the the vectors are changing each time it passes from one layer to the next.",
+      "zh": "每經一層，向量都會改，"
+    },
+    {
+      "start": 1333.79,
+      "end": 1336.51,
+      "en": "But there's also a lot of similarity.",
+      "zh": "但也有很多相似性。"
+    },
+    {
+      "start": 1336.51,
+      "end": 1339.27,
+      "en": "So the embeddings vectors are rotating around.",
+      "zh": "它們旋轉、"
+    },
+    {
+      "start": 1339.27,
+      "end": 1340.19,
+      "en": "They're shifting around.",
+      "zh": "移動、"
+    },
+    {
+      "start": 1340.19,
+      "end": 1346.64,
+      "en": "They're stretching and shrinking but they're not changing that dramatically from one block to the next.",
+      "zh": "伸長、縮短，但相鄰區塊間不會變得太劇烈。"
+    },
+    {
+      "start": 1346.64,
+      "end": 1355.4,
+      "en": "And that's why you see this pattern of intercorrelation across the pairs that decreases as a function",
+      "zh": "所以配對的相關性，隨著"
+    },
+    {
+      "start": 1355.4,
+      "end": 1359.88,
+      "en": "of distance away from each individual transformer block.",
+      "zh": "遠離各個 Transformer 的距離而降低。"
+    },
+    {
+      "start": 1360.48,
+      "end": 1360.96,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1361,
+      "end": 1362.6,
+      "en": "So that is for those plots.",
+      "zh": "這些圖就到這裡。"
+    },
+    {
+      "start": 1362.64,
+      "end": 1368.12,
+      "en": "Now I want to show this pretty nice visualization in Seaborn.",
+      "zh": "再看 Seaborn 很漂亮的視覺化。"
+    },
+    {
+      "start": 1368.12,
+      "end": 1370,
+      "en": "It's called a pair plot.",
+      "zh": "叫 pair plot，成對關係圖。"
+    },
+    {
+      "start": 1370.4,
+      "end": 1376.32,
+      "en": "Now a pair plot is an interesting way of showing distributions of individual variables.",
+      "zh": "能呈現個別變數的分布。"
+    },
+    {
+      "start": 1376.32,
+      "end": 1383.48,
+      "en": "In this case I'm downsampling it to four just because if you have 13 in here, the whole plot gets really, really big.",
+      "zh": "這裡縮到四層，因為 13 層會讓圖非常大。"
+    },
+    {
+      "start": 1383.72,
+      "end": 1385.96,
+      "en": "So I'm just using the first four layers.",
+      "zh": "所以只取前四層。"
+    },
+    {
+      "start": 1386.24,
+      "end": 1394.56,
+      "en": "And then all of the off diagonal elements show the scatter plots of the different pairs of variables.",
+      "zh": "非對角線元素，顯示不同變數配對的散佈圖。"
+    },
+    {
+      "start": 1394.68,
+      "end": 1397.16,
+      "en": "So the first one here is the embeddings.",
+      "zh": "第一個是嵌入。"
+    },
+    {
+      "start": 1397.32,
+      "end": 1402.01,
+      "en": "And you see this is what the histogram of the embeddings activations looks like.",
+      "zh": "這是嵌入啟用值的直方圖。"
+    },
+    {
+      "start": 1402.49,
+      "end": 1413.69,
+      "en": "And then you see this scatter plot here shows the relationship, the linear relationship between the embeddings vectors and the first transformer block.",
+      "zh": "散佈圖顯示嵌入向量與第一 Transformer 的線性關係。"
+    },
+    {
+      "start": 1413.85,
+      "end": 1425.13,
+      "en": "And you see that there is some structure in there in that, you know, it's not completely like a homogeneous cloud, but there's no real compelling linear relationship.",
+      "zh": "有些結構，不完全是一團均勻的雲，但沒有很強的線性關係。"
+    },
+    {
+      "start": 1425.65,
+      "end": 1435.69,
+      "en": "And then here, you know, this one shows, for example, the scatter plot that shows the relationship between the first transformer block and the second transformer block.",
+      "zh": "這張則顯示第一與第二 Transformer 之間的關係。"
+    },
+    {
+      "start": 1435.85,
+      "end": 1443.09,
+      "en": "So you do see a lot of very strong correlations within neighbouring pairs of transformer blocks that",
+      "zh": "相鄰區塊相關很強，"
+    },
+    {
+      "start": 1443.09,
+      "end": 1451.53,
+      "en": "is manifest in this, these slightly off diagonal elements over here and up here show the correlation",
+      "zh": "反映在這裡、上面偏離對角線一點的元素，顯示"
+    },
+    {
+      "start": 1451.77,
+      "end": 1455.89,
+      "en": "or the squared correlation between neighboring transformer blocks.",
+      "zh": "相鄰 Transformer 的相關或平方相關。"
+    },
+    {
+      "start": 1457.09,
+      "end": 1457.29,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1457.33,
+      "end": 1462.02,
+      "en": "And then the last visualization I want to show here is histograms.",
+      "zh": "最後一種視覺化，是直方圖。"
+    },
+    {
+      "start": 1462.02,
+      "end": 1469.7,
+      "en": "So what I'm doing here is looping over all of the layers and all 13 layers, extracting the histogram",
+      "zh": "逐一走訪 13 層，取出直方圖，"
+    },
+    {
+      "start": 1469.7,
+      "end": 1475.3,
+      "en": "using the same data matrix that I showed that I created a moment ago.",
+      "zh": "使用剛才建立的相同資料矩陣。"
+    },
+    {
+      "start": 1475.58,
+      "end": 1477.38,
+      "en": "And then just drawing the histogram.",
+      "zh": "再畫出來。"
+    },
+    {
+      "start": 1477.5,
+      "end": 1481.86,
+      "en": "And here is where I use the matplotlib library.",
+      "zh": "這裡用 matplotlib。"
+    },
+    {
+      "start": 1481.86,
+      "end": 1483.38,
+      "en": "And this is color maps.",
+      "zh": "color maps，色彩映射。"
+    },
+    {
+      "start": 1484.02,
+      "end": 1487.26,
+      "en": "And then I'm getting a plasma color map which I like a lot.",
+      "zh": "取 plasma，我很喜歡，"
+    },
+    {
+      "start": 1487.3,
+      "end": 1488.34,
+      "en": "I use it quite a bit.",
+      "zh": "常使用。"
+    },
+    {
+      "start": 1488.82,
+      "end": 1490.54,
+      "en": "And then the R is for reverse.",
+      "zh": "r 代表 reverse，"
+    },
+    {
+      "start": 1490.58,
+      "end": 1493.14,
+      "en": "It just reverse maps the color okay.",
+      "zh": "把顏色順序反過來。"
+    },
+    {
+      "start": 1493.34,
+      "end": 1497.74,
+      "en": "So this creates that figure that I also showed in the slides.",
+      "zh": "就得到投影片那張圖。"
+    },
+    {
+      "start": 1497.74,
+      "end": 1498.9,
+      "en": "So what do we see here.",
+      "zh": "看到了什麼？"
+    },
+    {
+      "start": 1499.22,
+      "end": 1501.74,
+      "en": "First of all this looks really beautiful.",
+      "zh": "首先，非常漂亮。"
+    },
+    {
+      "start": 1501.74,
+      "end": 1506.74,
+      "en": "This is like a you know, a colorful volcano on some distant planet or something.",
+      "zh": "像遙遠星球上彩色火山之類。"
+    },
+    {
+      "start": 1507.1,
+      "end": 1518.1,
+      "en": "But I think it's a little bit easier to look at the log count plot because it reveals the subtleties a little bit better than the linear plot.",
+      "zh": "但我覺得 log count 圖更容易看，細節比線性圖清楚。"
+    },
+    {
+      "start": 1518.66,
+      "end": 1526.3,
+      "en": "so the colors go from yellow to purple, dark blue, and that corresponds to the initial embeddings.",
+      "zh": "顏色從黃到紫、深藍，對應初始嵌入"
+    },
+    {
+      "start": 1526.74,
+      "end": 1532.18,
+      "en": "Vectors, the embeddings layer, and then all of the hidden layers thereafter.",
+      "zh": "向量、嵌入層，再到後面所有隱藏層。"
+    },
+    {
+      "start": 1532.42,
+      "end": 1541.02,
+      "en": "So the embeddings are fairly narrow in their distribution, which means that the vectors don't have a lot of room to wiggle around.",
+      "zh": "嵌入分布很窄，表示向量沒太多移動空間。"
+    },
+    {
+      "start": 1541.3,
+      "end": 1546.34,
+      "en": "And then you see the colors fanning out here, and also the peaks shrinking down.",
+      "zh": "接著顏色向外展開，峰值也變低。"
+    },
+    {
+      "start": 1546.58,
+      "end": 1547.82,
+      "en": "And what does that mean?",
+      "zh": "代表什麼？"
+    },
+    {
+      "start": 1547.9,
+      "end": 1554.22,
+      "en": "That means that as these embeddings, vectors go from one transformer block to the next transformer",
+      "zh": "代表嵌入向量每通過一個 Transformer"
+    },
+    {
+      "start": 1554.22,
+      "end": 1564.58,
+      "en": "block to the next transformer block, the variability, the magnitudes and directions of the embeddings vectors is getting wider and wider.",
+      "zh": "區塊，數值變異、向量大小與方向，就越來越廣。"
+    },
+    {
+      "start": 1564.58,
+      "end": 1574.3,
+      "en": "So these distributions are shifting towards the side lobes, which means that there are more extreme values and fewer values closer to zero.",
+      "zh": "分布往旁瓣移動，極端值更多、接近零的值更少。"
+    },
+    {
+      "start": 1574.82,
+      "end": 1583.39,
+      "en": "This reflects Flex the models, incorporating more and more context and more and more world knowledge",
+      "zh": "這反映模型把更多語境與世界知識，"
+    },
+    {
+      "start": 1583.39,
+      "end": 1591.83,
+      "en": "from its pre-trained weights into the processing and transformations of each individual token representation.",
+      "zh": "從預訓練權重帶入各詞元表徵的處理與轉換。"
+    },
+    {
+      "start": 1592.19,
+      "end": 1592.47,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1592.51,
+      "end": 1594.11,
+      "en": "And then what happens at the end?",
+      "zh": "最後發生什麼？"
+    },
+    {
+      "start": 1594.11,
+      "end": 1596.75,
+      "en": "We get to the very last transformer block.",
+      "zh": "到最後 Transformer 區塊，"
+    },
+    {
+      "start": 1596.75,
+      "end": 1599.71,
+      "en": "And that is this bluish purple line here.",
+      "zh": "就是這條藍紫線。"
+    },
+    {
+      "start": 1599.95,
+      "end": 1609.71,
+      "en": "And essentially all of this uncertainty about what the next token should be, that all collapses when we get towards the very end of the model.",
+      "zh": "基本上，對下一詞元的不確定性，在模型末端全部塌縮。"
+    },
+    {
+      "start": 1610.03,
+      "end": 1614.83,
+      "en": "Remember that this final transformer block here, its hidden layer 11.",
+      "zh": "記得，這個是隱藏層 11，"
+    },
+    {
+      "start": 1614.83,
+      "end": 1617.75,
+      "en": "But it's the it's the last transformer block.",
+      "zh": "也就是最後 Transformer。"
+    },
+    {
+      "start": 1617.79,
+      "end": 1623.75,
+      "en": "This does not directly lead to the token selection, but there's only one more layer right.",
+      "zh": "還不是直接選詞元，但只剩一層，對吧。"
+    },
+    {
+      "start": 1623.79,
+      "end": 1628.91,
+      "en": "So the output of this final transformer block goes through a layer norm.",
+      "zh": "最後區塊輸出，經 LayerNorm，"
+    },
+    {
+      "start": 1628.91,
+      "end": 1630.95,
+      "en": "And then the embeddings matrix.",
+      "zh": "再經嵌入矩陣，"
+    },
+    {
+      "start": 1630.95,
+      "end": 1632.31,
+      "en": "And then we pick a token.",
+      "zh": "然後選詞元。"
+    },
+    {
+      "start": 1632.47,
+      "end": 1641.8,
+      "en": "So basically you know the model is just trying to figure out what is the next token, and then it gets to the end and then it settles on one token.",
+      "zh": "所以模型一直想下一個該是什麼，到結尾就選定一個。"
+    },
+    {
+      "start": 1641.8,
+      "end": 1647.24,
+      "en": "So it increased its confidence, so to speak, about what the next token should be.",
+      "zh": "可以說，對下一詞元更有信心。"
+    },
+    {
+      "start": 1647.24,
+      "end": 1649.8,
+      "en": "So that collapses a lot of uncertainty.",
+      "zh": "大量不確定性就塌縮。"
+    },
+    {
+      "start": 1649.96,
+      "end": 1657.4,
+      "en": "And now the model has finally settled on one token to pick for the next token in these generation sequence.",
+      "zh": "最後終於確定，生成序列的下一詞元要選哪一個。"
+    },
+    {
+      "start": 1658.28,
+      "end": 1668.4,
+      "en": "If you found this video inspiring and exciting, then you are definitely going to enjoy the sections on mechanistic interpretability.",
+      "zh": "如果這支令你興奮、啟發，一定會喜歡機制可解釋性章節。"
+    },
+    {
+      "start": 1668.92,
+      "end": 1677.72,
+      "en": "It is a lot of fun to extract all the internal numbers from the model and play around with them, and see if we can make some sense of them.",
+      "zh": "取出內部全部數字，實驗、試著理解，很有樂趣。"
+    },
+    {
+      "start": 1678.24,
+      "end": 1685.48,
+      "en": "What we did here in this video was a fairly coarse level of granularity, but that still does reveal",
+      "zh": "這支的粒度相當粗，但仍揭露"
+    },
+    {
+      "start": 1685.48,
+      "end": 1693,
+      "en": "some interesting patterns that you will see consistently as we look more and more in detail throughout the model.",
+      "zh": "有趣模式，之後更仔細看模型各處時，會持續看到。"
+    }
+  ]
+}

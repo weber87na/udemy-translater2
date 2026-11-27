@@ -1,0 +1,1999 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893869",
+  "title": "CodeChallenge: Does GPT2 like pineapple pizza?",
+  "section": 25,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "3c66edcbca1ac7c59970d4202d340ad39b4604cc155df4b268fb5b57db1bd1c8",
+  "cues": [
+    {
+      "start": 2.16,
+      "end": 9.8,
+      "en": "Before starting this code challenge, let me be very clear that the premise and the wildly speculative",
+      "zh": "開始這次程式挑戰前，先說清楚，這個前提，以及對結果非常大膽的"
+    },
+    {
+      "start": 9.8,
+      "end": 15.88,
+      "en": "interpretations of the results are a little silly and a little ridiculous.",
+      "zh": "推測性解讀，有點傻，也有點荒謬。"
+    },
+    {
+      "start": 16.16,
+      "end": 23.8,
+      "en": "Language models like GPT two do not actually have preferences, the way that humans and dogs and other",
+      "zh": "GPT2 這類語言模型，並不真的像人、狗和其他"
+    },
+    {
+      "start": 23.8,
+      "end": 31.52,
+      "en": "individuals have preferences, but the methods and the analyses that you will learn here are serious",
+      "zh": "個體一樣具有偏好；但這裡學到的方法與分析是認真的，"
+    },
+    {
+      "start": 31.52,
+      "end": 40,
+      "en": "and can be used to understand how targeted manipulations of the attention algorithm can causally reveal",
+      "zh": "可以用來理解，對注意力演算法做有目標的操作，如何從因果角度揭露"
+    },
+    {
+      "start": 40.12,
+      "end": 45.48,
+      "en": "downstream network interactions and language generation in language models.",
+      "zh": "語言模型的下游網路互動與語言生成。"
+    },
+    {
+      "start": 46.2,
+      "end": 46.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 46.72,
+      "end": 54.8,
+      "en": "So with that disclaimer out of the way, this code challenge is designed to follow from the previous code demo video.",
+      "zh": "先說完這些，這次程式挑戰是延續上一支程式示範。"
+    },
+    {
+      "start": 55.36,
+      "end": 62.43,
+      "en": "In fact, you will use a lot of the code from the previous video to help you solve the exercises here.",
+      "zh": "事實上，你會使用上一支影片的很多程式碼，協助完成這裡的練習。"
+    },
+    {
+      "start": 63.15,
+      "end": 71.71000000000001,
+      "en": "There are four exercises in total, and they are all focused on silencing individual heads in individual",
+      "zh": "總共有四個練習，全都聚焦於讓個別"
+    },
+    {
+      "start": 71.71000000000001,
+      "end": 83.23,
+      "en": "transformer blocks and measuring the resulting cosine similarity between token representations of pizza with either peanut butter or pineapple.",
+      "zh": "Transformer 區塊的個別注意力頭靜音，測量 pizza 與 peanut butter 或 pineapple 之 token 表徵間，所產生的餘弦相似度。"
+    },
+    {
+      "start": 83.51,
+      "end": 85.83,
+      "en": "So this is going to be a lot of fun.",
+      "zh": "所以，會非常有趣。"
+    },
+    {
+      "start": 86.11,
+      "end": 87.19,
+      "en": "So let's begin.",
+      "zh": "開始吧。"
+    },
+    {
+      "start": 87.95,
+      "end": 92.11,
+      "en": "The goal of exercise one is to set up the experiment.",
+      "zh": "練習一的目標，是設定實驗。"
+    },
+    {
+      "start": 92.11,
+      "end": 102.11,
+      "en": "So import GPT two large, put it on the GPU and write a hook function that you implant in every layer.",
+      "zh": "匯入 GPT2 large，放到 GPU，撰寫 hook 函數，植入每一層。"
+    },
+    {
+      "start": 103.15,
+      "end": 107.67,
+      "en": "This is very similar to the hook function that I introduced in the previous video.",
+      "zh": "這與上一支影片介紹的 hook 函數非常相似。"
+    },
+    {
+      "start": 108.11,
+      "end": 119.85,
+      "en": "Your hook function here should be able to silence, and by that I mean zero out one attention head and one layer for one specific token.",
+      "zh": "這個 hook 函數，應該能靜音，也就是歸零某一層、某一個特定 token 的一個注意力頭。"
+    },
+    {
+      "start": 120.57,
+      "end": 127.65,
+      "en": "Of course, those three indices will need to be defined as variables so that you can specify in the",
+      "zh": "當然，這三個索引都需要定義成變數，才能在"
+    },
+    {
+      "start": 127.65,
+      "end": 137.09,
+      "en": "experiment which head and which layer and which token index you want to replace the attention activations with zero.",
+      "zh": "實驗中，指定要將哪個頭、哪一層、哪個 token 索引的注意力活化替換成零。"
+    },
+    {
+      "start": 138.17000000000002,
+      "end": 143.49,
+      "en": "Next, tokenize this sentence that some Italians may find offensive.",
+      "zh": "接著，對這個可能讓某些義大利人覺得冒犯的句子做 token 化。"
+    },
+    {
+      "start": 144.21,
+      "end": 146.69,
+      "en": "Again, I promise this is just a joke.",
+      "zh": "再次保證，這只是玩笑。"
+    },
+    {
+      "start": 146.69,
+      "end": 149.69,
+      "en": "Don't take this too seriously and don't be mad at me.",
+      "zh": "不要太認真，也不要生我的氣。"
+    },
+    {
+      "start": 150.25,
+      "end": 157.61,
+      "en": "Next, you want to find the indices of the tokens for butter, pineapple, and pizza.",
+      "zh": "接著，找出 butter、pineapple、pizza 這些 token 的索引。"
+    },
+    {
+      "start": 158.13,
+      "end": 167.21,
+      "en": "Now you need to know those token indices because in later exercises you will manipulate only those particular",
+      "zh": "需要知道索引，是因為後面的練習只會操作這些特定"
+    },
+    {
+      "start": 167.21,
+      "end": 168.09,
+      "en": "indices.",
+      "zh": "索引。"
+    },
+    {
+      "start": 168.32999999999998,
+      "end": 175.17000000000002,
+      "en": "And also you will calculate cosine similarity between specific pairs of tokens.",
+      "zh": "也會計算特定 token 配對之間的餘弦相似度。"
+    },
+    {
+      "start": 176.52,
+      "end": 183.4,
+      "en": "Interestingly, the word peanut butter gets split up into three tokens.",
+      "zh": "有趣的是，peanut butter 被拆成三個 token。"
+    },
+    {
+      "start": 183.72,
+      "end": 192.16,
+      "en": "We explored this a little bit in the previous video about how we can get peanut to be actually represented as a single token.",
+      "zh": "上一支影片稍微探索過，如何讓 peanut 實際表示成單一 token。"
+    },
+    {
+      "start": 192.2,
+      "end": 196.88,
+      "en": "Turns out it can be a single token if it's space peanut with a lowercase p.",
+      "zh": "結果，前面有空白、小寫 p 的 peanut，可以是單一 token。"
+    },
+    {
+      "start": 196.92000000000002,
+      "end": 197.6,
+      "en": "But anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 198.2,
+      "end": 206.04,
+      "en": "And as I discussed earlier in the course, when you have a multi token word, the best token to analyze",
+      "zh": "如同課程前面討論，多 token 詞最適合分析的 token，"
+    },
+    {
+      "start": 206.07999999999998,
+      "end": 213.8,
+      "en": "is the final one, because that already has all of the context from the previous tokens loaded onto it.",
+      "zh": "是最後一個，因為它已經載入前面所有 token 的上下文。"
+    },
+    {
+      "start": 214.44,
+      "end": 214.84,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 214.88,
+      "end": 221.76,
+      "en": "Anyway, move all of the tokens to the GPU so that we can do all the forward passes on the GPU.",
+      "zh": "把所有 token 移到 GPU，讓全部前向傳播都在 GPU 執行。"
+    },
+    {
+      "start": 222.64,
+      "end": 229.44,
+      "en": "Now this sequence is quite short, so it won't take a very long time to do a forward pass even on the CPU.",
+      "zh": "這個序列很短，即使 CPU 做前向傳播，也不會很久。"
+    },
+    {
+      "start": 229.64,
+      "end": 235.1,
+      "en": "But we will be doing many forward passes in the experiments in later exercises.",
+      "zh": "但後面練習的實驗，會做很多次前向傳播。"
+    },
+    {
+      "start": 236.1,
+      "end": 236.42000000000002,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 236.46,
+      "end": 238.14,
+      "en": "So that's for exercise one.",
+      "zh": "這就是練習一。"
+    },
+    {
+      "start": 238.14,
+      "end": 248.06,
+      "en": "I think you won't have too much difficulties here because a lot of this exercise can be solved by copy pasting from the previous video.",
+      "zh": "我想，你不會遇到太多困難，因為很多部分都可以從上一支影片複製貼上完成。"
+    },
+    {
+      "start": 248.7,
+      "end": 257.98,
+      "en": "I will now switch to code and show my solution, although only fairly briefly, mostly just to explain the organization of the modified hook function.",
+      "zh": "現在切換到程式碼，展示我的解答，但會相當簡短，主要解釋修改後 hook 函數的組織方式。"
+    },
+    {
+      "start": 259.66,
+      "end": 261.82,
+      "en": "Lots of libraries that we will use here.",
+      "zh": "這裡會用很多函式庫。"
+    },
+    {
+      "start": 262.14,
+      "end": 262.58,
+      "en": "Let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 262.62,
+      "end": 268.78,
+      "en": "Here is importing the model a GPT two large pushing it to the GPU.",
+      "zh": "這裡匯入 GPT2 large 模型，移到 GPU。"
+    },
+    {
+      "start": 269.22,
+      "end": 271.94,
+      "en": "And I'll yeah this you've seen before as well.",
+      "zh": "這也看過了。"
+    },
+    {
+      "start": 272.1,
+      "end": 272.42,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 272.46,
+      "end": 277.74,
+      "en": "So this hook is this hook function is basically the only thing I really want to discuss here.",
+      "zh": "這個 hook 函數，基本上是這裡唯一真正想討論的部分。"
+    },
+    {
+      "start": 278.18,
+      "end": 284.54,
+      "en": "It is nearly identical to the hook function in the previous video.",
+      "zh": "它與上一支影片的 hook 幾乎相同。"
+    },
+    {
+      "start": 285.06,
+      "end": 289.9,
+      "en": "But I have added this key variable over here token to silence.",
+      "zh": "但我加入這個關鍵變數，token to silence。"
+    },
+    {
+      "start": 289.9,
+      "end": 293.21,
+      "en": "So that means that we are going to zero out.",
+      "zh": "代表要歸零，"
+    },
+    {
+      "start": 293.65,
+      "end": 302.45,
+      "en": "We only the attention vectors for this particular head in this particular layer for this particular token.",
+      "zh": "的只有這個特定層、特定頭、特定 token 的注意力向量。"
+    },
+    {
+      "start": 302.45,
+      "end": 311.61,
+      "en": "So it's even more targeted, even more precise of a manipulation compared to what we did in the previous video.",
+      "zh": "所以，與上一支影片相比，操作更有目標、更精確。"
+    },
+    {
+      "start": 311.93,
+      "end": 312.13,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 312.13,
+      "end": 314.89,
+      "en": "And the rest of this stuff I'm not going to discuss.",
+      "zh": "其餘部分，不會討論。"
+    },
+    {
+      "start": 315.09,
+      "end": 317.13,
+      "en": "So I will run that cell.",
+      "zh": "執行這個儲存格。"
+    },
+    {
+      "start": 317.17,
+      "end": 318.09,
+      "en": "And here's this.",
+      "zh": "這裡是這個。"
+    },
+    {
+      "start": 318.09,
+      "end": 322.17,
+      "en": "This is also not new compared to the previous video.",
+      "zh": "與上一支影片相比，也不是新的。"
+    },
+    {
+      "start": 322.61,
+      "end": 329.61,
+      "en": "This is new because yeah, here we need to know which uh, indices correspond to which target values.",
+      "zh": "這個是新的，因為這裡需要知道，哪些索引對應哪些目標值。"
+    },
+    {
+      "start": 329.61,
+      "end": 332.13,
+      "en": "So butter pineapple and pizza.",
+      "zh": "也就是 butter、pineapple、pizza。"
+    },
+    {
+      "start": 332.33,
+      "end": 340.49,
+      "en": "Again we will use these in later exercises as a way to grab the embeddings vectors for these different tokens.",
+      "zh": "稍後的練習，會用它們取得不同 token 的嵌入向量。"
+    },
+    {
+      "start": 342.17,
+      "end": 344.45,
+      "en": "Now for exercise two.",
+      "zh": "現在是練習二。"
+    },
+    {
+      "start": 344.89,
+      "end": 348.40999999999997,
+      "en": "We are not going to manipulate the model just yet.",
+      "zh": "還不會操作模型。"
+    },
+    {
+      "start": 348.77,
+      "end": 356.88,
+      "en": "Instead the goal here is to gather some baseline comparison data that we can use to evaluate the impact",
+      "zh": "目標是收集一些基準比較資料，供後面的練習評估"
+    },
+    {
+      "start": 356.88,
+      "end": 361.08,
+      "en": "of silencing attention heads in a later exercise.",
+      "zh": "注意力頭靜音的影響。"
+    },
+    {
+      "start": 361.76,
+      "end": 366.6,
+      "en": "So here you should do a forward pass with the tokens and no manipulations.",
+      "zh": "這裡應該讓 token 做前向傳播，不做任何操作。"
+    },
+    {
+      "start": 366.96,
+      "end": 373.28,
+      "en": "I'll put the hidden states during the forward pass, and then calculate the cosine similarity between",
+      "zh": "前向傳播時輸出隱藏狀態，再計算"
+    },
+    {
+      "start": 373.48,
+      "end": 380.24,
+      "en": "butter and pizza, and between pineapple and pizza for each layer in the model.",
+      "zh": "模型每一層的 butter 與 pizza，以及 pineapple 與 pizza 之間的餘弦相似度。"
+    },
+    {
+      "start": 380.28,
+      "end": 381.68,
+      "en": "Each transformer block.",
+      "zh": "每個 Transformer 區塊。"
+    },
+    {
+      "start": 382.24,
+      "end": 387.88,
+      "en": "You can then make a scatter plot that looks like this, where you see the transformer block on the x",
+      "zh": "接著，可以做這樣的散布圖，x"
+    },
+    {
+      "start": 387.88,
+      "end": 396.96,
+      "en": "axis and cosine similarity on the y axis, and the two markers here correspond to the cosine similarity",
+      "zh": "軸是 Transformer 區塊，y 軸是餘弦相似度；兩種標記，"
+    },
+    {
+      "start": 397,
+      "end": 403.12,
+      "en": "for the token butter with the token pizza and the token pineapple with the token pizza.",
+      "zh": "對應 butter token 與 pizza token，以及 pineapple token 與 pizza token 的餘弦相似度。"
+    },
+    {
+      "start": 403.76,
+      "end": 414.02,
+      "en": "Now, once you have these data, you can make very strong conclusions about whether GPT two prefers peanut butter or pineapple on its pizza.",
+      "zh": "取得資料後，就能強烈斷言，GPT2 的披薩比較喜歡加花生醬，還是鳳梨。"
+    },
+    {
+      "start": 414.78,
+      "end": 416.54,
+      "en": "Needless to say, I'm just kidding.",
+      "zh": "不用說，我只是在開玩笑。"
+    },
+    {
+      "start": 416.65999999999997,
+      "end": 423.1,
+      "en": "This analysis does not reveal GPT preference for bizarre ingredients on pizza.",
+      "zh": "這個分析，不會揭露 GPT 對奇怪披薩配料的偏好。"
+    },
+    {
+      "start": 423.38,
+      "end": 428.14,
+      "en": "It does, however, reveal something about language and the training set.",
+      "zh": "但它確實揭露一些關於語言與訓練集的資訊。"
+    },
+    {
+      "start": 428.66,
+      "end": 436.58,
+      "en": "In fact, I would like you to think about what is the appropriate conclusion to draw from whatever pattern of results you find here.",
+      "zh": "事實上，請思考，根據你得到的結果模式，適當的結論是什麼。"
+    },
+    {
+      "start": 437.1,
+      "end": 441.78,
+      "en": "I will discuss that appropriate interpretation and also the silly interpretation.",
+      "zh": "我會討論適當解讀，以及傻氣的解讀。"
+    },
+    {
+      "start": 442.14,
+      "end": 446.86,
+      "en": "But first you should pause the video and write code to implement this exercise.",
+      "zh": "但先請暫停影片，寫程式實作這份練習。"
+    },
+    {
+      "start": 447.22,
+      "end": 451.22,
+      "en": "And now I will switch to code again.",
+      "zh": "現在再次切換到程式碼。"
+    },
+    {
+      "start": 451.26,
+      "end": 459.62,
+      "en": "Setting these variables to really high values well beyond the range of the number of layers we actually have.",
+      "zh": "把這些變數設成很高、遠超出實際層數範圍的值。"
+    },
+    {
+      "start": 459.74,
+      "end": 465.26,
+      "en": "It's just a way of turning off the toggle so that no manipulations are actually run.",
+      "zh": "只是關閉這個設定，讓操作不會真的執行。"
+    },
+    {
+      "start": 465.26,
+      "end": 468.40999999999997,
+      "en": "And that gives us the clean version of the output.",
+      "zh": "這就得到乾淨版本的輸出。"
+    },
+    {
+      "start": 468.40999999999997,
+      "end": 470.73,
+      "en": "And we want all of the hidden states here.",
+      "zh": "這裡要所有隱藏狀態。"
+    },
+    {
+      "start": 471.17,
+      "end": 471.37,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 471.40999999999997,
+      "end": 473.57,
+      "en": "And here we can check the size.",
+      "zh": "這裡可以檢查大小。"
+    },
+    {
+      "start": 473.57,
+      "end": 483.41,
+      "en": "So we have one sequence in the batch nine tokens, 1280 embeddings dimensions in GPT two large.",
+      "zh": "GPT2 large，批次一個序列，九個 token，1280 個嵌入維度。"
+    },
+    {
+      "start": 484.01,
+      "end": 486.97,
+      "en": "Here is where I'm getting the cosine similarity.",
+      "zh": "這裡取得餘弦相似度。"
+    },
+    {
+      "start": 487.37,
+      "end": 492.05,
+      "en": "Uh, here I'm using the PyTorch function f cosine similarity.",
+      "zh": "使用 PyTorch 的 F.cosine_similarity 函數。"
+    },
+    {
+      "start": 492.29,
+      "end": 496.93,
+      "en": "You can see in different videos I calculate cosine similarity in different ways.",
+      "zh": "不同影片中，我用不同方式計算餘弦相似度。"
+    },
+    {
+      "start": 497.41,
+      "end": 502.89,
+      "en": "I find if the data are already in PyTorch formats are already torch tensors.",
+      "zh": "我覺得，如果資料已是 PyTorch 格式、已經是 Torch 張量，"
+    },
+    {
+      "start": 503.29,
+      "end": 513.85,
+      "en": "Uh, and you're only calculating cosine similarity between two specific vectors, then I think it's easier to use this cosine similarity function.",
+      "zh": "而且只計算兩個特定向量的餘弦相似度，這個函數比較容易。"
+    },
+    {
+      "start": 514.09,
+      "end": 520.61,
+      "en": "On the other hand, when I want to calculate an entire cosine similarity matrix for lots of variables,",
+      "zh": "另一方面，如果要計算很多變數的整個餘弦相似度矩陣，"
+    },
+    {
+      "start": 520.81,
+      "end": 526.92,
+      "en": "then I find this function to be clunky and awkward, and I prefer just to write it out myself.",
+      "zh": "我覺得這個函數笨重、不順手，偏好自己寫出來。"
+    },
+    {
+      "start": 526.92,
+      "end": 528.92,
+      "en": "I find that easier anyway.",
+      "zh": "反正，我覺得那樣比較容易。"
+    },
+    {
+      "start": 529.16,
+      "end": 530.44,
+      "en": "You do whatever you like.",
+      "zh": "你可以用自己喜歡的方式。"
+    },
+    {
+      "start": 531.32,
+      "end": 535.84,
+      "en": "Okay, so cosine similarity between, uh, out clean.",
+      "zh": "好，計算 out clean 的餘弦相似度。"
+    },
+    {
+      "start": 535.84,
+      "end": 538.92,
+      "en": "So the output from the clean version of the model.",
+      "zh": "也就是乾淨版本的模型輸出。"
+    },
+    {
+      "start": 538.92,
+      "end": 542.64,
+      "en": "No manipulations, hidden states layer I plus one.",
+      "zh": "沒有操作，hidden states 的第 i+1 層。"
+    },
+    {
+      "start": 542.68,
+      "end": 548.64,
+      "en": "Of course the plus one is because the very first layer is the output of the embeddings layer.",
+      "zh": "加一，當然是因為第一層是嵌入層的輸出。"
+    },
+    {
+      "start": 548.64,
+      "end": 552.76,
+      "en": "And we're only interested here in the transformer blocks.",
+      "zh": "這裡只關心 Transformer 區塊。"
+    },
+    {
+      "start": 553.16,
+      "end": 560.64,
+      "en": "And then I get all of these sequences which is actually just one the token for butter coming from peanut butter.",
+      "zh": "接著，取全部序列，其實只有一個，以及 peanut butter 中的 butter token。"
+    },
+    {
+      "start": 560.92,
+      "end": 562.6,
+      "en": "All of the embeddings dimension.",
+      "zh": "全部嵌入維度。"
+    },
+    {
+      "start": 562.72,
+      "end": 567.08,
+      "en": "That's the first thing I want to calculate cosine similarity with.",
+      "zh": "這是第一個要計算餘弦相似度的東西。"
+    },
+    {
+      "start": 567.24,
+      "end": 570.96,
+      "en": "And it is calculated with the vector for pizza.",
+      "zh": "另一個，是 pizza 的向量。"
+    },
+    {
+      "start": 571.4,
+      "end": 572.6,
+      "en": "And then here I have zero.",
+      "zh": "這裡有零。"
+    },
+    {
+      "start": 572.6,
+      "end": 575.64,
+      "en": "Now you might think that this is redundant but it kind of is.",
+      "zh": "你可能覺得這是多餘的，某種程度上是。"
+    },
+    {
+      "start": 575.64,
+      "end": 586.02,
+      "en": "But it's actually just to preserve the dimensionality because f cosine similarity is really Particular about the dimensionality of these inputs.",
+      "zh": "但其實只是為了保留維度，因為 F.cosine_similarity 對輸入維度非常挑剔。"
+    },
+    {
+      "start": 586.46,
+      "end": 594.42,
+      "en": "Anyway, here I'm using dot item just to pick out the one value from the rest of the PyTorch variable.",
+      "zh": "總之，這裡用 .item，從 PyTorch 變數中取出單一值。"
+    },
+    {
+      "start": 594.7,
+      "end": 601.94,
+      "en": "Okay, so we get two cosine similarity values between peanut butter and pizza and between pineapple and pizza.",
+      "zh": "好，得到兩個餘弦相似度，分別是 peanut butter 與 pizza，以及 pineapple 與 pizza。"
+    },
+    {
+      "start": 602.42,
+      "end": 604.26,
+      "en": "So that is the analysis code.",
+      "zh": "這是分析程式碼。"
+    },
+    {
+      "start": 604.26,
+      "end": 605.54,
+      "en": "It is very fast.",
+      "zh": "非常快。"
+    },
+    {
+      "start": 605.66,
+      "end": 608.66,
+      "en": "And here is where I'm visualizing the data.",
+      "zh": "這裡把資料視覺化。"
+    },
+    {
+      "start": 608.74,
+      "end": 614.06,
+      "en": "So these are this is for peanut butter and this is for pineapple.",
+      "zh": "這些是花生醬，這些是鳳梨。"
+    },
+    {
+      "start": 615.18,
+      "end": 616.58,
+      "en": "And here we see the results.",
+      "zh": "這裡看到結果。"
+    },
+    {
+      "start": 616.58,
+      "end": 623.82,
+      "en": "So at almost every single layer maybe a couple of exceptions here but pretty much everywhere inside the model.",
+      "zh": "幾乎每一層，也許這裡有幾個例外，但模型中幾乎到處，"
+    },
+    {
+      "start": 623.98,
+      "end": 630.74,
+      "en": "The cosine similarity between pineapple and pizza is stronger than it is between butter and pizza.",
+      "zh": "pineapple 與 pizza 的餘弦相似度，都比 butter 與 pizza 更強。"
+    },
+    {
+      "start": 631.14,
+      "end": 633.34,
+      "en": "So what does that tell us?",
+      "zh": "這告訴我們什麼？"
+    },
+    {
+      "start": 633.34,
+      "end": 642.29,
+      "en": "That tells us, beyond any reasonable doubt, that GPT two thinks that pineapple on pizza is a fantastic idea.",
+      "zh": "這排除一切合理懷疑地告訴我們，GPT2 認為鳳梨披薩是很棒的點子。"
+    },
+    {
+      "start": 642.97,
+      "end": 643.81,
+      "en": "Okay, I'm just kidding.",
+      "zh": "好，我只是開玩笑。"
+    },
+    {
+      "start": 643.81,
+      "end": 646.37,
+      "en": "That is absolutely not at all what these data show.",
+      "zh": "這絕對完全不是資料所顯示的。"
+    },
+    {
+      "start": 646.57,
+      "end": 655.45,
+      "en": "What these data really do show is that in text that this model has been trained on, which is basically much of the internet.",
+      "zh": "資料真正顯示的是，模型訓練用的文字，基本上是網路的很大一部分，"
+    },
+    {
+      "start": 656.01,
+      "end": 665.13,
+      "en": "Uh, the words pineapple and pizza appear more often together compared to the words butter and pizza.",
+      "zh": "其中 pineapple 與 pizza 一起出現的頻率，比 butter 與 pizza 更高。"
+    },
+    {
+      "start": 665.13,
+      "end": 669.89,
+      "en": "And it's not only butter, it is butter with the context peanut butter.",
+      "zh": "而且，不只是 butter，而是帶有 peanut butter 上下文的 butter。"
+    },
+    {
+      "start": 670.05,
+      "end": 679.37,
+      "en": "So, uh, it's basically like butter modulated by the word peanut to pull it in the direction of the semantic concept of peanut butter.",
+      "zh": "基本上，像是 butter 受到 peanut 這個詞調變，被拉向花生醬的語意概念。"
+    },
+    {
+      "start": 680.13,
+      "end": 680.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 680.49,
+      "end": 688.65,
+      "en": "So basically all around the internet, people talk about pineapple and pizza more often than they talk about peanut butter and pizza.",
+      "zh": "所以，基本上，網路上大家談鳳梨與披薩，比談花生醬與披薩更頻繁。"
+    },
+    {
+      "start": 688.65,
+      "end": 692.41,
+      "en": "And that's basically what this, uh, difference here reflects.",
+      "zh": "這就是這裡差異基本上反映的內容。"
+    },
+    {
+      "start": 693.45,
+      "end": 699.01,
+      "en": "Also notice, uh, yeah, there's like qualitatively different things happening at the very beginning",
+      "zh": "也注意，模型最前面"
+    },
+    {
+      "start": 699.01,
+      "end": 705.87,
+      "en": "and at the very end of the model, as you know, the very, very last transformer block is a bit special",
+      "zh": "和最後面，有性質不同的事情發生。你知道，最後一個 Transformer 區塊有點特別，"
+    },
+    {
+      "start": 705.91,
+      "end": 717.07,
+      "en": "because that is the model's last opportunity to adjust the vectors before it goes through the UN embeddings matrix, and also with the hugging face models.",
+      "zh": "因為這是向量通過反嵌入矩陣前，模型最後的調整機會。而在 Hugging Face 模型中，"
+    },
+    {
+      "start": 717.07,
+      "end": 723.59,
+      "en": "If you export the hidden states, then this actually also includes the layered normalization.",
+      "zh": "如果輸出隱藏狀態，其實也會包含層正規化。"
+    },
+    {
+      "start": 723.63,
+      "end": 730.79,
+      "en": "Now it's not immediately it's not trivial that just adding layernorm would really change the cosine",
+      "zh": "不過，光加上 LayerNorm，真的就會改變餘弦"
+    },
+    {
+      "start": 730.79,
+      "end": 742.03,
+      "en": "similarity, considering that layernorm is not applied differently to different tokens, so it's applied uniformly to all the token representations.",
+      "zh": "相似度，這並不是理所當然，因為它不是對不同 token 採不同方式，而是統一套用到所有 token 表徵。"
+    },
+    {
+      "start": 742.95,
+      "end": 754.39,
+      "en": "I know I've said this before, but as an experimental scientist, it is important to me that you understand that the title of this exercise is just a bit of humor.",
+      "zh": "我知道以前說過，但作為實驗科學家，讓你理解練習標題只是幽默，對我很重要。"
+    },
+    {
+      "start": 754.91,
+      "end": 763.1,
+      "en": "That said, this is a serious analysis that we are going to run here in a for loop over all of the layers in the model.",
+      "zh": "話雖如此，這裡要做的是認真的分析，用 for 迴圈遍歷模型所有層。"
+    },
+    {
+      "start": 763.1,
+      "end": 766.22,
+      "en": "So all the transformer blocks silence.",
+      "zh": "也就是全部 Transformer 區塊，讓"
+    },
+    {
+      "start": 766.22,
+      "end": 768.58,
+      "en": "Attention head number five.",
+      "zh": "第五號注意力頭靜音。"
+    },
+    {
+      "start": 768.78,
+      "end": 776.9,
+      "en": "So that's index five, which means the sixths attention head only at the token corresponding to pineapple.",
+      "zh": "索引 5，也就是第六個注意力頭，只針對 pineapple 對應的 token。"
+    },
+    {
+      "start": 777.46,
+      "end": 782.14,
+      "en": "And then repeat the cosine similarity analysis from exercise two.",
+      "zh": "接著，重複練習二的餘弦相似度分析。"
+    },
+    {
+      "start": 782.86,
+      "end": 785.98,
+      "en": "That will be what you plot in this scatter plot.",
+      "zh": "這就是要畫在散布圖中的內容，"
+    },
+    {
+      "start": 785.98,
+      "end": 787.58,
+      "en": "Over here on the left.",
+      "zh": "也就是左邊這裡。"
+    },
+    {
+      "start": 787.98,
+      "end": 799.86,
+      "en": "Again, it's exactly the same analysis as in the previous exercise, except that at each layer you will just ablate head number five and only in that layer.",
+      "zh": "再次提醒，分析與上一個練習完全相同，只是每一層，都消融第五號頭，而且只在那一層。"
+    },
+    {
+      "start": 799.98,
+      "end": 803.54,
+      "en": "And just for the token corresponding to pineapple.",
+      "zh": "也只針對 pineapple 對應的 token。"
+    },
+    {
+      "start": 804.38,
+      "end": 811.34,
+      "en": "The goal of this analysis is to see whether we can manipulate the cosine similarity between the token",
+      "zh": "這個分析的目標，是看看能否操作 pineapple 的 token"
+    },
+    {
+      "start": 811.34,
+      "end": 816.53,
+      "en": "embeddings vector for pineapple with the embeddings vector for pizza.",
+      "zh": "嵌入向量，與 pizza 嵌入向量之間的餘弦相似度。"
+    },
+    {
+      "start": 817.09,
+      "end": 825.25,
+      "en": "And the idea is that the attention heads are calculating the relevant context across the different tokens.",
+      "zh": "概念是，注意力頭在計算不同 token 的相關上下文。"
+    },
+    {
+      "start": 825.69,
+      "end": 832.69,
+      "en": "And so if that is the case, then we might expect that the cosine similarity would decrease when we",
+      "zh": "如果如此，當我們抑制注意力計算完整傳遞上下文資訊的能力，"
+    },
+    {
+      "start": 832.69,
+      "end": 840.21,
+      "en": "inhibit the ability of the attention calculation to fully transmit that contextual information.",
+      "zh": "就可能預期餘弦相似度下降。"
+    },
+    {
+      "start": 840.77,
+      "end": 849.45,
+      "en": "Of course, we are not completely blocking the transmission of that calculation, because we are only silencing one attention head and not all of them.",
+      "zh": "當然，沒有完全阻擋這個計算的傳遞，因為只讓一個注意力頭靜音，不是全部。"
+    },
+    {
+      "start": 850.25,
+      "end": 856.21,
+      "en": "Now, there's no particular reason why I picked attention head number five to be the one that gets silenced.",
+      "zh": "沒有什麼特定原因，讓我選第五號注意力頭作為靜音對象。"
+    },
+    {
+      "start": 856.45,
+      "end": 859.21,
+      "en": "It's just to make things easy for this exercise.",
+      "zh": "只是讓這份練習容易一點。"
+    },
+    {
+      "start": 859.45,
+      "end": 862.41,
+      "en": "I will get back to that in the next exercise.",
+      "zh": "下一個練習會再談。"
+    },
+    {
+      "start": 863.17,
+      "end": 871.33,
+      "en": "Anyway, so how do you know if the silencing of this one attention head for this one token really has an impact?",
+      "zh": "總之，怎麼知道，讓這個 token 的這個頭靜音，真的有影響？"
+    },
+    {
+      "start": 871.89,
+      "end": 881.79,
+      "en": "To assess that impact, we can compare these results against the results from exercise two, where we used a clean version of the model.",
+      "zh": "為了評估，可以和練習二使用乾淨模型版本的結果比較。"
+    },
+    {
+      "start": 882.23,
+      "end": 885.47,
+      "en": "And that's what you will plot over here on the right.",
+      "zh": "這就是右邊要畫的。"
+    },
+    {
+      "start": 885.91,
+      "end": 893.55,
+      "en": "So this is the difference in cosine similarity between the silenced and the clean version of the model.",
+      "zh": "也就是靜音與乾淨模型版本之間的餘弦相似度差。"
+    },
+    {
+      "start": 894.07,
+      "end": 897.75,
+      "en": "And I'm plotting this for both of the token pairs.",
+      "zh": "兩個 token 配對都會畫。"
+    },
+    {
+      "start": 898.35,
+      "end": 910.07,
+      "en": "Now if silencing the attention head has absolutely no effect whatsoever, then you would expect all of these difference values to be exactly zero.",
+      "zh": "如果注意力頭靜音完全沒有影響，預期所有差值都恰好是零。"
+    },
+    {
+      "start": 911.23,
+      "end": 915.71,
+      "en": "And what we are going to interpret is whether they are zeros or not.",
+      "zh": "我們要解讀的是，它們是否為零。"
+    },
+    {
+      "start": 915.71,
+      "end": 917.95,
+      "en": "And if not, what is the sign.",
+      "zh": "如果不是，正負號是什麼？"
+    },
+    {
+      "start": 917.95,
+      "end": 925.27,
+      "en": "So whether silencing this attention head decreased or increased the cosine similarity.",
+      "zh": "也就是，讓這個注意力頭靜音，是降低或增加餘弦相似度。"
+    },
+    {
+      "start": 926.43,
+      "end": 929.59,
+      "en": "All right I hope you enjoy working through this exercise.",
+      "zh": "好，希望你享受這份練習。"
+    },
+    {
+      "start": 929.75,
+      "end": 932.74,
+      "en": "Now you should pause the video and get to work.",
+      "zh": "現在請暫停影片，開始動手。"
+    },
+    {
+      "start": 932.74,
+      "end": 944.06,
+      "en": "And now I will switch to code, show my solution, and also have a discussion about the appropriate and also the humorously inappropriate conclusions that we can draw from these results.",
+      "zh": "現在切換到程式碼，展示解答，也討論從結果可以做出的適當解讀，以及幽默而不適當的結論。"
+    },
+    {
+      "start": 945.34,
+      "end": 952.54,
+      "en": "The code in this cell here is nearly identical to the code from exercise two.",
+      "zh": "這個儲存格的程式碼，與練習二幾乎完全相同。"
+    },
+    {
+      "start": 953.02,
+      "end": 956.06,
+      "en": "So loop over all of the layers.",
+      "zh": "遍歷所有層。"
+    },
+    {
+      "start": 956.46,
+      "end": 963.66,
+      "en": "Uh, run a forward pass through the model and calculate cosine similarity for each of the hidden states.",
+      "zh": "做模型前向傳播，計算每個隱藏狀態的餘弦相似度。"
+    },
+    {
+      "start": 963.66,
+      "end": 970.78,
+      "en": "Each of the transformer block outputs for peanut butter and pizza, and for pineapple and pizza.",
+      "zh": "也就是每個 Transformer 區塊輸出中，peanut butter 與 pizza，以及 pineapple 與 pizza 的相似度。"
+    },
+    {
+      "start": 971.14,
+      "end": 977.02,
+      "en": "The difference compared to exercise two is basically just these two variable names.",
+      "zh": "與練習二相比，差異基本上只有這兩個變數名稱。"
+    },
+    {
+      "start": 977.22,
+      "end": 981.1,
+      "en": "So token to silence is now pineapple index.",
+      "zh": "token to silence，現在是 pineapple index。"
+    },
+    {
+      "start": 981.1,
+      "end": 985.02,
+      "en": "So the index of the word pineapple in the text.",
+      "zh": "也就是文字中 pineapple 的索引。"
+    },
+    {
+      "start": 985.02,
+      "end": 988.38,
+      "en": "And I've set head to silence to be five.",
+      "zh": "head to silence 則設成五。"
+    },
+    {
+      "start": 988.38,
+      "end": 994.44,
+      "en": "So we are just going to zero out the attention vectors from one attention head.",
+      "zh": "所以，只把一個注意力頭的注意力向量歸零。"
+    },
+    {
+      "start": 994.72,
+      "end": 998.76,
+      "en": "And this also has a different variable name, but otherwise it's basically the same thing.",
+      "zh": "這個變數名稱也不同，但除此之外，基本上相同。"
+    },
+    {
+      "start": 999.44,
+      "end": 1002.12,
+      "en": "Okay, so that all went pretty fast.",
+      "zh": "好，全部執行得很快。"
+    },
+    {
+      "start": 1002.12,
+      "end": 1007.36,
+      "en": "And now the plotting here is also not that exciting to talk about.",
+      "zh": "這裡的畫圖，也沒太多值得說。"
+    },
+    {
+      "start": 1007.4,
+      "end": 1010,
+      "en": "Mostly similar to the previous exercise.",
+      "zh": "大多與上一個練習類似。"
+    },
+    {
+      "start": 1010.4,
+      "end": 1017,
+      "en": "In fact, this is exactly the code from the previous exercise, except this is for the silencing.",
+      "zh": "其實，與上一個練習的程式碼完全相同，只是這個針對靜音。"
+    },
+    {
+      "start": 1017.04,
+      "end": 1020.52,
+      "en": "And in exercise two, of course there was no silencing.",
+      "zh": "練習二當然沒有靜音。"
+    },
+    {
+      "start": 1021.04,
+      "end": 1025.72,
+      "en": "Now visually just you know, if you like, squint your eyes and look through your eyelashes.",
+      "zh": "現在，視覺上，瞇起眼、透過睫毛看，"
+    },
+    {
+      "start": 1025.72,
+      "end": 1028.44,
+      "en": "You don't really see any obvious differences here.",
+      "zh": "真的看不到明顯差異。"
+    },
+    {
+      "start": 1029.4,
+      "end": 1032.36,
+      "en": "When we calculate the explicit differences here.",
+      "zh": "但這裡明確計算差值時，"
+    },
+    {
+      "start": 1032.4,
+      "end": 1038.12,
+      "en": "And so just to be clear, what I'm plotting here, that is the difference between this plot here where",
+      "zh": "說清楚，這裡畫的是這張圖，也就是"
+    },
+    {
+      "start": 1038.12,
+      "end": 1048.39,
+      "en": "we silenced one attention head in each layer versus this result here from exercise two where we didn't silence anything anywhere.",
+      "zh": "每層讓一個頭靜音的結果，與這裡練習二完全沒有靜音的結果之差。"
+    },
+    {
+      "start": 1048.87,
+      "end": 1055.23,
+      "en": "So the difference between those two plots, that is what I'm showing here on the y axis.",
+      "zh": "兩張圖之差，就是 y 軸這裡顯示的。"
+    },
+    {
+      "start": 1055.47,
+      "end": 1058.79,
+      "en": "So some interesting patterns to observe here.",
+      "zh": "有些有趣模式值得觀察。"
+    },
+    {
+      "start": 1059.15,
+      "end": 1064.67,
+      "en": "First of all, it's very noticeable that the peanut butter result didn't change at all.",
+      "zh": "首先，很明顯，花生醬的結果完全沒變。"
+    },
+    {
+      "start": 1064.79,
+      "end": 1069.95,
+      "en": "So the cosine similarity between peanut butter and pizza did not change.",
+      "zh": "peanut butter 與 pizza 的餘弦相似度沒有改變。"
+    },
+    {
+      "start": 1069.99,
+      "end": 1073.87,
+      "en": "Maybe if you look really closely there were some really really small.",
+      "zh": "也許仔細看，有非常、非常小的變化。"
+    },
+    {
+      "start": 1073.91,
+      "end": 1075.39,
+      "en": "But let's just say that zero okay.",
+      "zh": "但就當成零。"
+    },
+    {
+      "start": 1075.43,
+      "end": 1076.59,
+      "en": "So that didn't change at all.",
+      "zh": "所以，完全沒變。"
+    },
+    {
+      "start": 1076.83,
+      "end": 1085.95,
+      "en": "That is not very surprising because we did not actually change the token corresponding to the peanut butter index.",
+      "zh": "這不太意外，因為沒有真的改變對應花生醬索引的 token。"
+    },
+    {
+      "start": 1086.07,
+      "end": 1087.79,
+      "en": "So if you like you can try that.",
+      "zh": "如果願意，可以試試。"
+    },
+    {
+      "start": 1087.79,
+      "end": 1088.51,
+      "en": "It's very simple.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 1088.51,
+      "end": 1093.83,
+      "en": "You just change this to butter index instead of pineapple index okay.",
+      "zh": "只要把這個從 pineapple index 改成 butter index。"
+    },
+    {
+      "start": 1093.87,
+      "end": 1105.71,
+      "en": "But then of course the key result here is to see whether we get any non-zero and also any consistent patterns of results when we interfere with the token for pineapple.",
+      "zh": "但關鍵結果，當然是看看干預 pineapple token 時，是否有非零值，以及一致的結果模式。"
+    },
+    {
+      "start": 1106.26,
+      "end": 1110.82,
+      "en": "And on the one hand, we do see that it gets pushed off of zero.",
+      "zh": "一方面，確實看到它偏離零。"
+    },
+    {
+      "start": 1111.06,
+      "end": 1120.86,
+      "en": "So it seems like silencing that one head for this one token position really did have an impact, but it's a quite a subtle impact, right?",
+      "zh": "所以，讓這個 token 位置的一個頭靜音，似乎真的有影響，但很細微。"
+    },
+    {
+      "start": 1120.9,
+      "end": 1127.5,
+      "en": "These difference values are two orders of magnitude smaller than the overall cosine similarities.",
+      "zh": "這些差值，比整體餘弦相似度小兩個數量級。"
+    },
+    {
+      "start": 1127.7,
+      "end": 1131.94,
+      "en": "So the effect was really small and not really consistent.",
+      "zh": "所以，效果真的很小，而且不太一致。"
+    },
+    {
+      "start": 1131.94,
+      "end": 1137.34,
+      "en": "So it's not like they were all consistently negative or all consistently positive.",
+      "zh": "不是全部一致為負，或全部一致為正。"
+    },
+    {
+      "start": 1137.62,
+      "end": 1139.86,
+      "en": "They kind of seem to be all over the place.",
+      "zh": "看起來有點散布各處。"
+    },
+    {
+      "start": 1139.98,
+      "end": 1142.14,
+      "en": "So what can we interpret here.",
+      "zh": "那麼，能解讀什麼？"
+    },
+    {
+      "start": 1142.22,
+      "end": 1150.66,
+      "en": "Let me first tell you the the humorous interpretation, which is that we completely failed to disrupt",
+      "zh": "先說幽默的解讀：我們完全無法破壞"
+    },
+    {
+      "start": 1150.66,
+      "end": 1154.5,
+      "en": "GPT two's preference for pineapple on pizza.",
+      "zh": "GPT2 對鳳梨披薩的偏好。"
+    },
+    {
+      "start": 1154.82,
+      "end": 1164.84,
+      "en": "And that means that GPT two just loves pineapple on pizza so much that even when we go in and manipulate the GPT two Brain.",
+      "zh": "這代表，GPT2 太愛鳳梨披薩，即使進入、操作 GPT2 的大腦，"
+    },
+    {
+      "start": 1165.08,
+      "end": 1168.96,
+      "en": "We still cannot break its love of pineapple on pizza.",
+      "zh": "仍然無法打破它對鳳梨披薩的愛。"
+    },
+    {
+      "start": 1169,
+      "end": 1170.32,
+      "en": "Okay, I'm just kidding.",
+      "zh": "好，我只是開玩笑。"
+    },
+    {
+      "start": 1170.48,
+      "end": 1171.44,
+      "en": "Please forgive me.",
+      "zh": "請原諒我，"
+    },
+    {
+      "start": 1171.44,
+      "end": 1172.92,
+      "en": "Italian audiences.",
+      "zh": "義大利觀眾們。"
+    },
+    {
+      "start": 1173.32,
+      "end": 1174.2,
+      "en": "Uh, anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 1175.12,
+      "end": 1185.6,
+      "en": "Okay, now, the real interpretation is that there's no real convincing evidence that our manipulation did anything consistent across the different blocks.",
+      "zh": "好，真正的解讀，是沒有任何真正有說服力的證據，顯示操作在不同區塊造成一致結果。"
+    },
+    {
+      "start": 1185.84,
+      "end": 1192.64,
+      "en": "On the other hand, it did numerically have an impact, which is nice to see because that's kind of a manipulation check.",
+      "zh": "另一方面，數值上確實有影響，這很好，因為算是一種操作檢查。"
+    },
+    {
+      "start": 1192.8,
+      "end": 1194.72,
+      "en": "So we tweaked something in the model.",
+      "zh": "我們調整了模型中的某個東西。"
+    },
+    {
+      "start": 1194.72,
+      "end": 1199.64,
+      "en": "It was a very, very small, very precise manipulation that we performed.",
+      "zh": "操作非常、非常小，非常精確。"
+    },
+    {
+      "start": 1199.8,
+      "end": 1203.08,
+      "en": "It had some impact in a numerical sense.",
+      "zh": "在數值上有些影響。"
+    },
+    {
+      "start": 1203.08,
+      "end": 1211.48,
+      "en": "It changed the numerical values, but it's not really anything that we can convincingly make any interpretation of.",
+      "zh": "改變了數值，但真的無法有說服力地做出什麼解讀。"
+    },
+    {
+      "start": 1213.04,
+      "end": 1215.4,
+      "en": "Now for exercise four.",
+      "zh": "現在是練習四。"
+    },
+    {
+      "start": 1215.8,
+      "end": 1221.68,
+      "en": "This is a follow up to exercise three, where you only manipulated one of the heads.",
+      "zh": "這延續練習三，當時只操作一個頭。"
+    },
+    {
+      "start": 1222.12,
+      "end": 1231.07,
+      "en": "So what you want to do here in exercise four is copy that for loop over the layers and then add another",
+      "zh": "練習四，要複製遍歷層的 for 迴圈，再加入另一個"
+    },
+    {
+      "start": 1231.23,
+      "end": 1234.79,
+      "en": "embedded for loop over all of the attention heads.",
+      "zh": "內嵌 for 迴圈，遍歷所有注意力頭。"
+    },
+    {
+      "start": 1235.43,
+      "end": 1241.91,
+      "en": "So now you are going to zero out every individual head in every layer.",
+      "zh": "現在，會把每一層的每個個別頭歸零。"
+    },
+    {
+      "start": 1242.51,
+      "end": 1245.31,
+      "en": "Of course you only do this once.",
+      "zh": "當然，每次只做一個。"
+    },
+    {
+      "start": 1245.31,
+      "end": 1253.51,
+      "en": "So at any given forward pass there is exactly one attention head in exactly one layer that is silenced",
+      "zh": "所以，任何一次前向傳播，都只有一層的一個注意力頭，針對"
+    },
+    {
+      "start": 1253.51,
+      "end": 1258.55,
+      "en": "for exactly one token, and all the rest of them are functioning normally.",
+      "zh": "一個 token 被靜音，其餘全部正常運作。"
+    },
+    {
+      "start": 1258.55,
+      "end": 1261.91,
+      "en": "So very precise, very limited manipulation.",
+      "zh": "非常精確、非常有限的操作。"
+    },
+    {
+      "start": 1262.47,
+      "end": 1266.27,
+      "en": "And then you calculate cosine similarity, just as you did before.",
+      "zh": "再像之前一樣，計算餘弦相似度。"
+    },
+    {
+      "start": 1266.83,
+      "end": 1276.55,
+      "en": "Now for this visualization here on the left, you can draw all of the individual heads that you silenced as individual circles.",
+      "zh": "左邊這個視覺化，可以把各個被靜音的頭，畫成個別圓圈。"
+    },
+    {
+      "start": 1276.95,
+      "end": 1282.09,
+      "en": "And this horizontal black line here I hope you can see this on the video screen.",
+      "zh": "這裡有條黑色水平線，希望影片畫面看得到。"
+    },
+    {
+      "start": 1282.09,
+      "end": 1289.73,
+      "en": "It's a little small, but there's a horizontal black line here that corresponds to the cosine similarity for the clean model.",
+      "zh": "有點小，但黑色水平線，對應乾淨模型的餘弦相似度。"
+    },
+    {
+      "start": 1290.53,
+      "end": 1297.93,
+      "en": "Of course, there's only one of those data points per layer, because there's no manipulation of the attention heads with the clean version.",
+      "zh": "每層當然只有一個這樣的資料點，因為乾淨版本沒有操作注意力頭。"
+    },
+    {
+      "start": 1298.41,
+      "end": 1300.77,
+      "en": "So just to be make sure this is clear.",
+      "zh": "再次確認一下。"
+    },
+    {
+      "start": 1300.77,
+      "end": 1308.01,
+      "en": "So now for each transformer block we have a collection of data points for the different heads.",
+      "zh": "現在，每個 Transformer 區塊，都有一組對應不同頭的資料點。"
+    },
+    {
+      "start": 1308.41,
+      "end": 1317.41,
+      "en": "This corresponds to the cosine similarity between pineapple and pizza for manipulating or silencing",
+      "zh": "它們是每層各個頭被操作或靜音時，"
+    },
+    {
+      "start": 1317.41,
+      "end": 1320.53,
+      "en": "each one of the heads in each layer.",
+      "zh": "pineapple 與 pizza 之間的餘弦相似度。"
+    },
+    {
+      "start": 1321.01,
+      "end": 1327.41,
+      "en": "And for this exercise, you can just focus on the cosine similarity between pineapple and pizza.",
+      "zh": "這份練習，可以只聚焦於 pineapple 與 pizza 的餘弦相似度。"
+    },
+    {
+      "start": 1327.45,
+      "end": 1332.49,
+      "en": "You don't have to worry about peanut butter and pizza for this exercise.",
+      "zh": "不用管 peanut butter 與 pizza。"
+    },
+    {
+      "start": 1332.85,
+      "end": 1341.08,
+      "en": "Next, what I want you to do is run a t test on these cosine similarity values to determine whether",
+      "zh": "接著，對這些餘弦相似度做 t 檢定，判斷"
+    },
+    {
+      "start": 1341.08,
+      "end": 1345.04,
+      "en": "they are different from the clean value of cosine similarity.",
+      "zh": "它們是否與乾淨的餘弦相似度值不同。"
+    },
+    {
+      "start": 1345.64,
+      "end": 1354.48,
+      "en": "In other words, you can implement this by subtracting the results from the clean model from the results for all of these ablated models.",
+      "zh": "換句話說，可以從所有這些消融模型的結果，減去乾淨模型結果來實作。"
+    },
+    {
+      "start": 1354.88,
+      "end": 1364.44,
+      "en": "Now, if knocking out these heads has a consistent impact on cosine similarity, then you should get a significant t test here.",
+      "zh": "如果移除這些頭，對餘弦相似度有一致影響，這裡應該會得到顯著 t 檢定。"
+    },
+    {
+      "start": 1365,
+      "end": 1368.04,
+      "en": "So you get one t test per layer.",
+      "zh": "所以，每層一個 t 檢定。"
+    },
+    {
+      "start": 1368.32,
+      "end": 1376.36,
+      "en": "And then in this plot over here, I have drawn the difference scores as triangles where there is a significant difference.",
+      "zh": "這張圖中，顯著差異的差值分數，我畫成三角形。"
+    },
+    {
+      "start": 1376.48,
+      "end": 1381.32,
+      "en": "And I've drawn them as little red x's where the p value was greater than 0.05.",
+      "zh": "p 值大於 0.05，則畫成小紅叉。"
+    },
+    {
+      "start": 1381.64,
+      "end": 1386.76,
+      "en": "Of course you don't see any of those markers here, but you will see them when you run your code.",
+      "zh": "當然，這裡看不到那些標記，但執行程式碼後就會看到。"
+    },
+    {
+      "start": 1387.56,
+      "end": 1391.76,
+      "en": "So this is the final exercise for this code challenge.",
+      "zh": "這是這次程式挑戰最後一個練習。"
+    },
+    {
+      "start": 1391.88,
+      "end": 1394.64,
+      "en": "You can now pause the video and wrap things up.",
+      "zh": "現在可以暫停影片，收尾。"
+    },
+    {
+      "start": 1394.76,
+      "end": 1400.95,
+      "en": "And now I will switch to code discuss my code solution and also the results and how to interpret them.",
+      "zh": "現在切換到程式碼，討論解法、結果，以及如何解讀。"
+    },
+    {
+      "start": 1402.07,
+      "end": 1412.91,
+      "en": "This main code cell here in exercise four again looks really, really similar to the code cell from exercise two and also from exercise three.",
+      "zh": "練習四的主要儲存格，仍然與練習二、三的程式碼非常相似。"
+    },
+    {
+      "start": 1413.27,
+      "end": 1417.91,
+      "en": "So it's similar in the sense that I have a for loop over layers.",
+      "zh": "相似之處，是有遍歷各層的 for 迴圈。"
+    },
+    {
+      "start": 1418.43,
+      "end": 1425.83,
+      "en": "Uh, and then I'm running a forward pass to manipulate one head and then calculating cosine similarities",
+      "zh": "接著，前向傳播，操作一個頭，再計算"
+    },
+    {
+      "start": 1425.83,
+      "end": 1433.15,
+      "en": "between the embeddings vectors from uh, peanut butter to pizza and pineapple to pizza.",
+      "zh": "peanut butter 與 pizza，以及 pineapple 與 pizza 嵌入向量之間的餘弦相似度。"
+    },
+    {
+      "start": 1433.35,
+      "end": 1442.71,
+      "en": "Now, in this exercise, at least in the visualization, I am not using the peanut butter pizza cosine similarities, but I left it in here.",
+      "zh": "這份練習，至少視覺化中，不會使用花生醬與披薩的餘弦相似度，但我保留在程式碼中。"
+    },
+    {
+      "start": 1442.71,
+      "end": 1445.67,
+      "en": "Just, uh, I don't know, for no particularly good reason.",
+      "zh": "只是，不知道，沒有特別好的理由。"
+    },
+    {
+      "start": 1445.87,
+      "end": 1447.95,
+      "en": "Uh, you can play around with that if you like.",
+      "zh": "如果願意，可以自己玩玩看。"
+    },
+    {
+      "start": 1448.35,
+      "end": 1451.47,
+      "en": "Okay, so what is different here compared to exercise three?",
+      "zh": "好，與練習三相比，這裡有什麼不同？"
+    },
+    {
+      "start": 1451.75,
+      "end": 1454.27,
+      "en": "For one thing, uh, well, this is also the same.",
+      "zh": "首先，這個其實也相同。"
+    },
+    {
+      "start": 1454.31,
+      "end": 1460.57,
+      "en": "It's redefined here, Just in case you were playing around with exercise three and change this to butter.",
+      "zh": "這裡重新定義，以防你先前在練習三探索時，把它改成 butter。"
+    },
+    {
+      "start": 1460.69,
+      "end": 1464.53,
+      "en": "So now we make sure that we reset this to the value that we want.",
+      "zh": "現在確認，重設成想要的值。"
+    },
+    {
+      "start": 1465.09,
+      "end": 1465.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1465.45,
+      "end": 1475.01,
+      "en": "So what is different here is that in exercise three I had code here that was head to head to silence equals five.",
+      "zh": "不同之處，是練習三在這裡有 head to silence 等於五的程式碼。"
+    },
+    {
+      "start": 1475.13,
+      "end": 1483.61,
+      "en": "But now I no longer have that variable fixed to a particular value because that gets defined in this for loop over here.",
+      "zh": "現在不再把變數固定為特定值，因為會在這裡的 for 迴圈定義。"
+    },
+    {
+      "start": 1483.61,
+      "end": 1485.49,
+      "en": "So this is an embedded for loop.",
+      "zh": "這是內嵌 for 迴圈。"
+    },
+    {
+      "start": 1485.53,
+      "end": 1487.21,
+      "en": "We're looping over the layers.",
+      "zh": "先遍歷各層。"
+    },
+    {
+      "start": 1487.21,
+      "end": 1493.61,
+      "en": "And then we have another for loop over all of the individual attention heads within each layer.",
+      "zh": "再用另一個 for 迴圈，遍歷每層的所有個別注意力頭。"
+    },
+    {
+      "start": 1493.77,
+      "end": 1498.69,
+      "en": "So this is a lot of forward passes to go through.",
+      "zh": "所以，需要做很多次前向傳播。"
+    },
+    {
+      "start": 1498.73,
+      "end": 1500.05,
+      "en": "So it's however many layers.",
+      "zh": "也就是層數，"
+    },
+    {
+      "start": 1500.05,
+      "end": 1502.57,
+      "en": "There are times however many heads there are.",
+      "zh": "乘上頭數。"
+    },
+    {
+      "start": 1503.57,
+      "end": 1503.85,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1503.89,
+      "end": 1506.85,
+      "en": "But otherwise the code is basically the same.",
+      "zh": "其餘程式碼，基本上相同。"
+    },
+    {
+      "start": 1507.09,
+      "end": 1510.77,
+      "en": "And on the CPU, I don't know how long this will take.",
+      "zh": "CPU 要花多久，我不知道。"
+    },
+    {
+      "start": 1510.97,
+      "end": 1515.48,
+      "en": "Maybe several minutes on the CPU and on the GPU, it's pretty fast.",
+      "zh": "CPU 可能幾分鐘，GPU 則相當快。"
+    },
+    {
+      "start": 1515.48,
+      "end": 1517.24,
+      "en": "It's like 20s or something.",
+      "zh": "大約 20 秒之類的。"
+    },
+    {
+      "start": 1517.72,
+      "end": 1518,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1518.04,
+      "end": 1522.84,
+      "en": "And then this plotting here, let me show you the plot first and discuss.",
+      "zh": "這裡畫圖，先展示圖、討論。"
+    },
+    {
+      "start": 1522.84,
+      "end": 1526.6,
+      "en": "And then I'll go back and show some of the code okay.",
+      "zh": "再回去看一些程式碼。"
+    },
+    {
+      "start": 1526.64,
+      "end": 1535,
+      "en": "So here we see the cosine similarity between pineapple and pizza and the horizontal.",
+      "zh": "這裡看到 pineapple 與 pizza 的餘弦相似度，以及水平……"
+    },
+    {
+      "start": 1535.04,
+      "end": 1537.52,
+      "en": "Let me I should make these a little bit bigger.",
+      "zh": "讓我把這些放大一點。"
+    },
+    {
+      "start": 1537.56,
+      "end": 1538.36,
+      "en": "Where is that.",
+      "zh": "在哪裡？"
+    },
+    {
+      "start": 1539.28,
+      "end": 1539.8,
+      "en": "Yeah okay.",
+      "zh": "對，好。"
+    },
+    {
+      "start": 1539.84,
+      "end": 1546.2,
+      "en": "That's here I think I will make these a little bit longer and I'll make this a little bit thicker.",
+      "zh": "在這裡。把這些拉長一點，再加粗一點。"
+    },
+    {
+      "start": 1546.36,
+      "end": 1548.36,
+      "en": "I don't want to make it too thick and too big.",
+      "zh": "不想弄得太粗、太大。"
+    },
+    {
+      "start": 1548.4,
+      "end": 1548.6,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1548.64,
+      "end": 1550.16,
+      "en": "It kind of crosses out the line.",
+      "zh": "有點把線劃掉了。"
+    },
+    {
+      "start": 1550.2,
+      "end": 1551.88,
+      "en": "Okay, maybe I regret doing that.",
+      "zh": "好，也許後悔了。"
+    },
+    {
+      "start": 1551.92,
+      "end": 1552.44,
+      "en": "Maybe.",
+      "zh": "也許。"
+    },
+    {
+      "start": 1552.48,
+      "end": 1556.68,
+      "en": "How about let's leave the line a little bit thinner, but wider.",
+      "zh": "不如讓線細一點，但寬一些。"
+    },
+    {
+      "start": 1556.72,
+      "end": 1556.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1557,
+      "end": 1557.96,
+      "en": "This is a little bit better.",
+      "zh": "這樣稍微好一點。"
+    },
+    {
+      "start": 1558.28,
+      "end": 1558.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1558.68,
+      "end": 1566.28,
+      "en": "So this horizontal black line shows exactly the same results that we got from exercise two all the way up here.",
+      "zh": "這些黑色水平線，顯示與上面練習二完全相同的結果。"
+    },
+    {
+      "start": 1566.28,
+      "end": 1568.56,
+      "en": "The green squares over here.",
+      "zh": "也就是這裡的綠色方塊。"
+    },
+    {
+      "start": 1568.56,
+      "end": 1573.99,
+      "en": "This is the cosine similarity between pineapple and pizza from the clean model.",
+      "zh": "這是乾淨模型的 pineapple 與 pizza 餘弦相似度。"
+    },
+    {
+      "start": 1573.99,
+      "end": 1578.63,
+      "en": "And that is exactly what you see with these horizontal black lines over here.",
+      "zh": "這裡的黑色水平線，顯示的正是它。"
+    },
+    {
+      "start": 1579.07,
+      "end": 1586.91,
+      "en": "And then each of these circles shows cosine similarity between exactly the same two token embeddings vectors.",
+      "zh": "每個圓圈，則顯示完全相同兩個 token 嵌入向量的餘弦相似度。"
+    },
+    {
+      "start": 1586.91,
+      "end": 1588.43,
+      "en": "So pineapple and pizza.",
+      "zh": "也就是 pineapple 和 pizza。"
+    },
+    {
+      "start": 1588.63,
+      "end": 1593.11,
+      "en": "But each dot corresponds to manipulating one of the heads.",
+      "zh": "但每個點，對應操作其中一個頭。"
+    },
+    {
+      "start": 1593.15,
+      "end": 1601.87,
+      "en": "How many heads are there in this model there are 20 heads in total, so there are 20 circles in each of these plots here.",
+      "zh": "這個模型有多少頭？總共有 20 個，所以，每張圖有 20 個圓圈。"
+    },
+    {
+      "start": 1602.83,
+      "end": 1610.83,
+      "en": "Now you don't, except for for this over here in the very, very beginning here, you don't really see 20 different circles.",
+      "zh": "但除了最前面這裡，其實看不到 20 個不同圓圈。"
+    },
+    {
+      "start": 1610.83,
+      "end": 1615.51,
+      "en": "It looks like, you know, these are just little UFOs flying all over the sky.",
+      "zh": "看起來，只像小 UFO 在天空飛。"
+    },
+    {
+      "start": 1616.07,
+      "end": 1617.79,
+      "en": "And why is that the case?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 1617.79,
+      "end": 1620.63,
+      "en": "Why does it look like there's really only one?",
+      "zh": "為什麼看起來好像只有一個？"
+    },
+    {
+      "start": 1620.63,
+      "end": 1626.63,
+      "en": "Well, that's because the effect of manipulating any one attention head is really, really small.",
+      "zh": "因為操作任何一個注意力頭的影響，真的非常小。"
+    },
+    {
+      "start": 1626.63,
+      "end": 1628.59,
+      "en": "So all of these are bunched together.",
+      "zh": "所以，全部擠在一起。"
+    },
+    {
+      "start": 1628.83,
+      "end": 1638.13,
+      "en": "This manipulation is so subtle that it's really not having much of an effect, and you see that as well here when I do the t tests.",
+      "zh": "操作太細微，真的沒有很大效果，做 t 檢定時也能看到。"
+    },
+    {
+      "start": 1638.13,
+      "end": 1641.65,
+      "en": "So again, what I'm testing here, let me show you this in the code.",
+      "zh": "同樣，檢定的是，讓我在程式碼中展示。"
+    },
+    {
+      "start": 1642.17,
+      "end": 1650.49,
+      "en": "I'm running a t test on the manipulated cosine similarities with minus the clean cosine similarities.",
+      "zh": "對操作後的餘弦相似度，減去乾淨餘弦相似度，做 t 檢定。"
+    },
+    {
+      "start": 1650.65,
+      "end": 1658.21,
+      "en": "So it's testing for whether there is any consistent difference in the 20 dots compared to the black lines.",
+      "zh": "檢定這 20 個點，相對於黑線，是否有一致差異。"
+    },
+    {
+      "start": 1658.37,
+      "end": 1663.61,
+      "en": "And it's not surprising that that t test is really almost never significant.",
+      "zh": "不意外，這個 t 檢定幾乎從不顯著。"
+    },
+    {
+      "start": 1663.81,
+      "end": 1672.77,
+      "en": "It is a few times, honestly, these might just be statistical errors because I'm actually not correcting for multiple comparisons over here.",
+      "zh": "有幾次顯著，但老實說，可能只是統計錯誤，因為這裡其實沒有校正多重比較。"
+    },
+    {
+      "start": 1673.69,
+      "end": 1676.29,
+      "en": "Maybe I should let me do this quick and dirty.",
+      "zh": "也許應該，快速做一下。"
+    },
+    {
+      "start": 1676.33,
+      "end": 1681.41,
+      "en": "So there's 36 layers and then we see every single one of those.",
+      "zh": "有 36 層，然後可以看到，全部那些，"
+    },
+    {
+      "start": 1681.85,
+      "end": 1682.93,
+      "en": "Apparently.",
+      "zh": "顯然，"
+    },
+    {
+      "start": 1683.29,
+      "end": 1686.53,
+      "en": "So Speciously significant results just disappeared.",
+      "zh": "看似顯著的結果，都消失了。"
+    },
+    {
+      "start": 1686.93,
+      "end": 1694.68,
+      "en": "So what this tells us is that this manipulation, this really precise manipulation of one head for one",
+      "zh": "這告訴我們，這個非常精確、只針對一層、一個頭、"
+    },
+    {
+      "start": 1694.68,
+      "end": 1704.16,
+      "en": "layer and one token that does not have any consistent impact on the cosine similarity between pineapple and pizza.",
+      "zh": "一個 token 的操作，對 pineapple 與 pizza 的餘弦相似度，沒有任何一致影響。"
+    },
+    {
+      "start": 1704.16,
+      "end": 1707.84,
+      "en": "So that relationship is really, really strong in GPT two.",
+      "zh": "所以，GPT2 中這個關係真的非常強。"
+    },
+    {
+      "start": 1708.12,
+      "end": 1716.48,
+      "en": "We're going to need like a jackhammer to change the way that GPT two associates pineapple with pizza.",
+      "zh": "我們大概需要電鑽，才能改變 GPT2 把鳳梨與披薩聯繫起來的方式。"
+    },
+    {
+      "start": 1717.72,
+      "end": 1725.68,
+      "en": "So far in this part of the course, you have seen that there are multiple scales or levels of precision",
+      "zh": "課程這一部分到目前為止，已經看到多種尺度、不同精確程度，"
+    },
+    {
+      "start": 1726.08,
+      "end": 1729.92,
+      "en": "at which you can target these models for interference.",
+      "zh": "可以用來干預這些模型。"
+    },
+    {
+      "start": 1730.44,
+      "end": 1735.88,
+      "en": "You can get really detailed, precise, targeted interventions like what you saw here.",
+      "zh": "可以像這裡，做非常詳細、精確、有目標的干預。"
+    },
+    {
+      "start": 1736.44,
+      "end": 1744.48,
+      "en": "And you can also do much more macroscopic manipulations, like scaling down an entire transformer block output.",
+      "zh": "也可以做更宏觀的操作，例如縮小整個 Transformer 區塊的輸出。"
+    },
+    {
+      "start": 1745.16,
+      "end": 1749.14,
+      "en": "Now, none of these approaches is intrinsically better or worse.",
+      "zh": "這些方法本身，沒有哪個更好或更差。"
+    },
+    {
+      "start": 1749.42,
+      "end": 1758.38,
+      "en": "They can be used to evaluate different kinds of hypotheses about different kinds of calculations and representations inside the model.",
+      "zh": "它們能用來評估，關於模型內不同計算與表徵的各種假設。"
+    },
+    {
+      "start": 1758.54,
+      "end": 1766.06,
+      "en": "I think a promising future approach of mechanistic interpretability will be to combine these different",
+      "zh": "我認為，機制可解釋性未來有前景的方式，是結合這些不同"
+    },
+    {
+      "start": 1766.06,
+      "end": 1772.82,
+      "en": "kinds of manipulations and different levels of granularity to test very specific hypotheses.",
+      "zh": "操作與粒度，檢驗非常具體的假設。"
+    },
+    {
+      "start": 1773.46,
+      "end": 1779.18,
+      "en": "Of course, I would also like to stress again, that the appropriate learning point from this code challenge",
+      "zh": "當然，也想再次強調，這次程式挑戰適當的學習重點，"
+    },
+    {
+      "start": 1779.18,
+      "end": 1787.18,
+      "en": "is about the implementation of the methodological approach, and not the ridiculous interpretations of the findings.",
+      "zh": "是方法如何實作，而不是對發現做那些荒謬解讀。"
+    },
+    {
+      "start": 1787.38,
+      "end": 1789.34,
+      "en": "Of course, there was only one sentence.",
+      "zh": "當然，這裡只有一個句子。"
+    },
+    {
+      "start": 1789.34,
+      "end": 1793.38,
+      "en": "That's really not enough data to draw any strong conclusions.",
+      "zh": "資料真的不足，無法做任何強烈結論。"
+    },
+    {
+      "start": 1793.98,
+      "end": 1800.38,
+      "en": "That said, we can definitely conclude that peanut butter and pineapple are fantastic on pizza.",
+      "zh": "話雖如此，絕對可以斷言，花生醬與鳳梨放在披薩上很好吃。"
+    },
+    {
+      "start": 1800.74,
+      "end": 1803.66,
+      "en": "I think I will move to Italy and open up a pizzeria.",
+      "zh": "我想，我要搬去義大利開披薩店。"
+    }
+  ]
+}

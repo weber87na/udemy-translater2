@@ -1,0 +1,1429 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840113",
+  "title": "Model 5: Complete GPT2 on the GPU",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "4a9207e09c04d931eb361ce2851e9cd56ce491f8a421fd3d7d1ba0246485407b",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 4.92,
+      "en": "This is a very exciting video.",
+      "zh": "這支影片很令人期待。"
+    },
+    {
+      "start": 5.24,
+      "end": 12.12,
+      "en": "We are going to create a complete GPT two model and run it on the GPU.",
+      "zh": "我們要建立完整的 GPT-2 模型，並在 GPU 上執行。"
+    },
+    {
+      "start": 12.76,
+      "end": 24.56,
+      "en": "It's still with random weights, so it's not really a very useful functioning model, but you will get to see how all of the pieces you've learned from this section get pieced together.",
+      "zh": "權重仍是隨機的，所以還不是有實際用途的模型，但你會看到這一節學過的所有部分如何組合。"
+    },
+    {
+      "start": 25,
+      "end": 33.2,
+      "en": "There's only one more tiny little concept that is new in this model, and that is having a more efficient",
+      "zh": "這個模型只剩一個很小的新概念，就是更有效率地"
+    },
+    {
+      "start": 33.2,
+      "end": 40.24,
+      "en": "storage of the weights matrices for the query keys and values vectors.",
+      "zh": "儲存查詢、鍵與值向量的權重矩陣。"
+    },
+    {
+      "start": 40.76,
+      "end": 42.84,
+      "en": "So here you see those matrices.",
+      "zh": "這裡就是那些矩陣。"
+    },
+    {
+      "start": 42.84,
+      "end": 46,
+      "en": "These weights matrices are all the same size.",
+      "zh": "權重矩陣大小都相同。"
+    },
+    {
+      "start": 46.16,
+      "end": 51.72,
+      "en": "So embeddings by embeddings they have different numbers inside of course.",
+      "zh": "也就是「嵌入維度 × 嵌入維度」，當然裡面的數字不同。"
+    },
+    {
+      "start": 51.72,
+      "end": 55.12,
+      "en": "And they're used differently in the attention calculations.",
+      "zh": "在注意力計算中的用途也不同。"
+    },
+    {
+      "start": 55.32,
+      "end": 58.72,
+      "en": "But they're the same size and also the same data type.",
+      "zh": "但大小相同，資料型別也相同。"
+    },
+    {
+      "start": 58.93,
+      "end": 66.97,
+      "en": "So the efficiency trick is to combine them into one big matrix, where the number of rows corresponds",
+      "zh": "提升效率的技巧，是合併成一個大矩陣，列數對應"
+    },
+    {
+      "start": 66.97,
+      "end": 73.41,
+      "en": "to the embedding dimension, and the number of columns is three times the embedding dimension.",
+      "zh": "嵌入維度，欄數則是嵌入維度的三倍。"
+    },
+    {
+      "start": 73.69,
+      "end": 79.69,
+      "en": "So then we just have one matrix here instead of three separate matrices here.",
+      "zh": "所以這裡只有一個矩陣，而不是三個獨立矩陣。"
+    },
+    {
+      "start": 80.09,
+      "end": 84.49,
+      "en": "It's kind of a small change, but it does make it easier to move the matrices around.",
+      "zh": "改變不大，但搬移矩陣時會比較容易。"
+    },
+    {
+      "start": 85.01,
+      "end": 95.33,
+      "en": "Of course when we need to separate the matrices for the attention equation, then they get split up and there's a dedicated PyTorch function just for that splitting.",
+      "zh": "當注意力方程式需要分開的矩陣時，再拆開；PyTorch 有專門負責拆分的函數。"
+    },
+    {
+      "start": 95.85,
+      "end": 96.81,
+      "en": "And that's that.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 97.09,
+      "end": 99.85,
+      "en": "So in a moment I'll switch to Python.",
+      "zh": "稍後切到 Python。"
+    },
+    {
+      "start": 100.09,
+      "end": 103.77000000000001,
+      "en": "I built this model using three classes.",
+      "zh": "我用三個類別建立這個模型。"
+    },
+    {
+      "start": 104.05,
+      "end": 108.49000000000001,
+      "en": "The first class is the Multi-head attention class.",
+      "zh": "第一個是多頭注意力類別。"
+    },
+    {
+      "start": 108.77000000000001,
+      "end": 119.25,
+      "en": "This is more or less the same code you saw in the previous video, but it's a little bit simplified here instead of creating three separate linear objects.",
+      "zh": "和上一支影片的程式大致相同，但這裡稍微簡化，不再建立三個獨立線性物件。"
+    },
+    {
+      "start": 119.25,
+      "end": 123.53,
+      "en": "I'm just creating one and it's three times the embedding size.",
+      "zh": "只建立一個，大小是三倍嵌入維度。"
+    },
+    {
+      "start": 123.73,
+      "end": 132.65,
+      "en": "I will review the forward pass in when I switch to code, but this is mostly copy pasted from the code for the previous video.",
+      "zh": "切到程式碼會回顧前向傳播，但大部分是從上一支影片複製貼上。"
+    },
+    {
+      "start": 132.97,
+      "end": 136.73,
+      "en": "I did condense the code a little bit with the transposing and so on.",
+      "zh": "也稍微精簡了轉置等操作的程式。"
+    },
+    {
+      "start": 137.29,
+      "end": 140.37,
+      "en": "Then we have the transformer block class.",
+      "zh": "接著是 Transformer 區塊類別。"
+    },
+    {
+      "start": 140.53,
+      "end": 151.32999999999998,
+      "en": "Here is where I initialize the attention layer and the MLP layer, and the forward method looks like how it looked when I introduced the transformer block.",
+      "zh": "這裡初始化注意力層與 MLP 層，forward 方法則和介紹 Transformer 區塊時相同。"
+    },
+    {
+      "start": 151.53,
+      "end": 161.13,
+      "en": "The key difference here is that we are using the Multi-head attention class instead of a single attention head, but that doesn't really change the flow of the code.",
+      "zh": "主要差別是，改用多頭注意力類別，而不是單頭注意力，但程式流程沒變。"
+    },
+    {
+      "start": 161.49,
+      "end": 164.41,
+      "en": "And finally, the entire language model.",
+      "zh": "最後是整個語言模型。"
+    },
+    {
+      "start": 164.89,
+      "end": 176.66,
+      "en": "Now, one of the advantages of having the transformer and the attention in separate classes is that this code gets simpler and therefore easier to read.",
+      "zh": "把 Transformer 與注意力拆成獨立類別的優點之一，就是這裡的程式更簡單、更容易讀。"
+    },
+    {
+      "start": 177.18,
+      "end": 180.62,
+      "en": "So the forward pass here has three sections.",
+      "zh": "因此前向傳播有三個部分。"
+    },
+    {
+      "start": 180.66,
+      "end": 183.14,
+      "en": "Token plus position embeddings.",
+      "zh": "詞元嵌入加上位置嵌入。"
+    },
+    {
+      "start": 183.18,
+      "end": 184.7,
+      "en": "Transformer blocks.",
+      "zh": "Transformer 區塊。"
+    },
+    {
+      "start": 184.7,
+      "end": 186.94,
+      "en": "And then the final UN embeddings.",
+      "zh": "最後是反嵌入。"
+    },
+    {
+      "start": 188.02,
+      "end": 197.5,
+      "en": "Now you might remember that in previous models I scaled the final output logits by the square root of the embeddings dimension.",
+      "zh": "你可能記得，之前模型把最後輸出 logit，除以嵌入維度的平方根來縮放。"
+    },
+    {
+      "start": 198.22,
+      "end": 202.78,
+      "en": "In real models, that scaling is to offset the variance.",
+      "zh": "真實模型中，抵銷變異數"
+    },
+    {
+      "start": 202.78,
+      "end": 211.1,
+      "en": "Expansion is handled partly inside the attention sublayer and partly inside this final layer norm over here.",
+      "zh": "擴張的縮放，有一部分在注意力子層內處理，另一部分則由這裡最後的 LayerNorm 處理。"
+    },
+    {
+      "start": 211.18,
+      "end": 214.94,
+      "en": "So I left out the final scaling here.",
+      "zh": "因此這裡省略最後的縮放。"
+    },
+    {
+      "start": 215.57999999999998,
+      "end": 223.46,
+      "en": "Now the last thing we are going to do in the code is measure the total number of trainable parameters in the model.",
+      "zh": "程式碼最後要做的，是測量模型內可訓練參數的總數。"
+    },
+    {
+      "start": 223.62,
+      "end": 227.18,
+      "en": "I will walk you through how to read this table in the code.",
+      "zh": "程式碼中會逐步說明怎麼讀這張表。"
+    },
+    {
+      "start": 227.42000000000002,
+      "end": 236.51,
+      "en": "It looks like there are 163 million trainable parameters, but it's actually closer to 124 million.",
+      "zh": "看起來有 1.63 億個可訓練參數，但其實更接近 1.24 億。"
+    },
+    {
+      "start": 236.55,
+      "end": 239.75,
+      "en": "For reasons I will explain when I'm in the code.",
+      "zh": "原因切到程式碼後會解釋。"
+    },
+    {
+      "start": 240.35,
+      "end": 241.71,
+      "en": "Import PyTorch.",
+      "zh": "匯入 PyTorch。"
+    },
+    {
+      "start": 241.83,
+      "end": 246.55,
+      "en": "In this particular code file we do not need numpy or matplotlib.",
+      "zh": "這個程式檔不需要 NumPy 或 matplotlib。"
+    },
+    {
+      "start": 246.59,
+      "end": 247.91,
+      "en": "It's fairly rare actually.",
+      "zh": "其實滿少見的。"
+    },
+    {
+      "start": 248.31,
+      "end": 259.71,
+      "en": "Here I'm specifying that the device or this variable I call device will direct the model to the GPU, which I have already connected through runtime here.",
+      "zh": "這裡指定 device 變數，讓模型使用 GPU；我已經透過 Runtime 連線。"
+    },
+    {
+      "start": 259.71,
+      "end": 262.31,
+      "en": "So runtime change runtime type.",
+      "zh": "也就是 Runtime、Change runtime type。"
+    },
+    {
+      "start": 262.31,
+      "end": 264.95,
+      "en": "You can see I'm connected to a GPU here.",
+      "zh": "可以看到，這裡連到 GPU。"
+    },
+    {
+      "start": 265.51,
+      "end": 267.19,
+      "en": "Here we have hyper parameters.",
+      "zh": "這是超參數。"
+    },
+    {
+      "start": 267.19,
+      "end": 272.90999999999997,
+      "en": "These numbers here are much bigger than what you have seen in the previous models.",
+      "zh": "這些數字比之前模型看到的大得多。"
+    },
+    {
+      "start": 273.03,
+      "end": 277.31,
+      "en": "I copied all of these values from GPT two small.",
+      "zh": "全部從 GPT-2 small 複製而來。"
+    },
+    {
+      "start": 277.55,
+      "end": 280.75,
+      "en": "So there are multiple GPT two variants.",
+      "zh": "GPT-2 有多種版本。"
+    },
+    {
+      "start": 280.79,
+      "end": 283.55,
+      "en": "The smallest one has these parameters.",
+      "zh": "最小的版本使用這些參數。"
+    },
+    {
+      "start": 283.59000000000003,
+      "end": 284.95,
+      "en": "This number is familiar.",
+      "zh": "這個數字很熟悉。"
+    },
+    {
+      "start": 284.95,
+      "end": 287.63,
+      "en": "This actually I think all of these numbers are familiar.",
+      "zh": "其實這些數字應該都很熟悉。"
+    },
+    {
+      "start": 287.63,
+      "end": 290.39,
+      "en": "So we have 12 transformer blocks.",
+      "zh": "有 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 290.43,
+      "end": 301.35,
+      "en": "Each block has 12 attention heads, and those all fit inside of 768 embeddings dimensions and a sequence",
+      "zh": "每個區塊有 12 個注意力頭，放在 768 維的嵌入裡，序列"
+    },
+    {
+      "start": 301.35,
+      "end": 302.79,
+      "en": "length of 1000.",
+      "zh": "長度則為 1,000。"
+    },
+    {
+      "start": 302.95,
+      "end": 305.15,
+      "en": "So this is starting to get pretty big.",
+      "zh": "開始變得很大了。"
+    },
+    {
+      "start": 305.19,
+      "end": 308.91,
+      "en": "Although, you know, as far as language models go, this is still really small.",
+      "zh": "不過以語言模型而言，仍然很小。"
+    },
+    {
+      "start": 309.19,
+      "end": 315.95,
+      "en": "But relative to the models that we have been building so far in this section, this model is gigantic.",
+      "zh": "但相較這一節目前建立的模型，這個已經非常巨大。"
+    },
+    {
+      "start": 316.67,
+      "end": 322.15,
+      "en": "And yeah, we're going to in the next video in the code challenge, we're going to do some computation",
+      "zh": "下一支影片的程式挑戰，會做運算"
+    },
+    {
+      "start": 322.15,
+      "end": 330.19,
+      "en": "time tests to see how long it takes this model to run even a tiny bit of data on the CPU versus the GPU.",
+      "zh": "時間測試，看看這個模型在 CPU 與 GPU 上，即使只處理一點資料，分別需要多久。"
+    },
+    {
+      "start": 330.59,
+      "end": 334.90999999999997,
+      "en": "But for now, for this video, we're just going to focus on the GPU.",
+      "zh": "但這支影片先只看 GPU。"
+    },
+    {
+      "start": 336.15,
+      "end": 336.55,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 336.90999999999997,
+      "end": 338.83,
+      "en": "Multi-head attention.",
+      "zh": "多頭注意力。"
+    },
+    {
+      "start": 338.90999999999997,
+      "end": 340.95,
+      "en": "Most of this code you've seen before.",
+      "zh": "大部分程式都看過。"
+    },
+    {
+      "start": 341.23,
+      "end": 351,
+      "en": "The main unique feature here is instead of creating three separate weights Matrices, those three separate",
+      "zh": "主要特色是，不再建立三個獨立的權重矩陣，也就是三個獨立的"
+    },
+    {
+      "start": 351.64,
+      "end": 357.24,
+      "en": "PyTorch linear objects for Q, wq, and WV.",
+      "zh": "PyTorch 線性物件，分別用於 Q、W_Q、W_V。"
+    },
+    {
+      "start": 357.52,
+      "end": 359.04,
+      "en": "I'm creating them all at once.",
+      "zh": "而是一次建立全部。"
+    },
+    {
+      "start": 359.04,
+      "end": 365.28,
+      "en": "You can see we have embeddings dimensionality by three times the embeddings dimensionality.",
+      "zh": "可以看到，大小是「嵌入維度 × 三倍嵌入維度」。"
+    },
+    {
+      "start": 365.96,
+      "end": 367.68,
+      "en": "And then in the forward model.",
+      "zh": "接著在前向模型中，"
+    },
+    {
+      "start": 368.28,
+      "end": 374.56,
+      "en": "Now here I pass the data through this concatenated matrix all at once.",
+      "zh": "一次讓資料通過這個合併矩陣。"
+    },
+    {
+      "start": 374.72,
+      "end": 375.48,
+      "en": "Which is fine.",
+      "zh": "這樣沒問題。"
+    },
+    {
+      "start": 375.48,
+      "end": 382.2,
+      "en": "That is equivalent to separating the three matrices or having three separate matrices.",
+      "zh": "等同於分開三個矩陣，或持有三個獨立矩陣，"
+    },
+    {
+      "start": 382.2,
+      "end": 388.92,
+      "en": "Multiply the data by each of those three matrices separately and then concatenating them back.",
+      "zh": "讓資料分別乘上各個矩陣，再把結果串接起來。"
+    },
+    {
+      "start": 389.04,
+      "end": 390.04,
+      "en": "So it's all fine.",
+      "zh": "都沒問題。"
+    },
+    {
+      "start": 390.04,
+      "end": 393.44,
+      "en": "This is just computationally a little bit more efficient.",
+      "zh": "只是計算上稍有效率。"
+    },
+    {
+      "start": 394.04,
+      "end": 396.24,
+      "en": "Here is where I split them up.",
+      "zh": "這裡再拆開。"
+    },
+    {
+      "start": 396.24,
+      "end": 401.96,
+      "en": "So run the data through this linear object through this big weights matrix.",
+      "zh": "先讓資料通過線性物件，也就是這個大權重矩陣。"
+    },
+    {
+      "start": 402.15999999999997,
+      "end": 404.36,
+      "en": "And then here I split it up into.",
+      "zh": "然後在這裡拆成，"
+    },
+    {
+      "start": 404.4,
+      "end": 412.36,
+      "en": "So I split up this matrix into To size E, which is the embedding dimension, and I'm splitting in the",
+      "zh": "把矩陣拆成每塊大小為 E，也就是嵌入維度，並且沿著"
+    },
+    {
+      "start": 412.52,
+      "end": 416.96,
+      "en": "third dimension, which is the final dimension, the embedding dimension here.",
+      "zh": "第三個維度拆，也就是最後一個維度，這裡的嵌入維度。"
+    },
+    {
+      "start": 416.96,
+      "end": 419.48,
+      "en": "And that gives me these three matrices.",
+      "zh": "就得到這三個矩陣。"
+    },
+    {
+      "start": 420.04,
+      "end": 420.44,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 420.48,
+      "end": 426.8,
+      "en": "All of the rest of this code is the same as what you've seen before in the previous code file.",
+      "zh": "其餘程式，都和上一個程式檔看過的相同。"
+    },
+    {
+      "start": 426.8,
+      "end": 436.84,
+      "en": "For Multi-head attention, I had this dot transpose on a separate line, and here I'm just doing it twice just for making it a little bit more compact.",
+      "zh": "之前多頭注意力把 .transpose 寫在獨立一行，這裡則直接接在操作後面，讓程式更精簡。"
+    },
+    {
+      "start": 437.72,
+      "end": 437.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 438,
+      "end": 439.52,
+      "en": "So let me run that code.",
+      "zh": "執行一下。"
+    },
+    {
+      "start": 440,
+      "end": 442.4,
+      "en": "And then here is the transformer block.",
+      "zh": "接著是 Transformer 區塊。"
+    },
+    {
+      "start": 442.44,
+      "end": 445.2,
+      "en": "This is basically the same as what you've seen before.",
+      "zh": "基本上和之前相同。"
+    },
+    {
+      "start": 445.52,
+      "end": 451.4,
+      "en": "Except now we swap out the single attention for Multi-head attention.",
+      "zh": "只是把單頭注意力換成多頭注意力。"
+    },
+    {
+      "start": 451.84,
+      "end": 457,
+      "en": "So here's where I create the Multi-head or sorry create the attention sub block.",
+      "zh": "這裡建立多頭，抱歉，是建立注意力子區塊。"
+    },
+    {
+      "start": 457,
+      "end": 460.52,
+      "en": "Create the MLP sub block here in the forward method.",
+      "zh": "這裡建立 MLP 子區塊，接著是 forward 方法。"
+    },
+    {
+      "start": 460.52,
+      "end": 461.6,
+      "en": "This is very simple.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 462.15999999999997,
+      "end": 465,
+      "en": "Run through attention and run through MLP.",
+      "zh": "通過注意力，再通過 MLP。"
+    },
+    {
+      "start": 465.32,
+      "end": 468.49,
+      "en": "So here you see the data start off as variable x.",
+      "zh": "資料一開始是變數 X。"
+    },
+    {
+      "start": 468.73,
+      "end": 471.09000000000003,
+      "en": "And then I push it through layer norm.",
+      "zh": "然後送進 LayerNorm。"
+    },
+    {
+      "start": 471.21,
+      "end": 475.13,
+      "en": "And notice that the variable name changes here.",
+      "zh": "注意，這裡變數名稱改了。"
+    },
+    {
+      "start": 475.33,
+      "end": 480.65,
+      "en": "So the output of layer norm I call x underscore at for attention.",
+      "zh": "LayerNorm 的輸出，我叫 x_at，at 代表 attention。"
+    },
+    {
+      "start": 481.05,
+      "end": 484.61,
+      "en": "And I'm not overwriting this variable.",
+      "zh": "沒有覆寫原本的變數。"
+    },
+    {
+      "start": 484.73,
+      "end": 488.89,
+      "en": "And then this layer norm goes into the multi-head attention.",
+      "zh": "接著把 LayerNorm 輸出送進多頭注意力。"
+    },
+    {
+      "start": 489.17,
+      "end": 496.49,
+      "en": "And the output of that are the adjustments that we want to make to the token embeddings vectors.",
+      "zh": "輸出就是想對詞元嵌入向量做的調整。"
+    },
+    {
+      "start": 496.61,
+      "end": 504.25,
+      "en": "And that you can see I'm just adding that adjustment the attention adjustment factor back onto variable x.",
+      "zh": "可以看到，我把這個注意力調整量，加回變數 X。"
+    },
+    {
+      "start": 504.29,
+      "end": 507.77,
+      "en": "This was the input into the transformer block.",
+      "zh": "這是 Transformer 區塊的輸入。"
+    },
+    {
+      "start": 507.77,
+      "end": 512.53,
+      "en": "It's not the output of layer norm before the attention okay.",
+      "zh": "不是注意力之前 LayerNorm 的輸出。"
+    },
+    {
+      "start": 512.57,
+      "end": 517.81,
+      "en": "And then I do the same variable naming trick with the linear layer.",
+      "zh": "線性層也使用相同的變數命名技巧。"
+    },
+    {
+      "start": 518.01,
+      "end": 518.37,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 518.41,
+      "end": 521.05,
+      "en": "So here I have a layer norm two.",
+      "zh": "這裡有 LayerNorm 二。"
+    },
+    {
+      "start": 521.09,
+      "end": 526.46,
+      "en": "The input into this is the output of the attention sublayer.",
+      "zh": "它的輸入，是注意力子層的輸出。"
+    },
+    {
+      "start": 526.74,
+      "end": 530.9,
+      "en": "And then I call that variable x underscore f for feedforward.",
+      "zh": "然後把變數叫做 x_f，f 代表 feedforward。"
+    },
+    {
+      "start": 531.38,
+      "end": 532.82,
+      "en": "So here's the feedforward.",
+      "zh": "這就是前饋部分。"
+    },
+    {
+      "start": 532.94,
+      "end": 535.38,
+      "en": "So this is uh layer norm.",
+      "zh": "先做 LayerNorm。"
+    },
+    {
+      "start": 535.54,
+      "end": 545.86,
+      "en": "And then here I go to the first linear layer the non-linearity the second linear layer where we do the contraction back to the embeddings dimensionality.",
+      "zh": "接著第一個線性層、非線性、第二個線性層，再收縮回嵌入維度。"
+    },
+    {
+      "start": 545.86,
+      "end": 552.94,
+      "en": "And then I add that back on to the data which was pre MLP layer norm.",
+      "zh": "然後加回 MLP 的 LayerNorm 之前那份資料。"
+    },
+    {
+      "start": 553.3,
+      "end": 558.9,
+      "en": "So technically you know you could actually do all of this in one line of code and all of this in one line of code.",
+      "zh": "嚴格來說，這一整段其實可以寫成一行，這一整段也可以寫成一行。"
+    },
+    {
+      "start": 559.22,
+      "end": 559.82,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 559.86,
+      "end": 561.26,
+      "en": "So that is that.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 561.3,
+      "end": 562.78,
+      "en": "Now for the full model.",
+      "zh": "接著是完整模型。"
+    },
+    {
+      "start": 562.78,
+      "end": 569.5,
+      "en": "So class language model here I create the embeddings transformer blocks.",
+      "zh": "LanguageModel 類別，這裡建立嵌入與 Transformer 區塊。"
+    },
+    {
+      "start": 569.5,
+      "end": 570.9,
+      "en": "You've seen this code before.",
+      "zh": "這些程式你看過。"
+    },
+    {
+      "start": 571.22,
+      "end": 576.74,
+      "en": "And the final layer norm after we have finished going through 12 transformer blocks.",
+      "zh": "通過 12 個 Transformer 區塊後，還有最後的 LayerNorm。"
+    },
+    {
+      "start": 576.74,
+      "end": 579.1,
+      "en": "So one more normalization.",
+      "zh": "也就是再正規化一次。"
+    },
+    {
+      "start": 579.3,
+      "end": 588.18,
+      "en": "And then here is the final embeddings matrix, the weights of which are tied to the token embeddings.",
+      "zh": "這裡是最後的反嵌入矩陣，權重與詞元嵌入綁定。"
+    },
+    {
+      "start": 588.18,
+      "end": 590.58,
+      "en": "I forgot to mention I changed the variable names.",
+      "zh": "忘了說，我改了變數名稱。"
+    },
+    {
+      "start": 590.74,
+      "end": 601.54,
+      "en": "I'm trying to transition into being a little bit more consistent with the naming conventions in OpenAI's models, the GPT two models.",
+      "zh": "希望逐漸更符合 OpenAI 的 GPT-2 模型命名慣例。"
+    },
+    {
+      "start": 601.74,
+      "end": 604.26,
+      "en": "So they call their token embeddings.",
+      "zh": "他們把詞元嵌入叫做，"
+    },
+    {
+      "start": 605.54,
+      "end": 608.22,
+      "en": "That is word token embedding.",
+      "zh": "也就是 wte，word token embedding。"
+    },
+    {
+      "start": 608.5,
+      "end": 611.98,
+      "en": "And wpe is word position embedding.",
+      "zh": "wpe 則是 word position embedding，字詞位置嵌入。"
+    },
+    {
+      "start": 611.98,
+      "end": 615.22,
+      "en": "So that's what I call these variable names here.",
+      "zh": "所以這裡用這些變數名稱。"
+    },
+    {
+      "start": 616.42,
+      "end": 616.66,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 616.7,
+      "end": 621.22,
+      "en": "Then the forward model there's three like little code paragraphs here.",
+      "zh": "前向模型有三小段程式。"
+    },
+    {
+      "start": 621.34,
+      "end": 624.14,
+      "en": "This first one is for the token embeddings.",
+      "zh": "第一段是詞元嵌入。"
+    },
+    {
+      "start": 624.5,
+      "end": 628.18,
+      "en": "This second one is for all 12 transformer blocks.",
+      "zh": "第二段是全部 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 628.18,
+      "end": 630.94,
+      "en": "And then finally we have the embeddings.",
+      "zh": "最後是反嵌入。"
+    },
+    {
+      "start": 631.14,
+      "end": 634.98,
+      "en": "Now this line of code here you have seen before.",
+      "zh": "這行程式之前看過。"
+    },
+    {
+      "start": 635.02,
+      "end": 643.63,
+      "en": "So create a positions embeddings vector or access the position embeddings vector and add it to the token embeddings.",
+      "zh": "建立或取得位置嵌入向量，再加到詞元嵌入。"
+    },
+    {
+      "start": 643.95,
+      "end": 649.43,
+      "en": "What is new here in this model five is this little addition here.",
+      "zh": "模型五新增加的，是這一小段。"
+    },
+    {
+      "start": 649.43,
+      "end": 652.83,
+      "en": "So this optional input device equals device.",
+      "zh": "也就是可選輸入 device=device。"
+    },
+    {
+      "start": 653.43,
+      "end": 655.91,
+      "en": "Seems like it's tautologically true.",
+      "zh": "看起來像是同義反覆。"
+    },
+    {
+      "start": 656.07,
+      "end": 657.67,
+      "en": "The device equals the device.",
+      "zh": "裝置等於裝置。"
+    },
+    {
+      "start": 657.67,
+      "end": 660.63,
+      "en": "But this is the name of the input parameter.",
+      "zh": "但這是輸入參數的名稱。"
+    },
+    {
+      "start": 660.63,
+      "end": 663.95,
+      "en": "And this is the name of the variable that I created.",
+      "zh": "這是我建立的變數名稱。"
+    },
+    {
+      "start": 664.15,
+      "end": 669.11,
+      "en": "So if you do not include this in fact maybe I will even leave that out here.",
+      "zh": "如果不加這個，其實就先拿掉看看。"
+    },
+    {
+      "start": 669.11,
+      "end": 671.27,
+      "en": "We can see what's going to happen.",
+      "zh": "看看會發生什麼。"
+    },
+    {
+      "start": 671.63,
+      "end": 673.03,
+      "en": "Okay so I run the model.",
+      "zh": "好，執行模型。"
+    },
+    {
+      "start": 673.07,
+      "end": 673.87,
+      "en": "Nothing happens.",
+      "zh": "沒發生什麼。"
+    },
+    {
+      "start": 673.91,
+      "end": 676.59,
+      "en": "Actually, it was fine here.",
+      "zh": "這裡其實沒問題。"
+    },
+    {
+      "start": 676.75,
+      "end": 681.51,
+      "en": "I'm creating an instance of that model and just printing it out so we can look at it.",
+      "zh": "我只是建立模型實例，再印出來查看。"
+    },
+    {
+      "start": 682.51,
+      "end": 691.35,
+      "en": "This was actually not the error message I was expecting, but I just forgot to run one code cell earlier, so I just ran.",
+      "zh": "這不是我預期的錯誤訊息；只是忘記先跑前面一個程式碼儲存格，所以剛才補跑了。"
+    },
+    {
+      "start": 691.35,
+      "end": 693.43,
+      "en": "This was I can scroll up and show you this.",
+      "zh": "可以往上捲，展示一下。"
+    },
+    {
+      "start": 693.43,
+      "end": 696.31,
+      "en": "So I forgot to run this code here.",
+      "zh": "就是忘記執行這段。"
+    },
+    {
+      "start": 696.31,
+      "end": 698.56,
+      "en": "So none of these variables were defined.",
+      "zh": "所以這些變數都沒定義。"
+    },
+    {
+      "start": 698.96,
+      "end": 704.72,
+      "en": "And then I just ran that code file, that cell, and then we didn't uh, then that error message went away.",
+      "zh": "執行那個儲存格後，錯誤訊息就消失。"
+    },
+    {
+      "start": 705.16,
+      "end": 705.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 705.52,
+      "end": 710.36,
+      "en": "So here we have the full, uh, language model for GPT two style.",
+      "zh": "這裡就是完整的 GPT-2 風格語言模型。"
+    },
+    {
+      "start": 710.36,
+      "end": 714.88,
+      "en": "So we have the again that's word token embeddings.",
+      "zh": "再次強調，這是字詞詞元嵌入。"
+    },
+    {
+      "start": 715.04,
+      "end": 716.64,
+      "en": "Here we have the wpe.",
+      "zh": "這裡是 wpe。"
+    },
+    {
+      "start": 716.76,
+      "end": 718.84,
+      "en": "This is word position embeddings.",
+      "zh": "也就是字詞位置嵌入。"
+    },
+    {
+      "start": 719.2,
+      "end": 727.92,
+      "en": "Previously the position embeddings matrix that you have seen in earlier models was eight by 768 or 8",
+      "zh": "之前模型的位置嵌入矩陣，是 8 × 768，或 8"
+    },
+    {
+      "start": 727.92,
+      "end": 732.24,
+      "en": "by something because we were using a sequence length of eight.",
+      "zh": "乘以某個維度，因為序列長度用 8。"
+    },
+    {
+      "start": 732.56,
+      "end": 741.36,
+      "en": "Well, eight is a very, very short sequence here in GPT two, the sequence length is 1024.",
+      "zh": "但 8 非常短；GPT-2 的序列長度是 1,024。"
+    },
+    {
+      "start": 741.48,
+      "end": 749.6,
+      "en": "So a little bit bigger than eight actually for um, real like commercial usage, a thousand uh tokens",
+      "zh": "所以確實比 8 大一些。不過對真正商業使用來說，1,000 個詞元的"
+    },
+    {
+      "start": 749.64,
+      "end": 754.28,
+      "en": "sequence length is also really, really basically unacceptably small.",
+      "zh": "序列長度，也真的小得基本上無法接受。"
+    },
+    {
+      "start": 754.28,
+      "end": 757.48,
+      "en": "But for GPT two that is what we have.",
+      "zh": "但 GPT-2 就是這樣。"
+    },
+    {
+      "start": 758.52,
+      "end": 758.8,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 758.84,
+      "end": 760.56,
+      "en": "So I'm not going to go through all of these.",
+      "zh": "就不逐一說明。"
+    },
+    {
+      "start": 760.56,
+      "end": 763.36,
+      "en": "You have seen stuff that looks like this before.",
+      "zh": "你已經看過類似的內容。"
+    },
+    {
+      "start": 763.36,
+      "end": 766.08,
+      "en": "These model component descriptions here.",
+      "zh": "也就是這些模型元件描述。"
+    },
+    {
+      "start": 766.08,
+      "end": 769.08,
+      "en": "What I want to do is just generate some fake data.",
+      "zh": "現在只想產生一些假資料。"
+    },
+    {
+      "start": 769.08,
+      "end": 780.24,
+      "en": "So I'm generating random integers up to the size of the vocab and the size of this data matrix, which is the tokens coming into the model is batch size.",
+      "zh": "產生小於詞彙表大小的隨機整數，資料矩陣，也就是輸入模型的詞元，其大小是批次大小，"
+    },
+    {
+      "start": 780.24,
+      "end": 783.2,
+      "en": "I think I set that to five by sequence length.",
+      "zh": "我想設成了 5，乘以序列長度。"
+    },
+    {
+      "start": 783.2,
+      "end": 785.84,
+      "en": "And here I'm sending it to the GPU.",
+      "zh": "這裡送到 GPU。"
+    },
+    {
+      "start": 786.12,
+      "end": 788.68,
+      "en": "So let's see what happens when we try to run this model.",
+      "zh": "看看執行模型會發生什麼。"
+    },
+    {
+      "start": 789.16,
+      "end": 793.36,
+      "en": "This is the error message that I was expecting to see okay.",
+      "zh": "這才是原本預期的錯誤訊息。"
+    },
+    {
+      "start": 793.4,
+      "end": 795.88,
+      "en": "So the error message is expected.",
+      "zh": "訊息說，預期"
+    },
+    {
+      "start": 795.88,
+      "end": 800.12,
+      "en": "All tensors to be on the same device but found at least two devices.",
+      "zh": "所有張量位於相同裝置，但發現至少兩種裝置。"
+    },
+    {
+      "start": 800.36,
+      "end": 802.2,
+      "en": "So why do we get this problem?",
+      "zh": "為什麼會有這個問題？"
+    },
+    {
+      "start": 802.6,
+      "end": 807.88,
+      "en": "That is from when I removed this a little optional input here.",
+      "zh": "因為剛才移除了這裡那個小小的可選輸入。"
+    },
+    {
+      "start": 808.12,
+      "end": 819.37,
+      "en": "So what happened is this torch arrange created a vector that goes from 0 to 123, but that vector is",
+      "zh": "這個 torch.arange 建立一個從 0、1、2、3 開始的向量，但它"
+    },
+    {
+      "start": 819.41,
+      "end": 825.93,
+      "en": "actually on the CPU, whereas all everything else, the model and the data are on the GPU.",
+      "zh": "實際上位於 CPU，其他東西，也就是模型與資料，則都在 GPU。"
+    },
+    {
+      "start": 826.41,
+      "end": 831.41,
+      "en": "So now the GPU is looking for this variable, but it doesn't live on the GPU.",
+      "zh": "所以 GPU 想使用這個變數，卻發現它不在 GPU。"
+    },
+    {
+      "start": 831.45,
+      "end": 832.81,
+      "en": "It lives on the CPU.",
+      "zh": "而在 CPU。"
+    },
+    {
+      "start": 833.25,
+      "end": 833.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 833.49,
+      "end": 835.41,
+      "en": "So let me put this back.",
+      "zh": "把它加回來。"
+    },
+    {
+      "start": 835.41,
+      "end": 837.33,
+      "en": "So device equals device.",
+      "zh": "也就是 device=device。"
+    },
+    {
+      "start": 838.49,
+      "end": 841.97,
+      "en": "Rerun that code and I have to recreate the model.",
+      "zh": "重新執行，並重新建立模型。"
+    },
+    {
+      "start": 843.89,
+      "end": 848.05,
+      "en": "And now I can push data through and it's going to work.",
+      "zh": "現在把資料送進去，就能運作。"
+    },
+    {
+      "start": 848.05,
+      "end": 850.09,
+      "en": "Everything is going to be consistent.",
+      "zh": "全部都相容。"
+    },
+    {
+      "start": 850.09,
+      "end": 852.25,
+      "en": "So the input is H.",
+      "zh": "所以輸入是 8，"
+    },
+    {
+      "start": 852.25,
+      "end": 856.73,
+      "en": "So I guess the batch size was eight and not five by 1024.",
+      "zh": "我想批次大小其實是 8，不是 5，再乘以 1,024。"
+    },
+    {
+      "start": 856.73,
+      "end": 859.21,
+      "en": "And the outputs are similar size.",
+      "zh": "輸出大小相似。"
+    },
+    {
+      "start": 859.21,
+      "end": 861.41,
+      "en": "But then we have vocab at the end.",
+      "zh": "但最後多了詞彙表維度。"
+    },
+    {
+      "start": 861.89,
+      "end": 867.13,
+      "en": "And again you know I'm repeating myself a little bit, but this is important to make sure you understand.",
+      "zh": "我又有點重複，但確保你理解很重要。"
+    },
+    {
+      "start": 867.53,
+      "end": 876.57,
+      "en": "The idea is that each of these numbers in this final dimension is a logit for each token in the vocab,",
+      "zh": "最後一個維度裡，每個數字都是詞彙表中某個詞元的 logit。"
+    },
+    {
+      "start": 877.01,
+      "end": 880.09,
+      "en": "and what we do is convert this.",
+      "zh": "我們要把它轉換，"
+    },
+    {
+      "start": 880.09,
+      "end": 881.69,
+      "en": "For each of these elements.",
+      "zh": "對每個元素，"
+    },
+    {
+      "start": 881.69,
+      "end": 889.53,
+      "en": "We convert this into a probability using softmax, and then we say that the model's prediction for the",
+      "zh": "透過 softmax 轉成機率，再說模型對"
+    },
+    {
+      "start": 889.53,
+      "end": 899.45,
+      "en": "next token is whatever is the highest probability here, or we can probabilistically select from this distribution.",
+      "zh": "下一個詞元的預測，是這裡機率最高的詞元，或者也可以依機率從分布中抽選。"
+    },
+    {
+      "start": 900.49,
+      "end": 900.81,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 900.85,
+      "end": 901.73,
+      "en": "So that's the model.",
+      "zh": "這就是模型。"
+    },
+    {
+      "start": 901.73,
+      "end": 905.89,
+      "en": "What I want to do here is use torch info summary.",
+      "zh": "這裡想使用 torchinfo.summary。"
+    },
+    {
+      "start": 906.21,
+      "end": 913.05,
+      "en": "And what this is going to do is push a little bit of data through the model and track the data as it",
+      "zh": "它會把一點資料送過模型，並在資料"
+    },
+    {
+      "start": 913.05,
+      "end": 921.25,
+      "en": "goes through the model, and extract the number of trainable parameters inside each layer of the model.",
+      "zh": "通過時追蹤，取出模型每一層內可訓練參數的數量。"
+    },
+    {
+      "start": 921.45,
+      "end": 923.81,
+      "en": "So you can see this table is quite long.",
+      "zh": "可以看到，表格很長。"
+    },
+    {
+      "start": 923.85,
+      "end": 926.89,
+      "en": "It's longer than what I showed in the slides.",
+      "zh": "比投影片展示的更長。"
+    },
+    {
+      "start": 927.05,
+      "end": 936.14,
+      "en": "And it shows you for each block that the data goes through, what is the size of the matrix and how many trainable parameters are there?",
+      "zh": "它顯示資料經過的每個區塊，其矩陣大小，以及可訓練參數有多少。"
+    },
+    {
+      "start": 936.62,
+      "end": 942.94,
+      "en": "So you can see, for example, the word token embedding matrix is pretty big.",
+      "zh": "例如詞元嵌入矩陣非常大。"
+    },
+    {
+      "start": 942.98,
+      "end": 947.58,
+      "en": "That's 38 million parameters just for that embeddings matrix.",
+      "zh": "光嵌入矩陣就有 3,800 萬個參數。"
+    },
+    {
+      "start": 948.1,
+      "end": 951.26,
+      "en": "And then we have the position embeddings which is much smaller.",
+      "zh": "位置嵌入則小得多。"
+    },
+    {
+      "start": 951.26,
+      "end": 952.54,
+      "en": "It's only around a million.",
+      "zh": "只有大約 100 萬。"
+    },
+    {
+      "start": 952.54,
+      "end": 953.42,
+      "en": "Less than a million.",
+      "zh": "不到 100 萬。"
+    },
+    {
+      "start": 953.74,
+      "end": 954.02,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 954.06,
+      "end": 957.14,
+      "en": "So you can go through each of these layers.",
+      "zh": "可以逐層查看。"
+    },
+    {
+      "start": 957.14,
+      "end": 961.66,
+      "en": "And at the bottom we get the total count the total number of parameters.",
+      "zh": "最下面有總數，也就是參數總數。"
+    },
+    {
+      "start": 961.86,
+      "end": 963.9,
+      "en": "So 163 million.",
+      "zh": "1.63 億。"
+    },
+    {
+      "start": 964.18,
+      "end": 970.02,
+      "en": "Now the thing is this model does not really have 163 million parameters.",
+      "zh": "但問題是，模型其實沒有 1.63 億個參數。"
+    },
+    {
+      "start": 970.18,
+      "end": 978.98,
+      "en": "What this function here does not know is that we have tied these two weights matrices together.",
+      "zh": "這個函數不知道，我們把這兩個權重矩陣綁在一起。"
+    },
+    {
+      "start": 978.98,
+      "end": 986.02,
+      "en": "So the embeddings and the initial embeddings, those share the same parameters.",
+      "zh": "也就是反嵌入與最初的嵌入，共用相同參數。"
+    },
+    {
+      "start": 986.02,
+      "end": 989.91,
+      "en": "So that means the total number of trainable parameters.",
+      "zh": "所以可訓練參數總數，"
+    },
+    {
+      "start": 989.91,
+      "end": 991.91,
+      "en": "Is this number here?",
+      "zh": "就是這裡這個數字，"
+    },
+    {
+      "start": 991.95,
+      "end": 998.23,
+      "en": "163 million, which I've just copied and pasted into here.",
+      "zh": "1.63 億，我直接複製貼過來，"
+    },
+    {
+      "start": 998.59,
+      "end": 1003.47,
+      "en": "At minus however many parameters we have here, which is the same.",
+      "zh": "再減去這裡的參數數量，而這個數量和另一邊相同。"
+    },
+    {
+      "start": 1003.47,
+      "end": 1006.11,
+      "en": "So this is the final linear embeddings.",
+      "zh": "這是最後的線性反嵌入。"
+    },
+    {
+      "start": 1006.11,
+      "end": 1011.03,
+      "en": "That's the same as this number up here for the initial embeddings.",
+      "zh": "和最上面的初始嵌入參數數量相同。"
+    },
+    {
+      "start": 1011.11,
+      "end": 1019.83,
+      "en": "And when we do that we find that in this model there are around 124 million trainable parameters.",
+      "zh": "這樣就會發現，模型大約有 1.24 億個可訓練參數。"
+    },
+    {
+      "start": 1019.99,
+      "end": 1027.11,
+      "en": "This number will be relevant for a code challenge in a couple of videos, where we are going to count",
+      "zh": "這個數字和再過幾支影片的程式挑戰有關，我們會計算"
+    },
+    {
+      "start": 1027.15,
+      "end": 1038.59,
+      "en": "the number of parameters in this model, model five that we are building here, and in the GPT two model that we download fully trained from OpenAI.",
+      "zh": "這裡建立的模型五，以及從 OpenAI 下載、完整訓練好的 GPT-2，其參數數量。"
+    },
+    {
+      "start": 1039.43,
+      "end": 1047.91,
+      "en": "I know this section was a lot of work and a lot to learn, but I hope you feel that the knowledge you gained was worth the effort.",
+      "zh": "我知道這一節工作很多、要學很多，但希望你覺得收穫值得付出。"
+    },
+    {
+      "start": 1048.35,
+      "end": 1056.07,
+      "en": "Bigger language models, including commercially available models, are basically the same as the model you just saw.",
+      "zh": "更大的語言模型，包括商業模型，基本上和剛才看到的相同。"
+    },
+    {
+      "start": 1056.63,
+      "end": 1060.55,
+      "en": "The commercially available frontier models are a lot bigger.",
+      "zh": "商用的前沿模型大得多。"
+    },
+    {
+      "start": 1060.95,
+      "end": 1066.23,
+      "en": "They have larger matrices, they have more layers, they're trained on more data and so on.",
+      "zh": "矩陣更大、層數更多、訓練資料更多等等。"
+    },
+    {
+      "start": 1066.59,
+      "end": 1068.67,
+      "en": "But the designs are the same.",
+      "zh": "但設計相同。"
+    },
+    {
+      "start": 1068.95,
+      "end": 1077.99,
+      "en": "And if you'd have access to the latest and greatest ChatGPT model, you would see code, methods, operations,",
+      "zh": "如果能查看最新、最強的 ChatGPT 模型，就會看到程式碼、方法、操作、"
+    },
+    {
+      "start": 1077.99,
+      "end": 1083.03,
+      "en": "classes, parameters and so on that you are now very familiar with.",
+      "zh": "類別、參數等等，都是你現在已經相當熟悉的東西。"
+    },
+    {
+      "start": 1083.51,
+      "end": 1091.07,
+      "en": "So the rest of the videos in this section are focused on exploring this model in more detail.",
+      "zh": "這一節其餘影片，會更詳細探索這個模型。"
+    },
+    {
+      "start": 1091.39,
+      "end": 1097.87,
+      "en": "And then in the next section, you'll start learning about how we get from a useless model with random",
+      "zh": "下一節則開始學，如何把一個沒用、只有隨機"
+    },
+    {
+      "start": 1097.87,
+      "end": 1103.83,
+      "en": "weights to a trained model that actually can be used to generate sensible language.",
+      "zh": "權重的模型，變成真正能產生合理語言的訓練後模型。"
+    }
+  ]
+}

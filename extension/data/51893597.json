@@ -1,0 +1,3097 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893597",
+  "title": "Isolating and investigating attention heads",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "444524aa4ada3e55c867292e4a66fcd827dbb5fd07de956f9161435311b7fd75",
+  "cues": [
+    {
+      "start": 2.16,
+      "end": 11.6,
+      "en": "The goal of this video is to learn how to isolate and investigate the individual attention heads in a transformer.",
+      "zh": "這支影片的目標，是學習如何分離並研究 Transformer 中，個別的注意力頭。"
+    },
+    {
+      "start": 12.32,
+      "end": 18.48,
+      "en": "It's actually not so difficult to do, but it does require a bit of thinking and careful coding.",
+      "zh": "其實不太難，但需要一點思考，以及仔細寫程式。"
+    },
+    {
+      "start": 19.16,
+      "end": 27.68,
+      "en": "And the other good news is that learning how to isolate attention heads is a great reminder of the attention",
+      "zh": "另一個好消息是，學習分離注意力頭，也能很好地複習注意力"
+    },
+    {
+      "start": 27.72,
+      "end": 33.76,
+      "en": "mechanism, and the idea of splitting up the attention equation into heads.",
+      "zh": "機制，以及將注意力方程式拆成多個頭的概念。"
+    },
+    {
+      "start": 34.64,
+      "end": 41.88,
+      "en": "I will also, in this video, introduce you to a procedure called kernel density estimation or KDE.",
+      "zh": "這支影片也會介紹一個叫作核密度估計，也就是 KDE 的程序。"
+    },
+    {
+      "start": 42.6,
+      "end": 50.32,
+      "en": "This is a non-linear method to estimate smooth frequency spectra from limited or sparse data.",
+      "zh": "它是一種非線性方法，從有限或稀疏資料，估計平滑的頻率譜。"
+    },
+    {
+      "start": 50.76,
+      "end": 57.68,
+      "en": "It's a great data science method to know about both in and outside the context of law.",
+      "zh": "不論在 LLM 脈絡內外，都是很值得認識的資料科學方法。"
+    },
+    {
+      "start": 58.96,
+      "end": 66.77,
+      "en": "Now, before I give an overview of the code demo, I'm going to give you a brief reminder of the attention algorithm.",
+      "zh": "在概述程式示範之前，先簡短複習注意力演算法，"
+    },
+    {
+      "start": 66.89,
+      "end": 73.61,
+      "en": "Just to make sure that you load back in all of the relevant memories from earlier in the course.",
+      "zh": "確保重新喚起課程前面所有相關記憶。"
+    },
+    {
+      "start": 74.37,
+      "end": 77.77,
+      "en": "So I hope that this equation looks familiar.",
+      "zh": "希望這個方程式很眼熟。"
+    },
+    {
+      "start": 78.09,
+      "end": 83.77,
+      "en": "This is the equation that describes the attention subblock of the transformer.",
+      "zh": "它描述 Transformer 的注意力子區塊。"
+    },
+    {
+      "start": 84.28999999999999,
+      "end": 91.81,
+      "en": "The goal of the attention subblock is to calculate the adjustments to the token embeddings vectors,",
+      "zh": "注意力子區塊的目標，是計算 token 嵌入向量的調整，"
+    },
+    {
+      "start": 92.33,
+      "end": 102.69,
+      "en": "and the general idea of the attention Subblock is to integrate information across the tokens that come before the currently processed token.",
+      "zh": "整體概念，是整合目前處理之 token 之前，各個 token 的資訊。"
+    },
+    {
+      "start": 103.49000000000001,
+      "end": 110.61,
+      "en": "So the idea is to calculate dot products between the query vectors and the keys vectors.",
+      "zh": "所以，要計算 query 與 key 向量之間的內積。"
+    },
+    {
+      "start": 110.97,
+      "end": 120.46,
+      "en": "And this denominator term here is just a scaling factor because these dot products here grow arbitrarily with size.",
+      "zh": "這裡的分母，只是縮放因子，因為這些內積會隨大小任意增加。"
+    },
+    {
+      "start": 120.46,
+      "end": 123.7,
+      "en": "So it's kind of like an averaging term if you will.",
+      "zh": "可以把它想成一種平均項。"
+    },
+    {
+      "start": 124.54,
+      "end": 135.18,
+      "en": "M here is a causal mask matrix that blanks out all of the future tokens, so that the model will only pay attention to tokens in the past.",
+      "zh": "M 是因果遮罩矩陣，遮掉所有未來 token，讓模型只注意過去的 token。"
+    },
+    {
+      "start": 135.78,
+      "end": 144.14,
+      "en": "And the interpretation of this operation here is that the query vectors encode what the current token",
+      "zh": "這項操作的解讀是，query 向量編碼目前 token"
+    },
+    {
+      "start": 144.14,
+      "end": 154.38,
+      "en": "is looking for, and the keys vectors encode what the previous tokens have to offer in terms of relevant context and information.",
+      "zh": "想找的東西，key 向量則編碼先前 token，能提供什麼相關上下文與資訊。"
+    },
+    {
+      "start": 155.18,
+      "end": 159.34,
+      "en": "Now these dot products these are not cosine similarities.",
+      "zh": "這些內積不是餘弦相似度，"
+    },
+    {
+      "start": 159.34,
+      "end": 160.7,
+      "en": "They're not probabilities.",
+      "zh": "也不是機率，"
+    },
+    {
+      "start": 160.7,
+      "end": 167.42000000000002,
+      "en": "They have an arbitrary scale that is related to the magnitude of the weights and the activations.",
+      "zh": "它們有任意尺度，與權重及活化的大小有關。"
+    },
+    {
+      "start": 167.9,
+      "end": 172.66,
+      "en": "But then all of these results are pushed through this softmax function.",
+      "zh": "但所有結果接著會送入 softmax 函數，"
+    },
+    {
+      "start": 173.1,
+      "end": 181.27,
+      "en": "And that transforms these dot products into probability distributions, and that in turn determines",
+      "zh": "將內積轉成機率分布，再決定"
+    },
+    {
+      "start": 181.27,
+      "end": 189.95,
+      "en": "which of the columns in the values matrix get highlighted and which get suppressed, and then the w0 term at the end.",
+      "zh": "value 矩陣中的哪些欄被強調、哪些被抑制。而最後的 WO，"
+    },
+    {
+      "start": 189.95,
+      "end": 197.82999999999998,
+      "en": "Here is a linear mixing matrix, and that basically takes all the outputs of the different attention",
+      "zh": "是線性混合矩陣，基本上會將所有不同注意力"
+    },
+    {
+      "start": 197.82999999999998,
+      "end": 202.67000000000002,
+      "en": "vectors and heads and mixes all of their information together.",
+      "zh": "向量與注意力頭的輸出，全部資訊混合起來。"
+    },
+    {
+      "start": 203.31,
+      "end": 209.79,
+      "en": "So in this and the next couple of videos, we are only going to be focusing on the first part of this",
+      "zh": "所以這支與接下來幾支影片，只會聚焦這個"
+    },
+    {
+      "start": 209.82999999999998,
+      "end": 218.31,
+      "en": "algorithm, which is just the qk transpose operation, and then the masking and the softmax probabilities.",
+      "zh": "演算法的第一部分，也就是 QK 轉置運算，再加遮罩與 softmax 機率。"
+    },
+    {
+      "start": 218.99,
+      "end": 225.67000000000002,
+      "en": "In the code demo I'm going to call this stuff inside the softmax the raw attention scores.",
+      "zh": "程式示範中，會把 softmax 裡面的內容，稱為原始注意力分數。"
+    },
+    {
+      "start": 226.19,
+      "end": 230.39,
+      "en": "And then we will have the softmax ified version.",
+      "zh": "接著有經過 softmax 的版本，"
+    },
+    {
+      "start": 230.39,
+      "end": 233.07,
+      "en": "And those I will call the attention weights.",
+      "zh": "稱為注意力權重，"
+    },
+    {
+      "start": 233.23,
+      "end": 242.48,
+      "en": "Because those values, Those numbers determine how the columns in V are weighted to calculate the adjustments",
+      "zh": "因為這些數值，決定 V 的各欄如何加權，來計算"
+    },
+    {
+      "start": 242.48,
+      "end": 244.6,
+      "en": "to the embedding vectors.",
+      "zh": "嵌入向量的調整。"
+    },
+    {
+      "start": 245.68,
+      "end": 252.2,
+      "en": "So next I would like to remind you of what this mask matrix looks like and what it means.",
+      "zh": "接著，複習這個遮罩矩陣長什麼樣子、代表什麼，"
+    },
+    {
+      "start": 252.64,
+      "end": 254,
+      "en": "And that's what you see here.",
+      "zh": "這裡就能看到。"
+    },
+    {
+      "start": 254.24,
+      "end": 259.84,
+      "en": "So the mask starts off as a lower diagonal matrix of all ones.",
+      "zh": "遮罩一開始，是下三角全為 1 的矩陣，"
+    },
+    {
+      "start": 259.84,
+      "end": 266.16,
+      "en": "So it's all ones on the diagonal and below the diagonal and all zeros above the diagonal.",
+      "zh": "對角線及下方全部為 1，對角線上方全部為 0。"
+    },
+    {
+      "start": 266.8,
+      "end": 275.8,
+      "en": "So this provides the temporal causality because each row in this matrix maps onto a token in the sequence.",
+      "zh": "這提供時間因果性，因為矩陣每一列，都映射到序列中的一個 token。"
+    },
+    {
+      "start": 276.28,
+      "end": 285.12,
+      "en": "So when we are, for example, processing the fifth token, then all the tokens thereafter are ignored in the attention algorithm.",
+      "zh": "例如處理第五個 token 時，後面所有 token，都會在注意力演算法中忽略。"
+    },
+    {
+      "start": 285.52,
+      "end": 288.64,
+      "en": "And how is that implemented in practice?",
+      "zh": "實際如何實作？"
+    },
+    {
+      "start": 289.2,
+      "end": 297.73,
+      "en": "Well, this matrix gets transformed into this one where all the zeros turn into minus infinities, and",
+      "zh": "這個矩陣會轉成這個，所有 0 變成負無限大，"
+    },
+    {
+      "start": 297.73,
+      "end": 306.13,
+      "en": "then this matrix gets added onto that qk transpose matrix that I showed in the equation in the previous slide.",
+      "zh": "再將這個矩陣，加到上一張投影片方程式中的 QK 轉置矩陣。"
+    },
+    {
+      "start": 307.17,
+      "end": 310.57,
+      "en": "And why do we want to add minus infinity.",
+      "zh": "為什麼要加負無限大？"
+    },
+    {
+      "start": 311.25,
+      "end": 319.21,
+      "en": "Remember that softmax involves exponentiating and e to the minus infinity is zero.",
+      "zh": "記住，softmax 涉及指數運算，e 的負無限大次方是零。"
+    },
+    {
+      "start": 319.77,
+      "end": 326.17,
+      "en": "So the weighting function that this matrix creates could look like this, where the weights across the",
+      "zh": "所以這個矩陣建立的加權函數，可能像這樣，沿著"
+    },
+    {
+      "start": 326.17,
+      "end": 332.09000000000003,
+      "en": "rows all sum to one, and all of the future tokens are zero.",
+      "zh": "每一列的權重總和都是 1，未來 token 則全為 0。"
+    },
+    {
+      "start": 332.89,
+      "end": 343.45,
+      "en": "So you can also see that the diagonal elements still have non-zero values, which means that the attention algorithm can pay attention to the current token.",
+      "zh": "也可以看到，對角線元素仍有非零值，表示注意力演算法可以注意目前 token。"
+    },
+    {
+      "start": 343.69,
+      "end": 346.01,
+      "en": "That's called self-attention.",
+      "zh": "這稱為自注意力。"
+    },
+    {
+      "start": 346.21,
+      "end": 350.29,
+      "en": "And you will see what that looks like in the model when I switch to code.",
+      "zh": "切換到程式碼後，會看到模型中的樣子。"
+    },
+    {
+      "start": 350.93,
+      "end": 359.46,
+      "en": "Last thing I would like to point out here is that the very first token in the sequence has no context, so there's no past to look at.",
+      "zh": "最後指出，序列第一個 token 沒有上下文，沒有過去可以看，"
+    },
+    {
+      "start": 359.94,
+      "end": 362.22,
+      "en": "It can only implement self-attention.",
+      "zh": "只能進行自注意力，"
+    },
+    {
+      "start": 362.22,
+      "end": 364.58,
+      "en": "There's no past context to load in.",
+      "zh": "沒有過去上下文可載入。"
+    },
+    {
+      "start": 365.62,
+      "end": 373.42,
+      "en": "You have already seen several times in the course that this first token in a sequence gives weird results.",
+      "zh": "課程已經看過好幾次，序列第一個 token 會得到奇怪結果，"
+    },
+    {
+      "start": 373.66,
+      "end": 378.94,
+      "en": "And in this video, you're going to learn a little bit about why that is the case.",
+      "zh": "這支影片，會稍微了解原因。"
+    },
+    {
+      "start": 379.66,
+      "end": 387.62,
+      "en": "Okay, so now I've reminded you about the main attention algorithm and also about the temporal causality mask.",
+      "zh": "好，已經複習主要注意力演算法，以及時間因果遮罩。"
+    },
+    {
+      "start": 387.94,
+      "end": 391.06,
+      "en": "Now I'm going to remind you about the attention heads.",
+      "zh": "現在複習注意力頭。"
+    },
+    {
+      "start": 391.7,
+      "end": 398.74,
+      "en": "Again nothing new in this slide I hope this is a screenshot of what you learned in section two.",
+      "zh": "這張投影片希望沒有新內容，是第二章學過內容的截圖。"
+    },
+    {
+      "start": 399.42,
+      "end": 409.74,
+      "en": "So the idea is that these three attention matrices Q, k, and V are split up into like slices or chunks.",
+      "zh": "概念是，這三個注意力矩陣 Q、K、V，被拆成一些切片、區塊。"
+    },
+    {
+      "start": 410.11,
+      "end": 419.43,
+      "en": "Now each of those slices processes all of the tokens in the sequence, and they all see all of the embeddings",
+      "zh": "每個切片處理序列中的全部 token，也都看得到所有嵌入"
+    },
+    {
+      "start": 419.43,
+      "end": 427.47,
+      "en": "dimensions, but they can learn to process the text in different ways, for example, focusing on different time scales.",
+      "zh": "維度，但能學會以不同方式處理文字，例如專注不同時間尺度，"
+    },
+    {
+      "start": 427.51,
+      "end": 432.23,
+      "en": "So different lengths, different context windows, or different features of the text.",
+      "zh": "不同長度、不同上下文視窗，或文字的不同特徵。"
+    },
+    {
+      "start": 432.71,
+      "end": 435.99,
+      "en": "Now in this case I am drawing four attention heads.",
+      "zh": "這裡畫出四個注意力頭，"
+    },
+    {
+      "start": 436.19,
+      "end": 439.47,
+      "en": "And in practice there's usually a couple dozen.",
+      "zh": "實際上通常有幾十個。"
+    },
+    {
+      "start": 439.83,
+      "end": 451.03,
+      "en": "For example, Gpt2 small has 12 heads, and in the code challenge in the next video you will see that the Pythia model has 32 heads.",
+      "zh": "例如 GPT2-small 有 12 個頭，下一支影片的挑戰會看到，Pythia 有 32 個頭。"
+    },
+    {
+      "start": 451.75,
+      "end": 456.99,
+      "en": "Anyway, all of the heads are grouped into equal sizes like this.",
+      "zh": "總之，所有頭都像這樣分成相同大小，"
+    },
+    {
+      "start": 457.47,
+      "end": 466.51,
+      "en": "So to extract the individual heads, all we need to do is split the matrices into equal sized sliced",
+      "zh": "所以要擷取個別注意力頭，只需將矩陣切成等大的"
+    },
+    {
+      "start": 466.51,
+      "end": 467.47,
+      "en": "matrices.",
+      "zh": "矩陣切片。"
+    },
+    {
+      "start": 468.15,
+      "end": 473.52,
+      "en": "Now the Now, the orientation of these heads geometrically can be a little tricky to interpret.",
+      "zh": "不過，這些注意力頭的幾何方向，解讀可能有點棘手。"
+    },
+    {
+      "start": 473.84000000000003,
+      "end": 480.76,
+      "en": "Here I am depicting them as columns so as tall matrices, but they're actually two dimensional slabs",
+      "zh": "這裡畫成欄，也就是高矩陣，但實際上因為批次維度，它們是二維資料"
+    },
+    {
+      "start": 480.76,
+      "end": 486.44,
+      "en": "of data in practice because of the batch dimension in the Python video.",
+      "zh": "片塊。在 Python 影片中，"
+    },
+    {
+      "start": 486.44,
+      "end": 490.24,
+      "en": "In this demo, I'm actually going to squeeze out the batch dimension.",
+      "zh": "這次示範，其實會 squeeze 掉批次維度，"
+    },
+    {
+      "start": 490.36,
+      "end": 496.76,
+      "en": "And so then these will actually appear to be wide matrices and not tall matrices.",
+      "zh": "所以會看起來像寬矩陣，而不是高矩陣。"
+    },
+    {
+      "start": 497.2,
+      "end": 500.32,
+      "en": "Anyway, don't take this visual depiction too literally.",
+      "zh": "總之，不要太字面理解這個圖示。"
+    },
+    {
+      "start": 500.56,
+      "end": 509.28,
+      "en": "The important thing to look at is the matrix sizes and slice along the dimensions, not along the tokens.",
+      "zh": "重要的是查看矩陣大小，沿維度切分，而不是沿 token。"
+    },
+    {
+      "start": 509.76,
+      "end": 515.72,
+      "en": "In other words, every attention head needs to see every token in a sequence.",
+      "zh": "換句話說，每個注意力頭，都必須看到序列中的每個 token。"
+    },
+    {
+      "start": 516.24,
+      "end": 524.32,
+      "en": "And when you look at the sizes of the matrices, then I think it will be clear which dimension to split the matrices along.",
+      "zh": "查看矩陣大小後，應該就能清楚知道沿哪個維度切分。"
+    },
+    {
+      "start": 525.44,
+      "end": 529.17,
+      "en": "Anyway, I'll get back to that discussion in the code demo.",
+      "zh": "程式示範會再回到這個討論。"
+    },
+    {
+      "start": 529.49,
+      "end": 535.61,
+      "en": "The last thing I will remind you about here, although it's not actually directly relevant for the code",
+      "zh": "這裡最後再提醒，雖然與程式"
+    },
+    {
+      "start": 535.61,
+      "end": 544.53,
+      "en": "demo, is that after all of the attention heads separately processed the tokens, they all get recombined",
+      "zh": "示範沒有直接關係，但所有注意力頭分別處理 token 後，會重新組合，"
+    },
+    {
+      "start": 544.65,
+      "end": 549.29,
+      "en": "and then they get multiplied by this w0 matrix.",
+      "zh": "再乘以 WO 矩陣，"
+    },
+    {
+      "start": 549.41,
+      "end": 551.89,
+      "en": "And that's the function of this matrix here.",
+      "zh": "那就是這個矩陣的功能。"
+    },
+    {
+      "start": 552.13,
+      "end": 555.81,
+      "en": "All of these attention heads have learned different things.",
+      "zh": "這些注意力頭，已經學到不同的事情，"
+    },
+    {
+      "start": 555.81,
+      "end": 563.25,
+      "en": "They've been looking at the same text, but they've been learning different things about the context and how the tokens relate to each other.",
+      "zh": "看的是相同文字，但對上下文、token 之間的關係，學到不同內容。"
+    },
+    {
+      "start": 564.17,
+      "end": 569.37,
+      "en": "That said, there is a lot of overlap in what these different heads calculate.",
+      "zh": "不過，不同頭計算的內容，有很多重疊，"
+    },
+    {
+      "start": 569.73,
+      "end": 577.85,
+      "en": "So it's not that these attention heads are all orthogonal to each other, but they do focus on slightly different features of the text.",
+      "zh": "不是全部彼此正交，只是專注於文字稍微不同的特徵。"
+    },
+    {
+      "start": 578.13,
+      "end": 582.89,
+      "en": "And the W0 matrix mixes all of that information together.",
+      "zh": "WO 矩陣，會將全部資訊混合起來。"
+    },
+    {
+      "start": 583.57,
+      "end": 583.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 583.93,
+      "end": 591.5,
+      "en": "And that's the final attention adjustment that's get that gets added back onto the embeddings vectors.",
+      "zh": "這就是最終的注意力調整，會加回嵌入向量。"
+    },
+    {
+      "start": 591.7,
+      "end": 595.94,
+      "en": "Now let me tell you about what we'll do in the Python demo.",
+      "zh": "現在說明 Python 示範會做什麼。"
+    },
+    {
+      "start": 596.46,
+      "end": 605.58,
+      "en": "I will start by importing Gpt2 and hooking the qkv matrices before they are multiplied.",
+      "zh": "先匯入 GPT2，在 QKV 矩陣相乘之前，透過 hook 取得它們。"
+    },
+    {
+      "start": 606.06,
+      "end": 608.14,
+      "en": "Now that stuff you've all seen before.",
+      "zh": "這些都已經看過。"
+    },
+    {
+      "start": 608.54,
+      "end": 614.26,
+      "en": "Then we have a sentence about Fiji that we will use for the code demo.",
+      "zh": "接著，有一個關於斐濟的句子，用於程式示範。"
+    },
+    {
+      "start": 614.66,
+      "end": 625.26,
+      "en": "And after pushing this little bit of text through the model, I will grab the queue activations and show you how we can split those into the different heads.",
+      "zh": "將這一小段文字送進模型後，取得 Q 活化，再示範如何拆成不同頭。"
+    },
+    {
+      "start": 625.82,
+      "end": 637.26,
+      "en": "Now we have to know some variables that we get from the models config structure, including the dimensionality of the heads and the number of heads.",
+      "zh": "必須從模型 config 結構，取得一些變數，包括注意力頭維度與頭數。"
+    },
+    {
+      "start": 637.74,
+      "end": 645.39,
+      "en": "When we have that information, we can confirm that splitting up the q matrix gives us 12 heads, and",
+      "zh": "有了這些資訊，就能確認 Q 矩陣拆分後有 12 個頭，"
+    },
+    {
+      "start": 645.39,
+      "end": 649.79,
+      "en": "each of those heads is of size 38 by 64.",
+      "zh": "每個頭的大小是 38×64。"
+    },
+    {
+      "start": 650.43,
+      "end": 653.55,
+      "en": "38 is the token sequence dimension.",
+      "zh": "38 是 token 序列維度，"
+    },
+    {
+      "start": 653.55,
+      "end": 657.19,
+      "en": "So there are 38 tokens in this sentence.",
+      "zh": "也就是句子有 38 個 token。"
+    },
+    {
+      "start": 657.59,
+      "end": 667.03,
+      "en": "And then the 64 corresponds to the dimensionality of the heads, 64 times 12 is 768.",
+      "zh": "64 則是頭的維度，64 乘以 12 等於 768。"
+    },
+    {
+      "start": 667.23,
+      "end": 674.15,
+      "en": "And of course, you know that that is the embeddings dimension of the small version of this GPT two model.",
+      "zh": "當然，那就是這個 GPT2-small 模型的嵌入維度。"
+    },
+    {
+      "start": 674.47,
+      "end": 683.31,
+      "en": "And this size is what I was referring to in the previous slide about whether these heads matrices appear to be wide or tall.",
+      "zh": "這個大小，就是上一張投影片提到，注意力頭矩陣看起來寬或高的問題。"
+    },
+    {
+      "start": 683.75,
+      "end": 687.83,
+      "en": "Again, don't worry so much about the matrix orientation.",
+      "zh": "同樣，不必太在意矩陣方向，"
+    },
+    {
+      "start": 687.87,
+      "end": 689.95,
+      "en": "Pay attention to the sizes.",
+      "zh": "要注意大小。"
+    },
+    {
+      "start": 690.51,
+      "end": 694.31,
+      "en": "Now we don't want to split up the matrices according to tokens.",
+      "zh": "不想按照 token 拆分矩陣，"
+    },
+    {
+      "start": 694.31,
+      "end": 696.79,
+      "en": "We split according to dimensions.",
+      "zh": "而是依維度拆。"
+    },
+    {
+      "start": 697.27,
+      "end": 705.44,
+      "en": "Anyway, I will then calculate the means and standard deviations of the activations to the 38 tokens in each head.",
+      "zh": "接著，會對每個頭中，38 個 token 的活化，計算平均數與標準差，"
+    },
+    {
+      "start": 705.64,
+      "end": 707.4,
+      "en": "And then I'll make some plots like this.",
+      "zh": "再建立這樣的圖。"
+    },
+    {
+      "start": 707.84,
+      "end": 713.64,
+      "en": "Now I have to say, these plots are not terribly insightful or really that interesting.",
+      "zh": "必須說，這些圖並沒有很多啟發，也沒那麼有趣。"
+    },
+    {
+      "start": 713.92,
+      "end": 721,
+      "en": "We do not expect a lot of meaningful differences between the different heads at this aggregated scale",
+      "zh": "在這種將序列所有 token 的活化取平均的彙整尺度，"
+    },
+    {
+      "start": 721,
+      "end": 726.36,
+      "en": "of averaging activations over all of the tokens in a sequence.",
+      "zh": "不預期不同注意力頭之間，有很多有意義差異。"
+    },
+    {
+      "start": 726.76,
+      "end": 734.12,
+      "en": "But the purpose of these analyses in this visualization is really just to show you some code for working",
+      "zh": "但這些分析與視覺化的目的，只是展示操作"
+    },
+    {
+      "start": 734.12,
+      "end": 741.36,
+      "en": "with the different heads that will increase your familiarity with how to split up and work with the different heads.",
+      "zh": "不同注意力頭的程式，讓你更熟悉拆分與處理各個頭的方法。"
+    },
+    {
+      "start": 742.08,
+      "end": 749.4,
+      "en": "By the way, all of the analyses in this code demo are actually just with one layer of the model.",
+      "zh": "順帶一提，這份示範全部分析，其實只看模型的一層。"
+    },
+    {
+      "start": 749.64,
+      "end": 754.2,
+      "en": "Remember that all of the transformer blocks are split into heads.",
+      "zh": "記住，所有 Transformer 區塊，都拆成多個頭，"
+    },
+    {
+      "start": 754.4,
+      "end": 756.8,
+      "en": "So this is just one of the layers.",
+      "zh": "所以這只是其中一層，"
+    },
+    {
+      "start": 756.8,
+      "end": 759.36,
+      "en": "I think this was layer six or something.",
+      "zh": "我想是第 6 層之類的，"
+    },
+    {
+      "start": 759.36,
+      "end": 762.77,
+      "en": "But of course that's a parameter in the code you can play around with.",
+      "zh": "當然，它是程式中的參數，可以調整。"
+    },
+    {
+      "start": 763.13,
+      "end": 771.37,
+      "en": "In the next video, you're going to look at some of the patterns for the different heads and then over the different layers.",
+      "zh": "下一支影片，會研究不同頭、不同層的模式。"
+    },
+    {
+      "start": 771.97,
+      "end": 780.53,
+      "en": "Anyway, uh, in this video, this demo, I will next calculate the raw attention scores within each of these heads.",
+      "zh": "總之，這次示範，接著會計算每個頭內的原始注意力分數，"
+    },
+    {
+      "start": 781.01,
+      "end": 787.77,
+      "en": "And that is the qk transpose dot products before they get softmax ified.",
+      "zh": "也就是 softmax 之前的 QK 轉置內積。"
+    },
+    {
+      "start": 788.25,
+      "end": 789.49,
+      "en": "And that looks like this.",
+      "zh": "結果像這樣。"
+    },
+    {
+      "start": 789.49,
+      "end": 794.01,
+      "en": "So interestingly all of these dot products are negative.",
+      "zh": "有意思的是，這些內積全為負，"
+    },
+    {
+      "start": 794.49,
+      "end": 798.09,
+      "en": "Now they're not trivially always 100% negative.",
+      "zh": "但不是必然永遠百分之百為負，"
+    },
+    {
+      "start": 798.13,
+      "end": 801.53,
+      "en": "That's just how it happened to be for this layer and this text.",
+      "zh": "只是這層與這段文字，剛好如此。"
+    },
+    {
+      "start": 801.93,
+      "end": 810.25,
+      "en": "However, it is the case that the raw attention scores tend to be shifted towards negative values for",
+      "zh": "不過，原始注意力分數確實往往偏向負值，"
+    },
+    {
+      "start": 810.25,
+      "end": 819.21,
+      "en": "reasons that I will let you ponder for a little while, and then I'll discuss later in the code, and also again in the next video.",
+      "zh": "原因先讓你思考，稍後程式會討論，下一支影片也會再談。"
+    },
+    {
+      "start": 819.74,
+      "end": 820.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 820.1,
+      "end": 822.5,
+      "en": "Now each dot in this plot here.",
+      "zh": "這張圖的每個點，"
+    },
+    {
+      "start": 822.5,
+      "end": 831.34,
+      "en": "So each of these little green circles, that corresponds to one token pair and one of the 12, uh, heads.",
+      "zh": "每個綠色小圓點，對應一組 token 配對，以及 12 個頭中的某一個。"
+    },
+    {
+      "start": 831.94,
+      "end": 840.9,
+      "en": "I also did a comparison analysis where I calculated the Q transpose dot products between the different heads.",
+      "zh": "我也做了一個比較分析，計算不同頭之間的 Q 轉置內積。"
+    },
+    {
+      "start": 840.9,
+      "end": 842.74,
+      "en": "So this is all within the same heads.",
+      "zh": "這裡全部是在同一個頭內，"
+    },
+    {
+      "start": 842.74,
+      "end": 844.5,
+      "en": "And these are across different heads.",
+      "zh": "這些則跨不同頭。"
+    },
+    {
+      "start": 845.18,
+      "end": 856.26,
+      "en": "Now this is not a super realistic analysis because the different heads do not directly dot product each other in practice in a working language model.",
+      "zh": "這不是非常貼近實際的分析，因為真正運作的語言模型，不會讓不同頭直接彼此取內積。"
+    },
+    {
+      "start": 856.66,
+      "end": 864.7,
+      "en": "But it is an interesting distribution to look at because it shows that these dot products here are really non-trivial.",
+      "zh": "但查看這個分布很有意思，因為能說明這些內積並不是理所當然，"
+    },
+    {
+      "start": 865.26,
+      "end": 869.98,
+      "en": "And it also shows that there's a lot of similar processing across the different heads.",
+      "zh": "也顯示不同頭之間，有很多相似的處理。"
+    },
+    {
+      "start": 870.58,
+      "end": 880.23,
+      "en": "Now, these scores are not cosine similarities or correlations, but it would actually be really easy to transform these into cosine similarities.",
+      "zh": "這些分數不是餘弦相似度，也不是相關，但其實很容易轉成餘弦相似度，"
+    },
+    {
+      "start": 880.23,
+      "end": 886.31,
+      "en": "So in fact, you could actually see how much shared information there is across the different heads.",
+      "zh": "甚至能看看不同頭之間，共享多少資訊。"
+    },
+    {
+      "start": 887.43,
+      "end": 898.91,
+      "en": "Anyway, these lines that you see here show the histograms of the raw attention scores, and you can see that the scores within the same head are shifted towards negative numbers.",
+      "zh": "總之，這些線顯示原始注意力分數的直方圖，可以看到，同一個頭內的分數偏向負數。"
+    },
+    {
+      "start": 899.35,
+      "end": 907.27,
+      "en": "Again, I want you to start thinking about what that means and what implications this has for the attention algorithm.",
+      "zh": "同樣，希望你開始思考，這代表什麼，對注意力演算法有何意涵。"
+    },
+    {
+      "start": 908.15,
+      "end": 908.59,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 908.63,
+      "end": 913.87,
+      "en": "Then uh, next I'm just going to focus in on these data points here.",
+      "zh": "接著只聚焦這些資料點，"
+    },
+    {
+      "start": 913.87,
+      "end": 925.71,
+      "en": "So just the QK transpose from the same heads calculations and then separate the attention scores for the final token to all the previous tokens.",
+      "zh": "也就是同一個頭計算的 QK 轉置，再分離最後一個 token 對所有先前 token 的注意力分數。"
+    },
+    {
+      "start": 926.35,
+      "end": 931.51,
+      "en": "The self-attention tokens which are the diagonals of the qk transpose matrix.",
+      "zh": "自注意力 token，也就是 QK 轉置矩陣的對角線，"
+    },
+    {
+      "start": 931.95,
+      "end": 939.32,
+      "en": "And then also I will separate the very first token in the sequence and that is what you see here.",
+      "zh": "另外，也分離序列第一個 token，這裡就能看到。"
+    },
+    {
+      "start": 940.08,
+      "end": 942.64,
+      "en": "So again this is only within each head.",
+      "zh": "同樣，只在每個頭內計算，"
+    },
+    {
+      "start": 942.64,
+      "end": 948.36,
+      "en": "So this is just a different way of organizing these results that you see in here.",
+      "zh": "只是用不同方式整理這裡這些結果。"
+    },
+    {
+      "start": 948.72,
+      "end": 957.6,
+      "en": "Now here this is after adding the causal mask and also pushing the data through the softmax function.",
+      "zh": "這裡已經加上因果遮罩，也經過 softmax，"
+    },
+    {
+      "start": 957.76,
+      "end": 963.16,
+      "en": "And that's why the y axis values here range from 0 to 1.",
+      "zh": "所以 y 軸值介於 0 和 1，"
+    },
+    {
+      "start": 963.16,
+      "end": 966.2,
+      "en": "And it's labeled softmax attention weights.",
+      "zh": "標記為 softmax 注意力權重。"
+    },
+    {
+      "start": 966.72,
+      "end": 977.24,
+      "en": "The green dots here show the softmax attention weights from the last token in the sequence to each of the earlier tokens, but excluding itself.",
+      "zh": "綠點顯示序列最後一個 token，對每個較早 token 的 softmax 注意力權重，但排除它自己。"
+    },
+    {
+      "start": 977.76,
+      "end": 985.76,
+      "en": "And these become the probability values that will select a particular column or weight the different columns in V.",
+      "zh": "這些會成為選取某一欄，或為 V 中不同欄加權的機率值。"
+    },
+    {
+      "start": 986.16,
+      "end": 992.76,
+      "en": "And you can see that most of them are pretty close to zero, and very few have larger values.",
+      "zh": "可以看到，大部分非常接近零，只有極少數比較大。"
+    },
+    {
+      "start": 993.2,
+      "end": 1000.37,
+      "en": "And that highlights that attention the attention mechanism is pretty sparse, so most of the information",
+      "zh": "這凸顯注意力機制相當稀疏，大部分先前 token 的資訊，"
+    },
+    {
+      "start": 1000.37,
+      "end": 1011.33,
+      "en": "from previous tokens is suppressed and only a small number of tokens are activated and their information is copied into the attention adjustment.",
+      "zh": "都被抑制，只有少量 token 被活化，其資訊複製到注意力調整中。"
+    },
+    {
+      "start": 1012.09,
+      "end": 1014.73,
+      "en": "Now the self-attention ones over here in the middle.",
+      "zh": "中間這些則是自注意力，"
+    },
+    {
+      "start": 1014.73,
+      "end": 1023.89,
+      "en": "These are the diagonals of the QQ transpose matrix that corresponds to the attention of each token to itself.",
+      "zh": "它們是 QQ 轉置矩陣的對角線，對應每個 token 對自己的注意力。"
+    },
+    {
+      "start": 1024.17,
+      "end": 1033.25,
+      "en": "So this one on the left is the token to all the previous tokens, and in the middle we have all the tokens to themselves.",
+      "zh": "左邊這個，是 token 對所有先前 token；中間則是所有 token 對自己。"
+    },
+    {
+      "start": 1033.69,
+      "end": 1040.21,
+      "en": "And then over here on the right, this is just the first token from the from each attention head.",
+      "zh": "右邊這個，則只是每個注意力頭的第一個 token，"
+    },
+    {
+      "start": 1040.21,
+      "end": 1042.09,
+      "en": "So the first token in the sequence.",
+      "zh": "也就是序列第一個 token，"
+    },
+    {
+      "start": 1042.73,
+      "end": 1045.65,
+      "en": "So the very first token onto itself.",
+      "zh": "最前面的 token 對自己。"
+    },
+    {
+      "start": 1045.65,
+      "end": 1049.53,
+      "en": "And there is no previous context to integrate here.",
+      "zh": "這裡沒有先前上下文可以整合，"
+    },
+    {
+      "start": 1049.81,
+      "end": 1052.33,
+      "en": "And that's why you get all ones.",
+      "zh": "所以全都得到 1。"
+    },
+    {
+      "start": 1052.33,
+      "end": 1056.66,
+      "en": "This is the only non infinity value in each row.",
+      "zh": "這是每列唯一非無限大的值，"
+    },
+    {
+      "start": 1056.82,
+      "end": 1063.14,
+      "en": "So of course it has an attention weight of one regardless of what the actual activation value is.",
+      "zh": "所以不論實際活化值是多少，注意力權重當然是 1。"
+    },
+    {
+      "start": 1063.26,
+      "end": 1063.58,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1063.62,
+      "end": 1066.42,
+      "en": "Now this plot here shows the raw data.",
+      "zh": "這張圖顯示原始資料，"
+    },
+    {
+      "start": 1066.46,
+      "end": 1068.3,
+      "en": "These are the actual numbers.",
+      "zh": "也就是實際數字。"
+    },
+    {
+      "start": 1068.66,
+      "end": 1075.26,
+      "en": "And when we are pooling over all of the heads and just looking at one layer, that's what we're doing here.",
+      "zh": "這裡合併所有注意力頭，只看單一層，"
+    },
+    {
+      "start": 1075.3,
+      "end": 1077.74,
+      "en": "This is just one transformer block.",
+      "zh": "也就是一個 Transformer 區塊，"
+    },
+    {
+      "start": 1077.94,
+      "end": 1080.26,
+      "en": "Then this is a great visualization.",
+      "zh": "這是很好的視覺化。"
+    },
+    {
+      "start": 1080.26,
+      "end": 1088.1,
+      "en": "But having scatter plots like this is not really scalable to separating the distributions for all of",
+      "zh": "但這種散佈圖，不太能擴充到將不同"
+    },
+    {
+      "start": 1088.1,
+      "end": 1099.02,
+      "en": "the different layers, or looking at the different layers over time and seeing how these kinds of distributions might change as we go deeper into the model.",
+      "zh": "層的分布分開，或隨時間查看不同層，研究模型越深，這些分布如何改變。"
+    },
+    {
+      "start": 1099.58,
+      "end": 1103.86,
+      "en": "So therefore I will introduce you to the KDE method.",
+      "zh": "所以接著介紹 KDE 方法。"
+    },
+    {
+      "start": 1104.22,
+      "end": 1115.55,
+      "en": "The idea of a kernel density estimator is to consider that each of these individual points is like a noisy estimate of a probability distribution.",
+      "zh": "核密度估計器的概念，是將每個資料點，視為機率分布的一個帶雜訊估計。"
+    },
+    {
+      "start": 1115.95,
+      "end": 1124.79,
+      "en": "So we take each of these numbers, plot it on a graph where the x axis of that graph corresponds to the y axis of this plot.",
+      "zh": "取這些數字，畫在圖上，新圖的 x 軸對應這張圖的 y 軸，"
+    },
+    {
+      "start": 1125.15,
+      "end": 1130.39,
+      "en": "And then we blur each of these data points with a Gaussian a Gaussian.",
+      "zh": "再用高斯函數模糊每個資料點，"
+    },
+    {
+      "start": 1130.39,
+      "end": 1132.35,
+      "en": "So we smooth it out a little bit.",
+      "zh": "也就是稍微平滑化。"
+    },
+    {
+      "start": 1132.91,
+      "end": 1135.43,
+      "en": "And when we do that for all the dots.",
+      "zh": "對所有點都這麼做，"
+    },
+    {
+      "start": 1135.43,
+      "end": 1138.59,
+      "en": "So convolve all the dots with little Gaussians.",
+      "zh": "讓它們與小高斯函數摺積，"
+    },
+    {
+      "start": 1138.59,
+      "end": 1139.91,
+      "en": "Then we sum them all up.",
+      "zh": "再全部相加，"
+    },
+    {
+      "start": 1139.91,
+      "end": 1144.83,
+      "en": "And we consider that to be the estimate of the probability distribution.",
+      "zh": "就將結果視為機率分布估計。"
+    },
+    {
+      "start": 1145.19,
+      "end": 1148.03,
+      "en": "And that's what you see in this little demo here.",
+      "zh": "這就是這個小示範看到的。"
+    },
+    {
+      "start": 1148.07,
+      "end": 1153.83,
+      "en": "Now to be super clear this figure here is not coming from the real data.",
+      "zh": "說得非常清楚，這張圖不是來自真實資料，"
+    },
+    {
+      "start": 1154.11,
+      "end": 1157.75,
+      "en": "This is a very simple toy example that I came up with.",
+      "zh": "只是我想出來的一個簡單玩具例子。"
+    },
+    {
+      "start": 1157.75,
+      "end": 1160.23,
+      "en": "So I just came up with these numbers.",
+      "zh": "這些數字是我自己編的，"
+    },
+    {
+      "start": 1160.23,
+      "end": 1167.91,
+      "en": "It's only a couple of numbers just to show you the idea of the KDE procedure and the output and the interpretation.",
+      "zh": "只有幾個數字，展示 KDE 程序、輸出與解讀的概念。"
+    },
+    {
+      "start": 1168.83,
+      "end": 1174.36,
+      "en": "So let's say we have five actual data points, and I drew them here as red spikes.",
+      "zh": "假設有五個實際資料點，這裡畫成紅色尖峰。"
+    },
+    {
+      "start": 1174.84,
+      "end": 1179.36,
+      "en": "Now each of those spikes gets convolved with a Gaussian.",
+      "zh": "每個尖峰都與高斯函數摺積，"
+    },
+    {
+      "start": 1179.72,
+      "end": 1186.2,
+      "en": "And then you sum up over all of the Gaussians and that blue line that is our KDE.",
+      "zh": "再將所有高斯相加，藍線就是 KDE，"
+    },
+    {
+      "start": 1186.52,
+      "end": 1193.12,
+      "en": "And that's our estimate of the probability density of the sparse red spiky data.",
+      "zh": "也就是稀疏紅色尖峰資料的機率密度估計。"
+    },
+    {
+      "start": 1193.72,
+      "end": 1204.44,
+      "en": "Now, when I show you this demo in the code, that will help you understand what the KDE analysis is, and also you'll see the code for how to implement it.",
+      "zh": "程式中展示這個示範，會幫助理解 KDE 分析，也會看到實作程式。"
+    },
+    {
+      "start": 1205.16,
+      "end": 1213.8,
+      "en": "Then after showing you this little toy demo, I'm going to apply this method to the actual data that I showed in this plot.",
+      "zh": "展示完小例子，接著套用到這張圖的真實資料，"
+    },
+    {
+      "start": 1214.24,
+      "end": 1220.56,
+      "en": "And that will give us this result here, where you can see that for this particular layer, for this",
+      "zh": "得到這裡的結果。可以看到，對這個特定層、"
+    },
+    {
+      "start": 1220.56,
+      "end": 1227.4,
+      "en": "particular transformer layer, the the probability distributions are really strongly clustered towards zero.",
+      "zh": "這個特定 Transformer 層，機率分布強烈集中在零附近。"
+    },
+    {
+      "start": 1227.44,
+      "end": 1232.97,
+      "en": "In fact, I cut off the y axis here, just so we can see these more subtle features down here.",
+      "zh": "其實這裡切掉了 y 軸上端，只是為了看清下面更細微的特徵。"
+    },
+    {
+      "start": 1233.49,
+      "end": 1242.73,
+      "en": "And then, uh, yeah, the attention softmax weights for the final to the previous token has some bumps at these higher values over here.",
+      "zh": "最後一個到先前 token 的 softmax 注意力權重，在這些較高值的位置有些凸起。"
+    },
+    {
+      "start": 1243.37,
+      "end": 1250.57,
+      "en": "Now the code that generates these lines you will have to adapt in the next video, the next code challenge",
+      "zh": "下一支影片的程式挑戰，需要修改產生這些線的程式，"
+    },
+    {
+      "start": 1250.69,
+      "end": 1258.45,
+      "en": "to explore how these attention scores change over the different layers in a language model.",
+      "zh": "探索語言模型不同層的注意力分數如何改變。"
+    },
+    {
+      "start": 1259.53,
+      "end": 1259.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1260.09,
+      "end": 1262.69,
+      "en": "That is the summary of the code demo.",
+      "zh": "以上是程式示範的摘要。"
+    },
+    {
+      "start": 1262.73,
+      "end": 1264.81,
+      "en": "There's a lot to do, a lot to unpack.",
+      "zh": "內容很多，需要拆開理解，"
+    },
+    {
+      "start": 1264.97,
+      "end": 1270.29,
+      "en": "So I will now switch to Python and show you how all this stuff looks in code.",
+      "zh": "現在切換到 Python，展示程式中的樣子。"
+    },
+    {
+      "start": 1271.61,
+      "end": 1274.81,
+      "en": "Here are all the typical libraries that we will use here.",
+      "zh": "這裡是會使用的常見函式庫。"
+    },
+    {
+      "start": 1274.81,
+      "end": 1277.13,
+      "en": "I'm importing GPT two small.",
+      "zh": "匯入 GPT2-small。"
+    },
+    {
+      "start": 1277.25,
+      "end": 1282.49,
+      "en": "We will use a larger model in the code challenge in the next video.",
+      "zh": "下一支影片的挑戰，會用更大模型。"
+    },
+    {
+      "start": 1283.25,
+      "end": 1283.77,
+      "en": "Let's see here.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 1283.77,
+      "end": 1289.9,
+      "en": "We're going to need a couple of variables that are just convenience, because it's a bit easier to write",
+      "zh": "需要幾個方便使用的變數，因為寫"
+    },
+    {
+      "start": 1289.9,
+      "end": 1295.78,
+      "en": "out n heads than to keep writing model dot config dot n head multiple times.",
+      "zh": "n heads，比反覆寫 model.config.n_head 簡單。"
+    },
+    {
+      "start": 1296.02,
+      "end": 1297.34,
+      "en": "So here let's see.",
+      "zh": "所以這裡，"
+    },
+    {
+      "start": 1297.34,
+      "end": 1304.66,
+      "en": "Here I'm just printing out the config information for this model, just as a reminder of what these variable names are.",
+      "zh": "列印模型的 config 資訊，複習這些變數名稱。"
+    },
+    {
+      "start": 1304.9,
+      "end": 1309.06,
+      "en": "So we have the number of heads that's in this variable.",
+      "zh": "頭的數量，就在這個變數，"
+    },
+    {
+      "start": 1309.06,
+      "end": 1311.58,
+      "en": "Here we have the head dimension.",
+      "zh": "這裡則是頭的維度，"
+    },
+    {
+      "start": 1311.58,
+      "end": 1318.98,
+      "en": "So that is the number of heads divided sorry the embeddings dimension divided by the number of heads.",
+      "zh": "也就是頭數除以，抱歉，是嵌入維度除以頭數。"
+    },
+    {
+      "start": 1319.46,
+      "end": 1322.5,
+      "en": "And then I have this term square root of d.",
+      "zh": "再來有個根號 d，"
+    },
+    {
+      "start": 1322.54,
+      "end": 1324.66,
+      "en": "That is the denominator.",
+      "zh": "就是分母，"
+    },
+    {
+      "start": 1324.9,
+      "end": 1329.14,
+      "en": "That's what we normalize the qk transpose vectors by.",
+      "zh": "用它來正規化 QK 轉置向量。"
+    },
+    {
+      "start": 1329.54,
+      "end": 1336.42,
+      "en": "So again it's just a little more compact a little nicer to have this variable than to keep writing this out multiple times.",
+      "zh": "同樣，有這個變數，就不用反覆寫完整內容，比較精簡、漂亮。"
+    },
+    {
+      "start": 1336.94,
+      "end": 1343.58,
+      "en": "So then we have discovered that there are 12 heads, each of which has 64 dimensions.",
+      "zh": "所以我們得知有 12 個頭，每個 64 維。"
+    },
+    {
+      "start": 1343.58,
+      "end": 1355.47,
+      "en": "And when you multiply 12 times 64, you will not be surprised to see that the result is 768, which is the number of embeddings dimensions in this model.",
+      "zh": "12 乘以 64，毫不意外是 768，也就是模型的嵌入維度。"
+    },
+    {
+      "start": 1356.11,
+      "end": 1364.15,
+      "en": "Okay, so now we need to hook implant a hook to get the activations from the attention layer.",
+      "zh": "好，現在需要安裝 hook，取得注意力層的活化。"
+    },
+    {
+      "start": 1364.27,
+      "end": 1366.51,
+      "en": "So that is let me go back up here.",
+      "zh": "回到上面這裡。"
+    },
+    {
+      "start": 1366.75,
+      "end": 1368.55,
+      "en": "So what we want is H.",
+      "zh": "我們要的是 h，"
+    },
+    {
+      "start": 1368.59,
+      "end": 1374.51,
+      "en": "So a hidden layer we want attention and we want this one here C attention.",
+      "zh": "某個隱藏層的 attention，以及這裡的 c_attn。"
+    },
+    {
+      "start": 1374.71,
+      "end": 1376.07,
+      "en": "So that is the layer.",
+      "zh": "這就是那一層，"
+    },
+    {
+      "start": 1376.07,
+      "end": 1378.23,
+      "en": "That's the information that we want to hook.",
+      "zh": "也就是想要 hook 的資訊。"
+    },
+    {
+      "start": 1378.47,
+      "end": 1387.99,
+      "en": "You will remember from earlier in the course that this matrix is of size 768 by 2304.",
+      "zh": "應該記得，這個矩陣大小是 768×2,304，"
+    },
+    {
+      "start": 1388.43,
+      "end": 1392.75,
+      "en": "And this number corresponds to 768 times three.",
+      "zh": "後者對應 768 乘以 3。"
+    },
+    {
+      "start": 1393.31,
+      "end": 1401.63,
+      "en": "And the three is for the, the q, the k and the V matrices that are augmented, they're just stacked next to each other.",
+      "zh": "3 表示 Q、K、V 矩陣，它們增廣、並排堆疊在一起。"
+    },
+    {
+      "start": 1401.87,
+      "end": 1411.32,
+      "en": "So we will grab these activations and then split them up according to Q, K and V, and then for each",
+      "zh": "所以先取得活化，依 Q、K、V 拆分，再對每個"
+    },
+    {
+      "start": 1411.32,
+      "end": 1415.64,
+      "en": "of those, we need to split them again to get the separate heads.",
+      "zh": "矩陣進一步拆分，取得不同頭。"
+    },
+    {
+      "start": 1416,
+      "end": 1416.32,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1416.36,
+      "end": 1418.28,
+      "en": "So bit of a reminder there.",
+      "zh": "稍微複習一下。"
+    },
+    {
+      "start": 1418.48,
+      "end": 1421.52,
+      "en": "And here you see I'm doing this for layer six.",
+      "zh": "這裡可以看到，針對第 6 層，"
+    },
+    {
+      "start": 1421.84,
+      "end": 1423.76,
+      "en": "Uh and why layer six I don't know.",
+      "zh": "為什麼第 6 層？我也不知道，"
+    },
+    {
+      "start": 1423.8,
+      "end": 1425.92,
+      "en": "It's sort of halfway through the model.",
+      "zh": "大約在模型中間，"
+    },
+    {
+      "start": 1425.96,
+      "end": 1427.96,
+      "en": "Get some interesting stuff happening there.",
+      "zh": "那裡會有些有意思的事情。"
+    },
+    {
+      "start": 1428.32,
+      "end": 1431.16,
+      "en": "Uh, of course, I encourage you to play around with this.",
+      "zh": "當然，鼓勵你自己調整，"
+    },
+    {
+      "start": 1431.16,
+      "end": 1434.88,
+      "en": "You can see how it looks for different layers in the next video.",
+      "zh": "看看不同層的樣子。下一支影片，"
+    },
+    {
+      "start": 1434.92,
+      "end": 1436.72,
+      "en": "You're going to do this systematically.",
+      "zh": "會有系統地做，"
+    },
+    {
+      "start": 1436.72,
+      "end": 1440.64,
+      "en": "You're going to explore, uh, over all of the layers.",
+      "zh": "探索所有層。"
+    },
+    {
+      "start": 1441,
+      "end": 1441.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1441.44,
+      "end": 1445.16,
+      "en": "So, uh, hidden uh, and then we want attention.",
+      "zh": "所以隱藏層，再到 attention，"
+    },
+    {
+      "start": 1445.32,
+      "end": 1446.36,
+      "en": "C attention.",
+      "zh": "c_attn，"
+    },
+    {
+      "start": 1446.36,
+      "end": 1451.88,
+      "en": "And then we just grab the output into this activations dictionary here.",
+      "zh": "接著將輸出放進這裡的 activations 字典。"
+    },
+    {
+      "start": 1452.36,
+      "end": 1452.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1452.68,
+      "end": 1454.24,
+      "en": "So run that code.",
+      "zh": "執行這段程式。"
+    },
+    {
+      "start": 1454.44,
+      "end": 1457.2,
+      "en": "And then here is the text that I have copied.",
+      "zh": "接著這裡是複製的文字。"
+    },
+    {
+      "start": 1457.24,
+      "end": 1457.44,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1457.44,
+      "end": 1460.12,
+      "en": "It's one sentence about uh, the island of Fiji.",
+      "zh": "一個關於斐濟島的句子，"
+    },
+    {
+      "start": 1460.16,
+      "end": 1461.2,
+      "en": "Here's the website.",
+      "zh": "這是網站。"
+    },
+    {
+      "start": 1461.44,
+      "end": 1461.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1461.8,
+      "end": 1463.57,
+      "en": "Tokenize push through the model.",
+      "zh": "token 化，再送進模型。"
+    },
+    {
+      "start": 1463.85,
+      "end": 1465.65,
+      "en": "Nothing super fancy here.",
+      "zh": "沒什麼特別複雜的。"
+    },
+    {
+      "start": 1465.97,
+      "end": 1469.69,
+      "en": "Uh, this is the only time that I'm running data through the model here.",
+      "zh": "這是唯一一次讓資料通過模型，"
+    },
+    {
+      "start": 1470.05,
+      "end": 1473.65,
+      "en": "Uh, in this code demo, we definitely do not need the GPU here.",
+      "zh": "這份示範，絕對不需要 GPU。"
+    },
+    {
+      "start": 1474.13,
+      "end": 1474.33,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1474.37,
+      "end": 1484.29,
+      "en": "And then, as always, the first time you are testing, first time you're pushing through, uh, pushing some data through a model, developing code, working on code and so on.",
+      "zh": "一如往常，第一次測試、第一次送資料通過模型、開發或修改程式時，"
+    },
+    {
+      "start": 1484.33,
+      "end": 1490.53,
+      "en": "It's always a good idea to print out what these, uh, sizes are throughout the model.",
+      "zh": "都應該列印模型中這些大小。"
+    },
+    {
+      "start": 1490.65,
+      "end": 1495.57,
+      "en": "So 38 tokens and 2304 dimensions.",
+      "zh": "38 個 token，以及 2,304 個維度。"
+    },
+    {
+      "start": 1495.57,
+      "end": 1495.93,
+      "en": "And.",
+      "zh": "然後，"
+    },
+    {
+      "start": 1495.97,
+      "end": 1498.65,
+      "en": "Yeah, I just explained where that number comes from.",
+      "zh": "對，剛才已經解釋數字從哪裡來。"
+    },
+    {
+      "start": 1499.01,
+      "end": 1499.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1499.45,
+      "end": 1505.57,
+      "en": "So now what we are going to do is split the data into these separate qkv matrices.",
+      "zh": "現在將資料拆成獨立的 Q、K、V 矩陣。"
+    },
+    {
+      "start": 1506.09,
+      "end": 1510.53,
+      "en": "Uh, I'm hard coding this to be zero because this is the batch dimension.",
+      "zh": "這裡固定寫成 0，因為是批次維度，"
+    },
+    {
+      "start": 1510.53,
+      "end": 1512.97,
+      "en": "Over here we only have one sequence.",
+      "zh": "只有一個序列。"
+    },
+    {
+      "start": 1513.09,
+      "end": 1520.77,
+      "en": "So of course if you are pushing through batches of data multi sequence data, then you would need to",
+      "zh": "當然，如果送進多序列批次，就需要"
+    },
+    {
+      "start": 1520.97,
+      "end": 1529.14,
+      "en": "either have a for loop here, or reshape or do something to deal with this rather than just using the first element in here.",
+      "zh": "用 for 迴圈、reshape，或其他做法處理，而不是只取第一個元素。"
+    },
+    {
+      "start": 1529.18,
+      "end": 1530.5,
+      "en": "Okay, now this is.",
+      "zh": "好，現在這是，"
+    },
+    {
+      "start": 1530.54,
+      "end": 1535.9,
+      "en": "So I've shown you this torch dot split function before you input the matrix.",
+      "zh": "之前示範過 torch.split 函式，先輸入矩陣，"
+    },
+    {
+      "start": 1535.9,
+      "end": 1544.58,
+      "en": "And then you input the number of embeddings, dimensions or whatever should be the size of the matrices that you want to split.",
+      "zh": "再輸入嵌入維度，或拆分後各矩陣應有的大小。"
+    },
+    {
+      "start": 1544.82,
+      "end": 1547.34,
+      "en": "And then you have to indicate the dimensionality.",
+      "zh": "接著指定維度。"
+    },
+    {
+      "start": 1547.5,
+      "end": 1556.38,
+      "en": "Now this might look a little bit confusing here because dimension one actually corresponds to the token dimension over here.",
+      "zh": "這裡可能有點混淆，因為維度 1，在原本這裡其實對應 token 維度。"
+    },
+    {
+      "start": 1556.78,
+      "end": 1564.7,
+      "en": "However, when I extract the first sequence over here, this now becomes a two dimensional matrix.",
+      "zh": "但擷取第一個序列後，就成為二維矩陣。"
+    },
+    {
+      "start": 1564.78,
+      "end": 1567.98,
+      "en": "So if we would do it like this.",
+      "zh": "所以如果改成這樣，"
+    },
+    {
+      "start": 1568.26,
+      "end": 1570.34,
+      "en": "Now this code is incorrect.",
+      "zh": "這段程式就是錯的，"
+    },
+    {
+      "start": 1570.34,
+      "end": 1573.26,
+      "en": "We can try to run it and we're going to get an error.",
+      "zh": "執行會得到錯誤，"
+    },
+    {
+      "start": 1573.42,
+      "end": 1579.9,
+      "en": "And that's because yeah we cannot cut up 38 into 768.",
+      "zh": "因為沒辦法將 38 切成 768，"
+    },
+    {
+      "start": 1579.9,
+      "end": 1580.03,
+      "en": "68.",
+      "zh": "68。"
+    },
+    {
+      "start": 1580.39,
+      "end": 1585.07,
+      "en": "So what we could do is cut along the second dimension.",
+      "zh": "可以改沿第二個維度切，"
+    },
+    {
+      "start": 1585.07,
+      "end": 1590.35,
+      "en": "But now we still have this singleton dimension in here, which is just not very interesting.",
+      "zh": "但仍會有這個單一元素維度，沒太大意思。"
+    },
+    {
+      "start": 1590.55,
+      "end": 1599.83,
+      "en": "So therefore when we run it like this, we get the first output of this function to be 38 by 768.",
+      "zh": "所以像這樣執行，函式第一個輸出會是 38×768。"
+    },
+    {
+      "start": 1599.87,
+      "end": 1605.19,
+      "en": "And of course, if you would look at the shapes of k and v you would see the same sizes.",
+      "zh": "當然，查看 K、V 的形狀，也會是相同大小。"
+    },
+    {
+      "start": 1606.35,
+      "end": 1612.83,
+      "en": "I suppose the more general point that I would like to make here is always check sizes of matrices.",
+      "zh": "更一般的重點，是永遠檢查矩陣大小，"
+    },
+    {
+      "start": 1612.83,
+      "end": 1616.35,
+      "en": "That is really going to help you understand what's going on.",
+      "zh": "真的有助於理解發生什麼事，"
+    },
+    {
+      "start": 1616.35,
+      "end": 1621.91,
+      "en": "It will help you avoid making mistakes and help you debug when you do have mistakes.",
+      "zh": "避免犯錯，出錯時也有助於除錯。"
+    },
+    {
+      "start": 1622.43,
+      "end": 1625.87,
+      "en": "Okay, so this is not yet splitting into different heads.",
+      "zh": "好，這還沒拆成不同頭，"
+    },
+    {
+      "start": 1625.87,
+      "end": 1629.75,
+      "en": "This is the entire queue activations matrix.",
+      "zh": "而是整個 Q 活化矩陣。"
+    },
+    {
+      "start": 1630.11,
+      "end": 1631.99,
+      "en": "So then I'm splitting again.",
+      "zh": "接著再拆一次，"
+    },
+    {
+      "start": 1632.19,
+      "end": 1638.44,
+      "en": "And now here I'm just splitting according to Q I'm no longer splitting the activations Invasions.",
+      "zh": "現在只針對 Q，不再拆原本的 activations，"
+    },
+    {
+      "start": 1638.72,
+      "end": 1641,
+      "en": "And now I'm splitting by head dimension.",
+      "zh": "而是按頭的維度拆分。"
+    },
+    {
+      "start": 1641.16,
+      "end": 1645.2,
+      "en": "And that gives us that there are length of this.",
+      "zh": "這會得到它的長度，"
+    },
+    {
+      "start": 1645.2,
+      "end": 1646.72,
+      "en": "So there are 12 heads.",
+      "zh": "也就是 12 個頭。"
+    },
+    {
+      "start": 1646.72,
+      "end": 1647.84,
+      "en": "And each one of those.",
+      "zh": "每一個，"
+    },
+    {
+      "start": 1647.84,
+      "end": 1648.8,
+      "en": "This is a list.",
+      "zh": "這是串列，"
+    },
+    {
+      "start": 1649.24,
+      "end": 1652.16,
+      "en": "Each one of those actually let me I can show you this.",
+      "zh": "其實每一個，讓我展示。"
+    },
+    {
+      "start": 1652.72,
+      "end": 1655.72,
+      "en": "So here you see it's a lot to print out.",
+      "zh": "可以看到，要列印很多內容，"
+    },
+    {
+      "start": 1655.72,
+      "end": 1658.48,
+      "en": "But basically this is a tuple.",
+      "zh": "基本上，這是一個 tuple，"
+    },
+    {
+      "start": 1658.52,
+      "end": 1660.56,
+      "en": "I'm sorry I said a second ago that it's a list.",
+      "zh": "抱歉，剛才說是串列，"
+    },
+    {
+      "start": 1660.56,
+      "end": 1661.48,
+      "en": "It's a tuple.",
+      "zh": "其實是 tuple，"
+    },
+    {
+      "start": 1661.64,
+      "end": 1667.08,
+      "en": "And each element in the tuple is a is one of the heads.",
+      "zh": "每個元素，就是其中一個注意力頭。"
+    },
+    {
+      "start": 1667.2,
+      "end": 1676.44,
+      "en": "So when we look at the length of that output we get 12 as we expect and the size is 38 by 64 also as",
+      "zh": "所以輸出長度是預期的 12，大小也是預期的 38×64，"
+    },
+    {
+      "start": 1676.44,
+      "end": 1677.44,
+      "en": "we expect.",
+      "zh": "符合預期。"
+    },
+    {
+      "start": 1678.6,
+      "end": 1678.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1678.92,
+      "end": 1679.92,
+      "en": "And now yeah.",
+      "zh": "接著，"
+    },
+    {
+      "start": 1679.92,
+      "end": 1682.4,
+      "en": "So that's for q and now for k.",
+      "zh": "以上是 Q，現在是 K。"
+    },
+    {
+      "start": 1682.8,
+      "end": 1689.28,
+      "en": "Now in this code I'm actually not dealing with the vs the values matrix.",
+      "zh": "這份程式，其實不處理 V，也就是 value 矩陣，"
+    },
+    {
+      "start": 1689.28,
+      "end": 1692.12,
+      "en": "So I'm just going to ignore those okay.",
+      "zh": "所以直接忽略。"
+    },
+    {
+      "start": 1692.16,
+      "end": 1699.89,
+      "en": "So now here I am calculating the means and standard deviations of the different heads over all of the tokens.",
+      "zh": "現在計算不同頭，在所有 token 上的平均數與標準差。"
+    },
+    {
+      "start": 1700.05,
+      "end": 1703.85,
+      "en": "So I'm looping over all of the elements in this tuple.",
+      "zh": "逐一迭代 tuple 中的全部元素，"
+    },
+    {
+      "start": 1703.89,
+      "end": 1705.05,
+      "en": "Q underscore h.",
+      "zh": "q_h，"
+    },
+    {
+      "start": 1705.05,
+      "end": 1706.41,
+      "en": "So all the different heads.",
+      "zh": "也就是所有不同的頭。"
+    },
+    {
+      "start": 1706.45,
+      "end": 1710.13,
+      "en": "And then I'm just calculating the average of all the data.",
+      "zh": "接著直接計算所有資料的平均，"
+    },
+    {
+      "start": 1710.17,
+      "end": 1711.97,
+      "en": "Ignoring the first token.",
+      "zh": "忽略第一個 token，"
+    },
+    {
+      "start": 1712.01,
+      "end": 1714.09,
+      "en": "So I'm just leaving out the first token.",
+      "zh": "把第一個 token 留掉。"
+    },
+    {
+      "start": 1714.09,
+      "end": 1716.53,
+      "en": "So I'm getting the mean and the standard deviations.",
+      "zh": "取得平均數與標準差，"
+    },
+    {
+      "start": 1716.53,
+      "end": 1720.33,
+      "en": "So we can see how much variability there is in the different heads.",
+      "zh": "就能看不同頭之間有多少變異。"
+    },
+    {
+      "start": 1720.81,
+      "end": 1723.13,
+      "en": "This is for Q and this is for k.",
+      "zh": "這是 Q，這是 K。"
+    },
+    {
+      "start": 1723.53,
+      "end": 1726.25,
+      "en": "And then here I am just plotting that.",
+      "zh": "這裡只是繪圖。"
+    },
+    {
+      "start": 1726.25,
+      "end": 1730.21,
+      "en": "So here you see all of the average activations.",
+      "zh": "可以看到全部平均活化，"
+    },
+    {
+      "start": 1730.21,
+      "end": 1733.57,
+      "en": "So this are the means in the the boxes.",
+      "zh": "方框就是平均數，"
+    },
+    {
+      "start": 1733.57,
+      "end": 1737.81,
+      "en": "And the bars indicate one standard deviation above and below the means.",
+      "zh": "誤差棒表示平均數上下各一個標準差。"
+    },
+    {
+      "start": 1737.93,
+      "end": 1740.37,
+      "en": "And the green boxes are for the q heads.",
+      "zh": "綠色方框是 Q 頭，"
+    },
+    {
+      "start": 1740.53,
+      "end": 1745.85,
+      "en": "The k circles are for sorry the red circles are for the k heads.",
+      "zh": "K 圓點，抱歉，紅色圓點是 K 頭。"
+    },
+    {
+      "start": 1746.09,
+      "end": 1751.73,
+      "en": "And yeah, as I mentioned in the slides, we don't really expect that much here.",
+      "zh": "就像投影片提過的，這裡不預期有太多東西，"
+    },
+    {
+      "start": 1751.77,
+      "end": 1755.61,
+      "en": "Mostly I just want you to see a little bit of code to.",
+      "zh": "主要只是展示一點程式，"
+    },
+    {
+      "start": 1756.06,
+      "end": 1756.46,
+      "en": "uh, yeah.",
+      "zh": "對，"
+    },
+    {
+      "start": 1756.5,
+      "end": 1763.5,
+      "en": "Just to give you a little bit more kind of visual and coding, uh, familiarity with working with the different heads.",
+      "zh": "讓你在視覺與程式上，更熟悉處理不同注意力頭。"
+    },
+    {
+      "start": 1764.1,
+      "end": 1764.38,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1764.42,
+      "end": 1766.94,
+      "en": "So now we're going to start doing some more interesting things.",
+      "zh": "現在開始做更有意思的事情。"
+    },
+    {
+      "start": 1766.94,
+      "end": 1772.26,
+      "en": "We can calculate the raw attention scores over all of the different tokens.",
+      "zh": "可以計算不同 token 的原始注意力分數。"
+    },
+    {
+      "start": 1772.58,
+      "end": 1776.86,
+      "en": "So here I am having a double for loop over all the heads.",
+      "zh": "這裡有遍歷所有頭的雙重 for 迴圈，"
+    },
+    {
+      "start": 1776.9,
+      "end": 1786.54,
+      "en": "And that's because for this particular analysis I'm calculating dot products between uh q and k matrices from different heads.",
+      "zh": "因為這項分析，計算不同頭的 Q 與 K 矩陣之間的內積。"
+    },
+    {
+      "start": 1787.06,
+      "end": 1789.82,
+      "en": "So here you see these are dot products.",
+      "zh": "這裡就是內積，"
+    },
+    {
+      "start": 1789.82,
+      "end": 1791.94,
+      "en": "These are q and these are k.",
+      "zh": "這是 Q，這是 K，"
+    },
+    {
+      "start": 1792.26,
+      "end": 1797.78,
+      "en": "And here I'm taking the transpose of k matrix multiplying by q.",
+      "zh": "這裡取 K 的轉置，再與 Q 做矩陣乘法。"
+    },
+    {
+      "start": 1798.02,
+      "end": 1803.26,
+      "en": "Now I'm not doing in this particular analysis I'm not looking at all of the dot products.",
+      "zh": "這項分析沒有研究所有內積，"
+    },
+    {
+      "start": 1803.26,
+      "end": 1804.7,
+      "en": "We can worry about that later.",
+      "zh": "那可以稍後再說。"
+    },
+    {
+      "start": 1805.06,
+      "end": 1809.26,
+      "en": "Here I'm just looking at the dot product between the final token.",
+      "zh": "這裡只看最後一個 token 的內積，"
+    },
+    {
+      "start": 1809.46,
+      "end": 1812.86,
+      "en": "So all of the dimensions and the head all the head dimensions.",
+      "zh": "也就是所有維度、全部頭維度。"
+    },
+    {
+      "start": 1813.02,
+      "end": 1818.83,
+      "en": "Just the final token in queue with all of the previous tokens in Kay.",
+      "zh": "只取 Q 的最後一個 token，與 K 的全部先前 token。"
+    },
+    {
+      "start": 1819.35,
+      "end": 1824.75,
+      "en": "But I'm excluding the first token again because it's weird and I don't like it.",
+      "zh": "同樣排除第一個 token，因為它很奇怪，我不喜歡。"
+    },
+    {
+      "start": 1825.31,
+      "end": 1826.11,
+      "en": "So there you go.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 1826.31,
+      "end": 1826.87,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1826.87,
+      "end": 1828.83,
+      "en": "So that's uh, QQ transpose.",
+      "zh": "這就是 QQ 轉置。"
+    },
+    {
+      "start": 1829.27,
+      "end": 1832.99,
+      "en": "Also, as I mentioned in the slides, it is.",
+      "zh": "投影片也提過，"
+    },
+    {
+      "start": 1833.19,
+      "end": 1835.19,
+      "en": "So it's not completely wrong.",
+      "zh": "這並不完全錯。"
+    },
+    {
+      "start": 1835.23,
+      "end": 1844.67,
+      "en": "The thing is, uh, this dot product of the, uh, raw attention, raw activation values between the",
+      "zh": "問題是，這種原始注意力、原始活化值的內積，是在"
+    },
+    {
+      "start": 1844.67,
+      "end": 1850.23,
+      "en": "different heads in Q and K, this is not something that models naturally do.",
+      "zh": "不同頭的 Q 與 K 之間計算，這不是模型自然會做的事情。"
+    },
+    {
+      "start": 1850.47,
+      "end": 1856.91,
+      "en": "They naturally just, uh, calculate the dot products within each head, not across the different heads.",
+      "zh": "模型只在同一個頭內計算內積，不會跨不同頭。"
+    },
+    {
+      "start": 1857.99,
+      "end": 1862.47,
+      "en": "But I am also showing you the calculations across the different heads here.",
+      "zh": "但這裡也展示跨頭計算，"
+    },
+    {
+      "start": 1862.91,
+      "end": 1869.43,
+      "en": "Uh, partly as a reference, partly to show you that the results that we get within the same head are not trivial.",
+      "zh": "部分作為參考，部分說明同一個頭內的結果，並非理所當然。"
+    },
+    {
+      "start": 1869.43,
+      "end": 1876.44,
+      "en": "They are meaningfully shifted negative, and also partly because it's interesting to see that the different",
+      "zh": "它們確實偏向負值，另外也因為很有意思，可以看到不同"
+    },
+    {
+      "start": 1876.48,
+      "end": 1883.6,
+      "en": "heads actually do have some overlap in the kinds of information that they calculate, as indicated by",
+      "zh": "頭所計算的資訊種類，確實有些重疊，"
+    },
+    {
+      "start": 1883.6,
+      "end": 1888.84,
+      "en": "the lack of zero valued dot products between different heads.",
+      "zh": "由不同頭之間，內積並非零來反映。"
+    },
+    {
+      "start": 1889.44,
+      "end": 1889.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1889.8,
+      "end": 1892.36,
+      "en": "So all that said, here I calculate the dot products.",
+      "zh": "總之，這裡計算內積。"
+    },
+    {
+      "start": 1892.36,
+      "end": 1895.4,
+      "en": "If we are actually working in the same head.",
+      "zh": "如果確實是同一個頭，"
+    },
+    {
+      "start": 1895.72,
+      "end": 1899.28,
+      "en": "Then I concatenate those data onto this variable.",
+      "zh": "就將資料串接到這個變數，"
+    },
+    {
+      "start": 1899.32,
+      "end": 1901.16,
+      "en": "Same head dot products.",
+      "zh": "same head dot products。"
+    },
+    {
+      "start": 1901.16,
+      "end": 1904.84,
+      "en": "And if they are different heads then I put them in this variable.",
+      "zh": "如果是不同頭，則放進這個變數。"
+    },
+    {
+      "start": 1905.04,
+      "end": 1912.12,
+      "en": "And then I'm just visualizing the data as a scatter plots and also as histograms.",
+      "zh": "接著將資料畫成散佈圖，以及直方圖。"
+    },
+    {
+      "start": 1912.16,
+      "end": 1914,
+      "en": "And this is the plot that you have seen before.",
+      "zh": "這就是以前看過的圖。"
+    },
+    {
+      "start": 1914.96,
+      "end": 1915.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1915.32,
+      "end": 1916.76,
+      "en": "Now here's the question.",
+      "zh": "現在問題是，"
+    },
+    {
+      "start": 1916.76,
+      "end": 1921.56,
+      "en": "Why are these values shifted negative within the same head.",
+      "zh": "為什麼同一個頭內，這些值偏向負數？"
+    },
+    {
+      "start": 1922,
+      "end": 1923.64,
+      "en": "That is not trivial.",
+      "zh": "這不是理所當然。"
+    },
+    {
+      "start": 1923.68,
+      "end": 1928.36,
+      "en": "The fact that it's not trivial is clearly demonstrated by this distribution.",
+      "zh": "這個分布清楚說明，並非理所當然。"
+    },
+    {
+      "start": 1928.4,
+      "end": 1931.93,
+      "en": "You know, if these numbers were also all zero, all negative.",
+      "zh": "如果這些數字也全是零，全是負值，"
+    },
+    {
+      "start": 1931.97,
+      "end": 1940.21,
+      "en": "Then we would say there's just something about, you know, these embeddings, vectors that they all happen to be negatively dot product with each other.",
+      "zh": "我們就會說，這些嵌入向量就是碰巧彼此內積都為負。"
+    },
+    {
+      "start": 1940.37,
+      "end": 1941.37,
+      "en": "That's not the case.",
+      "zh": "但情況不是如此。"
+    },
+    {
+      "start": 1941.65,
+      "end": 1946.29,
+      "en": "This distribution is like perfectly symmetric around zero visually.",
+      "zh": "這個分布，從圖上看，幾乎完美地以零為中心對稱。"
+    },
+    {
+      "start": 1946.85,
+      "end": 1948.85,
+      "en": "So why are these values all zero.",
+      "zh": "所以為什麼這些值全部是零？"
+    },
+    {
+      "start": 1949.25,
+      "end": 1957.01,
+      "en": "Remember that these QQ values, these QQ dot products these get pushed through softmax.",
+      "zh": "記住，這些 QQ 值、QQ 內積，會送進 softmax。"
+    },
+    {
+      "start": 1957.13,
+      "end": 1962.05,
+      "en": "And what happens when you push negative numbers through a softmax function.",
+      "zh": "負數送進 softmax 函數，會如何？"
+    },
+    {
+      "start": 1962.45,
+      "end": 1963.69,
+      "en": "They get suppressed.",
+      "zh": "會被抑制，"
+    },
+    {
+      "start": 1963.73,
+      "end": 1965.81,
+      "en": "They get pushed down to zero.",
+      "zh": "被壓到零。"
+    },
+    {
+      "start": 1966.29,
+      "end": 1974.49,
+      "en": "So all of these values here these go the probability values after softmax these get really really tiny.",
+      "zh": "所以這些值，softmax 後的機率，都變得非常非常小，"
+    },
+    {
+      "start": 1974.49,
+      "end": 1977.41,
+      "en": "They get pushed all the way down to zero.",
+      "zh": "一路被壓到零。"
+    },
+    {
+      "start": 1977.77,
+      "end": 1985.33,
+      "en": "Now in this case you see that there's not a single QQ transpose dot product that ends up being positive.",
+      "zh": "這個例子，可以看到，沒有任何 QQ 轉置內積，最後是正值。"
+    },
+    {
+      "start": 1985.37,
+      "end": 1996.74,
+      "en": "But you'll see later on in a moment and also in the next video that you do tend to find lots of clustering negative, and then a small number of values that are further up here.",
+      "zh": "但稍後，以及下一支影片會看到，通常很多值集中在負數，另外少數值位於較高位置。"
+    },
+    {
+      "start": 1996.74,
+      "end": 2006.02,
+      "en": "So there's going to be a small number of token pairs that really get highlighted in the softmax probability calculation.",
+      "zh": "所以只有少量 token 配對，在 softmax 機率計算中，真正被凸顯，"
+    },
+    {
+      "start": 2006.02,
+      "end": 2009.38,
+      "en": "And most of the token pairs get suppressed.",
+      "zh": "大部分 token 配對則被抑制。"
+    },
+    {
+      "start": 2009.38,
+      "end": 2010.5,
+      "en": "That's what you want.",
+      "zh": "這就是想要的，"
+    },
+    {
+      "start": 2010.54,
+      "end": 2013.86,
+      "en": "That's what these models learn to do okay.",
+      "zh": "也是模型學會做的事情。"
+    },
+    {
+      "start": 2013.9,
+      "end": 2018.46,
+      "en": "So now let's focus on the softmax transformed activation values.",
+      "zh": "現在聚焦 softmax 轉換後的活化值。"
+    },
+    {
+      "start": 2018.78,
+      "end": 2022.18,
+      "en": "Here I just have one for loop over the heads.",
+      "zh": "這裡只有一個遍歷注意力頭的 for 迴圈，"
+    },
+    {
+      "start": 2022.18,
+      "end": 2027.38,
+      "en": "And that's because I'm only calculating things inside each attention head.",
+      "zh": "因為只在每個注意力頭內計算，"
+    },
+    {
+      "start": 2027.38,
+      "end": 2031.66,
+      "en": "So I'm not calculating dot products across the different heads in this case.",
+      "zh": "這次不會跨不同頭計算內積。"
+    },
+    {
+      "start": 2031.94,
+      "end": 2038.82,
+      "en": "So q times k transpose divided by the square root of d.",
+      "zh": "Q 乘以 K 轉置，除以根號 d，"
+    },
+    {
+      "start": 2038.86,
+      "end": 2043.78,
+      "en": "This is what goes inside the softmax function.",
+      "zh": "就是送進 softmax 函數的內容。"
+    },
+    {
+      "start": 2043.78,
+      "end": 2045.82,
+      "en": "And then of course we have the attention mask.",
+      "zh": "當然，還有注意力遮罩，"
+    },
+    {
+      "start": 2045.86,
+      "end": 2048.79,
+      "en": "This you have all seen before Okay.",
+      "zh": "這些都看過。"
+    },
+    {
+      "start": 2048.83,
+      "end": 2050.95,
+      "en": "And then here we apply the softmax.",
+      "zh": "接著在這裡套用 softmax。"
+    },
+    {
+      "start": 2051.07,
+      "end": 2059.79,
+      "en": "And then here I'm grabbing the softmax probability values of all of the tokens with the final token.",
+      "zh": "這裡取得所有 token 與最後一個 token 的 softmax 機率值，"
+    },
+    {
+      "start": 2059.79,
+      "end": 2063.59,
+      "en": "So I'm just isolating the final token in the sequence.",
+      "zh": "只取序列中的最後一個 token，"
+    },
+    {
+      "start": 2063.71,
+      "end": 2066.27,
+      "en": "So the last word in the sentence.",
+      "zh": "也就是句子最後一個字，"
+    },
+    {
+      "start": 2066.27,
+      "end": 2070.27,
+      "en": "And then looking at it with all of the previous tokens.",
+      "zh": "再看它與所有先前 token 的關係。"
+    },
+    {
+      "start": 2070.31,
+      "end": 2070.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2070.55,
+      "end": 2071.91,
+      "en": "And why just the last one.",
+      "zh": "為什麼只看最後一個？"
+    },
+    {
+      "start": 2071.95,
+      "end": 2074.15,
+      "en": "I don't know because I felt like it.",
+      "zh": "不知道，因為我想這麼做，"
+    },
+    {
+      "start": 2074.19,
+      "end": 2075.63,
+      "en": "We don't need so much data.",
+      "zh": "不需要那麼多資料，"
+    },
+    {
+      "start": 2075.67,
+      "end": 2077.59,
+      "en": "This is for demonstration purposes.",
+      "zh": "這是示範用途。"
+    },
+    {
+      "start": 2077.83,
+      "end": 2088.07,
+      "en": "The last token in the sequence is often interesting to look at, because it has all the information from the preceding context loaded onto it, modulating it.",
+      "zh": "最後一個 token 經常值得研究，因為前面的全部上下文資訊，都載入、調整到它上面。"
+    },
+    {
+      "start": 2088.51,
+      "end": 2088.83,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2088.87,
+      "end": 2092.27,
+      "en": "So then here I'm looking at self-attention.",
+      "zh": "接著這裡看自注意力，"
+    },
+    {
+      "start": 2092.27,
+      "end": 2097.15,
+      "en": "So I'm just grabbing the diagonal of this softmax matrix.",
+      "zh": "直接取得 softmax 矩陣的對角線，"
+    },
+    {
+      "start": 2097.27,
+      "end": 2102.07,
+      "en": "So that is the self-attention of all the tokens with themselves.",
+      "zh": "也就是所有 token 對自己的自注意力。"
+    },
+    {
+      "start": 2102.51,
+      "end": 2104.43,
+      "en": "And yeah that's what I do here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 2104.43,
+      "end": 2110.64,
+      "en": "And then here is Just isolating the very first token for each of the heads.",
+      "zh": "接著這裡，單獨取出每個頭最前面的 token。"
+    },
+    {
+      "start": 2110.76,
+      "end": 2116.88,
+      "en": "So this is all of the self tokens without the first token in the sequence.",
+      "zh": "這些是全部對自身的 token，排除序列第一個，"
+    },
+    {
+      "start": 2116.88,
+      "end": 2121.68,
+      "en": "And this is the self-attention for just the first token in the sequence.",
+      "zh": "這則只看序列第一個 token 的自注意力。"
+    },
+    {
+      "start": 2122,
+      "end": 2122.44,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 2122.44,
+      "end": 2127.16,
+      "en": "Concatenating all of those so that we are pooling the information over all the heads.",
+      "zh": "將它們全部串接，合併所有注意力頭的資訊，"
+    },
+    {
+      "start": 2127.32,
+      "end": 2131.2,
+      "en": "And that's what produces this plot that I showed in the slides.",
+      "zh": "產生投影片展示的這張圖。"
+    },
+    {
+      "start": 2131.36,
+      "end": 2131.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2131.68,
+      "end": 2138.96,
+      "en": "So here you see that actually from these data we you know, there's a couple of little points here that are pretty large.",
+      "zh": "從資料確實可以看到，這裡有幾個相當大的點。"
+    },
+    {
+      "start": 2139.08,
+      "end": 2143.96,
+      "en": "So all of these negative values got suppressed down to zero again.",
+      "zh": "這些負值，同樣都被抑制到零。"
+    },
+    {
+      "start": 2144,
+      "end": 2151.76,
+      "en": "This means that after the first part of attention with the softmax thing, when these numbers will multiply",
+      "zh": "這表示，注意力第一部分經過 softmax 之後，當這些數字乘上"
+    },
+    {
+      "start": 2151.8,
+      "end": 2163.76,
+      "en": "the columns in V, then most of V gets suppressed, most of V is ignored, and just a small number of columns in V are really getting highlighted here.",
+      "zh": "V 的各欄，大部分 V 被抑制、忽略，只有少數欄真正被凸顯。"
+    },
+    {
+      "start": 2164.12,
+      "end": 2169.57,
+      "en": "And yeah of course here with the self-attention on the first token, there's no context.",
+      "zh": "當然，第一個 token 的自注意力，沒有上下文，"
+    },
+    {
+      "start": 2169.57,
+      "end": 2171.13,
+      "en": "There's no prior tokens.",
+      "zh": "沒有先前 token，"
+    },
+    {
+      "start": 2171.13,
+      "end": 2179.33,
+      "en": "The attention algorithm has no choice but to take all of the information from V that is related to that first token.",
+      "zh": "注意力演算法別無選擇，只能取得 V 中，與第一個 token 相關的全部資訊。"
+    },
+    {
+      "start": 2179.33,
+      "end": 2181.73,
+      "en": "So it's always going to act a little weird like this.",
+      "zh": "所以總會像這樣，有點奇怪。"
+    },
+    {
+      "start": 2182.21,
+      "end": 2188.65,
+      "en": "Coming up to the final part of this code demo is the kernel density estimator.",
+      "zh": "來到這份示範最後一部分，核密度估計器。"
+    },
+    {
+      "start": 2188.77,
+      "end": 2189.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2189.13,
+      "end": 2196.57,
+      "en": "So this first little bit of code here, this actually doesn't this is not using any of the LM data.",
+      "zh": "最初這一小段程式，其實沒有使用任何語言模型資料，"
+    },
+    {
+      "start": 2196.69,
+      "end": 2198.49,
+      "en": "This is just a simple demo.",
+      "zh": "只是簡單示範，"
+    },
+    {
+      "start": 2198.49,
+      "end": 2200.13,
+      "en": "So you can see how it works.",
+      "zh": "讓你看到如何運作。"
+    },
+    {
+      "start": 2200.49,
+      "end": 2203.77,
+      "en": "So here is what I do I come up with some sparse data.",
+      "zh": "這裡，先想出一些稀疏資料。"
+    },
+    {
+      "start": 2203.81,
+      "end": 2209.89,
+      "en": "These are numbers that I just popped out of thin air because I thought they would look good for this particular demo.",
+      "zh": "數字都是憑空想的，只因為覺得對這個示範，圖會很好看。"
+    },
+    {
+      "start": 2210.29,
+      "end": 2211.37,
+      "en": "And then what?",
+      "zh": "接著呢？"
+    },
+    {
+      "start": 2211.41,
+      "end": 2212.05,
+      "en": "But yeah.",
+      "zh": "但，對。"
+    },
+    {
+      "start": 2212.09,
+      "end": 2216.33,
+      "en": "Anyway, when you run the analysis, this actually comes from your real data.",
+      "zh": "總之，真正執行分析時，資料會來自真實資料，"
+    },
+    {
+      "start": 2216.33,
+      "end": 2222.53,
+      "en": "So this vector here is going to be these numbers over here okay.",
+      "zh": "這個向量，就會是這裡這些數字。"
+    },
+    {
+      "start": 2222.57,
+      "end": 2228.22,
+      "en": "Then you need to define a high resolution grid to estimate the distribution.",
+      "zh": "接著定義高解析度網格，估計分布。"
+    },
+    {
+      "start": 2228.22,
+      "end": 2231.06,
+      "en": "So here I'm going from minus two to plus two.",
+      "zh": "這裡從 −2 到 +2，"
+    },
+    {
+      "start": 2231.22,
+      "end": 2234.42,
+      "en": "You can see that's a little bit outside of this range.",
+      "zh": "可以看到，稍微超出這個範圍，"
+    },
+    {
+      "start": 2234.42,
+      "end": 2237.7,
+      "en": "That turns out to be the x axis range over here.",
+      "zh": "就是這裡的 x 軸範圍。"
+    },
+    {
+      "start": 2238.22,
+      "end": 2247.3,
+      "en": "So that here this is the x axis grid for the frequency estimation that corresponds to the softmax values",
+      "zh": "這裡是頻率估計的 x 軸網格，對應 softmax 值，"
+    },
+    {
+      "start": 2247.3,
+      "end": 2248.14,
+      "en": "for softmax.",
+      "zh": "而 softmax，"
+    },
+    {
+      "start": 2248.14,
+      "end": 2250.86,
+      "en": "That is always going to range from 0 to 1.",
+      "zh": "永遠介於 0 和 1。"
+    },
+    {
+      "start": 2251.98,
+      "end": 2252.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2252.34,
+      "end": 2262.18,
+      "en": "Then from the scipy.stats library we take stats Gaussian KDE, input the data and define a bandwidth",
+      "zh": "接著從 scipy.stats 取得 stats.gaussian_kde，輸入資料，再定義頻寬"
+    },
+    {
+      "start": 2262.94,
+      "end": 2263.82,
+      "en": "parameter.",
+      "zh": "參數，"
+    },
+    {
+      "start": 2264.1,
+      "end": 2266.94,
+      "en": "And that is basically a smoothing parameter.",
+      "zh": "基本上就是平滑參數，"
+    },
+    {
+      "start": 2266.94,
+      "end": 2269.18,
+      "en": "I will talk more about that in a moment.",
+      "zh": "稍後多談一點。"
+    },
+    {
+      "start": 2269.58,
+      "end": 2277.94,
+      "en": "And then once you have this object, this instance, you simply input the grid values that you want and then you get the heights.",
+      "zh": "有了這個物件、實例，只需要輸入想要的網格值，就會取得高度，"
+    },
+    {
+      "start": 2277.94,
+      "end": 2278.98,
+      "en": "And that is why.",
+      "zh": "也就是 y。"
+    },
+    {
+      "start": 2279.02,
+      "end": 2282.31,
+      "en": "So then I'm just plotting the x grid by Y.",
+      "zh": "接著只要畫 x grid 與 y，"
+    },
+    {
+      "start": 2282.35,
+      "end": 2283.67,
+      "en": "And that's how we get this.",
+      "zh": "就得到這個。"
+    },
+    {
+      "start": 2283.99,
+      "end": 2287.79,
+      "en": "Now, how do you know how wide this Gaussian should be?",
+      "zh": "如何知道，高斯函數應該多寬？"
+    },
+    {
+      "start": 2287.99,
+      "end": 2290.43,
+      "en": "That is this bandwidth parameter here.",
+      "zh": "就是這裡的頻寬參數。"
+    },
+    {
+      "start": 2290.55,
+      "end": 2291.43,
+      "en": "So I can set it.",
+      "zh": "可以設定，"
+    },
+    {
+      "start": 2291.43,
+      "end": 2293.23,
+      "en": "Let's set it to like 0.02.",
+      "zh": "例如設為 0.02。"
+    },
+    {
+      "start": 2293.55,
+      "end": 2297.39,
+      "en": "That's a bit extreme but it is illustrative.",
+      "zh": "有點極端，但能示範。"
+    },
+    {
+      "start": 2297.95,
+      "end": 2299.99,
+      "en": "So you can see the Gaussians are tighter.",
+      "zh": "可以看到，高斯變窄，"
+    },
+    {
+      "start": 2299.99,
+      "end": 2305.75,
+      "en": "They're also taller because yeah we are preserving density here.",
+      "zh": "也變高，因為保持密度。"
+    },
+    {
+      "start": 2306.03,
+      "end": 2312.35,
+      "en": "And you can also see here the three individual peaks corresponding to the sum of the three Gaussians here.",
+      "zh": "這裡也能看到，三個高斯總和對應的三個個別峰值。"
+    },
+    {
+      "start": 2312.75,
+      "end": 2313.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2313.07,
+      "end": 2314.55,
+      "en": "So that's a little bit too much.",
+      "zh": "這樣有點太過，"
+    },
+    {
+      "start": 2314.55,
+      "end": 2316.47,
+      "en": "Maybe we can set this to 0.8.",
+      "zh": "也許設為 0.8，"
+    },
+    {
+      "start": 2316.63,
+      "end": 2318.27,
+      "en": "Then you can see what this looks like.",
+      "zh": "就能看到樣子。"
+    },
+    {
+      "start": 2318.43,
+      "end": 2319.79,
+      "en": "That's probably too much.",
+      "zh": "那可能又太多。"
+    },
+    {
+      "start": 2319.79,
+      "end": 2325.43,
+      "en": "You can just go completely bonkers and set this to 1.8 totally uninformative.",
+      "zh": "甚至可以瘋狂一點，設為 1.8，完全沒資訊。"
+    },
+    {
+      "start": 2325.47,
+      "end": 2327.63,
+      "en": "This is a ridiculously large value.",
+      "zh": "這是大得離譜的值。"
+    },
+    {
+      "start": 2328.23,
+      "end": 2335.99,
+      "en": "That said, so when you have a small amount of data, like in this toy example, it's probably yeah,",
+      "zh": "不過，只有少量資料時，例如這個玩具範例，"
+    },
+    {
+      "start": 2336.03,
+      "end": 2345.32,
+      "en": "you will need to either play around and explore different parameters or define this parameter based on some a priori theoretical consideration.",
+      "zh": "可能就需要調整、探索不同參數，或根據事先的理論考量定義參數。"
+    },
+    {
+      "start": 2346.48,
+      "end": 2352.4,
+      "en": "That said, if you do not have a tiny amount of data, if you have a lot of data.",
+      "zh": "但如果不是少得可憐，而是有很多資料，"
+    },
+    {
+      "start": 2352.44,
+      "end": 2356.68,
+      "en": "A sufficient amount of data, it's often best just to leave this parameter to.",
+      "zh": "有足夠資料，通常最好直接讓參數"
+    },
+    {
+      "start": 2356.72,
+      "end": 2358.4,
+      "en": "Be at its default value.",
+      "zh": "維持預設值。"
+    },
+    {
+      "start": 2358.6,
+      "end": 2362.64,
+      "en": "You can see for this that's actually a little bit too much smoothing.",
+      "zh": "可以看到，對這個例子，其實稍微平滑過頭，"
+    },
+    {
+      "start": 2362.76,
+      "end": 2365.88,
+      "en": "So that's why I set this to be 0.2.",
+      "zh": "所以才設成 0.2，"
+    },
+    {
+      "start": 2366.24,
+      "end": 2369.96,
+      "en": "And yeah I just set that because I think this looks nice for the plot.",
+      "zh": "只是因為覺得圖這樣很好看。"
+    },
+    {
+      "start": 2370.64,
+      "end": 2371,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2371.04,
+      "end": 2373.16,
+      "en": "So that was the toy demo.",
+      "zh": "以上是玩具示範。"
+    },
+    {
+      "start": 2373.16,
+      "end": 2374.88,
+      "en": "Now we're going to do this for reals.",
+      "zh": "現在來真的。"
+    },
+    {
+      "start": 2375.04,
+      "end": 2377.76,
+      "en": "So now I'm defining softmax x.",
+      "zh": "現在定義 softmax x，"
+    },
+    {
+      "start": 2378.2,
+      "end": 2389.76,
+      "en": "This is a high resolution grid to estimate the distribution of all of the individual softmax attention data values goes from 0 to 1 in 300 steps.",
+      "zh": "是高解析度網格，用 300 步，從 0 到 1，估計個別 softmax 注意力數值的分布。"
+    },
+    {
+      "start": 2389.76,
+      "end": 2396.2,
+      "en": "So basically I'm taking this y axis here and cutting this up into 300 bins.",
+      "zh": "基本上，將這裡的 y 軸切成 300 個區間，"
+    },
+    {
+      "start": 2396.56,
+      "end": 2402.33,
+      "en": "And then we will count the number of these data points that goes into each individual bin.",
+      "zh": "再計算每個區間有多少資料點，"
+    },
+    {
+      "start": 2402.81,
+      "end": 2405.05,
+      "en": "And then we will convolve those counts.",
+      "zh": "接著對那些計數進行摺積，"
+    },
+    {
+      "start": 2405.05,
+      "end": 2408.09,
+      "en": "That bar plot with a histogram.",
+      "zh": "將長條圖與直方圖摺積。"
+    },
+    {
+      "start": 2408.45,
+      "end": 2409.65,
+      "en": "And uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 2409.65,
+      "end": 2413.97,
+      "en": "So all of this code is the same as the code to create this plot.",
+      "zh": "所有這些程式，都與建立這張圖的程式相同。"
+    },
+    {
+      "start": 2414.97,
+      "end": 2418.97,
+      "en": "Now here I'm actually going to run this twice.",
+      "zh": "這裡其實會執行兩次，"
+    },
+    {
+      "start": 2418.97,
+      "end": 2427.25,
+      "en": "So I create this for the final to final token to the previous tokens and also for the self-attention.",
+      "zh": "一次是最後一個 token 對先前 token，另一次是自注意力。"
+    },
+    {
+      "start": 2427.49,
+      "end": 2436.17,
+      "en": "Now because the sample size is differ here, uh, the, the density estimates are going to have different y axis values.",
+      "zh": "因為這裡樣本數不同，密度估計的 y 軸值也會不同，"
+    },
+    {
+      "start": 2436.17,
+      "end": 2438.77,
+      "en": "So that's why I'm dividing it by the max.",
+      "zh": "所以才除以最大值，"
+    },
+    {
+      "start": 2438.93,
+      "end": 2440.77,
+      "en": "That's just a normalization.",
+      "zh": "只是一種正規化，"
+    },
+    {
+      "start": 2440.77,
+      "end": 2443.53,
+      "en": "So that the maximum value is one.",
+      "zh": "讓最大值為 1。"
+    },
+    {
+      "start": 2443.53,
+      "end": 2446.05,
+      "en": "And you can see that uh here.",
+      "zh": "這裡就能看到。"
+    },
+    {
+      "start": 2446.69,
+      "end": 2451.53,
+      "en": "So if I don't set the y axis limit you can see this is what the distribution looks like.",
+      "zh": "如果不設定 y 軸界限，就能看到分布長這樣。"
+    },
+    {
+      "start": 2451.57,
+      "end": 2457.25,
+      "en": "Again these are smoothed estimates of this distribution here.",
+      "zh": "同樣，這些都是這裡分布的平滑估計，"
+    },
+    {
+      "start": 2457.25,
+      "end": 2461.62,
+      "en": "So all of these distributions and this distribution for the self-attention.",
+      "zh": "也就是所有這些分布，以及這個自注意力分布。"
+    },
+    {
+      "start": 2462.1,
+      "end": 2462.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2462.78,
+      "end": 2465.46,
+      "en": "But these values are so large.",
+      "zh": "但這些值非常大，"
+    },
+    {
+      "start": 2465.46,
+      "end": 2475.78,
+      "en": "And these values are so small that I thought it would be nice just to cut off the y axis here, just so we can see a little bit of the subtleties down here.",
+      "zh": "那些值非常小，所以我覺得，切掉這裡 y 軸上端，可以看到下面一點細微差異。"
+    },
+    {
+      "start": 2476.06,
+      "end": 2481.1,
+      "en": "In the next video we're going to be calculating these lines for all of the layers.",
+      "zh": "下一支影片，會計算所有層的這些線，"
+    },
+    {
+      "start": 2481.1,
+      "end": 2484.46,
+      "en": "Remember this is just one layer one transformer block.",
+      "zh": "記住，目前只有一層、一個 Transformer 區塊。"
+    },
+    {
+      "start": 2484.46,
+      "end": 2486.58,
+      "en": "So we'll get these lines for all the layers.",
+      "zh": "接著會取得全部層的線，"
+    },
+    {
+      "start": 2486.58,
+      "end": 2494.38,
+      "en": "And we'll do some different visualizations where we won't actually need to do this kind of, uh, this business of cutting off the plot early.",
+      "zh": "做一些不同視覺化，不必再像這樣，提早截掉繪圖範圍。"
+    },
+    {
+      "start": 2495.42,
+      "end": 2495.86,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2495.9,
+      "end": 2504.22,
+      "en": "I realized that this was a long video, but I hope you feel that it was worth your attention and your time in general.",
+      "zh": "知道這支影片很長，但希望你覺得，值得投入注意力與時間。一般而言，"
+    },
+    {
+      "start": 2504.26,
+      "end": 2511.58,
+      "en": "The raw attention scores are going to be shifted to negative, because when the model is processing",
+      "zh": "原始注意力分數會偏向負數，因為模型處理"
+    },
+    {
+      "start": 2511.58,
+      "end": 2516.55,
+      "en": "a given token and trying to determine what the next token should be.",
+      "zh": "某個 token，試著判斷下一個 token 時，"
+    },
+    {
+      "start": 2516.91,
+      "end": 2527.83,
+      "en": "You really want it to suppress most of the tokens, and that's because most of the individual tokens should not be weighted so strongly they're not that relevant.",
+      "zh": "確實希望抑制大部分 token，因為大部分個別 token 沒那麼相關，不該有那麼強的權重。"
+    },
+    {
+      "start": 2528.23,
+      "end": 2536.51,
+      "en": "Of course, there are exceptions like pronouns need to tag a particular noun so the model knows what word it refers to.",
+      "zh": "當然也有例外，例如代名詞必須標記某個特定名詞，模型才知道指涉哪個字。"
+    },
+    {
+      "start": 2537.11,
+      "end": 2538.59,
+      "en": "Same thing for adjectives.",
+      "zh": "形容詞也一樣，"
+    },
+    {
+      "start": 2538.59,
+      "end": 2544.39,
+      "en": "Those need to have a very strong weight to one particular other word or other token.",
+      "zh": "需要對某個特定的其他字、其他 token，有很強的權重。"
+    },
+    {
+      "start": 2545.35,
+      "end": 2552.67,
+      "en": "In general, there are lots of exquisitely detailed analyses that you can start to run once you are",
+      "zh": "一般而言，一旦熟悉分離不同注意力頭，以及操作注意力演算法，"
+    },
+    {
+      "start": 2552.67,
+      "end": 2558.19,
+      "en": "comfortable with isolating the different heads and working with the attention algorithm.",
+      "zh": "就能開始進行許多非常細緻的分析。"
+    },
+    {
+      "start": 2559.19,
+      "end": 2565.39,
+      "en": "The code challenge in the next video will continue along these lines, not getting into really granular",
+      "zh": "下一支影片的程式挑戰，會繼續這個方向，不會深入極細的"
+    },
+    {
+      "start": 2565.39,
+      "end": 2574.23,
+      "en": "amount of detail, but expanding what you learned here to visualizing the attention distributions over different layers.",
+      "zh": "細節，但會擴充這裡所學，呈現不同層的注意力分布。"
+    }
+  ]
+}

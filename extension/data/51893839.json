@@ -1,0 +1,1609 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893839",
+  "title": "Activation editing: Code implementations",
+  "section": 23,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e7fcb1096f14c89bd25bfdd90d18513e80d50447be22fcf732952673de850219",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 9.88,
+      "en": "There are several ways that you can modify the internal activations of a model during the forward pass.",
+      "zh": "在前向傳播期間，有幾種方式可以修改模型內部活化。"
+    },
+    {
+      "start": 10.48,
+      "end": 17.8,
+      "en": "Fortunately, it's actually fairly easy to do, and the broad strokes of the code implementations are",
+      "zh": "幸好，做起來其實相當容易，程式實作的大方向，"
+    },
+    {
+      "start": 17.84,
+      "end": 27.24,
+      "en": "basically the same as storing the activations using hooks, which is what you've been doing all throughout the previous several sections.",
+      "zh": "基本上與用 hook 儲存活化相同，也就是前幾個章節一直在做的事情。"
+    },
+    {
+      "start": 28.4,
+      "end": 39.72,
+      "en": "So before telling you about the specific demos that I will show, I would like to explain the general concept of modifying activations in a PyTorch model.",
+      "zh": "介紹接下來的具體示範前，我想先解釋，在 PyTorch 模型中修改活化的一般概念。"
+    },
+    {
+      "start": 40.32,
+      "end": 43.2,
+      "en": "This code obviously looks very familiar.",
+      "zh": "這段程式碼顯然很熟悉。"
+    },
+    {
+      "start": 43.2,
+      "end": 53.04,
+      "en": "It's a hook function, exactly like what you've been using to store the activations for later analysis, and that is actually optional.",
+      "zh": "這是 hook 函數，與之前用來儲存活化供稍後分析的函數完全一樣，而那其實是可選的。"
+    },
+    {
+      "start": 53.04,
+      "end": 54.08,
+      "en": "Step two here.",
+      "zh": "也就是這裡的第二步。"
+    },
+    {
+      "start": 54.44,
+      "end": 60.72,
+      "en": "What's different here is to take the output of this layer Air and change it somehow.",
+      "zh": "不同之處，是取出這一層的輸出，以某種方式修改。"
+    },
+    {
+      "start": 61.2,
+      "end": 64.84,
+      "en": "And how exactly do you change it and what should you change it to?",
+      "zh": "究竟怎麼改、要改成什麼？"
+    },
+    {
+      "start": 65.44,
+      "end": 70.2,
+      "en": "Well, that's obviously what I'm going to teach you in the rest of this part of the course.",
+      "zh": "當然，這就是課程這一部分其餘內容要教你的。"
+    },
+    {
+      "start": 70.4,
+      "end": 77.92,
+      "en": "But generally you would replace parts of the output with zeros, with random numbers like noise, or",
+      "zh": "一般來說，會把部分輸出替換成零、隨機數字，也就是雜訊，或者"
+    },
+    {
+      "start": 77.92,
+      "end": 83.24,
+      "en": "with the activations that were measured from some other token or another model.",
+      "zh": "從其他 token 或另一個模型測得的活化。"
+    },
+    {
+      "start": 83.88,
+      "end": 86,
+      "en": "But here's the really crucial part.",
+      "zh": "但這裡有個真正關鍵的部分。"
+    },
+    {
+      "start": 86.03999999999999,
+      "end": 92.92,
+      "en": "You can see that this hook function now has a return statement at the end that is new.",
+      "zh": "可以看到，這個 hook 函數最後現在有 return 陳述式，這是新的。"
+    },
+    {
+      "start": 93.36,
+      "end": 104.2,
+      "en": "All of the other hook functions that we have used so far in this course did not actually have this output return statement in the hook function.",
+      "zh": "到目前為止，課程中其他所有 hook 函數，其實都沒有這個傳回輸出的 return 陳述式。"
+    },
+    {
+      "start": 104.56,
+      "end": 114.64,
+      "en": "The outer function of course, did have an output just like it has here that returns the function itself that we define in here.",
+      "zh": "外層函數當然有輸出，就像這裡一樣，傳回在裡面定義的函數本身。"
+    },
+    {
+      "start": 114.64,
+      "end": 121.41,
+      "en": "But when you are just implanting a hook to get the activations, but you don't want to change anything,",
+      "zh": "但如果只是植入 hook 來取得活化，不想改變任何東西，"
+    },
+    {
+      "start": 121.65,
+      "end": 127.01,
+      "en": "then you do not need a return line inside the hook function itself.",
+      "zh": "hook 函數本身就不需要 return 這一行。"
+    },
+    {
+      "start": 127.69,
+      "end": 132.57,
+      "en": "Okay, but now we actually do want to modify the output, not just measure it.",
+      "zh": "好，但現在確實要修改輸出，不只是測量。"
+    },
+    {
+      "start": 133.09,
+      "end": 136.73,
+      "en": "So now we need this return line here at the end of the hook function.",
+      "zh": "所以，hook 函數最後需要這個 return。"
+    },
+    {
+      "start": 137.29,
+      "end": 147.73,
+      "en": "Now what PyTorch will do is try to match the size of this tensor to what it would otherwise have as an output of this layer.",
+      "zh": "PyTorch 會嘗試讓這個張量的大小，符合這一層原本輸出的大小。"
+    },
+    {
+      "start": 148.45,
+      "end": 158.41,
+      "en": "If the sizes match, then this tensor here will overwrite the output tensor that otherwise would have been calculated in the model.",
+      "zh": "如果大小相符，這裡的張量就會覆寫模型中原本計算出的輸出張量。"
+    },
+    {
+      "start": 159.13,
+      "end": 167.21,
+      "en": "And if the sizes do not match well, check your code carefully when you're writing it so that you do not end up in that situation.",
+      "zh": "如果大小不符，寫程式時請仔細檢查，避免落入這種情況。"
+    },
+    {
+      "start": 167.53,
+      "end": 172.17000000000002,
+      "en": "It's just going to cause errors and problems that might be difficult to isolate.",
+      "zh": "它只會造成可能很難找出來源的錯誤與問題。"
+    },
+    {
+      "start": 172.49,
+      "end": 178.61,
+      "en": "Anyway, that is the simple idea of manipulating the activations during a forward pass.",
+      "zh": "總之，這就是在前向傳播期間操作活化的簡單概念。"
+    },
+    {
+      "start": 178.97,
+      "end": 188.37,
+      "en": "Create a hook function, change the output and return that output so that it replaces whatever the output otherwise would be.",
+      "zh": "建立 hook 函數、修改輸出，再傳回輸出，取代原本的輸出。"
+    },
+    {
+      "start": 189.85,
+      "end": 198.57,
+      "en": "In this video, I will show you six demos of how to manipulate the activations of the model when it's processing tokens.",
+      "zh": "這支影片會展示六種示範，說明模型處理 token 時，如何操作活化。"
+    },
+    {
+      "start": 199.05,
+      "end": 201.85,
+      "en": "The first demo I'll show actually will not work.",
+      "zh": "第一個示範其實不會成功。"
+    },
+    {
+      "start": 201.85,
+      "end": 208.53,
+      "en": "It's going to give us an error, but that will be a great learning opportunity about some quirks of PyTorch.",
+      "zh": "它會產生錯誤，但這是了解 PyTorch 某些特殊行為的好機會。"
+    },
+    {
+      "start": 209.05,
+      "end": 217.21,
+      "en": "And then the next five demos will be about just various ways that you can implement activation editing using a forward hook.",
+      "zh": "接下來五個示範，則是使用 forward hook 實作活化編輯的各種方式。"
+    },
+    {
+      "start": 218.09,
+      "end": 224.37,
+      "en": "I'll give a brief overview of these demos here on this slide, and then we'll have a closer look in code.",
+      "zh": "我會先在這張投影片簡短概述，再深入查看程式碼。"
+    },
+    {
+      "start": 224.97,
+      "end": 228.13,
+      "en": "Here you can see I'm creating a hook function.",
+      "zh": "這裡可以看到，我正在建立 hook 函數。"
+    },
+    {
+      "start": 228.37,
+      "end": 235.37,
+      "en": "Now this initially looks like the same hook functions that you've seen in other videos to grab the activations.",
+      "zh": "一開始，它看起來與其他影片用來擷取活化的 hook 函數相同。"
+    },
+    {
+      "start": 235.37,
+      "end": 236.37,
+      "en": "That's all fine.",
+      "zh": "這都沒問題。"
+    },
+    {
+      "start": 236.65,
+      "end": 246.77,
+      "en": "So what I do here is hook into an attention layer, and then grab the qkv matrix and then split it into three matrices.",
+      "zh": "這裡掛接注意力層，取得 QKV 矩陣，再拆成三個矩陣。"
+    },
+    {
+      "start": 247.01,
+      "end": 255.53,
+      "en": "Here my goal is to zero out the Q activations for the fifth token and the first ten dimensions.",
+      "zh": "目標是將第五個 token 的前十個維度之 Q 活化歸零。"
+    },
+    {
+      "start": 255.97,
+      "end": 261.93,
+      "en": "And then I concatenate them back into one q matrix.",
+      "zh": "再把它們串接回一個 Q 矩陣。"
+    },
+    {
+      "start": 261.97,
+      "end": 271.81,
+      "en": "Store that matrix so I can later analyze it, and then return that matrix, or replace it with the original qkv matrix from this layer.",
+      "zh": "儲存矩陣，方便稍後分析，再傳回矩陣，或者用它替換這一層原本的 QKV 矩陣。"
+    },
+    {
+      "start": 272.29,
+      "end": 282.13,
+      "en": "Now this code seems like it should work, but the problem here is actually that the tensor Q is still part of the variable output.",
+      "zh": "這段程式碼看似應該能運作，但問題其實是，張量 Q 仍然是 output 變數的一部分。"
+    },
+    {
+      "start": 282.53,
+      "end": 286.89,
+      "en": "It's just a different view or slice of the output matrix.",
+      "zh": "它只是輸出矩陣的另一種檢視或切片。"
+    },
+    {
+      "start": 287.40999999999997,
+      "end": 290.53,
+      "en": "At least that's how PyTorch represents it internally.",
+      "zh": "至少，PyTorch 內部是這樣表示的。"
+    },
+    {
+      "start": 290.69,
+      "end": 301.7,
+      "en": "So PyTorch doesn't actually like this because it thinks that we are trying to modify the output matrix from a view or a slice, and not just this one piece of it.",
+      "zh": "所以，PyTorch 不喜歡這樣，因為它認為我們正透過檢視或切片修改輸出矩陣，而不只是修改這一小部分。"
+    },
+    {
+      "start": 302.1,
+      "end": 303.98,
+      "en": "So that causes an error.",
+      "zh": "這就會造成錯誤。"
+    },
+    {
+      "start": 304.7,
+      "end": 310.02,
+      "en": "To be honest, it's a little bit annoying that it works that way, but that's just how it is.",
+      "zh": "老實說，這種運作方式有點惱人，但就是這樣。"
+    },
+    {
+      "start": 310.94,
+      "end": 314.42,
+      "en": "So then we will move on to the second demo, which actually does work.",
+      "zh": "接著，進入真的能運作的第二個示範。"
+    },
+    {
+      "start": 314.66,
+      "end": 321.58,
+      "en": "Now here I'm not slicing or viewing the matrix, I'm just modifying the matrix directly.",
+      "zh": "這裡不再對矩陣做切片或檢視，而是直接修改矩陣。"
+    },
+    {
+      "start": 322.06,
+      "end": 331.82,
+      "en": "Remember that because this is an attention block, this output matrix is the qkv vectors all concatenated.",
+      "zh": "記得，因為這是注意力區塊，輸出矩陣就是全部串接起來的 Q、K、V 向量。"
+    },
+    {
+      "start": 332.22,
+      "end": 340.06,
+      "en": "And because q come first, I'm zeroing out the first ten vectors of the fifth token for q.",
+      "zh": "Q 在最前面，所以，我將 Q 的第五個 token 前十個向量歸零。"
+    },
+    {
+      "start": 340.58,
+      "end": 346.18,
+      "en": "So that's not so confusing here, although it can get a little tricky with the indexing if you want",
+      "zh": "這裡不算太令人困惑，但如果要存取 V 或 K 向量，"
+    },
+    {
+      "start": 346.18,
+      "end": 352.78,
+      "en": "to access the v or the k vectors because those come later after q.",
+      "zh": "索引可能有點棘手，因為它們在 Q 後面。"
+    },
+    {
+      "start": 353.1,
+      "end": 353.34000000000003,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 353.38,
+      "end": 357.42,
+      "en": "And then here I'm storing the output and then again returning that output.",
+      "zh": "這裡儲存輸出，再傳回輸出。"
+    },
+    {
+      "start": 357.42,
+      "end": 362.38,
+      "en": "So it replaces what would otherwise be the calculation of the attention block here.",
+      "zh": "因此，它會取代這裡注意力區塊原本的計算結果。"
+    },
+    {
+      "start": 362.42,
+      "end": 367.86,
+      "en": "After implanting this hook and doing a forward pass I grab the activations.",
+      "zh": "植入 hook、做前向傳播之後，我擷取活化。"
+    },
+    {
+      "start": 367.86,
+      "end": 375.62,
+      "en": "And now you see that this row here has all zeros exactly as I specified in demo three.",
+      "zh": "現在可以看到，這一列全都是零，完全符合指定。在示範三，"
+    },
+    {
+      "start": 375.66,
+      "end": 379.26,
+      "en": "I will show you another way to get demo one to work.",
+      "zh": "我會展示另一種讓示範一成功的方法。"
+    },
+    {
+      "start": 379.7,
+      "end": 386.5,
+      "en": "So I'm still splitting up the Q tensor over here into three separate matrices.",
+      "zh": "這裡仍然把 Q 張量拆成三個獨立矩陣。"
+    },
+    {
+      "start": 386.98,
+      "end": 392.38,
+      "en": "But then here I'm making a copy or a clone of the Q matrix.",
+      "zh": "但這裡，先複製，也就是 clone Q 矩陣。"
+    },
+    {
+      "start": 392.38,
+      "end": 395.46,
+      "en": "And then I modify that copy.",
+      "zh": "接著，修改那份複本。"
+    },
+    {
+      "start": 395.58,
+      "end": 400.62,
+      "en": "And then I can concatenate that back along with the original k and v.",
+      "zh": "再把它與原始 K、V 串接起來。"
+    },
+    {
+      "start": 400.86,
+      "end": 404.9,
+      "en": "And then I store that and output that q matrix.",
+      "zh": "然後儲存，並輸出那個 Q 矩陣。"
+    },
+    {
+      "start": 405.18,
+      "end": 409.42,
+      "en": "And this one PyTorch is actually happy to let me modify.",
+      "zh": "這次，PyTorch 願意讓我修改。"
+    },
+    {
+      "start": 409.46,
+      "end": 411.18,
+      "en": "So this demo will work.",
+      "zh": "所以，這個示範可以運作。"
+    },
+    {
+      "start": 411.74,
+      "end": 421.62,
+      "en": "Then in demo four I will show you how to manipulate only one layer while storing the activations from all the other layers without changing them.",
+      "zh": "示範四會展示，如何只操作一層，同時儲存其他所有層的活化而不修改它們。"
+    },
+    {
+      "start": 422.14,
+      "end": 428.5,
+      "en": "This would be for an experiment in which you want to measure the attention vectors from all transformer",
+      "zh": "這可用於某種實驗：測量整個模型所有 Transformer"
+    },
+    {
+      "start": 428.5,
+      "end": 439.34,
+      "en": "blocks throughout the entire model, but you don't want to manipulate all of the attention blocks, you just want to modify the activations in one layer.",
+      "zh": "區塊的注意力向量，但不想操作全部注意力區塊，只想修改其中一層的活化。"
+    },
+    {
+      "start": 439.34,
+      "end": 442.3,
+      "en": "And here you can see I'm doing that in layer three.",
+      "zh": "這裡可以看到，我在第三層操作。"
+    },
+    {
+      "start": 442.82,
+      "end": 446.54,
+      "en": "So you can see I'm doing a lot of hard coding in these demos.",
+      "zh": "這些示範中，我用了很多寫死的值。"
+    },
+    {
+      "start": 446.66,
+      "end": 451.66,
+      "en": "That's fine for getting started to explain the mechanisms in a very simple way.",
+      "zh": "起步時，用來非常簡單地解釋機制，這樣沒問題。"
+    },
+    {
+      "start": 451.7,
+      "end": 458.18,
+      "en": "Although yeah, hard coding like this is obviously not the best way to write code or to run experiments.",
+      "zh": "但這種寫死方式，顯然不是寫程式或執行實驗的最佳方式。"
+    },
+    {
+      "start": 458.58,
+      "end": 461.1,
+      "en": "I will get back to that in a moment.",
+      "zh": "稍後會再談。"
+    },
+    {
+      "start": 461.1,
+      "end": 467.27,
+      "en": "But first here you can see that I have successfully cached the activations from all the layers, but",
+      "zh": "先看這裡，我成功快取所有層的活化，"
+    },
+    {
+      "start": 467.27,
+      "end": 473.71,
+      "en": "I've zeroed out only the activations from the fourth layer, which corresponds to index three.",
+      "zh": "但只將第四層的活化歸零，也就是索引 3。"
+    },
+    {
+      "start": 474.39,
+      "end": 484.03,
+      "en": "Now, in all of the demos so far, I have explicitly zeroed out the activations by putting zero directly into the hook function.",
+      "zh": "目前所有示範，我都直接在 hook 函數中放入零，明確把活化歸零。"
+    },
+    {
+      "start": 485.03,
+      "end": 485.87,
+      "en": "That's fine.",
+      "zh": "這沒問題，"
+    },
+    {
+      "start": 485.87,
+      "end": 490.11,
+      "en": "If we ever only ever want to change the activations to zero.",
+      "zh": "如果我們永遠只想把活化改成零。"
+    },
+    {
+      "start": 490.39,
+      "end": 495.91,
+      "en": "But zero is not a very realistic value for the internals of a language model.",
+      "zh": "但對語言模型內部來說，零不是很真實的值。"
+    },
+    {
+      "start": 496.31,
+      "end": 503.55,
+      "en": "And that brings me to demo five, where I'm going to create a separate variable outside of the hook function.",
+      "zh": "這就來到示範五：在 hook 函數外建立獨立變數。"
+    },
+    {
+      "start": 503.55,
+      "end": 510.51,
+      "en": "So a global variable and that defines the numerical data that you want to inject into the model.",
+      "zh": "也就是全域變數，用來定義想注入模型的數值資料。"
+    },
+    {
+      "start": 510.63,
+      "end": 513.83,
+      "en": "So that's what you see here I call that Q to replace.",
+      "zh": "這裡就是，我把它叫做 Q to replace。"
+    },
+    {
+      "start": 514.07,
+      "end": 516.91,
+      "en": "And here I've set it to be zeros again.",
+      "zh": "這裡仍然設成零。"
+    },
+    {
+      "start": 516.91,
+      "end": 521.27,
+      "en": "But of course in the future we will set this to be other vectors that we want.",
+      "zh": "當然，之後會設成其他想要的向量。"
+    },
+    {
+      "start": 521.71,
+      "end": 529.79,
+      "en": "Now there's still quite a bit of hard coding in here in terms of the length of the vector and the indices to target and so on.",
+      "zh": "這裡仍然有不少寫死的設定，例如向量長度、目標索引等等。"
+    },
+    {
+      "start": 530.11,
+      "end": 537.67,
+      "en": "And that brings me to the final demo in this video, where I will create a dictionary with the keys",
+      "zh": "這就來到本影片最後一個示範：建立字典，鍵"
+    },
+    {
+      "start": 537.67,
+      "end": 546.43,
+      "en": "corresponding to the layer number that you want to replace, and the values corresponding to the numbers that you want to put in place of the data.",
+      "zh": "對應要替換的層編號，值則對應要放進去取代資料的數字。"
+    },
+    {
+      "start": 546.91,
+      "end": 553.67,
+      "en": "So you can see here that inside the hook function, that the activations will be stored from all of",
+      "zh": "所以，在 hook 函數內，可以看到，所有層"
+    },
+    {
+      "start": 553.67,
+      "end": 563.79,
+      "en": "the layers, but they only get changed if the particular layer that we're that is currently being processed is one of the keys of this dictionary.",
+      "zh": "的活化都會儲存，但只有目前正在處理的層，是這個字典的某個鍵時，才會修改。"
+    },
+    {
+      "start": 564.87,
+      "end": 571.15,
+      "en": "And then, yeah, this code is still always going to start replacing data from the very first index.",
+      "zh": "這段程式碼仍然總是從第一個索引開始替換資料。"
+    },
+    {
+      "start": 571.55,
+      "end": 573.71,
+      "en": "And for token index four.",
+      "zh": "而且，是 token 索引 4。"
+    },
+    {
+      "start": 573.71,
+      "end": 581.27,
+      "en": "But at least it's dynamic enough to replace the vectors according to whatever data you put into this dictionary.",
+      "zh": "但至少已經夠動態，可以根據放進字典的資料替換向量。"
+    },
+    {
+      "start": 582.11,
+      "end": 589.07,
+      "en": "Needless to say, this dictionary is something you can continue modifying and adapting as you are running.",
+      "zh": "不用說，執行"
+    },
+    {
+      "start": 589.07,
+      "end": 591.43,
+      "en": "Experiments and explorations.",
+      "zh": "實驗與探索時，可以持續修改、調整這個字典。"
+    },
+    {
+      "start": 592.15,
+      "end": 595.87,
+      "en": "So here you see a bit of code where I show how to use this.",
+      "zh": "這裡有一小段程式碼，展示用法。"
+    },
+    {
+      "start": 596.43,
+      "end": 605.43,
+      "en": "So here I'm removing the key for number eight and then adding another key to change here to the 12th block.",
+      "zh": "我移除數字 8 的鍵，再加入另一個鍵，改成第 12 個區塊。"
+    },
+    {
+      "start": 605.43,
+      "end": 606.59,
+      "en": "So index 11.",
+      "zh": "也就是索引 11。"
+    },
+    {
+      "start": 606.95,
+      "end": 609.19,
+      "en": "And then here I'm printing out the activations.",
+      "zh": "這裡印出活化。"
+    },
+    {
+      "start": 609.19,
+      "end": 612.87,
+      "en": "You don't actually see what's going on all the way out till 11.",
+      "zh": "這張圖看不到一直到 11 的情況。"
+    },
+    {
+      "start": 612.87,
+      "end": 615.07,
+      "en": "But I will show you that when we switch to code.",
+      "zh": "但切換到程式碼後會展示。"
+    },
+    {
+      "start": 616.35,
+      "end": 622.47,
+      "en": "So there's a lot more to learn about manipulating activation values in a model.",
+      "zh": "對於操作模型中的活化值，還有很多要學。"
+    },
+    {
+      "start": 622.47,
+      "end": 630.99,
+      "en": "I will have more things to say in the code demo, and a lot more things to say in the videos in the rest of this part of the course.",
+      "zh": "程式示範中會再多談一些，課程這一部分其餘影片，也會談更多。"
+    },
+    {
+      "start": 630.99,
+      "end": 633.27,
+      "en": "But this really is the basic idea.",
+      "zh": "但基本概念就是這樣。"
+    },
+    {
+      "start": 633.27,
+      "end": 634.79,
+      "en": "It's not so difficult.",
+      "zh": "並不難。"
+    },
+    {
+      "start": 636.11,
+      "end": 645.72,
+      "en": "I'm not going to be visualizing data or really working with data at all, so we just need to import the PyTorch libraries and of course the model.",
+      "zh": "這裡不會視覺化資料，其實也不太會處理資料，所以只需要匯入 PyTorch 函式庫，當然還有模型。"
+    },
+    {
+      "start": 645.76,
+      "end": 648.2,
+      "en": "Again, GPT two small is fine.",
+      "zh": "GPT2 small 仍然就夠了。"
+    },
+    {
+      "start": 648.52,
+      "end": 650.04,
+      "en": "We just want to test some things.",
+      "zh": "只想測試一些事情。"
+    },
+    {
+      "start": 650.28,
+      "end": 654.36,
+      "en": "Here are some tokens to process just so we have some data to push through the model.",
+      "zh": "這裡有一些要處理的 token，讓我們有資料可以送進模型。"
+    },
+    {
+      "start": 654.36,
+      "end": 656.96,
+      "en": "I wish coffee would taste like chocolate.",
+      "zh": "我希望咖啡喝起來像巧克力。"
+    },
+    {
+      "start": 657,
+      "end": 660.72,
+      "en": "I suppose technically you could put chocolate into coffee, but whatever.",
+      "zh": "嚴格來說，應該可以把巧克力放進咖啡，不過算了。"
+    },
+    {
+      "start": 661.16,
+      "end": 661.56,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 661.6,
+      "end": 662.08,
+      "en": "And, uh.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 662.12,
+      "end": 662.36,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 662.4,
+      "end": 664.8,
+      "en": "Okay, so let's go through demo one now.",
+      "zh": "好，現在來看示範一。"
+    },
+    {
+      "start": 665.04,
+      "end": 671.92,
+      "en": "So here, as I explained in the slides a moment ago, all of this code seems like it should work.",
+      "zh": "如同剛才投影片所說，這些程式碼看起來全都應該能運作。"
+    },
+    {
+      "start": 672.16,
+      "end": 678.96,
+      "en": "So we split the output of the attention block into the three matrices.",
+      "zh": "把注意力區塊的輸出拆成三個矩陣。"
+    },
+    {
+      "start": 679.08,
+      "end": 682.52,
+      "en": "And then I'm zeroing out some of them, and then I recombine them.",
+      "zh": "接著，把其中一些值歸零，再重新組合。"
+    },
+    {
+      "start": 682.52,
+      "end": 684.36,
+      "en": "So I concatenate them back together.",
+      "zh": "也就是重新串接。"
+    },
+    {
+      "start": 685.6,
+      "end": 690.48,
+      "en": "The size of this matrix is the same as the size of this matrix.",
+      "zh": "這個矩陣的大小，與這個矩陣相同。"
+    },
+    {
+      "start": 690.48,
+      "end": 699.36,
+      "en": "So the output of the this block, and literally every single element in this tensor is identical to",
+      "zh": "也就是這個區塊的輸出，而且，這個張量中的每個元素，真的都與"
+    },
+    {
+      "start": 699.4,
+      "end": 704.36,
+      "en": "this tensor, except for these ten numbers here, which I've replaced with zeros.",
+      "zh": "這個張量完全相同，除了這十個數字，我已經換成零。"
+    },
+    {
+      "start": 704.72,
+      "end": 707.64,
+      "en": "But unfortunately that is just not going to work.",
+      "zh": "但很可惜，這就是不能運作。"
+    },
+    {
+      "start": 707.92,
+      "end": 718.92,
+      "en": "Here you can also see I'm getting a handle from this hook function because yeah I'm going to want to remove this so it doesn't continue causing problems in the next demos.",
+      "zh": "這裡也可以看到，我取得 hook 函數的 handle，因為我要移除它，避免下一些示範繼續出問題。"
+    },
+    {
+      "start": 719.36,
+      "end": 719.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 719.68,
+      "end": 723.16,
+      "en": "So model dot transformer dot h for the hidden layer.",
+      "zh": "model.transformer.h，h 代表隱藏層。"
+    },
+    {
+      "start": 723.16,
+      "end": 728,
+      "en": "And then in attention C attention and then register forward hook.",
+      "zh": "接著是 attn.c_attn，再 register_forward_hook。"
+    },
+    {
+      "start": 728.68,
+      "end": 733.32,
+      "en": "Uh, by the way, I don't remember if I have mentioned this before in the course, but there's also",
+      "zh": "順帶一提，我不記得前面是否提過，也有"
+    },
+    {
+      "start": 733.32,
+      "end": 743.4,
+      "en": "a register backward hook that is something that gets calculated or implemented when the model is doing backprop back propagation.",
+      "zh": "register_backward_hook，它會在模型做反向傳播時，計算或執行。"
+    },
+    {
+      "start": 743.6,
+      "end": 745.88,
+      "en": "But we are not doing backpropagation here.",
+      "zh": "但這裡不做反向傳播。"
+    },
+    {
+      "start": 745.88,
+      "end": 747.92,
+      "en": "We are doing forward pass.",
+      "zh": "我們做的是前向傳播。"
+    },
+    {
+      "start": 747.92,
+      "end": 750.04,
+      "en": "So that's why we use the forward hook.",
+      "zh": "所以，使用 forward hook。"
+    },
+    {
+      "start": 750.32,
+      "end": 757.64,
+      "en": "The backward hook would be something that uh, yeah, if you want to manipulate some activations while the model is being trained.",
+      "zh": "如果要在模型訓練時操作某些活化，"
+    },
+    {
+      "start": 757.64,
+      "end": 757.77,
+      "en": "Range.",
+      "zh": "就會用到 backward hook。"
+    },
+    {
+      "start": 758.25,
+      "end": 759.53,
+      "en": "So far, so good.",
+      "zh": "目前為止都沒問題。"
+    },
+    {
+      "start": 759.53,
+      "end": 760.61,
+      "en": "And, uh.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 760.61,
+      "end": 762.21,
+      "en": "Oh, here we get a problem.",
+      "zh": "這裡出問題了。"
+    },
+    {
+      "start": 762.49,
+      "end": 767.57,
+      "en": "I'll put zero of slice backwards is a view and is being modified in place.",
+      "zh": "SliceBackward 的第零個輸出是檢視，而它正在被原地修改。"
+    },
+    {
+      "start": 767.57,
+      "end": 769.49,
+      "en": "So PyTorch does not like that.",
+      "zh": "PyTorch 不喜歡這樣。"
+    },
+    {
+      "start": 769.53,
+      "end": 770.37,
+      "en": "Okay, fine.",
+      "zh": "好吧。"
+    },
+    {
+      "start": 770.65,
+      "end": 771.93,
+      "en": "Remove that handle.",
+      "zh": "移除那個 handle。"
+    },
+    {
+      "start": 771.97,
+      "end": 774.53,
+      "en": "And now here we are with demo two.",
+      "zh": "現在來到示範二。"
+    },
+    {
+      "start": 774.93,
+      "end": 784.69,
+      "en": "So now I'm just index accessing this matrix directly I'm not creating a separate view a separate slice of the matrix that is linked.",
+      "zh": "這次直接用索引存取矩陣，沒有建立與矩陣相連的另一個檢視、另一個切片，"
+    },
+    {
+      "start": 784.69,
+      "end": 790.01,
+      "en": "And then modifying that instead I'm just modifying this tensor directly.",
+      "zh": "再去修改它；而是直接修改這個張量。"
+    },
+    {
+      "start": 790.33,
+      "end": 797.45,
+      "en": "If you find the difference between this code and this code to be confusing, I'm on your side on this.",
+      "zh": "如果你覺得這兩段程式碼的差異很令人困惑，我也有同感。"
+    },
+    {
+      "start": 797.61,
+      "end": 801.09,
+      "en": "I also find this to be quite confusing that this doesn't work.",
+      "zh": "我也覺得，這個竟然不能運作，相當令人困惑。"
+    },
+    {
+      "start": 801.09,
+      "end": 803.33,
+      "en": "But anyway, that's that's just how it is.",
+      "zh": "但總之，就是這樣。"
+    },
+    {
+      "start": 803.57,
+      "end": 805.57,
+      "en": "Uh, so this works.",
+      "zh": "這個可以運作。"
+    },
+    {
+      "start": 805.61,
+      "end": 806.49,
+      "en": "It's all fine.",
+      "zh": "都沒問題。"
+    },
+    {
+      "start": 806.53,
+      "end": 810.85,
+      "en": "The one thing that is potentially a little bit confusing is that this is just.",
+      "zh": "唯一可能有點令人困惑的，是這只是"
+    },
+    {
+      "start": 810.85,
+      "end": 818.33,
+      "en": "Q if you wanted to access, let's say, the first ten, uh, vectors in k, then what you would need",
+      "zh": "Q。如果想存取 K 的前十個向量，"
+    },
+    {
+      "start": 818.33,
+      "end": 824.93,
+      "en": "to do is write 768 to 768 plus ten and Y7 68.",
+      "zh": "就需要寫 768 到 768+10。為什麼是 768？"
+    },
+    {
+      "start": 824.97,
+      "end": 828.81,
+      "en": "That is the embeddings dimension of GPT two small.",
+      "zh": "那是 GPT2 small 的嵌入維度。"
+    },
+    {
+      "start": 829.73,
+      "end": 835.85,
+      "en": "So therefore this is the end of the Q matrix and the start of the k matrix.",
+      "zh": "所以，這裡是 Q 矩陣的終點、K 矩陣的起點。"
+    },
+    {
+      "start": 835.97,
+      "end": 839.77,
+      "en": "And then this would be the k matrix plus ten obviously.",
+      "zh": "這裡當然就是 K 矩陣加上十。"
+    },
+    {
+      "start": 839.81,
+      "end": 840.01,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 840.65,
+      "end": 843.57,
+      "en": "In practice you should not be hard coding things like this.",
+      "zh": "實務上，不應把這類值寫死。"
+    },
+    {
+      "start": 843.57,
+      "end": 846.21,
+      "en": "But it's just for demonstration.",
+      "zh": "但這只是示範。"
+    },
+    {
+      "start": 846.61,
+      "end": 847.09,
+      "en": "Okay then.",
+      "zh": "好。"
+    },
+    {
+      "start": 847.09,
+      "end": 849.01,
+      "en": "Otherwise the rest of this code is the same.",
+      "zh": "其餘程式碼都相同。"
+    },
+    {
+      "start": 849.05,
+      "end": 852.77,
+      "en": "I'm implanting this hook back into the attention block here.",
+      "zh": "我把這個 hook 重新植入這裡的注意力區塊。"
+    },
+    {
+      "start": 852.93,
+      "end": 860.97,
+      "en": "We can run the model through and confirm that we have really cached these activation values.",
+      "zh": "可以讓資料通過模型，確認真的已經快取這些活化值。"
+    },
+    {
+      "start": 861.09,
+      "end": 863.41,
+      "en": "And now here I'm just highlighting the first ten.",
+      "zh": "現在，只突顯前十個。"
+    },
+    {
+      "start": 863.41,
+      "end": 866.33,
+      "en": "And you see indeed that there are zero over here.",
+      "zh": "可以看到，這裡確實是零。"
+    },
+    {
+      "start": 866.33,
+      "end": 868.97,
+      "en": "So there's only one row in which these are zero.",
+      "zh": "只有一列的這些值是零。"
+    },
+    {
+      "start": 869.13,
+      "end": 871.69,
+      "en": "And then again I remove that hook.",
+      "zh": "接著，再次移除 hook。"
+    },
+    {
+      "start": 871.85,
+      "end": 873.85,
+      "en": "And now for demo three.",
+      "zh": "現在是示範三。"
+    },
+    {
+      "start": 874.29,
+      "end": 876.81,
+      "en": "Okay So here this is now slightly different.",
+      "zh": "好，這裡稍微不同。"
+    },
+    {
+      "start": 876.81,
+      "end": 879.89,
+      "en": "This is an adaptation of demo one here.",
+      "zh": "這是示範一的修改版。"
+    },
+    {
+      "start": 879.89,
+      "end": 882.01,
+      "en": "I'm still splitting up the matrices.",
+      "zh": "仍然拆開矩陣。"
+    },
+    {
+      "start": 882.01,
+      "end": 889.09,
+      "en": "This is useful because it makes it easier to, uh, to access one of these three matrices.",
+      "zh": "這很有用，因為更容易存取三個矩陣中的某一個。"
+    },
+    {
+      "start": 889.45,
+      "end": 892.37,
+      "en": "The difference here is I'm first making a copy.",
+      "zh": "差別是，先建立一份複本。"
+    },
+    {
+      "start": 892.57,
+      "end": 898.97,
+      "en": "So this is not explicitly attached to this tensor, but instead is its own unique copy.",
+      "zh": "所以，它不再明確連接到這個張量，而是獨立的複本。"
+    },
+    {
+      "start": 899.13,
+      "end": 902.01,
+      "en": "And now I'm modifying this in place.",
+      "zh": "現在，對它原地修改。"
+    },
+    {
+      "start": 902.01,
+      "end": 904.57,
+      "en": "And then I'm concatenating them back.",
+      "zh": "再把它們串接回去。"
+    },
+    {
+      "start": 904.57,
+      "end": 908.33,
+      "en": "And then it turns out that PyTorch is completely fine with that.",
+      "zh": "結果，PyTorch 完全接受。"
+    },
+    {
+      "start": 908.77,
+      "end": 914.77,
+      "en": "And here we see again that the first element in the sequence, the fourth token.",
+      "zh": "這裡又看到序列的第一個元素、第四個 token。"
+    },
+    {
+      "start": 914.77,
+      "end": 918.85,
+      "en": "And I'm printing out all of the embeddings vectors for qkv.",
+      "zh": "我印出 QKV 的全部嵌入向量。"
+    },
+    {
+      "start": 918.85,
+      "end": 923.93,
+      "en": "And we see that they start with zeros because that's what I manipulated okay.",
+      "zh": "可以看到，開頭是零，因為那就是我操作的部分。"
+    },
+    {
+      "start": 923.97,
+      "end": 925.17,
+      "en": "Also remove that hook.",
+      "zh": "也移除那個 hook。"
+    },
+    {
+      "start": 925.69,
+      "end": 929.73,
+      "en": "So now what I'm doing is adding a little bit more sophistication.",
+      "zh": "現在，加入一點更進階的做法。"
+    },
+    {
+      "start": 929.97,
+      "end": 938.02,
+      "en": "So the idea here is that I want to implant this hook into all of the transformer blocks, because I",
+      "zh": "概念是，要把這個 hook 植入所有 Transformer 區塊，因為"
+    },
+    {
+      "start": 938.02,
+      "end": 946.06,
+      "en": "want to get the Q activations or whatever activations we want from every single block, from all the transformer layers.",
+      "zh": "我要從每個區塊、所有 Transformer 層，取得 Q 活化，或任何我們想要的活化。"
+    },
+    {
+      "start": 946.74,
+      "end": 949.62,
+      "en": "But I only want to manipulate.",
+      "zh": "但只想操作，"
+    },
+    {
+      "start": 949.62,
+      "end": 953.7,
+      "en": "I only want to change the activations from one of those layers.",
+      "zh": "只想修改其中一層的活化。"
+    },
+    {
+      "start": 953.82,
+      "end": 955.06,
+      "en": "So very easy to do.",
+      "zh": "做法很簡單。"
+    },
+    {
+      "start": 955.1,
+      "end": 962.26,
+      "en": "You just add an if statement and you say if layer number equals three, then you do this and otherwise.",
+      "zh": "只要加 if 陳述式，若層編號等於三，就做這件事，否則，"
+    },
+    {
+      "start": 962.26,
+      "end": 965.9,
+      "en": "So for every other layer this code does not get run.",
+      "zh": "對其他每一層，這段程式碼都不執行。"
+    },
+    {
+      "start": 965.9,
+      "end": 968.54,
+      "en": "And then all we do is store the activations.",
+      "zh": "只儲存活化。"
+    },
+    {
+      "start": 969.02,
+      "end": 976.5,
+      "en": "We still want this return statement here, but this output is not modified unless the layer number equals three.",
+      "zh": "仍然需要這裡的 return，但除非層編號等於三，否則 output 不會被修改。"
+    },
+    {
+      "start": 977.14,
+      "end": 977.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 977.58,
+      "end": 979.02,
+      "en": "So now yeah.",
+      "zh": "現在，"
+    },
+    {
+      "start": 979.34,
+      "end": 983.46,
+      "en": "Then here I'm just showing you that I've organized these handles into a list.",
+      "zh": "這裡展示，我把這些 handle 整理成串列。"
+    },
+    {
+      "start": 983.46,
+      "end": 986.38,
+      "en": "So I initialize handles as an empty list.",
+      "zh": "將 handles 初始化為空串列。"
+    },
+    {
+      "start": 986.38,
+      "end": 988.14,
+      "en": "And then I keep appending it.",
+      "zh": "接著，不斷 append。"
+    },
+    {
+      "start": 988.14,
+      "end": 992.06,
+      "en": "So now we get all of these hooks one for each transformer block.",
+      "zh": "現在取得所有 hook，每個 Transformer 區塊各一個。"
+    },
+    {
+      "start": 993.3,
+      "end": 1000.82,
+      "en": "And then here again I'm just printing out some of these activations just so you can see that they really do turn into zeros.",
+      "zh": "這裡再次印出部分活化，讓你看到它們真的變成零。"
+    },
+    {
+      "start": 1001.06,
+      "end": 1001.26,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1001.3,
+      "end": 1003.26,
+      "en": "And then here I'm removing all of them.",
+      "zh": "接著，在這裡移除全部。"
+    },
+    {
+      "start": 1003.9,
+      "end": 1006.74,
+      "en": "Now we get to demo five here.",
+      "zh": "現在來到示範五。"
+    },
+    {
+      "start": 1006.74,
+      "end": 1015.78,
+      "en": "The main addition compared to the previous demo is that I am defining the vector that I want to use to replace this.",
+      "zh": "與上一個示範相比，主要新增的是，另外定義要用來替換這裡的向量。"
+    },
+    {
+      "start": 1015.78,
+      "end": 1019.26,
+      "en": "I'm not hard coding it in here inside the hook function.",
+      "zh": "不再把它寫死在 hook 函數裡。"
+    },
+    {
+      "start": 1019.26,
+      "end": 1028.62,
+      "en": "Instead, I am defining this variable outside of the hook function so that I can later modify this during an experiment.",
+      "zh": "而是在 hook 函數外定義變數，之後就能在實驗期間修改。"
+    },
+    {
+      "start": 1028.86,
+      "end": 1029.1,
+      "en": "Okay?",
+      "zh": "好。"
+    },
+    {
+      "start": 1029.14,
+      "end": 1033.1,
+      "en": "Otherwise, this is very similar to the fourth one okay.",
+      "zh": "其餘部分與第四個示範非常相似。"
+    },
+    {
+      "start": 1033.14,
+      "end": 1035.82,
+      "en": "So now yeah we see we get lots of zeros there.",
+      "zh": "現在可以看到，這裡有很多零。"
+    },
+    {
+      "start": 1036.02,
+      "end": 1038.82,
+      "en": "And now here I'm overwriting this variable.",
+      "zh": "現在，我覆寫這個變數。"
+    },
+    {
+      "start": 1038.82,
+      "end": 1043.54,
+      "en": "So this variable was called Q to replace here it's called q to replace.",
+      "zh": "這個變數叫做 Q to replace，這裡叫 q to replace。"
+    },
+    {
+      "start": 1043.7,
+      "end": 1048.3,
+      "en": "And now here I'm setting q to replace be linearly spaced numbers.",
+      "zh": "現在，把 q to replace 設為等間隔數字。"
+    },
+    {
+      "start": 1048.3,
+      "end": 1055.62,
+      "en": "So instead of zeros this is going to be just linearly spaced numbers from minus one up to 0.7.",
+      "zh": "所以，不再是零，而是從負一到 0.7 的等間隔數字。"
+    },
+    {
+      "start": 1056.98,
+      "end": 1057.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1057.34,
+      "end": 1059.86,
+      "en": "And then finally demo six.",
+      "zh": "最後是示範六。"
+    },
+    {
+      "start": 1059.98,
+      "end": 1062.86,
+      "en": "And that is kind of the most flexible.",
+      "zh": "這是最靈活的一種。"
+    },
+    {
+      "start": 1063.02,
+      "end": 1073.3,
+      "en": "We are still going to develop slightly more sophisticated versions of the hook functions and interacting with the model as it's doing a forward pass.",
+      "zh": "我們仍會繼續發展更進階的 hook 函數版本，以及在模型前向傳播時與它互動的方式。"
+    },
+    {
+      "start": 1073.3,
+      "end": 1074.7,
+      "en": "But that will come later.",
+      "zh": "不過，那是之後的事。"
+    },
+    {
+      "start": 1075.02,
+      "end": 1084.86,
+      "en": "But this is certainly the most sophisticated and dynamic and flexible way of hooking into a function and manipulating its activations that I've shown so far.",
+      "zh": "這絕對是目前展示過，最進階、最動態、最靈活的掛接函數並操作活化方式。"
+    },
+    {
+      "start": 1085.22,
+      "end": 1085.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1085.54,
+      "end": 1088.66,
+      "en": "So we get a dictionary where the keys are numbers.",
+      "zh": "建立一個字典，鍵是數字。"
+    },
+    {
+      "start": 1088.66,
+      "end": 1089.74,
+      "en": "These are integers.",
+      "zh": "也就是整數。"
+    },
+    {
+      "start": 1089.74,
+      "end": 1093.1,
+      "en": "These will correspond to the layered numbers.",
+      "zh": "它們會對應層編號。"
+    },
+    {
+      "start": 1093.26,
+      "end": 1100.5,
+      "en": "And then the values associated with each of these keys corresponds to the activations that I want to replace.",
+      "zh": "每個鍵對應的值，則是我想替換成的活化。"
+    },
+    {
+      "start": 1100.78,
+      "end": 1101.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1101.14,
+      "end": 1104.14,
+      "en": "So now here we say if the layer number.",
+      "zh": "這裡判斷，若層編號，"
+    },
+    {
+      "start": 1104.14,
+      "end": 1112.51,
+      "en": "So if the layer number that we're currently working in as we're going through the activations in the model, if that is a member of the keys.",
+      "zh": "也就是模型遍歷活化時，目前處理的層編號，屬於這些鍵，"
+    },
+    {
+      "start": 1112.51,
+      "end": 1119.87,
+      "en": "So in this case, if it's either a three or an eight, then we grab the activations from here.",
+      "zh": "這裡也就是三或八，就從這裡取出活化。"
+    },
+    {
+      "start": 1120.39,
+      "end": 1124.03,
+      "en": "So either zeros or integers going up to five.",
+      "zh": "也就是零，或一直到五的整數。"
+    },
+    {
+      "start": 1124.19,
+      "end": 1125.87,
+      "en": "That becomes the new data.",
+      "zh": "那就成為新的資料。"
+    },
+    {
+      "start": 1125.87,
+      "end": 1133.31,
+      "en": "And then I'm replacing that at the beginning of q the q activations for token number four.",
+      "zh": "然後，替換到 Q 的開頭，也就是第四號 token 的 Q 活化。"
+    },
+    {
+      "start": 1133.87,
+      "end": 1140.91,
+      "en": "Again this is still more hard coding inside the hook function than you would typically want to have, but that's fine.",
+      "zh": "這裡 hook 函數內仍然有比一般希望更多的寫死設定，但沒關係。"
+    },
+    {
+      "start": 1140.91,
+      "end": 1143.19,
+      "en": "I'm just trying to demo how these work.",
+      "zh": "我只是想示範它們如何運作。"
+    },
+    {
+      "start": 1143.43,
+      "end": 1149.15,
+      "en": "Okay, if if this is false, then that means we're on, you know, layer seven or whatever.",
+      "zh": "好，如果這是 False，代表目前可能在第七層之類的。"
+    },
+    {
+      "start": 1149.35,
+      "end": 1154.15,
+      "en": "Then nothing gets changed, but we still save the output.",
+      "zh": "那就不修改任何東西，但仍儲存輸出。"
+    },
+    {
+      "start": 1154.59,
+      "end": 1154.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1155.03,
+      "end": 1159.51,
+      "en": "So then I implant that into all of the layers.",
+      "zh": "接著，把它植入所有層。"
+    },
+    {
+      "start": 1159.55,
+      "end": 1162.35,
+      "en": "And now here you can see that we get.",
+      "zh": "現在，可以看到得到……"
+    },
+    {
+      "start": 1162.35,
+      "end": 1164.87,
+      "en": "So let's see we have modified from layer three.",
+      "zh": "看看，我們修改了第三層。"
+    },
+    {
+      "start": 1164.91,
+      "end": 1166.23,
+      "en": "That's all zeros.",
+      "zh": "這裡全是零。"
+    },
+    {
+      "start": 1166.23,
+      "end": 1168.47,
+      "en": "And we modified from layer eight.",
+      "zh": "也修改了第八層。"
+    },
+    {
+      "start": 1168.71,
+      "end": 1171.35,
+      "en": "That is just the numbers zero.",
+      "zh": "這裡只是數字零，"
+    },
+    {
+      "start": 1171.39,
+      "end": 1173.15,
+      "en": "The integers zero through four.",
+      "zh": "零到四的整數。"
+    },
+    {
+      "start": 1173.55,
+      "end": 1179.59,
+      "en": "And this is where we get back to the regular activations that are calculated endogenously by the model.",
+      "zh": "這裡開始，回到模型內部自然計算出的正常活化。"
+    },
+    {
+      "start": 1179.59,
+      "end": 1186.63,
+      "en": "So I did not actually change any of these values I only changed the first five values okay.",
+      "zh": "我其實沒有修改這些值，只修改了前五個值。"
+    },
+    {
+      "start": 1186.67,
+      "end": 1195.31,
+      "en": "So now here I am replacing or sorry deleting key eight and adding another replacement in 11.",
+      "zh": "現在，我替換，抱歉，是刪除鍵 8，並在 11 加入另一個替換。"
+    },
+    {
+      "start": 1195.79,
+      "end": 1198.35,
+      "en": "So eight three is preserved.",
+      "zh": "所以，八……三仍然保留。"
+    },
+    {
+      "start": 1198.35,
+      "end": 1199.59,
+      "en": "That's still all zeros.",
+      "zh": "它仍然全是零。"
+    },
+    {
+      "start": 1199.59,
+      "end": 1202.87,
+      "en": "And now I'm setting 11 to be 123.",
+      "zh": "現在，把 11 設成一、二、三。"
+    },
+    {
+      "start": 1203.15,
+      "end": 1205.27,
+      "en": "And now run some more tokens again.",
+      "zh": "接著，再讓更多 token 通過。"
+    },
+    {
+      "start": 1205.79,
+      "end": 1207.23,
+      "en": "And now we see.",
+      "zh": "現在可以看到，"
+    },
+    {
+      "start": 1207.27,
+      "end": 1209.43,
+      "en": "So three is still the zeros.",
+      "zh": "三仍然是零。"
+    },
+    {
+      "start": 1209.43,
+      "end": 1216.91,
+      "en": "And now layer eight is go has gone back to what it should be without any manipulations.",
+      "zh": "第八層則回到沒有任何操作時應有的樣子。"
+    },
+    {
+      "start": 1216.91,
+      "end": 1221.63,
+      "en": "So this is all the natural activity that is being calculated by the model.",
+      "zh": "這些全是模型計算出的自然活動。"
+    },
+    {
+      "start": 1221.83,
+      "end": 1230.31,
+      "en": "It's not at all affected by the previous manipulation, because I have specifically deleted it from",
+      "zh": "完全不受之前操作影響，因為我已經明確從"
+    },
+    {
+      "start": 1230.35,
+      "end": 1237.51,
+      "en": "that dictionary, and instead now we get a manipulation of the final transformer block.",
+      "zh": "字典中刪除了它。現在改成操作最後一個 Transformer 區塊。"
+    },
+    {
+      "start": 1237.51,
+      "end": 1239.43,
+      "en": "And that's just the numbers one, two, three.",
+      "zh": "也就是數字一、二、三。"
+    },
+    {
+      "start": 1239.87,
+      "end": 1240.23,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1240.27,
+      "end": 1244.59,
+      "en": "And then I remove all of those handles, although this is the end of the script.",
+      "zh": "接著，移除所有 handle，雖然腳本已經結束，"
+    },
+    {
+      "start": 1244.59,
+      "end": 1246.27,
+      "en": "So I don't actually need to do that.",
+      "zh": "所以，其實不需要。"
+    },
+    {
+      "start": 1246.67,
+      "end": 1254.63,
+      "en": "And here yeah I'm just printing out the, the keys and the values that I am manipulating in this experiment.",
+      "zh": "這裡只是印出這個實驗中操作的鍵和值。"
+    },
+    {
+      "start": 1255.79,
+      "end": 1266.71,
+      "en": "As I mentioned in the previous video, doing interventional or causal mechanistic interpretability research is simultaneously easy and difficult.",
+      "zh": "上一支影片提過，干預式或因果機制可解釋性研究，同時容易也困難。"
+    },
+    {
+      "start": 1267.27,
+      "end": 1271.11,
+      "en": "The coding part is easy, as you've now seen in this video.",
+      "zh": "程式部分很容易，這支影片已經看到了。"
+    },
+    {
+      "start": 1271.59,
+      "end": 1277.71,
+      "en": "There are a few additional considerations and some tricks and other things to know about when coding",
+      "zh": "撰寫前向傳播操作程式時，還有一些額外考量、技巧和其他要知道的事，"
+    },
+    {
+      "start": 1277.87,
+      "end": 1287.24,
+      "en": "forward pass manipulations, but that's relatively easy compared to all of the amazing things that you've learned so far in this course.",
+      "zh": "但與這門課目前學過的各種精彩內容相比，那相對容易。"
+    },
+    {
+      "start": 1288.04,
+      "end": 1297.36,
+      "en": "That said, one tricky thing about writing these kinds of hooks is that you cannot interact with the functions or the data in the middle of a forward pass.",
+      "zh": "不過，寫這類 hook 的一個難點，是前向傳播進行到一半時，無法與函數或資料互動。"
+    },
+    {
+      "start": 1297.48,
+      "end": 1304.08,
+      "en": "So I definitely recommend incorporating print statements into your hooks while you are first writing",
+      "zh": "所以，剛開始寫程式時，我非常建議在 hook 中加入 print，"
+    },
+    {
+      "start": 1304.08,
+      "end": 1310.2,
+      "en": "your code and doing lots of sanity checking about matrix sizes and the hooked values.",
+      "zh": "多多檢查矩陣大小與掛接到的值是否合理。"
+    },
+    {
+      "start": 1310.64,
+      "end": 1316.76,
+      "en": "Even if you're not planning on replacing the actual activations with zeros, it's still a good idea",
+      "zh": "即使不打算真的把活化替換成零，"
+    },
+    {
+      "start": 1316.76,
+      "end": 1327.68,
+      "en": "to actually replace with zeros when writing your code initially, just to make it easier to check that your code is doing what you want it to do, where you want it to be doing it.",
+      "zh": "一開始寫程式時，仍然可以先替換成零，這樣更容易確認程式碼是否在指定位置，做了你想做的事。"
+    },
+    {
+      "start": 1328.56,
+      "end": 1331.16,
+      "en": "Anyway, I hope you found this video insightful.",
+      "zh": "總之，希望你覺得這支影片有啟發。"
+    },
+    {
+      "start": 1331.44,
+      "end": 1340.08,
+      "en": "In the next video, you will have the opportunity to continue learning about using hooks to manipulate activations during inference.",
+      "zh": "下一支影片，你有機會繼續學習，如何使用 hook，在推論期間操作活化。"
+    }
+  ]
+}

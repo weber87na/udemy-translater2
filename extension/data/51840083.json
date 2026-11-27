@@ -1,0 +1,1867 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840083",
+  "title": "CodeChallenge: More softmax explorations",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ccdad3e53df0beeab5540435d7cfd83dff4e049648595360a552a7c76be9ab6f",
+  "cues": [
+    {
+      "start": 2.32,
+      "end": 9.64,
+      "en": "Softmax initially seems like a very straightforward transformation, and in some sense it is.",
+      "zh": "softmax 起初看起來是非常簡單的轉換，某種程度上也確實如此。"
+    },
+    {
+      "start": 9.64,
+      "end": 16.2,
+      "en": "The formula for softmax is simple, easy to remember, and easy to implement in code.",
+      "zh": "softmax 的公式簡單，容易記，也容易寫成程式。"
+    },
+    {
+      "start": 16.56,
+      "end": 27.52,
+      "en": "But math sometimes has a funny way of doing things that are initially surprising or counterintuitive until you start exploring and thinking and experimenting.",
+      "zh": "但數學有時很有趣，某些行為一開始令人驚訝或違反直覺，直到你開始探索、思考和實驗才明白。"
+    },
+    {
+      "start": 28.12,
+      "end": 30.8,
+      "en": "And that's also the case with softmax.",
+      "zh": "softmax 也是如此。"
+    },
+    {
+      "start": 31.04,
+      "end": 34.84,
+      "en": "So this code challenge comprises two exercises.",
+      "zh": "因此這個程式挑戰包含兩個練習。"
+    },
+    {
+      "start": 35.28,
+      "end": 43.8,
+      "en": "And the idea is that the first part of the exercise is demonstrating something that I think you might find puzzling or unintuitive.",
+      "zh": "每個練習的第一部分，都會展示一個你可能覺得費解或不合直覺的現象。"
+    },
+    {
+      "start": 44.08,
+      "end": 50.52,
+      "en": "And hopefully by the end of each exercise, and certainly the end of the code challenge, you will have",
+      "zh": "希望每個練習結束時，尤其整個挑戰完成後，你能夠"
+    },
+    {
+      "start": 50.52,
+      "end": 56.2,
+      "en": "a better understanding for why softmax sometimes behaves the way that it does.",
+      "zh": "更了解 softmax 有時為何會有這些行為。"
+    },
+    {
+      "start": 56.76,
+      "end": 62.45,
+      "en": "And also one of the big reasons why models need a lot of normalizations.",
+      "zh": "也了解模型需要大量正規化處理的一個重要原因。"
+    },
+    {
+      "start": 63.53,
+      "end": 70.09,
+      "en": "So the idea of experiment one is to explore a claim that I have made previously.",
+      "zh": "實驗一要探討我之前提出的一項說法。"
+    },
+    {
+      "start": 70.21000000000001,
+      "end": 77.69,
+      "en": "And that is that softmax will sharpen the probability distribution such that a small number of very",
+      "zh": "也就是 softmax 會讓機率分布更加尖銳，使少數幾個"
+    },
+    {
+      "start": 77.69,
+      "end": 88.33,
+      "en": "likely token logits will pop out from the rest of the distribution, and all the other values get strongly suppressed down to a probability close to zero.",
+      "zh": "很可能出現的詞元，其 logit 所對應的機率從分布中凸顯出來，其餘值則大幅壓低到接近零。"
+    },
+    {
+      "start": 89.57,
+      "end": 96.49000000000001,
+      "en": "Now, if that's true, then what do you think will happen if you repeat the softmax transformation iteratively?",
+      "zh": "如果如此，那麼反覆套用 softmax 轉換會發生什麼事？"
+    },
+    {
+      "start": 97.25,
+      "end": 101.45,
+      "en": "That is what happens when you softmax the softmax.",
+      "zh": "也就是對 softmax 的結果再做 softmax。"
+    },
+    {
+      "start": 101.72999999999999,
+      "end": 104.85,
+      "en": "Does that make the largest value pop out even more?",
+      "zh": "這會讓最大值更加突出嗎？"
+    },
+    {
+      "start": 105.53,
+      "end": 109.69,
+      "en": "That is what we are going to explore in this code challenge.",
+      "zh": "這就是本次程式挑戰要探討的問題。"
+    },
+    {
+      "start": 109.85,
+      "end": 117.7,
+      "en": "So start by creating a data set of 20 linearly spaced numbers between 0 and one.",
+      "zh": "首先建立一組資料，包含 0 到 1 之間的 20 個等距數字。"
+    },
+    {
+      "start": 118.3,
+      "end": 124.82,
+      "en": "Then apply the softmax to those numbers to get a softmax probability distribution.",
+      "zh": "對這些數字套用 softmax，得到 softmax 機率分布。"
+    },
+    {
+      "start": 125.42,
+      "end": 133.18,
+      "en": "By the way, in this exercise, you can completely ignore the temperature parameter, which means implicitly set it to one.",
+      "zh": "順帶一提，這個練習完全不用考慮溫度參數，也就是隱含設為 1。"
+    },
+    {
+      "start": 133.26,
+      "end": 136.57999999999998,
+      "en": "We're going to get back to temperature in the next exercise.",
+      "zh": "下一個練習會再探討溫度。"
+    },
+    {
+      "start": 137.3,
+      "end": 144.18,
+      "en": "Anyway, so basically then you just want to keep softmax the same data iteratively over and over again.",
+      "zh": "總之，接著就是對同一批資料反覆套用 softmax。"
+    },
+    {
+      "start": 144.26,
+      "end": 154.74,
+      "en": "So that means that on the fifth iteration you will have applied softmax to softmax to softmax to softmax to the data in this plot here.",
+      "zh": "也就是第五次迭代時，你已經對圖中的資料一層接一層做了多次 softmax。"
+    },
+    {
+      "start": 155.02,
+      "end": 161.7,
+      "en": "You will make a scatter plot of the data value, the raw data value on the x axis.",
+      "zh": "請畫散佈圖，x 軸是原始資料值。"
+    },
+    {
+      "start": 161.74,
+      "end": 164.46,
+      "en": "So that's numbers from 0 to 1.",
+      "zh": "也就是 0 到 1 的數字。"
+    },
+    {
+      "start": 164.82,
+      "end": 168.7,
+      "en": "And then on the y axis is the softmax probabilities.",
+      "zh": "y 軸則是 softmax 機率。"
+    },
+    {
+      "start": 168.86,
+      "end": 171.86,
+      "en": "And you can see that I repeated this eight times.",
+      "zh": "可以看到，我重複了八次。"
+    },
+    {
+      "start": 171.86,
+      "end": 175.06,
+      "en": "So we start off with linearly spaced numbers.",
+      "zh": "起點是等距的數字。"
+    },
+    {
+      "start": 175.18,
+      "end": 179.55,
+      "en": "And then at the first iteration, that's the softmax of those numbers.",
+      "zh": "第一次迭代就是對這些數字做 softmax。"
+    },
+    {
+      "start": 179.67000000000002,
+      "end": 188.31,
+      "en": "And then at iteration two, it's the softmax of the result of iteration one, which is itself the softmax of the numbers zero through one.",
+      "zh": "第二次迭代則是對第一次的結果做 softmax，而第一次的結果本身就是 0 到 1 這些數字的 softmax。"
+    },
+    {
+      "start": 188.67,
+      "end": 195.43,
+      "en": "Then here on the right plot we have the standard deviation of each of these iterations.",
+      "zh": "右圖則顯示每次迭代結果的標準差。"
+    },
+    {
+      "start": 195.59,
+      "end": 206.71,
+      "en": "So inside the for loop where our where you are repeatedly softmax ING the data, you should also calculate the standard deviation and then plot it here.",
+      "zh": "因此在反覆對資料做 softmax 的 for 迴圈裡，也要計算標準差，再畫在這裡。"
+    },
+    {
+      "start": 207.51,
+      "end": 215.07,
+      "en": "Now I actually calculated the log of the standard deviation because the standard deviations end up being pretty small.",
+      "zh": "其實我算的是標準差的對數，因為標準差最後會相當小。"
+    },
+    {
+      "start": 215.27,
+      "end": 224.87,
+      "en": "So the log transform just helps us visualize what is happening to the variability of the data as we keep softmax ING it over and over again.",
+      "zh": "取對數只是為了方便看出，不斷做 softmax 時，資料的變異程度如何改變。"
+    },
+    {
+      "start": 225.55,
+      "end": 230.23,
+      "en": "So these two plots here, that's the first part of the exercise.",
+      "zh": "這兩張圖就是練習的第一部分。"
+    },
+    {
+      "start": 230.71,
+      "end": 236.82999999999998,
+      "en": "The second part of this exercise is to understand why we got these results in the first place.",
+      "zh": "第二部分則要了解，為何一開始會得到這種結果。"
+    },
+    {
+      "start": 237.39,
+      "end": 246.51,
+      "en": "So now you need to apply softmax only once, but you manipulate the number of data values between 0 and 1.",
+      "zh": "現在只做一次 softmax，但改變 0 到 1 之間的資料數量。"
+    },
+    {
+      "start": 246.51,
+      "end": 248.91,
+      "en": "And that's what you see in this plot.",
+      "zh": "這就是這張圖顯示的內容。"
+    },
+    {
+      "start": 249.19,
+      "end": 254.83,
+      "en": "So again we start off with linearly spaced numbers between 0 and 1.",
+      "zh": "同樣從 0 到 1 之間的等距數字開始。"
+    },
+    {
+      "start": 255.35,
+      "end": 257.23,
+      "en": "Take their softmax just once.",
+      "zh": "只做一次 softmax。"
+    },
+    {
+      "start": 257.23,
+      "end": 260.91,
+      "en": "You don't need to softmax the softmax softmax and so on.",
+      "zh": "不用對 softmax 的結果再不斷做 softmax。"
+    },
+    {
+      "start": 261.35,
+      "end": 267.59,
+      "en": "But the question here now is how many numbers we have between 0 and 1.",
+      "zh": "這次的問題是：0 到 1 之間放多少個數字？"
+    },
+    {
+      "start": 267.59,
+      "end": 275.19,
+      "en": "So you run this three times with four numbers between 0 and 1, ten and 100 numbers between 0 and 1.",
+      "zh": "請跑三次，分別在 0 到 1 之間放 4 個、10 個和 100 個數字。"
+    },
+    {
+      "start": 275.99,
+      "end": 282.95,
+      "en": "Now when you create this plot, make sure that the x and y axis limits are the same.",
+      "zh": "畫圖時，請確保 x 軸與 y 軸的範圍相同。"
+    },
+    {
+      "start": 283.31,
+      "end": 291.19,
+      "en": "So you can see in this plot that the x axis goes from 0 to 1, and the y axis also goes from 0 to 1.",
+      "zh": "可以看到，這張圖的 x 軸是 0 到 1，y 軸也是 0 到 1。"
+    },
+    {
+      "start": 291.19,
+      "end": 298.8,
+      "en": "One that is going to be relevant for understanding the results that we got in the first part of the exercise.",
+      "zh": "這點有助於理解練習第一部分得到的結果。"
+    },
+    {
+      "start": 300.08,
+      "end": 300.44,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 300.48,
+      "end": 305.32,
+      "en": "So I'm going to have a discussion about this results when I switch to code.",
+      "zh": "切換到程式碼後，我會討論這些結果。"
+    },
+    {
+      "start": 305.32,
+      "end": 311.24,
+      "en": "But just to say this preemptively so there's no confusion in actual language modeling.",
+      "zh": "但先說清楚，以免混淆：實際做語言模型時，"
+    },
+    {
+      "start": 311.36,
+      "end": 316.12,
+      "en": "You do not iteratively apply softmax values.",
+      "zh": "不會反覆對 softmax 的結果做 softmax。"
+    },
+    {
+      "start": 316.16,
+      "end": 322.32,
+      "en": "The reason why we're doing it here is to understand the importance of the numerical range of the data,",
+      "zh": "這樣練習，是為了了解資料數值範圍的重要性，"
+    },
+    {
+      "start": 322.52,
+      "end": 329.04,
+      "en": "and how that impacts the behavior of softmax in actual language model token generation.",
+      "zh": "以及它如何影響實際語言模型產生詞元時 softmax 的行為。"
+    },
+    {
+      "start": 329.28,
+      "end": 333.8,
+      "en": "The model output logits for each token are softmax only once.",
+      "zh": "模型輸出的各個詞元 logit，只會做一次 softmax。"
+    },
+    {
+      "start": 334.52,
+      "end": 337.68,
+      "en": "Okay, so now you should pause the video.",
+      "zh": "好，現在請暫停影片。"
+    },
+    {
+      "start": 337.88,
+      "end": 340.28,
+      "en": "Switch to Python and start coding away.",
+      "zh": "切換到 Python，開始寫程式。"
+    },
+    {
+      "start": 340.48,
+      "end": 343.88,
+      "en": "And now I will switch to code and discuss my solution.",
+      "zh": "接著我會切到程式碼，說明我的解法。"
+    },
+    {
+      "start": 344.92,
+      "end": 347.12,
+      "en": "Some libraries that we will need here.",
+      "zh": "這裡是需要的幾個函式庫。"
+    },
+    {
+      "start": 347.32,
+      "end": 350.29,
+      "en": "And here is the first part of the experiment.",
+      "zh": "這是實驗的第一部分。"
+    },
+    {
+      "start": 350.33,
+      "end": 350.69,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 350.73,
+      "end": 355.45,
+      "en": "So here are the data values 0 to 1 in 20 steps.",
+      "zh": "這裡的資料是 0 到 1 之間的 20 個等距值。"
+    },
+    {
+      "start": 355.45,
+      "end": 358.81,
+      "en": "And I begin by calculating a softmax.",
+      "zh": "首先計算 softmax。"
+    },
+    {
+      "start": 358.81,
+      "end": 364.13,
+      "en": "So e to the x divided by the sum over e to all of the x's.",
+      "zh": "也就是 e 的 x 次方，除以所有 e 的 x 次方的總和。"
+    },
+    {
+      "start": 364.29,
+      "end": 364.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 364.65,
+      "end": 365.65,
+      "en": "Very straightforward.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 365.93,
+      "end": 368.73,
+      "en": "Here I run through eight iterations.",
+      "zh": "這裡執行八次迭代。"
+    },
+    {
+      "start": 368.89,
+      "end": 369.93,
+      "en": "And let's see.",
+      "zh": "來看一下。"
+    },
+    {
+      "start": 369.93,
+      "end": 371.69,
+      "en": "So basically it's all happening here.",
+      "zh": "基本上，主要處理都在這裡。"
+    },
+    {
+      "start": 371.69,
+      "end": 374.61,
+      "en": "So I'm plotting x by u.",
+      "zh": "我用 x 與 u 畫圖。"
+    },
+    {
+      "start": 374.61,
+      "end": 377.61,
+      "en": "And remember u is the softmax here.",
+      "zh": "記得，u 就是這裡的 softmax 結果。"
+    },
+    {
+      "start": 377.85,
+      "end": 382.05,
+      "en": "And then I am calculating the standard deviation of u.",
+      "zh": "接著計算 u 的標準差。"
+    },
+    {
+      "start": 382.25,
+      "end": 388.93,
+      "en": "And then setting u basically overwriting variable u so that it equals the softmax version of itself.",
+      "zh": "然後重新設定 u，也就是覆寫變數 u，讓它等於自身再做 softmax 的結果。"
+    },
+    {
+      "start": 389.17,
+      "end": 395.69,
+      "en": "So I'm just iteratively taking the softmax of the softmax probability distribution.",
+      "zh": "因此我就是不斷對 softmax 機率分布再做 softmax。"
+    },
+    {
+      "start": 395.93,
+      "end": 396.21,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 396.25,
+      "end": 397.45,
+      "en": "And then here I'm plotting.",
+      "zh": "接著在這裡畫圖。"
+    },
+    {
+      "start": 397.57,
+      "end": 399.09000000000003,
+      "en": "So what do we see here.",
+      "zh": "我們看到了什麼？"
+    },
+    {
+      "start": 399.40999999999997,
+      "end": 399.73,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 399.77,
+      "end": 403.37,
+      "en": "So we see let's look at iteration one first.",
+      "zh": "先看第一次迭代。"
+    },
+    {
+      "start": 403.37,
+      "end": 407.45,
+      "en": "So that is applying softmax once directly to the data.",
+      "zh": "也就是直接對資料做一次 softmax。"
+    },
+    {
+      "start": 407.61,
+      "end": 409.86,
+      "en": "Here are the data on the x axis.",
+      "zh": "x 軸是資料。"
+    },
+    {
+      "start": 409.86,
+      "end": 412.22,
+      "en": "And here is the softmax probability.",
+      "zh": "這裡則是 softmax 機率。"
+    },
+    {
+      "start": 412.22,
+      "end": 416.26,
+      "en": "So again we're just focusing on this blue line these blue dots here.",
+      "zh": "我們先只看這條藍線，也就是這些藍點。"
+    },
+    {
+      "start": 417.22,
+      "end": 421.62,
+      "en": "And you just see it basically is linear increasing almost linear.",
+      "zh": "可以看到它大致呈線性上升，幾乎是直線。"
+    },
+    {
+      "start": 421.66,
+      "end": 423.46,
+      "en": "There's a gentle bend.",
+      "zh": "只有很輕微的彎曲。"
+    },
+    {
+      "start": 423.9,
+      "end": 431.42,
+      "en": "And this I've discussed before basically you know when you zoom into any nonlinear function it's going to look sort of kind of linear.",
+      "zh": "之前說過，放大看非線性函數的局部時，它常會看起來近似線性。"
+    },
+    {
+      "start": 431.46,
+      "end": 433.78,
+      "en": "And that's basically what you see here okay.",
+      "zh": "這裡基本上就是如此。"
+    },
+    {
+      "start": 433.82,
+      "end": 435.02,
+      "en": "Nothing shocking there.",
+      "zh": "沒什麼令人驚訝的。"
+    },
+    {
+      "start": 435.22,
+      "end": 438.42,
+      "en": "Then uh, basically things start getting weird, right?",
+      "zh": "接著就開始有點奇怪了，對吧？"
+    },
+    {
+      "start": 438.42,
+      "end": 445.54,
+      "en": "The second iteration is already basically just going to 0.05, and then all the other iterations look",
+      "zh": "第二次迭代就幾乎都變成 0.05，其他幾次迭代"
+    },
+    {
+      "start": 445.54,
+      "end": 451.34,
+      "en": "like they are not really diverging that much from a softmax probability of 0.05.",
+      "zh": "看起來也都沒有偏離 0.05 這個 softmax 機率太多。"
+    },
+    {
+      "start": 451.98,
+      "end": 453.46,
+      "en": "And where does this number come from?",
+      "zh": "這個數字從哪來？"
+    },
+    {
+      "start": 453.5,
+      "end": 454.38,
+      "en": "0.05.",
+      "zh": "0.05。"
+    },
+    {
+      "start": 454.42,
+      "end": 456.9,
+      "en": "This is not some weird magical number.",
+      "zh": "它不是什麼神祕的魔法數字。"
+    },
+    {
+      "start": 457.14,
+      "end": 464.1,
+      "en": "This literally just comes from the fact that I used 20 numbers between 0 and 1.",
+      "zh": "純粹是因為我在 0 到 1 之間使用了 20 個數字。"
+    },
+    {
+      "start": 464.46,
+      "end": 467.27,
+      "en": "So remember that, in softmax.",
+      "zh": "記得，softmax"
+    },
+    {
+      "start": 467.27,
+      "end": 474.11,
+      "en": "One of the implications of softmax transformation is that all of the data points sum to one.",
+      "zh": "轉換的一個結果，就是所有資料點的總和為 1。"
+    },
+    {
+      "start": 474.59000000000003,
+      "end": 484.67,
+      "en": "So if you have 20 numbers and they all need to sum to one, if those numbers get squashed down so that they're all equal to each other, then that number has to be 0.05.",
+      "zh": "如果有 20 個數字，而且總和必須為 1，當它們被壓到彼此相等時，每個數字就必須是 0.05。"
+    },
+    {
+      "start": 484.67,
+      "end": 488.75,
+      "en": "So that's literally just going into 20 okay.",
+      "zh": "也就是 1 除以 20。"
+    },
+    {
+      "start": 488.79,
+      "end": 491.15,
+      "en": "But in fact they are getting closer and closer.",
+      "zh": "而且它們確實越來越接近。"
+    },
+    {
+      "start": 491.15,
+      "end": 495.43,
+      "en": "They're getting squashed uh to have basically zero variability.",
+      "zh": "它們被壓縮到幾乎沒有變異。"
+    },
+    {
+      "start": 495.43,
+      "end": 500.47,
+      "en": "And that you see here the log standard deviation goes down to -25.",
+      "zh": "這裡可以看到，標準差的對數降到了 -25。"
+    },
+    {
+      "start": 500.75,
+      "end": 502.55,
+      "en": "And why do we need to plot the log.",
+      "zh": "為什麼需要畫對數？"
+    },
+    {
+      "start": 502.55,
+      "end": 504.39,
+      "en": "If you go let's see.",
+      "zh": "來看一下。"
+    },
+    {
+      "start": 504.39,
+      "end": 507.75,
+      "en": "Let's rerun this without the log here.",
+      "zh": "我們把對數去掉，再跑一次。"
+    },
+    {
+      "start": 507.99,
+      "end": 510.43,
+      "en": "So I'm just literally removing that log here.",
+      "zh": "也就是直接移除這裡的 log。"
+    },
+    {
+      "start": 510.63,
+      "end": 514.03,
+      "en": "It looks like the standard deviations are basically all at zero.",
+      "zh": "這時標準差看起來幾乎全是零。"
+    },
+    {
+      "start": 514.15,
+      "end": 516.43,
+      "en": "In fact they are not zero.",
+      "zh": "但其實不是零。"
+    },
+    {
+      "start": 516.55,
+      "end": 517.67,
+      "en": "They are non-zero.",
+      "zh": "它們仍是非零值。"
+    },
+    {
+      "start": 517.67,
+      "end": 524.64,
+      "en": "But they they plummet so quickly that it's just easier to see uh, after log transforming.",
+      "zh": "只是下降得太快，所以取對數後比較容易看清楚。"
+    },
+    {
+      "start": 524.96,
+      "end": 527.64,
+      "en": "Okay, now here is the perhaps surprising thing.",
+      "zh": "好，接下來是可能令人驚訝的地方。"
+    },
+    {
+      "start": 527.64,
+      "end": 529.52,
+      "en": "Why do we even get this finding?",
+      "zh": "為何會得到這個結果？"
+    },
+    {
+      "start": 529.72,
+      "end": 536.96,
+      "en": "You might have expected that if you would apply the softmax to this, this dark blue dots here, then",
+      "zh": "你可能以為對這些深藍色點再做 softmax，"
+    },
+    {
+      "start": 537,
+      "end": 544.64,
+      "en": "these, uh, smaller values would get squashed down, they would get compressed, and this one value would pop up.",
+      "zh": "較小的值會被壓低、壓縮，而這個值會往上突出。"
+    },
+    {
+      "start": 544.96,
+      "end": 546.4,
+      "en": "So why doesn't that happen?",
+      "zh": "為什麼沒有這樣？"
+    },
+    {
+      "start": 546.4,
+      "end": 557,
+      "en": "Isn't the idea that softmax is popping the largest value out of the distribution, and the rest of the numbers in the distribution are getting squashed down to zero?",
+      "zh": "softmax 的作用不是讓分布裡的最大值突出，其他數字則被壓到接近零嗎？"
+    },
+    {
+      "start": 557.12,
+      "end": 558.64,
+      "en": "Why is that not happening here?",
+      "zh": "為什麼這裡沒有發生？"
+    },
+    {
+      "start": 559.44,
+      "end": 559.92,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 560.24,
+      "end": 569.16,
+      "en": "Uh, basically that is related to, uh, what I'm going to discuss here and also what we are going to explore in the next exercise.",
+      "zh": "這和接下來的討論，以及下一個練習要探討的內容有關。"
+    },
+    {
+      "start": 569.32,
+      "end": 573.48,
+      "en": "But the upshot is that it's partly related to the number of data points.",
+      "zh": "重點是，它有一部分與資料點的數量有關。"
+    },
+    {
+      "start": 573.48,
+      "end": 576.52,
+      "en": "And it's also related to the restricted range.",
+      "zh": "也和數值範圍受到限制有關。"
+    },
+    {
+      "start": 576.64,
+      "end": 579.6,
+      "en": "So remember E to the x blows up like this.",
+      "zh": "記得 e 的 x 次方會像這樣迅速增長。"
+    },
+    {
+      "start": 579.64,
+      "end": 584.16,
+      "en": "It has this nonlinear exponential increase, it bends upwards.",
+      "zh": "它是向上彎曲的非線性指數成長。"
+    },
+    {
+      "start": 584.16,
+      "end": 591.04,
+      "en": "But if you would focus the data to zoom in on a tiny restricted range, then all the values get squashed together.",
+      "zh": "但如果只放大看非常狹窄的範圍，所有值就會擠在一起。"
+    },
+    {
+      "start": 591.32,
+      "end": 594.6,
+      "en": "Okay, so let's do, uh, make this plot here.",
+      "zh": "好，來畫這張圖。"
+    },
+    {
+      "start": 594.6,
+      "end": 595.68,
+      "en": "This one is very simple.",
+      "zh": "這個很簡單。"
+    },
+    {
+      "start": 595.68,
+      "end": 600.28,
+      "en": "Here I specify, uh, the four different numbers of data points.",
+      "zh": "這裡指定四種不同的資料點數量。"
+    },
+    {
+      "start": 600.44,
+      "end": 608.6,
+      "en": "And yeah, here I'm creating linearly spaced numbers, softmax, ifying them and plotting them all in the same graph.",
+      "zh": "然後建立等距數字，做 softmax，再全部畫在同一張圖上。"
+    },
+    {
+      "start": 608.6,
+      "end": 610.32,
+      "en": "The code there is pretty straightforward.",
+      "zh": "程式碼相當直接。"
+    },
+    {
+      "start": 610.96,
+      "end": 612.16,
+      "en": "And what do we see here.",
+      "zh": "這裡看到了什麼？"
+    },
+    {
+      "start": 612.16,
+      "end": 615.52,
+      "en": "So we are starting with exactly the same data.",
+      "zh": "我們從完全相同的資料範圍出發。"
+    },
+    {
+      "start": 615.52,
+      "end": 619.2,
+      "en": "So zero through one exactly the same transformation.",
+      "zh": "都是 0 到 1，做的轉換也完全相同。"
+    },
+    {
+      "start": 619.2,
+      "end": 620.48,
+      "en": "It's always softmax.",
+      "zh": "永遠都是 softmax。"
+    },
+    {
+      "start": 620.96,
+      "end": 623.6,
+      "en": "The difference is the number of data points.",
+      "zh": "差別在資料點的數量。"
+    },
+    {
+      "start": 623.6,
+      "end": 628.96,
+      "en": "So do we have a small number of data points or a large number of data points.",
+      "zh": "資料點是少，還是多？"
+    },
+    {
+      "start": 629.16,
+      "end": 635.48,
+      "en": "The more data points we have in general the smaller those values will be after softmax.",
+      "zh": "一般來說，資料點越多，softmax 後的值就越小。"
+    },
+    {
+      "start": 635.48,
+      "end": 636.88,
+      "en": "And why is that the case?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 637.24,
+      "end": 641.05,
+      "en": "Because all of these numbers need to add up to one.",
+      "zh": "因為所有數字的總和必須是 1。"
+    },
+    {
+      "start": 641.05,
+      "end": 649.57,
+      "en": "So if we only have four numbers and they all have to add up to one, then you know, all else being equal, they're going to be roughly around 0.25.",
+      "zh": "若只有四個數字，而且總和必須是 1，其他條件相同時，它們大致會在 0.25 附近。"
+    },
+    {
+      "start": 650.13,
+      "end": 658.97,
+      "en": "And if we have 100 numbers and those all add up to one, then you know, all else being equal, those numbers will be 0.01, right.",
+      "zh": "若有 100 個數字，總和仍是 1，那麼其他條件相同時，每個大約就是 0.01。"
+    },
+    {
+      "start": 659.05,
+      "end": 663.65,
+      "en": "So even if there are some changes right, it's going to be relatively small.",
+      "zh": "所以即使有些變化，相對來說仍會很小。"
+    },
+    {
+      "start": 663.77,
+      "end": 675.69,
+      "en": "So this means that the impact of softmax on the numerical values in the distribution is partly related to the number of data values you have.",
+      "zh": "這表示 softmax 對分布數值的影響，有一部分取決於資料值的數量。"
+    },
+    {
+      "start": 676.25,
+      "end": 679.73,
+      "en": "Now here we had 20 numbers up here.",
+      "zh": "上面有 20 個數字。"
+    },
+    {
+      "start": 679.97,
+      "end": 682.05,
+      "en": "Here we have 100 numbers.",
+      "zh": "這裡有 100 個。"
+    },
+    {
+      "start": 682.65,
+      "end": 691.21,
+      "en": "When we start doing, you know, token selection from the model output there, we have tens of thousands of numbers with GPT four's tokenizer.",
+      "zh": "之後從模型輸出選擇詞元時，會有數萬個數字；以 GPT-4 的 tokenizer 而言，"
+    },
+    {
+      "start": 691.49,
+      "end": 693.89,
+      "en": "There is 100,000 tokens.",
+      "zh": "有 10 萬個詞元。"
+    },
+    {
+      "start": 693.89,
+      "end": 701.06,
+      "en": "So all so softmax is going to suppress nearly all of them to be really, really tiny numbers.",
+      "zh": "因此 softmax 會把幾乎所有值壓成非常非常小的數字。"
+    },
+    {
+      "start": 701.82,
+      "end": 703.74,
+      "en": "Now for exercise two.",
+      "zh": "接著是練習二。"
+    },
+    {
+      "start": 704.1,
+      "end": 714.5,
+      "en": "The goal here is to explore the impact of the numerical range as well as temperature, on the resulting softmax probability values.",
+      "zh": "目標是探討數值範圍與溫度，如何影響 softmax 得到的機率值。"
+    },
+    {
+      "start": 714.98,
+      "end": 721.02,
+      "en": "Now, in the previous exercise, all the numbers that we softmax were between 0 and 1.",
+      "zh": "上一個練習中，做 softmax 的數字全部介於 0 和 1 之間。"
+    },
+    {
+      "start": 721.5,
+      "end": 727.9,
+      "en": "Now here in exercise two you will use a wider range of numbers to softmax.",
+      "zh": "練習二會使用範圍更大的數字來做 softmax。"
+    },
+    {
+      "start": 728.1,
+      "end": 731.58,
+      "en": "And we will also explore the impact of temperature.",
+      "zh": "也會探討溫度的影響。"
+    },
+    {
+      "start": 731.94,
+      "end": 738.58,
+      "en": "So let me start by explaining what you're going to do just by focusing on this one plot here.",
+      "zh": "先只看這張圖，說明你要做什麼。"
+    },
+    {
+      "start": 739.18,
+      "end": 744.58,
+      "en": "So this plot shows the softmax probabilities on the y axis.",
+      "zh": "圖中的 y 軸是 softmax 機率。"
+    },
+    {
+      "start": 744.94,
+      "end": 750.5,
+      "en": "And let's call this our simulated model outputs on the x axis.",
+      "zh": "x 軸則可以視為模擬的模型輸出。"
+    },
+    {
+      "start": 751.06,
+      "end": 759.27,
+      "en": "Now the three different colors and also markers correspond to different temperature values that are applied during softmax.",
+      "zh": "三種顏色與標記，對應 softmax 使用的三個不同溫度值。"
+    },
+    {
+      "start": 759.79,
+      "end": 765.91,
+      "en": "Now what is x axis so wide when the data values are so narrow?",
+      "zh": "資料值明明集中在很窄的範圍，為何 x 軸這麼寬？"
+    },
+    {
+      "start": 766.51,
+      "end": 772.83,
+      "en": "The reason is that these other plots here, this middle plot and the right plot, they show the same",
+      "zh": "原因是另外兩張圖，也就是中間與右邊的圖，顯示相同的"
+    },
+    {
+      "start": 772.83,
+      "end": 780.23,
+      "en": "transformation with the same three temperatures, but the numerical ranges of the logits varies.",
+      "zh": "轉換，也使用相同的三個溫度，但 logit 的數值範圍不同。"
+    },
+    {
+      "start": 781.31,
+      "end": 787.51,
+      "en": "So this plot has logits ranging from minus four to plus 0.4.",
+      "zh": "這張圖的 logit 範圍是負 0.4 到正 0.4。"
+    },
+    {
+      "start": 788.15,
+      "end": 792.87,
+      "en": "The middle plot has logits ranging from minus one to plus one.",
+      "zh": "中間這張是 -1 到 1。"
+    },
+    {
+      "start": 793.43,
+      "end": 799.19,
+      "en": "And here on the right we have logits ranging from minus five to plus five.",
+      "zh": "右邊則是 -5 到 5。"
+    },
+    {
+      "start": 799.63,
+      "end": 805.79,
+      "en": "So in all cases I have 100 values between these bounds.",
+      "zh": "每一種情況都在上下界之間放 100 個值。"
+    },
+    {
+      "start": 806.31,
+      "end": 806.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 806.71,
+      "end": 807.95,
+      "en": "So I hope that's clear.",
+      "zh": "希望這樣說清楚了。"
+    },
+    {
+      "start": 807.95,
+      "end": 809.91,
+      "en": "I think that explains this first plot.",
+      "zh": "第一張圖應該解釋清楚了。"
+    },
+    {
+      "start": 810.23,
+      "end": 817.24,
+      "en": "Notice that the y axis are the same in all three of these subplots on the top row.",
+      "zh": "注意，上排三張子圖的 y 軸範圍相同。"
+    },
+    {
+      "start": 817.72,
+      "end": 820.2,
+      "en": "And also notice that those values are pretty small.",
+      "zh": "也注意，這些值都相當小。"
+    },
+    {
+      "start": 820.2,
+      "end": 821.52,
+      "en": "So 0.03.",
+      "zh": "例如 0.03。"
+    },
+    {
+      "start": 822,
+      "end": 833.48,
+      "en": "Now when you create these vectors of logits to softmax, you want to concatenate one additional number to the end, which is a value of six okay.",
+      "zh": "建立這些要做 softmax 的 logit 向量時，請在最後多串接一個數字，也就是 6。"
+    },
+    {
+      "start": 833.52,
+      "end": 842.96,
+      "en": "So in actuality all of these model logits are 100 numbers linearly spaced between -0.4 to plus 4.4,",
+      "zh": "所以實際上，這些模擬模型 logit 包含 100 個等距數字，範圍分別是 -0.4 到 0.4、"
+    },
+    {
+      "start": 843.12,
+      "end": 846.6,
+      "en": "minus one to plus 0.1 and minus five to plus five.",
+      "zh": "-1 到 1，以及 -5 到 5。"
+    },
+    {
+      "start": 846.76,
+      "end": 854.52,
+      "en": "And then there's the number six that appears at the end to give a total vector size of 101.",
+      "zh": "最後再加上數字 6，因此整個向量的大小是 101。"
+    },
+    {
+      "start": 854.52,
+      "end": 859.52,
+      "en": "That's also why this x axis goes a little bit above six here.",
+      "zh": "這也是 x 軸會稍微超過 6 的原因。"
+    },
+    {
+      "start": 860.72,
+      "end": 868.68,
+      "en": "Now the thing is that that final value of six is so much higher on the y axis that you cannot see both",
+      "zh": "問題是，最後這個值 6 對應的 y 值高出太多，所以同一張圖上"
+    },
+    {
+      "start": 868.68,
+      "end": 874.45,
+      "en": "the small values and the large values at the same time in the same plot.",
+      "zh": "很難同時看清楚小值與大值。"
+    },
+    {
+      "start": 874.85,
+      "end": 882.65,
+      "en": "So therefore the lower row of plots here shows exactly the same data, exactly the same results as the",
+      "zh": "因此下排圖顯示的資料與結果，和"
+    },
+    {
+      "start": 882.65,
+      "end": 889.81,
+      "en": "top row, except the y axis is now scaled to have a limit of 0 to 1.",
+      "zh": "上排完全相同，只是把 y 軸範圍改成 0 到 1。"
+    },
+    {
+      "start": 890.09,
+      "end": 894.05,
+      "en": "So again, the top row and the bottom row are exactly the same.",
+      "zh": "再次強調，上排與下排完全相同。"
+    },
+    {
+      "start": 894.09,
+      "end": 897.77,
+      "en": "They only differ by the y axis scaling.",
+      "zh": "只有 y 軸的縮放不同。"
+    },
+    {
+      "start": 898.29,
+      "end": 905.05,
+      "en": "Okay, one final point here is that I want you to use only PyTorch functions for this exercise.",
+      "zh": "最後一點：這個練習請只用 PyTorch 的函數。"
+    },
+    {
+      "start": 905.05,
+      "end": 907.57,
+      "en": "So no numpy for this exercise.",
+      "zh": "不要使用 NumPy。"
+    },
+    {
+      "start": 908.01,
+      "end": 910.21,
+      "en": "Now of course you can do this with numpy.",
+      "zh": "當然，用 NumPy 也做得到。"
+    },
+    {
+      "start": 910.25,
+      "end": 917.33,
+      "en": "But I want you to gain a little bit more experience working with PyTorch functions, in particular with",
+      "zh": "但我希望你多練習 PyTorch 函數，尤其是"
+    },
+    {
+      "start": 917.33,
+      "end": 926.45,
+      "en": "this business of concatenating the number six onto this vector of 100 numbers between these specified",
+      "zh": "把數字 6 串接到這個含 100 個數字、數值介於指定"
+    },
+    {
+      "start": 926.45,
+      "end": 927.17,
+      "en": "bounds.",
+      "zh": "上下界之間的向量後面。"
+    },
+    {
+      "start": 927.49,
+      "end": 928.13,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 928.37,
+      "end": 930.77,
+      "en": "Good luck working through this exercise.",
+      "zh": "祝你順利完成這個練習。"
+    },
+    {
+      "start": 930.77,
+      "end": 932.66,
+      "en": "And now I will switch to code.",
+      "zh": "現在切到程式碼。"
+    },
+    {
+      "start": 933.5,
+      "end": 941.46,
+      "en": "So here I specify the list of temperatures to use and the bounds for the x axis values.",
+      "zh": "這裡指定要用的溫度清單，以及 x 軸數值的範圍。"
+    },
+    {
+      "start": 941.78,
+      "end": 942.86,
+      "en": "And let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 942.86,
+      "end": 953.26,
+      "en": "So here I have a double for loop because we need to loop over the three different boundaries for x axis values and also for the three different temperatures.",
+      "zh": "我用了雙層 for 迴圈，因為要遍歷三種 x 軸數值範圍，也要遍歷三種不同的溫度。"
+    },
+    {
+      "start": 953.66,
+      "end": 955.7,
+      "en": "So here I define the logits.",
+      "zh": "這裡定義 logit。"
+    },
+    {
+      "start": 955.86,
+      "end": 956.98,
+      "en": "And uh yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 956.98,
+      "end": 961.94,
+      "en": "So it's from minus the bound to plus that bound in 100 steps.",
+      "zh": "也就是從負的邊界值到正的邊界值，等距取 100 個點。"
+    },
+    {
+      "start": 962.06,
+      "end": 964.54,
+      "en": "And here is the deal with the concatenation.",
+      "zh": "這裡則是串接的部分。"
+    },
+    {
+      "start": 964.54,
+      "end": 969.22,
+      "en": "And basically all I wanted to let me run this code first.",
+      "zh": "我先執行一下程式碼。"
+    },
+    {
+      "start": 969.26,
+      "end": 976.66,
+      "en": "The reason why I wanted you to do this in PyTorch is because PyTorch can be tricky to work with, as you know.",
+      "zh": "要求使用 PyTorch，是因為各位知道，PyTorch 有時操作起來有點麻煩。"
+    },
+    {
+      "start": 976.66,
+      "end": 988.46,
+      "en": "So one of my minor goals of this entire course is just, uh, showing you a lot of situations where PyTorch can cause a little bit of a headache or be a little bit confusing.",
+      "zh": "整門課的一個小目標，就是讓你看過許多 PyTorch 容易令人頭痛或困惑的情況。"
+    },
+    {
+      "start": 988.7,
+      "end": 994.82,
+      "en": "Okay, so let's say you wanted to concatenate six onto the end of this vector here.",
+      "zh": "假設你想把 6 串接到這個向量的最後。"
+    },
+    {
+      "start": 994.82,
+      "end": 999.42,
+      "en": "You might have tried something like this and you might have gotten an error that looks something like this.",
+      "zh": "你可能試了這樣的寫法，然後得到類似這樣的錯誤。"
+    },
+    {
+      "start": 999.7,
+      "end": 1000.02,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1000.06,
+      "end": 1004.14,
+      "en": "So we expect a tensor PyTorch expects a tensor a tensor.",
+      "zh": "這裡預期的是張量，PyTorch 要的是張量。"
+    },
+    {
+      "start": 1004.34,
+      "end": 1004.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1004.74,
+      "end": 1005.66,
+      "en": "No problem.",
+      "zh": "沒問題。"
+    },
+    {
+      "start": 1005.66,
+      "end": 1007.26,
+      "en": "Let's put in a tensor.",
+      "zh": "那就放一個張量進去。"
+    },
+    {
+      "start": 1007.3,
+      "end": 1009.42,
+      "en": "Then you might have tried something like this.",
+      "zh": "接著你可能試了這個。"
+    },
+    {
+      "start": 1009.9,
+      "end": 1012.5,
+      "en": "And you say hey come on this is a tensor.",
+      "zh": "你會說：拜託，這已經是張量了。"
+    },
+    {
+      "start": 1012.74,
+      "end": 1013.82,
+      "en": "Why doesn't this work?",
+      "zh": "為什麼還是不行？"
+    },
+    {
+      "start": 1014.3,
+      "end": 1019.3,
+      "en": "And so now the issue is that this is just one isolated number.",
+      "zh": "現在的問題是，這只是一個獨立的數字。"
+    },
+    {
+      "start": 1019.34,
+      "end": 1022.78,
+      "en": "PyTorch calls this a zero dimensional tensor.",
+      "zh": "PyTorch 稱它為零維張量。"
+    },
+    {
+      "start": 1023.1,
+      "end": 1030.42,
+      "en": "So therefore this needs to be at least a one dimensional tensor which you get by or which you can create",
+      "zh": "因此它至少需要是一維張量，你可以"
+    },
+    {
+      "start": 1030.42,
+      "end": 1035.9,
+      "en": "by putting this number into uh into square brackets here.",
+      "zh": "把這個數字放在方括號裡來建立。"
+    },
+    {
+      "start": 1035.9,
+      "end": 1036.54,
+      "en": "Like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 1036.66,
+      "end": 1040.18,
+      "en": "Okay, so I hope you didn't struggle too much with this.",
+      "zh": "希望你沒有在這裡卡太久。"
+    },
+    {
+      "start": 1040.3,
+      "end": 1048.83,
+      "en": "You will be using Torch.cat quite often in this course and possibly in the future as well, so that's good to know.",
+      "zh": "這門課以及之後，你會經常使用 torch.cat，所以這點值得了解。"
+    },
+    {
+      "start": 1048.87,
+      "end": 1050.79,
+      "en": "Okay so here I'm creating the data.",
+      "zh": "這裡建立資料。"
+    },
+    {
+      "start": 1050.83,
+      "end": 1053.07,
+      "en": "This is simulating model outputs.",
+      "zh": "這是在模擬模型輸出。"
+    },
+    {
+      "start": 1053.55,
+      "end": 1055.95,
+      "en": "And here I specify the temperature.",
+      "zh": "這裡指定溫度。"
+    },
+    {
+      "start": 1055.95,
+      "end": 1057.91,
+      "en": "Here I calculate softmax.",
+      "zh": "這裡計算 softmax。"
+    },
+    {
+      "start": 1058.15,
+      "end": 1061.07,
+      "en": "Very simple very straightforward to calculate softmax.",
+      "zh": "計算 softmax 很簡單、很直接。"
+    },
+    {
+      "start": 1061.07,
+      "end": 1065.55,
+      "en": "And just dividing by this parameter t here okay.",
+      "zh": "就是在這裡除以參數 T。"
+    },
+    {
+      "start": 1065.59,
+      "end": 1067.59,
+      "en": "And then I'm plotting the data twice.",
+      "zh": "然後把資料畫兩次。"
+    },
+    {
+      "start": 1067.83,
+      "end": 1074.03,
+      "en": "Uh so this plotting line here plots all of the values between.",
+      "zh": "這行繪圖程式會畫出範圍內的所有值。"
+    },
+    {
+      "start": 1074.07,
+      "end": 1077.75,
+      "en": "So excluding the uh added value of six.",
+      "zh": "也就是排除額外加上的 6。"
+    },
+    {
+      "start": 1078.07,
+      "end": 1081.23,
+      "en": "And then here I'm also plotting the value of six.",
+      "zh": "這裡則另外畫出值 6。"
+    },
+    {
+      "start": 1081.23,
+      "end": 1083.19,
+      "en": "And now why do I plot them separately.",
+      "zh": "為什麼分開畫？"
+    },
+    {
+      "start": 1083.31,
+      "end": 1086.95,
+      "en": "That's just because I wanted to have different marker sizes.",
+      "zh": "只是因為我想用不同大小的標記。"
+    },
+    {
+      "start": 1086.95,
+      "end": 1094.11,
+      "en": "So you see all of the like smaller numerical values I make with a smaller marker and the value of six.",
+      "zh": "可以看到，那些數值比較小的點，我用較小的標記；數字 6"
+    },
+    {
+      "start": 1094.11,
+      "end": 1101.47,
+      "en": "It just kind of, you know, it's off doing its own thing way up high in the stratosphere of the y axis.",
+      "zh": "則獨自在 y 軸的高處。"
+    },
+    {
+      "start": 1101.47,
+      "end": 1103.75,
+      "en": "So I just wanted to give it a larger marker.",
+      "zh": "所以我想給它比較大的標記。"
+    },
+    {
+      "start": 1103.79,
+      "end": 1110.04,
+      "en": "Otherwise there's nothing meaningfully different between this plot line and this plot line.",
+      "zh": "除此之外，這兩行繪圖程式沒有實質差異。"
+    },
+    {
+      "start": 1110.36,
+      "end": 1110.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1110.72,
+      "end": 1116.76,
+      "en": "And then this for loop here is just because we plot it in the top row and then in the bottom row.",
+      "zh": "這個 for 迴圈則是因為要分別畫在上排和下排。"
+    },
+    {
+      "start": 1117.24,
+      "end": 1117.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1117.52,
+      "end": 1120.28,
+      "en": "And then here I'm just setting some access properties.",
+      "zh": "這裡設定一些座標軸屬性。"
+    },
+    {
+      "start": 1120.4,
+      "end": 1120.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1120.72,
+      "end": 1122.12,
+      "en": "So here we see the results.",
+      "zh": "這就是結果。"
+    },
+    {
+      "start": 1122.16,
+      "end": 1125.56,
+      "en": "Now let me take a few moments to discuss these.",
+      "zh": "接著花一點時間討論。"
+    },
+    {
+      "start": 1126,
+      "end": 1129.04,
+      "en": "So first of all let's just focus on the top row.",
+      "zh": "首先只看上排。"
+    },
+    {
+      "start": 1129.24,
+      "end": 1134.76,
+      "en": "What you see here is these two plots look pretty similar to each other.",
+      "zh": "這兩張圖看起來很相似。"
+    },
+    {
+      "start": 1135.12,
+      "end": 1137.16,
+      "en": "This one here starts to look different.",
+      "zh": "這一張開始有所不同。"
+    },
+    {
+      "start": 1137.2,
+      "end": 1138.52,
+      "en": "This third plot over here.",
+      "zh": "就是右邊第三張圖。"
+    },
+    {
+      "start": 1138.68,
+      "end": 1146.72,
+      "en": "And basically what we see is this crossover between the larger temperatures and the smaller temperature data.",
+      "zh": "基本上可以看到，高溫度與低溫度的資料曲線在這裡交叉。"
+    },
+    {
+      "start": 1146.88,
+      "end": 1156,
+      "en": "And basically what's happening is that the smaller temperatures are starting to prefer a smaller number of options.",
+      "zh": "原因是低溫度開始更偏重少數選項。"
+    },
+    {
+      "start": 1156.04,
+      "end": 1156.28,
+      "en": "Right.",
+      "zh": "對。"
+    },
+    {
+      "start": 1156.32,
+      "end": 1162.64,
+      "en": "So these are skyrocketing in all of these values get suppressed and that overtakes the higher temperature.",
+      "zh": "這些值急速上升，其餘值則被壓低，因此超過了較高溫度的結果。"
+    },
+    {
+      "start": 1162.68,
+      "end": 1166.01,
+      "en": "Now this behavior is also technically present here.",
+      "zh": "嚴格來說，這裡也存在同樣的行為。"
+    },
+    {
+      "start": 1166.01,
+      "end": 1172.37,
+      "en": "It's not that the function is behaving any differently, but when the numerical range of the values",
+      "zh": "函數的運作沒有不同，只是當數值範圍，"
+    },
+    {
+      "start": 1172.37,
+      "end": 1180.21,
+      "en": "like the output logits from the model for all the different possible tokens, when the numerical values",
+      "zh": "例如模型對所有可能詞元輸出的 logit 數值，"
+    },
+    {
+      "start": 1180.21,
+      "end": 1188.01,
+      "en": "are so restricted, you don't actually really see the impact of temperature on selecting the maximum token.",
+      "zh": "被限制在很窄的範圍時，就不太看得出溫度對選出最大值詞元的影響。"
+    },
+    {
+      "start": 1188.49,
+      "end": 1195.53,
+      "en": "This is one reason why you do not want the numerical values in the model to be too restricted.",
+      "zh": "這也是你不希望模型內的數值範圍過度受限的一個原因。"
+    },
+    {
+      "start": 1195.53,
+      "end": 1197.81,
+      "en": "You don't want them to be too small.",
+      "zh": "不希望它們太小。"
+    },
+    {
+      "start": 1197.85,
+      "end": 1203.49,
+      "en": "You don't also don't want them to be too large because then the model starts becoming unstable.",
+      "zh": "也不希望它們太大，否則模型就會開始不穩定。"
+    },
+    {
+      "start": 1204.17,
+      "end": 1208.97,
+      "en": "So that's an issue of normalization that we'll get to in the next video.",
+      "zh": "這涉及下一支影片要談的正規化問題。"
+    },
+    {
+      "start": 1209.25,
+      "end": 1209.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1209.49,
+      "end": 1211.09,
+      "en": "And then here on the bottom row yeah.",
+      "zh": "再來看下排。"
+    },
+    {
+      "start": 1211.13,
+      "end": 1213.25,
+      "en": "Again it's exactly the same data.",
+      "zh": "同樣是完全相同的資料。"
+    },
+    {
+      "start": 1213.25,
+      "end": 1217.29,
+      "en": "It's just you really need to zoom in to see these effects here.",
+      "zh": "只是必須放大，才看得見這些效果。"
+    },
+    {
+      "start": 1217.53,
+      "end": 1221.82,
+      "en": "And when you zoom out to see what's happening with the number six Then.",
+      "zh": "縮小到看得見數字 6 的情況時，"
+    },
+    {
+      "start": 1221.86,
+      "end": 1224.66,
+      "en": "Yeah, all of these are basically just flat lines here.",
+      "zh": "這些幾乎都變成平線。"
+    },
+    {
+      "start": 1224.94,
+      "end": 1225.18,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1225.22,
+      "end": 1226.22,
+      "en": "And what do we see here.",
+      "zh": "這裡又看到了什麼？"
+    },
+    {
+      "start": 1226.22,
+      "end": 1232.1,
+      "en": "So basically in all of these cases the number six has the highest logit.",
+      "zh": "基本上，每種情況下，數字 6 都有最高的 logit。"
+    },
+    {
+      "start": 1232.1,
+      "end": 1236.14,
+      "en": "And so therefore it will have the highest softmax probability.",
+      "zh": "所以它也會有最高的 softmax 機率。"
+    },
+    {
+      "start": 1236.34,
+      "end": 1241.9,
+      "en": "So all of these numbers here are going to be higher than all the numbers over here.",
+      "zh": "因此這裡這些點，都會比另一邊的點高。"
+    },
+    {
+      "start": 1241.9,
+      "end": 1243.62,
+      "en": "That's just generally always true.",
+      "zh": "一般來說，這點總是成立。"
+    },
+    {
+      "start": 1243.82,
+      "end": 1248.46,
+      "en": "But their relative probabilities depend on the temperature.",
+      "zh": "但它們的相對機率取決於溫度。"
+    },
+    {
+      "start": 1248.74,
+      "end": 1257.9,
+      "en": "So here when the temperature is less than one, we have this one large logit value that just absolutely dominates the probability distribution.",
+      "zh": "這裡溫度小於 1，這個較大的 logit 值便完全主導了機率分布。"
+    },
+    {
+      "start": 1257.9,
+      "end": 1263.1,
+      "en": "That's why these values here, these blue squares here and here are so tiny.",
+      "zh": "這也是這裡和這裡的藍色方塊這麼小的原因。"
+    },
+    {
+      "start": 1263.3,
+      "end": 1271.86,
+      "en": "They are so small because the entire softmax probability distribution is completely dominated by this value here.",
+      "zh": "它們這麼小，是因為整個 softmax 機率分布幾乎都由這個值主導。"
+    },
+    {
+      "start": 1272.1,
+      "end": 1277.66,
+      "en": "This probably has a probability value of 99.999%.",
+      "zh": "它的機率可能是 99.999%。"
+    },
+    {
+      "start": 1277.66,
+      "end": 1283.03,
+      "en": "So then all of the other 100 hundred values have to sum up to 0.001%.",
+      "zh": "所以其餘 100 個值加起來，只能是 0.001%。"
+    },
+    {
+      "start": 1283.35,
+      "end": 1285.95,
+      "en": "So the temperature is less than one.",
+      "zh": "當溫度小於 1，"
+    },
+    {
+      "start": 1285.99,
+      "end": 1294.35,
+      "en": "The entire distribution gets completely dominated by this one particular value that happens to be a bit larger.",
+      "zh": "整個分布就幾乎被這個剛好比較大的值完全主導。"
+    },
+    {
+      "start": 1294.35,
+      "end": 1297.99,
+      "en": "And then the rest of the distribution gets squashed down to zero.",
+      "zh": "分布中的其餘值則被壓到接近零。"
+    },
+    {
+      "start": 1298.39,
+      "end": 1301.23,
+      "en": "The same thing happens when the temperature is one.",
+      "zh": "溫度等於 1 時也會如此。"
+    },
+    {
+      "start": 1301.23,
+      "end": 1302.99,
+      "en": "It's just less extreme.",
+      "zh": "只是沒那麼極端。"
+    },
+    {
+      "start": 1303.39,
+      "end": 1314.67,
+      "en": "So now we have this large value at six and its probability is 0.8, which means all of these red values here, all these red circles together need to sum to 0.2.",
+      "zh": "現在數值為 6 的這個大值，其機率是 0.8，也就是所有紅色值、紅色圓點的總和必須是 0.2。"
+    },
+    {
+      "start": 1314.95,
+      "end": 1317.03,
+      "en": "So they still get squashed down.",
+      "zh": "所以它們仍然被壓低。"
+    },
+    {
+      "start": 1317.19,
+      "end": 1321.59,
+      "en": "But it's not as extreme as for really small temperatures.",
+      "zh": "但沒有溫度非常小時那麼極端。"
+    },
+    {
+      "start": 1322.07,
+      "end": 1331.55,
+      "en": "Again, the impact of this is that if you have a model with a low temperature less than one, it's going to get kind of dry and repetitive.",
+      "zh": "這代表溫度低於 1 的模型，輸出會變得比較枯燥、重複。"
+    },
+    {
+      "start": 1331.59,
+      "end": 1335.07,
+      "en": "It's going to always pick the most likely token.",
+      "zh": "它總是會選最有可能的詞元。"
+    },
+    {
+      "start": 1335.07,
+      "end": 1342.67,
+      "en": "It's never going to express any variability or, you know, creativity, what we might call creativity in a model.",
+      "zh": "不會展現變化，或我們可能稱作模型創意的東西。"
+    },
+    {
+      "start": 1343.15,
+      "end": 1343.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1343.51,
+      "end": 1348.07,
+      "en": "And then you see the opposite happens with the temperature of three.",
+      "zh": "溫度為 3 時，則可以看到相反的情況。"
+    },
+    {
+      "start": 1348.31,
+      "end": 1355.91,
+      "en": "So now even though this value of six is exactly the same as for these other numbers, we see that because",
+      "zh": "雖然這個數字 6 和其他情況下完全相同，但因為"
+    },
+    {
+      "start": 1355.91,
+      "end": 1365.35,
+      "en": "the temperature is higher, because the temperature is greater than one, this value is not as well differentiated as the other values here.",
+      "zh": "溫度較高、超過 1，所以它和其他值之間的差異就沒那麼突出。"
+    },
+    {
+      "start": 1365.39,
+      "end": 1372.91,
+      "en": "So now this token would only have a, you know, whatever this number is maybe like 8% probability of",
+      "zh": "這個詞元現在被選中的機率，可能大概只有 8%，"
+    },
+    {
+      "start": 1372.91,
+      "end": 1378.51,
+      "en": "being selected, whereas all these other numbers have a probability that's around 1%.",
+      "zh": "其他數字則大約有 1% 的機率。"
+    },
+    {
+      "start": 1378.59,
+      "end": 1382.59,
+      "en": "So, you know, still smaller than 8%, but it's not nearly as extreme.",
+      "zh": "仍然小於 8%，但差距遠沒有那麼極端。"
+    },
+    {
+      "start": 1382.79,
+      "end": 1389.07,
+      "en": "So when the temperature is higher, the model is still going to prefer whatever token this corresponds to.",
+      "zh": "所以溫度較高時，模型仍然偏好這個數值對應的詞元。"
+    },
+    {
+      "start": 1389.11,
+      "end": 1394.15,
+      "en": "But it's also, you know, it could easily get one of these tokens over here.",
+      "zh": "但也很容易選到這邊的其他詞元。"
+    },
+    {
+      "start": 1394.63,
+      "end": 1394.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1394.91,
+      "end": 1403.08,
+      "en": "And then all of that becomes less extreme when the model outputs are have a larger range.",
+      "zh": "當模型輸出的範圍更大時，所有這些效果就沒那麼極端。"
+    },
+    {
+      "start": 1403.08,
+      "end": 1404.6,
+      "en": "So that you see here.",
+      "zh": "這裡可以看到。"
+    },
+    {
+      "start": 1404.6,
+      "end": 1413.56,
+      "en": "So the fact that the blue and red and black triangle pop out of the distribution, because they are the largest values, that is always the case here.",
+      "zh": "藍色、紅色和黑色三角形代表最大值，所以一定會從分布中凸顯出來。"
+    },
+    {
+      "start": 1414,
+      "end": 1423.04,
+      "en": "But when the numerical range of the data values the logit is so restricted six is relatively larger,",
+      "zh": "但資料值，也就是 logit 的數值範圍很窄時，6 相對來說就更大，"
+    },
+    {
+      "start": 1423.28,
+      "end": 1425.76,
+      "en": "then that effect is really extreme.",
+      "zh": "於是這個效果格外極端。"
+    },
+    {
+      "start": 1426.16,
+      "end": 1434.12,
+      "en": "On the other hand, when you have a more broad distribution and this top value is less extreme sticking",
+      "zh": "反過來說，當分布範圍較廣，最高值和其餘值的差距"
+    },
+    {
+      "start": 1434.12,
+      "end": 1440.28,
+      "en": "out, then yeah, the impact of the softmax transformation is itself less extreme.",
+      "zh": "沒那麼突出時，softmax 轉換的影響也就沒那麼極端。"
+    },
+    {
+      "start": 1440.36,
+      "end": 1450.84,
+      "en": "So here when the model, most of the model output values are between -0.4 and plus 0.4, a value of",
+      "zh": "這裡模型大部分輸出介於 -0.4 和 0.4 之間時，數值"
+    },
+    {
+      "start": 1450.84,
+      "end": 1456.01,
+      "en": "six gets like 99.99% of the probability distribution.",
+      "zh": "6 大概佔了整個機率分布的 99.99%。"
+    },
+    {
+      "start": 1456.17,
+      "end": 1459.13,
+      "en": "Whereas here it's only getting around 60%.",
+      "zh": "這裡則只有大約 60%。"
+    },
+    {
+      "start": 1459.17,
+      "end": 1460.41,
+      "en": "Of the distribution.",
+      "zh": "也就是分布的約六成。"
+    },
+    {
+      "start": 1461.25,
+      "end": 1467.93,
+      "en": "One of the important messages from this code challenge is that the range of the numbers actually is",
+      "zh": "這個程式挑戰的一個重點，就是數值範圍確實會"
+    },
+    {
+      "start": 1467.93,
+      "end": 1475.01,
+      "en": "important for the results of softmax, in particular, making sure that the numerical values don't get",
+      "zh": "影響 softmax 的結果，尤其是確保數值"
+    },
+    {
+      "start": 1475.01,
+      "end": 1481.25,
+      "en": "too small or too large is an important constraint on deep learning models.",
+      "zh": "不要太小，也不要太大，是深度學習模型的重要限制。"
+    },
+    {
+      "start": 1481.69,
+      "end": 1488.49,
+      "en": "This can lead to vanishing or exploding calculations, and deep learning models have a lot of tricks,",
+      "zh": "否則計算可能出現消失或爆炸的情況，而深度學習模型內建了許多技巧、"
+    },
+    {
+      "start": 1488.53,
+      "end": 1495.53,
+      "en": "normalizations, and regularization techniques that are built into the model during training and also",
+      "zh": "正規化與正則化方法，在訓練期間以及"
+    },
+    {
+      "start": 1495.53,
+      "end": 1506.01,
+      "en": "during inference, precisely to maintain a numerical spread of activation and weights values that are not too big, but also not too small.",
+      "zh": "推論時，維持活化值與權重的數值分布，讓它們既不過大，也不過小。"
+    },
+    {
+      "start": 1506.29,
+      "end": 1511.57,
+      "en": "And that is a good segue to the next video on layer normalization.",
+      "zh": "這正好帶我們進入下一支介紹層正規化的影片。"
+    }
+  ]
+}

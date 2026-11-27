@@ -1,0 +1,1735 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51894513",
+  "title": "Forward pass in Pytorch",
+  "section": 39,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d52871b621c5a1e9d64442cdb74d445b6b2f4e614c9fe88466e7813b26232401",
+  "cues": [
+    {
+      "start": 2.24,
+      "end": 10.16,
+      "en": "In this lecture, I will provide an overview of the forward pass of artificial neural networks and how",
+      "zh": "這堂課會概述人工神經網路的前向傳播，以及，"
+    },
+    {
+      "start": 10.16,
+      "end": 15.52,
+      "en": "those operations are stored and implemented in the PyTorch library.",
+      "zh": "這些運算如何在 PyTorch 裡儲存與實作。"
+    },
+    {
+      "start": 16.4,
+      "end": 25.96,
+      "en": "Not to be honest, if this is the first time you are ever seeing this material, then you will probably find the main part of this course to be a little challenging.",
+      "zh": "老實說，如果你第一次看到這些內容，可能會覺得這門課的主要部分有點挑戰。"
+    },
+    {
+      "start": 26.4,
+      "end": 31.2,
+      "en": "So I hope that you already have some exposure to deep learning in PyTorch.",
+      "zh": "所以，希望你之前已經接觸過 PyTorch 深度學習。"
+    },
+    {
+      "start": 31.64,
+      "end": 37.48,
+      "en": "And this lecture is some review and maybe also some additional novel explorations.",
+      "zh": "這堂課既是複習，也可能提供一些新的探索。"
+    },
+    {
+      "start": 38.72,
+      "end": 45.32,
+      "en": "This slide is a reminder of the fundamental mechanism of artificial neural networks.",
+      "zh": "這張投影片提醒我們，人工神經網路的基本機制。"
+    },
+    {
+      "start": 45.64,
+      "end": 50.04,
+      "en": "We have a unit here which unfortunately is called a neuron.",
+      "zh": "這裡有個單元，可惜大家把它叫做神經元。"
+    },
+    {
+      "start": 50.4,
+      "end": 61.84,
+      "en": "It's unfortunate naming because this has literally nothing whatsoever to do with actual biological neurons, not in their form or their function or their calculations.",
+      "zh": "這個名稱不太恰當，因為不論形式、功能或計算，它和真正生物神經元都完全沒有關係。"
+    },
+    {
+      "start": 62.2,
+      "end": 63.36,
+      "en": "But that's how it goes.",
+      "zh": "但大家就是這樣叫。"
+    },
+    {
+      "start": 64.04,
+      "end": 70.64,
+      "en": "Anyway, the x's here are inputs into this unit, and the W's are the weights.",
+      "zh": "總之，x 是這個單元的輸入，w 是權重。"
+    },
+    {
+      "start": 70.92,
+      "end": 79.48,
+      "en": "Now this one over here x0 is colored differently because this is called the bias term.",
+      "zh": "這邊的 x_0 用不同顏色，因為它叫做偏置項。"
+    },
+    {
+      "start": 79.84,
+      "end": 83.8,
+      "en": "It's an offset that doesn't actually come from anything in the data.",
+      "zh": "是一個偏移量，不是直接來自資料。"
+    },
+    {
+      "start": 84.16,
+      "end": 87.76,
+      "en": "It's just an extra number that gets added to this unit.",
+      "zh": "只是額外加進單元的一個數字。"
+    },
+    {
+      "start": 87.92,
+      "end": 96.36,
+      "en": "That allows the unit to shift its distribution of activations, which turns out to be really useful for the model's performance.",
+      "zh": "讓單元能平移活化值的分布，這對模型表現很有幫助。"
+    },
+    {
+      "start": 96.96000000000001,
+      "end": 101.72,
+      "en": "It's the same thing as an intercept term in a regression.",
+      "zh": "和迴歸裡的截距相同。"
+    },
+    {
+      "start": 102.8,
+      "end": 110.8,
+      "en": "Anyway, this unit here calculates a weighted sum of these inputs, which is then passed through an",
+      "zh": "這個單元計算輸入的加權總和，再送進，"
+    },
+    {
+      "start": 110.8,
+      "end": 118.96000000000001,
+      "en": "activation function, typically a non-linear activation function like ReLU or Jlu or sigmoid, depending",
+      "zh": "活化函式，通常是非線性的，例如 ReLU、GELU 或 sigmoid，取決於，"
+    },
+    {
+      "start": 118.96000000000001,
+      "end": 123.6,
+      "en": "on the specific network architecture and the goal of this unit.",
+      "zh": "具體的網路架構，以及這個單元的目標。"
+    },
+    {
+      "start": 124.16,
+      "end": 126.72,
+      "en": "So this is one unit.",
+      "zh": "這就是一個單元。"
+    },
+    {
+      "start": 126.88,
+      "end": 133.96,
+      "en": "And then in practice, you stitch lots of these units together in different layers of the model.",
+      "zh": "實務上，把很多單元組合起來，排成模型的不同層。"
+    },
+    {
+      "start": 134.52,
+      "end": 142.28,
+      "en": "All the way over here to the left we have the inputs that actually are coming from the data measured from the outside world.",
+      "zh": "最左邊的輸入，真的來自外界測量的資料。"
+    },
+    {
+      "start": 142.64,
+      "end": 145.4,
+      "en": "Maybe these are pixel values from an image.",
+      "zh": "可能是影像像素。"
+    },
+    {
+      "start": 145.56,
+      "end": 155.16,
+      "en": "Maybe they are numerical values corresponding to medical information, or maybe they are numbered tokens that come from written language.",
+      "zh": "可能是醫療資訊的數值，也可能是文字語言轉換而來、帶編號的詞元。"
+    },
+    {
+      "start": 155.72,
+      "end": 165.16,
+      "en": "And then all the way at this side of the model you have some output, which is a prediction that the model makes about the world.",
+      "zh": "模型另一端則有輸出，是模型對世界做的預測。"
+    },
+    {
+      "start": 165.72,
+      "end": 176.81,
+      "en": "Again, maybe that's a simple binary prediction, like whether a patient has a disease or not, or maybe it's a prediction about which word should be printed Did next.",
+      "zh": "可能是病人是否患病這種簡單二元預測，也可能預測下一個應該出現的字。"
+    },
+    {
+      "start": 177.45,
+      "end": 186.17,
+      "en": "And then all of these layers in the middle are called hidden layers, because they are not directly connected to data from the outside world.",
+      "zh": "中間這些層，叫做隱藏層，因為不直接連接外界資料。"
+    },
+    {
+      "start": 186.45,
+      "end": 187.65,
+      "en": "But here's the thing.",
+      "zh": "但重點是，"
+    },
+    {
+      "start": 187.89,
+      "end": 192.69,
+      "en": "All of these units, I engage in identical calculations.",
+      "zh": "這些單元，進行的計算相同。"
+    },
+    {
+      "start": 192.69,
+      "end": 199.85,
+      "en": "They're all doing exactly the same thing, which is linear weighted sum, and that is implemented as",
+      "zh": "全部都在做相同的事情，也就是線性加權總和，透過，"
+    },
+    {
+      "start": 199.85,
+      "end": 206.01,
+      "en": "the dot product between the inputs, so the x's and the corresponding weights.",
+      "zh": "輸入 x 和對應權重之間的內積實作。"
+    },
+    {
+      "start": 206.01,
+      "end": 210.73,
+      "en": "And then that is passed through a simple nonlinear activation function.",
+      "zh": "再送進簡單的非線性活化函式。"
+    },
+    {
+      "start": 211.32999999999998,
+      "end": 222.73,
+      "en": "Of course the values of the inputs and the values of the weights are different for each unit, but the elementary mathematical operation is exactly the same.",
+      "zh": "當然，各單元的輸入值與權重值不同，但基本數學運算相同。"
+    },
+    {
+      "start": 223.41,
+      "end": 226.93,
+      "en": "Now notice the direction of the arrows on this graph.",
+      "zh": "注意圖裡箭頭的方向。"
+    },
+    {
+      "start": 226.97,
+      "end": 237.53,
+      "en": "They all go from the input which corresponds to real world data, images or text, and all the outputs flow to the right towards the output.",
+      "zh": "全部從代表影像或文字等真實資料的輸入出發，向右流往輸出。"
+    },
+    {
+      "start": 237.89,
+      "end": 243.77,
+      "en": "So that is called the forward pass where information flows from input.",
+      "zh": "這叫做前向傳播，資訊從輸入，"
+    },
+    {
+      "start": 244.33,
+      "end": 248.69,
+      "en": "So initial input to the final output of the deep learning model.",
+      "zh": "也就是最初的輸入，流到模型的最終輸出。"
+    },
+    {
+      "start": 249.73,
+      "end": 255.09,
+      "en": "It's also sometimes called the feed forward pass or the forward sweep or something similar.",
+      "zh": "有時也叫 feed-forward pass、forward sweep 等等。"
+    },
+    {
+      "start": 255.09,
+      "end": 260.57,
+      "en": "There's a couple of different terms that people use now with modern architectures.",
+      "zh": "大家使用的名稱有幾種；不過，現代架構裡，"
+    },
+    {
+      "start": 260.57,
+      "end": 265.09,
+      "en": "It's not necessarily the case that all the information only goes forward.",
+      "zh": "資訊不一定都只往前。"
+    },
+    {
+      "start": 265.25,
+      "end": 276.21,
+      "en": "Sometimes there are recurrent connections where a little bit of residual information is fed back from later layers to earlier layers, but that's more the occasional exception.",
+      "zh": "有時有循環連結，把後層的一點殘留資訊回饋到前層，但這比較像偶爾的例外。"
+    },
+    {
+      "start": 276.21,
+      "end": 285.97,
+      "en": "Mostly information flows forwards from the initial inputs, from the data, all the way to the output during the forward pass.",
+      "zh": "大部分時候，前向傳播的資訊從原始輸入資料，一路流到輸出。"
+    },
+    {
+      "start": 286.61,
+      "end": 291.09000000000003,
+      "en": "Okay, then we have backpropagation, often abbreviated backprop.",
+      "zh": "接著是反向傳播，經常縮寫為 backprop。"
+    },
+    {
+      "start": 291.49,
+      "end": 298.85,
+      "en": "Backprop only occurs during model training, not when you're actually using the model for applications.",
+      "zh": "反向傳播只發生在訓練時，實際使用模型做應用時不會。"
+    },
+    {
+      "start": 299.25,
+      "end": 307.05,
+      "en": "So backprop involves adjusting each of these weights, each of these arrows according to the model's performance.",
+      "zh": "反向傳播會依模型表現，調整每個權重，也就是每條箭頭。"
+    },
+    {
+      "start": 307.13,
+      "end": 316.77,
+      "en": "So if the model is not performing very well, then it will adjust the values of these weights to increase the performance on the next batch.",
+      "zh": "如果表現不好，就調整權重，讓下一批次表現更好。"
+    },
+    {
+      "start": 317.81,
+      "end": 321.89,
+      "en": "But anyway, I'm just focusing on the forward pass in this video.",
+      "zh": "不過，這支影片只專注前向傳播。"
+    },
+    {
+      "start": 323.25,
+      "end": 327.89,
+      "en": "Now for language models the architecture is a little bit more complicated.",
+      "zh": "語言模型的架構稍微複雜。"
+    },
+    {
+      "start": 328.37,
+      "end": 334.01,
+      "en": "So we have at the inputs a numerical representations of characters and words.",
+      "zh": "輸入端，是字元與單字的數值表示。"
+    },
+    {
+      "start": 334.17,
+      "end": 335.57,
+      "en": "Those are called tokens.",
+      "zh": "這些叫做詞元。"
+    },
+    {
+      "start": 336.05,
+      "end": 338.85,
+      "en": "So those are the inputs that are coming in.",
+      "zh": "就是輸入的內容。"
+    },
+    {
+      "start": 339.25,
+      "end": 341.93,
+      "en": "Then we have lots of hidden layers.",
+      "zh": "接著有很多隱藏層。"
+    },
+    {
+      "start": 342.17,
+      "end": 346.53,
+      "en": "Now in large language models these have very specific architectures.",
+      "zh": "大型語言模型裡，這些層有很特定的架構。"
+    },
+    {
+      "start": 346.53,
+      "end": 348.73,
+      "en": "They're called attention heads and so on.",
+      "zh": "例如注意力頭等等。"
+    },
+    {
+      "start": 348.77,
+      "end": 354.85,
+      "en": "But in a conceptual sense they are basically just hidden layers because they do not directly receive",
+      "zh": "但概念上，基本仍然是隱藏層，因為它們不直接，"
+    },
+    {
+      "start": 354.85,
+      "end": 361.09,
+      "en": "input from the outside world, nor are they directly connected to the outputs of the model.",
+      "zh": "接收外界輸入，也不直接連到模型的輸出。"
+    },
+    {
+      "start": 362.25,
+      "end": 370.25,
+      "en": "And then the outputs of a language model correspond to, or at least can be transformed into the probabilities",
+      "zh": "語言模型的輸出，則對應，或者至少可以轉換成選擇，"
+    },
+    {
+      "start": 370.25,
+      "end": 377.77,
+      "en": "of selecting tokens, which are then translated into pieces of text like characters and words.",
+      "zh": "詞元的機率，再把詞元轉回字元與單字等文字片段。"
+    },
+    {
+      "start": 378.49,
+      "end": 379.65,
+      "en": "Now the thing is.",
+      "zh": "重點是，"
+    },
+    {
+      "start": 382.49,
+      "end": 386.73,
+      "en": "That we like to think about these units or artificial neurons.",
+      "zh": "我們喜歡把這些單元，也就是人工神經元，"
+    },
+    {
+      "start": 387.13,
+      "end": 391.33,
+      "en": "We think about them as being the atoms of computation in the models.",
+      "zh": "當成模型計算的最小基本單位。"
+    },
+    {
+      "start": 391.33,
+      "end": 399.25,
+      "en": "But in practice, in the actual Python implementation, you don't actually construct these units directly.",
+      "zh": "但實務上，在 Python 裡，不會直接一個個建立這些單元。"
+    },
+    {
+      "start": 399.37,
+      "end": 401.69,
+      "en": "They are implicitly created.",
+      "zh": "它們是隱含建立的。"
+    },
+    {
+      "start": 402.01,
+      "end": 409.93,
+      "en": "Instead, we create the matrices that correspond to all of these weights or all of these arrows here.",
+      "zh": "相反地，會建立對應這些權重，也就是圖裡所有箭頭的矩陣。"
+    },
+    {
+      "start": 410.37,
+      "end": 417.98,
+      "en": "And that is implemented through a PyTorch class called linear with a capital L, so nn dot linear.",
+      "zh": "這透過 PyTorch 的 Linear 類別實作，L 要大寫，也就是 nn.Linear。"
+    },
+    {
+      "start": 419.18,
+      "end": 430.74,
+      "en": "So when you see non-linear in the code, that's actually creating these matrices that correspond to the weights, which are all of the arrows that I'm drawing in this diagram.",
+      "zh": "所以，在程式碼裡看到 nn.Linear，就是建立對應所有這些箭頭、所有權重的矩陣。"
+    },
+    {
+      "start": 432.22,
+      "end": 432.62,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 432.78,
+      "end": 435.3,
+      "en": "In a moment I will switch to Python.",
+      "zh": "稍後切到 Python。"
+    },
+    {
+      "start": 435.3,
+      "end": 437.9,
+      "en": "I will go through a demo of this in code.",
+      "zh": "用程式碼示範。"
+    },
+    {
+      "start": 438.38,
+      "end": 445.14,
+      "en": "But before switching to code, I want to give you a heads up of what you're going to see and what to look out for.",
+      "zh": "但切換之前，先讓你知道，會看到什麼，以及要注意什麼。"
+    },
+    {
+      "start": 445.58,
+      "end": 453.02,
+      "en": "So we are going to create a class in Python that will instantiate a deep learning model.",
+      "zh": "我們會在 Python 建立一個類別，用來產生深度學習模型的實例。"
+    },
+    {
+      "start": 453.58,
+      "end": 458.1,
+      "en": "Now, just to give you a heads up in advance, this is not an actual language model.",
+      "zh": "先說清楚，這不是真正的語言模型。"
+    },
+    {
+      "start": 458.42,
+      "end": 467.62,
+      "en": "I'm using words that correspond to language model components, but this is a super simple, watered down collection of random numbers.",
+      "zh": "會使用語言模型組件的名稱，但它其實只是非常簡單、簡化後的一組隨機數。"
+    },
+    {
+      "start": 467.98,
+      "end": 478.7,
+      "en": "The point here is to focus on the code and the mechanics and the operations, not on the actual accuracy of this model as a top of the line transformer.",
+      "zh": "重點是程式碼、機制與操作，不是把它當頂尖 Transformer 評估準確率。"
+    },
+    {
+      "start": 479.82,
+      "end": 489.66,
+      "en": "So I'll explain each of these lines in more detail in the code, but you can see that we are creating an input layer, some hidden layers and an output layer.",
+      "zh": "稍後會詳細解釋每列程式碼，但可以看到，會建立輸入層、一些隱藏層，以及輸出層。"
+    },
+    {
+      "start": 489.78,
+      "end": 494.74,
+      "en": "So that's done in the init section which stands for initialization.",
+      "zh": "這在代表初始化的 __init__ 裡完成。"
+    },
+    {
+      "start": 495.18,
+      "end": 505.38,
+      "en": "Then down here we have the forward pass which is implementing the weighted linear sum plus non-linearity that I described a few slides ago.",
+      "zh": "下面則是前向傳播，實作前幾張投影片介紹的線性加權總和，加上非線性。"
+    },
+    {
+      "start": 505.82,
+      "end": 512.1,
+      "en": "Now you don't actually literally see any calculations being done in here, but I'm going to show you",
+      "zh": "這裡看不到明寫的計算，但會示範，"
+    },
+    {
+      "start": 512.1,
+      "end": 518.3,
+      "en": "how we can reproduce what for example self embedding is actually implementing.",
+      "zh": "例如如何重現 self.embedding 實際做的事情。"
+    },
+    {
+      "start": 519.66,
+      "end": 531.34,
+      "en": "Then we are going to create an instance of that model, inspect its properties and see how to access some of the parts, like for example, the weights matrices.",
+      "zh": "接著，建立模型實例，查看特性，以及如何存取權重矩陣等部分。"
+    },
+    {
+      "start": 532.66,
+      "end": 540.1,
+      "en": "The next thing we will do is manually calculate a forward pass using dot products as implemented through",
+      "zh": "然後，使用由矩陣乘法實作的內積，手動計算，"
+    },
+    {
+      "start": 540.14,
+      "end": 548.3,
+      "en": "matrix multiplication, and we will see that our manual calculations perfectly reconstruct what PyTorch",
+      "zh": "前向傳播，會看到手動計算能完全重現 PyTorch，"
+    },
+    {
+      "start": 548.34,
+      "end": 552.3,
+      "en": "is doing using its NN linear class.",
+      "zh": "透過 nn.Linear 類別所做的事情。"
+    },
+    {
+      "start": 553.46,
+      "end": 560.7,
+      "en": "Finally, I will illustrate to you the basic concept of using a language model for next token prediction.",
+      "zh": "最後，示範語言模型進行下一詞元預測的基本概念。"
+    },
+    {
+      "start": 561.18,
+      "end": 568.82,
+      "en": "What we're going to do is start with some text, translate that text into numbers, push all of those",
+      "zh": "先有一段文字，轉換成數字，再把這些數字，"
+    },
+    {
+      "start": 568.82,
+      "end": 574.86,
+      "en": "numbers through the model in a forward pass, and then make predictions for subsequent tokens.",
+      "zh": "透過前向傳播送進模型，預測後續詞元。"
+    },
+    {
+      "start": 575.78,
+      "end": 580.46,
+      "en": "This is literally how actual language models like ChatGPT work.",
+      "zh": "ChatGPT 等真正語言模型，運作方式就是如此。"
+    },
+    {
+      "start": 580.78,
+      "end": 589.82,
+      "en": "But of course this is a tiny matrix with random numbers and no training, whereas ChatGPT is absolutely",
+      "zh": "但當然，這裡只是帶有隨機數、沒有訓練的小矩陣，ChatGPT 則極其，"
+    },
+    {
+      "start": 589.82,
+      "end": 594.38,
+      "en": "mammoth and has undergone a mind boggling amount of training.",
+      "zh": "龐大，而且經過難以想像的大量訓練。"
+    },
+    {
+      "start": 595.02,
+      "end": 600.02,
+      "en": "But understanding all of that is the goal for the rest of the course for now.",
+      "zh": "理解那些，就是這門課其餘部分的目標；目前，"
+    },
+    {
+      "start": 600.42,
+      "end": 604.7,
+      "en": "Let's switch to Python and go through this code in more detail.",
+      "zh": "先切到 Python，更詳細看程式碼。"
+    },
+    {
+      "start": 606.78,
+      "end": 614.66,
+      "en": "Here I import numpy and matplotlib, as well as PyTorch and some submodules in PyTorch.",
+      "zh": "這裡匯入 NumPy、Matplotlib，以及 PyTorch 和一些子模組。"
+    },
+    {
+      "start": 615.34,
+      "end": 621.98,
+      "en": "Here is where we will create our own class for a simple deep learning model.",
+      "zh": "這裡要建立自己的類別，代表一個簡單深度學習模型。"
+    },
+    {
+      "start": 622.5,
+      "end": 632.9,
+      "en": "Now the thing is, in PyTorch we need to keep track of a lot of little variables, components of the computational graphs, gradients, and so on.",
+      "zh": "在 PyTorch 裡，需要追蹤很多小變數、計算圖的組件、梯度等等。"
+    },
+    {
+      "start": 632.9,
+      "end": 641.26,
+      "en": "So there's a lot of methods and properties and attributes that any deep learning model in PyTorch needs",
+      "zh": "所以，每個 PyTorch 深度學習模型，都需要很多方法、特性與屬性，"
+    },
+    {
+      "start": 641.26,
+      "end": 647.47,
+      "en": "to have that we do not want to have to rewrite every single time we create a new model.",
+      "zh": "我們不想每次建立模型，都重新寫一次。"
+    },
+    {
+      "start": 647.83,
+      "end": 655.31,
+      "en": "So what we do is inherit a lot of those methods and attributes from MN dot module.",
+      "zh": "因此，從 nn.Module 繼承許多方法與屬性。"
+    },
+    {
+      "start": 655.31,
+      "end": 657.07,
+      "en": "And that's basically what's going on in here.",
+      "zh": "這裡基本上就是這個意思。"
+    },
+    {
+      "start": 657.07,
+      "end": 665.51,
+      "en": "So this allows us to absorb some important PyTorch features into this class that we're creating without",
+      "zh": "讓我們把一些重要的 PyTorch 功能納入自訂類別，"
+    },
+    {
+      "start": 665.51,
+      "end": 669.35,
+      "en": "having to explicitly write them down in this class.",
+      "zh": "不需要在類別裡一項一項明寫。"
+    },
+    {
+      "start": 669.87,
+      "end": 670.11,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 670.15,
+      "end": 674.87,
+      "en": "And so in this actual class what I define are just two methods.",
+      "zh": "實際上，我在這個類別裡只定義兩個方法。"
+    },
+    {
+      "start": 674.87,
+      "end": 679.47,
+      "en": "So init for initialization and forward for forward pass.",
+      "zh": "__init__ 負責初始化，forward 負責前向傳播。"
+    },
+    {
+      "start": 680.03,
+      "end": 683.83,
+      "en": "In the initialization I create an embedding layer.",
+      "zh": "初始化裡，建立一個嵌入層。"
+    },
+    {
+      "start": 683.87,
+      "end": 685.63,
+      "en": "This is also a linear layer.",
+      "zh": "它也是線性層。"
+    },
+    {
+      "start": 685.63,
+      "end": 691.31,
+      "en": "You'll learn later in the course about the relationship between embedding and layer.",
+      "zh": "稍後會學到嵌入與層之間的關係。"
+    },
+    {
+      "start": 691.31,
+      "end": 695.83,
+      "en": "But basically this is also a linear layer okay.",
+      "zh": "基本上，這也是線性層。"
+    },
+    {
+      "start": 695.91,
+      "end": 704.31,
+      "en": "And this is going to go from 27 to 127 corresponds to the number of letters in the English language.",
+      "zh": "它從二十七維轉成一百維；二十七對應英文字母的數量。"
+    },
+    {
+      "start": 704.31,
+      "end": 706.59,
+      "en": "So 26 letters plus space.",
+      "zh": "也就是二十六個字母，加上空格。"
+    },
+    {
+      "start": 707.03,
+      "end": 710.75,
+      "en": "We're going to use that for pushing data through the model later.",
+      "zh": "稍後會用它，把資料送進模型。"
+    },
+    {
+      "start": 710.91,
+      "end": 714.83,
+      "en": "And then 100 is just kind of an arbitrary number that I chose.",
+      "zh": "一百則只是我隨意選的數字。"
+    },
+    {
+      "start": 714.83,
+      "end": 718.07,
+      "en": "That's the number of units in the hidden layers.",
+      "zh": "是隱藏層的單元數。"
+    },
+    {
+      "start": 718.51,
+      "end": 723.43,
+      "en": "And now here I have a tension block uh, in a transformer.",
+      "zh": "這裡有一個 Transformer 裡的注意力區塊。"
+    },
+    {
+      "start": 723.43,
+      "end": 730.15,
+      "en": "So there's two components to every attention layer which you'll learn about later on in the course.",
+      "zh": "每個注意力層有兩個部分，稍後會學到。"
+    },
+    {
+      "start": 730.15,
+      "end": 732.43,
+      "en": "There's what's called the attention itself.",
+      "zh": "一個是注意力本身。"
+    },
+    {
+      "start": 732.43,
+      "end": 739.99,
+      "en": "And then there's the feed forward part, which is often abbreviated as MLP for multi-layer perceptron.",
+      "zh": "另一個是前饋部分，經常縮寫為 MLP，代表多層感知器。"
+    },
+    {
+      "start": 740.39,
+      "end": 740.79,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 740.83,
+      "end": 749.55,
+      "en": "So at the input we go from 27 characters, 27 letters and space to a dimensionality of 100.",
+      "zh": "輸入端從二十七個字元，也就是字母加空格，轉成一百維。"
+    },
+    {
+      "start": 749.59,
+      "end": 754.51,
+      "en": "We stay at 100 by 100, and then we go down to 64.",
+      "zh": "接著保持一百乘一百，再降到六十四。"
+    },
+    {
+      "start": 754.67,
+      "end": 763.11,
+      "en": "And then we have this output layer, which for reasons that will become clear to you later, is called an unembedding Embedding matrix.",
+      "zh": "最後的輸出層，之後你會知道，為什麼叫做反嵌入矩陣。"
+    },
+    {
+      "start": 763.27,
+      "end": 765.67,
+      "en": "And that goes down to 27.",
+      "zh": "它再降到二十七。"
+    },
+    {
+      "start": 766.43,
+      "end": 770.71,
+      "en": "So we start the model with 27 possible inputs.",
+      "zh": "所以，模型從二十七種可能輸入開始。"
+    },
+    {
+      "start": 770.71,
+      "end": 774.35,
+      "en": "And we finish the model with 27 possible outputs.",
+      "zh": "最後也有二十七種可能輸出。"
+    },
+    {
+      "start": 774.59,
+      "end": 778.39,
+      "en": "That means that we can input letters into the model.",
+      "zh": "表示可以把字母輸入模型。"
+    },
+    {
+      "start": 778.39,
+      "end": 781.19,
+      "en": "And the model is going to output letters back.",
+      "zh": "模型再輸出字母。"
+    },
+    {
+      "start": 781.75,
+      "end": 782.15,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 782.19,
+      "end": 783.43,
+      "en": "So that's that.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 783.43,
+      "end": 785.11,
+      "en": "Here is the forward pass.",
+      "zh": "這裡是前向傳播。"
+    },
+    {
+      "start": 785.11,
+      "end": 790.03,
+      "en": "This is what uh gets calculated when you push data through the model.",
+      "zh": "把資料送進模型時，就會計算這些內容。"
+    },
+    {
+      "start": 790.03,
+      "end": 794.55,
+      "en": "So the forward pass involves taking the inputs which are x.",
+      "zh": "前向傳播先接收輸入 x。"
+    },
+    {
+      "start": 794.67,
+      "end": 799.11,
+      "en": "So these are the letters converted into integers.",
+      "zh": "這些是轉成整數的字母。"
+    },
+    {
+      "start": 799.43,
+      "end": 802.95,
+      "en": "Those get pushed through the first layer which is the embedding.",
+      "zh": "送進第一層，也就是 embedding。"
+    },
+    {
+      "start": 803.27,
+      "end": 808.07,
+      "en": "Uh so and then this is calculating the weighted linear uh sum.",
+      "zh": "這裡計算線性加權總和。"
+    },
+    {
+      "start": 808.07,
+      "end": 810.79,
+      "en": "And then here we get a non-linear activation.",
+      "zh": "接著進行非線性活化。"
+    },
+    {
+      "start": 811.11,
+      "end": 813.23,
+      "en": "And then we have the attention block.",
+      "zh": "再進入注意力區塊。"
+    },
+    {
+      "start": 813.27,
+      "end": 818.35,
+      "en": "It's not quite accurate to call this attention block but we're just having some fun here.",
+      "zh": "叫注意力區塊其實不太準確，但這裡只是做個簡化示範。"
+    },
+    {
+      "start": 818.99,
+      "end": 822.59,
+      "en": "Uh so then the data get pushed through this again.",
+      "zh": "資料再送進這裡。"
+    },
+    {
+      "start": 822.63,
+      "end": 825.11,
+      "en": "This is linear weighted combination in.",
+      "zh": "同樣是線性加權組合。"
+    },
+    {
+      "start": 825.11,
+      "end": 827.67,
+      "en": "Here are where all the weights get stored.",
+      "zh": "這裡儲存全部權重。"
+    },
+    {
+      "start": 827.67,
+      "end": 829.67,
+      "en": "And here's the nonlinear activation.",
+      "zh": "這裡是非線性活化。"
+    },
+    {
+      "start": 829.67,
+      "end": 833.43,
+      "en": "And then again through the MLP block the embeddings.",
+      "zh": "接著再經過 MLP 區塊，以及嵌入。"
+    },
+    {
+      "start": 833.43,
+      "end": 839.91,
+      "en": "And finally we return the values of y which we are going to convert back into letters.",
+      "zh": "最後，傳回 y 的值，我們會把它轉回字母。"
+    },
+    {
+      "start": 841.19,
+      "end": 841.55,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 841.59,
+      "end": 842.87,
+      "en": "So run that cell.",
+      "zh": "執行這個儲存格。"
+    },
+    {
+      "start": 843.07,
+      "end": 848.19,
+      "en": "And here I'm just creating an instance I call this variable LM for language model.",
+      "zh": "這裡只建立一個實例，變數叫做 lm，代表語言模型。"
+    },
+    {
+      "start": 848.59,
+      "end": 854.07,
+      "en": "And here we see some information about the model that I just created.",
+      "zh": "這裡看到剛建立的模型資訊。"
+    },
+    {
+      "start": 854.07,
+      "end": 856.35,
+      "en": "So there's an embedding layer.",
+      "zh": "有 embedding 層。"
+    },
+    {
+      "start": 856.59,
+      "end": 860.55,
+      "en": "And then there's an attention layer an MLP and an embedding.",
+      "zh": "接著有 attention 層、MLP，以及 embedding。"
+    },
+    {
+      "start": 860.87,
+      "end": 872.79,
+      "en": "You are going to see text printed out like this many times throughout the course when we are investigating, for example, the Bert model, the GPT two model and so on.",
+      "zh": "這門課裡，研究 BERT、GPT-2 等模型時，會經常看到這樣印出的文字。"
+    },
+    {
+      "start": 873.23,
+      "end": 882.47,
+      "en": "Now we can access all of the numbers is stored inside the model by using periods to access these different",
+      "zh": "現在可以透過點號，存取模型裡儲存的所有數字與這些不同，"
+    },
+    {
+      "start": 882.47,
+      "end": 883.39,
+      "en": "properties.",
+      "zh": "屬性。"
+    },
+    {
+      "start": 883.39,
+      "end": 887.91,
+      "en": "So LM dot MLP that's going to give us access to this.",
+      "zh": "所以 lm.mlp，會讓我們存取這一部分。"
+    },
+    {
+      "start": 887.95,
+      "end": 889.91,
+      "en": "And let me already show you what this looks like.",
+      "zh": "先示範一下它的樣子。"
+    },
+    {
+      "start": 890.27,
+      "end": 893.07,
+      "en": "So this is what happens when you just write LM.",
+      "zh": "只輸入 lm，就會出現這些內容。"
+    },
+    {
+      "start": 893.35,
+      "end": 898.51,
+      "en": "If you write LM dot MLP you see some more information.",
+      "zh": "如果輸入 lm.mlp，會看到更多資訊。"
+    },
+    {
+      "start": 898.51,
+      "end": 900.03,
+      "en": "It's a linear layer.",
+      "zh": "這是一個線性層。"
+    },
+    {
+      "start": 900.23,
+      "end": 903.83,
+      "en": "It's 100 coming in and 64 coming out.",
+      "zh": "輸入一百維，輸出六十四維。"
+    },
+    {
+      "start": 903.95,
+      "end": 905.11,
+      "en": "It has a bias.",
+      "zh": "有偏置。"
+    },
+    {
+      "start": 905.67,
+      "end": 907.67,
+      "en": "So there are bias terms in here.",
+      "zh": "所以，這裡包含偏置項。"
+    },
+    {
+      "start": 908.07,
+      "end": 909.87,
+      "en": "And then we can access the weights.",
+      "zh": "接著可以存取 weights。"
+    },
+    {
+      "start": 909.87,
+      "end": 917.91,
+      "en": "That is the actual matrix that connects all of the neurons in the previous layer to all the neurons in this layer.",
+      "zh": "也就是實際連接前一層所有神經元，與這一層所有神經元的矩陣。"
+    },
+    {
+      "start": 918.35,
+      "end": 920.35,
+      "en": "And what is the size of that.",
+      "zh": "大小是多少？"
+    },
+    {
+      "start": 920.39,
+      "end": 922.87,
+      "en": "Well we can do that with dot shape.",
+      "zh": "可以用 .shape 查看。"
+    },
+    {
+      "start": 923.11,
+      "end": 929.71,
+      "en": "Now remember that I said up here that there are a lot of methods and properties and so on.",
+      "zh": "記得，上面提過，有很多方法、特性等等。"
+    },
+    {
+      "start": 929.71,
+      "end": 935.11,
+      "en": "There's just a lot of things that these classes need to have to work within PyTorch.",
+      "zh": "這些類別要在 PyTorch 裡運作，需要很多內容。"
+    },
+    {
+      "start": 935.23,
+      "end": 938.4,
+      "en": "And I'm not actually literally defining them here.",
+      "zh": "但我沒有在這裡明確定義它們。"
+    },
+    {
+      "start": 938.68,
+      "end": 942.8,
+      "en": "Instead, I am inheriting them from nn dot module.",
+      "zh": "而是從 nn.Module 繼承。"
+    },
+    {
+      "start": 943,
+      "end": 947.76,
+      "en": "So let's see what are all the properties that we have in this variable.",
+      "zh": "看看這個變數有哪些特性。"
+    },
+    {
+      "start": 947.8,
+      "end": 952.44,
+      "en": "LM so all sorts of stuff in here that I did not define.",
+      "zh": "lm 裡有很多我沒有定義的東西。"
+    },
+    {
+      "start": 952.64,
+      "end": 954.16,
+      "en": "This one I defined right.",
+      "zh": "這個是我定義的，對吧？"
+    },
+    {
+      "start": 954.2,
+      "end": 955.88,
+      "en": "We defined dot forward.",
+      "zh": "我們定義了 .forward。"
+    },
+    {
+      "start": 956.04,
+      "end": 957.32,
+      "en": "So that is in here.",
+      "zh": "所以它包含在裡面。"
+    },
+    {
+      "start": 957.52,
+      "end": 967.36,
+      "en": "And yeah there's just a lot of other things going on here like register load state dict post hook okay I did not define that in the class.",
+      "zh": "另外還有很多內容，例如 register_load_state_dict_post_hook，這不是我在類別裡定義的。"
+    },
+    {
+      "start": 967.52,
+      "end": 971.4,
+      "en": "We inherited that method from PyTorch.",
+      "zh": "這個方法是從 PyTorch 繼承而來。"
+    },
+    {
+      "start": 971.84,
+      "end": 976.92,
+      "en": "Uh, this actually is important, these uh methods to give us hooks.",
+      "zh": "其實，這些提供 hook 的方法很重要。"
+    },
+    {
+      "start": 976.92,
+      "end": 983,
+      "en": "We're going to use that in uh, later on in the course when learning about mechanistic interpretability.",
+      "zh": "之後學習機制可解釋性時，會用到。"
+    },
+    {
+      "start": 983.16,
+      "end": 992.68,
+      "en": "And these hooks allow us to access the information, the activations that are being passed through the model during the forward pass.",
+      "zh": "這些 hook 能讓我們存取，模型在前向傳播時傳遞的資訊與活化值。"
+    },
+    {
+      "start": 993.88,
+      "end": 994.36,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 994.48,
+      "end": 995.08,
+      "en": "Um, yeah.",
+      "zh": "沒錯。"
+    },
+    {
+      "start": 995.12,
+      "end": 1004.96,
+      "en": "I don't really want to get into this too much, but just to say that, you know, this is an established class that comes in PyTorch, if you're curious, you can read a little bit more about it.",
+      "zh": "不想太深入，只要知道，這是 PyTorch 裡既有的類別，如果好奇，可以再多讀一點。"
+    },
+    {
+      "start": 1005.36,
+      "end": 1005.88,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1005.92,
+      "end": 1013.32,
+      "en": "What I want to do now is show you that we can exactly reproduce what is happening up.",
+      "zh": "現在想示範，我們能完全重現上面，"
+    },
+    {
+      "start": 1013.32,
+      "end": 1018.12,
+      "en": "Let me get rid of this up here in the model.",
+      "zh": "先把這裡拿掉，就是模型裡的操作。"
+    },
+    {
+      "start": 1018.16,
+      "end": 1019.76,
+      "en": "Let me go back like this.",
+      "zh": "回到這樣。"
+    },
+    {
+      "start": 1019.8,
+      "end": 1020.04,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1020.08,
+      "end": 1020.76,
+      "en": "This is good.",
+      "zh": "這樣可以。"
+    },
+    {
+      "start": 1021.16,
+      "end": 1029.76,
+      "en": "Okay, now I stated, I claimed that when we write linear and then we pass some data into it, some",
+      "zh": "我聲稱，寫出 Linear，再把，"
+    },
+    {
+      "start": 1029.76,
+      "end": 1037.56,
+      "en": "inputs in variable x, I said that what we're actually doing here is calculating a linear weighted combination",
+      "zh": "x 裡的輸入資料傳進去，實際上是在計算，"
+    },
+    {
+      "start": 1037.8,
+      "end": 1046.96,
+      "en": "of these inputs x with the weights that are stored in attention and then passing that through a non-linear activation.",
+      "zh": "x 和儲存在 attention 裡的權重之間，線性加權組合，再經過非線性活化。"
+    },
+    {
+      "start": 1046.96,
+      "end": 1049.92,
+      "en": "But in here you do not see any additions.",
+      "zh": "但在這裡，看不到任何加法。"
+    },
+    {
+      "start": 1049.92,
+      "end": 1054.44,
+      "en": "You don't see any multiplications, you don't see dot products or matrix multiplication.",
+      "zh": "看不到乘法、內積或矩陣乘法。"
+    },
+    {
+      "start": 1054.68,
+      "end": 1060.44,
+      "en": "All you see is the name of this component of the model and parentheses.",
+      "zh": "只看到模型組件的名稱，加上小括號。"
+    },
+    {
+      "start": 1060.48,
+      "end": 1060.8,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1060.84,
+      "end": 1062.6,
+      "en": "So what is this actually doing?",
+      "zh": "它究竟在做什麼？"
+    },
+    {
+      "start": 1063.12,
+      "end": 1073.52,
+      "en": "It is literally just doing a weighted combination of the inputs where the weights come from, these parameters that we already just looked at here okay.",
+      "zh": "其實，就是使用剛才查看的這些參數作為權重，計算輸入的加權組合。"
+    },
+    {
+      "start": 1073.56,
+      "end": 1084.08,
+      "en": "And so to demonstrate that to you what I'm doing here is coming up with some random input, passing it through the LM attention.",
+      "zh": "為了示範，這裡先產生隨機輸入，再送進 lm.attention。"
+    },
+    {
+      "start": 1084.6,
+      "end": 1086.76,
+      "en": "And then yeah.",
+      "zh": "接著，"
+    },
+    {
+      "start": 1086.8,
+      "end": 1088.04,
+      "en": "So getting that output.",
+      "zh": "取得輸出。"
+    },
+    {
+      "start": 1088.24,
+      "end": 1096.08,
+      "en": "And then what I'm doing is taking that same input here and multiplying it by the weights matrix transpose.",
+      "zh": "然後拿相同輸入，乘以權重矩陣的轉置。"
+    },
+    {
+      "start": 1096.08,
+      "end": 1098.72,
+      "en": "The transpose is just for housekeeping stuff.",
+      "zh": "轉置只是維度方向的整理。"
+    },
+    {
+      "start": 1098.72,
+      "end": 1104.84,
+      "en": "It's just the orientation with which PyTorch organizes the weights matrices.",
+      "zh": "是因為 PyTorch 儲存權重矩陣的方向。"
+    },
+    {
+      "start": 1105.68,
+      "end": 1114.48,
+      "en": "So matrix multiplication uh, plus the bias term, this would be the x0 term that I showed in the slides.",
+      "zh": "所以，矩陣乘法再加上偏置項；也就是投影片裡的 x_0 那部分。"
+    },
+    {
+      "start": 1114.52,
+      "end": 1115,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1115.36,
+      "end": 1121.2,
+      "en": "And the idea is that we want to see that output one and output two are the same.",
+      "zh": "我們想確認 output1 與 output2 相同。"
+    },
+    {
+      "start": 1121.44,
+      "end": 1132.48,
+      "en": "If those are the same, then it means that this module here is literally just implementing this weighted combination plus the bias which is also still weighted combination.",
+      "zh": "如果相同，就表示這個模組真的只是在做加權組合，加上偏置，也仍然是加權組合。"
+    },
+    {
+      "start": 1132.72,
+      "end": 1137.32,
+      "en": "By the way these parentheses here are not necessary for the calculation.",
+      "zh": "順便說，這些小括號不是計算必要的。"
+    },
+    {
+      "start": 1137.64,
+      "end": 1140.92,
+      "en": "I think it just helps the equation look a little bit nicer.",
+      "zh": "我只是覺得，讓式子看起來更漂亮。"
+    },
+    {
+      "start": 1141.4,
+      "end": 1141.8,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1142.16,
+      "end": 1143.92,
+      "en": "So I hope that all makes sense.",
+      "zh": "希望這些都很清楚。"
+    },
+    {
+      "start": 1144.04,
+      "end": 1147.4,
+      "en": "What I'm doing here is just checking that their shapes are the same.",
+      "zh": "這裡只是在確認兩者形狀相同。"
+    },
+    {
+      "start": 1147.72,
+      "end": 1154.68,
+      "en": "If the sizes of these outputs were different, then we would absolutely know that they are calculating something different.",
+      "zh": "如果輸出大小不同，就能肯定它們做的是不同計算。"
+    },
+    {
+      "start": 1155.24,
+      "end": 1155.48,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1155.52,
+      "end": 1159.56,
+      "en": "And now what I'm doing is just plotting one as a function of the other.",
+      "zh": "現在把一個輸出，當成另一個的函數畫出來。"
+    },
+    {
+      "start": 1159.68,
+      "end": 1170.36,
+      "en": "And you see that they all fall on the unity line, which means that our manual calculation here is literally, literally exactly the same as this here.",
+      "zh": "可以看到，全部都落在恆等直線上，表示手動計算，和這裡的運算完全相同。"
+    },
+    {
+      "start": 1171.4,
+      "end": 1171.88,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1171.96,
+      "end": 1178.05,
+      "en": "In practice, you don't really want to just do this, partly because there's so many components to the model.",
+      "zh": "實務上，不會想全部自己手算，部分原因是模型有太多組件。"
+    },
+    {
+      "start": 1178.29,
+      "end": 1185.73,
+      "en": "So many different weights, matrices and also non-linear modules do actually implement more methods.",
+      "zh": "有太多權重矩陣，而且非線性模組實際上會實作更多方法。"
+    },
+    {
+      "start": 1185.73,
+      "end": 1187.49,
+      "en": "They do more than just this.",
+      "zh": "做的不只這件事。"
+    },
+    {
+      "start": 1187.49,
+      "end": 1189.77,
+      "en": "But this is the key mathematical component.",
+      "zh": "但這是關鍵的數學部分。"
+    },
+    {
+      "start": 1190.09,
+      "end": 1190.41,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1190.45,
+      "end": 1193.17,
+      "en": "So I hope that takes some of the mystery out of that.",
+      "zh": "希望這讓它少了一點神祕感。"
+    },
+    {
+      "start": 1193.69,
+      "end": 1201.65,
+      "en": "Uh, the last thing I want to do in this code demo is show you how to push model, push data through",
+      "zh": "這份程式示範最後一件事，是如何把資料送進，"
+    },
+    {
+      "start": 1201.65,
+      "end": 1207.09,
+      "en": "this model, and get tokens out, which we can transform back into letters.",
+      "zh": "模型，得到詞元，再轉回字母。"
+    },
+    {
+      "start": 1207.61,
+      "end": 1214.45,
+      "en": "So I'm importing this string library, which is yeah, just getting out all of the letters here.",
+      "zh": "我匯入 string 程式庫，取得這裡所有英文字母。"
+    },
+    {
+      "start": 1214.45,
+      "end": 1215.61,
+      "en": "So A through Z.",
+      "zh": "也就是 a 到 z。"
+    },
+    {
+      "start": 1216.17,
+      "end": 1216.41,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1216.45,
+      "end": 1222.01,
+      "en": "Now here is some text that we are going to process I like corn, we all like corn right.",
+      "zh": "這裡有一段要處理的文字：I like corn，我喜歡玉米；大家都喜歡玉米，對吧？"
+    },
+    {
+      "start": 1222.37,
+      "end": 1231.89,
+      "en": "Uh and then let's see I'm going to tokenize the text, which basically just means assign integers to each of these letters.",
+      "zh": "接著對文字斷詞，基本上，就是替每個字母指定整數。"
+    },
+    {
+      "start": 1231.89,
+      "end": 1236.57,
+      "en": "So A is going to be zero, B is one, C is two and so on.",
+      "zh": "a 是零，b 是一，c 是二，以此類推。"
+    },
+    {
+      "start": 1237.01,
+      "end": 1238.93,
+      "en": "And now so that's what I do here.",
+      "zh": "這裡就是這樣做。"
+    },
+    {
+      "start": 1238.93,
+      "end": 1242.45,
+      "en": "So I loop through and I get all of the tokens here.",
+      "zh": "透過迴圈，取得所有詞元。"
+    },
+    {
+      "start": 1242.45,
+      "end": 1248.49,
+      "en": "So I'm just finding where in this Ascii lowercase string which is this.",
+      "zh": "在 ascii_lowercase 這個字串，也就是這裡，"
+    },
+    {
+      "start": 1248.53,
+      "end": 1250.93,
+      "en": "Where do we see the actual letter.",
+      "zh": "找出實際字母位於哪裡。"
+    },
+    {
+      "start": 1251.29,
+      "end": 1257.61,
+      "en": "Uh in this text here I'm making it lowercase just so we don't have to deal with uppercase and lowercase.",
+      "zh": "把這段文字轉成小寫，避免處理大小寫差異。"
+    },
+    {
+      "start": 1258.05,
+      "end": 1260.85,
+      "en": "Here's a special exception for space okay.",
+      "zh": "空格則有特殊處理。"
+    },
+    {
+      "start": 1261.01,
+      "end": 1267.73,
+      "en": "So all I'm doing here is translating this text into a sequence of numbers.",
+      "zh": "所以，只是把文字轉成數字序列。"
+    },
+    {
+      "start": 1267.93,
+      "end": 1271.37,
+      "en": "And I'll talk much more about that in the course proper.",
+      "zh": "正式課程會談更多。"
+    },
+    {
+      "start": 1271.37,
+      "end": 1274.13,
+      "en": "But basically models cannot process text.",
+      "zh": "但基本上，模型無法直接處理文字。"
+    },
+    {
+      "start": 1274.17,
+      "end": 1275.37,
+      "en": "They process numbers.",
+      "zh": "它們處理數字。"
+    },
+    {
+      "start": 1275.37,
+      "end": 1278.97,
+      "en": "So that's why we need to transform into numbers.",
+      "zh": "所以需要轉成數字。"
+    },
+    {
+      "start": 1280.05,
+      "end": 1284.89,
+      "en": "Once we have those tokens we can actually forward pass through the model.",
+      "zh": "有了詞元，就可以在模型裡做前向傳播。"
+    },
+    {
+      "start": 1284.89,
+      "end": 1285.81,
+      "en": "So very simple.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 1285.81,
+      "end": 1290.93,
+      "en": "We input the tokens into the language model and we get some outputs.",
+      "zh": "把詞元輸入語言模型，取得一些輸出。"
+    },
+    {
+      "start": 1290.93,
+      "end": 1294.61,
+      "en": "So the outputs are of size 11 by 27.",
+      "zh": "輸出大小是十一乘二十七。"
+    },
+    {
+      "start": 1294.89,
+      "end": 1296.05,
+      "en": "And what does that mean.",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 1296.13,
+      "end": 1302.21,
+      "en": "Well 27 corresponds to the number of characters that we are representing here.",
+      "zh": "二十七對應這裡表示的字元數量。"
+    },
+    {
+      "start": 1302.21,
+      "end": 1306.41,
+      "en": "So 26 letters plus space and 11 is one.",
+      "zh": "二十六個字母，加空格；十一則是——"
+    },
+    {
+      "start": 1306.57,
+      "end": 1307.69,
+      "en": "I'm not going to count those.",
+      "zh": "我就不一個個數了。"
+    },
+    {
+      "start": 1307.73,
+      "end": 1310.85,
+      "en": "I'll just do length of tokens okay.",
+      "zh": "直接用 len(tokens)。"
+    },
+    {
+      "start": 1310.89,
+      "end": 1314.85,
+      "en": "11 is the number of tokens that we have here okay.",
+      "zh": "十一是這裡的詞元數。"
+    },
+    {
+      "start": 1315.05,
+      "end": 1322.29,
+      "en": "So what we're going to do now is plot the output of the model for the first token.",
+      "zh": "接著，要畫出模型對第一個詞元的輸出。"
+    },
+    {
+      "start": 1322.81,
+      "end": 1323.09,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1323.13,
+      "end": 1327.69,
+      "en": "So the model did a bunch of processing did a bunch of crazy calculations.",
+      "zh": "模型做了一堆處理，一堆複雜計算。"
+    },
+    {
+      "start": 1327.69,
+      "end": 1332.45,
+      "en": "In this case, these are totally nonsensical because they're literally just random numbers.",
+      "zh": "這個例子裡，全都沒有實際意義，因為真的只是隨機數。"
+    },
+    {
+      "start": 1333.13,
+      "end": 1336.09,
+      "en": "Uh, and it gave some activation output.",
+      "zh": "但仍然產生了一些活化輸出。"
+    },
+    {
+      "start": 1336.13,
+      "end": 1336.53,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1336.57,
+      "end": 1341.57,
+      "en": "So for this first token, it gave us 27 outputs.",
+      "zh": "對第一個詞元，模型提供二十七個輸出。"
+    },
+    {
+      "start": 1341.81,
+      "end": 1344.89,
+      "en": "Uh, and uh, this is the largest one.",
+      "zh": "這個是最大的。"
+    },
+    {
+      "start": 1345.21,
+      "end": 1346.53,
+      "en": "So what are we going to do now?",
+      "zh": "現在要做什麼？"
+    },
+    {
+      "start": 1346.53,
+      "end": 1353.81,
+      "en": "We are going to say that the model thinks that this token here has the highest activation.",
+      "zh": "我們會說，模型認為這個詞元的活化最高。"
+    },
+    {
+      "start": 1354.01,
+      "end": 1357.21,
+      "en": "And so this should be the token that comes next.",
+      "zh": "所以，它應該是下一個詞元。"
+    },
+    {
+      "start": 1357.25,
+      "end": 1357.45,
+      "en": "Right.",
+      "zh": "對吧？"
+    },
+    {
+      "start": 1357.49,
+      "end": 1358.89,
+      "en": "That's what these models are doing.",
+      "zh": "這就是這些模型在做的事情。"
+    },
+    {
+      "start": 1358.89,
+      "end": 1362.41,
+      "en": "They're taking the current token and the history of tokens.",
+      "zh": "接收目前詞元，以及之前詞元的歷史。"
+    },
+    {
+      "start": 1362.41,
+      "end": 1365.85,
+      "en": "And they're trying to predict what is the next token.",
+      "zh": "試著預測下一個詞元。"
+    },
+    {
+      "start": 1366.13,
+      "end": 1375.93,
+      "en": "So this model says here that based on all of everything I've learned about the world from reading the internet, I think token, let's see, is 15, 16, 17, 18.",
+      "zh": "所以這個模型會說，根據我從網路閱讀學到的一切，我認為詞元——看看，是十五、十六、十七、十八。"
+    },
+    {
+      "start": 1376.09,
+      "end": 1380.73,
+      "en": "I think token number 18 should be the next token.",
+      "zh": "我認為十八號詞元，應該是下一個。"
+    },
+    {
+      "start": 1380.93,
+      "end": 1385.41,
+      "en": "And 18, of course, maps onto some letter towards the end of the alphabet.",
+      "zh": "十八，當然對應字母表後段的某個字母。"
+    },
+    {
+      "start": 1386.65,
+      "end": 1388.05,
+      "en": "Okay, so that's the idea.",
+      "zh": "好的，就是這個概念。"
+    },
+    {
+      "start": 1388.57,
+      "end": 1397.93,
+      "en": "And now what I'm doing is looping through all of the letters and finding the strongest activation from each individual layer.",
+      "zh": "現在，要走訪所有字母，找出每一個層的最強活化值。"
+    },
+    {
+      "start": 1397.93,
+      "end": 1401.57,
+      "en": "So this is done for one letter just for the first token.",
+      "zh": "這裡先只對一個字母，也就是第一個詞元操作。"
+    },
+    {
+      "start": 1401.57,
+      "end": 1403.61,
+      "en": "And now we're doing it for everything else.",
+      "zh": "現在對其餘全部操作。"
+    },
+    {
+      "start": 1403.93,
+      "end": 1411.78,
+      "en": "And here we get the output of c c, which I think that's how you pronounce that word.",
+      "zh": "這裡得到 c c 的輸出，我想這個字應該是這樣念。"
+    },
+    {
+      "start": 1412.06,
+      "end": 1417.54,
+      "en": "Obviously this doesn't make any sense, but if you have a much larger language model with more sophisticated",
+      "zh": "很明顯，沒有意義；但如果是更大的語言模型，具有更複雜的，"
+    },
+    {
+      "start": 1417.54,
+      "end": 1425.42,
+      "en": "architecture, then this would be the text that the model is producing that you would use in a chatbot, for example.",
+      "zh": "架構，這就會是模型產生、可以用在聊天機器人等應用裡的文字。"
+    },
+    {
+      "start": 1426.3,
+      "end": 1428.94,
+      "en": "I hope you found that code demo enlightening.",
+      "zh": "希望這個程式示範能讓你有所理解。"
+    },
+    {
+      "start": 1429.18,
+      "end": 1438.74,
+      "en": "The models that we will work with later in this course, and also professional commercial models, are all basically put together like the model that we just created here.",
+      "zh": "之後課程使用的模型，以及專業商用模型，基本上都是以類似這個模型的方式組成。"
+    },
+    {
+      "start": 1439.1,
+      "end": 1444.58,
+      "en": "Of course there's training and lots of additional complexity, but this is the basic idea.",
+      "zh": "當然，還有訓練，以及很多額外複雜度，但基本概念如此。"
+    },
+    {
+      "start": 1445.22,
+      "end": 1457.22,
+      "en": "You know, there's always a trade off between implementing something yourself manually versus using libraries and functions that other people wrote that do a bunch of calculations behind the scenes.",
+      "zh": "自行手動實作，和使用別人寫好、在幕後做很多計算的程式庫與函式，之間總是需要取捨。"
+    },
+    {
+      "start": 1458.02,
+      "end": 1469.74,
+      "en": "Now, on the one hand, it's really insane to think about recreating everything in deep learning by writing assembly code, or even writing out all the details of backprop in C.",
+      "zh": "一方面，想用組合語言重寫深度學習的一切，甚至用 C 明寫反向傳播所有細節，都非常瘋狂。"
+    },
+    {
+      "start": 1470.74,
+      "end": 1477.86,
+      "en": "On the other hand, if you would interact with models at such a high level that all the math and all",
+      "zh": "另一方面，如果互動層次太高，所有數學，"
+    },
+    {
+      "start": 1477.9,
+      "end": 1487.38,
+      "en": "the implementations and all the details and the parameters are completely abstracted and hidden from you, then that's also really not useful for learning.",
+      "zh": "實作、細節與參數，都完全被抽象化、藏起來，對學習也沒有幫助。"
+    },
+    {
+      "start": 1487.5,
+      "end": 1494.1,
+      "en": "In fact, that's basically just you interacting with the chatbot without having any idea of what's going on behind the scenes.",
+      "zh": "那基本上，就只是和聊天機器人互動，完全不知道幕後發生什麼。"
+    },
+    {
+      "start": 1494.54,
+      "end": 1501.18,
+      "en": "So what I tried to do in this lecture, and also in the rest of the course, is find the balance, where",
+      "zh": "所以，這堂課和整門課程想做的，是找到平衡，"
+    },
+    {
+      "start": 1501.18,
+      "end": 1508.7,
+      "en": "we are exposing and investigating some of the details about how these models are put together, while",
+      "zh": "揭露、研究模型如何組成的一些細節，同時，"
+    },
+    {
+      "start": 1508.7,
+      "end": 1515.06,
+      "en": "still leaving some lower level details abstracted away, kind of hidden in the PyTorch library.",
+      "zh": "讓部分底層細節，仍然抽象化、隱藏在 PyTorch 程式庫裡。"
+    },
+    {
+      "start": 1515.66,
+      "end": 1517.86,
+      "en": "Anyway, that's enough about Forwardpass.",
+      "zh": "總之，前向傳播就談到這裡。"
+    },
+    {
+      "start": 1517.9,
+      "end": 1523.02,
+      "en": "Let's go to the next lecture and see how backprop is implemented in PyTorch.",
+      "zh": "下一堂，看看 PyTorch 如何實作反向傳播。"
+    }
+  ]
+}

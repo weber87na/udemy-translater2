@@ -1,0 +1,1333 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51862065",
+  "title": "Gradient clipping and learning rate scheduler (part 1)",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d4ea454c72ea03d95c1fe78a7e1aed78c3aaa52f76b15233bb495b72a78e15ad",
+  "cues": [
+    {
+      "start": 2.16,
+      "end": 9.52,
+      "en": "There are several meta parameters that you can apply to adjust the gradient descent learning process.",
+      "zh": "有幾種中介參數，可以用來調整梯度下降的學習過程。"
+    },
+    {
+      "start": 10,
+      "end": 17.04,
+      "en": "In this video, I'm going to tell you about two of those gradient Clipping and learning rate scheduler.",
+      "zh": "這支影片介紹其中兩種：梯度裁剪與學習率排程器。"
+    },
+    {
+      "start": 17.48,
+      "end": 25,
+      "en": "Those are both fairly simple concepts and they are frequently applied when training very large models.",
+      "zh": "兩者概念都相當簡單，在訓練超大型模型時經常使用。"
+    },
+    {
+      "start": 25.4,
+      "end": 33.84,
+      "en": "On the other hand, these are not techniques that you would need to use for most small or even medium sized deep learning models.",
+      "zh": "另一方面，大多數小型，甚至中型深度學習模型，並不需要這些技巧。"
+    },
+    {
+      "start": 34.32,
+      "end": 44.2,
+      "en": "I will briefly explain the concepts of these two techniques, and then I'll show you how they work in Python, and we will explore some of the options.",
+      "zh": "我會簡短解釋概念，再用 Python 示範，探索一些選項。"
+    },
+    {
+      "start": 45.16,
+      "end": 54.24,
+      "en": "Clipping is a general term used in data science, signal processing, and other data related applications",
+      "zh": "裁剪是資料科學、訊號處理，以及其他資料相關應用中的通用術語，"
+    },
+    {
+      "start": 54.24,
+      "end": 60.2,
+      "en": "where there might be extreme values that can be deleterious to the analyses.",
+      "zh": "用來處理可能對分析有害的極端值。"
+    },
+    {
+      "start": 60.83,
+      "end": 63.39,
+      "en": "Here you see a very simple example.",
+      "zh": "這裡是非常簡單的例子。"
+    },
+    {
+      "start": 63.67,
+      "end": 67.95,
+      "en": "Imagine this left column is a vector of data points.",
+      "zh": "假設左邊這一欄是一個資料向量。"
+    },
+    {
+      "start": 68.39,
+      "end": 72.63,
+      "en": "Clearly 99 is an extreme data value.",
+      "zh": "很明顯，99 是極端值。"
+    },
+    {
+      "start": 73.27,
+      "end": 77.47,
+      "en": "So let's say that we have a clipping threshold of ten.",
+      "zh": "假設裁剪門檻是 10。"
+    },
+    {
+      "start": 77.99,
+      "end": 85.83,
+      "en": "So the idea is that any value in this data set that is greater than ten gets reset to ten.",
+      "zh": "資料集中任何大於 10 的值，都重設為 10。"
+    },
+    {
+      "start": 86.83,
+      "end": 97.27000000000001,
+      "en": "This is used to reduce the impact of outliers on statistics, data characteristics, filtering or whatever is the analysis that will be applied.",
+      "zh": "這能減少離群值對統計量、資料特性、濾波，或其他分析的影響。"
+    },
+    {
+      "start": 98.11,
+      "end": 102.31,
+      "en": "Now this slide here is not about gradient clipping.",
+      "zh": "這張投影片還不是在談梯度裁剪。"
+    },
+    {
+      "start": 102.55,
+      "end": 106.11,
+      "en": "This is just the general idea of clipping.",
+      "zh": "只是介紹裁剪的一般概念。"
+    },
+    {
+      "start": 106.67,
+      "end": 114.35,
+      "en": "Specifically with regards to gradient clipping in deep learning training, the idea is that you don't",
+      "zh": "具體到深度學習訓練的梯度裁剪，概念是不要"
+    },
+    {
+      "start": 114.39,
+      "end": 120.07,
+      "en": "want to clip the individual values, but you do want to clip the gradients.",
+      "zh": "裁剪個別數值，而是裁剪梯度。"
+    },
+    {
+      "start": 120.07,
+      "end": 120.11,
+      "en": "Radiance.",
+      "zh": "也就是梯度。"
+    },
+    {
+      "start": 120.67,
+      "end": 126.91,
+      "en": "Remember that the gradients are the derivatives of the loss function with respect to the weights in",
+      "zh": "記得，梯度是損失函數相對於模型中"
+    },
+    {
+      "start": 126.91,
+      "end": 133.91,
+      "en": "the model, and that gradient is used to update the weights scaled by the learning rate.",
+      "zh": "權重的導數，會乘上學習率，用來更新權重。"
+    },
+    {
+      "start": 134.27,
+      "end": 141.67000000000002,
+      "en": "So if for some reason the model becomes numerically unstable, perhaps because there are too many very",
+      "zh": "如果模型因某種原因數值不穩定，例如太多"
+    },
+    {
+      "start": 141.67000000000002,
+      "end": 149.07,
+      "en": "large numbers that are getting successively multiplied, then the gradient is just going to explode.",
+      "zh": "很大的數字連續相乘，梯度就可能爆炸。"
+    },
+    {
+      "start": 149.51,
+      "end": 152.99,
+      "en": "That can cause catastrophic failure in the model.",
+      "zh": "這可能造成模型災難性失敗。"
+    },
+    {
+      "start": 153.35,
+      "end": 162.51,
+      "en": "So the idea of gradient clipping is to scale down or normalize the gradients, so that the norm of the",
+      "zh": "所以，梯度裁剪就是縮小或正規化梯度，讓"
+    },
+    {
+      "start": 162.51,
+      "end": 166.35,
+      "en": "gradient matrix is some threshold value.",
+      "zh": "梯度矩陣的範數達到某個門檻值。"
+    },
+    {
+      "start": 167.19,
+      "end": 173.99,
+      "en": "In the Python demo, I will show setting this threshold value to one, but that's just a number that",
+      "zh": "Python 示範會把門檻設成 1，但這只是"
+    },
+    {
+      "start": 173.99,
+      "end": 183.5,
+      "en": "I'm using for illustration, a gradient magnitude threshold of one is commonly used, but it's not the only value that can be used.",
+      "zh": "示範用的數字。梯度大小門檻設為 1 很常見，但不是唯一選擇。"
+    },
+    {
+      "start": 184.58,
+      "end": 192.02,
+      "en": "Now, the thing about gradient clipping is that the gradient magnitudes really are meaningful for learning.",
+      "zh": "不過，梯度大小對學習確實有意義。"
+    },
+    {
+      "start": 192.5,
+      "end": 202.1,
+      "en": "When the gradient is large, the parameters need to change a lot, and when the gradient is small, the parameters should only change a tiny bit.",
+      "zh": "梯度大時，參數需要改變較多；梯度小時，參數就應該只改變一點。"
+    },
+    {
+      "start": 202.66,
+      "end": 211.18,
+      "en": "So we don't want to just arbitrarily change the gradient norms because that's literally losing valuable information.",
+      "zh": "因此，不想任意改變梯度範數，因為那等於丟失有價值的資訊。"
+    },
+    {
+      "start": 211.7,
+      "end": 216.38,
+      "en": "So that's why gradient clipping actually slows down learning.",
+      "zh": "這也是為什麼，梯度裁剪其實會減慢學習。"
+    },
+    {
+      "start": 217.14,
+      "end": 223.86,
+      "en": "On the other hand, if the gradients keep exploding and the model becomes so numerically unstable that",
+      "zh": "但如果梯度一直爆炸，模型數值不穩定到"
+    },
+    {
+      "start": 223.86,
+      "end": 229.18,
+      "en": "it just fails to learn, then slowing down learning actually is a good thing.",
+      "zh": "根本學不下去，那麼減慢學習反而是好事。"
+    },
+    {
+      "start": 229.86,
+      "end": 240.77,
+      "en": "Here you see a screenshot that I will show and explain in more detail in the code demo, but the idea is that I created a vector of values.",
+      "zh": "這張截圖在程式示範會詳細解釋。概念是先建立一個數值向量，"
+    },
+    {
+      "start": 240.77,
+      "end": 241.89,
+      "en": "And that you see here.",
+      "zh": "就是這裡。"
+    },
+    {
+      "start": 242.13,
+      "end": 245.37,
+      "en": "And the norm of the gradient is close to 20.",
+      "zh": "它的梯度範數接近 20。"
+    },
+    {
+      "start": 246.41,
+      "end": 249.57,
+      "en": "Then I applied gradient clipping to that vector.",
+      "zh": "然後對這個向量套用梯度裁剪。"
+    },
+    {
+      "start": 249.69,
+      "end": 255.21,
+      "en": "And now the norm has changed to one because that was the threshold value that I used.",
+      "zh": "範數就變成 1，因為我用的門檻是 1。"
+    },
+    {
+      "start": 255.89,
+      "end": 261.41,
+      "en": "Now when you look at these weight values they look really different.",
+      "zh": "看這些權重值，似乎差很多。"
+    },
+    {
+      "start": 261.41,
+      "end": 263.25,
+      "en": "And of course they are different.",
+      "zh": "當然，它們確實不同。"
+    },
+    {
+      "start": 263.25,
+      "end": 269.41,
+      "en": "But the relations between all of the values is preserved and that you see here.",
+      "zh": "但所有數值間的關係都保留下來，這裡可以看到。"
+    },
+    {
+      "start": 269.41,
+      "end": 279.73,
+      "en": "So the pre clipped values on the x axis and the gradient normed values on the y axis, they correlate with each other perfectly.",
+      "zh": "x 軸是裁剪前的值，y 軸是梯度正規化後的值，兩者完全相關。"
+    },
+    {
+      "start": 280.01,
+      "end": 286.85,
+      "en": "So the numerical values have been reduced in this case by around an order of magnitude.",
+      "zh": "所以這次數值大約縮小了一個數量級。"
+    },
+    {
+      "start": 287.29,
+      "end": 291.45,
+      "en": "But that change was just a divisive normalization.",
+      "zh": "但這個改變只是除法式的正規化。"
+    },
+    {
+      "start": 291.61,
+      "end": 297.09000000000003,
+      "en": "It's not that we're changing individual gradient values while leaving other gradients the same.",
+      "zh": "不是只改變個別梯度值，而讓其他梯度維持不動。"
+    },
+    {
+      "start": 297.89,
+      "end": 298.25,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 298.29,
+      "end": 301.64,
+      "en": "So that is the background of gradient clipping.",
+      "zh": "以上是梯度裁剪的背景。"
+    },
+    {
+      "start": 302.76,
+      "end": 305.96,
+      "en": "Now let me tell you about the learning rate scheduler.",
+      "zh": "接著介紹學習率排程器。"
+    },
+    {
+      "start": 306.4,
+      "end": 309.2,
+      "en": "This is also a fairly simple concept.",
+      "zh": "這也是相當簡單的概念。"
+    },
+    {
+      "start": 309.4,
+      "end": 320.04,
+      "en": "The idea is that normally in when you're training deep learning models, you set the learning rate to be one value throughout all of the training.",
+      "zh": "一般訓練深度學習模型時，會把學習率設成一個值，整個訓練過程保持不變。"
+    },
+    {
+      "start": 320.88,
+      "end": 327.68,
+      "en": "Now, on the one hand, if you use the Adam optimizer, the effective learning rate actually is dynamically",
+      "zh": "另一方面，如果使用 Adam 最佳化器，有效學習率其實會根據"
+    },
+    {
+      "start": 327.68,
+      "end": 333.2,
+      "en": "modified by the recent history of the gradients and the variance of the gradients.",
+      "zh": "近期梯度與梯度變異的歷史動態調整。"
+    },
+    {
+      "start": 333.64,
+      "end": 340.88,
+      "en": "But the learning rate scheduler adds some additional constraints to the maximum possible learning rate.",
+      "zh": "學習率排程器則進一步限制最大可能的學習率。"
+    },
+    {
+      "start": 341.44,
+      "end": 346.36,
+      "en": "And here you see an example of some possibilities for learning rate schedulers.",
+      "zh": "這裡是幾種可能的學習率排程範例。"
+    },
+    {
+      "start": 346.72,
+      "end": 352.4,
+      "en": "The y axis shows the learning rate implemented on each training epoch.",
+      "zh": "y 軸顯示每個訓練週期使用的學習率。"
+    },
+    {
+      "start": 353.64,
+      "end": 363.4,
+      "en": "And yeah, without actually adjusting the learning rate scheduler, this would all just be a boring flat horizontal line all the way through training.",
+      "zh": "如果不調整學習率排程器，整個訓練就只會是一條無聊的水平線。"
+    },
+    {
+      "start": 363.76,
+      "end": 370.96,
+      "en": "But here in the scheduler, I have imposed a warm up phase, which means that the learning rate starts",
+      "zh": "這裡的排程包含暖身階段，表示學習率"
+    },
+    {
+      "start": 370.96,
+      "end": 378.56,
+      "en": "off at zero or very close to zero, and then it linearly increases after some number of training epochs.",
+      "zh": "從零或接近零開始，再隨訓練週期線性增加。"
+    },
+    {
+      "start": 378.56,
+      "end": 380,
+      "en": "In this case it was 20.",
+      "zh": "這個例子是 20 個週期。"
+    },
+    {
+      "start": 380.52,
+      "end": 388.76,
+      "en": "And then I've included a cosine adjustment which is this smooth non-linear decrease that you see here.",
+      "zh": "接著加上餘弦調整，就是這裡平滑的非線性下降。"
+    },
+    {
+      "start": 389.36,
+      "end": 393.36,
+      "en": "This is a one half cycle cosine scheduler.",
+      "zh": "這是半個週期的餘弦排程器。"
+    },
+    {
+      "start": 393.68,
+      "end": 398.68,
+      "en": "And I'll explain and demonstrate in more detail what that means when I switch to code.",
+      "zh": "切換到程式時，會更詳細解釋與示範。"
+    },
+    {
+      "start": 399.92,
+      "end": 407.64,
+      "en": "Now in general, scheduling the learning rate dynamically is another technique that is really not necessary",
+      "zh": "一般而言，動態排程學習率，也是小型或中型模型"
+    },
+    {
+      "start": 407.64,
+      "end": 413.6,
+      "en": "for small or medium sized models, but it does seem to help with large models.",
+      "zh": "並非必要，但似乎有助於大型模型的技巧。"
+    },
+    {
+      "start": 414.2,
+      "end": 424.19,
+      "en": "And again, the idea is to slow down the learning so that it's more numerically stable, even if that means that the learning takes a little bit longer.",
+      "zh": "概念同樣是放慢學習，讓數值更穩定，即使訓練因此久一點。"
+    },
+    {
+      "start": 425.27,
+      "end": 430.55,
+      "en": "Now, I already showed several screenshots of what we will go through in the Python demo.",
+      "zh": "我已展示幾張 Python 示範的截圖。"
+    },
+    {
+      "start": 430.83,
+      "end": 434.39,
+      "en": "So now just let me tell you a little bit more and then I'll switch to code.",
+      "zh": "現在再說明一點，就切到程式。"
+    },
+    {
+      "start": 434.99,
+      "end": 438.39,
+      "en": "First we will have a look at gradient clipping.",
+      "zh": "先看梯度裁剪。"
+    },
+    {
+      "start": 438.83,
+      "end": 448.39,
+      "en": "This is not going to be in a language model, but a super duper simple model with gradient endowed numbers that we can play around with.",
+      "zh": "這不是語言模型，而是一個極簡單、帶有梯度數值、可供實驗的模型。"
+    },
+    {
+      "start": 448.75,
+      "end": 455.51,
+      "en": "So here you see the actual weights from this model and the gradient norm on the lower axis.",
+      "zh": "這裡是模型的實際權重，下方座標軸是梯度範數。"
+    },
+    {
+      "start": 456.07,
+      "end": 458.11,
+      "en": "So the model has two weights.",
+      "zh": "模型有兩個權重。"
+    },
+    {
+      "start": 458.31,
+      "end": 464.31,
+      "en": "And the goal of the training of the optimization is to get weight zero.",
+      "zh": "最佳化訓練的目標，是讓權重 0，"
+    },
+    {
+      "start": 464.31,
+      "end": 468.75,
+      "en": "So this weight here to be higher than this weight over here.",
+      "zh": "也就是這個權重，高於另一個。"
+    },
+    {
+      "start": 469.15,
+      "end": 477.99,
+      "en": "And here you see the gradient norm from this model before and after clipping to a maximum of one.",
+      "zh": "這裡顯示模型梯度範數，以及裁剪到最大值 1 前後的結果。"
+    },
+    {
+      "start": 478.46,
+      "end": 485.9,
+      "en": "Now this screenshot here actually shows the clipping after gradient descent has already been applied.",
+      "zh": "這張截圖其實是在梯度下降已執行之後才裁剪。"
+    },
+    {
+      "start": 486.26,
+      "end": 491.22,
+      "en": "I will also show you the impact of clipping before gradient descent.",
+      "zh": "我也會示範，在梯度下降之前裁剪的影響。"
+    },
+    {
+      "start": 491.34,
+      "end": 502.14,
+      "en": "And basically what you'll see is that the learning still happens, but it's a little bit slower because we have reduced the precision of the information in the gradient.",
+      "zh": "基本上你會看到，仍然會學習，但速度稍慢，因為減少了梯度資訊的精確度。"
+    },
+    {
+      "start": 502.86,
+      "end": 506.98,
+      "en": "Next I will show several different learning rate schedulers.",
+      "zh": "接著示範幾種學習率排程器。"
+    },
+    {
+      "start": 507.38,
+      "end": 511.9,
+      "en": "And I also showed you one screenshot of an example in the previous slide.",
+      "zh": "上一張投影片也展示過其中一個例子。"
+    },
+    {
+      "start": 511.9,
+      "end": 515.54,
+      "en": "And we'll explore some other examples like this.",
+      "zh": "還會探索像這樣的其他例子。"
+    },
+    {
+      "start": 516.02,
+      "end": 520.14,
+      "en": "So here you see a piecewise linear learning rate scheduler.",
+      "zh": "這裡是分段線性的學習率排程器。"
+    },
+    {
+      "start": 520.5,
+      "end": 525.7,
+      "en": "And you can see that the two weights change the most when the learning rate is high.",
+      "zh": "可以看到，學習率高時，兩個權重改變最多。"
+    },
+    {
+      "start": 526.06,
+      "end": 529.94,
+      "en": "And they don't change that much when the learning rate is lower.",
+      "zh": "學習率較低時，就不太改變。"
+    },
+    {
+      "start": 530.66,
+      "end": 531.14,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 531.18,
+      "end": 531.82,
+      "en": "Very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 531.82,
+      "end": 534.98,
+      "en": "Let's switch to Python and have a more detailed look.",
+      "zh": "切換到 Python，更仔細看看。"
+    },
+    {
+      "start": 535.78,
+      "end": 541.93,
+      "en": "Most of these libraries you will recognize these two functions might be new to you.",
+      "zh": "大部分函式庫你都認得，這兩個函數可能是新的。"
+    },
+    {
+      "start": 541.93,
+      "end": 545.81,
+      "en": "So I'm importing from the Transformers library.",
+      "zh": "我從 Transformers 函式庫匯入"
+    },
+    {
+      "start": 545.97,
+      "end": 552.21,
+      "en": "The functions get cosine schedule with warm up and get linear schedule with warm up.",
+      "zh": "get_cosine_schedule_with_warmup，以及 get_linear_schedule_with_warmup。"
+    },
+    {
+      "start": 552.41,
+      "end": 559.13,
+      "en": "These are not the only two possible functions that can implement a learning rate scheduler, but they",
+      "zh": "它們不是唯一能實作學習率排程器的函數，"
+    },
+    {
+      "start": 559.17,
+      "end": 564.45,
+      "en": "are two that are commonly used, and they're the two that I'm going to highlight in this demo.",
+      "zh": "但很常使用，也是這次示範的重點。"
+    },
+    {
+      "start": 564.93,
+      "end": 565.33,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 565.37,
+      "end": 569.37,
+      "en": "So here we have a simple demo of gradient clipping.",
+      "zh": "這裡是簡單的梯度裁剪示範。"
+    },
+    {
+      "start": 569.37,
+      "end": 574.01,
+      "en": "This is not in a model that we are going to really train.",
+      "zh": "不是要真正訓練的模型。"
+    },
+    {
+      "start": 574.33,
+      "end": 578.93,
+      "en": "And so basically this is just a really simple example that I showed the screenshot of.",
+      "zh": "基本上就是投影片截圖中的簡單例子。"
+    },
+    {
+      "start": 579.29,
+      "end": 583.05,
+      "en": "So you can imagine that these are weights in a model.",
+      "zh": "可以把它想像成模型的權重。"
+    },
+    {
+      "start": 583.13,
+      "end": 584.65,
+      "en": "This is the loss function.",
+      "zh": "這是損失函數。"
+    },
+    {
+      "start": 584.65,
+      "end": 586.77,
+      "en": "It's just the L2 norm.",
+      "zh": "就是 L2 範數。"
+    },
+    {
+      "start": 586.77,
+      "end": 588.77,
+      "en": "So the sum of squared elements.",
+      "zh": "也就是元素平方和。"
+    },
+    {
+      "start": 588.89,
+      "end": 594.41,
+      "en": "And basically if we were treating this model training this model over and over again through many steps,",
+      "zh": "如果把這當模型，反覆訓練許多步，"
+    },
+    {
+      "start": 594.73,
+      "end": 601.61,
+      "en": "what this loss function would do is train the model to basically just decrease the size of these weights",
+      "zh": "這個損失函數會讓模型不斷縮小這些權重，"
+    },
+    {
+      "start": 601.61,
+      "end": 607.21,
+      "en": "so that the squared weights, the sum of the squared weights gets smaller and smaller.",
+      "zh": "讓權重平方、權重平方和越來越小。"
+    },
+    {
+      "start": 607.73,
+      "end": 608.17,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 608.65,
+      "end": 617.41,
+      "en": "But I just need to I need some loss function to calculate a back prop in order to get the actual gradients.",
+      "zh": "但我只是需要某個損失函數，來計算反向傳播，取得實際梯度。"
+    },
+    {
+      "start": 617.41,
+      "end": 618.81,
+      "en": "And so that's what I do here.",
+      "zh": "所以這裡這樣做。"
+    },
+    {
+      "start": 618.81,
+      "end": 624.01,
+      "en": "So here I access the gradients that are calculated by back prop.",
+      "zh": "這裡存取反向傳播算出的梯度。"
+    },
+    {
+      "start": 624.57,
+      "end": 630.29,
+      "en": "And you can see this is before clipping I get the actual gradient values.",
+      "zh": "裁剪前，可以看到實際梯度值。"
+    },
+    {
+      "start": 630.29,
+      "end": 633.29,
+      "en": "And then I calculate the norm of the gradient.",
+      "zh": "接著計算梯度範數。"
+    },
+    {
+      "start": 633.57,
+      "end": 637.05,
+      "en": "And then here is uh after I clip.",
+      "zh": "這裡則是裁剪後。"
+    },
+    {
+      "start": 637.05,
+      "end": 644.69,
+      "en": "Now the clipping is done by this function n dot utils dot clip grad norm.",
+      "zh": "裁剪透過 nn.utils.clip_grad_norm_ 這個函數完成。"
+    },
+    {
+      "start": 644.69,
+      "end": 652.33,
+      "en": "And then I input the variable the PyTorch tensor which needs to have a gradient associated with it.",
+      "zh": "傳入一個變數，也就是必須帶有梯度的 PyTorch 張量。"
+    },
+    {
+      "start": 652.33,
+      "end": 655.41,
+      "en": "And here I'm saying the max norm should equal one.",
+      "zh": "這裡設定 max_norm=1。"
+    },
+    {
+      "start": 655.89,
+      "end": 659.12,
+      "en": "Now notice that this is an in-place function.",
+      "zh": "注意，這是原地修改的函數。"
+    },
+    {
+      "start": 659.12,
+      "end": 668.04,
+      "en": "So I do not need to have some, you know, output like this where I'm resetting or overwriting the variable for the weights.",
+      "zh": "不需要像這樣，把輸出重新指定或覆寫權重變數。"
+    },
+    {
+      "start": 669.08,
+      "end": 676.76,
+      "en": "The way that you can tell that this is a in-place function is by looking for the underscore at the end of the function call.",
+      "zh": "從函數呼叫名稱末尾的底線，就能知道這是原地修改。"
+    },
+    {
+      "start": 676.84,
+      "end": 684.32,
+      "en": "So when you see that in a Python function or method, then that indicates that this operation is done in place.",
+      "zh": "在 Python 函數或方法看到這種底線，就代表操作會原地進行。"
+    },
+    {
+      "start": 684.76,
+      "end": 689.76,
+      "en": "Again that means we do not need to assign it to itself or some other variable.",
+      "zh": "也就是不必把結果指定回自身，或其他變數。"
+    },
+    {
+      "start": 690.36,
+      "end": 690.8,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 690.96,
+      "end": 691.32,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 691.32,
+      "end": 693.76,
+      "en": "And then I'm just printing out that information as well.",
+      "zh": "然後也把這些資訊印出來。"
+    },
+    {
+      "start": 694.12,
+      "end": 694.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 694.44,
+      "end": 697.16,
+      "en": "So this is the screenshot that I showed in the slides.",
+      "zh": "這就是投影片中的截圖。"
+    },
+    {
+      "start": 697.16,
+      "end": 701.2,
+      "en": "We go from a gradient norm of 19 to 1.",
+      "zh": "梯度範數從 19 變成 1。"
+    },
+    {
+      "start": 701.32,
+      "end": 702.6,
+      "en": "And why is this one.",
+      "zh": "為什麼是 1？"
+    },
+    {
+      "start": 702.6,
+      "end": 704.76,
+      "en": "Because that's the number I specified here.",
+      "zh": "因為這裡指定的就是 1。"
+    },
+    {
+      "start": 705.04,
+      "end": 708.8,
+      "en": "Let's say we would specify the threshold to be 31.",
+      "zh": "假設把門檻指定為 31。"
+    },
+    {
+      "start": 709.2,
+      "end": 712.24,
+      "en": "Well 19 is less than 31.",
+      "zh": "19 小於 31，"
+    },
+    {
+      "start": 712.24,
+      "end": 715.12,
+      "en": "So the values don't actually change at all.",
+      "zh": "所以數值完全不變。"
+    },
+    {
+      "start": 715.32,
+      "end": 718.27,
+      "en": "And you know maybe I want this to be 13.",
+      "zh": "或者想改成 13。"
+    },
+    {
+      "start": 718.31,
+      "end": 720.83,
+      "en": "And now the new gradient norm is 13.",
+      "zh": "現在新的梯度範數就是 13。"
+    },
+    {
+      "start": 721.19,
+      "end": 723.19,
+      "en": "Okay, so I will just leave that as one.",
+      "zh": "好，我就把它留在 1。"
+    },
+    {
+      "start": 723.87,
+      "end": 724.47,
+      "en": "Uh, okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 724.51,
+      "end": 731.07,
+      "en": "So then yeah, this is showing that their, uh, correlation actually let me uh, though it still changed.",
+      "zh": "接著顯示它們的相關，讓我……它還是變了。"
+    },
+    {
+      "start": 731.07,
+      "end": 731.79,
+      "en": "So it was okay.",
+      "zh": "剛才是這樣。"
+    },
+    {
+      "start": 732.19,
+      "end": 732.39,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 732.39,
+      "end": 734.95,
+      "en": "This is just showing that their correlation is one.",
+      "zh": "這只是顯示，它們的相關係數為 1。"
+    },
+    {
+      "start": 734.95,
+      "end": 738.23,
+      "en": "So the individual values are not being changed.",
+      "zh": "所以個別數值並沒有被改變。"
+    },
+    {
+      "start": 738.27,
+      "end": 747.91,
+      "en": "It's just that the entire matrix of weights values is shrinking down such that the norm of their gradient is one.",
+      "zh": "只是整個權重數值矩陣縮小，讓梯度的範數為 1。"
+    },
+    {
+      "start": 748.91,
+      "end": 749.35,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 749.71,
+      "end": 758.59,
+      "en": "Now I'm going to show you a very simple example of applying gradient clipping or gradient normalization during learning.",
+      "zh": "現在示範在學習時，套用梯度裁剪或梯度正規化的極簡例子。"
+    },
+    {
+      "start": 759.07,
+      "end": 760.91,
+      "en": "So here I have a model.",
+      "zh": "這裡有一個模型。"
+    },
+    {
+      "start": 761.27,
+      "end": 768.03,
+      "en": "If you have a very vivid imagination, you can imagine this is a language model where we have two tokens.",
+      "zh": "如果想像力豐富，可以把它想成只有兩個詞元的語言模型。"
+    },
+    {
+      "start": 768.19,
+      "end": 771.91,
+      "en": "And what we want the model to do is select the first token.",
+      "zh": "我們希望模型選第一個詞元，"
+    },
+    {
+      "start": 771.91,
+      "end": 774.07,
+      "en": "So the token with index zero.",
+      "zh": "也就是索引 0。"
+    },
+    {
+      "start": 774.55,
+      "end": 779.94,
+      "en": "But the logits actually prefer the second token.",
+      "zh": "但 logits 其實偏好第二個詞元。"
+    },
+    {
+      "start": 780.22,
+      "end": 790.5,
+      "en": "So, uh, so what we need to do in optimization, in, uh, in training is get this value to be large and this value to be small.",
+      "zh": "所以最佳化訓練時，要讓這個值變大，另一個值變小。"
+    },
+    {
+      "start": 790.62,
+      "end": 792.82,
+      "en": "We're going to train for 80 epochs.",
+      "zh": "會訓練 80 個週期。"
+    },
+    {
+      "start": 792.98,
+      "end": 795.14,
+      "en": "Here is the loss function.",
+      "zh": "這是損失函數。"
+    },
+    {
+      "start": 795.14,
+      "end": 798.18,
+      "en": "So uh, any loss.",
+      "zh": "也就是 NLLLoss。"
+    },
+    {
+      "start": 798.58,
+      "end": 801.22,
+      "en": "And here I'm using stochastic gradient descent.",
+      "zh": "這裡使用隨機梯度下降。"
+    },
+    {
+      "start": 801.22,
+      "end": 804.18,
+      "en": "And now for the training loop.",
+      "zh": "現在看訓練迴圈。"
+    },
+    {
+      "start": 804.18,
+      "end": 806.62,
+      "en": "So I'm looping over 80 steps.",
+      "zh": "走訪 80 個步驟。"
+    },
+    {
+      "start": 806.78,
+      "end": 809.18,
+      "en": "First I zero out all the gradients.",
+      "zh": "先把所有梯度歸零。"
+    },
+    {
+      "start": 809.5,
+      "end": 817.3,
+      "en": "Here is where I am calculating the log softmax probabilities of the weights in this matrix.",
+      "zh": "這裡計算矩陣權重的 log_softmax 機率。"
+    },
+    {
+      "start": 817.3,
+      "end": 822.5,
+      "en": "So you can imagine this is like the final logits at the end of the model.",
+      "zh": "可以把它想成模型末端的最終 logits。"
+    },
+    {
+      "start": 822.82,
+      "end": 828.26,
+      "en": "And again what we want is for target uh equals zero to be selected.",
+      "zh": "再次提醒，我們要選中 target=0。"
+    },
+    {
+      "start": 828.26,
+      "end": 834.3,
+      "en": "So the first uh element in this w vector should be higher than the second element.",
+      "zh": "所以 w 向量的第一個元素，應該高於第二個。"
+    },
+    {
+      "start": 834.42,
+      "end": 838.14,
+      "en": "And if it's not then the loss function is going to go crazy.",
+      "zh": "否則損失函數就會發狂。"
+    },
+    {
+      "start": 838.14,
+      "end": 844.82,
+      "en": "It's going to ring alarm bells and that will trigger a, you know, learning and optimization in the model.",
+      "zh": "它會敲警鐘，觸發模型的學習與最佳化。"
+    },
+    {
+      "start": 845.82,
+      "end": 846.14,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 846.18,
+      "end": 851.1,
+      "en": "Here is where we calculate the gradient of the loss with respect to the weights.",
+      "zh": "這裡計算損失對權重的梯度。"
+    },
+    {
+      "start": 851.46,
+      "end": 856.62,
+      "en": "And here I grab the actual gradient that is calculated here.",
+      "zh": "然後取出實際算出的梯度。"
+    },
+    {
+      "start": 857.1,
+      "end": 858.34,
+      "en": "And then I optimize.",
+      "zh": "接著最佳化。"
+    },
+    {
+      "start": 858.34,
+      "end": 861.26,
+      "en": "So I adjust the w implement back prop.",
+      "zh": "也就是調整 w，實作反向傳播。"
+    },
+    {
+      "start": 861.5,
+      "end": 869.9,
+      "en": "And here is where I apply the gradient clipping to the weights with a threshold of one.",
+      "zh": "這裡對權重的梯度套用裁剪，門檻是 1。"
+    },
+    {
+      "start": 870.42,
+      "end": 874.38,
+      "en": "And then I just grab the norm of the the gradient again.",
+      "zh": "然後再取出梯度的範數。"
+    },
+    {
+      "start": 874.78,
+      "end": 881.9,
+      "en": "Now notice that this gradient clipping actually happens after I call the optimizer.",
+      "zh": "注意，這次梯度裁剪發生在呼叫最佳化器之後。"
+    },
+    {
+      "start": 882.02,
+      "end": 883.38,
+      "en": "And what does that mean?",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 883.86,
+      "end": 891.46,
+      "en": "That means that this gradient clipping has literally zero impact on learning on optimization.",
+      "zh": "代表這次裁剪對學習、對最佳化完全沒有影響。"
+    },
+    {
+      "start": 891.82,
+      "end": 892.66,
+      "en": "And why is that?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 892.66,
+      "end": 896.02,
+      "en": "Because here we've already adjusted the W's.",
+      "zh": "因為這裡已經調整過 w。"
+    },
+    {
+      "start": 896.13,
+      "end": 898.65,
+      "en": "We've adjusted the weights matrix here.",
+      "zh": "權重矩陣已更新。"
+    },
+    {
+      "start": 898.65,
+      "end": 906.85,
+      "en": "I clip the gradients, but then, you know, at the next iteration of training I zero out all of the gradient information.",
+      "zh": "雖然裁剪了梯度，但下一次訓練迭代，又會把梯度資訊全部歸零。"
+    },
+    {
+      "start": 907.77,
+      "end": 910.25,
+      "en": "So this does literally nothing to learning.",
+      "zh": "所以它對學習完全沒作用。"
+    },
+    {
+      "start": 910.25,
+      "end": 921.77,
+      "en": "But the reason why I have it here after learning is so we can visualize the impact of the gradient clipping with and without being included in learning.",
+      "zh": "把它放在學習之後，是為了讓我們比較，梯度裁剪是否參與學習時的影響。"
+    },
+    {
+      "start": 921.81,
+      "end": 923.77,
+      "en": "And that's why this line is commented here.",
+      "zh": "因此，這裡這一行先註解掉。"
+    },
+    {
+      "start": 923.77,
+      "end": 927.13,
+      "en": "So in a moment I will uncomment that line and you'll see.",
+      "zh": "等一下會取消註解，你就看得到了。"
+    },
+    {
+      "start": 927.61,
+      "end": 929.29,
+      "en": "Okay, so run through all the learning.",
+      "zh": "好，執行所有學習步驟。"
+    },
+    {
+      "start": 929.29,
+      "end": 931.25,
+      "en": "We don't need to use the GPU here.",
+      "zh": "這裡不用 GPU。"
+    },
+    {
+      "start": 931.65,
+      "end": 934.25,
+      "en": "And now here we see the weights.",
+      "zh": "現在看看權重。"
+    },
+    {
+      "start": 934.25,
+      "end": 939.37,
+      "en": "So remember they start off with a value of 0.2 and minus four.",
+      "zh": "記得，一開始的值是 0.2 和負 4。"
+    },
+    {
+      "start": 939.77,
+      "end": 942.37,
+      "en": "But they need to be swapped.",
+      "zh": "但它們需要交換。"
+    },
+    {
+      "start": 942.37,
+      "end": 947.61,
+      "en": "So weight zero is the target that needs to be higher than weight one.",
+      "zh": "也就是權重 0 是目標，必須高於權重 1。"
+    },
+    {
+      "start": 947.85,
+      "end": 950.77,
+      "en": "So we do see learning taking place.",
+      "zh": "可以看到，確實有學習。"
+    },
+    {
+      "start": 951.01,
+      "end": 955.01,
+      "en": "Uh it's not quite enough to get the desired result.",
+      "zh": "還不足以得到期望的結果。"
+    },
+    {
+      "start": 955.01,
+      "end": 955.53,
+      "en": "That's fine.",
+      "zh": "沒關係。"
+    },
+    {
+      "start": 955.57,
+      "end": 957.88,
+      "en": "I mean, we could have more training epochs.",
+      "zh": "可以增加訓練週期，"
+    },
+    {
+      "start": 957.88,
+      "end": 960.4,
+      "en": "We could increase the learning rate that that's.",
+      "zh": "或提高學習率。"
+    },
+    {
+      "start": 960.76,
+      "end": 964.16,
+      "en": "We don't really care if the learning is successful here.",
+      "zh": "這裡不在乎學習是否成功。"
+    },
+    {
+      "start": 965.12,
+      "end": 968.12,
+      "en": "And notice here you see the gradient norm.",
+      "zh": "注意這裡的梯度範數。"
+    },
+    {
+      "start": 968.12,
+      "end": 971.28,
+      "en": "You see this is the actual gradient norm in green.",
+      "zh": "綠色是實際梯度範數。"
+    },
+    {
+      "start": 971.64,
+      "end": 973.52,
+      "en": "It is larger than one.",
+      "zh": "它大於 1。"
+    },
+    {
+      "start": 973.52,
+      "end": 981.8,
+      "en": "And so therefore when I apply that function to a clip and normalize the gradient magnitudes, it all",
+      "zh": "所以套用函數裁剪並正規化梯度大小後，"
+    },
+    {
+      "start": 981.8,
+      "end": 990.52,
+      "en": "equals one until the actual gradient ends up being less than one, in which case the gradient clipping",
+      "zh": "全都會是 1，直到實際梯度低於 1；那時梯度裁剪"
+    },
+    {
+      "start": 990.52,
+      "end": 995.88,
+      "en": "function does literally nothing because the value of the gradient is below the threshold.",
+      "zh": "函數就完全不做任何事，因為梯度值已低於門檻。"
+    },
+    {
+      "start": 996.56,
+      "end": 1000,
+      "en": "Okay, so in a moment I'm going to rerun the code.",
+      "zh": "好，等一下會重新執行。"
+    },
+    {
+      "start": 1000.56,
+      "end": 1001.36,
+      "en": "Actually I'll do it now.",
+      "zh": "其實現在就做。"
+    },
+    {
+      "start": 1001.36,
+      "end": 1003.16,
+      "en": "And then we'll get back to the visualization.",
+      "zh": "然後回來看視覺化。"
+    },
+    {
+      "start": 1003.96,
+      "end": 1004.2,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1004.24,
+      "end": 1008.96,
+      "en": "So I'm going to uncomment this line comment out this line.",
+      "zh": "取消這行註解，再把這行註解掉。"
+    },
+    {
+      "start": 1009.16,
+      "end": 1010.36,
+      "en": "And now uh yeah.",
+      "zh": "現在，對。"
+    },
+    {
+      "start": 1010.4,
+      "end": 1013.12,
+      "en": "As I mentioned these two lines are identical.",
+      "zh": "如前所述，這兩行完全相同。"
+    },
+    {
+      "start": 1013.32,
+      "end": 1025.03,
+      "en": "But now I'm clipping the gradient before we actually adjust the weights, and that means that the gradient is now being used for the optimization.",
+      "zh": "但現在是在實際調整權重之前裁剪梯度，所以裁剪後的梯度會用於最佳化。"
+    },
+    {
+      "start": 1025.39,
+      "end": 1027.51,
+      "en": "So now what I would like you to do.",
+      "zh": "現在希望你做的是，"
+    },
+    {
+      "start": 1027.51,
+      "end": 1031.43,
+      "en": "So this is not yet the visualization, the new visualization.",
+      "zh": "這還不是新的視覺化，"
+    },
+    {
+      "start": 1031.43,
+      "end": 1036.95,
+      "en": "This is still without any gradient clipping being applied during learning.",
+      "zh": "仍然是學習過程沒有套用梯度裁剪的圖。"
+    },
+    {
+      "start": 1037.23,
+      "end": 1045.27,
+      "en": "So what I would like you to do is basically just try to remember this distance here between the non-target and the target.",
+      "zh": "請大致記住，這裡非目標與目標之間的距離。"
+    },
+    {
+      "start": 1045.39,
+      "end": 1047.59,
+      "en": "And now I will redraw the figure.",
+      "zh": "現在重新畫圖。"
+    },
+    {
+      "start": 1047.91,
+      "end": 1054.63,
+      "en": "And now you can see that that distance has increased which means the model is actually running learning slower.",
+      "zh": "可以看到，距離變大了，代表模型學習得更慢。"
+    },
+    {
+      "start": 1055.11,
+      "end": 1057.27,
+      "en": "Now I didn't change the learning rate.",
+      "zh": "我沒有更動學習率。"
+    },
+    {
+      "start": 1057.27,
+      "end": 1059.47,
+      "en": "So it's not that the learning rate is lower.",
+      "zh": "所以不是學習率降低。"
+    },
+    {
+      "start": 1059.87,
+      "end": 1063.83,
+      "en": "I didn't change the target or the loss function or anything like that.",
+      "zh": "也沒更改目標、損失函數或其他設定。"
+    },
+    {
+      "start": 1063.87,
+      "end": 1074.95,
+      "en": "The only thing I did was remove all of this really important, meaningful, valuable information that is contained in the magnitude of the gradient.",
+      "zh": "唯一做的，是移除梯度大小中包含的重要、有意義、有價值的資訊。"
+    },
+    {
+      "start": 1075.43,
+      "end": 1086.79,
+      "en": "So all of this difference, the distinction between 1 and 1.4, that is information that the model should be using to adjust the weights.",
+      "zh": "例如，1 和 1.4 的差異，就是模型應該用來調整權重的資訊。"
+    },
+    {
+      "start": 1086.87,
+      "end": 1089.75,
+      "en": "So in this case we are slowing down learning.",
+      "zh": "因此，這個例子中，學習變慢了。"
+    },
+    {
+      "start": 1090.27,
+      "end": 1101.47,
+      "en": "As I mentioned in the slides, this kind of clipping is not something you want to apply to simple models or small models or simple clean data sets to learn from.",
+      "zh": "如投影片所述，對簡單模型、小型模型，或簡單乾淨的學習資料集，不會想套用這種裁剪。"
+    },
+    {
+      "start": 1101.63,
+      "end": 1109.95,
+      "en": "This is really just something that becomes important when you're working with very large models that can be very numerically unstable.",
+      "zh": "它主要是在處理可能數值非常不穩定的超大型模型時，才變得重要。"
+    },
+    {
+      "start": 1111.07,
+      "end": 1117.87,
+      "en": "I am now about halfway through the Python demo, and this video is starting to get a little bit long,",
+      "zh": "Python 示範大約到一半，影片開始有點長，"
+    },
+    {
+      "start": 1117.87,
+      "end": 1123.43,
+      "en": "so I decided to cut the recording here and continue in the next video.",
+      "zh": "所以決定在這裡分段，下一支繼續。"
+    },
+    {
+      "start": 1123.47,
+      "end": 1134.15,
+      "en": "I encourage you to get up and stretch your legs, and when you're ready and you feel refreshed, you can come back to the next video to learn about learning rate schedulers.",
+      "zh": "建議起身伸展雙腿，等恢復精神、準備好了，再看下一支影片，學習學習率排程器。"
+    }
+  ]
+}

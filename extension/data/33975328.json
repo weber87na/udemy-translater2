@@ -1,0 +1,1387 @@
+{
+  "courseId": "4734870",
+  "lectureId": "33975328",
+  "title": "Calculating the Input and Output Shape of the Embedding Layer by Hand",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "de2a0148e6149a2a81bac74bf8c11584b68d0432746e52e0892dcb57d02988ee",
+  "cues": [
+    {
+      "start": 0.39,
+      "end": 1.5,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 1.62,
+      "end": 6.84,
+      "en": "In the last video, we finished off putting together the pieces of the puzzle with a video overview.",
+      "zh": "上一段影片用概觀介紹，完成了拼圖的整理。"
+    },
+    {
+      "start": 6.87,
+      "end": 8.49,
+      "en": "We've broken down figure one.",
+      "zh": "我們拆解了圖 1。"
+    },
+    {
+      "start": 8.49,
+      "end": 18.42,
+      "en": "We've broken down the four equations, and now we've had a look at table one, which defines the different type of parameters of different vision transformer model variance.",
+      "zh": "拆解四個方程式，也看過表 1，定義不同 Vision Transformer 模型變體的不同超參數。"
+    },
+    {
+      "start": 18.54,
+      "end": 25.41,
+      "en": "And we discussed that we're going to be replicating that base because that way we can just start small experiment quicker.",
+      "zh": "我們說過要重現 ViT-Base，這樣能從小規模開始，更快實驗。"
+    },
+    {
+      "start": 25.41,
+      "end": 28.2,
+      "en": "And then if we want to upscale, we can do so.",
+      "zh": "想擴大時，也可以做到。"
+    },
+    {
+      "start": 28.53,
+      "end": 35.1,
+      "en": "And I'll just add a little note here that the nomenclature in the paper is vit B, which stands for vit base.",
+      "zh": "這裡加個小註記：論文的記法是 ViT-B，代表 ViT-Base。"
+    },
+    {
+      "start": 35.1,
+      "end": 45.66,
+      "en": "So these hyper parameters and 16 stands for an image patch size of 16 by 16, which is of course detailed here under model variance.",
+      "zh": "就是這些超參數，而 16 代表影像區塊大小為 16 乘 16，在 Model Variants 這裡有詳細說明。"
+    },
+    {
+      "start": 45.66,
+      "end": 46.95,
+      "en": "And there we go.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 46.98,
+      "end": 52.83,
+      "en": "Vit l 16 means a large variant with 16 by 16 image patch size.",
+      "zh": "ViT-L/16 代表 Large 變體，影像區塊大小為 16 乘 16。"
+    },
+    {
+      "start": 52.95,
+      "end": 56.84,
+      "en": "So 16 is our patch size.",
+      "zh": "所以 16 是區塊大小。"
+    },
+    {
+      "start": 56.85,
+      "end": 63.39,
+      "en": "And speaking of which, how about we start moving towards writing some actual code to begin with?",
+      "zh": "說到這裡，不如開始往實際寫程式碼前進？"
+    },
+    {
+      "start": 63.39,
+      "end": 66.9,
+      "en": "We're going to replicate all of these equations over time, that is.",
+      "zh": "最後會重現全部方程式。"
+    },
+    {
+      "start": 67.02,
+      "end": 74.49,
+      "en": "But to begin, we're going to start with equation one, and that is the patch position and class embedding.",
+      "zh": "但一開始先從方程式 1，也就是區塊、位置和類別嵌入開始。"
+    },
+    {
+      "start": 75.03,
+      "end": 76.77,
+      "en": "So have I think for a second.",
+      "zh": "先想一下。"
+    },
+    {
+      "start": 76.89,
+      "end": 83.52,
+      "en": "How do you think we might turn our image a single input image into a sequence of patches?",
+      "zh": "你覺得要怎麼把單張輸入影像，轉成一串區塊？"
+    },
+    {
+      "start": 83.94,
+      "end": 86.01,
+      "en": "And then how might we embed them?",
+      "zh": "再怎麼替它們做嵌入？"
+    },
+    {
+      "start": 87.43,
+      "end": 92.47,
+      "en": "You may have an idea if you've read through the entire paper, but if you don't, that's perfectly okay.",
+      "zh": "如果讀完整篇論文，可能有想法。沒有也完全沒關係。"
+    },
+    {
+      "start": 92.71000000000001,
+      "end": 94.78,
+      "en": "You can almost guess if you wanted to.",
+      "zh": "想的話，甚至可以猜猜看。"
+    },
+    {
+      "start": 95.83,
+      "end": 98.6,
+      "en": "But let's I'm not going to reveal the secret yet.",
+      "zh": "不過我先不揭曉秘密。"
+    },
+    {
+      "start": 98.62,
+      "end": 102.58,
+      "en": "Let's instead see an overview of the workflow.",
+      "zh": "先看工作流程概觀。"
+    },
+    {
+      "start": 102.94,
+      "end": 104.64,
+      "en": "Now, this is part of the visualized Visualize.",
+      "zh": "這是視覺化、視覺化、"
+    },
+    {
+      "start": 104.65,
+      "end": 105.78999999999999,
+      "en": "Visualize motto.",
+      "zh": "再視覺化原則的一部分。"
+    },
+    {
+      "start": 105.85,
+      "end": 106.3,
+      "en": "Oh.",
+      "zh": "喔。"
+    },
+    {
+      "start": 107.88,
+      "end": 108.88,
+      "en": "We've skipped ahead.",
+      "zh": "跳太前面了。"
+    },
+    {
+      "start": 108.9,
+      "end": 112.74000000000001,
+      "en": "I've got a little animation here to overview what we're going to be replicating with code.",
+      "zh": "這裡有個小動畫，概述我們要用程式碼重現的內容。"
+    },
+    {
+      "start": 112.89,
+      "end": 113.97,
+      "en": "So this is Food Vision.",
+      "zh": "這是 Food Vision"
+    },
+    {
+      "start": 113.97,
+      "end": 115.86,
+      "en": "Many meets Vit.",
+      "zh": "Mini 遇上 ViT。"
+    },
+    {
+      "start": 117.6,
+      "end": 119.00999999999999,
+      "en": "We cut it into patches.",
+      "zh": "把影像切成區塊。"
+    },
+    {
+      "start": 120.7,
+      "end": 122.98,
+      "en": "Now we have to embed each of the patches.",
+      "zh": "現在要為每個區塊做嵌入。"
+    },
+    {
+      "start": 123.73,
+      "end": 124.99,
+      "en": "We might embed it with a.",
+      "zh": "可以用一個……"
+    },
+    {
+      "start": 125.55,
+      "end": 126.94,
+      "en": "There's a little spoiler there.",
+      "zh": "這裡有點透露答案。"
+    },
+    {
+      "start": 128.4,
+      "end": 130.8,
+      "en": "It's a line that we've used previously.",
+      "zh": "是之前用過的層。"
+    },
+    {
+      "start": 130.95,
+      "end": 137.94,
+      "en": "And then if we embed each patch into a series of numbers, represent them as a learnable embedding.",
+      "zh": "如果把每個區塊嵌入成一串數值，表示成可學習的嵌入。"
+    },
+    {
+      "start": 139.37,
+      "end": 140.87,
+      "en": "I've got nine patches.",
+      "zh": "我畫了九個區塊。"
+    },
+    {
+      "start": 140.96,
+      "end": 144.38,
+      "en": "Oh, there's another part of July that we might have seen before.",
+      "zh": "喔，又有一個之前可能看過的 PyTorch 層。"
+    },
+    {
+      "start": 144.68,
+      "end": 148.49,
+      "en": "We flatten it to a sequence that looks familiar, doesn't it?",
+      "zh": "把它展平成序列，看起來很熟悉，對吧？"
+    },
+    {
+      "start": 149.03,
+      "end": 150.47,
+      "en": "Then we've got the convolution.",
+      "zh": "接著有卷積。"
+    },
+    {
+      "start": 150.67000000000002,
+      "end": 152,
+      "en": "Oh, excuse me.",
+      "zh": "喔，不好意思。"
+    },
+    {
+      "start": 152.03,
+      "end": 152.96,
+      "en": "I've spoiled it.",
+      "zh": "我把答案說出來了。"
+    },
+    {
+      "start": 154.52,
+      "end": 156.47,
+      "en": "We've got embedding tokens.",
+      "zh": "有嵌入 token。"
+    },
+    {
+      "start": 157.73,
+      "end": 161.36,
+      "en": "Then we've got class embedding and then position embeddings in purple.",
+      "zh": "再來是類別嵌入，然後是紫色的位置嵌入。"
+    },
+    {
+      "start": 162.2,
+      "end": 164.99,
+      "en": "We feed that to the transformer encoder layers.",
+      "zh": "把它傳給 Transformer 編碼器層。"
+    },
+    {
+      "start": 165.5,
+      "end": 172.49,
+      "en": "We feed the output of the transformer encoder layers to the MLP output, and then hopefully we get our class.",
+      "zh": "再把 Transformer 編碼器層輸出傳給 MLP 輸出，然後希望取得類別。"
+    },
+    {
+      "start": 173.03,
+      "end": 175.87,
+      "en": "So if we start again, I'm not going to rewatch this.",
+      "zh": "從頭再看，不過我不重播。"
+    },
+    {
+      "start": 175.88,
+      "end": 177.64,
+      "en": "You can watch this on your own time.",
+      "zh": "你可以自己找時間看。"
+    },
+    {
+      "start": 177.65,
+      "end": 179.54,
+      "en": "It's also available in here.",
+      "zh": "這裡也有。"
+    },
+    {
+      "start": 180.38,
+      "end": 185.45,
+      "en": "If we go, we've got a little overview somewhere.",
+      "zh": "應該有個小概觀在某處。"
+    },
+    {
+      "start": 185.87,
+      "end": 188.05,
+      "en": "I believe it's in here several times, actually.",
+      "zh": "其實我想這裡出現過幾次。"
+    },
+    {
+      "start": 188.06,
+      "end": 189.38,
+      "en": "Yeah, There we go.",
+      "zh": "對，找到了。"
+    },
+    {
+      "start": 189.71,
+      "end": 191.71,
+      "en": "So you can jump ahead and have a look at that.",
+      "zh": "可以跳過去看看。"
+    },
+    {
+      "start": 191.72,
+      "end": 197.75,
+      "en": "But we're up to equation one, split the data into patches and creating the class position and patch embedding.",
+      "zh": "不過目前在方程式 1，把資料切成區塊，建立類別、位置和區塊嵌入。"
+    },
+    {
+      "start": 197.75,
+      "end": 199.13,
+      "en": "So let's jump in here.",
+      "zh": "到這裡。"
+    },
+    {
+      "start": 201.05,
+      "end": 211.16,
+      "en": "We'll start equation by equation, equation one, and this is going to be split data into patches and",
+      "zh": "先逐個方程式來。方程式 1：把資料切成區塊，並"
+    },
+    {
+      "start": 211.16,
+      "end": 217.1,
+      "en": "creating the class position and patch embedding.",
+      "zh": "建立類別、位置和區塊嵌入。"
+    },
+    {
+      "start": 219.53,
+      "end": 231.02,
+      "en": "So what I like to do first is we've discussed previously that layers equals input and then some sort of function and then output.",
+      "zh": "我喜歡先從這裡開始。之前說過，層等於輸入，接著某個函式，再來輸出。"
+    },
+    {
+      "start": 232.01,
+      "end": 235.4,
+      "en": "But what's another really important thing of machine learning?",
+      "zh": "不過機器學習還有什麼非常重要的事情？"
+    },
+    {
+      "start": 235.4,
+      "end": 241.13,
+      "en": "And I know that's kind of a general question, but when we have our input, it's some sort of representation, right?",
+      "zh": "我知道問題很籠統，但輸入是一種表徵，對吧？"
+    },
+    {
+      "start": 241.4,
+      "end": 244.34,
+      "en": "And so what's the input shape?",
+      "zh": "那輸入形狀是什麼？"
+    },
+    {
+      "start": 245.78,
+      "end": 248.75,
+      "en": "We have a tensor and what's its shape?",
+      "zh": "我們有一個張量，它的形狀是什麼？"
+    },
+    {
+      "start": 248.75,
+      "end": 253.85,
+      "en": "And then the function does something and then what's the output shape?",
+      "zh": "接著函式做一些處理，輸出形狀又是什麼？"
+    },
+    {
+      "start": 253.85,
+      "end": 259.82,
+      "en": "So when I'm replicating a new architecture or trying to use an existing one, I always like to check",
+      "zh": "所以重現新架構，或使用現有架構時，我總喜歡檢查"
+    },
+    {
+      "start": 259.82,
+      "end": 266.06,
+      "en": "out the input and output shapes of each layer of the entire model.",
+      "zh": "每一層和整個模型的輸入、輸出形狀。"
+    },
+    {
+      "start": 266.09,
+      "end": 268.5,
+      "en": "You name it input and output shapes.",
+      "zh": "各種輸入、輸出形狀。"
+    },
+    {
+      "start": 268.52,
+      "end": 273.24,
+      "en": "One of the biggest problems you'll find in machine learning and deep learning is misaligned tensor shapes.",
+      "zh": "機器學習與深度學習最常遇到的大問題之一，就是張量形狀不匹配。"
+    },
+    {
+      "start": 273.26,
+      "end": 277.34000000000003,
+      "en": "So let's begin by finding out the input and the output shape.",
+      "zh": "所以先找出輸入和輸出形狀。"
+    },
+    {
+      "start": 277.67,
+      "end": 287.69,
+      "en": "Now we kind of actually know what the input shape is, so the input shape will be a single image of 22422, four, three.",
+      "zh": "其實已經知道輸入形狀，是一張 224、224、3 的影像。"
+    },
+    {
+      "start": 288.2,
+      "end": 291.86,
+      "en": "But what's the output shape of the patch embedding layer?",
+      "zh": "不過影像區塊嵌入層的輸出形狀是什麼？"
+    },
+    {
+      "start": 291.89,
+      "end": 293.99,
+      "en": "This is equation one, by the way.",
+      "zh": "順帶一提，這是方程式 1。"
+    },
+    {
+      "start": 294.02,
+      "end": 295.55,
+      "en": "We're focused on equation one.",
+      "zh": "我們專注在方程式 1。"
+    },
+    {
+      "start": 296.27,
+      "end": 303.77,
+      "en": "So this is single image, which is of course, height, width, color channels.",
+      "zh": "這是單張影像，當然是高度、寬度、色彩通道。"
+    },
+    {
+      "start": 305.57,
+      "end": 307.64,
+      "en": "Where could we get this information from?",
+      "zh": "可以從哪裡找到資訊？"
+    },
+    {
+      "start": 308.03,
+      "end": 312.62,
+      "en": "Well, if we go back up to section 3.1, it's described here.",
+      "zh": "回到第 3.1 節，這裡有說明。"
+    },
+    {
+      "start": 313.98,
+      "end": 315.87,
+      "en": "So let's copy this down.",
+      "zh": "複製到下面。"
+    },
+    {
+      "start": 315.93,
+      "end": 317.01,
+      "en": "Equation one.",
+      "zh": "方程式 1。"
+    },
+    {
+      "start": 318.21,
+      "end": 320.31,
+      "en": "I know we're doubling up here, but.",
+      "zh": "我知道有點重複，不過……"
+    },
+    {
+      "start": 321.57,
+      "end": 327.74,
+      "en": "I'm trying to explain, as we've discussed before, some non-linear information in a linear fashion.",
+      "zh": "正如之前說的，我在試著用線性方式，解釋互相關聯的非線性資訊。"
+    },
+    {
+      "start": 328.1,
+      "end": 335.57,
+      "en": "So let's just take a little second here to read through this again, because this is going to give us our input and output shapes of equation one.",
+      "zh": "花一點時間重讀這裡，因為會提供方程式 1 的輸入和輸出形狀。"
+    },
+    {
+      "start": 335.75,
+      "end": 340.04,
+      "en": "Once we have our input and output shapes, we can start to work backwards from there.",
+      "zh": "知道輸入和輸出形狀後，就能反過來推。"
+    },
+    {
+      "start": 340.58,
+      "end": 347.81,
+      "en": "So to handle 2D images, which is our input in our case, we're going to start with inputting a single image.",
+      "zh": "為了處理二維影像，也就是輸入，我們先從單張影像開始。"
+    },
+    {
+      "start": 348.71,
+      "end": 350.36,
+      "en": "Such as this image of pizza.",
+      "zh": "例如這張披薩影像。"
+    },
+    {
+      "start": 352.09000000000003,
+      "end": 353.35,
+      "en": "You see what we're doing here?",
+      "zh": "看出我們在做什麼了嗎？"
+    },
+    {
+      "start": 353.38,
+      "end": 360.37,
+      "en": "We're breaking things down into a smaller piece as possible, a single input image and a single layer at a time.",
+      "zh": "把問題拆得越小越好，一次一張輸入影像、一個層。"
+    },
+    {
+      "start": 360.88,
+      "end": 365.65,
+      "en": "So we have X input is an element of a real number.",
+      "zh": "所以 x_input 屬於實數空間。"
+    },
+    {
+      "start": 365.68,
+      "end": 369.97,
+      "en": "Height times width times color channels 2 to 4, two, two, four, three.",
+      "zh": "高度乘寬度乘色彩通道，224、224、3。"
+    },
+    {
+      "start": 369.97,
+      "end": 374.41,
+      "en": "Or in PyTorch it might be three first four color channels first by default.",
+      "zh": "在 PyTorch 裡，可能把 3 放最前面，預設色彩通道在前。"
+    },
+    {
+      "start": 374.44,
+      "end": 382.36,
+      "en": "You can set it up so that it's this way though into a sequence of flattened 2D patches where x patch",
+      "zh": "不過也能設定成這種順序。轉成一串展平的二維區塊，其中 x_patch"
+    },
+    {
+      "start": 382.72,
+      "end": 393.73,
+      "en": "is an element of a real number of shape n times P squared dot C where C is the color channel and H and",
+      "zh": "屬於形狀 N 乘上 P 平方再乘 C 的實數空間。C 是色彩通道，H 和"
+    },
+    {
+      "start": 393.73,
+      "end": 394.93,
+      "en": "W, let's write this down.",
+      "zh": "W，把它寫下來。"
+    },
+    {
+      "start": 394.93,
+      "end": 401.5,
+      "en": "Hey, while we're while we're at it so let's go input image is.",
+      "zh": "既然正在看，就寫：輸入影像是"
+    },
+    {
+      "start": 402.97,
+      "end": 403.69,
+      "en": "H.",
+      "zh": "H。"
+    },
+    {
+      "start": 406.49,
+      "end": 407.47,
+      "en": "We're going to use.",
+      "zh": "我們要用……"
+    },
+    {
+      "start": 407.63,
+      "end": 408.02,
+      "en": "Well, maybe.",
+      "zh": "或者……"
+    },
+    {
+      "start": 408.02,
+      "end": 410.44,
+      "en": "Can I do this in dollar signs?",
+      "zh": "可以用錢字號寫嗎？"
+    },
+    {
+      "start": 410.45,
+      "end": 412.01,
+      "en": "I'm not very good at writing.",
+      "zh": "我不太擅長這樣寫。"
+    },
+    {
+      "start": 414.98,
+      "end": 416.33,
+      "en": "I don't think this will come out nicely.",
+      "zh": "我想格式可能不會很好看。"
+    },
+    {
+      "start": 416.33,
+      "end": 416.81,
+      "en": "Will it?",
+      "zh": "會嗎？"
+    },
+    {
+      "start": 417.96,
+      "end": 418.73,
+      "en": "Hmm.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 419.19,
+      "end": 420.93,
+      "en": "Maybe we can go times.",
+      "zh": "也許可以寫 times。"
+    },
+    {
+      "start": 425.6,
+      "end": 427.52,
+      "en": "This is experimenting on the fly here.",
+      "zh": "這是即興實驗。"
+    },
+    {
+      "start": 430.16,
+      "end": 431.21,
+      "en": "Hey, there we go.",
+      "zh": "有了。"
+    },
+    {
+      "start": 431.24,
+      "end": 434.68,
+      "en": "So the input image is height, width, color channels.",
+      "zh": "所以輸入影像是高度、寬度、色彩通道。"
+    },
+    {
+      "start": 434.69,
+      "end": 439.49,
+      "en": "So I'm just going to put this down here height times width times color channels.",
+      "zh": "在下面寫高度乘寬度乘色彩通道。"
+    },
+    {
+      "start": 439.49,
+      "end": 440.99,
+      "en": "And where am I getting this from?",
+      "zh": "我從哪裡取得這個？"
+    },
+    {
+      "start": 441.2,
+      "end": 442.94,
+      "en": "Well, it's from right here.",
+      "zh": "就是這裡。"
+    },
+    {
+      "start": 443.85,
+      "end": 449.49,
+      "en": "Now let's get the output image or the output sequence of patches is of this shape.",
+      "zh": "現在取得輸出影像，或是輸出區塊序列的形狀。"
+    },
+    {
+      "start": 449.49,
+      "end": 454.86,
+      "en": "So we need to figure out what output image is.",
+      "zh": "需要弄清楚輸出影像是什麼。"
+    },
+    {
+      "start": 456.06,
+      "end": 456.99,
+      "en": "Dollar sign.",
+      "zh": "錢字號。"
+    },
+    {
+      "start": 456.99,
+      "end": 463.02,
+      "en": "NN And then I'm going to go times and then I'm going to go pee.",
+      "zh": "N，接著寫 times，再寫 P。"
+    },
+    {
+      "start": 463.17,
+      "end": 466.14,
+      "en": "Oh no, I'm not quite sure how to get squared here.",
+      "zh": "喔，我不太確定怎麼寫平方。"
+    },
+    {
+      "start": 466.17,
+      "end": 467.31,
+      "en": "Maybe we'll just copy this.",
+      "zh": "也許直接複製。"
+    },
+    {
+      "start": 467.31,
+      "end": 467.73,
+      "en": "Hey.",
+      "zh": "嘿。"
+    },
+    {
+      "start": 468.99,
+      "end": 471.45,
+      "en": "Murphy, We want this one.",
+      "zh": "我們要這個。"
+    },
+    {
+      "start": 477.42,
+      "end": 478.40999999999997,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 478.83,
+      "end": 480.18,
+      "en": "Might just get that there.",
+      "zh": "把它放到那裡。"
+    },
+    {
+      "start": 482.94,
+      "end": 485.79,
+      "en": "And I can get rid of this R at the start.",
+      "zh": "可以把開頭的 R 去掉。"
+    },
+    {
+      "start": 485.79,
+      "end": 488.67,
+      "en": "So we're just breaking this down step by step.",
+      "zh": "就是這樣逐步拆解。"
+    },
+    {
+      "start": 488.88,
+      "end": 490.15,
+      "en": "And now let's go.",
+      "zh": "現在寫。"
+    },
+    {
+      "start": 490.17,
+      "end": 491.61,
+      "en": "Age equals height.",
+      "zh": "H 等於 height。"
+    },
+    {
+      "start": 491.91,
+      "end": 492.72,
+      "en": "We're going to start type.",
+      "zh": "先打出來。"
+    },
+    {
+      "start": 492.72,
+      "end": 497.7,
+      "en": "We're not going to bother with a fancy text here because I'm much faster at just doing it like this.",
+      "zh": "不用那些漂亮字體，因為直接這樣打快多了。"
+    },
+    {
+      "start": 497.91,
+      "end": 499.52,
+      "en": "Color channels now.",
+      "zh": "Color channels。"
+    },
+    {
+      "start": 499.53,
+      "end": 501.63,
+      "en": "N What is n equal to?",
+      "zh": "N，N 等於什麼？"
+    },
+    {
+      "start": 501.93,
+      "end": 510.33,
+      "en": "Let's find out what n is equal to because we've got n here and is equal to height times width divided",
+      "zh": "找出 N 等於什麼，因為這裡有 N。N 等於高度乘寬度，除以"
+    },
+    {
+      "start": 510.33,
+      "end": 514.26,
+      "en": "by P squared, where P is the resolution of each image patch.",
+      "zh": "P 平方，其中 P 是每個影像區塊的解析度。"
+    },
+    {
+      "start": 514.26,
+      "end": 515.85,
+      "en": "So we actually know what P is.",
+      "zh": "所以其實知道 P 是多少。"
+    },
+    {
+      "start": 515.85,
+      "end": 523.14,
+      "en": "Now we've said we're going to use a patch size of 16, so P equals patch size and N equals height times.",
+      "zh": "我們說要使用區塊大小 16，所以 P 等於 patch_size，N 等於高度乘……"
+    },
+    {
+      "start": 523.41,
+      "end": 532.35,
+      "en": "We're right here equals number of patches equals height times width and we'll put that in brackets a",
+      "zh": "就是這裡，等於區塊數量，等於高度乘寬度，用括號括起來，"
+    },
+    {
+      "start": 532.95,
+      "end": 542.28,
+      "en": "height times width and then we'll divide that by P and then squared and then do we have anything else here?",
+      "zh": "高度乘寬度，再除以 P 平方。還有其他資訊嗎？"
+    },
+    {
+      "start": 543.06,
+      "end": 554.01,
+      "en": "Uses constant latent vector size d d equals constant latent vector size, which is also equal to embedding",
+      "zh": "使用固定的潛在向量大小 D。D 等於固定的潛在向量大小，也就是嵌入"
+    },
+    {
+      "start": 554.01,
+      "end": 558.03,
+      "en": "dimension C table one.",
+      "zh": "維度，見表 1。"
+    },
+    {
+      "start": 558.03,
+      "end": 560.43,
+      "en": "Now that's just what we went through before in the previous video.",
+      "zh": "就是上一段影片剛介紹過的。"
+    },
+    {
+      "start": 560.43,
+      "end": 564.69,
+      "en": "So we've got all of the pieces of the puzzle here for the input and output shapes here.",
+      "zh": "所以這裡已經有輸入、輸出形狀所需的全部拼圖。"
+    },
+    {
+      "start": 564.99,
+      "end": 566.13,
+      "en": "I just want to.",
+      "zh": "我只是想"
+    },
+    {
+      "start": 567.26,
+      "end": 567.86,
+      "en": "Emphasis.",
+      "zh": "強調一下。"
+    },
+    {
+      "start": 567.86,
+      "end": 570.71,
+      "en": "Yeah, There's the hidden sized D, That's where D comes from there.",
+      "zh": "對，這裡的 Hidden Size D，就是 D 的來源。"
+    },
+    {
+      "start": 571.28,
+      "end": 572.21,
+      "en": "So.",
+      "zh": "所以，"
+    },
+    {
+      "start": 572.98,
+      "end": 574.33,
+      "en": "We don't actually want.",
+      "zh": "其實不要寫"
+    },
+    {
+      "start": 575.81,
+      "end": 576.56,
+      "en": "Input image.",
+      "zh": "輸入影像。"
+    },
+    {
+      "start": 576.56,
+      "end": 578.06,
+      "en": "It's going to be we know it's an image.",
+      "zh": "因為知道它是影像。"
+    },
+    {
+      "start": 578.06,
+      "end": 579.17,
+      "en": "We just want the shape.",
+      "zh": "只要形狀。"
+    },
+    {
+      "start": 579.17,
+      "end": 581.24,
+      "en": "So let's calculate it by hand.",
+      "zh": "手動計算吧。"
+    },
+    {
+      "start": 581.24,
+      "end": 582.65,
+      "en": "How do we start to do that?",
+      "zh": "要怎麼開始？"
+    },
+    {
+      "start": 583.01,
+      "end": 585.9,
+      "en": "Well, how about we create some example values?",
+      "zh": "建立一些範例數值如何？"
+    },
+    {
+      "start": 587.21,
+      "end": 588.77,
+      "en": "Example values.",
+      "zh": "範例數值。"
+    },
+    {
+      "start": 590.56,
+      "end": 600.7,
+      "en": "So our input shape is height, width, color channels and we know that the input shape is 2 to 4 of the image shape and we're using colored images.",
+      "zh": "輸入形狀是高度、寬度、色彩通道。知道影像尺寸是 224，而且用的是彩色影像。"
+    },
+    {
+      "start": 600.7,
+      "end": 602.74,
+      "en": "So it's going to be three color channels, right?",
+      "zh": "所以色彩通道是 3，對吧？"
+    },
+    {
+      "start": 603.07,
+      "end": 611.29,
+      "en": "So height equals 2 to 4, width equals two, two four color channels equals three.",
+      "zh": "height 等於 224，width 等於 224，color_channels 等於 3。"
+    },
+    {
+      "start": 611.41,
+      "end": 615.1,
+      "en": "Patch size equals what we've said that this is going to be 16.",
+      "zh": "patch_size，剛才說會用 16。"
+    },
+    {
+      "start": 615.1,
+      "end": 623.05,
+      "en": "We got that from the model variance section L 16 means large variant with 16 by 16 input size.",
+      "zh": "來自 Model Variants 那一節：L/16 代表 Large 變體，輸入區塊大小 16 乘 16。"
+    },
+    {
+      "start": 623.29,
+      "end": 627.19,
+      "en": "And I believe if we go to yeah, here we go.",
+      "zh": "我想如果到……對，這裡。"
+    },
+    {
+      "start": 627.19,
+      "end": 632.32,
+      "en": "We've got some good results here from 1616.",
+      "zh": "16 乘 16 有不錯的結果。"
+    },
+    {
+      "start": 634.18,
+      "end": 642.16,
+      "en": "And then if we looked at the further results, if you read through the rest of the paper, would it be 16 performs pretty well across image net.",
+      "zh": "再看後面的結果，讀完整篇論文，ViT-B/16 在 ImageNet 表現相當不錯。"
+    },
+    {
+      "start": 642.28,
+      "end": 643.51,
+      "en": "So it gets about.",
+      "zh": "大概得到"
+    },
+    {
+      "start": 644.79,
+      "end": 648.09,
+      "en": "77 or 76%.",
+      "zh": "77% 或 76%。"
+    },
+    {
+      "start": 649.06,
+      "end": 649.87,
+      "en": "On image Net.",
+      "zh": "在 ImageNet 上。"
+    },
+    {
+      "start": 649.87,
+      "end": 651.07,
+      "en": "So a thousand classes.",
+      "zh": "有 1000 個類別。"
+    },
+    {
+      "start": 651.07,
+      "end": 652.06,
+      "en": "So that's pretty darn good.",
+      "zh": "所以相當不錯。"
+    },
+    {
+      "start": 652.06,
+      "end": 663.46,
+      "en": "So this is what we're replicating bit by bit base with a patch size of 16 and we're trying to work out the input and output shapes of the first equation, breaking it down step by step.",
+      "zh": "我們要重現的就是 ViT-Base，區塊大小 16，並逐步找出第一個方程式的輸入、輸出形狀。"
+    },
+    {
+      "start": 663.46,
+      "end": 666.34,
+      "en": "So we've got the height, the width, the color channels, the patch size.",
+      "zh": "有高度、寬度、色彩通道、區塊大小。"
+    },
+    {
+      "start": 666.34,
+      "end": 674.08,
+      "en": "Now let's calculate by hand the number of patches, calculate the number of patches.",
+      "zh": "現在手動計算區塊數量，計算區塊數量。"
+    },
+    {
+      "start": 676.15,
+      "end": 682.27,
+      "en": "So a number of patches which is going to be NW, we can use the formula here.",
+      "zh": "number_of_patches，也就是 N，可以用這裡的公式。"
+    },
+    {
+      "start": 682.3,
+      "end": 683.74,
+      "en": "We'll turn it into an int.",
+      "zh": "轉成 int。"
+    },
+    {
+      "start": 684.49,
+      "end": 685.36,
+      "en": "We'll go.",
+      "zh": "寫下來。"
+    },
+    {
+      "start": 686.3,
+      "end": 690.47,
+      "en": "Height times width because it needs to be a round number.",
+      "zh": "高度乘寬度，因為需要整數。"
+    },
+    {
+      "start": 690.47,
+      "end": 690.77,
+      "en": "That is.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 690.77,
+      "end": 698.3,
+      "en": "That's why we're turning in an integer and I'm going to divide it by the patch size squared.",
+      "zh": "所以轉成整數，再除以區塊大小的平方。"
+    },
+    {
+      "start": 700.98,
+      "end": 703.98,
+      "en": "And so that is here.",
+      "zh": "就是這裡。"
+    },
+    {
+      "start": 704.22,
+      "end": 708,
+      "en": "And equals height width divided by patch size squared.",
+      "zh": "N 等於高度乘寬度，除以區塊大小的平方。"
+    },
+    {
+      "start": 708.33,
+      "end": 709.63,
+      "en": "So we've just replicated that.",
+      "zh": "已經重現它了。"
+    },
+    {
+      "start": 709.65,
+      "end": 711.39,
+      "en": "Have I got one too many brackets there?",
+      "zh": "括號是不是多了一個？"
+    },
+    {
+      "start": 711.99,
+      "end": 713.85,
+      "en": "Let's check out the number of patches.",
+      "zh": "看看區塊數量。"
+    },
+    {
+      "start": 717.85,
+      "end": 719.68,
+      "en": "196.",
+      "zh": "196。"
+    },
+    {
+      "start": 719.68,
+      "end": 720.28,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 720.28,
+      "end": 723.49,
+      "en": "So that is going to be our end dimension there.",
+      "zh": "這就是 N 維度。"
+    },
+    {
+      "start": 723.85,
+      "end": 726.02,
+      "en": "So how can we work out?",
+      "zh": "要怎麼算出"
+    },
+    {
+      "start": 726.04,
+      "end": 727.81,
+      "en": "P squared times?",
+      "zh": "P 平方乘上"
+    },
+    {
+      "start": 727.81,
+      "end": 730.69,
+      "en": "C Well, we can do that as well.",
+      "zh": "C？這也算得出來。"
+    },
+    {
+      "start": 730.81,
+      "end": 732.1,
+      "en": "Let's go.",
+      "zh": "來吧。"
+    },
+    {
+      "start": 732.64,
+      "end": 733.21,
+      "en": "Hmm.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 735.11,
+      "end": 737.99,
+      "en": "Let's create an example input size.",
+      "zh": "建立一個範例輸入大小。"
+    },
+    {
+      "start": 737.99,
+      "end": 748.13,
+      "en": "So input shape equals or create the input shape and we'll go embedding layer.",
+      "zh": "input_shape 等於，或者說建立輸入形狀，寫 embedding_layer"
+    },
+    {
+      "start": 750.73,
+      "end": 753.96,
+      "en": "Input shape equals what's this going to equal?",
+      "zh": "_input_shape，它等於什麼？"
+    },
+    {
+      "start": 753.97,
+      "end": 757.57,
+      "en": "So this is the input into our first embedded layer.",
+      "zh": "這是第一個嵌入層的輸入。"
+    },
+    {
+      "start": 758.05,
+      "end": 760.15,
+      "en": "So if we go back, we'll find figure one.",
+      "zh": "回去找圖 1。"
+    },
+    {
+      "start": 760.91,
+      "end": 761.75,
+      "en": "There we go.",
+      "zh": "找到了。"
+    },
+    {
+      "start": 762.65,
+      "end": 768.41,
+      "en": "So we want the input shape of our image into our embedding layer.",
+      "zh": "我們要知道影像輸入嵌入層的形狀。"
+    },
+    {
+      "start": 768.8,
+      "end": 770.39,
+      "en": "And we've already got this, haven't we?",
+      "zh": "其實已經有了，對吧？"
+    },
+    {
+      "start": 772.33,
+      "end": 773.35,
+      "en": "Let's go back here.",
+      "zh": "回來。"
+    },
+    {
+      "start": 773.38,
+      "end": 777.73,
+      "en": "Is going to be height, width, color channels.",
+      "zh": "會是高度、寬度、色彩通道。"
+    },
+    {
+      "start": 779.24,
+      "end": 781.61,
+      "en": "Now, what's the output shape going to be?",
+      "zh": "那輸出形狀呢？"
+    },
+    {
+      "start": 784.2,
+      "end": 789.06,
+      "en": "Well, we want embedding layout output shape is going to be equal to.",
+      "zh": "要設定 embedding_layer_output_shape 等於，"
+    },
+    {
+      "start": 789.81,
+      "end": 790.68,
+      "en": "We want.",
+      "zh": "我們要的是"
+    },
+    {
+      "start": 791.66,
+      "end": 799.2,
+      "en": "Number of patches times p squared, dot coloured channels or times color channels.",
+      "zh": "區塊數量，乘上 P 平方與色彩通道數，也就是乘上色彩通道。"
+    },
+    {
+      "start": 800.95,
+      "end": 802.57,
+      "en": "So let's calculate this by hand.",
+      "zh": "手動算算。"
+    },
+    {
+      "start": 803.05,
+      "end": 809.59,
+      "en": "We'll go in here, number of patches, and then we'll go patch size",
+      "zh": "到這裡，number_of_patches，接著 patch_size"
+    },
+    {
+      "start": 811.78,
+      "end": 816.29,
+      "en": "squared times color channels.",
+      "zh": "平方乘上 color_channels。"
+    },
+    {
+      "start": 816.31,
+      "end": 817.63,
+      "en": "Let's see where this gets us.",
+      "zh": "看看會得到什麼。"
+    },
+    {
+      "start": 817.63,
+      "end": 818.14,
+      "en": "Hey.",
+      "zh": "嘿。"
+    },
+    {
+      "start": 818.56,
+      "end": 821.42,
+      "en": "Now, you notice we've only got one comma here.",
+      "zh": "注意這裡只有一個逗號。"
+    },
+    {
+      "start": 821.44,
+      "end": 823.75,
+      "en": "So this is just going to calculate this there.",
+      "zh": "所以會先算出這個值。"
+    },
+    {
+      "start": 824.17,
+      "end": 828.16,
+      "en": "So let's print it out and we'll go input shape.",
+      "zh": "印出來，寫 input_shape。"
+    },
+    {
+      "start": 830.02,
+      "end": 840.04,
+      "en": "So this is going to be a single 2D image, and then we'll go embedding layout, input, shape, and",
+      "zh": "這是單張二維影像，再放 embedding_layer_input_shape，"
+    },
+    {
+      "start": 840.04,
+      "end": 841.36,
+      "en": "then let's go print.",
+      "zh": "然後寫 print。"
+    },
+    {
+      "start": 842.8,
+      "end": 844.63,
+      "en": "And then we'll go output shape.",
+      "zh": "接著是 output_shape。"
+    },
+    {
+      "start": 845.29,
+      "end": 853.66,
+      "en": "This is of the embedding layer, single one day sequence of patches.",
+      "zh": "這是嵌入層的形狀，一條一維區塊序列。"
+    },
+    {
+      "start": 854.89,
+      "end": 860.41,
+      "en": "So embedding layout output shape.",
+      "zh": "所以是 embedding_layer_output_shape。"
+    },
+    {
+      "start": 861.76,
+      "end": 862.69,
+      "en": "Well, let's go.",
+      "zh": "執行。"
+    },
+    {
+      "start": 864.13,
+      "end": 865.12,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 865.12,
+      "end": 866.14,
+      "en": "Look at that.",
+      "zh": "看這個。"
+    },
+    {
+      "start": 866.41,
+      "end": 868.9,
+      "en": "Now, where does this value come from?",
+      "zh": "這個值從哪裡來？"
+    },
+    {
+      "start": 870.95,
+      "end": 873.8,
+      "en": "So we know this one, that's going to be our image size.",
+      "zh": "這個我們知道，是影像大小。"
+    },
+    {
+      "start": 874.37,
+      "end": 876.74,
+      "en": "And then we have a number of patches.",
+      "zh": "接著有區塊數量。"
+    },
+    {
+      "start": 877.25,
+      "end": 878.9,
+      "en": "But this value, what is that?",
+      "zh": "不過這個值是什麼？"
+    },
+    {
+      "start": 878.93,
+      "end": 880.46,
+      "en": "What does that remind us of?",
+      "zh": "讓你想到什麼？"
+    },
+    {
+      "start": 881.5,
+      "end": 883.09,
+      "en": "Well, that's from table one.",
+      "zh": "就在表 1。"
+    },
+    {
+      "start": 883.71,
+      "end": 884.43,
+      "en": "Hayden sighs.",
+      "zh": "Hidden Size。"
+    },
+    {
+      "start": 884.43,
+      "end": 892.89,
+      "en": "D Now you notice we didn't actually hard code that that was inferred by the patch size squared times the number of color channels.",
+      "zh": "D。注意，我們沒有直接把這個值寫死，而是由區塊大小平方乘色彩通道數推得。"
+    },
+    {
+      "start": 894.16,
+      "end": 894.79,
+      "en": "Huh?",
+      "zh": "嗯？"
+    },
+    {
+      "start": 895.12,
+      "end": 897.01,
+      "en": "So there's our embedding dimension.",
+      "zh": "所以這就是嵌入維度。"
+    },
+    {
+      "start": 897.25,
+      "end": 903.16,
+      "en": "So the input shape of our first patch embedding layer is going to be a single image.",
+      "zh": "第一個影像區塊嵌入層的輸入形狀，是單張影像。"
+    },
+    {
+      "start": 903.31,
+      "end": 909.76,
+      "en": "And then to make sure that everything is correct, we've just calculated by hand what the output shape should be.",
+      "zh": "為了確認正確，剛才手動計算了預期輸出形狀。"
+    },
+    {
+      "start": 909.79,
+      "end": 912.22,
+      "en": "A single one d sequence of patches.",
+      "zh": "一條一維的區塊序列。"
+    },
+    {
+      "start": 912.79,
+      "end": 917.23,
+      "en": "Now, how do you think we get from this shape to this shape?",
+      "zh": "你覺得怎麼從這個形狀變成這個形狀？"
+    },
+    {
+      "start": 918.55,
+      "end": 920,
+      "en": "So I have to think about that.",
+      "zh": "想一想。"
+    },
+    {
+      "start": 920.02,
+      "end": 923.89,
+      "en": "I revealed it in the little animation that we went through.",
+      "zh": "剛才的小動畫已經透露了。"
+    },
+    {
+      "start": 923.98,
+      "end": 930.04,
+      "en": "So maybe you rewatch that or if you want to skip ahead, there's some spoilers in the book here, but",
+      "zh": "也許可以重看，或想超前的話，書裡有提示，"
+    },
+    {
+      "start": 930.04,
+      "end": 937.93,
+      "en": "we're going to start moving towards creating this input and output shape with PyTorch layers.",
+      "zh": "不過我們要開始用 PyTorch 層建立這個輸入、輸出形狀。"
+    },
+    {
+      "start": 938.26,
+      "end": 940.81,
+      "en": "So with that being said, I'll see you in the next video.",
+      "zh": "那麼，下段影片見。"
+    }
+  ]
+}

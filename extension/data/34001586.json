@@ -1,0 +1,1471 @@
+{
+  "courseId": "4734870",
+  "lectureId": "34001586",
+  "title": "Creating the Patch Embedding Layer with PyTorch",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "46aa35da069197eca76df88f34b198cfedec302197376a621f45ee9387e3d4bd",
+  "cues": [
+    {
+      "start": 0.39,
+      "end": 1.16,
+      "en": "Friends.",
+      "zh": "各位。"
+    },
+    {
+      "start": 1.17,
+      "end": 2.25,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 2.28,
+      "end": 12.03,
+      "en": "So, so far, we've gone from a 2D image here to a flattened one D learnable embedding vector or in",
+      "zh": "到目前為止，已經把這裡的二維影像，轉成展平的一維可學習嵌入向量，或者用"
+    },
+    {
+      "start": 12.03,
+      "end": 16.23,
+      "en": "VIT terms, a linear projection of flattened patches.",
+      "zh": "ViT 的說法，展平區塊的線性投影。"
+    },
+    {
+      "start": 16.38,
+      "end": 20.28,
+      "en": "But right now our code is a little bit all over the place.",
+      "zh": "不過目前程式碼有點零散。"
+    },
+    {
+      "start": 20.28,
+      "end": 25.53,
+      "en": "So let's turn it into a single PyTorch module because that's our goal, right?",
+      "zh": "把它轉成單一 PyTorch 模組，因為這就是目標，對吧？"
+    },
+    {
+      "start": 25.56,
+      "end": 32.16,
+      "en": "We want to turn a paper from math text and figures into reusable code.",
+      "zh": "要把論文中的數學、文字和圖示，轉成可重複使用的程式碼。"
+    },
+    {
+      "start": 32.16,
+      "end": 34.23,
+      "en": "So I'm going to make a little heading here.",
+      "zh": "建立一個小標題。"
+    },
+    {
+      "start": 35.57,
+      "end": 44.42,
+      "en": "4.5 turning the VIT patch embedding layer into a PyTorch module.",
+      "zh": "第 4.5 節，把 ViT 的區塊嵌入層轉成 PyTorch 模組。"
+    },
+    {
+      "start": 44.72,
+      "end": 55.19,
+      "en": "So what we're doing here is we're slowly constructing layers and blocks, inputs and outputs, little Lego bricks that we can eventually put together and create the overall VIT architecture.",
+      "zh": "我們正在慢慢建構層、區塊、輸入與輸出，這些樂高小積木最後可以組成完整 ViT 架構。"
+    },
+    {
+      "start": 55.58,
+      "end": 57.47,
+      "en": "So we want this to do a few things.",
+      "zh": "希望它能做幾件事。"
+    },
+    {
+      "start": 58.16,
+      "end": 60.65,
+      "en": "We want this module to.",
+      "zh": "這個模組要做"
+    },
+    {
+      "start": 61.97,
+      "end": 63.03,
+      "en": "A few things.",
+      "zh": "幾件事。"
+    },
+    {
+      "start": 63.69,
+      "end": 64.47,
+      "en": "One.",
+      "zh": "第一。"
+    },
+    {
+      "start": 64.86,
+      "end": 66.3,
+      "en": "Create a class.",
+      "zh": "建立類別。"
+    },
+    {
+      "start": 66.78,
+      "end": 68.91,
+      "en": "We'll call it the patch embedding class.",
+      "zh": "稱為 PatchEmbedding 類別。"
+    },
+    {
+      "start": 69.39,
+      "end": 70.53,
+      "en": "Nice and simple.",
+      "zh": "簡單明瞭。"
+    },
+    {
+      "start": 70.65,
+      "end": 71.55,
+      "en": "Two.",
+      "zh": "第二。"
+    },
+    {
+      "start": 71.58,
+      "end": 82.77,
+      "en": "We want it to initialize initialize with appropriate hyper parameters such as channels.",
+      "zh": "用適當超參數初始化，例如通道數。"
+    },
+    {
+      "start": 83.19,
+      "end": 87.21000000000001,
+      "en": "We want embedding dimension and patch size.",
+      "zh": "還有嵌入維度和區塊大小。"
+    },
+    {
+      "start": 88.35,
+      "end": 88.88,
+      "en": "Three.",
+      "zh": "第三。"
+    },
+    {
+      "start": 88.89,
+      "end": 90.21000000000001,
+      "en": "What else do we want to do?",
+      "zh": "還要做什麼？"
+    },
+    {
+      "start": 90.48,
+      "end": 101.43,
+      "en": "Well, we want to create a layer to turn an image into embedded patches using column two DX and then",
+      "zh": "建立一個層，用 Conv2d 把影像轉成嵌入區塊，也就是"
+    },
+    {
+      "start": 101.43,
+      "end": 102.39,
+      "en": "column two dx.",
+      "zh": "Conv2d。"
+    },
+    {
+      "start": 103.62,
+      "end": 115.2,
+      "en": "You might want to go ahead and try this out yourself once we've got these steps, by the way, so you can pause the video and then we want to create a layer to flatten the feature maps of the output of",
+      "zh": "列完步驟後，你也可以暫停影片先自己試試。接著建立一個層，展平"
+    },
+    {
+      "start": 115.2,
+      "end": 119.37,
+      "en": "the layer in step three, so the flattened layer.",
+      "zh": "第三步輸出層的特徵圖，也就是 Flatten 層。"
+    },
+    {
+      "start": 119.49000000000001,
+      "end": 126.99,
+      "en": "And then five, we want to define a forward method because if we're creating a PyTorch module, this",
+      "zh": "第五，定義 forward 方法，因為我們建立的 PyTorch 模組，"
+    },
+    {
+      "start": 126.99,
+      "end": 131.7,
+      "en": "is going to that inherits from NAND module.",
+      "zh": "會繼承 nn.Module。"
+    },
+    {
+      "start": 132.63,
+      "end": 139.8,
+      "en": "Recall that we made a few of these, now all PyTorch subclasses, all classes that subclass and end",
+      "zh": "記得已經建立過幾個，所有繼承 nn"
+    },
+    {
+      "start": 139.8,
+      "end": 146.19,
+      "en": "dot module should have a forward method that defines that defines the forward computation.",
+      "zh": ".Module 的類別，都應該有 forward 方法，定義前向計算。"
+    },
+    {
+      "start": 147.57,
+      "end": 154.17000000000002,
+      "en": "So we want it to pass through layer from three and four.",
+      "zh": "要讓它通過第三、四步的層。"
+    },
+    {
+      "start": 155.76,
+      "end": 157.22,
+      "en": "And then finally, six.",
+      "zh": "最後，第六。"
+    },
+    {
+      "start": 157.23,
+      "end": 168.48,
+      "en": "We want to make sure the output shape of the layer reflects the required output shape of the patch embedding.",
+      "zh": "確保這個層的輸出形狀，符合區塊嵌入所需的輸出形狀。"
+    },
+    {
+      "start": 169.98,
+      "end": 174.36,
+      "en": "We want to make sure our shapes line up right, because that's one of the biggest issues in machine learning.",
+      "zh": "要確保形狀吻合，因為機器學習"
+    },
+    {
+      "start": 174.36,
+      "end": 177.57,
+      "en": "And deep learning is mismatched tensor shapes.",
+      "zh": "和深度學習最大的問題之一，就是張量形狀不匹配。"
+    },
+    {
+      "start": 177.99,
+      "end": 183.6,
+      "en": "So there's a few steps here, and my challenge to you is to pause the video now and give this a go.",
+      "zh": "有幾個步驟，我給你的挑戰，是現在暫停影片，試著做做看。"
+    },
+    {
+      "start": 184.77,
+      "end": 189.33,
+      "en": "And I have some advice for you from one of my favorite people.",
+      "zh": "我也想分享一位我最喜歡的人給的建議。"
+    },
+    {
+      "start": 189.36,
+      "end": 192.85,
+      "en": "Oh, well, before we get into it, I'll just show you what we want our layer to do.",
+      "zh": "喔，介紹前，先給你看這個層要做什麼。"
+    },
+    {
+      "start": 192.87,
+      "end": 195.03,
+      "en": "So this is our original image input.",
+      "zh": "這是原始影像輸入。"
+    },
+    {
+      "start": 195.18,
+      "end": 198.3,
+      "en": "We might come and rewatch this movie again.",
+      "zh": "也許再看一次動畫。"
+    },
+    {
+      "start": 198.45,
+      "end": 201.04,
+      "en": "So original image, this is what we want it to do.",
+      "zh": "原始影像，我們要做的就是這樣。"
+    },
+    {
+      "start": 201.06,
+      "end": 203.61,
+      "en": "Cut it into patches using the 2D layer.",
+      "zh": "用 Conv2d 層切成區塊。"
+    },
+    {
+      "start": 204.18,
+      "end": 206.34,
+      "en": "Now we've done this by hand so far.",
+      "zh": "目前已經手動做過。"
+    },
+    {
+      "start": 206.7,
+      "end": 208.23,
+      "en": "There we go from 2D.",
+      "zh": "就是這裡，Conv2d。"
+    },
+    {
+      "start": 209.05,
+      "end": 213.6,
+      "en": "Though, we want to set the kernel size equal to the patch size so we can create a patch here.",
+      "zh": "把 kernel_size 設成 patch_size，建立一個區塊。"
+    },
+    {
+      "start": 213.61,
+      "end": 216.4,
+      "en": "Then we set the stride equal to the patch size as well.",
+      "zh": "再把 stride 也設成 patch_size。"
+    },
+    {
+      "start": 216.4,
+      "end": 221.05,
+      "en": "So our kernel steps over patch size steps each time.",
+      "zh": "所以卷積核每次移動 patch_size 步。"
+    },
+    {
+      "start": 221.2,
+      "end": 225.22,
+      "en": "Now this is only nine patches, but our image is going to use more than that.",
+      "zh": "這裡只有九個區塊，但實際影像會更多。"
+    },
+    {
+      "start": 225.34,
+      "end": 227.95,
+      "en": "Then we're going to flatten it into a sequence.",
+      "zh": "接著展平成序列。"
+    },
+    {
+      "start": 228.77,
+      "end": 230.18,
+      "en": "Using a flattened layer.",
+      "zh": "用 Flatten 層。"
+    },
+    {
+      "start": 231.9,
+      "end": 233.91,
+      "en": "And then these steps will come later on.",
+      "zh": "後面這些步驟稍後再做。"
+    },
+    {
+      "start": 233.91,
+      "end": 237.39,
+      "en": "But these are the first steps that we want to focus with the module that we're building now.",
+      "zh": "目前建立的模組，先專注在這些步驟。"
+    },
+    {
+      "start": 238.17000000000002,
+      "end": 244.38,
+      "en": "And so this is Lao Tenser, one of my favorite people in the world of machine learning law.",
+      "zh": "這是 Lao Tensor，機器學習界我最喜歡的人之一。"
+    },
+    {
+      "start": 244.41,
+      "end": 246.78,
+      "en": "You can see he loves machine learning.",
+      "zh": "你看得出他熱愛機器學習。"
+    },
+    {
+      "start": 246.78,
+      "end": 248.82,
+      "en": "He's got PyTorch and TensorFlow symbols there.",
+      "zh": "上面有 PyTorch 和 TensorFlow 圖示。"
+    },
+    {
+      "start": 249.15,
+      "end": 253.77,
+      "en": "Just remember, creation of a deep neural network starts with the first layer.",
+      "zh": "記得：建立深度神經網路，始於第一層。"
+    },
+    {
+      "start": 254.1,
+      "end": 256.17,
+      "en": "So that's a wide quote from layer tensor.",
+      "zh": "這是 Lao Tensor 的一句智慧名言。"
+    },
+    {
+      "start": 256.17,
+      "end": 257.4,
+      "en": "And that's what we're doing here.",
+      "zh": "也就是現在做的事。"
+    },
+    {
+      "start": 257.4,
+      "end": 260.98,
+      "en": "We're rebuilding VIT and this is starting with the first layer.",
+      "zh": "正在重建 ViT，從第一層開始。"
+    },
+    {
+      "start": 261,
+      "end": 268.5,
+      "en": "So give that a shot and I'm going to continue the video in 3 to 1.",
+      "zh": "試試看，我會在三、二、一之後繼續。"
+    },
+    {
+      "start": 268.89,
+      "end": 269.79,
+      "en": "How'd you go?",
+      "zh": "做得如何？"
+    },
+    {
+      "start": 269.82,
+      "end": 271.74,
+      "en": "Did you create the patch embedding layer?",
+      "zh": "建立區塊嵌入層了嗎？"
+    },
+    {
+      "start": 272.04,
+      "end": 273.03,
+      "en": "I hope you gave it a shot.",
+      "zh": "希望你試過了。"
+    },
+    {
+      "start": 273.03,
+      "end": 274.82,
+      "en": "Otherwise, let's do it together.",
+      "zh": "接著一起做。"
+    },
+    {
+      "start": 274.83,
+      "end": 275.22,
+      "en": "Hey.",
+      "zh": "嘿。"
+    },
+    {
+      "start": 276.19,
+      "end": 280.54,
+      "en": "So I'm going to start off by creating a class and call it patch embedding.",
+      "zh": "先建立一個類別，叫 PatchEmbedding。"
+    },
+    {
+      "start": 280.72,
+      "end": 282.25,
+      "en": "So this is step one.",
+      "zh": "這是第一步。"
+    },
+    {
+      "start": 284.27,
+      "end": 285.17,
+      "en": "Step one.",
+      "zh": "第一步。"
+    },
+    {
+      "start": 285.44,
+      "end": 288.8,
+      "en": "Create a class called patch embedding.",
+      "zh": "建立名為 PatchEmbedding 的類別。"
+    },
+    {
+      "start": 290.45,
+      "end": 298.77,
+      "en": "We want the input and output of this layer or class or PyTorch module to be oh, not patching embedding.",
+      "zh": "這個層、類別或 PyTorch 模組的輸入和輸出，喔，不是 PatchingEmbedding，"
+    },
+    {
+      "start": 298.79,
+      "end": 306.17,
+      "en": "I want it to be patch embedding to be an image and the output to be something like this.",
+      "zh": "我要的是 PatchEmbedding，輸入影像，輸出像這樣的東西。"
+    },
+    {
+      "start": 306.71,
+      "end": 307.88,
+      "en": "So let's see if we can do that.",
+      "zh": "看看能否做到。"
+    },
+    {
+      "start": 308.81,
+      "end": 310.73,
+      "en": "Then we need to initialize our layer.",
+      "zh": "然後要初始化這個層。"
+    },
+    {
+      "start": 310.76,
+      "end": 312.53,
+      "en": "So this is step two.",
+      "zh": "這是第二步。"
+    },
+    {
+      "start": 315.2,
+      "end": 320.12,
+      "en": "Initialize the layout with appropriate height parameters.",
+      "zh": "以適當超參數初始化層。"
+    },
+    {
+      "start": 320.33,
+      "end": 322.25,
+      "en": "Now we're going to construct this in a way.",
+      "zh": "會用這種方式建構，"
+    },
+    {
+      "start": 322.25,
+      "end": 333.17,
+      "en": "So because we're focusing on replicating base to begin with, we're going to construct our layers though, in a way that if we wanted to add more parameters later on, we could do that.",
+      "zh": "因為一開始專注重現 Base，但也會讓這些層之後能加入更多參數。"
+    },
+    {
+      "start": 333.38,
+      "end": 336.58,
+      "en": "So we can do that by setting this in channels.",
+      "zh": "方法是設定 in_channels。"
+    },
+    {
+      "start": 336.59000000000003,
+      "end": 340.1,
+      "en": "We'll give it a type hint to be int out channels.",
+      "zh": "加上 int 型別提示，還有 out_channels。"
+    },
+    {
+      "start": 340.22,
+      "end": 341.45,
+      "en": "We don't actually need that.",
+      "zh": "其實不需要這個。"
+    },
+    {
+      "start": 341.45,
+      "end": 343.13,
+      "en": "That will be the embedding size, won't it?",
+      "zh": "那就是嵌入大小，對吧？"
+    },
+    {
+      "start": 343.22,
+      "end": 346.76,
+      "en": "So the patch size, we want that to be 16 by default.",
+      "zh": "所以 patch_size 預設為 16。"
+    },
+    {
+      "start": 346.85,
+      "end": 353.57,
+      "en": "And then the embedding dimension, which will be the out channels of our 2D layer, is going to be seven, six, eight.",
+      "zh": "embedding_dim，也就是 Conv2d 層的 out_channels，設為 768。"
+    },
+    {
+      "start": 353.81,
+      "end": 358.82,
+      "en": "This is from table one for that base.",
+      "zh": "這來自表 1 的 ViT-Base。"
+    },
+    {
+      "start": 359.03,
+      "end": 369.2,
+      "en": "So you see later on, if we wanted to create this class, an instance of this class, we could update the embedding dimension there if we wanted to, and also the patch size.",
+      "zh": "之後建立這個類別的實例時，就可以更新 embedding_dim，以及 patch_size。"
+    },
+    {
+      "start": 369.71,
+      "end": 371,
+      "en": "So let's keep going.",
+      "zh": "繼續。"
+    },
+    {
+      "start": 371.7,
+      "end": 373.11,
+      "en": "Bill call Super.",
+      "zh": "呼叫 super。"
+    },
+    {
+      "start": 373.32,
+      "end": 376.46,
+      "en": "Annette Wonderful.",
+      "zh": "__init__，很好。"
+    },
+    {
+      "start": 376.47,
+      "end": 379.26,
+      "en": "And now we have to start setting up our layers.",
+      "zh": "現在得設定各個層。"
+    },
+    {
+      "start": 379.41,
+      "end": 386.01,
+      "en": "So we need to create a layer to turn an image into embedded patches, embedding patches, embedded patches.",
+      "zh": "要建立一個層，把影像轉成嵌入區塊，embedding patches，embedded patches。"
+    },
+    {
+      "start": 387,
+      "end": 390.96,
+      "en": "We've got typos galore through here, but we're not here to learn how to type properly.",
+      "zh": "這裡到處都是打字錯誤，不過我們不是來學怎麼打字。"
+    },
+    {
+      "start": 391.5,
+      "end": 400.77,
+      "en": "So step three is to create a layer to turn an image into embedded patches.",
+      "zh": "第三步，建立把影像轉成嵌入區塊的層。"
+    },
+    {
+      "start": 401.1,
+      "end": 408.42,
+      "en": "So let's call this self patch up for the patching layer and we'll use Nme.com to DX.",
+      "zh": "稱為 self.patcher，也就是切區塊的層，使用 nn.Conv2d。"
+    },
+    {
+      "start": 408.42,
+      "end": 411.39,
+      "en": "So just exactly the same steps that we did above.",
+      "zh": "和上面完全相同步驟。"
+    },
+    {
+      "start": 412.49,
+      "end": 416.15,
+      "en": "We just need a layer that's going to replicate this.",
+      "zh": "只需要一個能重現這裡的層。"
+    },
+    {
+      "start": 418.36,
+      "end": 427.72,
+      "en": "So we have in channels is three out channels is the embedding size and the kernel size is equal to the patch size and the stride size is also equal to the patch size.",
+      "zh": "in_channels 是 3，out_channels 是嵌入大小，kernel_size 等於 patch_size，stride 也等於 patch_size。"
+    },
+    {
+      "start": 428.17,
+      "end": 429.76,
+      "en": "So we'll come back down here.",
+      "zh": "回到下面。"
+    },
+    {
+      "start": 430.88,
+      "end": 436.76,
+      "en": "So I'll set the in channels equal to in channels, because that's going to be.",
+      "zh": "把 in_channels 設為 in_channels，因為它就是"
+    },
+    {
+      "start": 437.83,
+      "end": 439.18,
+      "en": "This parameter up here.",
+      "zh": "上面這個參數。"
+    },
+    {
+      "start": 439.97,
+      "end": 441.35,
+      "en": "And then out channels.",
+      "zh": "接著 out_channels。"
+    },
+    {
+      "start": 441.5,
+      "end": 442.55,
+      "en": "What will that be?",
+      "zh": "會是什麼？"
+    },
+    {
+      "start": 443.21,
+      "end": 445.88,
+      "en": "The alt channels will be the embedding dimension.",
+      "zh": "out_channels 就是 embedding_dim。"
+    },
+    {
+      "start": 447.82,
+      "end": 449.02,
+      "en": "Embedding dimension.",
+      "zh": "嵌入維度。"
+    },
+    {
+      "start": 450.5,
+      "end": 454.46,
+      "en": "Then we can set the kernel size is going to be equal to the patch size.",
+      "zh": "再把 kernel_size 設為 patch_size。"
+    },
+    {
+      "start": 454.76,
+      "end": 456.44,
+      "en": "The stride is equal to the patch size.",
+      "zh": "stride 等於 patch_size。"
+    },
+    {
+      "start": 456.47,
+      "end": 456.94,
+      "en": "Look at us go.",
+      "zh": "看我們進展多快。"
+    },
+    {
+      "start": 456.95,
+      "end": 459.38,
+      "en": "We're on a roll and then the padding is equal to zero.",
+      "zh": "很順利，padding 等於 0。"
+    },
+    {
+      "start": 459.38,
+      "end": 460.82,
+      "en": "We don't need any padding here.",
+      "zh": "這裡不需要填補。"
+    },
+    {
+      "start": 461.84000000000003,
+      "end": 462.77,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 462.92,
+      "end": 464.36,
+      "en": "So let's keep going.",
+      "zh": "繼續。"
+    },
+    {
+      "start": 464.39,
+      "end": 470.6,
+      "en": "Number four is to create a layer to flatten the feature maps of the output of this.",
+      "zh": "第四，建立一個層，展平這裡輸出的特徵圖。"
+    },
+    {
+      "start": 470.72,
+      "end": 473.24,
+      "en": "So we just want to replicate what we've got.",
+      "zh": "只是重現目前已有的內容。"
+    },
+    {
+      "start": 473.92,
+      "end": 481.9,
+      "en": "Here, nice and simple flatten layer to flatten the feature map dimensions of the output of our convolutional layer.",
+      "zh": "這裡，簡單的 Flatten 層，展平卷積層輸出的特徵圖維度。"
+    },
+    {
+      "start": 482.26,
+      "end": 484.93,
+      "en": "So just like we did in the step above.",
+      "zh": "就像上一步做的。"
+    },
+    {
+      "start": 485.14,
+      "end": 489.43,
+      "en": "So that's going to flatten our patch embeddings into a sequence.",
+      "zh": "這會把區塊嵌入展平成序列。"
+    },
+    {
+      "start": 489.91,
+      "end": 499.03,
+      "en": "So create a layer to flatten feature map outputs of column two dx.",
+      "zh": "建立一個層，展平 Conv2d 的特徵圖輸出。"
+    },
+    {
+      "start": 500.77,
+      "end": 504.67,
+      "en": "Self flatten eagles and flatten.",
+      "zh": "self.flatten 等於 nn.Flatten。"
+    },
+    {
+      "start": 504.67,
+      "end": 510.16,
+      "en": "And the start dimension is going to be dimension two and the end dimension is going to be dimension three.",
+      "zh": "start_dim 是 2，end_dim 是 3。"
+    },
+    {
+      "start": 511.06,
+      "end": 512.08,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 512.11,
+      "end": 513.4,
+      "en": "Now what are we up to?",
+      "zh": "現在到哪一步？"
+    },
+    {
+      "start": 514.12,
+      "end": 516.46,
+      "en": "So we go to define a forward method.",
+      "zh": "定義 forward 方法。"
+    },
+    {
+      "start": 516.58,
+      "end": 517.54,
+      "en": "Look at us go.",
+      "zh": "看我們的進度。"
+    },
+    {
+      "start": 517.58,
+      "end": 519.3,
+      "en": "We're creating the patch embedding.",
+      "zh": "正在建立區塊嵌入。"
+    },
+    {
+      "start": 519.31,
+      "end": 524.26,
+      "en": "I mean, that took us a while to create it, but now we're just replicating the whole thing.",
+      "zh": "雖然前面花了不少時間，現在就能重現整個部分。"
+    },
+    {
+      "start": 524.26,
+      "end": 528.19,
+      "en": "After we've been through it step by step, we're doing the whole thing in a few lines of code here.",
+      "zh": "逐步走過之後，只用幾行程式碼就能完成全部。"
+    },
+    {
+      "start": 528.46,
+      "end": 533.47,
+      "en": "So forward, I'm going to take self I'm going to just write a little note here.",
+      "zh": "forward 接收 self，先加個小註記。"
+    },
+    {
+      "start": 535.3,
+      "end": 545.89,
+      "en": "Number five is define a forward method to define the forward computation steps, not the most ideal.",
+      "zh": "第五，定義 forward 方法，定義前向計算步驟。這不是最理想的"
+    },
+    {
+      "start": 547.54,
+      "end": 550.93,
+      "en": "Comment, but we get what's going on.",
+      "zh": "註解，但知道在做什麼。"
+    },
+    {
+      "start": 550.93,
+      "end": 561.25,
+      "en": "So the input here is going to be our input image and we want it to go through the patch embedding first, but we also want to get the image resolution.",
+      "zh": "輸入會是影像，要先通過區塊嵌入，不過也想取得影像解析度。"
+    },
+    {
+      "start": 561.25,
+      "end": 562.73,
+      "en": "Let's get a little check here.",
+      "zh": "加個小檢查。"
+    },
+    {
+      "start": 562.76,
+      "end": 570.88,
+      "en": "Hey, we'll make an assertion because we want to make sure that the image resolution is compatible with",
+      "zh": "用斷言，確保影像解析度和"
+    },
+    {
+      "start": 570.88,
+      "end": 584.43,
+      "en": "the patch size to check that inputs are the correct shape so we can go image resolution equals x dot",
+      "zh": "區塊大小相容，檢查輸入形狀正確。image_resolution 等於 x"
+    },
+    {
+      "start": 584.5,
+      "end": 590.83,
+      "en": "shape, and we'll get the last dimension and then we'll create an assertion here.",
+      "zh": ".shape，取最後一個維度，再建立斷言。"
+    },
+    {
+      "start": 590.83,
+      "end": 598.45,
+      "en": "So we want to assert that the image resolution is divisible by the patch size and that there's nothing left over.",
+      "zh": "要斷言影像解析度能被 patch_size 整除，沒有餘數。"
+    },
+    {
+      "start": 598.84,
+      "end": 602.2,
+      "en": "And so if it's not, let's go.",
+      "zh": "如果不能，訊息寫，"
+    },
+    {
+      "start": 602.44,
+      "end": 613.78,
+      "en": "Input image size must be divisible by patch size and the image shape will put in here image resolution",
+      "zh": "輸入影像大小必須能被 patch_size 整除。影像形狀放 image_resolution，"
+    },
+    {
+      "start": 614.17,
+      "end": 621.04,
+      "en": "and then we'll go patch size is equal to self dot patch size.",
+      "zh": "然後 patch_size 等於 self.patch_size。"
+    },
+    {
+      "start": 624.32,
+      "end": 625.1,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 625.22,
+      "end": 626.25,
+      "en": "I think that should work.",
+      "zh": "我想應該行。"
+    },
+    {
+      "start": 626.27,
+      "end": 627.95,
+      "en": "If not, we'll find out what we.",
+      "zh": "不行的話，會知道的，對吧？"
+    },
+    {
+      "start": 629.82,
+      "end": 631.89,
+      "en": "Let's now perform the forward pass.",
+      "zh": "現在執行前向傳遞。"
+    },
+    {
+      "start": 632.34,
+      "end": 639.81,
+      "en": "So if our image input image passes the assertion, we want to now pass it through the patch embedding",
+      "zh": "如果輸入影像通過斷言，就讓它通過區塊嵌入。"
+    },
+    {
+      "start": 639.81,
+      "end": 648.12,
+      "en": "so we'll set it to X patched equals self dispatcher on the input and then we can pass it through x,",
+      "zh": "所以 x_patched 等於 self.patcher，傳入輸入，再把它傳給 x，"
+    },
+    {
+      "start": 648.36,
+      "end": 656.37,
+      "en": "we'll call it x flattened and pass it through the flatten layer self dot flatten, and we'll pass the patched embedding through that.",
+      "zh": "稱為 x_flattened，使用 self.flatten，把區塊嵌入傳進去。"
+    },
+    {
+      "start": 657.64,
+      "end": 658.42,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 658.42,
+      "end": 666.22,
+      "en": "And now, finally, we want to recall that the output of this is not going to be in the right order of dimensions.",
+      "zh": "最後，記得這裡的輸出維度順序還不對。"
+    },
+    {
+      "start": 666.7,
+      "end": 668.92,
+      "en": "So we originally had.",
+      "zh": "原本是，"
+    },
+    {
+      "start": 669.83,
+      "end": 673.13,
+      "en": "Yet the embedding dimension as dimension one.",
+      "zh": "對，嵌入維度是第 1 維。"
+    },
+    {
+      "start": 673.13,
+      "end": 682.07,
+      "en": "But we want the number of patches as dimension one so we can call up a mood, just like we've done here, to rearrange it to be batch size number of patches.",
+      "zh": "不過要讓區塊數量變成第 1 維，所以像這裡一樣用 permute，重排成批次大小、區塊數量，"
+    },
+    {
+      "start": 682.07,
+      "end": 683.27,
+      "en": "Embedding dimension.",
+      "zh": "嵌入維度，"
+    },
+    {
+      "start": 684.94,
+      "end": 686.11,
+      "en": "Right at the end.",
+      "zh": "放最後。"
+    },
+    {
+      "start": 687.22,
+      "end": 688.59,
+      "en": "So that's step six.",
+      "zh": "所以這是第六步。"
+    },
+    {
+      "start": 688.6,
+      "end": 697.66,
+      "en": "Make sure the returned sequence embedding dimensions in the right order.",
+      "zh": "確保回傳序列嵌入的維度順序正確。"
+    },
+    {
+      "start": 698.26,
+      "end": 701.98,
+      "en": "So we want batch size number of patches.",
+      "zh": "要的是批次大小、區塊數量，"
+    },
+    {
+      "start": 703.01,
+      "end": 705.29,
+      "en": "And then embedding dimension on the end.",
+      "zh": "最後是嵌入維度。"
+    },
+    {
+      "start": 708.23,
+      "end": 708.89,
+      "en": "Return.",
+      "zh": "return。"
+    },
+    {
+      "start": 708.89,
+      "end": 713.15,
+      "en": "We want X flattened and we're going to promote.",
+      "zh": "要回傳 x_flattened，再 permute。"
+    },
+    {
+      "start": 713.36,
+      "end": 714.53,
+      "en": "We want to change.",
+      "zh": "要改的是，"
+    },
+    {
+      "start": 714.53,
+      "end": 715.7,
+      "en": "Keep zero where it is.",
+      "zh": "保留 0 在原位。"
+    },
+    {
+      "start": 715.7,
+      "end": 717.26,
+      "en": "So keep the batch size where it is.",
+      "zh": "保留批次大小的位置。"
+    },
+    {
+      "start": 717.26,
+      "end": 719.57,
+      "en": "Then we want to one now.",
+      "zh": "然後 2、1。"
+    },
+    {
+      "start": 719.57,
+      "end": 720.62,
+      "en": "Is that correct?",
+      "zh": "正確嗎？"
+    },
+    {
+      "start": 721.89,
+      "end": 724.07,
+      "en": "Well, we're going to find out, aren't we?",
+      "zh": "我們會知道的，對吧？"
+    },
+    {
+      "start": 724.08,
+      "end": 725.69,
+      "en": "So how do we test this?",
+      "zh": "要怎麼測試？"
+    },
+    {
+      "start": 725.7,
+      "end": 729.39,
+      "en": "We're going to pass an image through, and we can also test our assertion as well.",
+      "zh": "傳入一張影像，也能測試斷言。"
+    },
+    {
+      "start": 729.39,
+      "end": 729.9,
+      "en": "Right.",
+      "zh": "對。"
+    },
+    {
+      "start": 730.08,
+      "end": 739.08,
+      "en": "So let's call our set seed's function, because whenever we instantiate a layer, it's going to instantiate with random weights.",
+      "zh": "呼叫 set_seeds 函式，因為每次建立層的實例，都會以隨機權重初始化。"
+    },
+    {
+      "start": 739.08,
+      "end": 745.92,
+      "en": "So if we instantiate an instance of this, just to try and make sure you're seeing what I'm seeing, we'll set the seeds.",
+      "zh": "建立這個類別實例時，為了盡量讓你看到同樣結果，設定種子。"
+    },
+    {
+      "start": 745.92,
+      "end": 751.98,
+      "en": "And actually we're probably going to see something different because unless your image is the same as mine, we're going to get different results.",
+      "zh": "不過其實可能還是不同，因為除非影像和我一樣，否則結果會不同。"
+    },
+    {
+      "start": 752.49,
+      "end": 757.05,
+      "en": "So let's go create an instance of patch embedding layer.",
+      "zh": "建立區塊嵌入層的實例。"
+    },
+    {
+      "start": 758.02,
+      "end": 761.8,
+      "en": "So we're mostly interested in seeing the shapes are correct here.",
+      "zh": "所以主要關心形狀是否正確。"
+    },
+    {
+      "start": 762.37,
+      "end": 763.63,
+      "en": "Patch embedding.",
+      "zh": "PatchEmbedding。"
+    },
+    {
+      "start": 763.96,
+      "end": 765.55,
+      "en": "This is just what we've got above.",
+      "zh": "就是上面的類別。"
+    },
+    {
+      "start": 766.39,
+      "end": 772.18,
+      "en": "So we don't actually need to insert any parameters here because the defaults are going to work for us.",
+      "zh": "其實不需要傳入參數，因為預設值就適用。"
+    },
+    {
+      "start": 772.48,
+      "end": 775.18,
+      "en": "But why don't we do that for completeness?",
+      "zh": "不過為了完整，還是寫出來。"
+    },
+    {
+      "start": 775.21,
+      "end": 777.14,
+      "en": "Patch size equals 16.",
+      "zh": "patch_size 等於 16。"
+    },
+    {
+      "start": 777.16,
+      "end": 780.58,
+      "en": "So this is where you can see that if we wanted to change the patch size, we could.",
+      "zh": "這裡可以看到，如果想更改區塊大小，就能更改。"
+    },
+    {
+      "start": 780.58,
+      "end": 784.9,
+      "en": "And if we wanted to change the embedding dimension to something else, we also could do that.",
+      "zh": "想改嵌入維度，也可以。"
+    },
+    {
+      "start": 785.47,
+      "end": 791.05,
+      "en": "And so let's go pass a single image through patch embedding layer.",
+      "zh": "把單張影像傳給區塊嵌入層。"
+    },
+    {
+      "start": 792.97,
+      "end": 794.29,
+      "en": "So let's go.",
+      "zh": "來吧。"
+    },
+    {
+      "start": 795.28,
+      "end": 798.1,
+      "en": "Print logo input Image size.",
+      "zh": "印出輸入影像大小。"
+    },
+    {
+      "start": 799.56,
+      "end": 806.59,
+      "en": "Go image squeeze zero shape and then we'll go.",
+      "zh": "image.unsqueeze(0).shape，然後，"
+    },
+    {
+      "start": 806.62,
+      "end": 808.12,
+      "en": "Patch embedded.",
+      "zh": "patch_embedded"
+    },
+    {
+      "start": 810.34,
+      "end": 813.19,
+      "en": "Image equals patch ify.",
+      "zh": "_image 等於 patchify。"
+    },
+    {
+      "start": 813.34,
+      "end": 815.71,
+      "en": "So this is our layer that we just created here.",
+      "zh": "就是剛建立的這個層。"
+    },
+    {
+      "start": 815.8,
+      "end": 819.73,
+      "en": "And then we'll pass through image and squeeze out a batch dimension.",
+      "zh": "然後傳入 image.unsqueeze，新增批次維度。"
+    },
+    {
+      "start": 820.45,
+      "end": 824.19,
+      "en": "So here, add an extra batch dimension.",
+      "zh": "在這裡，加上額外批次維度。"
+    },
+    {
+      "start": 824.2,
+      "end": 826.42,
+      "en": "We did the same thing here as well, actually.",
+      "zh": "其實這裡也做了同樣的事。"
+    },
+    {
+      "start": 826.75,
+      "end": 828.49,
+      "en": "And what is CoLab telling me?",
+      "zh": "Colab 在提醒什麼？"
+    },
+    {
+      "start": 831.01,
+      "end": 833.02,
+      "en": "Oh, and to finish the string here.",
+      "zh": "喔，要把字串結束。"
+    },
+    {
+      "start": 833.26,
+      "end": 834.16,
+      "en": "Did you catch that?",
+      "zh": "有注意到嗎？"
+    },
+    {
+      "start": 834.95,
+      "end": 840.11,
+      "en": "And then finally, let's print the output shape, output, shape.",
+      "zh": "最後印出輸出形狀，output shape。"
+    },
+    {
+      "start": 840.41,
+      "end": 842.81,
+      "en": "This is actually a sequence or a patch embedding.",
+      "zh": "這其實是序列，也就是區塊嵌入。"
+    },
+    {
+      "start": 844.28,
+      "end": 846.59,
+      "en": "Patch embedding sequence shape.",
+      "zh": "區塊嵌入序列形狀。"
+    },
+    {
+      "start": 848.15,
+      "end": 849.65,
+      "en": "A lot of manipulation here.",
+      "zh": "做了很多處理。"
+    },
+    {
+      "start": 849.95,
+      "end": 851.03,
+      "en": "But that's all right.",
+      "zh": "不過沒關係。"
+    },
+    {
+      "start": 851.78,
+      "end": 853.07,
+      "en": "Nothing we can't handle.",
+      "zh": "我們應付得來。"
+    },
+    {
+      "start": 853.61,
+      "end": 855.23,
+      "en": "Patch embedded image.",
+      "zh": "patch_embedded_image。"
+    },
+    {
+      "start": 855.23,
+      "end": 856.82,
+      "en": "Do we have the right shape?",
+      "zh": "形狀正確嗎？"
+    },
+    {
+      "start": 858.74,
+      "end": 860.54,
+      "en": "Three, two, one.",
+      "zh": "三、二、一。"
+    },
+    {
+      "start": 860.54,
+      "end": 861.28,
+      "en": "Let's go.",
+      "zh": "執行。"
+    },
+    {
+      "start": 861.29,
+      "end": 862.28,
+      "en": "No errors.",
+      "zh": "沒有錯誤。"
+    },
+    {
+      "start": 863.96,
+      "end": 866.51,
+      "en": "Yes, we did it.",
+      "zh": "對，成功了。"
+    },
+    {
+      "start": 867.05,
+      "end": 874.58,
+      "en": "We've got a single layer here that now turns our single image into a patch embedding or a sequence of patch embeddings.",
+      "zh": "現在有單一層，把單張影像轉成區塊嵌入，也就是區塊嵌入序列。"
+    },
+    {
+      "start": 874.91,
+      "end": 875.51,
+      "en": "Look at that.",
+      "zh": "你看。"
+    },
+    {
+      "start": 875.51,
+      "end": 883.37,
+      "en": "We start with the image one, three, 2 to 4, two, four, and we end with one number of patches embedding dimension.",
+      "zh": "從影像的 1、3、224、224，變成 1、區塊數量、嵌入維度。"
+    },
+    {
+      "start": 884.4,
+      "end": 886.48,
+      "en": "Which is exactly what we wanted.",
+      "zh": "正是我們想要的。"
+    },
+    {
+      "start": 886.5,
+      "end": 890.7,
+      "en": "If we come right back up here where we calculated the input and output shapes by hand.",
+      "zh": "回到上面手動計算輸入、輸出形狀的地方。"
+    },
+    {
+      "start": 891.33,
+      "end": 893.04,
+      "en": "Oh my gosh, we've written a lot of code.",
+      "zh": "天啊，已經寫了好多程式碼。"
+    },
+    {
+      "start": 893.16,
+      "end": 894.09,
+      "en": "Here we go.",
+      "zh": "找到了。"
+    },
+    {
+      "start": 894.92,
+      "end": 898.46,
+      "en": "Input shape while our color channels is at a different point.",
+      "zh": "輸入形狀，色彩通道位置不同。"
+    },
+    {
+      "start": 898.46,
+      "end": 899.39,
+      "en": "But that's okay.",
+      "zh": "不過沒關係。"
+    },
+    {
+      "start": 899.91,
+      "end": 904.37,
+      "en": "Then we've got here the output shape, single 1D sequence of patches.",
+      "zh": "然後是輸出形狀，一條一維區塊序列。"
+    },
+    {
+      "start": 906.41,
+      "end": 908.96,
+      "en": "Well, Don, we've got our first layer of the vet.",
+      "zh": "做得很好，完成 ViT 的第一層。"
+    },
+    {
+      "start": 909.29,
+      "end": 911.03,
+      "en": "So what's next?",
+      "zh": "接下來呢？"
+    },
+    {
+      "start": 911.21,
+      "end": 913.52,
+      "en": "We could reuse this whatever we want.",
+      "zh": "想用在哪裡，都能重複使用。"
+    },
+    {
+      "start": 913.55,
+      "end": 914.75,
+      "en": "Patch embedding.",
+      "zh": "PatchEmbedding。"
+    },
+    {
+      "start": 915.17,
+      "end": 916.43,
+      "en": "What should we do next?",
+      "zh": "下一步做什麼？"
+    },
+    {
+      "start": 917.94,
+      "end": 920.93,
+      "en": "Well, we've got the main part of equation one done right.",
+      "zh": "方程式 1 的主要部分已經完成，對吧？"
+    },
+    {
+      "start": 920.94,
+      "end": 922.91,
+      "en": "So equation one, the patch embedding.",
+      "zh": "方程式 1 的區塊嵌入。"
+    },
+    {
+      "start": 922.92,
+      "end": 927.81,
+      "en": "Now I've just altered figure one a little bit just to focus on the linear projection of flattened patches.",
+      "zh": "我稍微修改了圖 1，專注在展平區塊的線性投影。"
+    },
+    {
+      "start": 927.81,
+      "end": 929.19,
+      "en": "This is what we've replicated.",
+      "zh": "這就是剛重現的部分。"
+    },
+    {
+      "start": 929.58,
+      "end": 935.04,
+      "en": "We've gone from a 2D image into a sequence of flattened 2D patches.",
+      "zh": "從二維影像，轉成一串展平的二維區塊。"
+    },
+    {
+      "start": 936.66,
+      "end": 940.77,
+      "en": "So we split an image into fixed sized patches linearly, embed all of them.",
+      "zh": "把影像切成固定大小區塊，為每個區塊做線性嵌入。"
+    },
+    {
+      "start": 940.77,
+      "end": 941.67,
+      "en": "So that's what we've done.",
+      "zh": "就是我們剛做的。"
+    },
+    {
+      "start": 941.67,
+      "end": 944.55,
+      "en": "We've created these linear projection of flattened patches.",
+      "zh": "建立了展平區塊的線性投影。"
+    },
+    {
+      "start": 945.25,
+      "end": 948.4,
+      "en": "We've made this portion of equation one.",
+      "zh": "完成了方程式 1 的這個部分。"
+    },
+    {
+      "start": 949,
+      "end": 952.81,
+      "en": "So if we keep going, this is what we've replicated so far.",
+      "zh": "繼續看，目前重現到這裡。"
+    },
+    {
+      "start": 952.84,
+      "end": 959.02,
+      "en": "One layer at a time, patches and mapped to dimensions with the trainable linear projection.",
+      "zh": "一次一層，用可訓練線性投影，把區塊映射到 D 維。"
+    },
+    {
+      "start": 959.02,
+      "end": 961.84,
+      "en": "So d dimensions is our embedding dimension.",
+      "zh": "所以 D 維就是嵌入維度。"
+    },
+    {
+      "start": 962.5,
+      "end": 971.53,
+      "en": "So if we use an embedding size of 768 and an image size of 2242243, we've now got a number of patches,",
+      "zh": "如果嵌入大小是 768，影像大小是 224、224、3，現在就有區塊數量，"
+    },
+    {
+      "start": 971.53,
+      "end": 975.42,
+      "en": "196 with an embedding size of 768.",
+      "zh": "196，嵌入大小為 768。"
+    },
+    {
+      "start": 975.43,
+      "end": 981.7,
+      "en": "And this is going from this shape to this shape, which is this shape, height, width, color channels,",
+      "zh": "從這個形狀變成這個形狀，也就是從高度、寬度、色彩通道，"
+    },
+    {
+      "start": 981.7,
+      "end": 988.36,
+      "en": "two number of patches, time's patch, size squared dot color channels.",
+      "zh": "到區塊數量，以及區塊大小平方乘色彩通道數。"
+    },
+    {
+      "start": 989.17,
+      "end": 991.27,
+      "en": "So that's a huge effort.",
+      "zh": "這是很大的進展。"
+    },
+    {
+      "start": 991.42,
+      "end": 995.32,
+      "en": "And to see it in code, well, this is what we've done.",
+      "zh": "實際程式碼就是我們完成的這些。"
+    },
+    {
+      "start": 995.71,
+      "end": 1000.66,
+      "en": "So now we've done probably the largest portion of the patch embedding.",
+      "zh": "現在大概完成了區塊嵌入最大的一部分。"
+    },
+    {
+      "start": 1000.66,
+      "end": 1003.72,
+      "en": "We still have the class token and the positional embedding.",
+      "zh": "還有類別 token 和位置嵌入。"
+    },
+    {
+      "start": 1003.72,
+      "end": 1006.27,
+      "en": "So you might want to think about how you could do that on your own.",
+      "zh": "可以先想想自己會怎麼做。"
+    },
+    {
+      "start": 1006.27,
+      "end": 1011.55,
+      "en": "So we need to create this little class token here and these position embeddings, but.",
+      "zh": "需要建立這個小小類別 token，以及這些位置嵌入，不過，"
+    },
+    {
+      "start": 1012.42,
+      "end": 1015,
+      "en": "I'm going to start to do that together over the next few videos.",
+      "zh": "接下來幾段影片會一起做。"
+    },
+    {
+      "start": 1015.03,
+      "end": 1019.53,
+      "en": "So equation one, the class token, let's come and check this out in the next video.",
+      "zh": "方程式 1，類別 token，下段影片一起看看。"
+    },
+    {
+      "start": 1019.8,
+      "end": 1020.7,
+      "en": "I'll see you there.",
+      "zh": "到時見。"
+    }
+  ]
+}

@@ -1,0 +1,1309 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892701",
+  "title": "CodeChallenge: Grammar tuning in MLP neurons? (part 1)",
+  "section": 18,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "5ca0928c3a78d4ea172068292da478d162eb9b642da36276b51d41a8f73bad1e",
+  "cues": [
+    {
+      "start": 2.16,
+      "end": 5.64,
+      "en": "I hope you enjoy working through this code challenge.",
+      "zh": "希望你喜歡完成這個程式挑戰。"
+    },
+    {
+      "start": 5.92,
+      "end": 12.76,
+      "en": "It's going to be fairly involved, but I think you will find that the coding and conceptual knowledge",
+      "zh": "內容相當深入，但我認為，最後取得的程式能力與概念知識，"
+    },
+    {
+      "start": 12.76,
+      "end": 18.08,
+      "en": "that you gain by the end of this code challenge will be worth the challenge.",
+      "zh": "會讓挑戰值得。"
+    },
+    {
+      "start": 18.76,
+      "end": 26.6,
+      "en": "So the goal here will be to see if we can identify neurons in the expansion part of the MLP layer of",
+      "zh": "目標是，看看能否在某個 Transformer 區塊的 MLP 層擴張部分，找出"
+    },
+    {
+      "start": 26.6,
+      "end": 34.6,
+      "en": "one transformer block that are tuned to particular parts of speech, in particular nouns versus verbs.",
+      "zh": "對特定詞性有調諧偏好的神經元，尤其是名詞相對於動詞。"
+    },
+    {
+      "start": 35.36,
+      "end": 39.68,
+      "en": "What does it mean for a neuron to be tuned to some category?",
+      "zh": "神經元對某類別有調諧偏好，是什麼意思？"
+    },
+    {
+      "start": 40.24,
+      "end": 49.92,
+      "en": "That's just a phrasing that's used to indicate that a neuron has significantly stronger activation for one category over others.",
+      "zh": "只是表示，對某個類別的活化，顯著強於其他類別。"
+    },
+    {
+      "start": 50.24,
+      "end": 58.36,
+      "en": "For example, if a particular neuron has strong activation to nouns, but not to verbs or adjectives,",
+      "zh": "例如，某個神經元對名詞有強活化，但對動詞或形容詞沒有，"
+    },
+    {
+      "start": 58.6,
+      "end": 66.24,
+      "en": "or perhaps if a neuron has high activations to mammals, but not to invertebrates or inanimate objects.",
+      "zh": "或者對哺乳類活化高，但對無脊椎動物或無生命物體沒有。"
+    },
+    {
+      "start": 66.84,
+      "end": 73.92,
+      "en": "By the way, as you work through this code challenge, I would like you to think about some of the challenges",
+      "zh": "順帶一提，完成挑戰時，希望你思考這些"
+    },
+    {
+      "start": 73.92,
+      "end": 84.56,
+      "en": "in these exercises and how you might address some of the limitations and difficulties in these exercises in potential follow up research.",
+      "zh": "練習中的挑戰，以及未來後續研究，可能如何處理這些限制與困難。"
+    },
+    {
+      "start": 85,
+      "end": 93,
+      "en": "I will get back to this at the end of the code, challenge the end of the video and discuss some of my observations and comments.",
+      "zh": "程式挑戰最後、影片結尾，會再回來討論我的一些觀察與看法。"
+    },
+    {
+      "start": 93.36,
+      "end": 96.47999999999999,
+      "en": "Anyway, let's begin with exercise one.",
+      "zh": "總之，從練習一開始。"
+    },
+    {
+      "start": 97.16,
+      "end": 102.84,
+      "en": "The goal here is to import the Eleuther GPT neo model.",
+      "zh": "目標是匯入 Eleuther 的 GPT-Neo 模型。"
+    },
+    {
+      "start": 103.6,
+      "end": 106.88,
+      "en": "We have worked with this model previously in this course.",
+      "zh": "課程先前已用過。"
+    },
+    {
+      "start": 107.12,
+      "end": 117.03999999999999,
+      "en": "For example, in this lecture about fine tuning the model to emulate the writing style of Through the Looking Glass and Edgar Allan Poe.",
+      "zh": "例如，這堂微調模型，模仿 Through the Looking Glass 與 Edgar Allan Poe 寫作風格的課。"
+    },
+    {
+      "start": 117.88,
+      "end": 128.88,
+      "en": "Next, you should import a list of the 100 common nouns and verbs, and I got some nice lists from this person's GitHub site.",
+      "zh": "接著，匯入 100 個常見名詞與動詞的清單；我從這個人的 GitHub 網站找到不錯的清單。"
+    },
+    {
+      "start": 128.88,
+      "end": 136.72,
+      "en": "I have no idea who this person is, but I am grateful for their efforts to organize these lists of words and put them online.",
+      "zh": "我不知道這個人是誰，但很感謝他整理單字清單，放到網路上。"
+    },
+    {
+      "start": 137.28,
+      "end": 143.24,
+      "en": "Anyway, for this part, you can just copy the code from the solutions or the helper files.",
+      "zh": "這部分，可以直接從 solutions 或 helper 檔複製程式。"
+    },
+    {
+      "start": 143.52,
+      "end": 150.24,
+      "en": "So this is really just about retrieving and formatting some data from a public GitHub repo.",
+      "zh": "其實只是從公開 GitHub repo 取得、格式化一些資料。"
+    },
+    {
+      "start": 151.16,
+      "end": 153.16,
+      "en": "So this exercise isn't so bad.",
+      "zh": "所以，這個練習不太難。"
+    },
+    {
+      "start": 153.2,
+      "end": 156.2,
+      "en": "And now you should pause the video and get to work.",
+      "zh": "現在暫停影片，開始動手。"
+    },
+    {
+      "start": 156.44,
+      "end": 163.64,
+      "en": "And I will switch to code briefly just to show you what you need to have before moving on to exercise two.",
+      "zh": "我會短暫切換到程式，展示進入練習二之前需要準備什麼。"
+    },
+    {
+      "start": 164.52,
+      "end": 168.96,
+      "en": "Here are some of the libraries that we will need for this code.",
+      "zh": "這些是本次程式"
+    },
+    {
+      "start": 168.96,
+      "end": 176.16,
+      "en": "Challenge some of these libraries I'm not going to use until a little bit later on, like this one we'll use towards the end.",
+      "zh": "挑戰會需要的函式庫；部分稍後才用，例如這個要到最後。"
+    },
+    {
+      "start": 176.6,
+      "end": 176.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 176.92000000000002,
+      "end": 178.07999999999998,
+      "en": "So import those.",
+      "zh": "匯入。"
+    },
+    {
+      "start": 178.12,
+      "end": 184.88,
+      "en": "And now here I am importing the Eleuther tokenizer and also the model.",
+      "zh": "這裡匯入 Eleuther tokenizer 與模型。"
+    },
+    {
+      "start": 184.88,
+      "end": 188.24,
+      "en": "And here I'm switching it to eval mode.",
+      "zh": "切換到 eval 模式。"
+    },
+    {
+      "start": 189.2,
+      "end": 189.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 189.56,
+      "end": 192.8,
+      "en": "And then here is the list of verbs.",
+      "zh": "這裡是動詞清單。"
+    },
+    {
+      "start": 192.96,
+      "end": 199.8,
+      "en": "And to get this list basically you just need to have the URL for this text file.",
+      "zh": "基本上，只需要這個文字檔的網址。"
+    },
+    {
+      "start": 200.24,
+      "end": 208.48,
+      "en": "And then yeah you can split it by new line and just import the first 100 verbs and that you see here.",
+      "zh": "再按照換行拆分，只匯入前 100 個動詞，這裡可以看到。"
+    },
+    {
+      "start": 208.48,
+      "end": 212.68,
+      "en": "So this is the first 100 that are provided in this list.",
+      "zh": "也就是清單提供的前 100 個。"
+    },
+    {
+      "start": 212.68,
+      "end": 216.4,
+      "en": "So that's for the verbs where the nouns it's exactly the same.",
+      "zh": "這是動詞，名詞完全相同。"
+    },
+    {
+      "start": 216.64,
+      "end": 221.32,
+      "en": "Uh now you can organize these to uh variables in different ways.",
+      "zh": "可以用不同方式組織這兩個變數。"
+    },
+    {
+      "start": 221.32,
+      "end": 224.76,
+      "en": "I chose to have separate variables for the verbs and the nouns.",
+      "zh": "我選擇為動詞與名詞分別建立變數。"
+    },
+    {
+      "start": 225,
+      "end": 230.92000000000002,
+      "en": "If you chose to have all of the words in one list, then that's also fine.",
+      "zh": "如果選擇把所有單字放進同一串列，也可以。"
+    },
+    {
+      "start": 230.92000000000002,
+      "end": 238.76,
+      "en": "That would be a list with 200 elements, and you would just need to know that, for example, the first hundred are verbs and the next hundred are nouns.",
+      "zh": "那會有 200 個元素，只需要知道，例如前 100 個是動詞，後 100 個是名詞。"
+    },
+    {
+      "start": 238.92000000000002,
+      "end": 245,
+      "en": "There's a lot of personal choices that you can make when setting up these code challenges, and that's",
+      "zh": "設定這些程式挑戰時，有很多個人選擇，"
+    },
+    {
+      "start": 245,
+      "end": 252.28,
+      "en": "completely fine as long as you are coding in a way that is consistent with the instructions that I'm giving in the slides.",
+      "zh": "只要程式符合投影片上的指示，都完全沒問題。"
+    },
+    {
+      "start": 253.12,
+      "end": 260.76,
+      "en": "Before telling you about exercise two, I want to remind you of the key conceptual difference between",
+      "zh": "介紹練習二之前，先提醒 Transformer 層中，"
+    },
+    {
+      "start": 260.76,
+      "end": 266.52,
+      "en": "the attention and the MLP subblock of a transformer layer.",
+      "zh": "注意力與 MLP 子區塊在概念上的關鍵差異。"
+    },
+    {
+      "start": 267.12,
+      "end": 273.52,
+      "en": "So this is a slide that I showed earlier in the course in the section on building a GPT.",
+      "zh": "這是課程先前建立 GPT 那一節展示過的投影片。"
+    },
+    {
+      "start": 274.24,
+      "end": 282.68,
+      "en": "The key idea that I want to remind you of here is that the attention sublayer integrates context from",
+      "zh": "想提醒的重點是，注意力子層整合"
+    },
+    {
+      "start": 282.68,
+      "end": 292.24,
+      "en": "surrounding tokens, whereas the MLP sublayer extracts and identifies features and categories from the",
+      "zh": "周圍 token 的上下文，而 MLP 子層，從不同 token 的"
+    },
+    {
+      "start": 292.24,
+      "end": 296.92,
+      "en": "linear and non-linear combinations across the different tokens.",
+      "zh": "線性與非線性組合，擷取、辨識特徵與類別。"
+    },
+    {
+      "start": 297.4,
+      "end": 303.52,
+      "en": "So therefore, if you want to look for category selectivity Activity inside an LM.",
+      "zh": "因此，如果想找 LLM 內部的類別選擇性，"
+    },
+    {
+      "start": 304,
+      "end": 308.56,
+      "en": "Based on previous research and on just general speculations.",
+      "zh": "根據先前研究，以及一般性的推測，"
+    },
+    {
+      "start": 308.68,
+      "end": 311.52,
+      "en": "It's good to start with the MLP layers.",
+      "zh": "從 MLP 層開始很好。"
+    },
+    {
+      "start": 311.96,
+      "end": 322.24,
+      "en": "Of course, you could also look for category selectivity in the attention layers, and you probably will find some neurons here that are tuned to particular categories.",
+      "zh": "當然，也可以在注意力層尋找類別選擇性，這裡可能也會找到對特定類別有偏好的神經元。"
+    },
+    {
+      "start": 322.36,
+      "end": 328.76,
+      "en": "But at least for the context of this code challenge, we will just focus on the MLP sublayer.",
+      "zh": "但至少這個挑戰的脈絡下，只著重 MLP 子層。"
+    },
+    {
+      "start": 329.16,
+      "end": 337.56,
+      "en": "In particular, we will be extracting the activation from the expansion neurons in the MLP layer.",
+      "zh": "特別是，擷取 MLP 層擴張神經元的活化。"
+    },
+    {
+      "start": 338.08,
+      "end": 342.08,
+      "en": "So remember that the MLP sublayer has these two parts.",
+      "zh": "記得，MLP 子層有兩部分。"
+    },
+    {
+      "start": 342.2,
+      "end": 345.08,
+      "en": "One part that expands the dimensionality.",
+      "zh": "一部分擴張維度。"
+    },
+    {
+      "start": 345.28,
+      "end": 352.6,
+      "en": "And then after a non-linearity, the dimensionality contracts back to the dimensionality of the embedding",
+      "zh": "經過非線性之後，再縮回嵌入"
+    },
+    {
+      "start": 352.6,
+      "end": 357.44,
+      "en": "space, which for GPT two is 768.",
+      "zh": "空間的維度；GPT-2 是 768。"
+    },
+    {
+      "start": 358.08,
+      "end": 364.56,
+      "en": "So in this exercise, in this entire code challenge, and actually also in the next code challenge,",
+      "zh": "所以，這個練習、整個程式挑戰，甚至下一個挑戰，"
+    },
+    {
+      "start": 364.56,
+      "end": 371.2,
+      "en": "we are going to be specifically focusing on these expansion neurons in this layer.",
+      "zh": "都會特別著重這層的擴張神經元。"
+    },
+    {
+      "start": 371.76,
+      "end": 378.4,
+      "en": "Now for the small version of GPT two, this corresponds to 3072 neurons.",
+      "zh": "小型 GPT-2 版本中，對應 3,072 個神經元。"
+    },
+    {
+      "start": 378.4,
+      "end": 386.56,
+      "en": "Of course that is a factor of four, an expansion factor of four from the 768 embeddings dimensions.",
+      "zh": "當然，是從 768 個嵌入維度，擴張四倍。"
+    },
+    {
+      "start": 387.48,
+      "end": 391.2,
+      "en": "Now let me tell you about the goals for exercise two.",
+      "zh": "介紹練習二的目標。"
+    },
+    {
+      "start": 391.96,
+      "end": 401.12,
+      "en": "Here you should implant a hook to get the activations from that expansion layer of the MLP from the ninth transformer block.",
+      "zh": "在第九個 Transformer 區塊，植入 hook，取得 MLP 擴張層的活化。"
+    },
+    {
+      "start": 401.84000000000003,
+      "end": 410.28,
+      "en": "After you have installed a hook, you can test it just by passing in a bit of text and then you can check that.",
+      "zh": "安裝 hook 後，輸入一點文字測試，再檢查。"
+    },
+    {
+      "start": 410.48,
+      "end": 418.36,
+      "en": "Well, first of all, check that you don't get any error messages that could indicate problems or maybe typos, for example, with the hook function.",
+      "zh": "首先，確定沒有錯誤訊息；錯誤可能表示有問題，例如 hook 函式拼字錯誤。"
+    },
+    {
+      "start": 419.12,
+      "end": 429.48,
+      "en": "But then you also just want to make sure that the size of the activations that you get out is batch by tokens by 3072.",
+      "zh": "接著，確保活化大小為批次乘以 token 乘以 3,072。"
+    },
+    {
+      "start": 430.12,
+      "end": 433,
+      "en": "You can use any random piece of text that you want.",
+      "zh": "可以用任何隨意的文字。"
+    },
+    {
+      "start": 433.04,
+      "end": 437,
+      "en": "Here we're not actually going to use this text in later exercises.",
+      "zh": "後面練習不會真正使用這段文字。"
+    },
+    {
+      "start": 437.2,
+      "end": 440.68,
+      "en": "It's just for a sanity check for this exercise.",
+      "zh": "只是做這個練習的合理性檢查。"
+    },
+    {
+      "start": 441.4,
+      "end": 443.52,
+      "en": "Okay, so that's it for exercise two.",
+      "zh": "練習二就是這樣。"
+    },
+    {
+      "start": 443.56,
+      "end": 445.92,
+      "en": "Please pause the video and code away.",
+      "zh": "請暫停影片，開始寫程式。"
+    },
+    {
+      "start": 446.16,
+      "end": 449.56,
+      "en": "And now I will switch to code and show my solution.",
+      "zh": "現在切換到程式，展示解法。"
+    },
+    {
+      "start": 450.64,
+      "end": 462.2,
+      "en": "I forgot to mention in the slides that I'm only using the CPU because we're not really doing a whole lot of really intensive processing through this model.",
+      "zh": "投影片忘了提，我只使用 CPU，因為這裡不需要對模型做大量密集處理。"
+    },
+    {
+      "start": 462.36,
+      "end": 464.44,
+      "en": "So you can use the GPU if you want.",
+      "zh": "你想用 GPU 也可以。"
+    },
+    {
+      "start": 464.44,
+      "end": 466.32,
+      "en": "It will certainly save you some time.",
+      "zh": "確實會省一些時間。"
+    },
+    {
+      "start": 466.6,
+      "end": 478.52,
+      "en": "But yeah, for this code challenge, the time you save from GPU might be on the order of seconds, tens of seconds versus the amount of time it takes you to organize all the code to make sure that you're",
+      "zh": "但這個挑戰，GPU 省下的可能只是幾秒、幾十秒，相較於整理所有程式、確保"
+    },
+    {
+      "start": 478.52,
+      "end": 479.32,
+      "en": "using the GPU.",
+      "zh": "能使用 GPU 所需要的時間。"
+    },
+    {
+      "start": 480.6,
+      "end": 487.68,
+      "en": "Anyway, so here I just wanted to print out the model architecture as a reminder in case we need to use it.",
+      "zh": "總之，印出模型架構，作為提醒，以防需要。"
+    },
+    {
+      "start": 487.68,
+      "end": 493.56,
+      "en": "So we specifically want the MLP from one of the transformer blocks.",
+      "zh": "特別想取某個 Transformer 區塊中的 MLP。"
+    },
+    {
+      "start": 493.56,
+      "end": 496.12,
+      "en": "And I said the transformer block.",
+      "zh": "我說的是那個 Transformer 區塊。"
+    },
+    {
+      "start": 496.12,
+      "end": 499,
+      "en": "So that corresponds to index eight.",
+      "zh": "所以對應索引 8。"
+    },
+    {
+      "start": 499.32,
+      "end": 499.6,
+      "en": "Right.",
+      "zh": "對吧？"
+    },
+    {
+      "start": 499.64,
+      "end": 502.08,
+      "en": "Because it starts counting at zero.",
+      "zh": "因為從零計數。"
+    },
+    {
+      "start": 502.44,
+      "end": 504.4,
+      "en": "And then which of these things do we want.",
+      "zh": "那麼，這些部分要哪一個？"
+    },
+    {
+      "start": 504.44,
+      "end": 514.76,
+      "en": "We want the C underscore FC which stands for Fully Connected, that has uh 768 neurons coming into it",
+      "zh": "要的是 c_fc，fc 代表 fully connected，輸入有 768 個神經元，"
+    },
+    {
+      "start": 514.76,
+      "end": 517.72,
+      "en": "and 3072 neurons coming out.",
+      "zh": "輸出有 3,072 個。"
+    },
+    {
+      "start": 517.72,
+      "end": 519.68,
+      "en": "And these are the neurons here.",
+      "zh": "就是這些神經元。"
+    },
+    {
+      "start": 519.84,
+      "end": 528.84,
+      "en": "Before we get to the activation, the non-linearity, these are the activations that we want to hook and extract from the model.",
+      "zh": "進入活化、非線性之前，這些就是要用 hook 從模型擷取的活化。"
+    },
+    {
+      "start": 529.48,
+      "end": 529.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 529.8,
+      "end": 532.92,
+      "en": "So this is how you would access all of those.",
+      "zh": "這樣就能存取全部。"
+    },
+    {
+      "start": 532.92,
+      "end": 536.8,
+      "en": "And then I'm just defining some variable called n neurons.",
+      "zh": "再定義一個叫 n neurons 的變數。"
+    },
+    {
+      "start": 536.92,
+      "end": 542.36,
+      "en": "This is just going to be convenient for using later on in the exercises.",
+      "zh": "稍後練習使用時會比較方便。"
+    },
+    {
+      "start": 543.48,
+      "end": 546.76,
+      "en": "So here is the hook function to grab the activations.",
+      "zh": "這裡是取得活化的 hook 函式。"
+    },
+    {
+      "start": 547.24,
+      "end": 554.16,
+      "en": "You can see that I'm creating these activations to be a dictionary, and I'm not going to do any concatenation.",
+      "zh": "可以看到，activations 建立成字典，不做任何串接。"
+    },
+    {
+      "start": 554.16,
+      "end": 561.92,
+      "en": "So every time I run a forward pass it's going to overwrite the activations from the previous forward pass.",
+      "zh": "所以，每次前向傳播，都會覆寫前一次的活化。"
+    },
+    {
+      "start": 562.16,
+      "end": 562.84,
+      "en": "That's fine.",
+      "zh": "沒關係。"
+    },
+    {
+      "start": 562.84,
+      "end": 566.76,
+      "en": "I don't need to store all of them sequentially, although you can do that.",
+      "zh": "不需要依序全部儲存，雖然也可以那樣做。"
+    },
+    {
+      "start": 566.76,
+      "end": 568.16,
+      "en": "I'll talk about that more later.",
+      "zh": "稍後會再談。"
+    },
+    {
+      "start": 568.56,
+      "end": 574.04,
+      "en": "But anyway, you do, it is fine as long as you are getting all of the activations out of it correctly.",
+      "zh": "不管怎麼做，只要正確取得所有活化，都可以。"
+    },
+    {
+      "start": 574.6,
+      "end": 580.92,
+      "en": "Okay, so the hook goes into model dot transformer dot h for hidden layer.",
+      "zh": "hook 放進 model.transformer.h，h 代表隱藏層。"
+    },
+    {
+      "start": 581.08,
+      "end": 586.92,
+      "en": "And then this particular layer and I've soft coded this here in case you are curious.",
+      "zh": "再指定特定層；這裡做成可調參數，讓你有興趣時，"
+    },
+    {
+      "start": 587.08,
+      "end": 592.32,
+      "en": "You know you can also try what happens in the rest of this exercise if you pick a different layer.",
+      "zh": "也能試試挑另一層，後面練習會發生什麼。"
+    },
+    {
+      "start": 592.84,
+      "end": 594.4,
+      "en": "Uh let's see MLP.",
+      "zh": "接著看 MLP。"
+    },
+    {
+      "start": 594.44,
+      "end": 598.76,
+      "en": "And then here is the register forward hook method.",
+      "zh": "這裡是 register_forward_hook 方法。"
+    },
+    {
+      "start": 598.92,
+      "end": 602.72,
+      "en": "And then I'm calling this outer function here implant hook.",
+      "zh": "呼叫這個叫 implant hook 的外層函式。"
+    },
+    {
+      "start": 603.23,
+      "end": 609.55,
+      "en": "As I mentioned a couple videos ago, the main point of having this outer function is to be able to soft",
+      "zh": "就像前幾部影片說的，外層函式的主要目的，是讓"
+    },
+    {
+      "start": 609.55,
+      "end": 619.51,
+      "en": "code this parameter here, which I then use to define this key for this activations dictionary variable",
+      "zh": "這個參數可調，再用它定義 activations 字典變數的"
+    },
+    {
+      "start": 619.55,
+      "end": 620.07,
+      "en": "here.",
+      "zh": "鍵。"
+    },
+    {
+      "start": 620.23,
+      "end": 628.59,
+      "en": "So this is, you know, setting it up this way might be a little bit more complicated than is necessary for this particular code challenge.",
+      "zh": "這種設定，對這個特定挑戰來說，可能比必要程度更複雜一點。"
+    },
+    {
+      "start": 628.59,
+      "end": 632.43,
+      "en": "So if you chose to do it a simpler way then that's also fine.",
+      "zh": "所以，如果選擇簡單方式，也可以。"
+    },
+    {
+      "start": 632.43,
+      "end": 633.83,
+      "en": "But I wanted to do it this way.",
+      "zh": "但我想這樣做，"
+    },
+    {
+      "start": 633.83,
+      "end": 639.95,
+      "en": "So it's a little bit more general so that, you know, if you feel like also including the attention",
+      "zh": "讓它更一般化；如果也想加入注意力"
+    },
+    {
+      "start": 639.95,
+      "end": 649.23,
+      "en": "layers, you could also have some attention activations being outputted into this same variable, this same dictionary with a different key.",
+      "zh": "層，就能把注意力活化輸出到相同變數、相同字典，但使用不同鍵。"
+    },
+    {
+      "start": 649.67,
+      "end": 650.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 650.07,
+      "end": 654.75,
+      "en": "Anyway, so then the idea is in the MLP block.",
+      "zh": "總之，在 MLP 區塊中，"
+    },
+    {
+      "start": 654.99,
+      "end": 663.23,
+      "en": "Then we get the inputs into the MLP block and then run it through the fully connected weights matrix.",
+      "zh": "取得 MLP 區塊輸入，再送過全連接權重矩陣。"
+    },
+    {
+      "start": 663.23,
+      "end": 671.47,
+      "en": "And that is going to give us the results of the activations of all of the expansion neurons from this",
+      "zh": "得到這個 MLP 區塊中，所有擴張神經元的活化結果，"
+    },
+    {
+      "start": 671.51,
+      "end": 676.11,
+      "en": "MLP block before they are passed through the non-linearity.",
+      "zh": "在通過非線性之前。"
+    },
+    {
+      "start": 676.59,
+      "end": 676.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 676.91,
+      "end": 680.83,
+      "en": "And then this line of code does the actual surgery to implant the hook.",
+      "zh": "這一行，真正進行植入 hook 的手術。"
+    },
+    {
+      "start": 681.39,
+      "end": 681.83,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 682.07,
+      "end": 683.11,
+      "en": "Uh, so let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 683.11,
+      "end": 683.35,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 683.35,
+      "end": 686.11,
+      "en": "Then here I'm just testing a little bit of data.",
+      "zh": "這裡只測試一點資料。"
+    },
+    {
+      "start": 686.15,
+      "end": 689.95,
+      "en": "You can see that this goes through this forward pass goes through really fast.",
+      "zh": "可以看到，這次前向傳播非常快。"
+    },
+    {
+      "start": 690.15,
+      "end": 694.83,
+      "en": "So, uh, for an application like this, we don't really need to use the GPU.",
+      "zh": "這類應用，不太需要 GPU。"
+    },
+    {
+      "start": 695.35,
+      "end": 695.67,
+      "en": "Again.",
+      "zh": "同樣地，"
+    },
+    {
+      "start": 695.67,
+      "end": 697.91,
+      "en": "I don't actually care what these numbers are.",
+      "zh": "不在乎這些數字是多少。"
+    },
+    {
+      "start": 697.95,
+      "end": 700.99,
+      "en": "I just want to make sure, first of all, that it works.",
+      "zh": "只想先確認，可以運作。"
+    },
+    {
+      "start": 701.11,
+      "end": 708.31,
+      "en": "And second of all, that the shape of the output is consistent with what I'm expecting, which is one",
+      "zh": "再確認輸出形狀符合預期，也就是一段"
+    },
+    {
+      "start": 708.31,
+      "end": 718.79,
+      "en": "sequence, five tokens, you know, whatever's not so many tokens and 3072 activations corresponding to 3072 neurons.",
+      "zh": "序列、五個 token，總之不是太多，以及對應 3,072 個神經元的 3,072 個活化。"
+    },
+    {
+      "start": 720.19,
+      "end": 724.59,
+      "en": "Now we're starting to get to the important part of the code challenge.",
+      "zh": "現在開始進入挑戰的重要部分。"
+    },
+    {
+      "start": 725.11,
+      "end": 735.79,
+      "en": "The goal of exercise three is to get activations from those hooked MLP neurons from all of the 200 words that you have imported.",
+      "zh": "練習三的目標，是對匯入的全部 200 個單字，取得那些掛鉤 MLP 神經元的活化。"
+    },
+    {
+      "start": 736.43,
+      "end": 748.27,
+      "en": "Now, because those words are in a list and not embedded in text, you have to run a for loop over the words to get the activations per word.",
+      "zh": "因為單字在清單中，而非嵌在文字裡，所以需要對單字跑 for 迴圈，取得每個單字的活化。"
+    },
+    {
+      "start": 748.75,
+      "end": 755.07,
+      "en": "Now, depending on how you defined the hook function, this could mean that the activations variable",
+      "zh": "根據 hook 函式定義，activations 變數"
+    },
+    {
+      "start": 755.07,
+      "end": 763.31,
+      "en": "gets overwritten at each iteration in the for loop when you are processing each individual token through the model.",
+      "zh": "可能在每次迭代、每個 token 通過模型時，都被覆寫。"
+    },
+    {
+      "start": 763.91,
+      "end": 765.39,
+      "en": "Of course, that's completely fine.",
+      "zh": "當然，完全沒問題。"
+    },
+    {
+      "start": 765.39,
+      "end": 772.91,
+      "en": "You just have to be mindful of getting the activations out in a way that is consistent with how you defined the hook function.",
+      "zh": "只要留意，取得活化的方式，要與 hook 函式定義一致。"
+    },
+    {
+      "start": 773.63,
+      "end": 780.67,
+      "en": "When you get all of the activations for all the 200 words, you can visualize them in two plots like this.",
+      "zh": "取得 200 個單字的所有活化後，可以像這樣用兩張圖視覺化。"
+    },
+    {
+      "start": 780.83,
+      "end": 788.55,
+      "en": "So here on the left you see all the activations for all 3000 neurons and all 100 verbs.",
+      "zh": "左邊是所有 3,000 個神經元，對全部 100 個動詞的活化。"
+    },
+    {
+      "start": 788.95,
+      "end": 797.43,
+      "en": "Now it looks like there are just vertical stripes, but there actually is some individual variability in here across the different tokens.",
+      "zh": "看起來只有垂直條紋，但不同 token 之間，其實有個別變異。"
+    },
+    {
+      "start": 797.43,
+      "end": 805.31,
+      "en": "It's just that individual neurons have mean offsets that are preserved for all of the individual words.",
+      "zh": "只是各個神經元有平均值偏移，而且對所有單字都維持。"
+    },
+    {
+      "start": 806.31,
+      "end": 809.15,
+      "en": "So this is how I visualized the verbs here.",
+      "zh": "動詞這裡就是這樣視覺化。"
+    },
+    {
+      "start": 809.15,
+      "end": 812.87,
+      "en": "I visualized the nouns activation in a slightly different way.",
+      "zh": "名詞活化則稍微不同。"
+    },
+    {
+      "start": 813.35,
+      "end": 822.75,
+      "en": "What I did here was calculate the average activation across all of the 100 nouns for each neuron.",
+      "zh": "這裡計算每個神經元，跨全部 100 個名詞的平均活化。"
+    },
+    {
+      "start": 823.07,
+      "end": 825.99,
+      "en": "So that's why there's only one dot per neuron.",
+      "zh": "所以，每個神經元只有一個點。"
+    },
+    {
+      "start": 825.99,
+      "end": 832.55,
+      "en": "This is just visualizing the average across all of the 100 nouns for each neuron.",
+      "zh": "只是將每個神經元對 100 個名詞的平均視覺化。"
+    },
+    {
+      "start": 833.19,
+      "end": 838.19,
+      "en": "And by the way, here you also see the mean offsets for all the different words.",
+      "zh": "順帶一提，也看到不同單字的平均值偏移。"
+    },
+    {
+      "start": 838.19,
+      "end": 842.59,
+      "en": "In fact, it looks like the entire distribution is shifted to the left.",
+      "zh": "事實上，整個分布似乎向左偏。"
+    },
+    {
+      "start": 842.59,
+      "end": 847.47,
+      "en": "So the average across the population looks like somewhere around minus one.",
+      "zh": "神經元群體的平均，大約在 −1 附近。"
+    },
+    {
+      "start": 848.31,
+      "end": 854.35,
+      "en": "Anyway, for this exercise, you can just extract and visualize the activations.",
+      "zh": "總之，這個練習只需擷取、視覺化活化。"
+    },
+    {
+      "start": 854.63,
+      "end": 862.79,
+      "en": "In the next exercise, we're going to start performing some statistical analyses to look for category selectivity.",
+      "zh": "下一個練習，才開始做統計分析，尋找類別選擇性。"
+    },
+    {
+      "start": 863.63,
+      "end": 866.83,
+      "en": "So that's the instructions for exercise three.",
+      "zh": "這就是練習三指示。"
+    },
+    {
+      "start": 866.99,
+      "end": 869.11,
+      "en": "Please pause the video and start working.",
+      "zh": "請暫停影片，開始動手。"
+    },
+    {
+      "start": 869.23,
+      "end": 872.75,
+      "en": "And now I will switch to code and show my solution.",
+      "zh": "現在切換到程式，展示解法。"
+    },
+    {
+      "start": 874.19,
+      "end": 879.99,
+      "en": "I am going to store all of the activations in this tensor here.",
+      "zh": "會把所有活化，存進這個張量。"
+    },
+    {
+      "start": 879.99,
+      "end": 885.99,
+      "en": "So a 3D cube of data of size two corresponding to the two categories.",
+      "zh": "是一個三維資料立方體，大小的 2 對應兩個類別。"
+    },
+    {
+      "start": 886.11,
+      "end": 887.67,
+      "en": "So nouns and verbs.",
+      "zh": "也就是名詞與動詞。"
+    },
+    {
+      "start": 887.91,
+      "end": 891.99,
+      "en": "And then I have the number of words 100 for both categories.",
+      "zh": "再來是單字數，兩個類別都是 100。"
+    },
+    {
+      "start": 892.07,
+      "end": 894.59,
+      "en": "And then I have the number of neurons.",
+      "zh": "還有神經元數。"
+    },
+    {
+      "start": 894.59,
+      "end": 897.07,
+      "en": "So 3072.",
+      "zh": "也就是 3,072。"
+    },
+    {
+      "start": 897.55,
+      "end": 897.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 897.83,
+      "end": 901.43,
+      "en": "And then I have a for loop here over all of the words.",
+      "zh": "這裡有 for 迴圈，走過所有單字。"
+    },
+    {
+      "start": 901.63,
+      "end": 903.79,
+      "en": "So here this part is just for the verbs.",
+      "zh": "這部分只處理動詞。"
+    },
+    {
+      "start": 903.79,
+      "end": 905.55,
+      "en": "This part is just for the nouns.",
+      "zh": "這部分只處理名詞。"
+    },
+    {
+      "start": 905.87,
+      "end": 907.23,
+      "en": "So here I am.",
+      "zh": "這裡我要，"
+    },
+    {
+      "start": 907.95,
+      "end": 908.47,
+      "en": "Let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 908.51,
+      "end": 912.43,
+      "en": "This is this particular verb in the list of verbs.",
+      "zh": "這是動詞清單中的某個特定動詞。"
+    },
+    {
+      "start": 912.55,
+      "end": 916.35,
+      "en": "And then I encode this to get a token.",
+      "zh": "編碼，取得 token。"
+    },
+    {
+      "start": 916.51,
+      "end": 918.67,
+      "en": "And then I push it through the model.",
+      "zh": "再送過模型。"
+    },
+    {
+      "start": 918.99,
+      "end": 920.67,
+      "en": "Of course I'm using with torch.",
+      "zh": "當然，使用 with torch，"
+    },
+    {
+      "start": 920.71,
+      "end": 921.31,
+      "en": "Nograd.",
+      "zh": "no_grad。"
+    },
+    {
+      "start": 921.35,
+      "end": 926.83,
+      "en": "Because I don't want to calculate any gradients or any anything like that.",
+      "zh": "因為不想計算任何梯度或類似東西。"
+    },
+    {
+      "start": 927.19,
+      "end": 934.15,
+      "en": "Okay, so this will notice I don't have any output here because I don't actually need the output logits.",
+      "zh": "注意，這裡沒有輸出，因為不需要輸出 logits。"
+    },
+    {
+      "start": 934.71,
+      "end": 941.95,
+      "en": "All I need are the activations variables to be created, which happens when I run through the forward pass here.",
+      "zh": "只需要建立 activations 變數，這會在前向傳播時發生。"
+    },
+    {
+      "start": 942.35,
+      "end": 947.67,
+      "en": "Okay, so then I get the activations for the hook name that was this MLP layer.",
+      "zh": "取得該 hook 名稱，也就是那個 MLP 層的活化。"
+    },
+    {
+      "start": 948.07,
+      "end": 950.23,
+      "en": "And then squeeze and detach.",
+      "zh": "再 squeeze 與 detach。"
+    },
+    {
+      "start": 950.23,
+      "end": 959.99,
+      "en": "That basically just detaches everything from the computational graph converts it into numpy because I initialize this variable to be numpy.",
+      "zh": "基本上，將所有東西從計算圖分離，再轉成 NumPy，因為初始化變數時用的是 NumPy。"
+    },
+    {
+      "start": 960.03,
+      "end": 971.15,
+      "en": "So if you would have initialized this to be a torch variable, then you would not want to convert this into numpy, but just for convenience for later on.",
+      "zh": "如果初始化成 torch 變數，就不會想轉 NumPy；但為了之後方便，"
+    },
+    {
+      "start": 971.35,
+      "end": 974.23,
+      "en": "It's easier just to have this in numpy format.",
+      "zh": "直接保留 NumPy 格式更容易。"
+    },
+    {
+      "start": 975.23,
+      "end": 977.19,
+      "en": "Anyway, here's a question.",
+      "zh": "這裡有個問題。"
+    },
+    {
+      "start": 977.19,
+      "end": 980.67,
+      "en": "Why do I write mean dim equals one?",
+      "zh": "為什麼寫 mean(dim=1)？"
+    },
+    {
+      "start": 981.07,
+      "end": 987.23,
+      "en": "First of all, what is the dimension of index one that I'm averaging over?",
+      "zh": "首先，正在取平均的索引 1 維度是什麼？"
+    },
+    {
+      "start": 987.67,
+      "end": 992.47,
+      "en": "Well, if we go back here, we can see that that first dimension is batches.",
+      "zh": "回到這裡，第一個維度是批次。"
+    },
+    {
+      "start": 992.47,
+      "end": 993.63,
+      "en": "There's only one batch.",
+      "zh": "只有一個批次。"
+    },
+    {
+      "start": 994.19,
+      "end": 996.87,
+      "en": "And then the third dimension of course is the neurons.",
+      "zh": "第三個維度當然是神經元。"
+    },
+    {
+      "start": 996.91,
+      "end": 1000.07,
+      "en": "The second dimension is the tokens.",
+      "zh": "第二個維度是 token。"
+    },
+    {
+      "start": 1000.27,
+      "end": 1003.07,
+      "en": "Now the thing is these are all individual words.",
+      "zh": "問題是，這些都是個別單字。"
+    },
+    {
+      "start": 1003.07,
+      "end": 1006.67,
+      "en": "So ideally they would all be just one token.",
+      "zh": "理想上，每個都只有一個 token。"
+    },
+    {
+      "start": 1006.67,
+      "end": 1014.43,
+      "en": "But there's no guarantee that every single one of these individual words corresponds to one token.",
+      "zh": "但不能保證每個單字都只對應一個 token。"
+    },
+    {
+      "start": 1014.83,
+      "end": 1026.55,
+      "en": "So therefore, just in case one of the words happens to be maybe two tokens, then I'm going to average over the activation for all of the tokens in each of the words.",
+      "zh": "所以，以防某個單字剛好是兩個 token，就對該單字所有 token 的活化取平均。"
+    },
+    {
+      "start": 1026.55,
+      "end": 1029.31,
+      "en": "And so that's why I have this bit of code here.",
+      "zh": "這就是這一小段程式的原因。"
+    },
+    {
+      "start": 1030.35,
+      "end": 1030.63,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1030.67,
+      "end": 1035.75,
+      "en": "So that goes into all activations for this word index and for zero.",
+      "zh": "存進 all activations，指定這個單字索引，以及 0。"
+    },
+    {
+      "start": 1036.15,
+      "end": 1040.03,
+      "en": "So the first dimension that corresponds to the verbs and for all the neurons.",
+      "zh": "第一個維度位置對應動詞，並取所有神經元。"
+    },
+    {
+      "start": 1040.99,
+      "end": 1045.47,
+      "en": "This code over here is nearly identical to this code.",
+      "zh": "這邊程式與那邊幾乎相同。"
+    },
+    {
+      "start": 1045.47,
+      "end": 1047.79,
+      "en": "Except here I'm using the verbs.",
+      "zh": "只是這裡用動詞。"
+    },
+    {
+      "start": 1047.79,
+      "end": 1057.99,
+      "en": "Here I'm using the nouns here I'm inserting the results into the first index of this dimension, and here index one.",
+      "zh": "這裡用名詞；這邊放進這個維度的第一個索引，那邊是索引 1。"
+    },
+    {
+      "start": 1058.91,
+      "end": 1061.51,
+      "en": "So that took around 13 seconds.",
+      "zh": "大約花 13 秒。"
+    },
+    {
+      "start": 1061.51,
+      "end": 1066.23,
+      "en": "And if you're using the GPU maybe that would have taken 2 or 3 seconds.",
+      "zh": "GPU 也許只要兩、三秒。"
+    },
+    {
+      "start": 1066.23,
+      "end": 1068.47,
+      "en": "So either way not so bad.",
+      "zh": "所以，哪一種都不太糟。"
+    },
+    {
+      "start": 1068.83,
+      "end": 1069.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1069.11,
+      "end": 1071.95,
+      "en": "And then here we get the plot of all the activations.",
+      "zh": "這裡取得全部活化的圖。"
+    },
+    {
+      "start": 1072.27,
+      "end": 1075.15,
+      "en": "Now there isn't really a whole lot that I want to say about this.",
+      "zh": "沒有太多想說的。"
+    },
+    {
+      "start": 1075.15,
+      "end": 1081.03,
+      "en": "As I mentioned in the slides, you do see that there are some consistent offsets of the neurons.",
+      "zh": "就像投影片提到的，看到一些神經元具有一致偏移。"
+    },
+    {
+      "start": 1081.03,
+      "end": 1088.67,
+      "en": "So there are some neurons that just have more negative activations for all of the words that we're processing here.",
+      "zh": "某些神經元，對這裡處理的所有單字，都有更負的活化。"
+    },
+    {
+      "start": 1089.11,
+      "end": 1094.67,
+      "en": "And yeah, you also see, I don't know if you can see this on your screen, uh, in the video screen,",
+      "zh": "也可以看到，不知道影片畫面上是否看得見，"
+    },
+    {
+      "start": 1094.67,
+      "end": 1101.35,
+      "en": "but you can probably see it on your screen that there are these, like horizontal bands indicating that",
+      "zh": "但你自己的螢幕上，應該看得到這些水平帶狀，表示"
+    },
+    {
+      "start": 1101.35,
+      "end": 1107.99,
+      "en": "there are also certain words that just have a relatively, uh, offset, uh, compared to the other words.",
+      "zh": "某些單字相較於其他單字，也有相對偏移。"
+    },
+    {
+      "start": 1107.99,
+      "end": 1111.91,
+      "en": "That's what you see, like these individual, uh, dots here.",
+      "zh": "就像這裡的個別點。"
+    },
+    {
+      "start": 1111.91,
+      "end": 1114.99,
+      "en": "This would be the average for all of the nouns.",
+      "zh": "這會是全部名詞的平均。"
+    },
+    {
+      "start": 1114.99,
+      "end": 1117.59,
+      "en": "So this doesn't correspond to any one of these.",
+      "zh": "所以，不對應其中任何單獨一個。"
+    },
+    {
+      "start": 1117.75,
+      "end": 1127.11,
+      "en": "But you know, if you made a plot like this for the nouns, you would probably see that this particular neuron looks a little bit different, uh, across the horizontal axis.",
+      "zh": "但如果替名詞畫這樣的圖，可能會看到這個特定神經元，沿水平方向有點不同。"
+    },
+    {
+      "start": 1128.43,
+      "end": 1130.99,
+      "en": "We're about halfway through this code challenge.",
+      "zh": "這個挑戰大約做到一半。"
+    },
+    {
+      "start": 1130.99,
+      "end": 1140.67,
+      "en": "I'm going to break the video here to give you an opportunity to get out of your chair, stretch your legs, splash some water on your face when you're feeling refreshed.",
+      "zh": "這裡先中斷影片，讓你離開椅子、伸展腿、洗把臉；覺得精神恢復後，"
+    },
+    {
+      "start": 1140.67,
+      "end": 1144.83,
+      "en": "Come back for the next video where we will complete this code challenge.",
+      "zh": "回來看下一部，我們會完成這個程式挑戰。"
+    }
+  ]
+}

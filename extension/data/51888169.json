@@ -1,0 +1,1267 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51888169",
+  "title": "CodeChallenge: Compare embeddings with RSA (part 1)",
+  "section": 17,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "617f7cac3c39f6bb589dd7b64e52b19c90ce99df67229ef2251a51003aae1f80",
+  "cues": [
+    {
+      "start": 1.92,
+      "end": 12.2,
+      "en": "In this code challenge, we will return to the glove embeddings that we explored earlier in this course, and also earlier in this section.",
+      "zh": "這個程式挑戰，會回到課程先前、本節先前探索過的 GloVe 嵌入。"
+    },
+    {
+      "start": 12.68,
+      "end": 20.08,
+      "en": "You might remember that glove has different embeddings matrices that were trained on different data sets.",
+      "zh": "你可能記得，GloVe 有在不同資料集上訓練的不同嵌入矩陣。"
+    },
+    {
+      "start": 20.92,
+      "end": 26.56,
+      "en": "So we have previously compared the Wikipedia and Twitter trained embeddings.",
+      "zh": "先前已經比較過以維基百科與 Twitter 訓練的嵌入。"
+    },
+    {
+      "start": 26.8,
+      "end": 34.36,
+      "en": "And now in this video we are going to compare two different matrices that were both trained on the same",
+      "zh": "現在這部影片，要比較兩個都使用相同"
+    },
+    {
+      "start": 34.36,
+      "end": 42.6,
+      "en": "Wikipedia text, but with 50 dimensions versus 300 dimensions for the embeddings vectors.",
+      "zh": "維基百科文字訓練的矩陣，但嵌入向量分別是 50 維與 300 維。"
+    },
+    {
+      "start": 43.32,
+      "end": 49.08,
+      "en": "So that is a clear case where it's impossible to compare the vectors themselves.",
+      "zh": "這顯然是無法直接比較向量本身的情況。"
+    },
+    {
+      "start": 49.4,
+      "end": 51.48,
+      "en": "They don't even have the same dimensionality.",
+      "zh": "連維度都不同。"
+    },
+    {
+      "start": 51.8,
+      "end": 58.32,
+      "en": "So we will use an RSA to compare these two embeddings matrices.",
+      "zh": "所以，要使用 RSA 比較這兩個嵌入矩陣。"
+    },
+    {
+      "start": 58.96,
+      "end": 65.27,
+      "en": "And I will also introduce you to a method called a category selectivity index.",
+      "zh": "我也會介紹一種稱為類別選擇性指標的方法。"
+    },
+    {
+      "start": 65.47,
+      "end": 73.03,
+      "en": "And finally we will look at low dimensional representations and clustering and see how that compares",
+      "zh": "最後，會看低維表示與分群，比較"
+    },
+    {
+      "start": 73.19,
+      "end": 79.63,
+      "en": "for the two high dimensionalities for the 50 and 300 dimensional embedding matrices.",
+      "zh": "50 維與 300 維這兩種高維嵌入矩陣的情況。"
+    },
+    {
+      "start": 80.67,
+      "end": 80.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 80.99,
+      "end": 87.27,
+      "en": "This is just a quick reminder of the source of the glove embeddings matrices.",
+      "zh": "這裡簡單複習 GloVe 嵌入矩陣的來源。"
+    },
+    {
+      "start": 87.78999999999999,
+      "end": 95.99000000000001,
+      "en": "If you look down here, you can see that there are several matrices that were all trained on the same Wikipedia text.",
+      "zh": "往下看，可以看到有好幾個矩陣，都是以相同維基百科文字訓練的。"
+    },
+    {
+      "start": 96.15,
+      "end": 104.03,
+      "en": "So in particular in this video we will focus on these 250 dimensions and 300 dimensions.",
+      "zh": "特別是，這部影片會著重這兩個：50 維與 300 維。"
+    },
+    {
+      "start": 105.27000000000001,
+      "end": 112.15,
+      "en": "Now at the top of the partial and full solutions code files, I provide some code that will help you",
+      "zh": "在 partial 與 full solutions 程式檔最上方，我提供一些程式，可以幫助你"
+    },
+    {
+      "start": 112.15,
+      "end": 123.77,
+      "en": "find a list of all of the embeddings, models and their characteristics, and also a list of 20 words that we will use in the rest of this code challenge.",
+      "zh": "找出所有嵌入模型及其特性的清單，以及本次程式挑戰會使用的 20 個單字。"
+    },
+    {
+      "start": 123.93,
+      "end": 126.65,
+      "en": "These are actually the same words from the previous video.",
+      "zh": "其實就是上一部影片的相同單字。"
+    },
+    {
+      "start": 126.85,
+      "end": 133.29,
+      "en": "But even if you are coding this exercise, this code challenge from scratch on your own, you should",
+      "zh": "即使是自己從零開始寫這個練習、這個程式挑戰，"
+    },
+    {
+      "start": 133.29,
+      "end": 139.93,
+      "en": "still look at the top of the solutions file to get the code for importing and the list of words.",
+      "zh": "仍然應該看看 solutions 檔最上方，取得匯入程式與單字清單。"
+    },
+    {
+      "start": 140.41,
+      "end": 148.17000000000002,
+      "en": "Anyway, the first exercise is to import those two matrices and plot their embeddings for the word space.",
+      "zh": "第一個練習，是匯入那兩個矩陣，畫出 space 這個詞的嵌入。"
+    },
+    {
+      "start": 148.65,
+      "end": 156.65,
+      "en": "So here I've also printed out the for confirmation the sizes of these two embeddings matrices.",
+      "zh": "這裡也印出兩個嵌入矩陣的大小，作為確認。"
+    },
+    {
+      "start": 156.65,
+      "end": 162.97,
+      "en": "So 20 words and either 50 or 300 embedding dimensions.",
+      "zh": "20 個單字，嵌入維度則是 50 或 300。"
+    },
+    {
+      "start": 164.25,
+      "end": 164.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 164.69,
+      "end": 168.32999999999998,
+      "en": "So now pause the video and create that figure.",
+      "zh": "現在暫停影片，建立這張圖。"
+    },
+    {
+      "start": 168.49,
+      "end": 176.09,
+      "en": "And now I will show you my code here from the top of the script is code that I have already run before I started recording.",
+      "zh": "現在展示程式；腳本最上面這些程式，我已經在錄影前執行。"
+    },
+    {
+      "start": 176.09,
+      "end": 184.84,
+      "en": "But you have seen all of this code before about installing the Gensim library here is Uh, importing and, uh, here.",
+      "zh": "但這些都看過，包括安裝 Gensim 函式庫，以及這裡的匯入。"
+    },
+    {
+      "start": 184.88,
+      "end": 186.76,
+      "en": "Now here we get to new code.",
+      "zh": "現在進入新的程式。"
+    },
+    {
+      "start": 186.92,
+      "end": 189.04,
+      "en": "So I got this from this link.",
+      "zh": "這段來自這個連結。"
+    },
+    {
+      "start": 189.08,
+      "end": 199.6,
+      "en": "This is basically just a little bit of code that shows how to import information from all the models that they have available in the Gensim library.",
+      "zh": "基本上，只是一小段程式，示範如何匯入 Gensim 函式庫中，所有可用模型的資訊。"
+    },
+    {
+      "start": 199.92000000000002,
+      "end": 203.4,
+      "en": "So here you see several models that you can import.",
+      "zh": "這裡看到好幾個可以匯入的模型。"
+    },
+    {
+      "start": 203.4,
+      "end": 204.96,
+      "en": "Here we have the glove models.",
+      "zh": "這裡有 GloVe 模型。"
+    },
+    {
+      "start": 204.96,
+      "end": 207.84,
+      "en": "There's also a couple of word two vec models.",
+      "zh": "也有幾個 Word2vec 模型。"
+    },
+    {
+      "start": 208.16,
+      "end": 213.32,
+      "en": "And you see that they have different, uh, training sources and different dimensionalities.",
+      "zh": "可以看到，它們的訓練來源與維度不同。"
+    },
+    {
+      "start": 213.32,
+      "end": 215.07999999999998,
+      "en": "So here is the glove Twitter.",
+      "zh": "這裡是 GloVe Twitter。"
+    },
+    {
+      "start": 215.36,
+      "end": 217.56,
+      "en": "Here are the glove wiki models.",
+      "zh": "這裡是 GloVe Wiki 模型。"
+    },
+    {
+      "start": 217.68,
+      "end": 222.84,
+      "en": "And for this code challenge we will focus on these two here.",
+      "zh": "這個程式挑戰會著重這兩個。"
+    },
+    {
+      "start": 222.84,
+      "end": 228.2,
+      "en": "So glove wiki 300 dimensional and glove wiki 50 dimensional.",
+      "zh": "也就是 300 維與 50 維的 GloVe Wiki。"
+    },
+    {
+      "start": 228.4,
+      "end": 233.32,
+      "en": "Trained on the same data, same amount of data, same source of data.",
+      "zh": "用相同資料、相同資料量、相同資料來源訓練。"
+    },
+    {
+      "start": 233.36,
+      "end": 236.24,
+      "en": "They differ only in their dimensionalities.",
+      "zh": "只有維度不同。"
+    },
+    {
+      "start": 236.84,
+      "end": 239.28,
+      "en": "Okay, here I am importing those two.",
+      "zh": "這裡匯入這兩個。"
+    },
+    {
+      "start": 239.32,
+      "end": 242.84,
+      "en": "It takes a good one or maybe two minutes to import.",
+      "zh": "匯入大約要一、兩分鐘。"
+    },
+    {
+      "start": 243.59,
+      "end": 248.15,
+      "en": "Okay, here is the list of words that we will use for this code challenge.",
+      "zh": "這是本次挑戰會使用的單字清單。"
+    },
+    {
+      "start": 248.15,
+      "end": 252.83,
+      "en": "Exactly the same list as in the previous code challenge.",
+      "zh": "和前一個程式挑戰完全相同。"
+    },
+    {
+      "start": 253.31,
+      "end": 262.63,
+      "en": "And here is where I'm creating the embeddings matrices for the, uh, 50 dimensional and 300 dimensional",
+      "zh": "這裡建立嵌入矩陣，分別來自 50 維與 300 維的"
+    },
+    {
+      "start": 262.71,
+      "end": 264.39,
+      "en": "embeddings models.",
+      "zh": "嵌入模型。"
+    },
+    {
+      "start": 264.83,
+      "end": 266.91,
+      "en": "Okay, so run that code.",
+      "zh": "執行這段程式。"
+    },
+    {
+      "start": 267.27,
+      "end": 271.71,
+      "en": "And yeah, here is the figure that I showed in the slides.",
+      "zh": "這就是投影片展示的圖。"
+    },
+    {
+      "start": 271.71,
+      "end": 275.47,
+      "en": "So just confirming the sizes of these submatrices.",
+      "zh": "只是確認這些子矩陣的大小。"
+    },
+    {
+      "start": 275.51,
+      "end": 278.23,
+      "en": "Again we're not taking all 400,000 words.",
+      "zh": "再次說，我們沒有使用全部 400,000 個單字。"
+    },
+    {
+      "start": 278.23,
+      "end": 281.07,
+      "en": "We're only taking 20 of those words.",
+      "zh": "只取其中 20 個。"
+    },
+    {
+      "start": 281.07,
+      "end": 285.83,
+      "en": "And this is the 50 dimensional version 300 dimensional version.",
+      "zh": "這是 50 維版本，這是 300 維版本。"
+    },
+    {
+      "start": 286.03,
+      "end": 287.23,
+      "en": "And here you see the plots.",
+      "zh": "這裡看到圖。"
+    },
+    {
+      "start": 287.27,
+      "end": 290.15,
+      "en": "Obviously this one stops at 50.",
+      "zh": "顯然，這個只到 50。"
+    },
+    {
+      "start": 290.79,
+      "end": 299.95,
+      "en": "The purpose of exercise two is to calculate the cosine similarity matrices for the two versions of the",
+      "zh": "練習二的目標，是計算兩種版本嵌入的"
+    },
+    {
+      "start": 299.95,
+      "end": 300.87,
+      "en": "embeddings.",
+      "zh": "餘弦相似度矩陣。"
+    },
+    {
+      "start": 301.23,
+      "end": 311.13,
+      "en": "Now the words and their orders are in exactly the same order in these two matrices, and the color scaling is also the same.",
+      "zh": "這兩個矩陣的單字與順序完全一致，色彩尺度也相同。"
+    },
+    {
+      "start": 311.49,
+      "end": 321.77,
+      "en": "So here on the left we have the cosine similarity matrix for the 50 dimensional embeddings, and on the right for the 300 dimensional embeddings.",
+      "zh": "左邊是 50 維嵌入的餘弦相似度矩陣，右邊是 300 維。"
+    },
+    {
+      "start": 322.09,
+      "end": 333.69,
+      "en": "It is already visually quite obvious that there is a lot of consistent structure between these two matrices, but also that there are some unique features.",
+      "zh": "視覺上已經很明顯，兩個矩陣有許多一致的結構，但也有一些獨特特徵。"
+    },
+    {
+      "start": 334.17,
+      "end": 341.25,
+      "en": "In fact, it kind of looks like the 50 dimensional matrix is noisier than the 300 dimensional matrix.",
+      "zh": "事實上，50 維矩陣看起來比 300 維矩陣更多雜訊。"
+    },
+    {
+      "start": 341.97,
+      "end": 344.65,
+      "en": "You might have also had that interpretation.",
+      "zh": "你可能也有這種解讀。"
+    },
+    {
+      "start": 345.17,
+      "end": 351.57,
+      "en": "On the other hand, another interpretation is that the 50 dimensional embeddings are more sensitive",
+      "zh": "但另一方面，也可以解讀成，50 維嵌入對"
+    },
+    {
+      "start": 351.85,
+      "end": 359.81,
+      "en": "to subtle semantic relationships, whereas the 300 dimensional embeddings are more category specific.",
+      "zh": "細微語意關係更敏感，而 300 維嵌入則更具類別專一性。"
+    },
+    {
+      "start": 360.77,
+      "end": 366.72,
+      "en": "Anyway, I just, you know, I don't want to make any value judgments here or assume that all of this",
+      "zh": "總之，我不想在這裡做價值判斷，或假設所有這些"
+    },
+    {
+      "start": 366.76,
+      "end": 375.96,
+      "en": "off diagonal increases in similarity is necessarily a reflection of an imperfection, or at least suboptimal",
+      "zh": "對角線之外的相似度增加，一定反映不完美，或至少不是最佳的"
+    },
+    {
+      "start": 375.96,
+      "end": 376.8,
+      "en": "encoding.",
+      "zh": "編碼。"
+    },
+    {
+      "start": 377.84,
+      "end": 384.36,
+      "en": "Anyway, the important thing is that although the dimensionality of the matrices that created these",
+      "zh": "重點是，雖然產生這兩組"
+    },
+    {
+      "start": 384.36,
+      "end": 392.4,
+      "en": "two sets of cosine similarities are different, the similarity matrices themselves are identical in",
+      "zh": "餘弦相似度的矩陣維度不同，但相似度矩陣本身的"
+    },
+    {
+      "start": 392.4,
+      "end": 400.92,
+      "en": "their sizes, and because the words are also identically aligned between this matrix and this matrix,",
+      "zh": "大小完全相同，而且兩邊的單字也完全對齊，"
+    },
+    {
+      "start": 401.24,
+      "end": 405.88,
+      "en": "we can literally compare these two matrices element by element.",
+      "zh": "所以真的可以逐元素比較這兩個矩陣。"
+    },
+    {
+      "start": 406.96,
+      "end": 414.28,
+      "en": "So, as you might imagine, we are going to perform a representational similarity analysis on these matrices.",
+      "zh": "你應該猜到了，我們要對這些矩陣做表徵相似性分析。"
+    },
+    {
+      "start": 414.28,
+      "end": 416.2,
+      "en": "But that comes later.",
+      "zh": "但那是稍後的事。"
+    },
+    {
+      "start": 416.64,
+      "end": 424.04,
+      "en": "First switch to Python and just calculate and visualize the two cosine similarity matrices.",
+      "zh": "先切換到 Python，計算並視覺化這兩個餘弦相似度矩陣。"
+    },
+    {
+      "start": 424.92,
+      "end": 426.47,
+      "en": "Here you see that code?",
+      "zh": "這裡看到程式。"
+    },
+    {
+      "start": 426.47,
+      "end": 428.39,
+      "en": "I'm not really going to discuss this.",
+      "zh": "我不會多談。"
+    },
+    {
+      "start": 428.39,
+      "end": 433.63,
+      "en": "I've already discussed code that looks like this several times before in the course.",
+      "zh": "課程先前已經好幾次討論過類似程式。"
+    },
+    {
+      "start": 433.63,
+      "end": 435.19,
+      "en": "So the end result.",
+      "zh": "因此，最後的結果，"
+    },
+    {
+      "start": 435.19,
+      "end": 442.95,
+      "en": "The upshot is a matrix of cosine similarities for these two different embeddings matrices.",
+      "zh": "就是這兩個不同嵌入矩陣，各自的餘弦相似度矩陣。"
+    },
+    {
+      "start": 443.47,
+      "end": 445.79,
+      "en": "And then here I am visualizing them.",
+      "zh": "接著在這裡視覺化。"
+    },
+    {
+      "start": 445.79,
+      "end": 452.79,
+      "en": "There's also nothing terribly new or shocking going on in this code here, so you can look through it.",
+      "zh": "這段程式也沒有太多新奇、令人意外的事，可以自己看一看。"
+    },
+    {
+      "start": 452.79,
+      "end": 456.99,
+      "en": "But yeah, I think that's fairly straightforward by this point in the course.",
+      "zh": "學到這裡，我想已經相當直接。"
+    },
+    {
+      "start": 457.59000000000003,
+      "end": 466.27,
+      "en": "So again, our, you know, your brain's visual system is telling you that these two are not identical, but they are quite similar.",
+      "zh": "同樣地，大腦的視覺系統告訴你，這兩個不完全相同，但相當類似。"
+    },
+    {
+      "start": 466.59000000000003,
+      "end": 473.79,
+      "en": "And what we want to do with an RSA is actually quantify how similar these two matrices really are.",
+      "zh": "RSA 要做的，就是量化兩個矩陣究竟有多相似。"
+    },
+    {
+      "start": 473.99,
+      "end": 481.71,
+      "en": "But before doing that, there is a little bit more work that I would like to perform just on these matrices without the RSA.",
+      "zh": "但在那之前，還想先對這些矩陣做一點工作，暫時不用 RSA。"
+    },
+    {
+      "start": 482.79,
+      "end": 489.69,
+      "en": "Exercise three is to calculate what I call a category selectivity index.",
+      "zh": "練習三，要計算我稱為類別選擇性指標的量。"
+    },
+    {
+      "start": 490.25,
+      "end": 496.69,
+      "en": "I'm sure you've noticed that the words we are using here for this code challenge are not randomly selected.",
+      "zh": "你一定注意到，本次挑戰使用的單字不是隨機挑選。"
+    },
+    {
+      "start": 497.25,
+      "end": 503.77,
+      "en": "Instead, I chose them to be single token words that can be grouped into three categories.",
+      "zh": "我刻意選擇由單一 token 表示，而且可以分成三類的單字。"
+    },
+    {
+      "start": 503.89,
+      "end": 511.93,
+      "en": "So as I mentioned in the previous video, it is stuff about outer space, about indoor furniture and about fruit.",
+      "zh": "就像上一部影片提過的，分別是外太空、室內家具與水果。"
+    },
+    {
+      "start": 512.41,
+      "end": 517.49,
+      "en": "Now categories don't have the same number of items, but that's fine.",
+      "zh": "各類的項目數不同，但沒關係。"
+    },
+    {
+      "start": 517.49,
+      "end": 518.33,
+      "en": "They don't need to.",
+      "zh": "不必相同。"
+    },
+    {
+      "start": 518.89,
+      "end": 527.37,
+      "en": "So what we want to do here is figure out a way to quantify the average similarities of word pairs within",
+      "zh": "我們想找一種量化方式，比較類別內單字配對的平均相似度，"
+    },
+    {
+      "start": 527.57,
+      "end": 534.85,
+      "en": "category versus the average similarities of word pairs across different categories.",
+      "zh": "以及跨不同類別的單字配對平均相似度。"
+    },
+    {
+      "start": 535.45,
+      "end": 538.69,
+      "en": "So there are several ways that you can achieve this.",
+      "zh": "有好幾種方式可以做到。"
+    },
+    {
+      "start": 538.85,
+      "end": 543.97,
+      "en": "I'm going to show you the approach that I took, which works really well for three categories.",
+      "zh": "我會展示自己採用的方法，對三個類別相當好用。"
+    },
+    {
+      "start": 544.37,
+      "end": 547.25,
+      "en": "If you have a different approach then that's great.",
+      "zh": "如果你用其他方式，也很好。"
+    },
+    {
+      "start": 547.45,
+      "end": 550.8,
+      "en": "There are multiple ways to get the right answer here.",
+      "zh": "這裡有多種方法可以得到正確答案。"
+    },
+    {
+      "start": 551.24,
+      "end": 561.84,
+      "en": "Okay, so what I did was come up with this matrix which has all zeros below and on the diagonal and integers above the diagonal.",
+      "zh": "我的做法，是建立這個矩陣，對角線與下方全是零，上方是整數。"
+    },
+    {
+      "start": 562.28,
+      "end": 567.96,
+      "en": "And those integers correspond to the products of category labeled orders.",
+      "zh": "那些整數，對應類別標籤編號的乘積。"
+    },
+    {
+      "start": 568.08,
+      "end": 576.72,
+      "en": "So if we would label each of these words as coming from one for the outer space category, two for the",
+      "zh": "如果把各個單字標記成：外太空類為 1，"
+    },
+    {
+      "start": 576.76,
+      "end": 587.64,
+      "en": "furniture category, and three for the fruit category, then the product of all of those categories gives us this upper triangular matrix here.",
+      "zh": "家具類為 2，水果類為 3，那所有類別配對的乘積，就得到這個上三角矩陣。"
+    },
+    {
+      "start": 588.24,
+      "end": 598.76,
+      "en": "So for example, one, four and nine correspond to the within category word pairs, and two, three",
+      "zh": "例如，1、4、9 對應類別內的單字配對，2、3"
+    },
+    {
+      "start": 598.76,
+      "end": 603.48,
+      "en": "and six correspond to the cross category word pairs.",
+      "zh": "與 6 則對應跨類別的單字配對。"
+    },
+    {
+      "start": 604.24,
+      "end": 613.55,
+      "en": "So once we have this integer matrix we can then use it as a mask to identify the within and between",
+      "zh": "有了這個整數矩陣，就可以把它當作遮罩，辨識類別內與類別間的"
+    },
+    {
+      "start": 613.55,
+      "end": 614.47,
+      "en": "category.",
+      "zh": "各種"
+    },
+    {
+      "start": 614.63,
+      "end": 616.91,
+      "en": "Cosine similarity values.",
+      "zh": "餘弦相似度值，"
+    },
+    {
+      "start": 617.15,
+      "end": 620.55,
+      "en": "In this cosine similarity matrix.",
+      "zh": "在這個餘弦相似度矩陣之中。"
+    },
+    {
+      "start": 621.35,
+      "end": 629.35,
+      "en": "And then finally we can calculate the category selectivity index as the ratio of the average of all",
+      "zh": "最後，可以計算類別選擇性指標，也就是所有"
+    },
+    {
+      "start": 629.39,
+      "end": 637.87,
+      "en": "of the within category cosine similarities to the between cosine similarity values.",
+      "zh": "類別內餘弦相似度的平均，除以類別間餘弦相似度的平均。"
+    },
+    {
+      "start": 638.59,
+      "end": 640.43,
+      "en": "So these are averages.",
+      "zh": "這些都是平均值。"
+    },
+    {
+      "start": 640.43,
+      "end": 646.07,
+      "en": "So you're only going to get one ratio for each cosine similarity matrix.",
+      "zh": "所以，每個餘弦相似度矩陣，只會得到一個比值。"
+    },
+    {
+      "start": 646.59,
+      "end": 652.95,
+      "en": "And if you follow the same procedure that I used so far in this code challenge, you should get a result",
+      "zh": "如果目前遵循與我相同的步驟，應該得到"
+    },
+    {
+      "start": 652.95,
+      "end": 663.43,
+      "en": "of a selectivity index of 3.27 for the 50 dimensional embeddings matrix, and 5.62 for the 300 dimensional",
+      "zh": "50 維嵌入矩陣的選擇性指標為 3.27，而 300 維"
+    },
+    {
+      "start": 663.43,
+      "end": 664.11,
+      "en": "matrix.",
+      "zh": "矩陣是 5.62。"
+    },
+    {
+      "start": 664.71,
+      "end": 670.22,
+      "en": "I will have more to say about interpreting these numerical values when I switch to code.",
+      "zh": "切換到程式時，我會再談這些數值如何解讀。"
+    },
+    {
+      "start": 670.62,
+      "end": 675.06,
+      "en": "But let me first show you the last part of exercise three.",
+      "zh": "先展示練習三的最後一部分。"
+    },
+    {
+      "start": 675.82,
+      "end": 681.86,
+      "en": "That is to visualize all of the cosine similarities in a plot that looks like this.",
+      "zh": "也就是把所有餘弦相似度，視覺化成像這樣的圖。"
+    },
+    {
+      "start": 682.42,
+      "end": 691.22,
+      "en": "So what you do here is extract all of the unique elements from the cosine similarities matrices, and",
+      "zh": "這裡要擷取餘弦相似度矩陣中的所有獨特元素，"
+    },
+    {
+      "start": 691.22,
+      "end": 699.62,
+      "en": "organize all of those results into a scatter plot according to whether it is within category versus",
+      "zh": "再把結果組成散佈圖，根據是類別內"
+    },
+    {
+      "start": 699.62,
+      "end": 708.26,
+      "en": "between category, and coming from the 50 dimensional embeddings matrix versus the 300 dimensional embeddings matrix.",
+      "zh": "或類別間，以及來自 50 維還是 300 維嵌入矩陣來排列。"
+    },
+    {
+      "start": 709.54,
+      "end": 717.02,
+      "en": "And the thick black lines here correspond to the averages within each of these groupings.",
+      "zh": "這裡粗黑線對應每組的平均值。"
+    },
+    {
+      "start": 717.78,
+      "end": 721.42,
+      "en": "By the way, you have these little jitters on the x axis.",
+      "zh": "順帶一提，X 軸有這些小小抖動。"
+    },
+    {
+      "start": 721.42,
+      "end": 727.62,
+      "en": "These are random numbers that I've added, which is something that I often do to help you appreciate",
+      "zh": "這些是我加入的隨機數；我經常這樣做，幫助你看出"
+    },
+    {
+      "start": 727.62,
+      "end": 734.24,
+      "en": "the density of the points in these plots, and also because I think it gives it a nice little visual flair.",
+      "zh": "圖中各點的密度，也因為覺得這能增加一點視覺趣味。"
+    },
+    {
+      "start": 734.8,
+      "end": 744.24,
+      "en": "Of course, the y axis coordinates should not have any random noise added, those just reflect the measured cosine similarity.",
+      "zh": "當然，Y 軸座標不應加入任何隨機雜訊，那些只反映實際測得的餘弦相似度。"
+    },
+    {
+      "start": 745.56,
+      "end": 757.04,
+      "en": "So this exercise is definitely the most challenging in this code challenge because it requires some critical thinking and creative coding and problem solving.",
+      "zh": "這絕對是本次挑戰中最難的練習，因為需要批判思考、創意寫程式與解決問題。"
+    },
+    {
+      "start": 757.28,
+      "end": 759.56,
+      "en": "I hope you enjoy working through this one.",
+      "zh": "希望你喜歡完成這個練習。"
+    },
+    {
+      "start": 759.56,
+      "end": 765.68,
+      "en": "And now I will switch to code, discuss my solution, and also how to interpret some of these results.",
+      "zh": "現在切換到程式，討論我的解法，以及如何解讀這些結果。"
+    },
+    {
+      "start": 766.68,
+      "end": 778.08,
+      "en": "So I started off by creating this vector here, which is ones for all the space words, two for all of the furniture words, and three for the fruit words.",
+      "zh": "首先，建立這個向量，太空詞全部標 1，家具詞標 2，水果詞標 3。"
+    },
+    {
+      "start": 778.36,
+      "end": 782.12,
+      "en": "And then I calculate this is just a little linear algebra trick.",
+      "zh": "接著計算，這只是線性代數的小技巧。"
+    },
+    {
+      "start": 782.16,
+      "end": 783.56,
+      "en": "It's called the outer product.",
+      "zh": "稱為外積。"
+    },
+    {
+      "start": 783.72,
+      "end": 787.04,
+      "en": "I basically calculate the outer product between these two.",
+      "zh": "基本上，計算這兩者的外積。"
+    },
+    {
+      "start": 787.08,
+      "end": 791.27,
+      "en": "Let me show what that Looks like.",
+      "zh": "展示它的樣子。"
+    },
+    {
+      "start": 791.59,
+      "end": 803.27,
+      "en": "So there you see, that's the full matrix of the product of all of the, uh, the all the products of all of the elements in this vector expanded into a matrix.",
+      "zh": "這就是所有乘積的完整矩陣，也就是向量所有元素的配對乘積，展開成矩陣。"
+    },
+    {
+      "start": 803.71,
+      "end": 803.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 803.95,
+      "end": 810.03,
+      "en": "And then I take just the upper triangular of that because I'm not interested in the lower triangle.",
+      "zh": "接著只取上三角，因為不感興趣下三角。"
+    },
+    {
+      "start": 810.15,
+      "end": 813.11,
+      "en": "And I'm also not interested in the diagonals.",
+      "zh": "也不感興趣對角線。"
+    },
+    {
+      "start": 813.59,
+      "end": 814.39,
+      "en": "And why not.",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 814.59,
+      "end": 819.23,
+      "en": "Of course, you know, because the lower triangle is redundant with the upper triangle.",
+      "zh": "當然，你知道，因為下三角與上三角重複。"
+    },
+    {
+      "start": 819.59,
+      "end": 824.43,
+      "en": "And the diagonal is trivially one for all of these cases.",
+      "zh": "而對角線在這些情況下，當然全是 1。"
+    },
+    {
+      "start": 824.99,
+      "end": 825.23,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 825.27,
+      "end": 830.35,
+      "en": "And by the way, I'm always, you know, in all these videos I'm always just using the upper triangle.",
+      "zh": "順帶一提，這些影片中，我總是使用上三角。"
+    },
+    {
+      "start": 830.51,
+      "end": 834.71,
+      "en": "You can also use the lower triangle and zero out the upper triangles.",
+      "zh": "也可以使用下三角，把上三角歸零。"
+    },
+    {
+      "start": 834.71,
+      "end": 835.55,
+      "en": "Totally fine.",
+      "zh": "完全沒問題。"
+    },
+    {
+      "start": 835.55,
+      "end": 837.79,
+      "en": "It will give you exactly the same results.",
+      "zh": "結果會完全一樣。"
+    },
+    {
+      "start": 838.27,
+      "end": 838.59,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 838.63,
+      "end": 840.55,
+      "en": "So now I have this mask.",
+      "zh": "現在有這個遮罩。"
+    },
+    {
+      "start": 840.91,
+      "end": 850.15,
+      "en": "And then what I do is extract all of the elements from this, uh, from the cosine similarity matrix",
+      "zh": "接著，從這個餘弦相似度矩陣擷取所有元素，"
+    },
+    {
+      "start": 850.15,
+      "end": 854.62,
+      "en": "according to whether this group mask equals different values.",
+      "zh": "根據 group mask 是否等於不同的值來選取。"
+    },
+    {
+      "start": 854.86,
+      "end": 857.38,
+      "en": "So here I call this spec numb.",
+      "zh": "這裡我稱它為 spec numb。"
+    },
+    {
+      "start": 857.38,
+      "end": 860.5,
+      "en": "So this is the specificity index.",
+      "zh": "這是專一性指標。"
+    },
+    {
+      "start": 860.78,
+      "end": 862.9,
+      "en": "Actually I call it the selectivity index.",
+      "zh": "其實，我稱它為選擇性指標。"
+    },
+    {
+      "start": 862.9,
+      "end": 864.3,
+      "en": "Here spec was first specified.",
+      "zh": "這裡的 spec 原本代表 specific。"
+    },
+    {
+      "start": 864.34,
+      "end": 865.54,
+      "en": "It doesn't matter okay.",
+      "zh": "沒關係。"
+    },
+    {
+      "start": 865.58,
+      "end": 866.66,
+      "en": "This is the numerator.",
+      "zh": "這是分子。"
+    },
+    {
+      "start": 866.66,
+      "end": 868.1,
+      "en": "This is the denominator.",
+      "zh": "這是分母。"
+    },
+    {
+      "start": 868.34,
+      "end": 876.78,
+      "en": "So from the cosine similarity matrix I get all of the values where the group mask equals one, all the",
+      "zh": "從餘弦相似度矩陣，取出 group mask 等於 1 的所有值，"
+    },
+    {
+      "start": 876.78,
+      "end": 881.94,
+      "en": "values where the group mask is four and all the values where the group mask is nine.",
+      "zh": "等於 4 的所有值，以及等於 9 的所有值。"
+    },
+    {
+      "start": 882.14,
+      "end": 885.42,
+      "en": "And so the average of all of those individually.",
+      "zh": "分別對這些取平均。"
+    },
+    {
+      "start": 885.82,
+      "end": 888.54,
+      "en": "And then I sum them and divide by three.",
+      "zh": "再把它們加起來，除以 3。"
+    },
+    {
+      "start": 888.58,
+      "end": 891.3,
+      "en": "And that gives me the numerator.",
+      "zh": "得到分子。"
+    },
+    {
+      "start": 891.3,
+      "end": 892.54,
+      "en": "And to be clear.",
+      "zh": "說清楚一點，"
+    },
+    {
+      "start": 892.54,
+      "end": 901.7,
+      "en": "So that is basically all of these elements plus these elements plus these elements, all of those averaged together.",
+      "zh": "基本上，就是這些元素，加這些元素，再加這些元素，把它們全部取平均。"
+    },
+    {
+      "start": 901.9,
+      "end": 912.1,
+      "en": "And then the denominator will be all of the off block diagonal elements, which are the cosine similarities across the different categories.",
+      "zh": "分母則是所有區塊對角線之外的元素，也就是不同類別之間的餘弦相似度。"
+    },
+    {
+      "start": 912.32,
+      "end": 915.92,
+      "en": "and that I get here, and then I simply divide the two.",
+      "zh": "在這裡取得，再把兩者相除。"
+    },
+    {
+      "start": 915.96,
+      "end": 916.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 916.28,
+      "end": 919.96,
+      "en": "So this is for the 50 dimensional embeddings matrix.",
+      "zh": "這是 50 維嵌入矩陣。"
+    },
+    {
+      "start": 919.96,
+      "end": 923.56,
+      "en": "This is for the 300 dimensional embeddings matrix.",
+      "zh": "這是 300 維嵌入矩陣。"
+    },
+    {
+      "start": 923.56,
+      "end": 926.6,
+      "en": "And then yeah this is the result that I showed before.",
+      "zh": "這就是剛才展示的結果。"
+    },
+    {
+      "start": 927.6,
+      "end": 929.08,
+      "en": "Now what do these results mean.",
+      "zh": "這些結果代表什麼？"
+    },
+    {
+      "start": 929.2,
+      "end": 932.2,
+      "en": "So first of all these are ratios.",
+      "zh": "首先，它們是比值。"
+    },
+    {
+      "start": 932.2,
+      "end": 935.2,
+      "en": "So we can directly compare these as a ratio.",
+      "zh": "所以，可以直接以比值來比較。"
+    },
+    {
+      "start": 935.6,
+      "end": 946.6,
+      "en": "So basically the within category cosine similarities on average are three times higher than the cosine",
+      "zh": "基本上，類別內的餘弦相似度平均而言，是跨不同類別單字嵌入的"
+    },
+    {
+      "start": 946.6,
+      "end": 950.76,
+      "en": "similarities for the word embeddings across different categories.",
+      "zh": "餘弦相似度的三倍。"
+    },
+    {
+      "start": 950.8,
+      "end": 954.24,
+      "en": "Again that's not true for every single pair of words.",
+      "zh": "再次強調，這不是對每一對單字都成立。"
+    },
+    {
+      "start": 954.56,
+      "end": 962.12,
+      "en": "It is true for the average over the group of words that I selected here for the categories that I selected here.",
+      "zh": "是對我在這裡選擇的各類單字群，其平均值成立。"
+    },
+    {
+      "start": 963.12,
+      "end": 963.36,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 963.4,
+      "end": 974.87,
+      "en": "And we also see that the 300 dimensional embeddings matrix has a considerably higher, uh, index or ratio compared to the 50 dimensional version.",
+      "zh": "也看到，300 維嵌入矩陣的指標、比值，比 50 維版本高很多。"
+    },
+    {
+      "start": 975.39,
+      "end": 978.19,
+      "en": "Here is where I create that scatter plot.",
+      "zh": "這裡建立散佈圖。"
+    },
+    {
+      "start": 978.19,
+      "end": 985.07,
+      "en": "So you can see here I'm gathering all of the data within versus the data between categories.",
+      "zh": "可以看到，這裡蒐集類別內與類別間的所有資料。"
+    },
+    {
+      "start": 985.11,
+      "end": 986.91,
+      "en": "Again using this mask.",
+      "zh": "同樣使用這個遮罩。"
+    },
+    {
+      "start": 987.47,
+      "end": 989.07,
+      "en": "And then here I'm plotting them.",
+      "zh": "接著畫出來。"
+    },
+    {
+      "start": 989.07,
+      "end": 993.75,
+      "en": "So here is where I plot the within and between.",
+      "zh": "這裡畫類別內與類別間。"
+    },
+    {
+      "start": 994.39,
+      "end": 997.11,
+      "en": "This is for the 50 dimensional data.",
+      "zh": "這是 50 維資料。"
+    },
+    {
+      "start": 997.11,
+      "end": 1003.95,
+      "en": "And here is where I'm specifying the x axis values are a little bit jittered.",
+      "zh": "這裡指定 X 軸值帶一點抖動。"
+    },
+    {
+      "start": 1003.95,
+      "end": 1010.91,
+      "en": "So it is a random numbers drawn from a normal distribution with a standard deviation of 0.02.",
+      "zh": "也就是從標準差為 0.02 的常態分布抽取隨機數。"
+    },
+    {
+      "start": 1010.95,
+      "end": 1012.99,
+      "en": "So quite a narrow distribution.",
+      "zh": "分布相當窄。"
+    },
+    {
+      "start": 1012.99,
+      "end": 1013.47,
+      "en": "But that's good.",
+      "zh": "但這很好。"
+    },
+    {
+      "start": 1013.47,
+      "end": 1016.95,
+      "en": "I don't want any overlap between the different distributions.",
+      "zh": "我不希望不同分布之間有任何重疊。"
+    },
+    {
+      "start": 1017.35,
+      "end": 1024.35,
+      "en": "And here I'm saying the average the location of the center of that normal distribution is zero here.",
+      "zh": "這裡指定平均值，也就是常態分布中心的位置，是零。"
+    },
+    {
+      "start": 1024.35,
+      "end": 1025.51,
+      "en": "And it's one here.",
+      "zh": "這裡是 1。"
+    },
+    {
+      "start": 1025.51,
+      "end": 1034.42,
+      "en": "And then when I repeat this for the 300 dimensional version, then I specify the location or the means to be three and four.",
+      "zh": "對 300 維版本重做時，則把位置、平均值設成 3 與 4。"
+    },
+    {
+      "start": 1034.66,
+      "end": 1039.26,
+      "en": "And that's what gives me this little bit of jitter here as well as this spacing over here.",
+      "zh": "這就產生這裡的小抖動，以及這邊的間距。"
+    },
+    {
+      "start": 1039.26,
+      "end": 1042.3,
+      "en": "So 0134.",
+      "zh": "所以是 0、1、3、4。"
+    },
+    {
+      "start": 1042.66,
+      "end": 1045.06,
+      "en": "And then yeah here we see the plots.",
+      "zh": "這裡看到圖。"
+    },
+    {
+      "start": 1045.1,
+      "end": 1053.62,
+      "en": "So this is interesting to uh notice relative to the category selectivity index.",
+      "zh": "相對於類別選擇性指標，這點值得注意。"
+    },
+    {
+      "start": 1053.62,
+      "end": 1061.18,
+      "en": "So as I mentioned what is true on the average is not necessarily true for every individual data point.",
+      "zh": "就像提到的，平均成立，不一定對每個資料點成立。"
+    },
+    {
+      "start": 1061.42,
+      "end": 1070.3,
+      "en": "So we do see that on average the cosine similarities are higher for within compared to between categories.",
+      "zh": "可以看到，平均而言，類別內的餘弦相似度高於類別間。"
+    },
+    {
+      "start": 1070.5,
+      "end": 1073.02,
+      "en": "But that's certainly not true for every pair of words.",
+      "zh": "但當然不是每一對單字都如此。"
+    },
+    {
+      "start": 1073.02,
+      "end": 1084.02,
+      "en": "So there's plenty of word pairs that are across different categories that have a stronger cosine similarity compared to words that are within category.",
+      "zh": "有很多跨類別的單字配對，其餘弦相似度比同類別的單字更強。"
+    },
+    {
+      "start": 1084.5,
+      "end": 1093.22,
+      "en": "If you are curious, you could go back to the matrix and find out which word pairs these correspond to and which word pairs these correspond to.",
+      "zh": "如果好奇，可以回到矩陣，查出這些各自對應哪些單字配對。"
+    },
+    {
+      "start": 1093.3,
+      "end": 1096.28,
+      "en": "Maybe that is interesting or interpretable.",
+      "zh": "也許很有趣，或能做出解讀。"
+    },
+    {
+      "start": 1096.28,
+      "end": 1098.48,
+      "en": "But anyway, yeah, those are the results.",
+      "zh": "總之，這些就是結果。"
+    },
+    {
+      "start": 1098.48,
+      "end": 1101.72,
+      "en": "You can also see that the overall distribution.",
+      "zh": "也可以看到整體分布。"
+    },
+    {
+      "start": 1101.72,
+      "end": 1111.56,
+      "en": "So the variability is considerably higher for the 50 dimensional words compared to the 300 dimensional embeddings.",
+      "zh": "50 維單字的變異，明顯高於 300 維嵌入。"
+    },
+    {
+      "start": 1112.52,
+      "end": 1122.96,
+      "en": "And this is another way of representing what we saw qualitatively up here, which is that this matrix appears to be more scattered.",
+      "zh": "這是另一種呈現上面定性觀察的方式，也就是這個矩陣看起來比較分散。"
+    },
+    {
+      "start": 1122.96,
+      "end": 1134.44,
+      "en": "I don't like using the term noisy, but there's more variability across the different, uh, cosine similarity values in this matrix compared to this matrix.",
+      "zh": "我不喜歡用「雜訊多」這個詞，但這個矩陣不同餘弦相似度值之間的變異，比另一個矩陣更大。"
+    },
+    {
+      "start": 1135.64,
+      "end": 1138.92,
+      "en": "Well, that was quite involved and quite a lot of work.",
+      "zh": "內容相當深入，也做了不少工作。"
+    },
+    {
+      "start": 1139.04,
+      "end": 1145.64,
+      "en": "I am going to cut the video now, and I encourage you to take a short break before coming back to the",
+      "zh": "現在先結束影片，鼓勵你稍微休息，再回來看"
+    },
+    {
+      "start": 1145.64,
+      "end": 1154.16,
+      "en": "next video where we will finish this code challenge, including applying RSA and dimension reduction and clustering.",
+      "zh": "下一部影片，我們會完成這個程式挑戰，包括套用 RSA、降維與分群。"
+    }
+  ]
+}

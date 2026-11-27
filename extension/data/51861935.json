@@ -1,0 +1,1549 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51861935",
+  "title": "Dropout in theory and in Pytorch",
+  "section": 7,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e2862c3997e99aef2e52259ef932e30d49ea0ea5f5d1853c91c06f2e8e1d9d3c",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 10,
+      "en": "Dropouts is a regularization technique that is often used when training deep learning models.",
+      "zh": "Dropout 是訓練深度學習模型時，常用的正則化技巧。"
+    },
+    {
+      "start": 10.56,
+      "end": 14.36,
+      "en": "It's quite simple, both in theory and in practice.",
+      "zh": "理論與實務都很簡單。"
+    },
+    {
+      "start": 14.64,
+      "end": 21.68,
+      "en": "And in this video I will explain the concept of dropout and show you how it works in PyTorch.",
+      "zh": "這支影片會解釋概念，展示 PyTorch 裡如何運作。"
+    },
+    {
+      "start": 21.92,
+      "end": 30.08,
+      "en": "And in the next code challenge, which is two videos from now, you will implement this in model five with some pre-training.",
+      "zh": "下個程式挑戰，也就是再過兩支影片，會在模型五加入 dropout，做一些預訓練。"
+    },
+    {
+      "start": 30.8,
+      "end": 35.2,
+      "en": "So imagine this is a deep learning model that we want to train.",
+      "zh": "想像這是要訓練的深度學習模型。"
+    },
+    {
+      "start": 35.48,
+      "end": 39.56,
+      "en": "Now this is not what an LLM looks like but this is just for illustration.",
+      "zh": "不是 LLM 的樣子，只是示意。"
+    },
+    {
+      "start": 39.92,
+      "end": 48.12,
+      "en": "So the idea is that in the first training epoch some of the units in the model are randomly dropped.",
+      "zh": "第一個訓練週期中，隨機丟棄模型的一些單元。"
+    },
+    {
+      "start": 48.48,
+      "end": 54.4,
+      "en": "Now when I say dropped, I mean that their activations are forced to be zero.",
+      "zh": "所謂丟棄，是強制把活化值設為零。"
+    },
+    {
+      "start": 54.88,
+      "end": 60.88,
+      "en": "So doesn't matter what's coming into the unit, it doesn't matter what the values of the weights are.",
+      "zh": "不論輸入是什麼、權重數值多少，"
+    },
+    {
+      "start": 61.08,
+      "end": 66.04,
+      "en": "Some of these units will just have their activation outputs switched off.",
+      "zh": "某些單元的活化輸出，都會被關掉。"
+    },
+    {
+      "start": 66.16,
+      "end": 67.52,
+      "en": "So set to zero.",
+      "zh": "也就是設為零。"
+    },
+    {
+      "start": 67.96,
+      "end": 74.6,
+      "en": "And then in the next training epoch some other units will have their activations switched to zero.",
+      "zh": "下個訓練週期，換另一些單元的活化值設為零。"
+    },
+    {
+      "start": 75.03999999999999,
+      "end": 76.88,
+      "en": "So it's not always the same units.",
+      "zh": "不是永遠相同的單元。"
+    },
+    {
+      "start": 77.03999999999999,
+      "end": 82.36,
+      "en": "In fact the idea of Dropbox is to assign a probability of dropping.",
+      "zh": "dropout 的概念，是指定丟棄機率。"
+    },
+    {
+      "start": 82.72,
+      "end": 90.2,
+      "en": "And at each iteration in training, each unit has a probability of being dropped or zeroed out.",
+      "zh": "每次訓練迭代，每個單元都有機會被丟棄、歸零。"
+    },
+    {
+      "start": 90.76,
+      "end": 92.16,
+      "en": "So what does this do?",
+      "zh": "作用是什麼？"
+    },
+    {
+      "start": 92.88,
+      "end": 104.64,
+      "en": "This forces the model to learn distributed representations and features throughout all of the units, instead of isolating what it's learned to one individual unit.",
+      "zh": "迫使模型在所有單元中，學習分散的表徵與特徵，而非把學到的東西集中在單一單元。"
+    },
+    {
+      "start": 105.28,
+      "end": 110.28,
+      "en": "That is a good thing because it makes the model more robust and more stable.",
+      "zh": "有好處，讓模型更穩健、穩定。"
+    },
+    {
+      "start": 110.68,
+      "end": 118.15,
+      "en": "It also helps the model generalize a bit better, especially if the sample data are all really similar to each other.",
+      "zh": "也幫助泛化，尤其樣本彼此非常相似時。"
+    },
+    {
+      "start": 118.95,
+      "end": 126.27,
+      "en": "On the other hand, it also means that the total sum of activation has been reduced because of all of",
+      "zh": "但也代表，被丟棄節點的活化值為零，"
+    },
+    {
+      "start": 126.27,
+      "end": 136.75,
+      "en": "the zero activations from the dropped out nodes, and that can have negative consequences for downstream calculations, including softmax.",
+      "zh": "讓整體活化總量下降，可能不利於後續計算，包括 softmax。"
+    },
+    {
+      "start": 137.51,
+      "end": 146.75,
+      "en": "So dropout reduces the level of activation, and the two solutions to deal with this are either to scale",
+      "zh": "因此 dropout 降低活化程度，有兩個解法："
+    },
+    {
+      "start": 146.75,
+      "end": 158.27,
+      "en": "up the weights that are not dropped out during training, or you can scale down all of the weights during testing, evaluation, and deployment.",
+      "zh": "訓練時放大未丟棄的權重，或者測試、評估、部署時，把所有權重縮小。"
+    },
+    {
+      "start": 158.55,
+      "end": 162.47,
+      "en": "I will show you what that looks like in PyTorch in a few minutes.",
+      "zh": "幾分鐘後會展示 PyTorch 的樣子。"
+    },
+    {
+      "start": 163.27,
+      "end": 167.55,
+      "en": "Here is a screenshot of the paper that first introduced dropout.",
+      "zh": "這是最初提出 dropout 的論文截圖。"
+    },
+    {
+      "start": 167.59,
+      "end": 171.03,
+      "en": "Way way, way back when in 2014.",
+      "zh": "很久以前，2014 年。"
+    },
+    {
+      "start": 171.71,
+      "end": 178.79,
+      "en": "Here is a diagram from their paper and you can see looks basically the same as what I drew a few slides ago.",
+      "zh": "這是論文示意圖，和我前幾張投影片畫的基本相同。"
+    },
+    {
+      "start": 178.82999999999998,
+      "end": 182.15,
+      "en": "The network is oriented differently, but these are just details.",
+      "zh": "網路方向不同，但只是細節。"
+    },
+    {
+      "start": 182.59,
+      "end": 189.11,
+      "en": "Anyway, here you see an example of an error rate in a classification task.",
+      "zh": "這是分類任務的錯誤率。"
+    },
+    {
+      "start": 189.35,
+      "end": 195.63,
+      "en": "And when they include dropout in that model the model actually does better.",
+      "zh": "加入 dropout，模型表現確實較好。"
+    },
+    {
+      "start": 195.71,
+      "end": 200.31,
+      "en": "So lower classification accuracy means higher performance.",
+      "zh": "所以分類準確率越低，表現越好。"
+    },
+    {
+      "start": 200.43,
+      "end": 202.51,
+      "en": "This is not in an LM by the way.",
+      "zh": "順帶一提，這不是 LLM。"
+    },
+    {
+      "start": 202.51,
+      "end": 204.03,
+      "en": "This is a different kind of model.",
+      "zh": "是另一種模型。"
+    },
+    {
+      "start": 204.79,
+      "end": 206.07,
+      "en": "Why does dropout work.",
+      "zh": "為什麼 dropout 有效？"
+    },
+    {
+      "start": 206.07,
+      "end": 207.47,
+      "en": "What is it actually doing?",
+      "zh": "到底做了什麼？"
+    },
+    {
+      "start": 207.95,
+      "end": 210.95,
+      "en": "The answer is nobody really knows for sure.",
+      "zh": "沒有人真正確定。"
+    },
+    {
+      "start": 210.99,
+      "end": 218.63,
+      "en": "Like many things in deep learning, someone had the very smart intuition that this could be an interesting thing to do.",
+      "zh": "和深度學習很多東西一樣，有人憑很聰明的直覺，覺得這也許值得試。"
+    },
+    {
+      "start": 218.79,
+      "end": 219.71,
+      "en": "And they tried it.",
+      "zh": "於是試了。"
+    },
+    {
+      "start": 219.71,
+      "end": 226.03,
+      "en": "And empirically, it seems to work better sometimes for certain kinds of models and certain kinds of data sets.",
+      "zh": "實驗上，對某些模型、資料集，有時效果較好。"
+    },
+    {
+      "start": 226.59,
+      "end": 233.46,
+      "en": "But anyway, the speculative idea is that dropout prevents any one unit in the network.",
+      "zh": "但推測的概念是，避免任何單元，"
+    },
+    {
+      "start": 233.46,
+      "end": 237.66,
+      "en": "So any one neuron from carrying too much responsibility.",
+      "zh": "任何神經元，承擔過多責任。"
+    },
+    {
+      "start": 238.1,
+      "end": 249.74,
+      "en": "And that's because if one unit can learn an entire rule, then the model performance will suffer whenever that unit is probabilistically turned off.",
+      "zh": "如果一個單元能學完整條規則，那它隨機關閉時，模型表現就會受損。"
+    },
+    {
+      "start": 250.38,
+      "end": 259.22,
+      "en": "So that means that dropout forces the model to learn a more distributed feature representation and classification rules.",
+      "zh": "因此 dropout 迫使模型學習更分散的特徵表徵、分類規則。"
+    },
+    {
+      "start": 260.38,
+      "end": 262.22,
+      "en": "Some other things to know about Dropbox.",
+      "zh": "還有一些要知道的事。"
+    },
+    {
+      "start": 262.22,
+      "end": 270.1,
+      "en": "It does tend to decrease training accuracy, but it increases test accuracy and generalization performance,",
+      "zh": "通常訓練準確率下降，但測試準確率、泛化表現提升，"
+    },
+    {
+      "start": 270.54,
+      "end": 278.22,
+      "en": "and it therefore tends to require more training data compared to models without dropout.",
+      "zh": "因此往往比沒有 dropout 的模型，需要更多訓練資料。"
+    },
+    {
+      "start": 279.18,
+      "end": 282.46,
+      "en": "Dropout doesn't seem to work very well for small models.",
+      "zh": "小模型似乎不太適合 dropout。"
+    },
+    {
+      "start": 282.46,
+      "end": 288.38,
+      "en": "It's really just something for very large and very deep models with lots of hidden layers.",
+      "zh": "主要用於很大、很深、有很多隱藏層的模型。"
+    },
+    {
+      "start": 288.9,
+      "end": 291.58,
+      "en": "And of course that is the case for LMS.",
+      "zh": "LLM 當然如此。"
+    },
+    {
+      "start": 291.94,
+      "end": 299.22,
+      "en": "And so now let me tell you a little bit about how and when dropout is used in large language models.",
+      "zh": "接著談大型語言模型如何、何時使用 dropout。"
+    },
+    {
+      "start": 300.42,
+      "end": 310.26,
+      "en": "Now in some sense are just the same as any other deep learning model with a few little, you know, subtle quirks here and there.",
+      "zh": "某種程度上，和其他深度學習模型相同，只是有些小細節。"
+    },
+    {
+      "start": 310.42,
+      "end": 320.94,
+      "en": "But the data sets used for training LMS are so enormous and so diverse that LMS have a much lower risk",
+      "zh": "但 LLM 訓練集極大、多樣，因此比起"
+    },
+    {
+      "start": 320.94,
+      "end": 326.3,
+      "en": "of overfitting compared to other kinds of models and other kinds of data sets.",
+      "zh": "其他模型、資料集，過擬合風險低得多。"
+    },
+    {
+      "start": 326.98,
+      "end": 336.22,
+      "en": "And so that means that dropout is generally not as useful for LMS as it is for other deep learning models,",
+      "zh": "所以一般不如其他深度學習模型那麼需要 dropout，"
+    },
+    {
+      "start": 336.22,
+      "end": 338.22,
+      "en": "for example, in computer vision.",
+      "zh": "例如電腦視覺模型。"
+    },
+    {
+      "start": 338.82,
+      "end": 348.7,
+      "en": "In fact, if you studied deep learning before, you're probably used to seeing dropout probabilities of around 30% or 50%.",
+      "zh": "之前學過深度學習，可能習慣看到 30% 或 50% 丟棄機率。"
+    },
+    {
+      "start": 348.7,
+      "end": 349.82,
+      "en": "That's fairly normal.",
+      "zh": "很常見。"
+    },
+    {
+      "start": 350.26,
+      "end": 355.82,
+      "en": "In LMS, people use 10%, sometimes 5% or even 2% dropout.",
+      "zh": "LLM 則用 10%，有時 5%，甚至 2%。"
+    },
+    {
+      "start": 356.14,
+      "end": 358.42,
+      "en": "So it's a very gentle dropout.",
+      "zh": "很輕微。"
+    },
+    {
+      "start": 358.46,
+      "end": 366.1,
+      "en": "Dropout can be applied at any stage of training an LLM, but it's less important during pre-training",
+      "zh": "任何訓練階段都能用，但預訓練時較不重要，"
+    },
+    {
+      "start": 366.1,
+      "end": 370.78,
+      "en": "and more important during fine tuning and instruction tuning.",
+      "zh": "微調、指令微調較重要。"
+    },
+    {
+      "start": 371.1,
+      "end": 374.38,
+      "en": "Now, I haven't really talked in detail about fine tuning.",
+      "zh": "還沒詳細談微調。"
+    },
+    {
+      "start": 374.38,
+      "end": 376.18,
+      "en": "We'll get to that in the next section.",
+      "zh": "下一節會介紹。"
+    },
+    {
+      "start": 376.34,
+      "end": 384.98,
+      "en": "But the basic reason is that the data for pre-training are already really big and diverse, and pre-training",
+      "zh": "基本原因是，預訓練資料已經大而多樣，通常只"
+    },
+    {
+      "start": 385.1,
+      "end": 393.02,
+      "en": "models is done usually in just a couple of passes through the data set, maybe three repeats of the data set.",
+      "zh": "遍歷幾次，也許重複三次。"
+    },
+    {
+      "start": 393.3,
+      "end": 398.78,
+      "en": "So the model never really sees the same data on a lot of occasions.",
+      "zh": "模型不會反覆看相同資料很多次。"
+    },
+    {
+      "start": 399.65999999999997,
+      "end": 405.06,
+      "en": "That means that the model doesn't really have the opportunity for a lot of memorization.",
+      "zh": "就不太有機會大量記憶。"
+    },
+    {
+      "start": 405.65999999999997,
+      "end": 412.40999999999997,
+      "en": "On the other hand, during fine tuning and instruction tuning, the data sets tend to be more limited",
+      "zh": "另一方面，微調與指令微調資料較有限，"
+    },
+    {
+      "start": 412.40999999999997,
+      "end": 421.29,
+      "en": "and also more focused on a particular topic, and therefore the risk of overfitting is higher and therefore dropout becomes more useful.",
+      "zh": "也更專注特定主題，所以過擬合風險較高，dropout 更有用。"
+    },
+    {
+      "start": 421.89,
+      "end": 428.73,
+      "en": "In a moment, I will switch to Python and show you how dropout is implemented in PyTorch.",
+      "zh": "稍後切到 Python，展示 PyTorch 實作。"
+    },
+    {
+      "start": 429.49,
+      "end": 432.69,
+      "en": "Actually, there are two ways to implement dropout in PyTorch.",
+      "zh": "其實有兩種方式。"
+    },
+    {
+      "start": 432.73,
+      "end": 436.09,
+      "en": "You can use a class and you can use a function.",
+      "zh": "可以用類別，也可以用函數。"
+    },
+    {
+      "start": 436.53,
+      "end": 444.53,
+      "en": "We will look at some code to see visually what happens when we implement dropout and on an activation vector.",
+      "zh": "會用程式，視覺化對活化向量套用 dropout 的效果。"
+    },
+    {
+      "start": 444.73,
+      "end": 446.13,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是。"
+    },
+    {
+      "start": 446.13,
+      "end": 451.13,
+      "en": "So we start with an activation vector simulated vector of all ones.",
+      "zh": "從全為 1 的模擬活化向量開始。"
+    },
+    {
+      "start": 451.57,
+      "end": 455.40999999999997,
+      "en": "And then we apply a 20% dropout to the activations.",
+      "zh": "再套用 20% dropout。"
+    },
+    {
+      "start": 455.53,
+      "end": 457.21,
+      "en": "And now this is curious.",
+      "zh": "有趣的是，"
+    },
+    {
+      "start": 457.21,
+      "end": 462.21,
+      "en": "The activations are all either 0 or 1.25.",
+      "zh": "活化值全部是 0 或 1.25。"
+    },
+    {
+      "start": 462.77,
+      "end": 472.81,
+      "en": "So they are zero when That node got zeroed out from dropout, and there are 1.25, which accounts for",
+      "zh": "歸零的節點是 0，其餘 1.25，用來補償"
+    },
+    {
+      "start": 473.01,
+      "end": 475.85,
+      "en": "the decrease in the total activation.",
+      "zh": "整體活化量下降。"
+    },
+    {
+      "start": 476.13,
+      "end": 481.97,
+      "en": "So PyTorch scales up the non zeroed out activation units.",
+      "zh": "所以 PyTorch 會放大沒有歸零的單元。"
+    },
+    {
+      "start": 482.57,
+      "end": 490.49,
+      "en": "And because dropout is probabilistic the theoretical dropout value that you specify which here I specified",
+      "zh": "因為是機率性的，指定的理論丟棄率，這裡是"
+    },
+    {
+      "start": 490.53,
+      "end": 495.69,
+      "en": "20% is not necessarily what always happens in practice.",
+      "zh": "20%，實際上不一定每次恰好如此。"
+    },
+    {
+      "start": 496.69,
+      "end": 497.01,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 497.05,
+      "end": 503.21,
+      "en": "So then I will show you how to switch dropout off and how you switch it back on.",
+      "zh": "接著展示怎麼關閉、重新啟用 dropout。"
+    },
+    {
+      "start": 503.53,
+      "end": 509.33,
+      "en": "Actually depends on whether you're using the class dropout or the dropout.",
+      "zh": "做法取決於使用 Dropout 類別，還是 dropout 函數。"
+    },
+    {
+      "start": 509.69,
+      "end": 512.37,
+      "en": "So this is what it looks like for a class.",
+      "zh": "這是類別的寫法。"
+    },
+    {
+      "start": 512.53,
+      "end": 515.29,
+      "en": "And here's what it looks like for a function.",
+      "zh": "這是函數的寫法。"
+    },
+    {
+      "start": 515.69,
+      "end": 523.57,
+      "en": "I'll explain in more detail why we have these differences in a moment when we get to this line of code in the demo.",
+      "zh": "示範走到這裡時，會更詳細解釋差異。"
+    },
+    {
+      "start": 524.32,
+      "end": 530.36,
+      "en": "This is a pretty simple demo here, so we don't need any libraries other than PyTorch.",
+      "zh": "示範很簡單，只需要 PyTorch。"
+    },
+    {
+      "start": 530.88,
+      "end": 537.92,
+      "en": "Okay, so the way that you use dropout, actually I'm going to first illustrate using the class dropout.",
+      "zh": "先展示 Dropout 類別的用法。"
+    },
+    {
+      "start": 537.92,
+      "end": 542.36,
+      "en": "And then I'll show you the function dropout in a moment in a few code cells.",
+      "zh": "再過幾個儲存格，展示 dropout 函數。"
+    },
+    {
+      "start": 542.84,
+      "end": 543.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 543.16,
+      "end": 551.4,
+      "en": "So we have this class dropout where the main input that you care about is the probability of dropout.",
+      "zh": "Dropout 類別的主要輸入，是丟棄機率。"
+    },
+    {
+      "start": 551.4,
+      "end": 555.52,
+      "en": "So here I've set it to 0.2 for illustration purposes.",
+      "zh": "這裡為了示範，設成 0.2。"
+    },
+    {
+      "start": 555.76,
+      "end": 557.96,
+      "en": "Of course I encourage you to play around with this.",
+      "zh": "鼓勵你自行調整。"
+    },
+    {
+      "start": 557.96,
+      "end": 559.6,
+      "en": "You can set it to 0.1.",
+      "zh": "可以設 0.1。"
+    },
+    {
+      "start": 559.6,
+      "end": 562.76,
+      "en": "You can set it to 0.99999.",
+      "zh": "也可以 0.99999。"
+    },
+    {
+      "start": 563.08,
+      "end": 567.08,
+      "en": "Uh, you can just play around with different numbers, but let's leave it at 0.2 for now.",
+      "zh": "試不同數字，但現在先留 0.2。"
+    },
+    {
+      "start": 567.4,
+      "end": 567.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 567.92,
+      "end": 574.96,
+      "en": "And then what I do is generate a vector of all ones, just to make it really easy to see what the numbers look like.",
+      "zh": "產生全一向量，方便看數值。"
+    },
+    {
+      "start": 575.2,
+      "end": 576.6,
+      "en": "And then I'll print out that.",
+      "zh": "再印出。"
+    },
+    {
+      "start": 576.8,
+      "end": 577.16,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 577.2,
+      "end": 581.28,
+      "en": "So then we have this instance this variable dropout.",
+      "zh": "現在有這個實例，變數 dropout。"
+    },
+    {
+      "start": 581.28,
+      "end": 584.48,
+      "en": "It's an instance of this class and dropout.",
+      "zh": "是 nn.Dropout 類別的實例。"
+    },
+    {
+      "start": 584.6,
+      "end": 588.12,
+      "en": "And then I input x and I call the output y.",
+      "zh": "傳入 X，輸出叫 Y。"
+    },
+    {
+      "start": 588.4,
+      "end": 597.44,
+      "en": "And what this is going to do very simple very straightforward is just pick 20% of the values in X randomly",
+      "zh": "它做的事很簡單，隨機挑 X 中 20% 的值，"
+    },
+    {
+      "start": 597.44,
+      "end": 601.92,
+      "en": "or the elements in X and just randomly set those to zero.",
+      "zh": "或者說元素，隨機設為零。"
+    },
+    {
+      "start": 602.92,
+      "end": 613.56,
+      "en": "As I mentioned in the slides, because this is a probabilistic selection, we are not necessarily going to get exactly 20% to be dropped out.",
+      "zh": "如投影片所說，因為是機率式選擇，不一定恰好丟棄 20%。"
+    },
+    {
+      "start": 613.6,
+      "end": 617.48,
+      "en": "It's going to be, on average, somewhere around 20%.",
+      "zh": "平均大約 20%。"
+    },
+    {
+      "start": 617.52,
+      "end": 619.92,
+      "en": "The long run average will be 20%.",
+      "zh": "長期平均會是 20%。"
+    },
+    {
+      "start": 620.36,
+      "end": 620.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 620.68,
+      "end": 622.36,
+      "en": "And then I will print that out.",
+      "zh": "印出來。"
+    },
+    {
+      "start": 622.4,
+      "end": 624.52,
+      "en": "And then here I'm normalizing.",
+      "zh": "這裡做正規化。"
+    },
+    {
+      "start": 624.52,
+      "end": 631.72,
+      "en": "This is one of the two methods for dealing with the decrease in activation that I discussed in the slides.",
+      "zh": "這是投影片談過，處理活化量下降的兩種方式之一。"
+    },
+    {
+      "start": 631.84,
+      "end": 638.04,
+      "en": "So what PyTorch does is multiply these values here the output of Dropbox.",
+      "zh": "PyTorch 會把這裡 dropout 輸出的值，"
+    },
+    {
+      "start": 638.04,
+      "end": 642.92,
+      "en": "It multiplies these values by one minus the probability.",
+      "zh": "乘以一減丟棄機率。"
+    },
+    {
+      "start": 643.2,
+      "end": 652,
+      "en": "And that basically just inflates the activation of the remaining units so that the total sum will be",
+      "zh": "基本上就放大其餘單元的活化，讓總和"
+    },
+    {
+      "start": 652.52,
+      "end": 656,
+      "en": "not necessarily identical, but at least quite similar.",
+      "zh": "不一定完全相同，但至少相當接近。"
+    },
+    {
+      "start": 656.4,
+      "end": 656.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 656.72,
+      "end": 656.88,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 656.88,
+      "end": 658.68,
+      "en": "And then here I'm just normalizing them.",
+      "zh": "這裡只做正規化。"
+    },
+    {
+      "start": 658.88,
+      "end": 659.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 659.16,
+      "end": 667.92,
+      "en": "And here I'm comparing the empirical percentage of units that were dropped compared to the expected probability.",
+      "zh": "比較實際丟棄百分比，與預期機率。"
+    },
+    {
+      "start": 668.28,
+      "end": 674.04,
+      "en": "So here we see I wanted 20% dropped and 19% were actually dropped.",
+      "zh": "希望 20%，實際丟棄 19%。"
+    },
+    {
+      "start": 674.56,
+      "end": 676.56,
+      "en": "That is acceptably close.",
+      "zh": "足夠接近。"
+    },
+    {
+      "start": 676.84,
+      "end": 677.08,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 677.12,
+      "end": 682.96,
+      "en": "So here yeah I'm just normalizing again just so it's easier to see the ones and the zeros.",
+      "zh": "再做正規化，只是方便看 1 和 0。"
+    },
+    {
+      "start": 682.96,
+      "end": 685.36,
+      "en": "You can see the units that were actually dropped.",
+      "zh": "看出實際丟棄哪些單元。"
+    },
+    {
+      "start": 685.6,
+      "end": 694.52,
+      "en": "Now because this is probabilistic, each time I run the code it's going to be different units that get switched on and switched off.",
+      "zh": "因為是機率式，每次執行，開啟、關閉的單元會不同。"
+    },
+    {
+      "start": 694.84,
+      "end": 695.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 695.16,
+      "end": 696.36,
+      "en": "So what we can do now.",
+      "zh": "現在可以做的是，"
+    },
+    {
+      "start": 696.4,
+      "end": 696.96,
+      "en": "Let me see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 696.96,
+      "end": 700.11,
+      "en": "This is 22% versus 20%.",
+      "zh": "這裡是 22%，對上 20%。"
+    },
+    {
+      "start": 700.47,
+      "end": 706.63,
+      "en": "We can see what the actual total sum of these two variables are.",
+      "zh": "看看兩個變數實際總和。"
+    },
+    {
+      "start": 707.03,
+      "end": 712.07,
+      "en": "So what is the do it like this x dot and y dot sum.",
+      "zh": "就是 X 的 sum，以及 Y 的 sum。"
+    },
+    {
+      "start": 712.43,
+      "end": 715.39,
+      "en": "And what you see is that yeah this is 100.",
+      "zh": "這裡是 100。"
+    },
+    {
+      "start": 715.43,
+      "end": 716.07,
+      "en": "No surprise.",
+      "zh": "不意外。"
+    },
+    {
+      "start": 716.07,
+      "end": 719.83,
+      "en": "There's 100 ones and this is just 97.",
+      "zh": "有 100 個 1，這裡則只有 97。"
+    },
+    {
+      "start": 719.83,
+      "end": 727.91,
+      "en": "But if we were to sum this value here, I'll also include that dot sum.",
+      "zh": "如果把這個值加總，也加上 .sum()。"
+    },
+    {
+      "start": 728.51,
+      "end": 729.07,
+      "en": "Right.",
+      "zh": "對。"
+    },
+    {
+      "start": 729.27,
+      "end": 733.55,
+      "en": "Let me encase this whole thing in parentheses here okay.",
+      "zh": "用括號把整個括起來。"
+    },
+    {
+      "start": 733.71,
+      "end": 744.23,
+      "en": "So if we if PyTorch did not apply any kind of correction factor, any kind of normalization, then this value would basically always be too low.",
+      "zh": "如果 PyTorch 不做任何校正、正規化，這個值基本上總是偏低。"
+    },
+    {
+      "start": 744.23,
+      "end": 745.27,
+      "en": "So I'll run it again.",
+      "zh": "再跑一次。"
+    },
+    {
+      "start": 745.55,
+      "end": 746.35,
+      "en": "And yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 746.35,
+      "end": 748.31,
+      "en": "So basically here this is good.",
+      "zh": "這次很好。"
+    },
+    {
+      "start": 748.31,
+      "end": 753.99,
+      "en": "We happen to get exactly 20% dropped when we expected 20%.",
+      "zh": "預期丟棄 20%，碰巧恰好 20%。"
+    },
+    {
+      "start": 754.31,
+      "end": 762.27,
+      "en": "So with the normalization that is applied by no dropout, we actually get back the same sum.",
+      "zh": "nn.Dropout 套用正規化後，恰好回到相同總和。"
+    },
+    {
+      "start": 762.27,
+      "end": 766.15,
+      "en": "So we preserve the total activation mass.",
+      "zh": "保留整體活化總量。"
+    },
+    {
+      "start": 766.39,
+      "end": 775.27,
+      "en": "Whereas if there was no normalization and here I'm just undoing the normalization, then we get just",
+      "zh": "沒有正規化，這裡把它撤銷，則只有"
+    },
+    {
+      "start": 775.27,
+      "end": 778.79,
+      "en": "a smaller level of activation okay.",
+      "zh": "較小的活化量。"
+    },
+    {
+      "start": 778.83,
+      "end": 781.31,
+      "en": "So that is for that okay.",
+      "zh": "好，就是這樣。"
+    },
+    {
+      "start": 781.35,
+      "end": 786.71,
+      "en": "Now what I want to show you is how to switch off the dropout.",
+      "zh": "現在展示如何關閉 dropout。"
+    },
+    {
+      "start": 787.11,
+      "end": 795.71,
+      "en": "And so the way you do that is by taking basically any part of the model and switching it into eval.",
+      "zh": "做法是把模型部分切到 eval。"
+    },
+    {
+      "start": 795.71,
+      "end": 800.51,
+      "en": "So typically for a real model you would have the the name of the model.",
+      "zh": "通常真實模型，會用模型名稱。"
+    },
+    {
+      "start": 800.51,
+      "end": 806.63,
+      "en": "And you say model eval here we haven't defined any language model or any kind of model.",
+      "zh": "寫 model.eval()，但這裡沒定義語言模型或其他模型。"
+    },
+    {
+      "start": 806.63,
+      "end": 808.71,
+      "en": "So we can write dropout eval.",
+      "zh": "所以可以寫 dropout.eval()。"
+    },
+    {
+      "start": 809.07,
+      "end": 811.47,
+      "en": "And now you can see they're all ones.",
+      "zh": "現在全是 1。"
+    },
+    {
+      "start": 811.59,
+      "end": 822.06,
+      "en": "So now what we've done is switch the model into evaluation mode, and when you are evaluating the model, you do not want to apply dropout.",
+      "zh": "這把模型切到評估模式，評估時不希望做 dropout。"
+    },
+    {
+      "start": 822.1,
+      "end": 830.82,
+      "en": "So dropout is just something that you apply during training, not during evaluation, not during deployment or inference.",
+      "zh": "只在訓練用，不在評估、部署或推論用。"
+    },
+    {
+      "start": 831.86,
+      "end": 836.5,
+      "en": "So that is for the method the class dropout.",
+      "zh": "以上是 Dropout 類別。"
+    },
+    {
+      "start": 836.54,
+      "end": 840.26,
+      "en": "Now I'm going to show you using the function dropout.",
+      "zh": "接著看 dropout 函數。"
+    },
+    {
+      "start": 840.3,
+      "end": 841.5,
+      "en": "So this is f.",
+      "zh": "這是 F。"
+    },
+    {
+      "start": 841.74,
+      "end": 842.94,
+      "en": "This is not a.",
+      "zh": "不是另一個，"
+    },
+    {
+      "start": 843.22,
+      "end": 847.82,
+      "en": "This is where PyTorch organizes its functions.",
+      "zh": "這是 PyTorch 放函數的地方。"
+    },
+    {
+      "start": 848.34,
+      "end": 854.18,
+      "en": "F is for functional that comes from here torch dot functional as f.",
+      "zh": "F 代表 functional，來自 torch.nn.functional as F。"
+    },
+    {
+      "start": 854.18,
+      "end": 857.22,
+      "en": "So these are now uh like normal functions.",
+      "zh": "現在是一般函數。"
+    },
+    {
+      "start": 857.22,
+      "end": 858.98,
+      "en": "These are not classes okay.",
+      "zh": "不是類別。"
+    },
+    {
+      "start": 859.02,
+      "end": 861.3,
+      "en": "So we can write f dot dropout.",
+      "zh": "所以寫 F.dropout。"
+    },
+    {
+      "start": 861.34,
+      "end": 863.38,
+      "en": "Also notice this is all lowercase.",
+      "zh": "注意，全部小寫。"
+    },
+    {
+      "start": 863.38,
+      "end": 866.46,
+      "en": "And the class version is uppercase.",
+      "zh": "類別版本開頭大寫。"
+    },
+    {
+      "start": 866.46,
+      "end": 877.38,
+      "en": "That comes from just typical variable type naming conventions where a class is typically given a first letter with an uppercase okay.",
+      "zh": "這是一般命名慣例，類別名稱首字母通常大寫。"
+    },
+    {
+      "start": 877.42,
+      "end": 879.06,
+      "en": "So f dot drop out.",
+      "zh": "F.dropout。"
+    },
+    {
+      "start": 879.06,
+      "end": 880.98,
+      "en": "And the thing that we want to drop out.",
+      "zh": "要丟棄的對象，"
+    },
+    {
+      "start": 880.98,
+      "end": 884.02,
+      "en": "So the variable we want to apply drop out to.",
+      "zh": "也就是套用 dropout 的變數。"
+    },
+    {
+      "start": 884.26,
+      "end": 886.66,
+      "en": "And then the probabilities okay.",
+      "zh": "再加機率。"
+    },
+    {
+      "start": 886.7,
+      "end": 890.54,
+      "en": "And here we see the same output as we got above.",
+      "zh": "可以看到和上面相同的輸出。"
+    },
+    {
+      "start": 890.54,
+      "end": 893.18,
+      "en": "So the end result is the same.",
+      "zh": "結果相同。"
+    },
+    {
+      "start": 893.46,
+      "end": 895.7,
+      "en": "It just is in a different form.",
+      "zh": "只是形式不同。"
+    },
+    {
+      "start": 895.82,
+      "end": 901.5,
+      "en": "And if we run this again multiple times you will see different elements get dropped out okay.",
+      "zh": "多跑幾次，會有不同元素被丟棄。"
+    },
+    {
+      "start": 901.9,
+      "end": 907.58,
+      "en": "So why would you use this function and why would you use this class.",
+      "zh": "為什麼用函數，或用類別？"
+    },
+    {
+      "start": 907.74,
+      "end": 913.98,
+      "en": "That depends a little bit on where you are in the model and how you want to interface with the model.",
+      "zh": "取決於模型中位置，以及想如何操作模型。"
+    },
+    {
+      "start": 914.14,
+      "end": 922.22,
+      "en": "If you are putting a dropout directly into a deep learning model, then it's probably better to use",
+      "zh": "如果直接放進深度學習模型，可能"
+    },
+    {
+      "start": 922.22,
+      "end": 927.34,
+      "en": "a class dropout for reasons that I will explain now.",
+      "zh": "用 Dropout 類別較好，現在說明理由。"
+    },
+    {
+      "start": 928.46,
+      "end": 932.89,
+      "en": "Okay, and that's really all about the ease of toggling dropout.",
+      "zh": "主要是開關比較容易。"
+    },
+    {
+      "start": 933.13,
+      "end": 939.85,
+      "en": "So in general, you want dropout to be turned on when you are training the model, but when you're not",
+      "zh": "一般希望訓練時開啟，但不訓練，"
+    },
+    {
+      "start": 939.85,
+      "end": 947.69,
+      "en": "training the model, you're testing the model, evaluating the model, or actually deploying the model in a real application.",
+      "zh": "而是測試、評估、或實際部署應用時，"
+    },
+    {
+      "start": 948.09,
+      "end": 949.97,
+      "en": "You do not want to use dropout.",
+      "zh": "不想使用 dropout。"
+    },
+    {
+      "start": 950.01,
+      "end": 954.53,
+      "en": "So dropout is really something that you just apply during training.",
+      "zh": "只在訓練時套用。"
+    },
+    {
+      "start": 954.97,
+      "end": 955.25,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 955.29,
+      "end": 958.21,
+      "en": "So how do you turn off dropout.",
+      "zh": "如何關閉？"
+    },
+    {
+      "start": 958.25,
+      "end": 967.65,
+      "en": "So what you would typically do if you have a model you write model eval, which means you are switching the model into evaluation mode.",
+      "zh": "通常有模型時，寫 model.eval()，切到評估模式。"
+    },
+    {
+      "start": 968.73,
+      "end": 971.41,
+      "en": "And this has several implications.",
+      "zh": "有幾項影響。"
+    },
+    {
+      "start": 971.41,
+      "end": 981.53,
+      "en": "One is for switching off the gradient calculation but also for switching off various learning regularization",
+      "zh": "一是關閉梯度計算，也關閉各種學習正則化"
+    },
+    {
+      "start": 981.53,
+      "end": 983.69,
+      "en": "techniques, including dropout.",
+      "zh": "技巧，包括 dropout。"
+    },
+    {
+      "start": 984.09,
+      "end": 986.65,
+      "en": "Now we do not actually have a model in here.",
+      "zh": "現在沒模型。"
+    },
+    {
+      "start": 986.65,
+      "end": 991.65,
+      "en": "So you can just do a dropout eval and that's going to work in this case.",
+      "zh": "所以直接 dropout.eval()，這裡就能運作。"
+    },
+    {
+      "start": 991.97,
+      "end": 994.57,
+      "en": "So now we see that we get all ones.",
+      "zh": "現在全是 1。"
+    },
+    {
+      "start": 994.61,
+      "end": 996.13,
+      "en": "And why do we get all ones.",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 996.33,
+      "end": 998.09,
+      "en": "That's the vector we started with.",
+      "zh": "因為起始向量就是如此。"
+    },
+    {
+      "start": 998.13,
+      "end": 1000.09,
+      "en": "And no dropout was applied.",
+      "zh": "沒有套用 dropout。"
+    },
+    {
+      "start": 1000.53,
+      "end": 1011.29,
+      "en": "Now the thing is if you have a if you have dropout as a class instance embedded inside a model, then you don't need to separately.",
+      "zh": "如果 Dropout 類別實例嵌在模型裡，不必分別操作。"
+    },
+    {
+      "start": 1011.41,
+      "end": 1019.25,
+      "en": "You know, you don't need to have something like this where you switch the model into eval and then separately you switch dropout into eval.",
+      "zh": "不需要先把模型設 eval，又另外把 Dropout 設 eval。"
+    },
+    {
+      "start": 1019.41,
+      "end": 1029.41,
+      "en": "Once you switch the model into eval, PyTorch will go through everything that's connected to that model and switch that into eval mode.",
+      "zh": "模型一切到 eval，PyTorch 就會遍歷關聯的所有元件，全部設為 eval。"
+    },
+    {
+      "start": 1029.57,
+      "end": 1033.73,
+      "en": "So therefore that's pretty convenient for inside a model.",
+      "zh": "所以在模型內很方便。"
+    },
+    {
+      "start": 1034.13,
+      "end": 1041.53,
+      "en": "On the other hand the function dropout is unaffected by this eval statement.",
+      "zh": "另一方面，dropout 函數不受這個 eval 敘述影響。"
+    },
+    {
+      "start": 1041.65,
+      "end": 1045.53,
+      "en": "So here we are still getting a dropout to impact.",
+      "zh": "這裡仍會發生 dropout。"
+    },
+    {
+      "start": 1046.57,
+      "end": 1050.57,
+      "en": "Now here we get zeros and twos because this is set to the default.",
+      "zh": "現在是 0 與 2，因為用了預設值。"
+    },
+    {
+      "start": 1050.57,
+      "end": 1052.69,
+      "en": "So p is 0.5.",
+      "zh": "p=0.5。"
+    },
+    {
+      "start": 1052.73,
+      "end": 1054.13,
+      "en": "That's the default value.",
+      "zh": "這是預設。"
+    },
+    {
+      "start": 1054.13,
+      "end": 1055.81,
+      "en": "And I'll set it to prob.",
+      "zh": "我把它設為 prob。"
+    },
+    {
+      "start": 1055.81,
+      "end": 1058.61,
+      "en": "So now you can see we get 1.25 again.",
+      "zh": "現在又是 1.25。"
+    },
+    {
+      "start": 1059.09,
+      "end": 1059.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1059.45,
+      "end": 1063.85,
+      "en": "So the point is that we wrote dropout dot eval.",
+      "zh": "重點是，寫了 dropout.eval()。"
+    },
+    {
+      "start": 1064.05,
+      "end": 1068.33,
+      "en": "Now that deactivated dropout for this class.",
+      "zh": "這會停用這個類別實例的 dropout。"
+    },
+    {
+      "start": 1068.33,
+      "end": 1075.13,
+      "en": "But no surprise you know this function here is unconnected to this instance of the class.",
+      "zh": "但函數和實例沒關聯，不意外。"
+    },
+    {
+      "start": 1075.81,
+      "end": 1082.97,
+      "en": "So on the one hand that kind of seems obvious, but on the other hand, if you have dropout in a model",
+      "zh": "一方面很明顯，但另一方面，如果模型裡"
+    },
+    {
+      "start": 1083.09,
+      "end": 1088.37,
+      "en": "like this, you have the function f dot dropout embedded inside your model.",
+      "zh": "嵌入 F.dropout 這種函數，"
+    },
+    {
+      "start": 1088.61,
+      "end": 1091.45,
+      "en": "And then you write model eval.",
+      "zh": "再寫 model.eval()，"
+    },
+    {
+      "start": 1091.81,
+      "end": 1093.41,
+      "en": "You are still doing dropout.",
+      "zh": "仍然會做 dropout。"
+    },
+    {
+      "start": 1093.45,
+      "end": 1096.73,
+      "en": "Dropout is still going to get called if you have this line.",
+      "zh": "只要有這行，dropout 仍會呼叫。"
+    },
+    {
+      "start": 1097.49,
+      "end": 1100.13,
+      "en": "So that is something to be aware of.",
+      "zh": "這要注意。"
+    },
+    {
+      "start": 1100.25,
+      "end": 1109.8,
+      "en": "On the other hand it is possible to switch off f dropouts, and that you would do with an optional input called training.",
+      "zh": "但也能關掉 F.dropout，用可選輸入 training。"
+    },
+    {
+      "start": 1110.16,
+      "end": 1114.8,
+      "en": "So now I say training equals false and now dropout is switched off.",
+      "zh": "設定 training=False，現在就關閉。"
+    },
+    {
+      "start": 1115,
+      "end": 1118.24,
+      "en": "Training equals true and now it's switched back on again.",
+      "zh": "training=True，又重新開啟。"
+    },
+    {
+      "start": 1118.24,
+      "end": 1121.8,
+      "en": "This is TOS because I didn't specify the probability.",
+      "zh": "這裡是 2，因為沒指定機率。"
+    },
+    {
+      "start": 1121.8,
+      "end": 1124.84,
+      "en": "So this is the default probability of 0.5.",
+      "zh": "所以用預設 0.5。"
+    },
+    {
+      "start": 1126.04,
+      "end": 1127.4,
+      "en": "Now how is this useful.",
+      "zh": "有什麼用？"
+    },
+    {
+      "start": 1127.4,
+      "end": 1135.44,
+      "en": "Well if you have this inside your model then you can have an input into the model called you know am",
+      "zh": "如果放進模型，就能有個輸入，叫「我是否"
+    },
+    {
+      "start": 1135.44,
+      "end": 1142.24,
+      "en": "I training uh, and uh, this you would define uh, somewhere else in the code.",
+      "zh": "正在訓練」，在程式其他地方定義。"
+    },
+    {
+      "start": 1142.4,
+      "end": 1148.08,
+      "en": "So then this variable inside your model, this line of code would look something like this.",
+      "zh": "模型內這行會長這樣。"
+    },
+    {
+      "start": 1148.28,
+      "end": 1150.92,
+      "en": "So now you can set this to be the default.",
+      "zh": "可以設預設值。"
+    },
+    {
+      "start": 1150.92,
+      "end": 1154.56,
+      "en": "And then, you know, you want to, uh, test your model.",
+      "zh": "之後想測試模型，"
+    },
+    {
+      "start": 1154.56,
+      "end": 1156.32,
+      "en": "You want to evaluate the model.",
+      "zh": "評估模型，"
+    },
+    {
+      "start": 1156.32,
+      "end": 1159.72,
+      "en": "So then in your code you set this toggle to be true.",
+      "zh": "就把這個開關設為 True。"
+    },
+    {
+      "start": 1159.96,
+      "end": 1163.28,
+      "en": "And now we get, uh, dropout switched off.",
+      "zh": "現在 dropout 就關掉。"
+    },
+    {
+      "start": 1163.28,
+      "end": 1171.52,
+      "en": "So the point is, either way, you know this, um, with the function or with the class instance.",
+      "zh": "所以不論函數，或類別實例，"
+    },
+    {
+      "start": 1171.84,
+      "end": 1173.2,
+      "en": "Either one is fine.",
+      "zh": "都可以。"
+    },
+    {
+      "start": 1173.2,
+      "end": 1179.24,
+      "en": "Either one can be made to work exactly the same way and have exactly the same implications.",
+      "zh": "都能做出完全相同的行為、效果。"
+    },
+    {
+      "start": 1179.6,
+      "end": 1186.68,
+      "en": "In general, if you are working inside of a model, it's probably easier to use the class dropout.",
+      "zh": "一般在模型內，Dropout 類別可能比較容易。"
+    },
+    {
+      "start": 1186.96,
+      "end": 1189.52,
+      "en": "And if you're working outside of a model.",
+      "zh": "模型外面，"
+    },
+    {
+      "start": 1189.76,
+      "end": 1193.76,
+      "en": "I find this easier, but that's also just personal preference.",
+      "zh": "我覺得函數容易，但也是個人偏好。"
+    },
+    {
+      "start": 1194.36,
+      "end": 1206.28,
+      "en": "Okay, here, what I want to demonstrate is that you need to set your model back to train in order to get the class dropout to work again.",
+      "zh": "這裡要展示，必須把模型設回 train，Dropout 類別才會再次運作。"
+    },
+    {
+      "start": 1206.68,
+      "end": 1209.08,
+      "en": "Okay, so here I have dropout train.",
+      "zh": "所以 dropout.train()。"
+    },
+    {
+      "start": 1209.08,
+      "end": 1212.64,
+      "en": "That's basically the opposite of, uh, eval.",
+      "zh": "基本上與 eval 相反。"
+    },
+    {
+      "start": 1213.08,
+      "end": 1219.64,
+      "en": "And uh, basically what we see is here I set train mode on here, I set eval mode on.",
+      "zh": "這裡開 train，這裡開 eval。"
+    },
+    {
+      "start": 1219.64,
+      "end": 1221.59,
+      "en": "And here I didn't do anything right.",
+      "zh": "這裡沒做什麼。"
+    },
+    {
+      "start": 1221.63,
+      "end": 1223.99,
+      "en": "So here this is commented out.",
+      "zh": "這一行註解掉。"
+    },
+    {
+      "start": 1224.31,
+      "end": 1230.51,
+      "en": "Uh, and so basically the point that I want to illustrate here is that when you switch a model to eval",
+      "zh": "想說明的重點是，模型切成 eval"
+    },
+    {
+      "start": 1230.55,
+      "end": 1238.75,
+      "en": "mode, it remains in eval mode, not just for one call, but for all the subsequent calls until you",
+      "zh": "後會一直維持，不只一次呼叫，而是後續全部呼叫，直到"
+    },
+    {
+      "start": 1238.75,
+      "end": 1242.59,
+      "en": "explicitly switch the model back to train.",
+      "zh": "明確切回 train。"
+    },
+    {
+      "start": 1242.71,
+      "end": 1246.67,
+      "en": "So now you'll see we get a dropout activated again.",
+      "zh": "現在又能看到 dropout 啟用。"
+    },
+    {
+      "start": 1247.23,
+      "end": 1258.75,
+      "en": "In conclusion, dropout is a regularization technique that smooths out the network representations to prevent the model from overfitting the training data.",
+      "zh": "總之，dropout 是正則化技巧，讓網路表徵更平滑，避免過擬合訓練資料。"
+    },
+    {
+      "start": 1259.35,
+      "end": 1265.43,
+      "en": "Llms use a lot less dropout than other models, but it's still something worth knowing about.",
+      "zh": "LLM 用得比其他模型少，但仍值得了解。"
+    },
+    {
+      "start": 1265.95,
+      "end": 1273.07,
+      "en": "In the next code challenge, which is after the next video, you will implement dropout in model five,",
+      "zh": "再下一支影片後的程式挑戰，會在模型五實作 dropout，"
+    },
+    {
+      "start": 1273.23,
+      "end": 1278.27,
+      "en": "and you will also learn where in the model dropout is applied.",
+      "zh": "也會學它套用在模型哪些位置。"
+    }
+  ]
+}

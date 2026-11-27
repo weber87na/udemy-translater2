@@ -1,0 +1,1891 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51835325",
+  "title": "Create a data loader to train a model",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "56bb81438683a4b3c58b7e6a57fa813afcca5cfdeabf56a5eb9af8fca481b29a",
+  "cues": [
+    {
+      "start": 1.72,
+      "end": 9.32,
+      "en": "As I mentioned in the previous video, this and the next several videos are focused on one specific",
+      "zh": "如上一支影片所說，這支與接下來幾支，聚焦同一個"
+    },
+    {
+      "start": 9.36,
+      "end": 15.8,
+      "en": "topic, which is training and embeddings matrix from scratch with real text data.",
+      "zh": "主題：用真實文字資料，從零訓練嵌入矩陣。"
+    },
+    {
+      "start": 16.4,
+      "end": 23.72,
+      "en": "So the purpose of this video is just to create the data set in the format that our PyTorch model will need.",
+      "zh": "這支影片，只建立 PyTorch 模型需要的資料格式。"
+    },
+    {
+      "start": 24.08,
+      "end": 29.92,
+      "en": "We're going to create the deep learning model in the next video and then train it after that.",
+      "zh": "下一支影片建立深度學習模型，之後再訓練。"
+    },
+    {
+      "start": 30.36,
+      "end": 34.16,
+      "en": "Here we are only focused on organizing the data set.",
+      "zh": "這裡只專注整理資料集。"
+    },
+    {
+      "start": 34.44,
+      "end": 42.72,
+      "en": "And in order to create that data set, you're also going to learn about some terms and parameters of training text data.",
+      "zh": "建立過程，也會學到文字訓練資料的一些術語與參數。"
+    },
+    {
+      "start": 43.56,
+      "end": 45.52,
+      "en": "Let's start with some terms.",
+      "zh": "先看術語。"
+    },
+    {
+      "start": 45.64,
+      "end": 50.12,
+      "en": "So these are all terms that I'm going to define over in this space here.",
+      "zh": "這些詞，都會在這裡定義，"
+    },
+    {
+      "start": 50.12,
+      "end": 53.64,
+      "en": "And then I'll show examples with the real sentence up here.",
+      "zh": "再用上方真實句子展示例子。"
+    },
+    {
+      "start": 54.24,
+      "end": 58,
+      "en": "And after that I'll explain what we're going to do in the Python demo.",
+      "zh": "之後，解釋 Python 示範要做什麼。"
+    },
+    {
+      "start": 58.44,
+      "end": 67.86,
+      "en": "And by the way some of these terms might already look familiar to you from previous books or courses that you might have studied about deep learning.",
+      "zh": "順帶一提，如果讀過其他深度學習書籍或課程，有些詞可能已熟悉。"
+    },
+    {
+      "start": 67.9,
+      "end": 71.3,
+      "en": "For example, convolutional neural networks and stride.",
+      "zh": "例如，卷積神經網路中的 stride。"
+    },
+    {
+      "start": 71.86,
+      "end": 75.26,
+      "en": "Anyway, you will see that these terms are basically the same thing.",
+      "zh": "你會看到，這裡基本上是相同概念。"
+    },
+    {
+      "start": 75.66,
+      "end": 79.94,
+      "en": "Okay, so to start with we have the inputs and the targets to the model.",
+      "zh": "首先，模型的輸入與目標。"
+    },
+    {
+      "start": 80.42,
+      "end": 86.14,
+      "en": "The input is a token sequence, for example a sentence or a snippet of text.",
+      "zh": "輸入是 token 序列，例如句子或文字片段，"
+    },
+    {
+      "start": 86.53999999999999,
+      "end": 88.9,
+      "en": "That's what you feed into the model.",
+      "zh": "也就是送進模型的資料。"
+    },
+    {
+      "start": 89.78,
+      "end": 94.78,
+      "en": "And then the target is just a shifted version of that same sequence.",
+      "zh": "目標則是同一序列平移後的版本。"
+    },
+    {
+      "start": 95.22,
+      "end": 102.46000000000001,
+      "en": "In other words, you take exactly the same token input sequence and then shift it by one token.",
+      "zh": "換句話說，取完全相同的輸入 token 序列，再平移一個 token。"
+    },
+    {
+      "start": 102.74000000000001,
+      "end": 107.22,
+      "en": "That means that the model is going to predict each subsequent token.",
+      "zh": "這表示，模型要預測每個後續 token。"
+    },
+    {
+      "start": 107.74000000000001,
+      "end": 112.97999999999999,
+      "en": "I'll show an example of this in a moment, and you'll see more examples when I switch to code.",
+      "zh": "稍後看例子，切換到程式後，也會看到更多。"
+    },
+    {
+      "start": 112.97999999999999,
+      "end": 116.7,
+      "en": "But let me first briefly define these other parameters.",
+      "zh": "先簡短定義其他參數。"
+    },
+    {
+      "start": 117.34,
+      "end": 119.6,
+      "en": "So here we have sequence length.",
+      "zh": "這是序列長度。"
+    },
+    {
+      "start": 119.8,
+      "end": 124.44,
+      "en": "This is simply the number of tokens that you feed into the model at a time.",
+      "zh": "就是一次送進模型的 token 數。"
+    },
+    {
+      "start": 125.08,
+      "end": 134.56,
+      "en": "Longer sequences are better because that gives the model a larger context window for using tokens to predict the next token.",
+      "zh": "較長序列比較好，因為提供更大上下文視窗，用來預測下一個 token。"
+    },
+    {
+      "start": 135.24,
+      "end": 137.07999999999998,
+      "en": "Next up is stride.",
+      "zh": "接著是步幅，stride。"
+    },
+    {
+      "start": 137.72,
+      "end": 145.24,
+      "en": "Stride is how many tokens between sequences you skip, so each successive sequence that you input to",
+      "zh": "步幅，是相鄰序列的起點移動幾個 token；每次送入"
+    },
+    {
+      "start": 145.28,
+      "end": 150.8,
+      "en": "the model can be generated by skipping one token or several tokens.",
+      "zh": "模型的新序列，可以往後移一個或好幾個 token 產生。"
+    },
+    {
+      "start": 150.84,
+      "end": 153.32,
+      "en": "Again, I'll show an example of this in a moment.",
+      "zh": "稍後看例子。"
+    },
+    {
+      "start": 154.44,
+      "end": 156.44,
+      "en": "And finally we have batch size.",
+      "zh": "最後，批次大小。"
+    },
+    {
+      "start": 156.44,
+      "end": 162.56,
+      "en": "This is just the number of sequences you enter into the model simultaneously to be processed.",
+      "zh": "就是同時送進模型處理的序列數。"
+    },
+    {
+      "start": 163.04,
+      "end": 168.92000000000002,
+      "en": "Especially if you're training on a GPU, then the batch size can really help speed things up.",
+      "zh": "尤其使用 GPU 訓練時，批次處理有助加快速度。"
+    },
+    {
+      "start": 169.36,
+      "end": 173.92000000000002,
+      "en": "All right, let's go through each one of these in more detail with an example.",
+      "zh": "用例子，更詳細說明。"
+    },
+    {
+      "start": 174.28,
+      "end": 176.88,
+      "en": "I'm going to use this example text.",
+      "zh": "使用這段文字："
+    },
+    {
+      "start": 176.88,
+      "end": 179.71,
+      "en": "You can learn a lot of math with a bit of coding.",
+      "zh": "只要寫一點程式，就能學到很多數學。"
+    },
+    {
+      "start": 179.99,
+      "end": 185.31,
+      "en": "That's my coin aphorism, and it's also the motto that drives my teaching.",
+      "zh": "這是我自創的格言，也是推動我教學的座右銘。"
+    },
+    {
+      "start": 185.95,
+      "end": 189.55,
+      "en": "Okay, so let's focus on inputs and targets.",
+      "zh": "先看輸入與目標。"
+    },
+    {
+      "start": 189.79,
+      "end": 193.27,
+      "en": "So here would be the inputs to the model during training.",
+      "zh": "這是訓練時，模型的輸入，"
+    },
+    {
+      "start": 193.67,
+      "end": 195.63,
+      "en": "And here would be the targets.",
+      "zh": "這是目標。"
+    },
+    {
+      "start": 195.63,
+      "end": 200.47,
+      "en": "So the targets are literally just the same sentence the same tokens.",
+      "zh": "目標就是相同句子、相同 token，"
+    },
+    {
+      "start": 200.47,
+      "end": 206.99,
+      "en": "But the first token or the first word is dropped and the whole sentence is shifted.",
+      "zh": "只是丟掉第一個 token，或者第一個單字，讓整句平移。"
+    },
+    {
+      "start": 207.47,
+      "end": 214.75,
+      "en": "So this means that when the model processes the token you it will try to predict the token can.",
+      "zh": "所以，模型處理 you 時，要預測 can。"
+    },
+    {
+      "start": 215.31,
+      "end": 225.75,
+      "en": "And when it processes can, it's going to try to predict learn when it sees learn it will try to predict a and so on for all of these tokens, for all of these words.",
+      "zh": "處理 can，要預測 learn；看到 learn，要預測 a，依此類推，對所有 token、所有單字都一樣。"
+    },
+    {
+      "start": 225.91,
+      "end": 237.19,
+      "en": "So the idea is that the model is always trying to predict the next token based on the current token, and also whatever preceding tokens it has access to.",
+      "zh": "模型總是依目前 token，以及能存取的先前 token，預測下一個。"
+    },
+    {
+      "start": 237.81,
+      "end": 239.45,
+      "en": "now during training.",
+      "zh": "訓練時，"
+    },
+    {
+      "start": 239.97,
+      "end": 244.25,
+      "en": "The loss is only calculated from the final token.",
+      "zh": "損失只從最後一個 token 計算。"
+    },
+    {
+      "start": 244.77,
+      "end": 248.37,
+      "en": "So the model is always trying to predict the next token.",
+      "zh": "模型一直在預測下一個 token，"
+    },
+    {
+      "start": 248.81,
+      "end": 253.09,
+      "en": "But for training we just take the loss from the final prediction.",
+      "zh": "但訓練時，只取最後一次預測的損失。"
+    },
+    {
+      "start": 253.65,
+      "end": 259.29,
+      "en": "The reason for that is partly just convention, because that's just how most people do it.",
+      "zh": "一部分只是慣例，因為大多數人都這樣做，"
+    },
+    {
+      "start": 259.29,
+      "end": 260.81,
+      "en": "So that's how other people do it.",
+      "zh": "所以跟著做。"
+    },
+    {
+      "start": 260.81,
+      "end": 267.13,
+      "en": "But it's also partly based on the idea that the final token prediction has the most context.",
+      "zh": "另一部分原因，是最後一個 token 的預測，有最多上下文。"
+    },
+    {
+      "start": 267.49,
+      "end": 274.17,
+      "en": "So the model has the most information it can leverage to predict this final token.",
+      "zh": "模型有最多資訊，可以用來預測最後的 token。"
+    },
+    {
+      "start": 274.73,
+      "end": 281.93,
+      "en": "For example, if you only see the word you, it's really hard to guess what the next word is going to be.",
+      "zh": "例如，只看到 you，很難猜下一個字。"
+    },
+    {
+      "start": 282.13,
+      "end": 293.61,
+      "en": "But if you see this entire sentence up to coding except for the period, it's a pretty good guess that what comes after this word coding is a period, or maybe a comma or whatever.",
+      "zh": "但若看到整句，一直到 coding，只缺句點，就很容易猜 coding 之後是句點，或也許逗號之類。"
+    },
+    {
+      "start": 294.37,
+      "end": 303.07,
+      "en": "Anyway, so we're not really losing a lot of information, because each of these tokens can also be used as the final token.",
+      "zh": "其實，沒有損失太多資訊，因為每個 token，也都可能被當成最後一個。"
+    },
+    {
+      "start": 303.39,
+      "end": 307.95,
+      "en": "Because token sequences are often segmented to be overlapping.",
+      "zh": "因為 token 序列通常切成互相重疊的片段。"
+    },
+    {
+      "start": 308.27,
+      "end": 312.07,
+      "en": "I will get back to that point when I talk about stride.",
+      "zh": "談步幅時，再回到這點。"
+    },
+    {
+      "start": 313.59,
+      "end": 316.07,
+      "en": "So next up is sequence length.",
+      "zh": "接著，序列長度。"
+    },
+    {
+      "start": 316.11,
+      "end": 321.71,
+      "en": "This is also called context window or context length or something comparable.",
+      "zh": "也叫上下文視窗、上下文長度，或類似名稱。"
+    },
+    {
+      "start": 322.15,
+      "end": 325.87,
+      "en": "So this parameter is I think it's pretty obvious what it means.",
+      "zh": "這個參數的意思，應該很明顯。"
+    },
+    {
+      "start": 325.87,
+      "end": 328.71,
+      "en": "Here is a sequence of length 1212 words.",
+      "zh": "這是長度 12，也就是 12 個單字的序列。"
+    },
+    {
+      "start": 328.71,
+      "end": 331.15,
+      "en": "Here is a sequence of length seven.",
+      "zh": "這是長度 7 的序列。"
+    },
+    {
+      "start": 331.87,
+      "end": 338.07,
+      "en": "So the sequence length is literally just the number of tokens that you're giving to the model.",
+      "zh": "序列長度，就是提供給模型的 token 數。"
+    },
+    {
+      "start": 338.71,
+      "end": 349.55,
+      "en": "Now in theory you want the sequence to be as long as possible, because the more context you can provide to the model, the better it can learn to predict the next token.",
+      "zh": "理論上，越長越好，因為提供越多上下文，模型越能學會預測下一個 token。"
+    },
+    {
+      "start": 350.15,
+      "end": 355.47,
+      "en": "On the other hand, it's not trivially better just to have arbitrarily long sequences.",
+      "zh": "但不是隨便加長，就必然更好。"
+    },
+    {
+      "start": 355.90999999999997,
+      "end": 361.65,
+      "en": "For example, let's say you're training text is the entirety of Wikipedia.",
+      "zh": "例如，訓練文字是整個 Wikipedia。"
+    },
+    {
+      "start": 362.29,
+      "end": 368.37,
+      "en": "Now, it's certainly the case that 100 tokens would give more context than ten tokens.",
+      "zh": "100 個 token，確實比十個提供更多上下文。"
+    },
+    {
+      "start": 369.09,
+      "end": 377.61,
+      "en": "But 100 million tokens spans probably a few thousand, maybe a few hundred thousand different Wikipedia pages.",
+      "zh": "但一億個 token，可能橫跨幾千，甚至幾十萬個不同頁面。"
+    },
+    {
+      "start": 377.77,
+      "end": 383.21,
+      "en": "So it's not really clear that having such a ludicrously high sequence length is beneficial.",
+      "zh": "這麼誇張的序列長度，是否有益，就不清楚了。"
+    },
+    {
+      "start": 384.33,
+      "end": 390.77,
+      "en": "But even if we think about sequence lengths in the range of a few hundreds to a few thousands, then",
+      "zh": "即使只考慮數百到數千的範圍，"
+    },
+    {
+      "start": 390.77,
+      "end": 397.21,
+      "en": "the primary disadvantage of longer sequences is increased computational demands.",
+      "zh": "較長序列的主要缺點，也是計算需求增加。"
+    },
+    {
+      "start": 397.81,
+      "end": 405.45,
+      "en": "In fact, in the code for the rest of this section, I'm going to use sequence lengths of either 8 or 6.",
+      "zh": "這一章後面的程式，其實只用長度 8 或 6。"
+    },
+    {
+      "start": 405.77,
+      "end": 412.57,
+      "en": "Now that is way, way, way too short for any real meaningful training of a real embeddings matrix.",
+      "zh": "對真正有意義的嵌入矩陣訓練，這實在短得太多。"
+    },
+    {
+      "start": 412.73,
+      "end": 418.08,
+      "en": "But having a short sequence length just makes the computation time more feasible.",
+      "zh": "但短序列，能讓計算時間更可行。"
+    },
+    {
+      "start": 418.08,
+      "end": 426.52,
+      "en": "So we just have to wait seconds or maybe a few minutes for training time instead of hours or days each time we want to train the model.",
+      "zh": "每次訓練只要等幾秒或幾分鐘，而不是幾小時或幾天。"
+    },
+    {
+      "start": 428.16,
+      "end": 430.28,
+      "en": "Okay, next up is stride.",
+      "zh": "接著是步幅，"
+    },
+    {
+      "start": 430.56,
+      "end": 433.16,
+      "en": "So this is also sometimes called skip.",
+      "zh": "有時也叫 skip。"
+    },
+    {
+      "start": 433.6,
+      "end": 445.12,
+      "en": "The idea is that we want to train using token sequences that are cut out of a very long text, like a book or a Wikipedia page or a scientific article.",
+      "zh": "構想是，從書籍、Wikipedia 頁面或科學文章這類長文字，切出 token 序列訓練。"
+    },
+    {
+      "start": 445.6,
+      "end": 453.36,
+      "en": "And we also want to maximize our training data and calculate the loss based on lots of tokens, not",
+      "zh": "也希望盡量利用訓練資料，讓損失根據許多 token 計算，"
+    },
+    {
+      "start": 453.36,
+      "end": 457.96,
+      "en": "just the ones that just so happened to be at the end of a sequence.",
+      "zh": "而不是只根據剛好位在序列末尾的那些。"
+    },
+    {
+      "start": 458.36,
+      "end": 460.44,
+      "en": "Okay, so imagine this sentence.",
+      "zh": "想像這個句子。"
+    },
+    {
+      "start": 460.44,
+      "end": 462,
+      "en": "Here is the full text.",
+      "zh": "這是完整文字，"
+    },
+    {
+      "start": 462.04,
+      "end": 464.56,
+      "en": "Obviously in practice it's way, way longer.",
+      "zh": "實務上當然長得多，"
+    },
+    {
+      "start": 464.56,
+      "end": 466.08,
+      "en": "But let's just work with this.",
+      "zh": "但先用這個。"
+    },
+    {
+      "start": 466.08,
+      "end": 467.2,
+      "en": "This is the full text.",
+      "zh": "這就是全文。"
+    },
+    {
+      "start": 467.32,
+      "end": 471.88,
+      "en": "So now let's say we are training with a sequence length of six.",
+      "zh": "假設序列長度為 6，"
+    },
+    {
+      "start": 472.28,
+      "end": 476.46,
+      "en": "So we're going to input six tokens into the model at a time.",
+      "zh": "一次送入模型六個 token。"
+    },
+    {
+      "start": 476.9,
+      "end": 484.7,
+      "en": "If we have a stride of one, then the first two sentences or the first two token sequences that we enter",
+      "zh": "步幅為 1 時，最初兩個句子，或者說兩個 token 序列，"
+    },
+    {
+      "start": 484.7,
+      "end": 493.62,
+      "en": "into the model are, you can learn a lot of that would be sequence one, and the second sequence would be can learn a lot of math.",
+      "zh": "第一個是 you can learn a lot of，第二個則是 can learn a lot of math。"
+    },
+    {
+      "start": 494.02,
+      "end": 494.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 494.34,
+      "end": 503.1,
+      "en": "So the idea is that the losses that the model uses now come from predicting of and also from predicting math.",
+      "zh": "構想是，模型的損失，會來自預測 of，以及預測 math。"
+    },
+    {
+      "start": 503.22,
+      "end": 507.7,
+      "en": "So we're really getting a lot of training data out of this one sentence here.",
+      "zh": "所以，從這一句，就取得很多訓練資料。"
+    },
+    {
+      "start": 508.42,
+      "end": 511.58,
+      "en": "But there are two issues with having a stride of one.",
+      "zh": "但步幅 1，有兩個問題。"
+    },
+    {
+      "start": 512.18,
+      "end": 514.26,
+      "en": "One issue is just practical.",
+      "zh": "一個是實務問題，"
+    },
+    {
+      "start": 514.26,
+      "end": 521.38,
+      "en": "The computation time increases a lot because the text is broken down into so many different sequences.",
+      "zh": "文字拆成太多序列，計算時間大幅增加。"
+    },
+    {
+      "start": 522.1,
+      "end": 528.82,
+      "en": "But a second issue is that these two sentences are extremely highly correlated with each other.",
+      "zh": "另一個，是兩個句子高度相關，"
+    },
+    {
+      "start": 529.1,
+      "end": 534.32,
+      "en": "They are nearly identical, except for one word in the beginning and one word at the end.",
+      "zh": "幾乎相同，只有開頭與結尾各差一個字。"
+    },
+    {
+      "start": 534.84,
+      "end": 538.56,
+      "en": "And of course, this is a very simple example with a small sequence.",
+      "zh": "當然，這是短序列的簡單例子。"
+    },
+    {
+      "start": 538.56,
+      "end": 543.56,
+      "en": "If you have a larger sequence length, then the correlation would be really, really high.",
+      "zh": "序列更長，相關就更高。"
+    },
+    {
+      "start": 544.64,
+      "end": 553.72,
+      "en": "So it would be ideal if each of the inputs we provide to the model during training were independent of each other.",
+      "zh": "理想上，訓練時給模型的各輸入，應彼此獨立。"
+    },
+    {
+      "start": 554.16,
+      "end": 558.8,
+      "en": "So the balance here is to set the stride to be a little bit higher.",
+      "zh": "折衷做法，是把步幅設大一點。"
+    },
+    {
+      "start": 558.8,
+      "end": 562.2,
+      "en": "So for example here is a stride of three.",
+      "zh": "例如，這裡步幅為 3。"
+    },
+    {
+      "start": 562.56,
+      "end": 571,
+      "en": "Now notice that the first input is still the first six tokens of this sentence or the first six words of this text.",
+      "zh": "注意，第一個輸入，仍是原句最前面六個 token，也就是六個字。"
+    },
+    {
+      "start": 571.12,
+      "end": 578.24,
+      "en": "But the second the second sequence here actually starts three tokens later.",
+      "zh": "第二個序列，則從後面第三個 token 的位置開始移動。"
+    },
+    {
+      "start": 578.68,
+      "end": 587.04,
+      "en": "So this is finding a balance between increasing the amount of training data and allowing the loss calculation",
+      "zh": "也就是在增加訓練資料，讓損失根據更多 token 預測計算，"
+    },
+    {
+      "start": 587.04,
+      "end": 596.1,
+      "en": "to be based on more token predictions, and allowing a little bit of overlap or a little bit of correlation between successive sequences.",
+      "zh": "以及允許相鄰序列有些重疊、相關之間，取得平衡。"
+    },
+    {
+      "start": 596.66,
+      "end": 602.7,
+      "en": "But so even though these two are a bit correlated, it's certainly a lot less compared to with a stride of one.",
+      "zh": "雖然兩者仍有點相關，但比步幅 1 少得多。"
+    },
+    {
+      "start": 603.54,
+      "end": 606.02,
+      "en": "Okay, so that is the stride parameter.",
+      "zh": "這就是步幅參數。"
+    },
+    {
+      "start": 606.5,
+      "end": 612.74,
+      "en": "The batch size is just the number of sequences that you give to the model to process at the same time.",
+      "zh": "批次大小，就是同時讓模型處理的序列數。"
+    },
+    {
+      "start": 612.98,
+      "end": 622.34,
+      "en": "In part, this is really just about increasing computational efficiency by leveraging the parallel processing offered by GPUs.",
+      "zh": "一部分，是利用 GPU 的平行處理，提高計算效率。"
+    },
+    {
+      "start": 622.82,
+      "end": 634.58,
+      "en": "But having larger batches does mean that the losses get averaged together, which can smooth out the learning trajectory a little bit, and therefore is a form of regularization.",
+      "zh": "較大批次也讓損失取平均，使學習軌跡稍微平滑，因此也是一種正規化。"
+    },
+    {
+      "start": 635.06,
+      "end": 641.62,
+      "en": "So here you see a batch size of one, because there's only one token sequence that we are presenting to the model.",
+      "zh": "這是批次大小 1，因為只給模型一個 token 序列。"
+    },
+    {
+      "start": 642.26,
+      "end": 650.06,
+      "en": "And this would be an example of a batch size of three where we give the model three input sequences at the same time.",
+      "zh": "這是批次大小 3，同時給模型三個輸入序列。"
+    },
+    {
+      "start": 650.38,
+      "end": 654.33,
+      "en": "Of course we're also giving the corresponding target sequences.",
+      "zh": "當然，也給對應的目標序列，"
+    },
+    {
+      "start": 654.33,
+      "end": 656.17,
+      "en": "I'm just not illustrating that here.",
+      "zh": "只是這裡沒有畫出。"
+    },
+    {
+      "start": 656.57,
+      "end": 663.37,
+      "en": "Okay, so these are the main parameters and terms to know for training an embedding matrix.",
+      "zh": "這些就是訓練嵌入矩陣，主要需要知道的參數與術語。"
+    },
+    {
+      "start": 664.21,
+      "end": 670.21,
+      "en": "Now one thing I want to mention before telling you about what you'll see in Python is that I've been",
+      "zh": "說明 Python 內容前，還想提一點：這裡用"
+    },
+    {
+      "start": 670.21,
+      "end": 679.65,
+      "en": "showing letters and words here for convenience, so it's easier for you to interpret, but in practice, we're not actually giving the model words.",
+      "zh": "字母與單字，只是為了方便理解；實務上，不是真的給模型單字，"
+    },
+    {
+      "start": 679.65,
+      "end": 685.01,
+      "en": "We're giving the model integer token IDs that were based on the tokenizer.",
+      "zh": "而是 tokenizer 產生的整數 token ID。"
+    },
+    {
+      "start": 685.69,
+      "end": 689.45,
+      "en": "Okay, so here is what you are going to see in Python.",
+      "zh": "這是在 Python 會看到的內容。"
+    },
+    {
+      "start": 689.81,
+      "end": 697.09,
+      "en": "We are going to import some text, split it into words and create a vocab from all the unique words.",
+      "zh": "匯入文字、拆成單字，再用所有不重複單字建立詞彙表。"
+    },
+    {
+      "start": 697.53,
+      "end": 705.09,
+      "en": "We'll print this out to see that there are 30,000 words and 4500 unique words in the vocab.",
+      "zh": "印出可看到，全文約 3 萬字，詞彙表約 4,500 個不重複單字。"
+    },
+    {
+      "start": 705.45,
+      "end": 709.69,
+      "en": "And here I've just printed out the first ten of the vocab words.",
+      "zh": "這裡只印出詞彙表前十個字。"
+    },
+    {
+      "start": 710.33,
+      "end": 717.15,
+      "en": "Next we will create input and target lists of integers or token IDs.",
+      "zh": "接著，建立輸入與目標的整數串列，也就是 token ID。"
+    },
+    {
+      "start": 717.51,
+      "end": 722.95,
+      "en": "Now notice that the targets here are just shifted versions of the inputs.",
+      "zh": "注意，目標只是輸入平移後的版本。"
+    },
+    {
+      "start": 723.19,
+      "end": 729.07,
+      "en": "So the model sees input 2416 whatever word that happens to correspond to.",
+      "zh": "模型看到輸入 2416，不論它對應什麼字，"
+    },
+    {
+      "start": 729.55,
+      "end": 734.59,
+      "en": "And its goal is to predict or to output 131.",
+      "zh": "目標是預測、輸出 131。"
+    },
+    {
+      "start": 734.79,
+      "end": 739.91,
+      "en": "And then at the next token the model sees the token 131.",
+      "zh": "下一個 token，模型看到 131，"
+    },
+    {
+      "start": 739.91,
+      "end": 744.75,
+      "en": "And its goal is to output 2172 and so on.",
+      "zh": "目標則是輸出 2172，依此類推。"
+    },
+    {
+      "start": 744.91,
+      "end": 751.83,
+      "en": "You can also see that these sequences, these lists are each one, two, three, four, five, six, seven, eight.",
+      "zh": "也能數出，這些串列各有一、二、三、四、五、六、七、八個。"
+    },
+    {
+      "start": 751.83,
+      "end": 754.59,
+      "en": "So here I'm using a sequence length of eight.",
+      "zh": "所以，這裡序列長度為 8。"
+    },
+    {
+      "start": 755.07,
+      "end": 758.87,
+      "en": "So the model always tries to predict the following token.",
+      "zh": "模型一直試著預測下一個 token。"
+    },
+    {
+      "start": 759.15,
+      "end": 762.87,
+      "en": "These two are the first sentence or the first sequence.",
+      "zh": "這兩列是第一個句子，或者說序列，"
+    },
+    {
+      "start": 763.03,
+      "end": 766.87,
+      "en": "And these two rows here correspond to the second sequence.",
+      "zh": "下面兩列，則是第二個序列。"
+    },
+    {
+      "start": 767.27,
+      "end": 773.85,
+      "en": "So question for you based on what you see on this slide, What is the stride parameter that I set?",
+      "zh": "問你，依照這張投影片，步幅設為多少？"
+    },
+    {
+      "start": 774.41,
+      "end": 777.49,
+      "en": "Feel free to pause the video if you need a moment to think about it.",
+      "zh": "如果需要思考，可以暫停。"
+    },
+    {
+      "start": 777.97,
+      "end": 781.09,
+      "en": "So the answer is that the stride parameter is two.",
+      "zh": "答案是 2。"
+    },
+    {
+      "start": 781.57,
+      "end": 792.13,
+      "en": "Notice that in the second sequence, the first input in the sequence is 2172, which is the third item in the first sequence, which means.",
+      "zh": "第二序列的第一個輸入 2172，是第一序列的第三個項目，代表，"
+    },
+    {
+      "start": 792.13,
+      "end": 794.77,
+      "en": "Here we start with 2416.",
+      "zh": "這裡從 2416 開始，"
+    },
+    {
+      "start": 794.77,
+      "end": 800.13,
+      "en": "And then the next sequence skips two tokens, and then we start there on the second token.",
+      "zh": "下一序列跳過兩個 token，再從那個位置開始。"
+    },
+    {
+      "start": 800.61,
+      "end": 807.17,
+      "en": "In other words, this second sequence is literally just the first sequence, but starting two tokens later.",
+      "zh": "換句話說，第二序列就是第一序列，往後移兩個 token。"
+    },
+    {
+      "start": 807.17,
+      "end": 810.85,
+      "en": "And of course we get two new tokens in here.",
+      "zh": "當然，這裡也多兩個新 token。"
+    },
+    {
+      "start": 811.49,
+      "end": 815.29,
+      "en": "So the entire text is around 30,000 tokens long.",
+      "zh": "整段文字約 3 萬個 token，"
+    },
+    {
+      "start": 815.57,
+      "end": 820.69,
+      "en": "And so yeah, this is there's a lot more room to keep adding more and more sequences here.",
+      "zh": "所以，還有很多空間，繼續加入更多序列。"
+    },
+    {
+      "start": 821.09,
+      "end": 826.01,
+      "en": "Once we have the data organized we are going to create a data loader.",
+      "zh": "整理好資料，就建立 DataLoader，"
+    },
+    {
+      "start": 826.01,
+      "end": 830.01,
+      "en": "So a special data type used for PyTorch called a data loader.",
+      "zh": "也就是 PyTorch 使用的特殊資料型別。"
+    },
+    {
+      "start": 830.27,
+      "end": 834.87,
+      "en": "And first we will define a dataset class so that you see here.",
+      "zh": "先定義 Dataset 類別，就是這裡。"
+    },
+    {
+      "start": 834.87,
+      "end": 836.67,
+      "en": "Here's a screenshot of the code.",
+      "zh": "這是程式截圖。"
+    },
+    {
+      "start": 836.99,
+      "end": 841.43,
+      "en": "I'll discuss all of these lines in more detail when I switch to Python.",
+      "zh": "切換到 Python 時，會更詳細解釋每行。"
+    },
+    {
+      "start": 841.43,
+      "end": 844.91,
+      "en": "But basically what you see is that we have a class.",
+      "zh": "基本上，這是一個類別。"
+    },
+    {
+      "start": 845.47,
+      "end": 855.75,
+      "en": "We initialize inputs and targets, and the lookup table, which is the same Python dictionary that we've now created several times.",
+      "zh": "初始化輸入、目標，以及查找表，也就是已建立好幾次的 Python 字典。"
+    },
+    {
+      "start": 855.75,
+      "end": 858.47,
+      "en": "It's what we're using for an encoder.",
+      "zh": "它用來當編碼器。"
+    },
+    {
+      "start": 858.95,
+      "end": 866.95,
+      "en": "And then in this for loop over here we are generating sequences for the inputs and the targets.",
+      "zh": "接著，在這個 for 迴圈，產生輸入與目標序列。"
+    },
+    {
+      "start": 867.35,
+      "end": 872.19,
+      "en": "And you can also see that I'm transforming these into PyTorch tensors.",
+      "zh": "也能看到，將它們轉成 PyTorch 張量。"
+    },
+    {
+      "start": 872.75,
+      "end": 876.27,
+      "en": "So there's a little bit more processing to do with this class instance.",
+      "zh": "這個類別實例，還需要一些處理，"
+    },
+    {
+      "start": 876.27,
+      "end": 883.59,
+      "en": "But the end result of this code and also the end of this video will be sequences that look like this.",
+      "zh": "但這段程式，以及這支影片最後的結果，就是像這樣的序列。"
+    },
+    {
+      "start": 883.75,
+      "end": 887.95,
+      "en": "So what you see here are inputs with a sequence length of.",
+      "zh": "這裡的輸入，序列長度是，"
+    },
+    {
+      "start": 887.99,
+      "end": 890.93,
+      "en": "Now I'm using a sequence length of six.",
+      "zh": "現在使用 6。"
+    },
+    {
+      "start": 891.49,
+      "end": 894.89,
+      "en": "Here are the inputs and here are the targets.",
+      "zh": "這些是輸入，這些是目標。"
+    },
+    {
+      "start": 894.89,
+      "end": 896.97,
+      "en": "So these are the inputs to the model.",
+      "zh": "它們會送進模型，"
+    },
+    {
+      "start": 897.21,
+      "end": 903.93,
+      "en": "And the loss function is calculated based on what the model outputs for the final token here.",
+      "zh": "損失函式根據模型對最後一個 token 的輸出計算。"
+    },
+    {
+      "start": 904.13,
+      "end": 907.93,
+      "en": "And why are there two rows over here and two rows over here.",
+      "zh": "為什麼這裡與這裡，各有兩列？"
+    },
+    {
+      "start": 908.21,
+      "end": 911.85,
+      "en": "These correspond to two batches that I'm presenting.",
+      "zh": "它們對應同時呈現的兩組序列。"
+    },
+    {
+      "start": 911.85,
+      "end": 919.49,
+      "en": "So I have a batch size of two which means the model will process these two sequences simultaneously okay.",
+      "zh": "批次大小為 2，所以模型會同時處理這兩個序列。"
+    },
+    {
+      "start": 919.53,
+      "end": 924.37,
+      "en": "And then down here I'm just translating these into words so we can read them.",
+      "zh": "下方，只是把它們轉回單字，方便閱讀。"
+    },
+    {
+      "start": 924.37,
+      "end": 930.33,
+      "en": "So uh token 4188 corresponds to the word tried and so on okay.",
+      "zh": "例如，token 4188 對應 tried，依此類推。"
+    },
+    {
+      "start": 930.37,
+      "end": 932.85,
+      "en": "That was a lot of theory and explanation.",
+      "zh": "理論與說明不少。"
+    },
+    {
+      "start": 932.85,
+      "end": 936.01,
+      "en": "Let's now switch to Python and work through the code.",
+      "zh": "現在切換到 Python，逐步看程式。"
+    },
+    {
+      "start": 936.89,
+      "end": 938.77,
+      "en": "This file is called part one.",
+      "zh": "檔案叫作第一部分，"
+    },
+    {
+      "start": 938.81,
+      "end": 940.69,
+      "en": "Embed Learn embeddings.",
+      "zh": "Embed，Learn embeddings。"
+    },
+    {
+      "start": 940.69,
+      "end": 950.8,
+      "en": "We are going to be using exactly this same file for the next, I don't know, six videos or something, except for the one about loss that has a separate file.",
+      "zh": "接下來大概六支影片，都用同一個檔案；只有談損失的影片，使用另一個檔案。"
+    },
+    {
+      "start": 950.84,
+      "end": 955.72,
+      "en": "But we're going to keep using this file over and over again, as I mentioned in the previous video.",
+      "zh": "如上一支影片所說，會一直使用它。"
+    },
+    {
+      "start": 956.16,
+      "end": 959.6,
+      "en": "So here I'm importing lots of libraries.",
+      "zh": "這裡匯入很多函式庫。"
+    },
+    {
+      "start": 959.88,
+      "end": 963.32,
+      "en": "Most of these we don't actually need in this particular video.",
+      "zh": "其中大多數，這支影片其實不需要，"
+    },
+    {
+      "start": 963.32,
+      "end": 964.36,
+      "en": "Some of them we do.",
+      "zh": "有些會用到。"
+    },
+    {
+      "start": 964.6,
+      "end": 970.24,
+      "en": "Uh, but these are the libraries that we will use throughout this entire code file.",
+      "zh": "但它們會在整個程式檔中使用。"
+    },
+    {
+      "start": 970.92,
+      "end": 971.32,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 971.6,
+      "end": 972.28,
+      "en": "So let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 972.28,
+      "end": 973.36,
+      "en": "So now we are on video.",
+      "zh": "現在對應的影片是，"
+    },
+    {
+      "start": 973.36,
+      "end": 975.88,
+      "en": "Create a data loader to train a model.",
+      "zh": "建立 DataLoader，訓練模型。"
+    },
+    {
+      "start": 976.04,
+      "end": 978.6,
+      "en": "Here I'm importing the time machine text.",
+      "zh": "這裡匯入《時間機器》的文字。"
+    },
+    {
+      "start": 978.6,
+      "end": 980.12,
+      "en": "I do like this book a lot.",
+      "zh": "我真的很喜歡這本書，"
+    },
+    {
+      "start": 980.12,
+      "end": 985.16,
+      "en": "And it's also just a nice convenient dataset for processing.",
+      "zh": "也剛好是方便處理的資料集。"
+    },
+    {
+      "start": 985.64,
+      "end": 990.76,
+      "en": "Uh, I am not going to talk about any of this code because you've seen it all before.",
+      "zh": "這些程式不再說明，因為都看過了。"
+    },
+    {
+      "start": 991.28,
+      "end": 998.96,
+      "en": "Uh, here I have 30,000 words and 4500 of which are unique and make up the vocab.",
+      "zh": "有 3 萬個單字，其中 4,500 個不重複，構成詞彙表。"
+    },
+    {
+      "start": 999.32,
+      "end": 1005.44,
+      "en": "Now, you might remember or look back at your notes or something and see that the number of words and",
+      "zh": "你可能記得，或回頭看筆記，會發現單字數與"
+    },
+    {
+      "start": 1005.44,
+      "end": 1012.7,
+      "en": "the size of the vocab seems to vary every time we import this book, even though the book is exactly the same.",
+      "zh": "詞彙表大小，每次匯入都不一樣，儘管是同一本書。"
+    },
+    {
+      "start": 1013.02,
+      "end": 1014.26,
+      "en": "That is true.",
+      "zh": "確實如此，"
+    },
+    {
+      "start": 1014.46,
+      "end": 1021.58,
+      "en": "And it's basically because of differences in this kind of processing in different videos.",
+      "zh": "基本上，是因為不同影片的處理方式有差異。"
+    },
+    {
+      "start": 1021.58,
+      "end": 1027.42,
+      "en": "So some videos I do a little bit more processing, some videos I do a little bit less processing.",
+      "zh": "有些前處理多一點，有些少一點。"
+    },
+    {
+      "start": 1028.02,
+      "end": 1035.22,
+      "en": "There are some videos where I included punctuations and single character uh, tokens and some.",
+      "zh": "有些包含標點、單一字元 token，"
+    },
+    {
+      "start": 1035.22,
+      "end": 1037.06,
+      "en": "Sometimes I'm excluding them.",
+      "zh": "有時則排除。"
+    },
+    {
+      "start": 1037.18,
+      "end": 1041.42,
+      "en": "So these uh, this does actually vary over video, but that's fine.",
+      "zh": "所以，數量會隨影片不同，沒關係。"
+    },
+    {
+      "start": 1041.82,
+      "end": 1042.1,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1042.14,
+      "end": 1044.42,
+      "en": "Here I'm specifying the context length.",
+      "zh": "這裡指定上下文長度。"
+    },
+    {
+      "start": 1044.42,
+      "end": 1046.3,
+      "en": "I'm actually going to change this later to six.",
+      "zh": "稍後會改成 6，"
+    },
+    {
+      "start": 1046.3,
+      "end": 1047.54,
+      "en": "But it's eight for now.",
+      "zh": "目前先用 8。"
+    },
+    {
+      "start": 1047.82,
+      "end": 1048.46,
+      "en": "And stride.",
+      "zh": "還有步幅。"
+    },
+    {
+      "start": 1048.46,
+      "end": 1054.9,
+      "en": "And what I'm doing here is creating the inputs and the targets as lists.",
+      "zh": "這裡，把輸入與目標建立成串列。"
+    },
+    {
+      "start": 1055.06,
+      "end": 1062.38,
+      "en": "So here we are looping over from zero to the number of words.",
+      "zh": "從 0，走訪到單字數，"
+    },
+    {
+      "start": 1062.42,
+      "end": 1066.06,
+      "en": "And we don't actually want to go all the way to the end because we're going to add on.",
+      "zh": "但其實不走到最後，因為還要往後取一段。"
+    },
+    {
+      "start": 1066.06,
+      "end": 1069.32,
+      "en": "So we want to go to the end minus the context length.",
+      "zh": "所以，終點是總長度減去上下文長度。"
+    },
+    {
+      "start": 1069.64,
+      "end": 1071.08,
+      "en": "And we are skipping.",
+      "zh": "而每次跳過，"
+    },
+    {
+      "start": 1071.08,
+      "end": 1072.24,
+      "en": "So we're not skipping.",
+      "zh": "不是說跳過，"
+    },
+    {
+      "start": 1072.28,
+      "end": 1074.72,
+      "en": "You know we're not incrementing in steps of one.",
+      "zh": "不是每次增加 1，"
+    },
+    {
+      "start": 1074.96,
+      "end": 1079.92,
+      "en": "We are incrementing this indexing variable in steps of stride.",
+      "zh": "而是讓索引變數每次增加一個步幅。"
+    },
+    {
+      "start": 1079.92,
+      "end": 1082.76,
+      "en": "Very simple to implement the stride parameter.",
+      "zh": "這樣就很容易實作步幅參數。"
+    },
+    {
+      "start": 1083.24,
+      "end": 1083.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1083.56,
+      "end": 1086.2,
+      "en": "Here what I'm doing is grabbing a few words.",
+      "zh": "這裡取出幾個單字，"
+    },
+    {
+      "start": 1086.36,
+      "end": 1088.48,
+      "en": "And the target is those same words.",
+      "zh": "目標也是相同的那些字。"
+    },
+    {
+      "start": 1088.52,
+      "end": 1090.4,
+      "en": "Let me actually space this out like this.",
+      "zh": "把間距排開一點，"
+    },
+    {
+      "start": 1090.4,
+      "end": 1093.2,
+      "en": "So now, uh, like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 1093.24,
+      "end": 1093.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1093.68,
+      "end": 1095.8,
+      "en": "So now I'll even do it like this.",
+      "zh": "甚至改成這樣。"
+    },
+    {
+      "start": 1095.8,
+      "end": 1096.16,
+      "en": "There.",
+      "zh": "這裡。"
+    },
+    {
+      "start": 1096.24,
+      "end": 1096.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1096.52,
+      "end": 1106.84,
+      "en": "So I hope this is now clear that the, uh, the input words are just a sequence of words corresponding to the sequence length, or here I call it context length.",
+      "zh": "希望現在很清楚，輸入就是一段長度對應 sequence length，或者這裡叫 context length 的單字序列。"
+    },
+    {
+      "start": 1107.16,
+      "end": 1115.96,
+      "en": "And the targets are exactly the same thing from exactly the same, uh, vectors, the same lists of words or tokens.",
+      "zh": "目標取自完全相同的向量、相同的單字或 token 串列，"
+    },
+    {
+      "start": 1116.08,
+      "end": 1117.76,
+      "en": "I'm just adding one.",
+      "zh": "只是加 1。"
+    },
+    {
+      "start": 1117.76,
+      "end": 1125.48,
+      "en": "So I'm starting from, from I plus one and I go to context length plus one okay.",
+      "zh": "所以，從 i+1 開始，取到上下文長度再加 1 的位置。"
+    },
+    {
+      "start": 1125.52,
+      "end": 1127.02,
+      "en": "And then I append that to the list.",
+      "zh": "再附加到串列。"
+    },
+    {
+      "start": 1127.02,
+      "end": 1129.9,
+      "en": "I don't know why this this is going to print out and be very long.",
+      "zh": "不知道為什麼，這樣會印出很長一段。"
+    },
+    {
+      "start": 1129.9,
+      "end": 1131.78,
+      "en": "We can just look at the length of this.",
+      "zh": "只看長度就好。"
+    },
+    {
+      "start": 1132.06,
+      "end": 1136.02,
+      "en": "So there are 15,000 elements in this list.",
+      "zh": "這個串列有 15,000 個元素。"
+    },
+    {
+      "start": 1136.02,
+      "end": 1139.5,
+      "en": "And let's see what uh, some you know, I'll just pick one.",
+      "zh": "看看其中一些，隨便挑一個。"
+    },
+    {
+      "start": 1139.86,
+      "end": 1141.9,
+      "en": "Uh, I suppose that's not really random.",
+      "zh": "其實，這不算隨機。"
+    },
+    {
+      "start": 1141.9,
+      "end": 1144.7,
+      "en": "It's very difficult for humans to come up with random numbers.",
+      "zh": "人類很難真正隨機想出數字。"
+    },
+    {
+      "start": 1144.7,
+      "end": 1150.26,
+      "en": "But anyway, this is one arbitrarily selected element in this list of inputs.",
+      "zh": "總之，任意挑一個輸入串列中的元素。"
+    },
+    {
+      "start": 1150.38,
+      "end": 1151.78,
+      "en": "And here is that.",
+      "zh": "這就是它。"
+    },
+    {
+      "start": 1151.78,
+      "end": 1153.5,
+      "en": "And let me print this out.",
+      "zh": "先印出，"
+    },
+    {
+      "start": 1154.06,
+      "end": 1157.58,
+      "en": "And then I'm also going to print out the targets.",
+      "zh": "再印出目標，"
+    },
+    {
+      "start": 1160.62,
+      "end": 1162.22,
+      "en": "From the same element.",
+      "zh": "取相同位置的元素。"
+    },
+    {
+      "start": 1162.22,
+      "end": 1167.54,
+      "en": "So here you see the model is going to process target 1342.",
+      "zh": "這裡模型會處理 1342，"
+    },
+    {
+      "start": 1167.54,
+      "end": 1171.86,
+      "en": "And it's going to try to predict 4304.",
+      "zh": "試著預測 4304，"
+    },
+    {
+      "start": 1172.06,
+      "end": 1174.78,
+      "en": "And so which is the next token here okay.",
+      "zh": "也就是下一個 token。"
+    },
+    {
+      "start": 1174.82,
+      "end": 1175.42,
+      "en": "Very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1175.86,
+      "end": 1179.5,
+      "en": "So uh yeah this is actually just what I did over here.",
+      "zh": "這其實就是剛才做的，"
+    },
+    {
+      "start": 1179.5,
+      "end": 1181.78,
+      "en": "I forgot this was already in code okay.",
+      "zh": "忘了程式裡已經有。"
+    },
+    {
+      "start": 1181.86,
+      "end": 1189.25,
+      "en": "So this is kind of what we need, but we need it in a different format that PyTorch will be able to",
+      "zh": "大致符合需求，但還要轉成 PyTorch 更容易"
+    },
+    {
+      "start": 1189.29,
+      "end": 1199.93,
+      "en": "work with a little bit easier, and also will facilitate us randomly selecting token sequences and also separating training from validation sets and so on.",
+      "zh": "使用的格式，也方便隨機選 token 序列，以及區分訓練與驗證集等等。"
+    },
+    {
+      "start": 1199.93,
+      "end": 1211.65,
+      "en": "So for a variety of reasons, it's useful to have the data not just stored as lists like this, but instead translated into a data set and data format.",
+      "zh": "基於各種理由，資料不只存成串列，而要轉成 Dataset 等資料格式。"
+    },
+    {
+      "start": 1212.09,
+      "end": 1212.41,
+      "en": "Yeah.",
+      "zh": "是的。"
+    },
+    {
+      "start": 1212.41,
+      "end": 1215.01,
+      "en": "So this is a list but we need tensors.",
+      "zh": "這是串列，但需要張量。"
+    },
+    {
+      "start": 1215.01,
+      "end": 1217.65,
+      "en": "So we're going to need something that looks like this.",
+      "zh": "需要像這樣的東西。"
+    },
+    {
+      "start": 1218.17,
+      "end": 1218.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1218.49,
+      "end": 1221.13,
+      "en": "So here is where we create this class.",
+      "zh": "這裡建立類別。"
+    },
+    {
+      "start": 1221.33,
+      "end": 1228.93,
+      "en": "So the idea of this class is that it will allow us to create the data set in a very similar way to what",
+      "zh": "概念是，以和上方相近的方式建立資料集，"
+    },
+    {
+      "start": 1228.93,
+      "end": 1233.77,
+      "en": "we did up here, but in a PyTorch format.",
+      "zh": "但使用 PyTorch 格式。"
+    },
+    {
+      "start": 1233.93,
+      "end": 1234.25,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1234.29,
+      "end": 1236.93,
+      "en": "So in a in particular in a data set class.",
+      "zh": "尤其是 Dataset 類別。"
+    },
+    {
+      "start": 1237.25,
+      "end": 1237.53,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1237.57,
+      "end": 1239.13,
+      "en": "So here is def init.",
+      "zh": "這裡是 __init__。"
+    },
+    {
+      "start": 1239.13,
+      "end": 1247.71,
+      "en": "So we are initializing we input text the encoder dictionary the lookup table, context window and stride.",
+      "zh": "初始化時，輸入文字、編碼字典，也就是查找表、上下文視窗與步幅。"
+    },
+    {
+      "start": 1247.71,
+      "end": 1251.95,
+      "en": "So here I'm initializing inputs and targets to be empty lists.",
+      "zh": "先將 inputs 與 targets 初始化成空串列。"
+    },
+    {
+      "start": 1252.11,
+      "end": 1254.91,
+      "en": "And here is this for loop over here.",
+      "zh": "這裡就是 for 迴圈。"
+    },
+    {
+      "start": 1255.07,
+      "end": 1256.11,
+      "en": "Now this here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 1256.11,
+      "end": 1262.51,
+      "en": "These three lines of code are exactly the same as these three lines of code here.",
+      "zh": "這三行與上面三行完全相同。"
+    },
+    {
+      "start": 1262.95,
+      "end": 1272.99,
+      "en": "The only difference is that here I am list appending, and here I am list appending and making them a PyTorch tensor.",
+      "zh": "唯一差別，是上方直接附加串列，這裡先轉成 PyTorch 張量，再附加。"
+    },
+    {
+      "start": 1273.15,
+      "end": 1277.79,
+      "en": "So for each word in this sequence I am encoding that word.",
+      "zh": "對序列中每個字，進行編碼，"
+    },
+    {
+      "start": 1277.79,
+      "end": 1281.43,
+      "en": "So translating that word into an integer.",
+      "zh": "也就是轉成整數。"
+    },
+    {
+      "start": 1281.75,
+      "end": 1289.03,
+      "en": "And then this list comprehension gives us a list of the tokens corresponding to this input sequence.",
+      "zh": "串列生成式，產生輸入序列對應的 token 串列。"
+    },
+    {
+      "start": 1289.19,
+      "end": 1295.39,
+      "en": "Transform that into a PyTorch tensor and then append it to self dot inputs here.",
+      "zh": "轉成 PyTorch 張量，再附加到 self.inputs。"
+    },
+    {
+      "start": 1295.83,
+      "end": 1297.15,
+      "en": "Okay, so I hope that makes sense.",
+      "zh": "希望這樣清楚。"
+    },
+    {
+      "start": 1297.15,
+      "end": 1299.99,
+      "en": "That's basically the only thing that we are doing here.",
+      "zh": "基本上，只做這件事。"
+    },
+    {
+      "start": 1300.15,
+      "end": 1302.63,
+      "en": "Uh, this is you know, these things we don't really use.",
+      "zh": "這些不太會直接使用，"
+    },
+    {
+      "start": 1302.63,
+      "end": 1307.53,
+      "en": "Uh, this one actually does get used internally when we call the function later.",
+      "zh": "這個，稍後呼叫時，內部其實會用到。"
+    },
+    {
+      "start": 1308.09,
+      "end": 1308.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1308.45,
+      "end": 1312.41,
+      "en": "So here I'm going to create an instance with a context length of six.",
+      "zh": "這裡建立實例，上下文長度為 6。"
+    },
+    {
+      "start": 1312.73,
+      "end": 1317.97,
+      "en": "To be honest, I don't remember if there is a specific reason why I coded it as H.",
+      "zh": "老實說，不記得為什麼一開始設成 8，"
+    },
+    {
+      "start": 1318.01,
+      "end": 1318.81,
+      "en": "And now six.",
+      "zh": "現在又改 6。"
+    },
+    {
+      "start": 1318.81,
+      "end": 1323.89,
+      "en": "Maybe just to show you some variety or show that it does work with changing this parameter.",
+      "zh": "也許只是示範變化，讓你看到修改參數也能運作。"
+    },
+    {
+      "start": 1324.93,
+      "end": 1334.37,
+      "en": "Okay, so here I input the all the text the dictionary for the vocab context length and the stride parameter",
+      "zh": "這裡輸入全部文字、詞彙表字典、上下文長度，以及步幅參數。"
+    },
+    {
+      "start": 1334.69,
+      "end": 1334.93,
+      "en": "okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1334.97,
+      "end": 1339.41,
+      "en": "And then that gives us this variable which I call text data set.",
+      "zh": "接著，得到這個我叫 text dataset 的變數。"
+    },
+    {
+      "start": 1339.45,
+      "end": 1343.09,
+      "en": "And you can see it looks really similar to what we did earlier.",
+      "zh": "它和先前的結果很像，"
+    },
+    {
+      "start": 1343.13,
+      "end": 1346.05,
+      "en": "Except now we have tensors instead of lists.",
+      "zh": "只是現在是張量，而不是串列。"
+    },
+    {
+      "start": 1346.73,
+      "end": 1347.13,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1347.37,
+      "end": 1358.61,
+      "en": "And then the final thing we are going to do in this video is create a data loader object that uses that text data set that we just created.",
+      "zh": "這支影片最後，要建立 DataLoader 物件，使用剛建立的文字 Dataset。"
+    },
+    {
+      "start": 1359.01,
+      "end": 1365.63,
+      "en": "Now you might be familiar with these data loader objects with this class from my other course on deep",
+      "zh": "如果看過我另一門深度學習課，或自己學過，"
+    },
+    {
+      "start": 1365.63,
+      "end": 1372.43,
+      "en": "learning, or maybe from your own studies on deep learning, but essentially it just takes this class",
+      "zh": "可能熟悉 DataLoader 物件與類別；基本上，它取這個"
+    },
+    {
+      "start": 1372.47,
+      "end": 1380.55,
+      "en": "object that we created this dataset object and allows us to specify other parameters that are used for",
+      "zh": "已建立的 Dataset 物件，讓我們指定深度學習"
+    },
+    {
+      "start": 1380.99,
+      "end": 1385.95,
+      "en": "training deep learning models, including the batch size and shuffle.",
+      "zh": "訓練使用的其他參數，包括批次大小與 shuffle。"
+    },
+    {
+      "start": 1385.95,
+      "end": 1397.07,
+      "en": "So essentially what this data loader will allow us to do is draw arbitrarily sized batches from our data set and also randomly shuffle them.",
+      "zh": "所以，DataLoader 讓我們能從資料集中，取出任意大小的批次，並隨機打亂。"
+    },
+    {
+      "start": 1397.07,
+      "end": 1399.31,
+      "en": "So we're not just picking them in order.",
+      "zh": "不只是依順序取資料。"
+    },
+    {
+      "start": 1399.67,
+      "end": 1409.03,
+      "en": "You don't want to train data sets in order, just in case there is any kind of temporal structure in the text that you don't want the model to learn.",
+      "zh": "不想依順序訓練，以免文字中有模型不該學的時間結構。"
+    },
+    {
+      "start": 1409.03,
+      "end": 1416.11,
+      "en": "So the model is going to get randomly selected sequences each time we call this variable here.",
+      "zh": "因此，每次呼叫這個變數，就得到隨機挑選的序列。"
+    },
+    {
+      "start": 1417.15,
+      "end": 1417.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1417.47,
+      "end": 1422.54,
+      "en": "This is a reminder to me when we are just printing out these results.",
+      "zh": "這裡提醒自己，印出結果時，"
+    },
+    {
+      "start": 1422.54,
+      "end": 1422.98,
+      "en": "Here.",
+      "zh": "也就是這裡，"
+    },
+    {
+      "start": 1423.46,
+      "end": 1427.3,
+      "en": "We want to use a batch size of two just because it's really easy to look at.",
+      "zh": "批次大小設為 2，因為容易查看。"
+    },
+    {
+      "start": 1427.58,
+      "end": 1432.66,
+      "en": "But for training, if you use a batch size of two, it's just going to slow down training a lot.",
+      "zh": "但真正訓練時，批次大小 2，會讓訓練慢很多。"
+    },
+    {
+      "start": 1432.7,
+      "end": 1439.3,
+      "en": "So we want to make sure to set this to be a higher number, like 32 when we're actually training the model.",
+      "zh": "所以，實際訓練時，要改大，例如 32。"
+    },
+    {
+      "start": 1439.3,
+      "end": 1442.74,
+      "en": "But that's going to be a topic of a later video.",
+      "zh": "那是後面影片的主題。"
+    },
+    {
+      "start": 1443.34,
+      "end": 1443.66,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1443.7,
+      "end": 1443.94,
+      "en": "Yeah.",
+      "zh": "是的。"
+    },
+    {
+      "start": 1443.94,
+      "end": 1448.82,
+      "en": "So here you see the uh, basically the output that I showed in the slides.",
+      "zh": "這裡基本上就是投影片展示的輸出。"
+    },
+    {
+      "start": 1448.82,
+      "end": 1450.82,
+      "en": "So we have a batch size of two.",
+      "zh": "批次大小為 2，"
+    },
+    {
+      "start": 1451.06,
+      "end": 1453.38,
+      "en": "That's why there are two lists here.",
+      "zh": "所以，這裡有兩個串列。"
+    },
+    {
+      "start": 1453.62,
+      "end": 1454.98,
+      "en": "These are not identical.",
+      "zh": "它們並不相同，"
+    },
+    {
+      "start": 1454.98,
+      "end": 1460.38,
+      "en": "They, they happen to start with the same exact token because that token is the word.",
+      "zh": "只是剛好以完全相同的 token 開頭，因為那是某個單字。"
+    },
+    {
+      "start": 1460.42,
+      "end": 1465.34,
+      "en": "And so you know, this is just random chance that, uh, it ended up being like that.",
+      "zh": "只是隨機巧合，剛好如此。"
+    },
+    {
+      "start": 1465.34,
+      "end": 1467.58,
+      "en": "Now I'll run it again so we get different words.",
+      "zh": "再執行一次，取得不同單字。"
+    },
+    {
+      "start": 1467.94,
+      "end": 1468.26,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1468.3,
+      "end": 1470.38,
+      "en": "So these are the inputs.",
+      "zh": "這些是輸入，"
+    },
+    {
+      "start": 1470.38,
+      "end": 1471.54,
+      "en": "These are the targets.",
+      "zh": "這些是目標。"
+    },
+    {
+      "start": 1471.54,
+      "end": 1474.1,
+      "en": "There's two rows because we have a batch size of two.",
+      "zh": "有兩列，因為批次大小為 2。"
+    },
+    {
+      "start": 1474.98,
+      "end": 1478.98,
+      "en": "That was quite a bit of work just to get a data set.",
+      "zh": "光取得資料集，就花了不少工夫。"
+    },
+    {
+      "start": 1479.62,
+      "end": 1481.8,
+      "en": "That is kind of just how it goes.",
+      "zh": "事情往往就是如此。"
+    },
+    {
+      "start": 1481.8,
+      "end": 1490.52,
+      "en": "In machine learning and data science, you often spend a ton of time just working with data to get it into a form that's usable.",
+      "zh": "機器學習與資料科學，常花大量時間處理資料，讓格式可用。"
+    },
+    {
+      "start": 1490.92,
+      "end": 1502.48,
+      "en": "It is not so uncommon that you spend like 70% of your time on a project just getting data into a usable format, and then 30% of your time actually analyzing.",
+      "zh": "一個專案，用 70% 時間整理資料、30% 時間真正分析，並不少見。"
+    },
+    {
+      "start": 1503,
+      "end": 1510.04,
+      "en": "But I also have to say that I'm making the data set and the format more complicated than it really needs to be.",
+      "zh": "不過，也必須說，這裡把資料集與格式，做得比真正需要的複雜。"
+    },
+    {
+      "start": 1510.08,
+      "end": 1519.56,
+      "en": "In this case, I want you to see the most involved and professional way to set up a data loader for these trainings later in the course.",
+      "zh": "希望你看到比較完整、專業的 DataLoader 建立方式，供這些訓練使用。課程稍後，"
+    },
+    {
+      "start": 1519.64,
+      "end": 1530.44,
+      "en": "For example, when we're training language models, I will switch to a simpler method of calling data that doesn't require a lot of overhead from data loaders and so on.",
+      "zh": "例如訓練語言模型時，會改用更簡單的取資料方法，不需要 DataLoader 這麼多額外程序。"
+    },
+    {
+      "start": 1530.72,
+      "end": 1539.68,
+      "en": "Also, if you want to work with PyTorch, then it really benefits you to have a good grasp on data classes and data loaders.",
+      "zh": "此外，想用 PyTorch，就很值得熟悉 Dataset 類別與 DataLoader。"
+    }
+  ]
+}

@@ -1,0 +1,1105 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51861909",
+  "title": "Create a custom loss function",
+  "section": 7,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "bb1c54e6e56d6d91826e0fc4aabd58ce8513bada6d3a51d482bc5177865f13dd",
+  "cues": [
+    {
+      "start": 2.28,
+      "end": 7.48,
+      "en": "The loss function is a crucial component of training a model.",
+      "zh": "損失函數是模型訓練的重要元件。"
+    },
+    {
+      "start": 7.88,
+      "end": 17.6,
+      "en": "It's the mathematical description of the model's performance, and the goal of the model is to adjust its weights to minimize that loss.",
+      "zh": "它用數學描述模型表現，模型目標則是調整權重，讓損失最小。"
+    },
+    {
+      "start": 18.2,
+      "end": 23.88,
+      "en": "So having a useful model depends on having an appropriate loss function.",
+      "zh": "所以要有用的模型，就需要適當的損失函數。"
+    },
+    {
+      "start": 24.4,
+      "end": 31.44,
+      "en": "And in this video, I'll give a quick reminder of the main loss function that's used for training LMS.",
+      "zh": "這支影片先快速回顧 LLM 訓練的主要損失函數。"
+    },
+    {
+      "start": 32,
+      "end": 36.96,
+      "en": "And then I'll show you how to create your own custom loss function in PyTorch.",
+      "zh": "再展示如何在 PyTorch 建立自訂損失函數。"
+    },
+    {
+      "start": 37.76,
+      "end": 49.56,
+      "en": "Now, in general, if you just want to do standard vanilla model training, then the loss functions that come with come packaged with PyTorch will be enough for you.",
+      "zh": "一般而言，只做標準模型訓練，PyTorch 內建的損失函數就夠。"
+    },
+    {
+      "start": 49.96,
+      "end": 59.28,
+      "en": "But if you want to do any kind of customized learning or special regularization, you will need to create your own loss function.",
+      "zh": "但若想客製化學習，或做特殊正則化，就需要自己建立。"
+    },
+    {
+      "start": 59.72,
+      "end": 66.72,
+      "en": "And the code that you'll see in this video is also used in the next video, which is a code challenge",
+      "zh": "這支影片的程式，也會用於下一支程式挑戰，"
+    },
+    {
+      "start": 66.72,
+      "end": 72.08,
+      "en": "to see if we can hack the model training to introduce a systematic bias.",
+      "zh": "看看能否修改訓練，導入系統性偏誤。"
+    },
+    {
+      "start": 73.36,
+      "end": 84.24,
+      "en": "So this is the opening slide of a lecture from the section on embeddings, where I explained the negative log likelihood function in more detail.",
+      "zh": "這是嵌入章節某堂課的開頭，當時更詳細說明負對數概似函數。"
+    },
+    {
+      "start": 84.64,
+      "end": 91.6,
+      "en": "So if you did not watch this video or if you watched it, but you completely forgot it and want to know",
+      "zh": "如果沒看過，或看過卻完全忘了，想知道"
+    },
+    {
+      "start": 91.6,
+      "end": 101.64,
+      "en": "what log likelihood is and why we use it for training, then you can consider going back to this video in the next slide.",
+      "zh": "對數概似是什麼、為什麼用於訓練，可以回去看。下一張投影片，"
+    },
+    {
+      "start": 101.64,
+      "end": 107.12,
+      "en": "I'm just going to briefly review the key parts of this lecture.",
+      "zh": "只會簡短回顧主要部分。"
+    },
+    {
+      "start": 107.92,
+      "end": 113.6,
+      "en": "So the goal of language model training is to predict a missing token.",
+      "zh": "語言模型訓練的目標，是預測缺少的詞元。"
+    },
+    {
+      "start": 113.84,
+      "end": 115.88,
+      "en": "And tokens are categorical.",
+      "zh": "詞元是類別。"
+    },
+    {
+      "start": 115.92,
+      "end": 118.56,
+      "en": "They are represented as integers.",
+      "zh": "用整數表示。"
+    },
+    {
+      "start": 119.32,
+      "end": 129.04,
+      "en": "But they're categorical because for example you cannot add token index ten and token index 20 and get token index 30.",
+      "zh": "但本質是類別，例如不能把詞元索引 10 加 20，得到索引 30 的意思。"
+    },
+    {
+      "start": 129.28,
+      "end": 134.32,
+      "en": "So they are discrete and mutually exclusive categories.",
+      "zh": "所以是離散、互斥的類別。"
+    },
+    {
+      "start": 134.84,
+      "end": 140.16,
+      "en": "Here again is the formula for categorical cross entropy loss.",
+      "zh": "這裡再次顯示類別交叉熵損失公式。"
+    },
+    {
+      "start": 140.64,
+      "end": 144.96,
+      "en": "The green y is the true category label.",
+      "zh": "綠色 y 是真正的類別標籤。"
+    },
+    {
+      "start": 145.12,
+      "end": 151.4,
+      "en": "And this yellow y hat is the probability of the model picking that category.",
+      "zh": "黃色 y hat，則是模型選中那個類別的機率。"
+    },
+    {
+      "start": 152.12,
+      "end": 155.44,
+      "en": "So this would be for one binary category.",
+      "zh": "這部分針對一個二元類別。"
+    },
+    {
+      "start": 155.56,
+      "end": 159.44,
+      "en": "And then we need to sum over lots of categories.",
+      "zh": "接著要對很多類別加總。"
+    },
+    {
+      "start": 160.07999999999998,
+      "end": 162,
+      "en": "And how many categories do we have.",
+      "zh": "有多少類別？"
+    },
+    {
+      "start": 162.36,
+      "end": 164.96,
+      "en": "Well it's one category per token.",
+      "zh": "每個詞元一個類別。"
+    },
+    {
+      "start": 165.44,
+      "end": 168.52,
+      "en": "So that's 50,000 in GPT two.",
+      "zh": "所以 GPT-2 大約 50,000 個。"
+    },
+    {
+      "start": 169.24,
+      "end": 172.88,
+      "en": "This summation here over N is for samples.",
+      "zh": "這個對 N 的加總，代表樣本。"
+    },
+    {
+      "start": 172.88,
+      "end": 175.92000000000002,
+      "en": "So for simplicity we can just ignore this.",
+      "zh": "為了簡單，先忽略。"
+    },
+    {
+      "start": 176.64,
+      "end": 186.12,
+      "en": "And also because the categories are mutually exclusive, the y values for all of the non-selected tokens",
+      "zh": "而且類別互斥，所以所有沒被選中詞元的 y 值，"
+    },
+    {
+      "start": 186.24,
+      "end": 187.2,
+      "en": "are zero.",
+      "zh": "都是零。"
+    },
+    {
+      "start": 187.32,
+      "end": 198.48,
+      "en": "So all of the Y's are actually zero except for one Y, which is the current token that the model is targeting and that has a value of one.",
+      "zh": "除了模型目前目標詞元的 y 為 1，其餘全部為零。"
+    },
+    {
+      "start": 198.92000000000002,
+      "end": 206.76,
+      "en": "So this equation can be even further simplified to minus the natural log of the prediction.",
+      "zh": "所以方程式能進一步簡化，成為預測機率的自然對數，再加負號。"
+    },
+    {
+      "start": 206.76,
+      "end": 209.96,
+      "en": "The model prediction for the target token.",
+      "zh": "也就是模型對目標詞元的預測。"
+    },
+    {
+      "start": 210.56,
+      "end": 221,
+      "en": "And yeah, this is another reminder that the PyTorch implementation of cross entropy loss and loss are",
+      "zh": "再次提醒，PyTorch 的 CrossEntropyLoss 與 NLLLoss，"
+    },
+    {
+      "start": 221.04,
+      "end": 222.2,
+      "en": "basically the same.",
+      "zh": "基本上相同。"
+    },
+    {
+      "start": 222.48,
+      "end": 227.64,
+      "en": "But NLL loss expects the input values to be log softmax.",
+      "zh": "但 NLLLoss 預期輸入是 log softmax。"
+    },
+    {
+      "start": 228.4,
+      "end": 234.52,
+      "en": "Okay, so this was all a quick review of the lecture that I cited in the previous slide.",
+      "zh": "以上快速回顧上一張提到的那堂課。"
+    },
+    {
+      "start": 235.04,
+      "end": 236.44,
+      "en": "Now on to new things.",
+      "zh": "接著看新內容。"
+    },
+    {
+      "start": 236.44,
+      "end": 239.92000000000002,
+      "en": "We are going to create our own loss functions.",
+      "zh": "要建立自己的損失函數。"
+    },
+    {
+      "start": 239.92000000000002,
+      "end": 240.88,
+      "en": "In this video.",
+      "zh": "這支影片裡，"
+    },
+    {
+      "start": 240.88,
+      "end": 249.88,
+      "en": "In the code part you will see that they are implemented as classes, actually quite similar to how we define the language models.",
+      "zh": "程式會把它們實作為類別，其實和語言模型定義很像。"
+    },
+    {
+      "start": 250.48,
+      "end": 254.88,
+      "en": "Here you can see two loss functions that we will create in Python.",
+      "zh": "這裡有兩個會在 Python 建立的損失函數。"
+    },
+    {
+      "start": 255.84,
+      "end": 258.92,
+      "en": "Notice that you have the class definition.",
+      "zh": "注意，有類別定義。"
+    },
+    {
+      "start": 259.52,
+      "end": 267.4,
+      "en": "You inherit nn dot module attributes and you have an init function and a forward function.",
+      "zh": "繼承 nn.Module 的屬性，有 __init__ 與 forward 方法。"
+    },
+    {
+      "start": 267.84,
+      "end": 271.36,
+      "en": "So this over here is for an L1 loss function.",
+      "zh": "這邊是 L1 損失函數。"
+    },
+    {
+      "start": 271.6,
+      "end": 274.84000000000003,
+      "en": "This down here is for an L2 loss function.",
+      "zh": "下面是 L2。"
+    },
+    {
+      "start": 275.08,
+      "end": 280.2,
+      "en": "I'll go through these through the code in more detail when I switch to Python.",
+      "zh": "切到 Python，會更詳細說明。"
+    },
+    {
+      "start": 280.48,
+      "end": 287.32,
+      "en": "But I just want you to recognize the general idea of creating a loss functions.",
+      "zh": "但先認識建立損失函數的大致概念。"
+    },
+    {
+      "start": 287.32,
+      "end": 290.84000000000003,
+      "en": "It's very similar to the approach to creating models.",
+      "zh": "和建立模型的方式非常相似。"
+    },
+    {
+      "start": 291.48,
+      "end": 291.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 291.8,
+      "end": 293.68,
+      "en": "So here we have two loss functions.",
+      "zh": "這裡有兩個損失函數。"
+    },
+    {
+      "start": 293.68,
+      "end": 298.56,
+      "en": "And then we will train two parameters using those two loss functions.",
+      "zh": "接著分別用它們訓練兩個參數。"
+    },
+    {
+      "start": 298.76,
+      "end": 300.4,
+      "en": "And here you can see the results.",
+      "zh": "這裡是結果。"
+    },
+    {
+      "start": 300.6,
+      "end": 303.88,
+      "en": "So the loss decreases in both cases.",
+      "zh": "兩種情況損失都下降。"
+    },
+    {
+      "start": 304.04,
+      "end": 308.52,
+      "en": "And the parameter approaches the target value in both cases.",
+      "zh": "參數也都接近目標值。"
+    },
+    {
+      "start": 308.52,
+      "end": 316.84,
+      "en": "But L1 and L2 are quite different for reasons that I'll explain in more detail when I switch to code.",
+      "zh": "但 L1 與 L2 很不同，原因切到程式碼會詳談。"
+    },
+    {
+      "start": 317.84,
+      "end": 320.16,
+      "en": "So this is the basic idea.",
+      "zh": "這是基本概念。"
+    },
+    {
+      "start": 320.16,
+      "end": 322.44,
+      "en": "And now let's check it out in the code.",
+      "zh": "現在看程式碼。"
+    },
+    {
+      "start": 323.36,
+      "end": 327.24,
+      "en": "There's only a few libraries that we need for this code file.",
+      "zh": "只需要幾個函式庫。"
+    },
+    {
+      "start": 327.48,
+      "end": 334.64,
+      "en": "And before actually getting to creating our own custom loss functions, I want to show you the source",
+      "zh": "真正建立自訂損失函數之前，先展示 PyTorch 的損失類別"
+    },
+    {
+      "start": 334.64,
+      "end": 340.28,
+      "en": "code for the PyTorch class function loss.",
+      "zh": "原始碼。"
+    },
+    {
+      "start": 340.8,
+      "end": 341.08,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 341.12,
+      "end": 342.32,
+      "en": "So we can open that up.",
+      "zh": "打開看看。"
+    },
+    {
+      "start": 342.32,
+      "end": 346.24,
+      "en": "You can see at the beginning here's the name of this class.",
+      "zh": "開頭是這個類別的名稱。"
+    },
+    {
+      "start": 346.28,
+      "end": 348.4,
+      "en": "And then we have all of this text here.",
+      "zh": "接著有很多文字。"
+    },
+    {
+      "start": 348.4,
+      "end": 349.6,
+      "en": "This is the docstring.",
+      "zh": "這是 docstring，文件字串。"
+    },
+    {
+      "start": 349.6,
+      "end": 351.88,
+      "en": "So we can ignore that for now.",
+      "zh": "現在可以先略過。"
+    },
+    {
+      "start": 352.32,
+      "end": 353.44,
+      "en": "And some examples.",
+      "zh": "還有一些例子。"
+    },
+    {
+      "start": 353.44,
+      "end": 354.12,
+      "en": "That's very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 354.15999999999997,
+      "end": 354.44,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 354.48,
+      "end": 358.44,
+      "en": "Here we get to where this function is actually defined.",
+      "zh": "這裡才是真正的函數定義。"
+    },
+    {
+      "start": 358.68,
+      "end": 363.56,
+      "en": "So def init and we have we define a weight and so on.",
+      "zh": "有 __init__，定義 weight 等等。"
+    },
+    {
+      "start": 363.56,
+      "end": 364.76,
+      "en": "And then def forward.",
+      "zh": "接著 forward。"
+    },
+    {
+      "start": 364.76,
+      "end": 368.4,
+      "en": "And this is actually a pretty simple loss function.",
+      "zh": "其實是相當簡單的損失函數。"
+    },
+    {
+      "start": 368.4,
+      "end": 370.16,
+      "en": "There's not really much to calculate.",
+      "zh": "沒太多要計算。"
+    },
+    {
+      "start": 370.16,
+      "end": 377.8,
+      "en": "All the calculations are in fact farmed out to this f dot loss function.",
+      "zh": "所有計算，其實都交給 F 裡對應的損失函數。"
+    },
+    {
+      "start": 378.08,
+      "end": 385.36,
+      "en": "But what I wanted to show you is that we have the def init, and we have the def forward, and our custom",
+      "zh": "只是想展示，這裡有 __init__、forward，而自訂"
+    },
+    {
+      "start": 385.36,
+      "end": 390.64,
+      "en": "loss functions are going to look really similar in terms of that organization.",
+      "zh": "損失函數的組織方式也會非常相似。"
+    },
+    {
+      "start": 390.92,
+      "end": 391.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 391.28,
+      "end": 392.8,
+      "en": "So here all of this code.",
+      "zh": "這段程式，"
+    },
+    {
+      "start": 392.8,
+      "end": 394.96,
+      "en": "Here I am defining a class.",
+      "zh": "定義一個類別。"
+    },
+    {
+      "start": 394.96,
+      "end": 397.36,
+      "en": "I call it my loss L1.",
+      "zh": "叫 MyLossL1。"
+    },
+    {
+      "start": 397.64,
+      "end": 402.08,
+      "en": "And we inherit properties from nn dot module.",
+      "zh": "繼承 nn.Module 的性質。"
+    },
+    {
+      "start": 402.24,
+      "end": 406.64,
+      "en": "So we're inheriting a bunch of stuff for free from PyTorch.",
+      "zh": "免費取得 PyTorch 提供的許多功能。"
+    },
+    {
+      "start": 407.15999999999997,
+      "end": 409.28,
+      "en": "The def init actually contains nothing.",
+      "zh": "__init__ 其實沒有其他內容。"
+    },
+    {
+      "start": 409.28,
+      "end": 417.52,
+      "en": "We don't need to initialize anything for this particular loss function, and all the action happens in the forward method.",
+      "zh": "這個損失函數不需要初始化任何東西，所有動作都在 forward。"
+    },
+    {
+      "start": 417.96,
+      "end": 426.52,
+      "en": "So we import or we input two variables y hat and y and y hat is the model prediction.",
+      "zh": "輸入兩個變數 y hat 與 y，y hat 是模型預測。"
+    },
+    {
+      "start": 426.72,
+      "end": 429.92,
+      "en": "This is what the model thinks the true state of the world is.",
+      "zh": "也就是模型認為世界真正的狀態。"
+    },
+    {
+      "start": 430.12,
+      "end": 431.36,
+      "en": "And this is the target.",
+      "zh": "這個則是目標。"
+    },
+    {
+      "start": 431.36,
+      "end": 437.16,
+      "en": "That is the value that we want the loss function to allow the model to grow towards.",
+      "zh": "希望損失函數引導模型接近的值。"
+    },
+    {
+      "start": 437.76,
+      "end": 440.2,
+      "en": "And then L1 loss is very simple.",
+      "zh": "L1 損失很簡單。"
+    },
+    {
+      "start": 440.2,
+      "end": 447.6,
+      "en": "It is just the magnitude of the discrepancy between the target value and the model predicted value.",
+      "zh": "就是目標與模型預測之間差距的絕對值。"
+    },
+    {
+      "start": 448.64,
+      "end": 450.8,
+      "en": "Now for this video.",
+      "zh": "這支影片，"
+    },
+    {
+      "start": 450.8,
+      "end": 458.32,
+      "en": "For this code file, we do not actually need to average here because we're only training a single parameter.",
+      "zh": "這個程式檔，其實不用取平均，因為只訓練一個參數。"
+    },
+    {
+      "start": 458.44,
+      "end": 466.08,
+      "en": "But in general, this might be something you would want to average the losses over all of the parameters.",
+      "zh": "但一般可能會希望，對所有參數的損失取平均。"
+    },
+    {
+      "start": 466.64,
+      "end": 466.92,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 466.96,
+      "end": 469.68,
+      "en": "And then here I'm not actually using this here.",
+      "zh": "這裡其實沒使用。"
+    },
+    {
+      "start": 469.68,
+      "end": 475.96,
+      "en": "This is just an example of possibilities for custom made loss functions.",
+      "zh": "只是展示自訂損失的可能性。"
+    },
+    {
+      "start": 475.96,
+      "end": 485,
+      "en": "So let's say you want to minimize the correlation between the model output and some target set of values.",
+      "zh": "假設希望最小化模型輸出與某組目標值之間的相關。"
+    },
+    {
+      "start": 485.16,
+      "end": 492.12,
+      "en": "That this would be a way that you could have a custom loss function that minimizes a correlation error.",
+      "zh": "就可以這樣建立自訂函數，最小化相關誤差。"
+    },
+    {
+      "start": 492.16,
+      "end": 493.44,
+      "en": "So just an example.",
+      "zh": "只是例子。"
+    },
+    {
+      "start": 493.88,
+      "end": 494.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 494.16,
+      "end": 495.96,
+      "en": "And then here's the other loss function.",
+      "zh": "這是另一個損失函數。"
+    },
+    {
+      "start": 495.96,
+      "end": 497.04,
+      "en": "This is L2.",
+      "zh": "L2。"
+    },
+    {
+      "start": 497.44,
+      "end": 499.92,
+      "en": "This looks really similar to the L1.",
+      "zh": "和 L1 很像。"
+    },
+    {
+      "start": 499.92,
+      "end": 504.48,
+      "en": "I can scroll up here so you can see L1 is y hat minus y.",
+      "zh": "往上看，L1 是 y hat 減 y。"
+    },
+    {
+      "start": 504.52,
+      "end": 506.24,
+      "en": "That's what we have here for L2.",
+      "zh": "L2 這裡也相同。"
+    },
+    {
+      "start": 506.68,
+      "end": 511.12,
+      "en": "The difference is that with L1 we just take the magnitude of the loss.",
+      "zh": "差別是，L1 取差距的絕對值。"
+    },
+    {
+      "start": 511.24,
+      "end": 513.16,
+      "en": "And here we square the loss.",
+      "zh": "這裡則把差距平方。"
+    },
+    {
+      "start": 513.4,
+      "end": 513.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 513.72,
+      "end": 517.84,
+      "en": "Again in this particular code file you do not need to average.",
+      "zh": "這個檔案同樣不必取平均。"
+    },
+    {
+      "start": 518.24,
+      "end": 521.64,
+      "en": "But that's something you might want to have in the future.",
+      "zh": "但未來可能需要。"
+    },
+    {
+      "start": 522.4,
+      "end": 522.72,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 522.76,
+      "end": 525.08,
+      "en": "So now I've defined those classes.",
+      "zh": "現在類別已定義。"
+    },
+    {
+      "start": 525.08,
+      "end": 529.08,
+      "en": "And here I can create instances of those two classes.",
+      "zh": "這裡建立兩個類別的實例。"
+    },
+    {
+      "start": 529.08,
+      "end": 531.8,
+      "en": "So loss one one and loss one two.",
+      "zh": "也就是 L1、L2 的損失函數實例。"
+    },
+    {
+      "start": 532.32,
+      "end": 536.4,
+      "en": "And then I have the target value I'm setting that to be five.",
+      "zh": "目標值設為 5。"
+    },
+    {
+      "start": 536.76,
+      "end": 541.92,
+      "en": "And let's say that we have a model that gives a prediction of two.",
+      "zh": "假設模型預測是 2。"
+    },
+    {
+      "start": 542.16,
+      "end": 548.56,
+      "en": "So what are the loss functions for these two possibilities for L1 and L2.",
+      "zh": "L1、L2 這兩種損失，會是多少？"
+    },
+    {
+      "start": 549.08,
+      "end": 552,
+      "en": "So we see that the target value is five.",
+      "zh": "可以看到，目標為 5。"
+    },
+    {
+      "start": 552.04,
+      "end": 553.6,
+      "en": "The model output is two.",
+      "zh": "模型輸出為 2。"
+    },
+    {
+      "start": 553.92,
+      "end": 558.64,
+      "en": "And so the L1 loss is three and the L2 loss is nine.",
+      "zh": "所以 L1 損失是 3，L2 是 9。"
+    },
+    {
+      "start": 558.8,
+      "end": 560.56,
+      "en": "And why are those three and nine.",
+      "zh": "為什麼是 3、9？"
+    },
+    {
+      "start": 560.72,
+      "end": 568.4,
+      "en": "Well L1 is just the difference between those two and L2 is the difference between them squared.",
+      "zh": "L1 是兩者差距的絕對值，L2 則把差距平方。"
+    },
+    {
+      "start": 568.4,
+      "end": 571.12,
+      "en": "So that's how we get these numerical values.",
+      "zh": "因此得到這些數值。"
+    },
+    {
+      "start": 571.56,
+      "end": 578.6,
+      "en": "There are several implications of the difference between L1 and L2 loss functions.",
+      "zh": "L1 與 L2 的差別，有幾項含義。"
+    },
+    {
+      "start": 578.6,
+      "end": 585.16,
+      "en": "One is that L2 is a little bit smoother and it's also quadratic and L1 is linear.",
+      "zh": "L2 比較平滑，而且是二次；L1 則是線性。"
+    },
+    {
+      "start": 585.16,
+      "end": 586.84,
+      "en": "And you will see that in a moment.",
+      "zh": "稍後會看到。"
+    },
+    {
+      "start": 588,
+      "end": 588.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 588.28,
+      "end": 593.44,
+      "en": "So here what I do is create two parameters that I'm going to train.",
+      "zh": "建立兩個要訓練的參數。"
+    },
+    {
+      "start": 593.44,
+      "end": 595.72,
+      "en": "I initialize them both to be zero.",
+      "zh": "全部初始化為零。"
+    },
+    {
+      "start": 596.04,
+      "end": 599.8,
+      "en": "And notice here I'm setting Requiresgrad equals true.",
+      "zh": "注意，設 requires_grad=True。"
+    },
+    {
+      "start": 600.32,
+      "end": 611.48,
+      "en": "You will remember this from a couple of videos ago where we froze model weights, and the way that we froze the weights was by setting required requiresgrad equals false.",
+      "zh": "記得前幾支影片凍結權重時，是設 requires_grad=False。"
+    },
+    {
+      "start": 611.84,
+      "end": 616.16,
+      "en": "So if you try to train a model with this, then it's not going to train.",
+      "zh": "如果這樣訓練模型，就不會學習。"
+    },
+    {
+      "start": 616.32,
+      "end": 616.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 616.64,
+      "end": 619.52,
+      "en": "And this is that literally our entire model.",
+      "zh": "這真的就是整個模型。"
+    },
+    {
+      "start": 619.52,
+      "end": 622.28,
+      "en": "It's just one parameter that we are training okay.",
+      "zh": "只訓練一個參數。"
+    },
+    {
+      "start": 622.32,
+      "end": 626.88,
+      "en": "Here's the target value I changed it to three here just so we can see the learning take place.",
+      "zh": "這是目標值，這裡改成 3，方便看學習過程。"
+    },
+    {
+      "start": 627.36,
+      "end": 628.92,
+      "en": "Very simple model.",
+      "zh": "模型非常簡單。"
+    },
+    {
+      "start": 628.92,
+      "end": 631.4,
+      "en": "So we don't need any fancy optimizers.",
+      "zh": "不需要複雜的最佳化器。"
+    },
+    {
+      "start": 631.4,
+      "end": 633.88,
+      "en": "I'm just using stochastic gradient descent.",
+      "zh": "只用隨機梯度下降。"
+    },
+    {
+      "start": 634.2,
+      "end": 640,
+      "en": "I have two optimizers for the two different weights or the two different parameters.",
+      "zh": "兩個不同權重、參數，有各自的最佳化器。"
+    },
+    {
+      "start": 640.2,
+      "end": 643.68,
+      "en": "And let's see here's where we get into the training loop.",
+      "zh": "接著是訓練迴圈。"
+    },
+    {
+      "start": 644.28,
+      "end": 651.84,
+      "en": "So train a model one or weight one parameter one zero out the gradients, apply the loss function,",
+      "zh": "訓練模型一、權重一、參數一：把梯度歸零、套用損失函數，"
+    },
+    {
+      "start": 651.88,
+      "end": 658.52,
+      "en": "calculate the gradients, and then apply the gradient descent algorithm.",
+      "zh": "計算梯度，再做梯度下降。"
+    },
+    {
+      "start": 658.56,
+      "end": 658.8,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 658.84,
+      "end": 660.96,
+      "en": "And then here I'm storing the loss and the weights.",
+      "zh": "接著儲存損失與權重。"
+    },
+    {
+      "start": 661.12,
+      "end": 672.12,
+      "en": "You will recognize all of this code from the beginning of this, uh, section where I illustrated how to train a model using a really simple parameter.",
+      "zh": "這一節開頭，用簡單參數展示訓練時，你已看過這些程式。"
+    },
+    {
+      "start": 673.2,
+      "end": 677.76,
+      "en": "Okay, so run through all the training and then we can make some visualizations.",
+      "zh": "好，完成訓練後，畫一些圖。"
+    },
+    {
+      "start": 679.88,
+      "end": 681.92,
+      "en": "So here you see the performance.",
+      "zh": "這裡是表現。"
+    },
+    {
+      "start": 682.28,
+      "end": 685.36,
+      "en": "The loss decreased for both of these models.",
+      "zh": "兩個模型的損失都下降。"
+    },
+    {
+      "start": 685.72,
+      "end": 692.12,
+      "en": "Interestingly the losses for L1 loss kept kind of bouncing up and down.",
+      "zh": "有趣的是，L1 損失一直上下跳動。"
+    },
+    {
+      "start": 692.12,
+      "end": 692.92,
+      "en": "You can see this.",
+      "zh": "可以看到。"
+    },
+    {
+      "start": 692.92,
+      "end": 697.48,
+      "en": "Let me actually just turn off, uh, model two.",
+      "zh": "先把模型二關掉。"
+    },
+    {
+      "start": 698.72,
+      "end": 699.92,
+      "en": "Uh, that's this one.",
+      "zh": "就是這個。"
+    },
+    {
+      "start": 699.96,
+      "end": 700.32,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 700.36,
+      "end": 703.4,
+      "en": "Just to make it a little bit easier to see this is bouncing up and down.",
+      "zh": "方便看清楚，這裡上下跳動。"
+    },
+    {
+      "start": 703.4,
+      "end": 705.4,
+      "en": "Why is it bouncing up and down here?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 705.4,
+      "end": 710.08,
+      "en": "Because the learning rate is 0.05, which is kind of on the large side.",
+      "zh": "因為學習率為 0.05，有點偏大。"
+    },
+    {
+      "start": 710.32,
+      "end": 714.56,
+      "en": "And the model didn't get exactly, exactly the right target value.",
+      "zh": "模型沒能恰好到達目標值。"
+    },
+    {
+      "start": 714.56,
+      "end": 716.76,
+      "en": "So it just kept bumping up and down.",
+      "zh": "所以持續上下跳。"
+    },
+    {
+      "start": 717.44,
+      "end": 717.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 717.72,
+      "end": 720.24,
+      "en": "So it keeps like it overstates.",
+      "zh": "一直超過頭。"
+    },
+    {
+      "start": 720.28,
+      "end": 722.64,
+      "en": "It misses the the target value.",
+      "zh": "錯過目標。"
+    },
+    {
+      "start": 722.64,
+      "end": 723.96,
+      "en": "So it has to go back.",
+      "zh": "所以得往回。"
+    },
+    {
+      "start": 723.96,
+      "end": 728.2,
+      "en": "But here it's actually uh also getting a little bit too small.",
+      "zh": "但這裡又稍微太小。"
+    },
+    {
+      "start": 728.2,
+      "end": 730.32,
+      "en": "It's a little bit underneath the target value.",
+      "zh": "低於目標值。"
+    },
+    {
+      "start": 730.56,
+      "end": 732.68,
+      "en": "So it has to pop up again and so on.",
+      "zh": "只好再往上，依此類推。"
+    },
+    {
+      "start": 732.68,
+      "end": 734.08,
+      "en": "It just keeps bouncing around.",
+      "zh": "不斷跳動。"
+    },
+    {
+      "start": 734.56,
+      "end": 737.36,
+      "en": "And the L2 uh, in contrast.",
+      "zh": "相比之下，L2，"
+    },
+    {
+      "start": 737.4,
+      "end": 742.6,
+      "en": "Now let me uh, put this back on uh, the L2 uh, or the squared loss.",
+      "zh": "把它重新開啟，也就是 L2、平方損失。"
+    },
+    {
+      "start": 742.64,
+      "end": 745.92,
+      "en": "It actually learns faster and it is smoother.",
+      "zh": "其實學得更快、更平滑。"
+    },
+    {
+      "start": 745.92,
+      "end": 748.8,
+      "en": "So it approaches the target value more smoothly.",
+      "zh": "更平順地接近目標。"
+    },
+    {
+      "start": 749.08,
+      "end": 750.48,
+      "en": "And why does that happen?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 750.48,
+      "end": 755.24,
+      "en": "Because the closer it gets, the smaller the squared term becomes.",
+      "zh": "因為越接近，平方項就越小。"
+    },
+    {
+      "start": 755.48,
+      "end": 762.04,
+      "en": "So the L2 loss, which is also mean squared error, nicely approaches in a smooth way.",
+      "zh": "所以 L2，也就是均方誤差，能平滑地接近，"
+    },
+    {
+      "start": 762.04,
+      "end": 769.56,
+      "en": "The target value using the appropriate loss function is so important in deep learning.",
+      "zh": "目標值。選用適當損失函數，對深度學習非常重要。"
+    },
+    {
+      "start": 769.84,
+      "end": 780.08,
+      "en": "And if you really want maximal flexibility and control over your model and your training, you need to know how to create custom loss functions.",
+      "zh": "如果想對模型、訓練有最大彈性與控制，就要知道如何建立自訂損失。"
+    },
+    {
+      "start": 780.64,
+      "end": 783.84,
+      "en": "That said, simple loss functions are the best.",
+      "zh": "不過，簡單損失最好。"
+    },
+    {
+      "start": 784,
+      "end": 791.04,
+      "en": "They should be simple and have a simple and clear and smooth derivative because, you know, numerical",
+      "zh": "應簡單、有簡單清楚、平滑的導數，因為數值"
+    },
+    {
+      "start": 791.04,
+      "end": 800.08,
+      "en": "or mathematical issues in the loss function will basically prevent an otherwise good model from being able to learn the task.",
+      "zh": "或數學問題，基本上會讓原本很好的模型，無法學會任務。"
+    },
+    {
+      "start": 800.52,
+      "end": 812.12,
+      "en": "You will get to apply the concepts and code from this video in the code challenge in the next video, using a different loss function than what I introduce you to here in this video.",
+      "zh": "下一支程式挑戰會運用這裡的概念與程式，但使用不同於這支影片介紹的損失函數。"
+    }
+  ]
+}

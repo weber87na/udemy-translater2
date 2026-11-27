@@ -1,0 +1,1291 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892707",
+  "title": "CodeChallenge: Context-modulated activation in MLP",
+  "section": 18,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b5fe93fd87e34eb36dfbf2ed633209f67627574e81a45cc7f4a1c558df1d16ed",
+  "cues": [
+    {
+      "start": 2.48,
+      "end": 10.52,
+      "en": "In the previous code challenge, I discussed that processing one token at a time might not be really",
+      "zh": "前一個程式挑戰談到，一次處理一個 token，可能不太"
+    },
+    {
+      "start": 10.52,
+      "end": 15.16,
+      "en": "representative of how the model processes tokens in general.",
+      "zh": "能代表模型一般處理 token 的方式。"
+    },
+    {
+      "start": 15.88,
+      "end": 23.56,
+      "en": "On the other hand, when tokens are processed in a text, then they're not actually processed in isolation,",
+      "zh": "另一方面，token 在文字中處理時，不是孤立的，"
+    },
+    {
+      "start": 23.72,
+      "end": 28.76,
+      "en": "but are strongly impacted and modulated by the rest of the text.",
+      "zh": "而會受到其他文字強烈影響與調整。"
+    },
+    {
+      "start": 29.08,
+      "end": 36.28,
+      "en": "So that means that it's really difficult, possibly just not even possible, to even consider what it",
+      "zh": "因此，要思考模型以純粹形式處理 token，究竟代表什麼，"
+    },
+    {
+      "start": 36.28,
+      "end": 44.6,
+      "en": "would mean for a model to process a token in its pure form, the way that you and I can think about an individual word.",
+      "zh": "就像你我能思考個別單字那樣，非常困難，甚至可能不可能。"
+    },
+    {
+      "start": 45.32,
+      "end": 55,
+      "en": "Anyway, that is the challenge, but also the important concept of how llms work that we will explore in this code challenge.",
+      "zh": "這就是這個挑戰要探索的難題，也是 LLM 運作的重要概念。"
+    },
+    {
+      "start": 55.48,
+      "end": 62.29,
+      "en": "We will continue working with the same MLP neurons that we isolated in the previous video.",
+      "zh": "繼續使用上一部影片單獨取出的相同 MLP 神經元。"
+    },
+    {
+      "start": 62.93,
+      "end": 70.09,
+      "en": "In fact, exercise one is really just a copy and paste some of the code from the previous code challenge.",
+      "zh": "事實上，練習一真的只是複製貼上上一個挑戰的部分程式。"
+    },
+    {
+      "start": 70.65,
+      "end": 81.61,
+      "en": "In particular, import the Eleuther model, implant the same hook, and import the 100 common nouns, all from the previous code challenge.",
+      "zh": "特別是，匯入 Eleuther 模型、植入相同 hook，再匯入 100 個常見名詞，全部來自上一個挑戰。"
+    },
+    {
+      "start": 81.73,
+      "end": 84.65,
+      "en": "You don't need to import the verbs for this code challenge.",
+      "zh": "這次不需要匯入動詞。"
+    },
+    {
+      "start": 85.41,
+      "end": 91.45,
+      "en": "So that's it for this exercise, it's really just copy pasting into a new notebook file.",
+      "zh": "這個練習就是這樣，只是複製貼上到新的 notebook 檔。"
+    },
+    {
+      "start": 91.81,
+      "end": 96.41,
+      "en": "I will switch to code, but just very briefly just to show the code that I copied.",
+      "zh": "會切換到程式，但很短，只展示複製的內容。"
+    },
+    {
+      "start": 96.41,
+      "end": 100.17,
+      "en": "Over here are the libraries that we will use.",
+      "zh": "這些是要用的函式庫。"
+    },
+    {
+      "start": 100.17,
+      "end": 103.53,
+      "en": "And here I'm importing the model.",
+      "zh": "這裡匯入模型。"
+    },
+    {
+      "start": 103.65,
+      "end": 114.41,
+      "en": "And actually one very slight difference here compared to the previous code challenge, is that I actually am using the GPU for this code challenge.",
+      "zh": "與上一個挑戰的一個小差異，是這次確實使用 GPU。"
+    },
+    {
+      "start": 114.41,
+      "end": 115.65,
+      "en": "It's not really necessary.",
+      "zh": "不是真的必要。"
+    },
+    {
+      "start": 115.65,
+      "end": 117.57,
+      "en": "You can still do this on the CPU.",
+      "zh": "仍然可以在 CPU 做。"
+    },
+    {
+      "start": 117.86,
+      "end": 122.02,
+      "en": "I chose to use the GPU here just to save a little bit of time later on.",
+      "zh": "這裡用 GPU，只是為了稍後省一點時間。"
+    },
+    {
+      "start": 122.34,
+      "end": 123.98,
+      "en": "Okay, so import the model.",
+      "zh": "匯入模型。"
+    },
+    {
+      "start": 124.34,
+      "end": 128.5,
+      "en": "Here is the hook function exactly the same as the previous code challenge.",
+      "zh": "這個 hook 函式與上一個挑戰完全相同。"
+    },
+    {
+      "start": 128.62,
+      "end": 133.82,
+      "en": "And here I'm importing the nouns exactly the same as in the previous code challenge.",
+      "zh": "匯入名詞也完全相同。"
+    },
+    {
+      "start": 134.74,
+      "end": 137.46,
+      "en": "Now let's start doing some analyses.",
+      "zh": "現在，開始做些分析。"
+    },
+    {
+      "start": 137.9,
+      "end": 143.1,
+      "en": "The goal here will be to measure the activations for those 100 words.",
+      "zh": "目標是測量那 100 個單字的活化。"
+    },
+    {
+      "start": 143.1,
+      "end": 152.42000000000002,
+      "en": "So the 100 nouns from the previous code challenge that you imported in exercise one, but with and without preceding spaces.",
+      "zh": "就是上一個挑戰、這次練習一匯入的 100 個名詞，但比較有無前導空白。"
+    },
+    {
+      "start": 153.22,
+      "end": 161.3,
+      "en": "As you know from the beginning of the course on tokenization, the GPT two tokenizer has a lot of words",
+      "zh": "從課程開頭 token 化的內容，你知道 GPT-2 tokenizer 有很多單字"
+    },
+    {
+      "start": 161.3,
+      "end": 167.57999999999998,
+      "en": "that actually start with spaces, because that's how they often appear in actual text.",
+      "zh": "其實以空白開頭，因為它們在實際文字中，經常如此出現。"
+    },
+    {
+      "start": 168.1,
+      "end": 176.75,
+      "en": "But the list of nouns that we are working with from the previous code challenge, and that we just imported, those do not start with spaces.",
+      "zh": "但上一個挑戰，以及剛匯入的名詞清單，不以空白開頭。"
+    },
+    {
+      "start": 176.75,
+      "end": 178.47,
+      "en": "They start with characters.",
+      "zh": "它們直接以字元開頭。"
+    },
+    {
+      "start": 178.99,
+      "end": 186.11,
+      "en": "So the goal here is to repeat the for loop and get all of the activations for all the individual words.",
+      "zh": "所以，目標是重做 for 迴圈，取得所有個別單字的所有活化。"
+    },
+    {
+      "start": 186.11,
+      "end": 197.07,
+      "en": "But now you want to do it twice, once just for the word itself, and then again with the same word, but adding a space before the word appears.",
+      "zh": "但這次做兩次，一次只用單字本身，另一次相同單字，但前面加空白。"
+    },
+    {
+      "start": 197.71,
+      "end": 202.71,
+      "en": "Now once you have those activations, you can visualize them in a few different ways.",
+      "zh": "有了活化，就能以幾種方式視覺化。"
+    },
+    {
+      "start": 203.23,
+      "end": 212.51,
+      "en": "Here on the left is a scatter plot where you can show the activations for the words with no space versus",
+      "zh": "左邊是散佈圖，可以顯示沒有空白單字的活化，對上"
+    },
+    {
+      "start": 212.55,
+      "end": 216.82999999999998,
+      "en": "the activations for the same words, but with a preceding space.",
+      "zh": "相同單字、但有前導空白的活化。"
+    },
+    {
+      "start": 218.03,
+      "end": 220.19,
+      "en": "And I also set the color of each dot.",
+      "zh": "也設定每個點的顏色。"
+    },
+    {
+      "start": 220.23,
+      "end": 223.15,
+      "en": "You don't see this here, but the color of each dot.",
+      "zh": "這裡看不到，但每個點的顏色，"
+    },
+    {
+      "start": 223.19,
+      "end": 231.95,
+      "en": "In this scatter plot, I defined to be the absolute value of the difference in the activation between the two axes.",
+      "zh": "我定義為兩軸活化差的絕對值。"
+    },
+    {
+      "start": 232.35,
+      "end": 237.16,
+      "en": "And then I took the square root of that difference, basically just to make the color look nice.",
+      "zh": "再對差值開平方根，基本上只是讓顏色好看。"
+    },
+    {
+      "start": 237.16,
+      "end": 239.4,
+      "en": "But don't worry about the visual aesthetics.",
+      "zh": "不必在意視覺美感。"
+    },
+    {
+      "start": 239.52,
+      "end": 247.36,
+      "en": "You can see in the title that I've also calculated the correlation coefficient between these two pairs of activations.",
+      "zh": "標題中，也計算這兩組活化之間的相關係數。"
+    },
+    {
+      "start": 248.04,
+      "end": 250.08,
+      "en": "So that's the scatter plot over here.",
+      "zh": "這是這邊的散佈圖。"
+    },
+    {
+      "start": 250.24,
+      "end": 259.32,
+      "en": "Here on the right is our histograms of the activations across all of the MLP neurons from this one transformer",
+      "zh": "右邊則是這個 Transformer 區塊中，所有 MLP 神經元的活化直方圖，"
+    },
+    {
+      "start": 259.32,
+      "end": 263.56,
+      "en": "block for the words with the space and without the space.",
+      "zh": "分別針對有空白與沒有空白的單字。"
+    },
+    {
+      "start": 264.32,
+      "end": 266.2,
+      "en": "So that's it for this exercise.",
+      "zh": "這個練習就這樣。"
+    },
+    {
+      "start": 266.2,
+      "end": 269.24,
+      "en": "You can now pause the video and start coding away.",
+      "zh": "現在可以暫停影片，開始寫程式。"
+    },
+    {
+      "start": 269.36,
+      "end": 271.12,
+      "en": "And now I will switch to code.",
+      "zh": "我切換到程式。"
+    },
+    {
+      "start": 272.15999999999997,
+      "end": 274.68,
+      "en": "Let me actually begin by.",
+      "zh": "其實，先從這裡開始。"
+    },
+    {
+      "start": 275,
+      "end": 276.8,
+      "en": "Let's have a look at some of these nouns.",
+      "zh": "看看一些名詞。"
+    },
+    {
+      "start": 276.8,
+      "end": 278.68,
+      "en": "I just want to make sure it's clear.",
+      "zh": "只是想確保清楚。"
+    },
+    {
+      "start": 278.68,
+      "end": 281.04,
+      "en": "So let's start with school because that's a good word.",
+      "zh": "先看 school，因為這是個好詞。"
+    },
+    {
+      "start": 281.04,
+      "end": 289.56,
+      "en": "So we have school and then we have I'm going to tokenize it tokenizer dot encode.",
+      "zh": "有 school，再用 tokenizer.encode 切成 token。"
+    },
+    {
+      "start": 290.08,
+      "end": 294.73,
+      "en": "And this happens to be index 14,347.",
+      "zh": "剛好是索引 14,347。"
+    },
+    {
+      "start": 294.73,
+      "end": 300.69,
+      "en": "But if I put a space beforehand, this is going to be a different token.",
+      "zh": "如果前面加空白，就會是不同 token。"
+    },
+    {
+      "start": 301.05,
+      "end": 305.45,
+      "en": "So this you will remember from the very beginning of the course.",
+      "zh": "課程一開始已學過。"
+    },
+    {
+      "start": 305.45,
+      "end": 312.33,
+      "en": "But basically the idea is that we have different tokens for words with versus without preceding spaces.",
+      "zh": "基本上，有無前導空白，會有不同 token。"
+    },
+    {
+      "start": 312.33,
+      "end": 319.33,
+      "en": "And that means that the model might process these words differently depending on a preceding space.",
+      "zh": "表示模型可能根據前導空白，而以不同方式處理這些單字。"
+    },
+    {
+      "start": 319.61,
+      "end": 324.69,
+      "en": "Okay, so that is just a little demo of why we are doing exercise two.",
+      "zh": "這只是小示範，說明為何做練習二。"
+    },
+    {
+      "start": 325.29,
+      "end": 331.53,
+      "en": "All of this code here looks really, really similar to the code from exercise two.",
+      "zh": "這些程式看起來，和前一個挑戰練習二的程式"
+    },
+    {
+      "start": 331.57,
+      "end": 335.37,
+      "en": "In the previous code challenge, it's mostly copy pasted.",
+      "zh": "非常類似，大部分是複製貼上。"
+    },
+    {
+      "start": 335.40999999999997,
+      "end": 343.69,
+      "en": "You can see the main thing that I changed here was instead of selecting for one particular noun, and here was one particular verb.",
+      "zh": "主要改變，是這裡原本選某個名詞，那裡選某個動詞。"
+    },
+    {
+      "start": 343.85,
+      "end": 346.65,
+      "en": "Here we're just looping over all of the nouns.",
+      "zh": "現在只用迴圈走過所有名詞。"
+    },
+    {
+      "start": 346.77,
+      "end": 348.61,
+      "en": "And here I just have the word.",
+      "zh": "這裡只有單字。"
+    },
+    {
+      "start": 348.61,
+      "end": 351.09000000000003,
+      "en": "I actually really don't need this stuff here.",
+      "zh": "其實，這些不太需要。"
+    },
+    {
+      "start": 351.13,
+      "end": 351.9,
+      "en": "This is fine.",
+      "zh": "這樣就可以。"
+    },
+    {
+      "start": 352.3,
+      "end": 357.42,
+      "en": "And then here I'm just having a space in front of the word okay.",
+      "zh": "這裡只是單字前加空白。"
+    },
+    {
+      "start": 357.5,
+      "end": 359.82,
+      "en": "Otherwise the code is basically the same.",
+      "zh": "其他程式基本相同。"
+    },
+    {
+      "start": 360.06,
+      "end": 363.3,
+      "en": "Essentially we are doing a forward pass on one token.",
+      "zh": "本質上，是對一個 token 做前向傳播。"
+    },
+    {
+      "start": 363.78,
+      "end": 364.42,
+      "en": "Kind of weird.",
+      "zh": "有點奇怪。"
+    },
+    {
+      "start": 364.42,
+      "end": 366.94,
+      "en": "There's no context, but that's what we're doing here.",
+      "zh": "沒有上下文，但這裡就是這樣做。"
+    },
+    {
+      "start": 367.26,
+      "end": 374.34,
+      "en": "And then extracting the activations from all of the MLP neurons from this one layer.",
+      "zh": "再擷取這一層所有 MLP 神經元的活化。"
+    },
+    {
+      "start": 374.7,
+      "end": 374.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 374.98,
+      "end": 377.3,
+      "en": "And then here is where I'm generating the plot.",
+      "zh": "這裡產生圖。"
+    },
+    {
+      "start": 377.42,
+      "end": 380.94,
+      "en": "So here I flatten out all of the activations.",
+      "zh": "先把所有活化攤平。"
+    },
+    {
+      "start": 381.06,
+      "end": 386.1,
+      "en": "That's because this is for 100 words and 3000 neurons.",
+      "zh": "因為有 100 個單字、3,000 個神經元。"
+    },
+    {
+      "start": 386.26,
+      "end": 390.86,
+      "en": "And then I'm flattening them or vectorizing them to be one vector.",
+      "zh": "攤平、向量化成一個向量。"
+    },
+    {
+      "start": 391.1,
+      "end": 394.42,
+      "en": "And then yeah, it's just for convenience for the plotting.",
+      "zh": "只是為了方便繪圖。"
+    },
+    {
+      "start": 394.74,
+      "end": 394.94,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 394.98,
+      "end": 398.82,
+      "en": "And then here is the difference that I'm using for color coding.",
+      "zh": "這裡是用來顏色編碼的差值。"
+    },
+    {
+      "start": 398.82,
+      "end": 402.65999999999997,
+      "en": "So the difference between them and then the absolute value.",
+      "zh": "兩者相減，再取絕對值。"
+    },
+    {
+      "start": 402.65999999999997,
+      "end": 407.26,
+      "en": "So you can think of that as like the L1 distance between the two activations.",
+      "zh": "可以想成兩個活化之間的 L1 距離。"
+    },
+    {
+      "start": 407.34000000000003,
+      "end": 410.27,
+      "en": "And then I square root and then I divide by the max.",
+      "zh": "再開平方根，除以最大值。"
+    },
+    {
+      "start": 410.31,
+      "end": 416.75,
+      "en": "There is no, like, deep, meaningful, uh, theoretical or mathematical motivation for this transform.",
+      "zh": "這個轉換，沒有什麼深奧、有意義的理論或數學動機。"
+    },
+    {
+      "start": 416.75,
+      "end": 421.19,
+      "en": "It just makes the plot look nice and easy to see the colors.",
+      "zh": "只是讓圖好看、顏色容易辨識。"
+    },
+    {
+      "start": 421.51,
+      "end": 426.87,
+      "en": "Okay, so here's where I make the scatter plot of Without Space by with a space.",
+      "zh": "這裡畫出無空白對有空白的散佈圖。"
+    },
+    {
+      "start": 427.11,
+      "end": 430.11,
+      "en": "Uh, and I'm setting the color to be the difference values.",
+      "zh": "顏色設成差值。"
+    },
+    {
+      "start": 430.11,
+      "end": 433.03,
+      "en": "I'm using the map plasma reverse.",
+      "zh": "使用反向 plasma 色彩映射。"
+    },
+    {
+      "start": 433.03,
+      "end": 437.83,
+      "en": "I like this color map, and I found reverse just looks nicer for this plot.",
+      "zh": "我喜歡這個色彩映射，而且發現反向在這張圖更好看。"
+    },
+    {
+      "start": 438.15,
+      "end": 439.71,
+      "en": "Again, with visualization.",
+      "zh": "同樣地，視覺化時，"
+    },
+    {
+      "start": 439.83,
+      "end": 450.99,
+      "en": "You know, sometimes there are decisions that you make when visualizing data that are based on meaningful theoretical considerations, and sometimes it's just personal preferences.",
+      "zh": "有些決策根據有意義的理論考量，有些只是個人偏好。"
+    },
+    {
+      "start": 451.47,
+      "end": 453.95,
+      "en": "Okay, here I am creating histograms.",
+      "zh": "這裡建立直方圖。"
+    },
+    {
+      "start": 453.95,
+      "end": 457.31,
+      "en": "And yeah these are going to be density based histograms.",
+      "zh": "是以密度表示的直方圖。"
+    },
+    {
+      "start": 457.31,
+      "end": 458.07,
+      "en": "And yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 458.07,
+      "end": 461.51,
+      "en": "So let's have a look at the plots and see what we can see.",
+      "zh": "看看圖，能看到什麼。"
+    },
+    {
+      "start": 462.23,
+      "end": 467.55,
+      "en": "So again here on the x axis is the nouns with no preceding space.",
+      "zh": "X 軸是沒有前導空白的名詞。"
+    },
+    {
+      "start": 467.55,
+      "end": 470.76,
+      "en": "And here is with a preceding space.",
+      "zh": "這邊是有前導空白的。"
+    },
+    {
+      "start": 471.08,
+      "end": 475.84000000000003,
+      "en": "All of these yellow lines that lie exactly on the line of unity.",
+      "zh": "這些黃點，恰好位於相等線上。"
+    },
+    {
+      "start": 476.32,
+      "end": 483.8,
+      "en": "Those correspond to basically the activations of the neurons are nearly identical, possibly really",
+      "zh": "對應的神經元活化幾乎相同，甚至可能真的"
+    },
+    {
+      "start": 483.8,
+      "end": 489.48,
+      "en": "identical, but at least close to identical processing for the two different tokens.",
+      "zh": "完全相同，但至少兩個不同 token 的處理非常接近。"
+    },
+    {
+      "start": 489.76,
+      "end": 496.48,
+      "en": "Uh, even though, yeah, we humans would recognize it as the same word, but these models recognize",
+      "zh": "雖然人類認得是同一個單字，但模型認為"
+    },
+    {
+      "start": 496.48,
+      "end": 504.84,
+      "en": "them as different tokens, although, of course, they learn through lots of training that, uh, the words should be processed in very similar ways.",
+      "zh": "它們是不同 token；當然，經過大量訓練，也學到應以非常類似的方式處理。"
+    },
+    {
+      "start": 505.56,
+      "end": 510.28,
+      "en": "Uh, they are the two activation patterns are very strongly correlated with each other.",
+      "zh": "兩個活化模式高度相關。"
+    },
+    {
+      "start": 510.4,
+      "end": 512.68,
+      "en": "But you can see that there are some differences.",
+      "zh": "但可以看到，有一些差異。"
+    },
+    {
+      "start": 512.68,
+      "end": 520.6,
+      "en": "So the model really is processing the words differently, the tokens differently depending on whether",
+      "zh": "模型確實會根據沒有空白，或有前導"
+    },
+    {
+      "start": 520.6,
+      "end": 528.25,
+      "en": "there is no space or with a space preceding, uh, looks like most of them kind of lie close to the diagonal.",
+      "zh": "空白，而以不同方式處理單字、token；大部分似乎都接近對角線。"
+    },
+    {
+      "start": 528.25,
+      "end": 530.29,
+      "en": "There are a couple of weirdos out here.",
+      "zh": "有幾個奇怪的離群點。"
+    },
+    {
+      "start": 530.53,
+      "end": 532.41,
+      "en": "I'm not sure what's going on with these.",
+      "zh": "不知道怎麼回事。"
+    },
+    {
+      "start": 532.41,
+      "end": 533.53,
+      "en": "You could find out.",
+      "zh": "你可以查。"
+    },
+    {
+      "start": 533.53,
+      "end": 538.05,
+      "en": "You can see that these are the deepest color purple from plasma.",
+      "zh": "它們是 plasma 中最深的紫色。"
+    },
+    {
+      "start": 538.05,
+      "end": 547.37,
+      "en": "So if you want to know which words, which tokens these correspond to, what you could do is look for the largest differences.",
+      "zh": "如果想知道對應哪些單字、token，可以找出最大的差值。"
+    },
+    {
+      "start": 547.37,
+      "end": 549.85,
+      "en": "So where is this variable maximum.",
+      "zh": "也就是這個變數在哪裡最大。"
+    },
+    {
+      "start": 550.01,
+      "end": 554.37,
+      "en": "And then go back and find those words and those tokens.",
+      "zh": "再回頭找那些單字、token。"
+    },
+    {
+      "start": 554.41,
+      "end": 554.61,
+      "en": "Right.",
+      "zh": "對吧？"
+    },
+    {
+      "start": 554.65,
+      "end": 555.89,
+      "en": "There's a lot of dots in here.",
+      "zh": "這裡有很多點。"
+    },
+    {
+      "start": 555.93,
+      "end": 559.77,
+      "en": "Each dot corresponds to one word from one token.",
+      "zh": "每個點對應一個 token 的一個單字。"
+    },
+    {
+      "start": 559.77,
+      "end": 563.45,
+      "en": "That's all vectorized from that big matrix okay.",
+      "zh": "全部從大矩陣向量化而來。"
+    },
+    {
+      "start": 563.49,
+      "end": 565.21,
+      "en": "And then here we see the histograms.",
+      "zh": "這裡看到直方圖。"
+    },
+    {
+      "start": 565.21,
+      "end": 570.25,
+      "en": "They are not exactly identical but basically identical really really similar.",
+      "zh": "不完全相同，但基本上一樣，非常相似。"
+    },
+    {
+      "start": 570.25,
+      "end": 577.77,
+      "en": "So this indicates that the model is processing these words very very similarly depending regardless",
+      "zh": "這表示，模型處理這些單字非常類似，不論"
+    },
+    {
+      "start": 577.77,
+      "end": 585.21,
+      "en": "of whether they have a preceding space or no preceding space, even though they are technically different tokens.",
+      "zh": "有沒有前導空白，即使它們在技術上是不同 token。"
+    },
+    {
+      "start": 586.46,
+      "end": 595.34,
+      "en": "in exercise two, there was still no context, no text, just individual words that we'd put a space in front of.",
+      "zh": "練習二仍然沒有上下文、沒有文字，只有前面加空白的個別單字。"
+    },
+    {
+      "start": 595.94,
+      "end": 606.02,
+      "en": "Still, words don't appear in isolation anywhere when pre-training or fine tuning these models, so it's still a little bit artificial.",
+      "zh": "但預訓練或微調時，單字不會在任何地方孤立出現，所以這仍然有點人工化。"
+    },
+    {
+      "start": 606.14,
+      "end": 618.02,
+      "en": "So therefore the goal of exercise three and four is to compare the processing of individual tokens with the exact same tokens that are embedded in a text.",
+      "zh": "因此，練習三與四的目標，是比較個別 token，以及嵌在文字中的完全相同 token 的處理。"
+    },
+    {
+      "start": 618.3,
+      "end": 624.86,
+      "en": "So to get some text for this analysis, you can actually have the model generate text on its own.",
+      "zh": "為了取得分析文字，其實可以讓模型自己生成。"
+    },
+    {
+      "start": 625.46,
+      "end": 630.98,
+      "en": "You can generate 200 tokens starting from some short sequence that you can define.",
+      "zh": "從自己定義的一小段序列開始，生成 200 個 token。"
+    },
+    {
+      "start": 631.46,
+      "end": 634.42,
+      "en": "I chose to start the model off with the text.",
+      "zh": "我選擇讓模型從這段文字開始。"
+    },
+    {
+      "start": 634.42,
+      "end": 636.82,
+      "en": "I think the world could be better if.",
+      "zh": "「I think the world could be better if」，也就是「我認為，世界可以更好，如果……」。"
+    },
+    {
+      "start": 637.5,
+      "end": 646.32,
+      "en": "And then I generated new tokens up to a total of 200 tokens to see what the model thinks would make the world a better place.",
+      "zh": "接著產生新 token，直到總共 200 個，看看模型認為怎樣能讓世界更好。"
+    },
+    {
+      "start": 646.68,
+      "end": 654.32,
+      "en": "So when you get this text that the model generated using the generate method, then take those tokens,",
+      "zh": "用 generate 方法取得模型生成文字後，把那些 token，"
+    },
+    {
+      "start": 654.32,
+      "end": 658.8,
+      "en": "the generated tokens, and push them back through the same model.",
+      "zh": "也就是生成 token，再送回同一模型。"
+    },
+    {
+      "start": 658.96,
+      "end": 669.4,
+      "en": "To get the MLP neuron activations, you should get an activation matrix of size one by 200 by 3072,",
+      "zh": "取得 MLP 神經元活化；應得到 1 乘以 200 乘以 3,072 的矩陣，"
+    },
+    {
+      "start": 669.68,
+      "end": 677.68,
+      "en": "corresponding to one sequence of 200 tokens in this batch and 3000 MLP neurons.",
+      "zh": "對應這個批次中，一段 200 個 token 的序列，以及 3,000 個 MLP 神經元。"
+    },
+    {
+      "start": 678.08,
+      "end": 686.44,
+      "en": "We are going to analyze these data in the next exercise, but for now you can switch to code and just get those activations.",
+      "zh": "下一個練習會分析資料，目前先切換到程式，取得這些活化。"
+    },
+    {
+      "start": 686.68,
+      "end": 690.08,
+      "en": "And now I will also switch to code and show my results.",
+      "zh": "我也切換到程式，展示結果。"
+    },
+    {
+      "start": 690.96,
+      "end": 702.28,
+      "en": "I think the world could be better if you know what I love about GPT two, GPT two makes you think and GPT four tries to do your thinking for you.",
+      "zh": "「我認為世界可以更好，如果……」。知道我喜歡 GPT-2 什麼嗎？GPT-2 讓你思考，GPT-4 則試著替你思考。"
+    },
+    {
+      "start": 702.33,
+      "end": 705.81,
+      "en": "I always really enjoy interacting with GPT two.",
+      "zh": "我一直很喜歡和 GPT-2 互動。"
+    },
+    {
+      "start": 706.09,
+      "end": 713.09,
+      "en": "Here I'm specifying 200 tokens maximum and remember from earlier in the course that this means that",
+      "zh": "這裡指定最多 200 個 token；記得課程先前提過，意思是"
+    },
+    {
+      "start": 713.09,
+      "end": 719.13,
+      "en": "we get 200 tokens in total, which includes however many tokens this is.",
+      "zh": "總共 200 個，包含這裡原本的 token。"
+    },
+    {
+      "start": 719.29,
+      "end": 730.01,
+      "en": "So this really means maybe like 190 tokens that the model generates, plus, you know, approximately ten or whatever, however many tokens this is that I wrote.",
+      "zh": "所以，實際可能是模型生成約 190 個，再加上我寫的約十個，總之這段原本的 token 數。"
+    },
+    {
+      "start": 730.05,
+      "end": 732.13,
+      "en": "Of course, for these purposes, that's fine.",
+      "zh": "對這裡的用途，當然沒問題。"
+    },
+    {
+      "start": 732.13,
+      "end": 734.85,
+      "en": "I'm just giving you a reminder about that.",
+      "zh": "只是提醒。"
+    },
+    {
+      "start": 735.01,
+      "end": 741.65,
+      "en": "So I think the world could be better if we just kept moving forward to a new world where we can do anything we want.",
+      "zh": "「我認為，如果我們持續走向一個能做任何想做之事的新世界，世界就可以更好。」"
+    },
+    {
+      "start": 741.69,
+      "end": 745.49,
+      "en": "And if our leaders could really work together, that is such a true statement, man.",
+      "zh": "「而且，如果領袖真能合作。」這句話太真實了，老兄。"
+    },
+    {
+      "start": 746.05,
+      "end": 752.69,
+      "en": "So now I take all of those generated tokens and then push them back through the model.",
+      "zh": "現在，把所有生成 token 再送過模型。"
+    },
+    {
+      "start": 752.89,
+      "end": 754.97,
+      "en": "So these are the tokens outputted.",
+      "zh": "這些是輸出的 token。"
+    },
+    {
+      "start": 754.97,
+      "end": 761.82,
+      "en": "And then these are the tokens that I push right back through the model in order to get the activations here.",
+      "zh": "再直接送回模型，以取得這裡的活化。"
+    },
+    {
+      "start": 761.82,
+      "end": 764.14,
+      "en": "So it's 200 by 3000.",
+      "zh": "所以，是 200 乘以 3,000。"
+    },
+    {
+      "start": 764.14,
+      "end": 771.78,
+      "en": "And here I'm just setting another variable just to get these activations into a different variable.",
+      "zh": "這裡只是另設一個變數，把活化放進不同變數。"
+    },
+    {
+      "start": 771.78,
+      "end": 777.22,
+      "en": "That's going to make it more convenient to go through the analysis in the next exercise.",
+      "zh": "下一個練習分析時會更方便。"
+    },
+    {
+      "start": 778.22,
+      "end": 782.5,
+      "en": "Now for the final exercise in this code challenge.",
+      "zh": "現在，來到這個挑戰最後一個練習。"
+    },
+    {
+      "start": 783.02,
+      "end": 791.54,
+      "en": "Now that you have all the activations for all 200 tokens together as one sequence, get all of the activations",
+      "zh": "已取得全部 200 個 token 作為一段序列時的活化，現在再次取得"
+    },
+    {
+      "start": 791.54,
+      "end": 798.5,
+      "en": "from the individual neurons again, but now in a for loop over each token individually.",
+      "zh": "個別神經元的全部活化，但用 for 迴圈，逐個 token 處理。"
+    },
+    {
+      "start": 799.14,
+      "end": 806.62,
+      "en": "So that means you're going to have two sets of activations from all of the MLP neurons, one set of",
+      "zh": "因此，會有兩組所有 MLP 神經元的活化，一組來自"
+    },
+    {
+      "start": 806.62,
+      "end": 811.18,
+      "en": "activations coming from the tokens processed embedded in the text.",
+      "zh": "嵌入文字中處理的 token。"
+    },
+    {
+      "start": 811.18,
+      "end": 813.3,
+      "en": "That's what you did in exercise three.",
+      "zh": "就是練習三做的。"
+    },
+    {
+      "start": 813.9,
+      "end": 823.07,
+      "en": "And then another set of activations from all of the tokens processed individually, pushed individually, one at a time through the model.",
+      "zh": "另一組，則來自所有 token 分開、逐一送過模型的活化。"
+    },
+    {
+      "start": 823.07,
+      "end": 826.35,
+      "en": "And that's what you're going to do in this exercise.",
+      "zh": "這就是這個練習要做的。"
+    },
+    {
+      "start": 827.23,
+      "end": 834.19,
+      "en": "Then you can generate a figure that is basically the same as the one that you created in exercise two,",
+      "zh": "接著，可以產生與練習二基本相同的圖，"
+    },
+    {
+      "start": 834.71,
+      "end": 839.35,
+      "en": "except that was about having spaces or not having preceding spaces.",
+      "zh": "只是先前比較有無前導空白。"
+    },
+    {
+      "start": 839.55,
+      "end": 846.43,
+      "en": "And now here this is about the activations for the isolated tokens pushed through the model, one at",
+      "zh": "現在比較的是，孤立 token 逐一送過模型的活化，"
+    },
+    {
+      "start": 846.43,
+      "end": 852.23,
+      "en": "a time, versus the tokens from the text that are embedded in the text.",
+      "zh": "以及嵌在文字中的 token 活化。"
+    },
+    {
+      "start": 852.75,
+      "end": 860.23,
+      "en": "And then one thing I added over here is the difference between the activations as a histogram.",
+      "zh": "這邊我還加上，活化差值的直方圖。"
+    },
+    {
+      "start": 860.63,
+      "end": 865.27,
+      "en": "I hope you find this exercise to be thought provoking and interesting.",
+      "zh": "希望這個練習有意思、能引發思考。"
+    },
+    {
+      "start": 865.43,
+      "end": 868.43,
+      "en": "And I will now switch to code and discuss the results.",
+      "zh": "現在切換到程式，討論結果。"
+    },
+    {
+      "start": 869.11,
+      "end": 877.07,
+      "en": "So here in this for loop, I'm looping over all of the generated tokens, pushing one token at a time",
+      "zh": "這個 for 迴圈走過所有生成 token，一次一個"
+    },
+    {
+      "start": 877.07,
+      "end": 888.36,
+      "en": "through the model getting its activation here, and then also copying over the activation from when I pushed all of the tokens together as one sequence through the model.",
+      "zh": "送過模型，取得活化，再複製先前把所有 token 當一段序列送過模型時的活化。"
+    },
+    {
+      "start": 888.36,
+      "end": 892.72,
+      "en": "This is the variable that I created at the end of exercise three.",
+      "zh": "這是練習三結尾建立的變數。"
+    },
+    {
+      "start": 893.2,
+      "end": 894.56,
+      "en": "Okay, so let's run that.",
+      "zh": "好，執行。"
+    },
+    {
+      "start": 894.56,
+      "end": 896.12,
+      "en": "That will take a few seconds.",
+      "zh": "需要幾秒。"
+    },
+    {
+      "start": 896.24,
+      "end": 900.4,
+      "en": "If you're doing this on the CPU it will take a few additional seconds.",
+      "zh": "CPU 上會多幾秒。"
+    },
+    {
+      "start": 900.4,
+      "end": 903.88,
+      "en": "But overall it's not so bad with this model okay.",
+      "zh": "但這個模型整體不太糟。"
+    },
+    {
+      "start": 903.92,
+      "end": 910.2,
+      "en": "And then here yeah this code is basically identical to the code for exercise two.",
+      "zh": "這些程式基本上與練習二完全相同。"
+    },
+    {
+      "start": 910.4,
+      "end": 921.56,
+      "en": "The only thing I added was this line here where I am getting the histogram of the difference in the activations for the two sets of analyses.",
+      "zh": "只多了這一行，取得兩組分析的活化差值直方圖。"
+    },
+    {
+      "start": 921.56,
+      "end": 925.4,
+      "en": "So in the text versus individual tokens.",
+      "zh": "也就是文字中，相對於個別 token。"
+    },
+    {
+      "start": 925.76,
+      "end": 927.88,
+      "en": "So let's see what those look like.",
+      "zh": "看看樣子。"
+    },
+    {
+      "start": 929.04,
+      "end": 933.56,
+      "en": "These look quite different from the results from exercise two.",
+      "zh": "這與練習二的結果很不同。"
+    },
+    {
+      "start": 934,
+      "end": 940.81,
+      "en": "Remember in exercise two we found that whether there is a space or isn't a preceding space didn't really matter.",
+      "zh": "記得，練習二發現，有沒有前導空白，其實不太重要。"
+    },
+    {
+      "start": 940.81,
+      "end": 945.97,
+      "en": "The activations were technically a little bit different, but they were still really, really similar.",
+      "zh": "活化在技術上略有差異，但仍然非常相似。"
+    },
+    {
+      "start": 946.29,
+      "end": 954.85,
+      "en": "But now we see much more differences, much stronger differences between the two pairs of tokens.",
+      "zh": "現在，兩組 token 之間，看到更多、更強的差異。"
+    },
+    {
+      "start": 954.85,
+      "end": 966.61,
+      "en": "And again, remember every one of these dots here corresponds to literally exactly the same token activation in exactly the same MLP neuron.",
+      "zh": "再次記得，每個點，都確實對應完全相同 token、完全相同 MLP 神經元的活化。"
+    },
+    {
+      "start": 967.09,
+      "end": 974.05,
+      "en": "The only difference is that on the y axis we have when the tokens were pushed through one at a time",
+      "zh": "唯一差別，是 Y 軸的 token 逐一"
+    },
+    {
+      "start": 974.05,
+      "end": 981.65,
+      "en": "in a for loop, and with no preceding context versus the x axis, where every token except for the first",
+      "zh": "在 for 迴圈中送過模型，沒有前面的上下文；X 軸則除了第一個，"
+    },
+    {
+      "start": 981.65,
+      "end": 986.33,
+      "en": "I guess, but every other token has at least some context behind it.",
+      "zh": "我想是這樣，其餘每個 token 前面至少都有一點上下文。"
+    },
+    {
+      "start": 986.33,
+      "end": 997.78,
+      "en": "There are tokens behind that individual token that allow the model to modulate the processing and the representation of that individual embeddings vector.",
+      "zh": "前面有其他 token，讓模型調整目前這個嵌入向量的處理與表徵。"
+    },
+    {
+      "start": 997.78,
+      "end": 1001.22,
+      "en": "And then here we see the corresponding activations.",
+      "zh": "這裡看到對應活化。"
+    },
+    {
+      "start": 1001.66,
+      "end": 1004.14,
+      "en": "So really quite striking I find.",
+      "zh": "我覺得真的很驚人。"
+    },
+    {
+      "start": 1004.5,
+      "end": 1007.22,
+      "en": "And then you see also in these histograms.",
+      "zh": "這些直方圖也可以看到。"
+    },
+    {
+      "start": 1007.22,
+      "end": 1013.98,
+      "en": "Now do not be confused by the similarity between the histograms for the blue line and the orange line.",
+      "zh": "不要因為藍線與橘線直方圖很像而搞混。"
+    },
+    {
+      "start": 1014.46,
+      "end": 1024.94,
+      "en": "What those show is that the marginal distributions cover, you know, the same range, roughly the same range of activation numerical values.",
+      "zh": "它們表示，邊際分布涵蓋相同，或者大致相同的活化數值範圍。"
+    },
+    {
+      "start": 1025.38,
+      "end": 1031.02,
+      "en": "It is very possible for the distributions to be overall very similar.",
+      "zh": "分布整體很相似，完全有可能，"
+    },
+    {
+      "start": 1031.38,
+      "end": 1036.98,
+      "en": "And yet the differences between individual pairs to be very different.",
+      "zh": "但個別配對的差值仍然很不一樣。"
+    },
+    {
+      "start": 1036.98,
+      "end": 1045.06,
+      "en": "And that's why the green histogram is basically just as wide as the distributions from the individual variables.",
+      "zh": "所以，綠色直方圖基本上和各個變數的分布一樣寬。"
+    },
+    {
+      "start": 1045.18,
+      "end": 1048.1,
+      "en": "So let me explain that again.",
+      "zh": "再解釋一次。"
+    },
+    {
+      "start": 1048.1,
+      "end": 1055.43,
+      "en": "So basically the blue line and the orange line correspond to the Uh, distributions over the x axis",
+      "zh": "藍線與橘線，基本上對應 X 軸，"
+    },
+    {
+      "start": 1055.43,
+      "end": 1060.39,
+      "en": "or like projected onto the x axis, projected onto the y axis.",
+      "zh": "或投影到 X 軸、投影到 Y 軸的分布。"
+    },
+    {
+      "start": 1060.79,
+      "end": 1067.51,
+      "en": "The green line actually shows the histogram of this like diagonal, this orthogonal projection from",
+      "zh": "綠線則顯示，每個點朝相等線的這種對角、正交投影的直方圖，"
+    },
+    {
+      "start": 1067.51,
+      "end": 1074.07,
+      "en": "each of these dots onto the line of unity, which you can basically see as these yellow colors over here.",
+      "zh": "那條線基本上就是這裡的黃色。"
+    },
+    {
+      "start": 1074.71,
+      "end": 1083.11,
+      "en": "So we do see that there are tokens and neurons where the processing is really, really similar, regardless",
+      "zh": "確實有某些 token 與神經元，不論"
+    },
+    {
+      "start": 1083.11,
+      "end": 1089.55,
+      "en": "of whether the token is presented in a context or without any context.",
+      "zh": "是否在上下文中呈現 token，處理方式都非常相似。"
+    },
+    {
+      "start": 1089.55,
+      "end": 1093.67,
+      "en": "But a lot of the neurons have some modulation by context.",
+      "zh": "但很多神經元會受到上下文調整。"
+    },
+    {
+      "start": 1093.67,
+      "end": 1097.15,
+      "en": "And that's why you see the colors and the shifts off the diagonal.",
+      "zh": "所以，才會看到顏色，以及偏離對角線的位移。"
+    },
+    {
+      "start": 1097.99,
+      "end": 1106.39,
+      "en": "One of the challenges of Mcinturff research is that llms have no representation of isolated words,",
+      "zh": "機制可解釋性研究的一項挑戰，是 LLM 沒有孤立單字的表徵，"
+    },
+    {
+      "start": 1106.59,
+      "end": 1110.07,
+      "en": "because they have never been trained on isolated words.",
+      "zh": "因為從未以孤立單字訓練。"
+    },
+    {
+      "start": 1110.47,
+      "end": 1115.56,
+      "en": "They are pre-trained on really, really long sequences of text.",
+      "zh": "預訓練使用的是非常、非常長的文字序列。"
+    },
+    {
+      "start": 1115.88,
+      "end": 1117.56,
+      "en": "Of course, that's not a problem.",
+      "zh": "當然，這不是問題。"
+    },
+    {
+      "start": 1117.56,
+      "end": 1119.88,
+      "en": "It's not a limitation of the models.",
+      "zh": "不是模型的限制。"
+    },
+    {
+      "start": 1119.88,
+      "end": 1124.36,
+      "en": "That is exactly what makes them so impressive and so versatile.",
+      "zh": "這正是它們如此驚人、多功能的原因。"
+    },
+    {
+      "start": 1124.96,
+      "end": 1133.28,
+      "en": "But it is really a challenge for Mcinturff research, in particular with reproducibility, because findings",
+      "zh": "但對機制可解釋性研究，確實是挑戰，尤其可重現性，因為"
+    },
+    {
+      "start": 1133.28,
+      "end": 1138.52,
+      "en": "that might work for certain contexts might not work for other contexts.",
+      "zh": "某些上下文有效的發現，在其他上下文可能無效。"
+    },
+    {
+      "start": 1139,
+      "end": 1147.04,
+      "en": "For scientific purposes, it would be ideal if we could isolate the processing of different tokens completely",
+      "zh": "科學上，理想是能完全單獨研究不同 token 的處理，"
+    },
+    {
+      "start": 1147.2,
+      "end": 1154.6,
+      "en": "with no regard to contextual influences, just like how in physics you can run simulations and make",
+      "zh": "不考慮上下文影響，就像物理學可以在模擬與"
+    },
+    {
+      "start": 1154.6,
+      "end": 1160.84,
+      "en": "calculations without friction, without any interactions from other objects and other forces.",
+      "zh": "計算中，忽略摩擦，以及其他物體與其他力的交互作用。"
+    },
+    {
+      "start": 1161.36,
+      "end": 1163.44,
+      "en": "That's just not possible in Llms.",
+      "zh": "LLM 裡就是無法這樣。"
+    },
+    {
+      "start": 1163.44,
+      "end": 1169.24,
+      "en": "And that is a really interesting challenge for research into LLM mechanisms.",
+      "zh": "這是研究 LLM 機制一項非常有意思的挑戰。"
+    }
+  ]
+}

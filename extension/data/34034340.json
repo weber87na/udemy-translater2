@@ -1,0 +1,931 @@
+{
+  "courseId": "4734870",
+  "lectureId": "34034340",
+  "title": "Bringing Our Own Vision Transformer to Life  - Part 2: The Forward Method",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "af4d4006f7007ffe78fac778002cb7e7106dbf5e49c5b487d158005415479c0a",
+  "cues": [
+    {
+      "start": 1.23,
+      "end": 2.28,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 2.52,
+      "end": 7,
+      "en": "In the last video I left you on the cliffhanger of implementing the Ford method.",
+      "zh": "上支影片，留了一個懸念，請你實作 forward。"
+    },
+    {
+      "start": 7.02,
+      "end": 18.69,
+      "en": "So I hope you took on the challenge and gave it a shot of putting together all of the pieces of the puzzle to replicate or bring to life our own vision transformer or VITT for short, of course.",
+      "zh": "希望你接受挑戰，試著把所有零件組起來，重現自己的 Vision Transformer，簡稱 ViT。"
+    },
+    {
+      "start": 18.9,
+      "end": 22.68,
+      "en": "So let's start with the Ford method.",
+      "zh": "從 forward 開始。"
+    },
+    {
+      "start": 23.19,
+      "end": 24.45,
+      "en": "We've got everything we need.",
+      "zh": "需要的東西都有了。"
+    },
+    {
+      "start": 24.45,
+      "end": 25.65,
+      "en": "What do we need to do?",
+      "zh": "要做什麼？"
+    },
+    {
+      "start": 25.71,
+      "end": 28.26,
+      "en": "So let's think about what the input is going to be.",
+      "zh": "先想輸入是什麼。"
+    },
+    {
+      "start": 28.29,
+      "end": 30.27,
+      "en": "We discussed this right back at the start.",
+      "zh": "最早就談過。"
+    },
+    {
+      "start": 30.27,
+      "end": 34.35,
+      "en": "The input is some sort of image and then what do we need to do?",
+      "zh": "輸入是影像，接著要怎麼做？"
+    },
+    {
+      "start": 34.38,
+      "end": 41.88,
+      "en": "Well, we need to move it through this embedded patches layer the msaa block, the NLP block.",
+      "zh": "經過區塊嵌入層、MSA 區塊、MLP 區塊。"
+    },
+    {
+      "start": 41.88,
+      "end": 48.99,
+      "en": "But luckily for us, a lot of this is taken care of by the fact that we've put it all together in a transformer encoder.",
+      "zh": "幸好，很多內容已經組成 Transformer 編碼器，所以會替我們處理。"
+    },
+    {
+      "start": 49.47,
+      "end": 51.6,
+      "en": "So let's see how we could do that.",
+      "zh": "看看怎麼做。"
+    },
+    {
+      "start": 52.05,
+      "end": 57.72,
+      "en": "First thing we need to do is get the batch size and this will make sense in a second.",
+      "zh": "第一，取得 batch_size，等一下就懂。"
+    },
+    {
+      "start": 57.9,
+      "end": 60.96,
+      "en": "So a batch size equals x shape.",
+      "zh": "batch_size = x.shape，"
+    },
+    {
+      "start": 60.96,
+      "end": 62.58,
+      "en": "We need the zeroth index.",
+      "zh": "取索引 0。"
+    },
+    {
+      "start": 62.61,
+      "end": 70.11,
+      "en": "Now, of course we could hard code the batch size somewhere, but again, we don't like to hard code these things when we can manipulate our data so much.",
+      "zh": "當然也能把批次大小寫死，但資料會有很多調整，所以不喜歡固定寫死。"
+    },
+    {
+      "start": 70.11,
+      "end": 81,
+      "en": "So regardless of whether we're using a batch size of 32 or like the paper, we're using a batch size of 4096, which we're not doing because is it 496?",
+      "zh": "不管用 batch size 32，還是像論文那樣 4,096；我們不會用那麼大，數字是 496 嗎？"
+    },
+    {
+      "start": 81,
+      "end": 86.19,
+      "en": "Yeah, 4096, which we're not doing because we're a little bit limited with the hardware.",
+      "zh": "對，4,096。我們硬體有限，所以不這樣做。"
+    },
+    {
+      "start": 86.19,
+      "end": 92.5,
+      "en": "So if you had bigger hardware, you could use a bigger batch size, but this will work regardless of the batch size.",
+      "zh": "硬體更大，可以用更大批次，但這個寫法不受批次大小影響。"
+    },
+    {
+      "start": 92.52000000000001,
+      "end": 100.65,
+      "en": "So now let's create the class token embedding and expand it to match the batch size.",
+      "zh": "現在建立類別 token 嵌入，擴展以配合 batch_size。"
+    },
+    {
+      "start": 100.92,
+      "end": 102.84,
+      "en": "Now, this is a question one.",
+      "zh": "這是方程式一。"
+    },
+    {
+      "start": 103.77000000000001,
+      "end": 107.28,
+      "en": "You'll see what I mean by expanding it to to match the batch size.",
+      "zh": "等一下會看到，擴展配合批次大小，是什麼意思。"
+    },
+    {
+      "start": 107.28,
+      "end": 114.27000000000001,
+      "en": "So class token equals self class embedding, which is of course created up here.",
+      "zh": "class_token 等於 self.class_embedding，就是上面建立的。"
+    },
+    {
+      "start": 115.12,
+      "end": 115.93,
+      "en": "Dot.",
+      "zh": "加點，"
+    },
+    {
+      "start": 116.11,
+      "end": 118.77000000000001,
+      "en": "This is why we need expand or sorry the batch size.",
+      "zh": "所以需要 expand，或者說需要 batch_size。"
+    },
+    {
+      "start": 118.78,
+      "end": 123.1,
+      "en": "We want to expand the class token across all of the batches.",
+      "zh": "要把類別 token 擴展到批次裡的所有影像。"
+    },
+    {
+      "start": 123.37,
+      "end": 127.81,
+      "en": "And I'm going to put negative one negative one here and we'll see what this does in a second.",
+      "zh": "這裡放 -1、-1，等一下看看作用。"
+    },
+    {
+      "start": 128.08,
+      "end": 131.41,
+      "en": "So I'll just write down what it does and then we'll see.",
+      "zh": "先寫說明，再實際看。"
+    },
+    {
+      "start": 131.41,
+      "end": 135.25,
+      "en": "It means to infer the dimensions.",
+      "zh": "表示沿用這些維度，講者稱為推斷維度。"
+    },
+    {
+      "start": 136.51,
+      "end": 143.53,
+      "en": "So just to show you, if we replicate what we're doing here, we'll get our class token.",
+      "zh": "示範一下，重現這裡做的事，取得 class_token。"
+    },
+    {
+      "start": 145.7,
+      "end": 147.95,
+      "en": "So here, I'm just going to write this.",
+      "zh": "在這裡寫，"
+    },
+    {
+      "start": 151.65,
+      "end": 154.56,
+      "en": "Embedding them and I'm going to set batch size.",
+      "zh": "embedding_dim，再設定 batch_size。"
+    },
+    {
+      "start": 154.56,
+      "end": 164.79,
+      "en": "So embedding dim equals 768 and for a batch size of 32, which is what we're going to be using, let's have a look at what the class embedding looks like.",
+      "zh": "embedding_dim=768，batch_size=32，接下來會使用這個大小，看看類別嵌入長什麼樣。"
+    },
+    {
+      "start": 164.85,
+      "end": 167.57999999999998,
+      "en": "We might actually change this to be ones.",
+      "zh": "也許改成全 1，"
+    },
+    {
+      "start": 169.04,
+      "end": 172.19,
+      "en": "Actually, there's too many random numbers going on.",
+      "zh": "隨機數字太多了。"
+    },
+    {
+      "start": 172.19,
+      "end": 173.69,
+      "en": "So let's just look at the shape.",
+      "zh": "不然只看形狀。"
+    },
+    {
+      "start": 176.82,
+      "end": 177.39,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 177.39,
+      "end": 183.06,
+      "en": "So we've got that shape now if we expand it, which is exactly what we're doing here, let's write this down.",
+      "zh": "有這個形狀。現在像這裡一樣擴展，寫下來，"
+    },
+    {
+      "start": 183.06,
+      "end": 186.21,
+      "en": "Class embedding expanded.",
+      "zh": "class_embedding_expanded。"
+    },
+    {
+      "start": 186.45,
+      "end": 187.62,
+      "en": "I hope you realize what we're doing.",
+      "zh": "希望你知道正在做什麼。"
+    },
+    {
+      "start": 187.62,
+      "end": 189.93,
+      "en": "We're just taking the pieces of the puzzle.",
+      "zh": "就是把拼圖零件組起來。"
+    },
+    {
+      "start": 189.93,
+      "end": 195.27,
+      "en": "And if we don't understand something, if and doubt coded out, let's expand the class.",
+      "zh": "不懂的地方，有疑問就寫出來試。擴展 class_"
+    },
+    {
+      "start": 195.27,
+      "end": 198,
+      "en": "Embedding, don't expand.",
+      "zh": "embedding，用 .expand。"
+    },
+    {
+      "start": 198,
+      "end": 203.46,
+      "en": "And we want to expand it to batch size, which will be 32.",
+      "zh": "擴展到 batch_size，也就是 32。"
+    },
+    {
+      "start": 203.46,
+      "end": 205.77,
+      "en": "And then we want to go negative one, negative one.",
+      "zh": "然後 -1、-1。"
+    },
+    {
+      "start": 205.77,
+      "end": 214.26,
+      "en": "So as you'll see, negative one means to infer, to infer, sorry, infer the dimensions.",
+      "zh": "如你所見，-1 表示沿用維度；講者口稱推斷，還修正了發音。"
+    },
+    {
+      "start": 215.07,
+      "end": 216.39,
+      "en": "So let's print that out.",
+      "zh": "印出來。"
+    },
+    {
+      "start": 217.14,
+      "end": 217.89,
+      "en": "Print class.",
+      "zh": "print，class_"
+    },
+    {
+      "start": 217.89,
+      "end": 218.25,
+      "en": "Embedding.",
+      "zh": "embedding，"
+    },
+    {
+      "start": 218.25,
+      "end": 218.57999999999998,
+      "en": "Shape.",
+      "zh": ".shape。"
+    },
+    {
+      "start": 218.57999999999998,
+      "end": 219.18,
+      "en": "Print.",
+      "zh": "再 print，"
+    },
+    {
+      "start": 219.27,
+      "end": 219.87,
+      "en": "Class.",
+      "zh": "class_"
+    },
+    {
+      "start": 219.87,
+      "end": 221.91,
+      "en": "Embedding expanded.",
+      "zh": "embedding_expanded。"
+    },
+    {
+      "start": 224.74,
+      "end": 225.79,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 226.51,
+      "end": 227.65,
+      "en": "Oh, we need the shape.",
+      "zh": "喔，要 .shape。"
+    },
+    {
+      "start": 230.44,
+      "end": 232.15,
+      "en": "Easy to compare apples to apples.",
+      "zh": "同樣比較形狀，才容易對照。"
+    },
+    {
+      "start": 232.15,
+      "end": 232.57999999999998,
+      "en": "There we go.",
+      "zh": "好了。"
+    },
+    {
+      "start": 232.6,
+      "end": 233.14,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 233.14,
+      "end": 238.21,
+      "en": "So we've expanded that class token, embedding across every image in a batch.",
+      "zh": "把類別 token 嵌入，擴展到批次中每張影像。"
+    },
+    {
+      "start": 238.98,
+      "end": 247.08,
+      "en": "So that's what this line does, because we want to append an equation one or prep n Sorry, I always get those two mixed up.",
+      "zh": "所以這行如此做，因為方程式一要把它 append，抱歉，是 prepend，加在前面，我總搞混。"
+    },
+    {
+      "start": 247.47,
+      "end": 249.57,
+      "en": "If we go right back to equation one.",
+      "zh": "回到方程式一。"
+    },
+    {
+      "start": 249.66,
+      "end": 252.51,
+      "en": "We don't only want to create this.",
+      "zh": "不只是建立一張的，"
+    },
+    {
+      "start": 252.69,
+      "end": 260.18,
+      "en": "Well, so far we've been working with one image to demonstrate, but we're going to be passing batches of images to our model.",
+      "zh": "目前用一張影像示範，但會把整批影像傳給模型。"
+    },
+    {
+      "start": 260.19,
+      "end": 270.99,
+      "en": "So we want to create an X patch, embedding or image patch, embedding for each image in the batch and a class token as well for each image in a batch.",
+      "zh": "所以每張影像都要有區塊嵌入，也各有對應的類別 token。"
+    },
+    {
+      "start": 271.26,
+      "end": 272.54,
+      "en": "So that's why we do that there.",
+      "zh": "這就是如此做的原因。"
+    },
+    {
+      "start": 272.55,
+      "end": 275.34000000000003,
+      "en": "Now, if we jump back into here, we expand.",
+      "zh": "回來這裡，先 expand。"
+    },
+    {
+      "start": 275.37,
+      "end": 276.65999999999997,
+      "en": "Now what can we do?",
+      "zh": "接下來做什麼？"
+    },
+    {
+      "start": 276.81,
+      "end": 278.82,
+      "en": "Well, let's create the patch embedding.",
+      "zh": "建立區塊嵌入。"
+    },
+    {
+      "start": 281.58,
+      "end": 291.06,
+      "en": "So this is equation one and we got x equals self patch embedding and we'll pass in X as well because",
+      "zh": "對應方程式一，x = self.patch_embedding(x)，"
+    },
+    {
+      "start": 291.06,
+      "end": 292.26,
+      "en": "X is just going to be here.",
+      "zh": "因為 x 就是輸入這個。"
+    },
+    {
+      "start": 292.26,
+      "end": 295.95,
+      "en": "So this is actually the first step of manipulation in our forward method.",
+      "zh": "這其實是 forward 裡，第一個真正處理影像的步驟。"
+    },
+    {
+      "start": 296.22,
+      "end": 297.42,
+      "en": "Then what do we do?",
+      "zh": "然後？"
+    },
+    {
+      "start": 297.45,
+      "end": 304.23,
+      "en": "Well, we want to contact class token embedding and patch embedding.",
+      "zh": "把類別 token 嵌入與區塊嵌入串接。"
+    },
+    {
+      "start": 304.23,
+      "end": 306.06,
+      "en": "So this is still equation one.",
+      "zh": "仍是方程式一。"
+    },
+    {
+      "start": 307.61,
+      "end": 308.8,
+      "en": "We're putting things together.",
+      "zh": "把東西組起來。"
+    },
+    {
+      "start": 308.81,
+      "end": 309.65,
+      "en": "This is so exciting.",
+      "zh": "太令人興奮。"
+    },
+    {
+      "start": 309.65,
+      "end": 313.45,
+      "en": "We're creating a architecture, a vision transformer from scratch.",
+      "zh": "從零建立 Vision Transformer 架構。"
+    },
+    {
+      "start": 313.46,
+      "end": 320.3,
+      "en": "So class token and we want to concatenate it with X, which will be the output of our patch embedding.",
+      "zh": "class_token 要和 x 串接，x 是 PatchEmbedding 的輸出。"
+    },
+    {
+      "start": 320.3,
+      "end": 323.24,
+      "en": "And we want to do it where across the first dimension.",
+      "zh": "在索引為 1 的維度上串接。"
+    },
+    {
+      "start": 323.33,
+      "end": 324.53,
+      "en": "Why is that?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 324.53,
+      "end": 330.29,
+      "en": "Because this is going to be 32 number of patches, 768 embedding dimension.",
+      "zh": "因為形狀是批次 32、區塊數、嵌入維度 768。"
+    },
+    {
+      "start": 330.29,
+      "end": 338.6,
+      "en": "So we're doing it across batch size number of patches, embedding them beautiful.",
+      "zh": "所以依批次大小、區塊數、嵌入維度排列，很好。"
+    },
+    {
+      "start": 338.6,
+      "end": 340.01,
+      "en": "Now what do we want to do?",
+      "zh": "接著呢？"
+    },
+    {
+      "start": 340.01,
+      "end": 349.52,
+      "en": "Well, we want to add the position embedding to class token and patch embedding so we can go x equals",
+      "zh": "把位置嵌入加到類別 token 與區塊嵌入上，x 等於"
+    },
+    {
+      "start": 349.52,
+      "end": 351.40999999999997,
+      "en": "self dot position embedding.",
+      "zh": "self.position_embedding，"
+    },
+    {
+      "start": 352.56,
+      "end": 355.83,
+      "en": "Plus X, because that's going to be the output here.",
+      "zh": "加 x，也就是這裡的結果。"
+    },
+    {
+      "start": 356.34000000000003,
+      "end": 359.19,
+      "en": "So if we go up here, there's our position embedding.",
+      "zh": "上面，這就是位置嵌入。"
+    },
+    {
+      "start": 359.19,
+      "end": 362.74,
+      "en": "We've created that on purpose to be a random initialization.",
+      "zh": "刻意用隨機初始化。"
+    },
+    {
+      "start": 362.79,
+      "end": 373.89,
+      "en": "And the size is self number of patches plus one number of patches plus one will of course be a number of patches plus one because we're concatenating the class token.",
+      "zh": "尺寸是 self.num_patches + 1，因為串接了 class_token，所以區塊數要加 1。"
+    },
+    {
+      "start": 375.1,
+      "end": 375.87,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 375.88,
+      "end": 377.5,
+      "en": "And now what's next?",
+      "zh": "下一步？"
+    },
+    {
+      "start": 377.77,
+      "end": 380.86,
+      "en": "Well, we can run and betting drop out from here.",
+      "zh": "執行 embedding_dropout。"
+    },
+    {
+      "start": 381.04,
+      "end": 382.48,
+      "en": "So if we look back up, drop out?",
+      "zh": "回去看 dropout，"
+    },
+    {
+      "start": 382.48,
+      "end": 384.25,
+      "en": "We've done this about half a dozen times now.",
+      "zh": "已經反覆看大概六次了。"
+    },
+    {
+      "start": 384.25,
+      "end": 389.02,
+      "en": "But of course, that's what the nature of paper replicating is jumping all over the place.",
+      "zh": "但重現論文就是如此，到處來回確認。"
+    },
+    {
+      "start": 389.23,
+      "end": 398.8,
+      "en": "Drop out when used is applied after every dense layer except for the Cuvee projections and directly after adding positional to patch embedding.",
+      "zh": "使用 dropout 時，放在每個 dense 層後，除了 QKV 投影，並且在位置嵌入加到區塊嵌入後，立即使用。"
+    },
+    {
+      "start": 398.8,
+      "end": 407.89,
+      "en": "So this is what we're doing directly after our position or the patch embeddings or just come here, apply drop out to patch embeddings.",
+      "zh": "所以現在做這個，就在位置與區塊嵌入相加後，套用 dropout。"
+    },
+    {
+      "start": 410.28,
+      "end": 412.65,
+      "en": "And I'll just make sure that's all on one line.",
+      "zh": "確認說明放在同一行。"
+    },
+    {
+      "start": 412.74,
+      "end": 413.73,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 413.76,
+      "end": 417.42,
+      "en": "So X equals self embedding drop out.",
+      "zh": "x = self.embedding_dropout，"
+    },
+    {
+      "start": 418.4,
+      "end": 419.65999999999997,
+      "en": "On X.",
+      "zh": "傳入 x。"
+    },
+    {
+      "start": 419.78,
+      "end": 427.67,
+      "en": "And so embedding drop out is going to be this here with the probability of 0.1 by default.",
+      "zh": "embedding_dropout 就是這個，預設機率 0.1。"
+    },
+    {
+      "start": 427.67,
+      "end": 429.65,
+      "en": "That is, we could change that if we wanted to.",
+      "zh": "想的話可以改。"
+    },
+    {
+      "start": 429.68,
+      "end": 430.94,
+      "en": "Now, what's next?",
+      "zh": "接下來？"
+    },
+    {
+      "start": 430.97,
+      "end": 440.12,
+      "en": "Well, we have to pass our position and patch embedding to the transformer encoder.",
+      "zh": "把位置與區塊嵌入，傳給 Transformer 編碼器。"
+    },
+    {
+      "start": 440.15,
+      "end": 442.04,
+      "en": "So if we go back to FIG. one.",
+      "zh": "回圖一，"
+    },
+    {
+      "start": 443.93,
+      "end": 447.65,
+      "en": "Right up here to our colorful graphic we've seen so many times.",
+      "zh": "上面這個彩色圖，已看過很多次。"
+    },
+    {
+      "start": 447.65,
+      "end": 449.54,
+      "en": "We're getting so close, everyone.",
+      "zh": "大家，快完成了。"
+    },
+    {
+      "start": 449.54,
+      "end": 451.04,
+      "en": "So we've embedded the patches.",
+      "zh": "已嵌入影像區塊，"
+    },
+    {
+      "start": 451.04,
+      "end": 452.39,
+      "en": "We've created this.",
+      "zh": "建立這個，"
+    },
+    {
+      "start": 452.87,
+      "end": 453.77,
+      "en": "That's what we've created.",
+      "zh": "就是剛建立的。"
+    },
+    {
+      "start": 453.77,
+      "end": 460.49,
+      "en": "We've got a little drop out layer in here that isn't visible in this diagram, but that's the whole nature of paper replicating.",
+      "zh": "這裡還有小 dropout 層，圖上看不到，但這就是重現論文，"
+    },
+    {
+      "start": 460.49,
+      "end": 464.33,
+      "en": "You're not only have to use images, math, you have to use text as well.",
+      "zh": "不只要看圖、數學，也要看文字。"
+    },
+    {
+      "start": 464.72,
+      "end": 466.58,
+      "en": "We've got to transform our encoder layer.",
+      "zh": "現在有 Transformer 編碼器層。"
+    },
+    {
+      "start": 466.58,
+      "end": 475.88,
+      "en": "So let's pass our embedding our patch and position, embedding through all of our stack of transformer encoders which is created here.",
+      "zh": "把影像區塊與位置嵌入，傳過這整疊編碼器，就是這裡建立的。"
+    },
+    {
+      "start": 476.03,
+      "end": 484.7,
+      "en": "So we want to go x equals self dot transformer encoder X, Wonderful.",
+      "zh": "所以 x = self.transformer_encoder(x)，很好。"
+    },
+    {
+      "start": 484.7,
+      "end": 487.28,
+      "en": "Now there's final step, the final step.",
+      "zh": "最後一步，最後了。"
+    },
+    {
+      "start": 487.79,
+      "end": 490.22,
+      "en": "So we want to put this zeroth index.",
+      "zh": "把第零個索引，"
+    },
+    {
+      "start": 490.22,
+      "end": 493.28,
+      "en": "I'm not even sure it's zeroth is the right word, but I'm going to use it.",
+      "zh": "我甚至不確定 zeroth 這個英文詞對不對，但先這樣說，"
+    },
+    {
+      "start": 493.31,
+      "end": 497.84,
+      "en": "Zeroth index logit through the classifier.",
+      "zh": "第零個 token 的表示，講者稱為 logit，傳給分類器。"
+    },
+    {
+      "start": 498.96,
+      "end": 501.33,
+      "en": "And this is a equation for.",
+      "zh": "對應方程式四。"
+    },
+    {
+      "start": 502.21,
+      "end": 507.04,
+      "en": "And excuse me, this is going to be equation two and three, two and three.",
+      "zh": "不好意思，前面這裡是方程式二和三，二和三。"
+    },
+    {
+      "start": 507.4,
+      "end": 510.79,
+      "en": "And so equation four is if we go back.",
+      "zh": "方程式四，回去看，"
+    },
+    {
+      "start": 511.35,
+      "end": 518.22,
+      "en": "We've got this token here, the class token that goes through the NLP head and outputs to something like this.",
+      "zh": "這裡的 class_token，經過 MLP head，輸出這樣的結果。"
+    },
+    {
+      "start": 518.49,
+      "end": 521.83,
+      "en": "So if we scroll down, this is why.",
+      "zh": "往下，這就是原因。"
+    },
+    {
+      "start": 521.85,
+      "end": 529.96,
+      "en": "So the output equals layer norm our classifier on the zeroth index Z So logit of the last layer.",
+      "zh": "輸出 y，就是最後一層 z 的第零個 token，經過 LayerNorm 與分類頭；講者仍把這個表示稱作 logit。"
+    },
+    {
+      "start": 529.98,
+      "end": 536.34,
+      "en": "So we take this the zeroth index and pass it through the self classifier.",
+      "zh": "所以取索引 0，傳給 self.classifier。"
+    },
+    {
+      "start": 536.94,
+      "end": 542.4,
+      "en": "So we want zero, we want every batch and then we want the zeroth index there.",
+      "zh": "每個批次都取，再取 token 索引 0。"
+    },
+    {
+      "start": 543.18,
+      "end": 544.29,
+      "en": "And I think.",
+      "zh": "我想，"
+    },
+    {
+      "start": 544.95,
+      "end": 550.25,
+      "en": "That is a complete vision transformer architecture created.",
+      "zh": "完整 Vision Transformer 架構建立了。"
+    },
+    {
+      "start": 550.26,
+      "end": 552.57,
+      "en": "Look at that, our first vet.",
+      "zh": "看，第一個 ViT。"
+    },
+    {
+      "start": 552.57,
+      "end": 554.76,
+      "en": "So that deserves a round of applause.",
+      "zh": "值得鼓掌。"
+    },
+    {
+      "start": 557.99,
+      "end": 566.24,
+      "en": "So we haven't quite made sure that it works just yet, but we've put together a vision transformer from scratch.",
+      "zh": "雖然還沒確認運作，但已把從零建立的 Vision Transformer 組起來，"
+    },
+    {
+      "start": 566.9,
+      "end": 569.42,
+      "en": "Going through all of the pieces of the puzzle.",
+      "zh": "一個拼圖零件接一個。"
+    },
+    {
+      "start": 570.13,
+      "end": 571.33,
+      "en": "What have we done?",
+      "zh": "做了什麼？"
+    },
+    {
+      "start": 571.91,
+      "end": 578.42,
+      "en": "We've created Equation one turned our image into a sequence of patch embeddings, created equation two",
+      "zh": "方程式一，把影像轉成區塊嵌入序列；方程式二，"
+    },
+    {
+      "start": 578.45,
+      "end": 585.35,
+      "en": "a multi head self attention block created equation three multi layer perceptron an NLP block.",
+      "zh": "多頭自注意力區塊；方程式三，多層感知器，也就是 MLP 區塊。"
+    },
+    {
+      "start": 585.35,
+      "end": 592.43,
+      "en": "Put them all together into a transformer encoder and then put all of that together into a vision transformer class.",
+      "zh": "組成 Transformer 編碼器，再全部組成 ViT 類別。"
+    },
+    {
+      "start": 592.76,
+      "end": 599.72,
+      "en": "So now we should be able to just call our vision transformer vit equals vit.",
+      "zh": "現在應該只要呼叫，vit = ViT()。"
+    },
+    {
+      "start": 600.86,
+      "end": 602.09,
+      "en": "Let's see if this works.",
+      "zh": "看看能不能用。"
+    },
+    {
+      "start": 602.34,
+      "end": 602.81,
+      "en": "Bit.",
+      "zh": "ViT。"
+    },
+    {
+      "start": 604.88,
+      "end": 605.74,
+      "en": "Oh, my gosh.",
+      "zh": "天啊。"
+    },
+    {
+      "start": 605.75,
+      "end": 606.38,
+      "en": "Look at that.",
+      "zh": "看。"
+    },
+    {
+      "start": 606.41,
+      "end": 608.3,
+      "en": "Look at all those layers we just created.",
+      "zh": "剛建立了這麼多層。"
+    },
+    {
+      "start": 611.38,
+      "end": 618.64,
+      "en": "Now, my challenge to you to finish off this video or to finish off this little section is to run some data through the VIT.",
+      "zh": "結束這支影片，或這一小節前，給你的挑戰，是把資料傳進這個 ViT"
+    },
+    {
+      "start": 619.62,
+      "end": 623.35,
+      "en": "For instance, that we have here and see what it outputs.",
+      "zh": "實例，看看輸出。"
+    },
+    {
+      "start": 623.38,
+      "end": 625.17,
+      "en": "Is it in the correct shape that we want?",
+      "zh": "形狀符合需求嗎？"
+    },
+    {
+      "start": 625.18,
+      "end": 626.95,
+      "en": "So do a little dance.",
+      "zh": "所以跳個小舞，"
+    },
+    {
+      "start": 626.98,
+      "end": 632.2,
+      "en": "Pat yourself on the back and finish the final test of putting some data through it.",
+      "zh": "拍拍自己，最後再做一次傳資料的測試。"
+    },
+    {
+      "start": 632.2,
+      "end": 634.61,
+      "en": "And perhaps you might want to get a summary of tortured vocals.",
+      "zh": "或許也想取得 torchinfo."
+    },
+    {
+      "start": 634.66,
+      "end": 635.29,
+      "en": "Summary.",
+      "zh": "summary 摘要。"
+    },
+    {
+      "start": 636.13,
+      "end": 638.62,
+      "en": "Otherwise, we'll do that together in the next video.",
+      "zh": "不然，下一支影片一起做。"
+    },
+    {
+      "start": 639.01,
+      "end": 639.91,
+      "en": "I'll see you there.",
+      "zh": "下支影片見。"
+    }
+  ]
+}

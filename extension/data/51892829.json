@@ -1,0 +1,1939 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892829",
+  "title": "CodeChallenge: Token-related similarities across layers",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "3aefa30b7be458323387f32c6120635c0679c5cd92d5e004c586039493dc8f6c",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 12.68,
+      "en": "This code challenge follows directly from the previous video, so make sure you've gone through that video and the code before starting this one.",
+      "zh": "這次程式挑戰直接接續上一支影片，因此開始前，請確定已經看過那支影片與程式。"
+    },
+    {
+      "start": 13.16,
+      "end": 20.2,
+      "en": "What we are going to do here is follow up on the approach that I showed you in the previous video,",
+      "zh": "這裡會接續上一支影片示範的做法，"
+    },
+    {
+      "start": 20.2,
+      "end": 31.36,
+      "en": "and extend it by adding some additional analyses, and also by analyzing how the characteristics change over the different layers.",
+      "zh": "加入額外分析，並研究這些特徵如何隨不同層而變化。"
+    },
+    {
+      "start": 32.32,
+      "end": 42.16,
+      "en": "Exercise one is mostly copy paste from the code for the previous video, although there are a few changes and a few things that you can leave out.",
+      "zh": "練習一主要是複製貼上前一支影片的程式，但有幾項改動，也有些內容可以省略。"
+    },
+    {
+      "start": 42.32,
+      "end": 45.72,
+      "en": "And this is basically a list of what you want to accomplish here.",
+      "zh": "這基本上就是你要完成的事項清單。"
+    },
+    {
+      "start": 46.2,
+      "end": 50.4,
+      "en": "So one difference is that you want to use GPT two XL.",
+      "zh": "其中一個差異，是要使用 GPT2-XL，"
+    },
+    {
+      "start": 50.4,
+      "end": 54.48,
+      "en": "So the large the extra large version of GPT two.",
+      "zh": "也就是 GPT2 的超大型版本。"
+    },
+    {
+      "start": 54.92,
+      "end": 66.5,
+      "en": "So make sure that the size and shape parameters in your code are soft coded so that they will work with the bigger model, which has more layers and more parameters.",
+      "zh": "所以，請確保程式中的大小與形狀參數都以變數設定，才能適用於層數與參數更多的大模型。"
+    },
+    {
+      "start": 67.3,
+      "end": 75.66,
+      "en": "Now you can connect to a GPU if you want, although there isn't a whole lot of feedforward processing to do in this code challenge.",
+      "zh": "如果想，也可以連接 GPU，但這次挑戰沒有太多前向傳播運算。"
+    },
+    {
+      "start": 75.66,
+      "end": 80.42,
+      "en": "So I actually just ran the whole thing on the CPU and it's fine.",
+      "zh": "所以我其實全部都在 CPU 上執行，也沒問題。"
+    },
+    {
+      "start": 80.9,
+      "end": 88.46000000000001,
+      "en": "By the end of this exercise, you want to have all the activations for the targets and non-target tokens",
+      "zh": "完成這個練習時，應該取得所有目標與非目標 token 的活化，"
+    },
+    {
+      "start": 88.66,
+      "end": 93.38,
+      "en": "and using the same sentences from the previous video.",
+      "zh": "使用的句子與上一支影片相同。"
+    },
+    {
+      "start": 93.78,
+      "end": 101.66,
+      "en": "And then you also want to have that upper triangular matrix mask from which we can extract the individual",
+      "zh": "另外，也要有那個上三角矩陣遮罩，才能擷取各個"
+    },
+    {
+      "start": 101.66,
+      "end": 107.02000000000001,
+      "en": "submatrices and the interactions across the different attention Submatrices.",
+      "zh": "子矩陣，以及不同注意力子矩陣之間的交互關係。"
+    },
+    {
+      "start": 107.62,
+      "end": 115.86,
+      "en": "Now you do not need to calculate cosine similarity or correlation or any other analyses in this exercise.",
+      "zh": "這個練習不需要計算餘弦相似度、相關，或任何其他分析。"
+    },
+    {
+      "start": 115.86,
+      "end": 117.3,
+      "en": "We'll get to that later.",
+      "zh": "那留到後面再做。"
+    },
+    {
+      "start": 117.42,
+      "end": 123.04,
+      "en": "Here everything is just about getting the code set up for later exercises.",
+      "zh": "這裡只是為後面的練習準備程式。"
+    },
+    {
+      "start": 123.24,
+      "end": 132.48,
+      "en": "Also, a brief reminder that the target token in the full sentence is actually space her, not just her, with no preceding space.",
+      "zh": "也簡短提醒一下，完整句子中的目標 token，其實是「空格加 her」，而不是前面沒有空格的 her。"
+    },
+    {
+      "start": 133.36,
+      "end": 137.68,
+      "en": "Okay, so now you can pause the video and switch to code.",
+      "zh": "好，現在可以暫停影片，切換到程式碼。"
+    },
+    {
+      "start": 138,
+      "end": 144.72,
+      "en": "I will switch to Python very briefly, just to give a quick overview of the code for this exercise.",
+      "zh": "我會很快切換到 Python，簡單概述這個練習的程式。"
+    },
+    {
+      "start": 145.76,
+      "end": 147.76,
+      "en": "So some libraries to import.",
+      "zh": "先匯入一些函式庫。"
+    },
+    {
+      "start": 147.76,
+      "end": 151.36,
+      "en": "Here you can see I'm importing Gpt2 Excel.",
+      "zh": "這裡可以看到，匯入的是 GPT2-XL。"
+    },
+    {
+      "start": 151.96,
+      "end": 153.36,
+      "en": "This is just copied over.",
+      "zh": "這是直接複製過來的。"
+    },
+    {
+      "start": 153.36,
+      "end": 157.88,
+      "en": "In fact all of the Tokenizers for GPT two are the same.",
+      "zh": "其實所有 GPT2 tokenizer 都相同，"
+    },
+    {
+      "start": 157.88,
+      "end": 161.04,
+      "en": "All the variants use exactly the same tokenizer.",
+      "zh": "各個版本都使用完全相同的 tokenizer。"
+    },
+    {
+      "start": 161.28,
+      "end": 163.6,
+      "en": "And I'm switching the model to eval mode.",
+      "zh": "接著將模型切換為 eval 模式。"
+    },
+    {
+      "start": 163.6,
+      "end": 168.36,
+      "en": "And this is just a convenience variable for the number of embeddings dimensions.",
+      "zh": "這裡只是為嵌入維度數量建立一個方便使用的變數，"
+    },
+    {
+      "start": 168.36,
+      "end": 173.64,
+      "en": "So I don't need to keep writing out all of these characters multiple times throughout the code.",
+      "zh": "就不必在整份程式中，反覆寫出這麼多字元。"
+    },
+    {
+      "start": 174.04,
+      "end": 177.44,
+      "en": "Okay, this is the same as what you've seen before.",
+      "zh": "好，這與先前看過的相同。"
+    },
+    {
+      "start": 177.48,
+      "end": 181.53,
+      "en": "I'm hooking the, uh, Q vk matrices.",
+      "zh": "我對 Q、V、K 矩陣安裝 hook，"
+    },
+    {
+      "start": 181.77,
+      "end": 183.77,
+      "en": "And yeah using attention.",
+      "zh": "使用的是 attention，"
+    },
+    {
+      "start": 184.05,
+      "end": 185.01,
+      "en": "C attention.",
+      "zh": "再到 c_attn。"
+    },
+    {
+      "start": 185.21,
+      "end": 194.85,
+      "en": "And the output of that linear transformation is the q, v and k matrices, or the vectors all concatenated",
+      "zh": "這項線性轉換的輸出，是 Q、V、K 矩陣，或說向量，全部串接"
+    },
+    {
+      "start": 194.85,
+      "end": 199.93,
+      "en": "together into one wide matrix, which I will later on separate.",
+      "zh": "成一個寬矩陣，稍後再將它們分開。"
+    },
+    {
+      "start": 200.65,
+      "end": 201.05,
+      "en": "Let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 201.09,
+      "end": 205.29,
+      "en": "Here are the sentences literally copy pasted from earlier.",
+      "zh": "這些句子真的是從前面直接複製貼上。"
+    },
+    {
+      "start": 205.49,
+      "end": 207.81,
+      "en": "Uh, tokenize push through the model.",
+      "zh": "進行 token 化，再送進模型。"
+    },
+    {
+      "start": 207.85,
+      "end": 210.77,
+      "en": "Yeah, this takes around a minute on the CPU.",
+      "zh": "在 CPU 上大概要一分鐘。"
+    },
+    {
+      "start": 210.81,
+      "end": 215.13,
+      "en": "It's really not so bad and we don't need the GPU for anything else.",
+      "zh": "其實不太糟，也沒有其他事情需要 GPU。"
+    },
+    {
+      "start": 215.13,
+      "end": 217.13,
+      "en": "This is the only thing we're going to do here.",
+      "zh": "這就是這裡唯一要做的模型運算。"
+    },
+    {
+      "start": 217.41,
+      "end": 225.57,
+      "en": "And then this is the code to create that matrix mask that I explained in the previous video.",
+      "zh": "這裡則是建立上一支影片解釋過的矩陣遮罩。"
+    },
+    {
+      "start": 225.77,
+      "end": 230.49,
+      "en": "So you can see all the same code from the or mostly the same code from the previous video.",
+      "zh": "可以看到，全都是，或大部分都是，上一支影片的相同程式。"
+    },
+    {
+      "start": 230.93,
+      "end": 236.01,
+      "en": "Uh, and I'm just leaving out some printing and, and visualizations and so on.",
+      "zh": "只是省略一些列印、視覺化等等。"
+    },
+    {
+      "start": 236.77,
+      "end": 240.67,
+      "en": "We are still not quite ready to do the analyses.",
+      "zh": "我們還沒完全準備好進行分析。"
+    },
+    {
+      "start": 241.11,
+      "end": 247.47,
+      "en": "First, I want you to write a function that will get layer specific activations.",
+      "zh": "首先，想請你寫一個函式，取得特定層的活化。"
+    },
+    {
+      "start": 247.75,
+      "end": 254.79,
+      "en": "The only tricky part is that you need to find the index of the target token in each sentence, because",
+      "zh": "唯一有點棘手的地方，是要找出每個句子中目標 token 的索引，因為"
+    },
+    {
+      "start": 254.79,
+      "end": 260.23,
+      "en": "the word her can appear in different positions in different sentences.",
+      "zh": "her 在不同句子中可能出現在不同位置。"
+    },
+    {
+      "start": 260.83,
+      "end": 268.95,
+      "en": "So the idea of this function is that you're going to use it in the next exercise to get all the activations",
+      "zh": "這個函式會在下一個練習使用，取得某一層的所有活化，"
+    },
+    {
+      "start": 268.95,
+      "end": 275.63,
+      "en": "from one layer, so that and that is the layer index that you input into this function.",
+      "zh": "而輸入函式的參數，就是該層的索引。"
+    },
+    {
+      "start": 276.27,
+      "end": 282.19,
+      "en": "Now on the one hand, you can literally copy paste all of this code from the previous video.",
+      "zh": "一方面，你確實可以直接複製貼上上一支影片的所有程式。"
+    },
+    {
+      "start": 282.55,
+      "end": 289.79,
+      "en": "But on the other hand, because this is the only thing you need to do for exercise two I strongly recommend",
+      "zh": "但另一方面，練習二只需要做這件事，因此我非常建議"
+    },
+    {
+      "start": 289.83,
+      "end": 298.39,
+      "en": "coding this one from scratch just based on these comments here, without copy pasting from the previous video.",
+      "zh": "只根據這裡的註解，從頭寫出程式，不要從上一支影片複製貼上。"
+    },
+    {
+      "start": 298.67,
+      "end": 309.09,
+      "en": "This is a great opportunity to make sure that you're comfortable with finding a target token in a short sequence and working with activations vectors.",
+      "zh": "這是很好的機會，可以確認你是否熟悉在短序列中找出目標 token，以及處理活化向量。"
+    },
+    {
+      "start": 310.01,
+      "end": 317.29,
+      "en": "Okay, so now you should pause the video and again I will switch to code, but just briefly to make sure that this syntax is clear.",
+      "zh": "好，現在請暫停影片。我會再短暫切換到程式碼，確認這些語法都很清楚。"
+    },
+    {
+      "start": 318.33,
+      "end": 323.29,
+      "en": "So inside this function I initialize a variable.",
+      "zh": "在這個函式裡，先初始化一個變數。"
+    },
+    {
+      "start": 323.29,
+      "end": 324.65,
+      "en": "So we have the length.",
+      "zh": "先有長度，"
+    },
+    {
+      "start": 325.05,
+      "end": 329.81,
+      "en": "So the number of sentences and then the number of embeddings dimensions times three.",
+      "zh": "也就是句子數量，接著是嵌入維度乘以三。"
+    },
+    {
+      "start": 330.09,
+      "end": 336.45,
+      "en": "Of course that's for the concatenation of the queries the keys and the values vectors.",
+      "zh": "當然，這是因為 query、key、value 向量串接在一起。"
+    },
+    {
+      "start": 336.77,
+      "end": 338.77,
+      "en": "And then I loop over sentences.",
+      "zh": "接著逐一迭代句子。"
+    },
+    {
+      "start": 338.93,
+      "end": 339.40999999999997,
+      "en": "And yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 339.45,
+      "end": 347.09000000000003,
+      "en": "Also as a reminder of stuff I've said in the previous video, if you have the sequences, if the batches",
+      "zh": "也再提醒上一支影片提過的內容：如果序列，也就是批次，"
+    },
+    {
+      "start": 347.09000000000003,
+      "end": 353.73,
+      "en": "are set up such that the target word is in the same position, the same ordinal position, for example,",
+      "zh": "安排成目標詞永遠出現在相同的順位、相同的位置，例如"
+    },
+    {
+      "start": 353.73,
+      "end": 360.79,
+      "en": "let's say the target token that you want to grab the activations for is always the final token in the sequence.",
+      "zh": "要擷取活化的目標 token，永遠是序列的最後一個 token，"
+    },
+    {
+      "start": 360.79,
+      "end": 363.55,
+      "en": "You do not actually need a for loop here.",
+      "zh": "這裡其實就不需要 for 迴圈。"
+    },
+    {
+      "start": 363.55,
+      "end": 367.27,
+      "en": "You can just index something you know it would be something like this.",
+      "zh": "直接用索引即可，寫法大概像這樣，"
+    },
+    {
+      "start": 367.35,
+      "end": 372.47,
+      "en": "All the sentences, the final token and then all of the dimensions.",
+      "zh": "所有句子、最後一個 token，以及所有維度。"
+    },
+    {
+      "start": 372.59,
+      "end": 380.15,
+      "en": "But, uh, yeah, the, uh, the location of the target token can be different in every sentence.",
+      "zh": "但這裡目標 token 的位置，在每個句子都可能不同。"
+    },
+    {
+      "start": 380.63,
+      "end": 380.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 380.95,
+      "end": 383.07,
+      "en": "And then this is for the target.",
+      "zh": "這是目標的部分，"
+    },
+    {
+      "start": 383.07,
+      "end": 386.31,
+      "en": "And this is for the comparison, the non-target.",
+      "zh": "這是比較資料，也就是非目標的部分。"
+    },
+    {
+      "start": 386.31,
+      "end": 394.27,
+      "en": "These are whatever token or word happens to come before the word her in each of these sentences.",
+      "zh": "它們是每個句子中，剛好出現在 her 前面的 token 或詞。"
+    },
+    {
+      "start": 395.63,
+      "end": 398.31,
+      "en": "This exercise is a big one.",
+      "zh": "這個練習的份量很大。"
+    },
+    {
+      "start": 398.51,
+      "end": 407.63,
+      "en": "What you're going to do is create a for loop that loops over all of the layers and calculates and organizes",
+      "zh": "要建立一個 for 迴圈，逐一迭代所有層，計算並整理"
+    },
+    {
+      "start": 407.67,
+      "end": 410.87,
+      "en": "a bunch of analyses from within each layer.",
+      "zh": "每一層內的一系列分析。"
+    },
+    {
+      "start": 411.43,
+      "end": 416.47,
+      "en": "There's no visualization here that comes in the next two exercises.",
+      "zh": "這裡不做視覺化，那是後面兩個練習的內容。"
+    },
+    {
+      "start": 416.63,
+      "end": 421.65,
+      "en": "But here is the list of things to do for exercise three.",
+      "zh": "這裡是練習三的待辦清單。"
+    },
+    {
+      "start": 422.09,
+      "end": 425.41,
+      "en": "So here we have a big loop over all the layers.",
+      "zh": "先有一個遍歷所有層的大迴圈。"
+    },
+    {
+      "start": 425.57,
+      "end": 430.57,
+      "en": "And first you call the function that you wrote in exercise two.",
+      "zh": "首先，呼叫練習二寫的函式。"
+    },
+    {
+      "start": 430.97,
+      "end": 437.97,
+      "en": "This will give you tensors for all the activations for the targets and for the non targets.",
+      "zh": "這會取得包含所有目標與非目標活化的張量。"
+    },
+    {
+      "start": 438.45,
+      "end": 446.73,
+      "en": "The next thing to do is get the variances over all of the targets and averaged within each attention submatrix.",
+      "zh": "接著，要計算所有目標之間的變異數，再於各注意力子矩陣內取平均。"
+    },
+    {
+      "start": 446.97,
+      "end": 455.65,
+      "en": "So to be clear for this piece of the code, here you have 54 activation values for each neuron.",
+      "zh": "說清楚一點，這段程式中，每個神經元有 54 個活化值。"
+    },
+    {
+      "start": 456.29,
+      "end": 461.77,
+      "en": "Then you calculate the variance across all of those 54 neurons.",
+      "zh": "接著計算這 54 個神經元之間的變異數。"
+    },
+    {
+      "start": 462.13,
+      "end": 464.65,
+      "en": "That's going to give you 1600.",
+      "zh": "這會得到 1,600，"
+    },
+    {
+      "start": 464.65,
+      "end": 476.61,
+      "en": "So 1600 variance values corresponding to 1600 neurons query neurons and 1600 because this is GPT two",
+      "zh": "也就是 1,600 個變異數值，對應 1,600 個 query 神經元。之所以是 1,600，因為這是 GPT2-"
+    },
+    {
+      "start": 476.85,
+      "end": 477.69,
+      "en": "XL.",
+      "zh": "XL。"
+    },
+    {
+      "start": 478.01,
+      "end": 481.59,
+      "en": "Of course that number would be 768.",
+      "zh": "當然，這個數字在小型版本中，"
+    },
+    {
+      "start": 481.79,
+      "end": 492.43,
+      "en": "In the small version, then you average across all of those 1600 variance values to get one number corresponding",
+      "zh": "會是 768。接著對全部 1,600 個變異數取平均，得到一個數值，對應"
+    },
+    {
+      "start": 492.47,
+      "end": 498.83,
+      "en": "to the average of the token activation variances from the cue population.",
+      "zh": "Q 群體之 token 活化變異數的平均。"
+    },
+    {
+      "start": 499.51,
+      "end": 504.11,
+      "en": "Then all this stuff that I just described that was for the query neuron.",
+      "zh": "剛才描述的這些，都是針對 query 神經元，"
+    },
+    {
+      "start": 504.11,
+      "end": 509.35,
+      "en": "So then you repeat that for the keys and you repeat that for the values.",
+      "zh": "接著再對 key 重複，對 value 也重複。"
+    },
+    {
+      "start": 509.99,
+      "end": 514.63,
+      "en": "So that means you're going to get three numbers from each layer.",
+      "zh": "所以每一層會得到三個數字。"
+    },
+    {
+      "start": 514.99,
+      "end": 521.31,
+      "en": "And then you repeat that analysis for the targets and for the non targets.",
+      "zh": "接著，對目標與非目標都重複這項分析。"
+    },
+    {
+      "start": 521.47,
+      "end": 524.55,
+      "en": "So in fact it's actually six numbers per layer.",
+      "zh": "所以實際上每層共有六個數字。"
+    },
+    {
+      "start": 524.95,
+      "end": 525.31,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 525.35,
+      "end": 534.19,
+      "en": "The interpretation of this result is that if the model processes the word her in exactly the same way",
+      "zh": "結果的解讀是，如果模型在每個句子中，都以完全相同的方式處理"
+    },
+    {
+      "start": 534.31,
+      "end": 539.04,
+      "en": "in every sentence, then the variance will be basically zero.",
+      "zh": "her，那麼變異數基本上就會是零。"
+    },
+    {
+      "start": 539.64,
+      "end": 549.2,
+      "en": "And the larger the variance, the more the preceding context changes how the model processes the target word her.",
+      "zh": "變異數越大，表示前面的上下文，越會改變模型處理目標詞 her 的方式。"
+    },
+    {
+      "start": 549.84,
+      "end": 556,
+      "en": "And of course, that might change across the different layers of the model, the different transformer blocks.",
+      "zh": "當然，這種情況可能隨模型的不同層、不同 Transformer 區塊而改變。"
+    },
+    {
+      "start": 557.16,
+      "end": 557.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 557.52,
+      "end": 559.36,
+      "en": "So that's for the variances.",
+      "zh": "以上是變異數。"
+    },
+    {
+      "start": 559.36,
+      "end": 569.32,
+      "en": "For the means you do exactly the same procedure, except you get the average activation value instead of the variance over all of the tokens.",
+      "zh": "平均數也採取完全相同的程序，只是對所有 token 取平均活化值，而不是變異數。"
+    },
+    {
+      "start": 570.08,
+      "end": 580.32,
+      "en": "The next thing to do is to calculate cosine similarities across all 5000 neurons in q, k, and v separately",
+      "zh": "接著，要對 Q、K、V 中全部 5,000 個神經元計算餘弦相似度，分別"
+    },
+    {
+      "start": 580.32,
+      "end": 583.36,
+      "en": "for the targets and the non targets.",
+      "zh": "針對目標與非目標進行。"
+    },
+    {
+      "start": 583.64,
+      "end": 586.52,
+      "en": "Now this we did in the previous video.",
+      "zh": "這在上一支影片做過。"
+    },
+    {
+      "start": 587.16,
+      "end": 595.6,
+      "en": "Once you have those big cosine similarity matrices, you can then apply the matrix mask that you created",
+      "zh": "有了這些大型餘弦相似度矩陣後，就能套用練習一建立的"
+    },
+    {
+      "start": 595.6,
+      "end": 605.02,
+      "en": "in exercise one And isolate all of the cosine similarities within each of the three matrices and across",
+      "zh": "矩陣遮罩，分離三個矩陣各自內部，以及所有矩陣配對之間的"
+    },
+    {
+      "start": 605.02,
+      "end": 607.22,
+      "en": "all the pairs of matrices.",
+      "zh": "餘弦相似度。"
+    },
+    {
+      "start": 608.14,
+      "end": 610.86,
+      "en": "And then you can make histograms again.",
+      "zh": "接著又能建立直方圖。"
+    },
+    {
+      "start": 610.9,
+      "end": 614.34,
+      "en": "That is the same as what we did in the previous video.",
+      "zh": "這與上一支影片所做的相同。"
+    },
+    {
+      "start": 614.38,
+      "end": 621.1,
+      "en": "You can feel free to copy and modify or rewrite from scratch if you'd like a bigger challenge.",
+      "zh": "你可以直接複製並修改；如果想要更大的挑戰，也可以從頭重寫。"
+    },
+    {
+      "start": 621.66,
+      "end": 623.62,
+      "en": "Okay, so I hope that all makes sense.",
+      "zh": "好，希望這些都很清楚。"
+    },
+    {
+      "start": 623.62,
+      "end": 625.9,
+      "en": "There's a lot of work to do here.",
+      "zh": "這裡有很多工作要做。"
+    },
+    {
+      "start": 626.02,
+      "end": 630.58,
+      "en": "And this for loop actually gets pretty long once you fill in all of this code.",
+      "zh": "而將所有程式填進去後，這個 for 迴圈會相當長。"
+    },
+    {
+      "start": 631.18,
+      "end": 632.98,
+      "en": "But I believe in you.",
+      "zh": "但我相信你，"
+    },
+    {
+      "start": 632.98,
+      "end": 634.18,
+      "en": "I know you can do it.",
+      "zh": "我知道你做得到。"
+    },
+    {
+      "start": 634.18,
+      "end": 636.5,
+      "en": "So pause the video and get to work.",
+      "zh": "所以請暫停影片，開始動手。"
+    },
+    {
+      "start": 636.54,
+      "end": 638.9,
+      "en": "And now I will show my solution.",
+      "zh": "接著展示我的解答。"
+    },
+    {
+      "start": 639.98,
+      "end": 643.34,
+      "en": "So here we are in this very long code cell.",
+      "zh": "這裡就是那個非常長的程式區塊。"
+    },
+    {
+      "start": 643.38,
+      "end": 645.78,
+      "en": "There's really it gets really quite long.",
+      "zh": "真的變得很長。"
+    },
+    {
+      "start": 646.18,
+      "end": 646.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 646.5,
+      "end": 650.5,
+      "en": "So in the very beginning I'm initializing lots and lots of stuff.",
+      "zh": "一開始，先初始化很多很多東西。"
+    },
+    {
+      "start": 650.62,
+      "end": 654.14,
+      "en": "Now just a little helpful tip about coding.",
+      "zh": "先提供一個寫程式的小技巧。"
+    },
+    {
+      "start": 654.46,
+      "end": 658.12,
+      "en": "What I often do is initialize Later.",
+      "zh": "我經常會晚一點才寫初始化，"
+    },
+    {
+      "start": 658.12,
+      "end": 660.28,
+      "en": "So I will start writing code.",
+      "zh": "也就是先開始寫程式。"
+    },
+    {
+      "start": 660.28,
+      "end": 665.36,
+      "en": "And then as I'm writing the code before I actually run the code, I'm starting to write the code.",
+      "zh": "在真正執行之前，一邊開始寫程式，"
+    },
+    {
+      "start": 665.68,
+      "end": 670.48,
+      "en": "Uh, and then I think about how big does this matrix need to be?",
+      "zh": "一邊思考這個矩陣需要多大，"
+    },
+    {
+      "start": 670.8,
+      "end": 676.24,
+      "en": "And then I can come up to the top of the code cell and then initialize it and so on.",
+      "zh": "然後再回到程式區塊頂端初始化，依此類推。"
+    },
+    {
+      "start": 676.28,
+      "end": 678.56,
+      "en": "Now a lot of these are basically the same.",
+      "zh": "這裡很多矩陣基本上都相同。"
+    },
+    {
+      "start": 678.56,
+      "end": 688.04,
+      "en": "They all get initialized to the same size, which is the number of layers, the number of transformer blocks by the number of edges.",
+      "zh": "它們初始化的大小都一樣，也就是層數、Transformer 區塊數，乘以邊界數。"
+    },
+    {
+      "start": 688.04,
+      "end": 697.8,
+      "en": "So this is the uh the histogram values I call it y for the histogram heights, the number of edges, the number of boundaries minus one.",
+      "zh": "這裡是直方圖數值，我把直方圖高度稱為 y；大小是邊界數，也就是分箱邊界數減 1。"
+    },
+    {
+      "start": 698.36,
+      "end": 698.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 698.72,
+      "end": 701.28,
+      "en": "So all of those get initialized.",
+      "zh": "所以先初始化這些。"
+    },
+    {
+      "start": 701.28,
+      "end": 708.4,
+      "en": "And then here I have the initializations for the matrices of all of the variances and all of the means.",
+      "zh": "這裡則初始化所有變異數與所有平均數的矩陣。"
+    },
+    {
+      "start": 708.4,
+      "end": 710.72,
+      "en": "So that's two by layers by three.",
+      "zh": "形狀是 2×層數×3。"
+    },
+    {
+      "start": 711.16,
+      "end": 714.64,
+      "en": "The two corresponds to the target versus non-target.",
+      "zh": "2 對應目標與非目標，"
+    },
+    {
+      "start": 714.8,
+      "end": 722.5,
+      "en": "The layers is yeah the number of transformer blocks, and the three corresponds to the three attention sub matrices.",
+      "zh": "層數就是 Transformer 區塊數，而 3 對應三個注意力子矩陣。"
+    },
+    {
+      "start": 722.9,
+      "end": 730.94,
+      "en": "Now there are some arbitrary and just like personal preference choices to make in these kinds of analyses.",
+      "zh": "這類分析中，有些選擇是任意的，只是個人偏好。"
+    },
+    {
+      "start": 730.94,
+      "end": 738.1,
+      "en": "For example, if you chose to set up these matrices like this, to have it be layers by target or non-target,",
+      "zh": "例如，你也可以將矩陣安排成這樣，層數乘以目標或非目標，"
+    },
+    {
+      "start": 738.1,
+      "end": 746.42,
+      "en": "by, uh, by sub matrix, that's completely fine as long as your code is all internally consistent, it's totally fine.",
+      "zh": "再乘以子矩陣。只要程式內部一致，這樣完全沒問題。"
+    },
+    {
+      "start": 746.58,
+      "end": 754.62,
+      "en": "If you wanted to break this up into two matrices like you can see here, I'm separating this into target and non-target.",
+      "zh": "如果想拆成兩個矩陣，例如這裡分成目標與非目標，"
+    },
+    {
+      "start": 754.62,
+      "end": 756.38,
+      "en": "So you could also do that here.",
+      "zh": "這裡也可以這麼做。"
+    },
+    {
+      "start": 756.74,
+      "end": 761.54,
+      "en": "And then you would just have something like this also completely fine.",
+      "zh": "那麼就會變成類似這樣，也完全沒問題。"
+    },
+    {
+      "start": 761.54,
+      "end": 767.98,
+      "en": "And these things if you, you know, if you want to just uh, you could initialize these to be for target",
+      "zh": "如果想，也可以將它們初始化為目標與"
+    },
+    {
+      "start": 767.98,
+      "end": 779,
+      "en": "and non I mean some of this is if I would start writing this code again from scratch, I'd probably initialize some of these variables to be different sizes anyway.",
+      "zh": "非目標。我是說，如果重新從頭寫一次這份程式，我可能也會將其中一些變數初始化成不同大小。"
+    },
+    {
+      "start": 779.96,
+      "end": 781.8,
+      "en": "Now here is the main for loop.",
+      "zh": "現在是主要的 for 迴圈。"
+    },
+    {
+      "start": 781.96,
+      "end": 789.52,
+      "en": "Okay, so this is just calling the function from the previous exercise that we wrote to extract all the activations.",
+      "zh": "好，這裡只是呼叫上一個練習中，我們寫來擷取所有活化的函式。"
+    },
+    {
+      "start": 789.96,
+      "end": 792.28,
+      "en": "Here I am getting the variances.",
+      "zh": "這裡取得變異數，"
+    },
+    {
+      "start": 792.28,
+      "end": 801.44,
+      "en": "So all of the variances across the first dimension that corresponds to the different sentences.",
+      "zh": "也就是沿第一個維度計算所有變異數，該維度對應不同句子，"
+    },
+    {
+      "start": 801.44,
+      "end": 804.88,
+      "en": "So the 54 presentations of the word her.",
+      "zh": "也就是 her 出現的 54 次。"
+    },
+    {
+      "start": 805.4,
+      "end": 807.12,
+      "en": "And so I get the variances there.",
+      "zh": "所以先取得變異數，"
+    },
+    {
+      "start": 807.12,
+      "end": 814.64,
+      "en": "And then I'm averaging over the variances for the first third and for the middle third and for the later third.",
+      "zh": "再將前面三分之一、中間三分之一，以及後面三分之一的變異數，分別取平均。"
+    },
+    {
+      "start": 815,
+      "end": 824.2,
+      "en": "Now you also know how to use this function called split which is a method that operates on PyTorch tensors.",
+      "zh": "你也已經知道如何使用 split，這是作用於 PyTorch 張量的方法。"
+    },
+    {
+      "start": 824.36,
+      "end": 836.2,
+      "en": "So if you want to so if you chose to torch.cat to convert this into a tensor and use split and putting the, uh, you know, all the parameters in here, that's totally great.",
+      "zh": "所以如果你選擇使用 torch.cat 將這個轉成張量，再用 split，並在這裡放入所有參數，那也很好。"
+    },
+    {
+      "start": 836.2,
+      "end": 837.3,
+      "en": "That's totally fine.",
+      "zh": "完全沒問題。"
+    },
+    {
+      "start": 837.3,
+      "end": 841.22,
+      "en": "And then, yeah, maybe you find that a little bit easier for this stuff here.",
+      "zh": "也許你會覺得，這樣處理這裡的內容比較簡單。"
+    },
+    {
+      "start": 841.62,
+      "end": 842.26,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 842.42,
+      "end": 843.38,
+      "en": "Uh, let me see.",
+      "zh": "我看看。"
+    },
+    {
+      "start": 843.42,
+      "end": 843.82,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 844.22,
+      "end": 845.98,
+      "en": "So that is for the variances.",
+      "zh": "以上是變異數。"
+    },
+    {
+      "start": 845.98,
+      "end": 847.18,
+      "en": "Here's for the means.",
+      "zh": "這裡是平均數。"
+    },
+    {
+      "start": 847.18,
+      "end": 850.02,
+      "en": "This code is exactly the same as this code.",
+      "zh": "這段程式與那段完全相同，"
+    },
+    {
+      "start": 850.06,
+      "end": 853.78,
+      "en": "The only difference is that here I'm calculating the mean.",
+      "zh": "唯一差異是，這裡算的是平均數，"
+    },
+    {
+      "start": 853.78,
+      "end": 856.34,
+      "en": "And here I'm calculating the variance.",
+      "zh": "那裡算的是變異數。"
+    },
+    {
+      "start": 856.82,
+      "end": 866.66,
+      "en": "By the way, in case you are curious why I said to calculate variance instead of standard deviation, the variance is the standard deviation squared.",
+      "zh": "順帶一提，如果你好奇，為什麼要算變異數，而不是標準差，因為變異數是標準差的平方。"
+    },
+    {
+      "start": 866.66,
+      "end": 876.14,
+      "en": "So that means the variance can kind of highlight the differences between different groupings a little bit better because the the numbers are squared.",
+      "zh": "所以變異數多少能更凸顯不同群組之間的差異，因為數字取了平方，"
+    },
+    {
+      "start": 876.14,
+      "end": 877.14,
+      "en": "So they just get bigger.",
+      "zh": "它們就會變大。"
+    },
+    {
+      "start": 877.14,
+      "end": 881.98,
+      "en": "It's just a little bit easier to make separations between different groups.",
+      "zh": "稍微比較容易將不同群組區分開來。"
+    },
+    {
+      "start": 882.58,
+      "end": 882.98,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 883.22,
+      "end": 890.22,
+      "en": "Uh let's see here is calculating all to all cosine similarity for the targets and non targets.",
+      "zh": "這裡計算目標與非目標的全部對全部餘弦相似度。"
+    },
+    {
+      "start": 890.38,
+      "end": 897.63,
+      "en": "And here I am extracting the specific submatrices uh exactly as I showed before.",
+      "zh": "這裡則與先前一樣，擷取特定子矩陣。"
+    },
+    {
+      "start": 897.87,
+      "end": 902.43,
+      "en": "Okay, so now that we have all of these cosine similarities.",
+      "zh": "好，現在有了所有這些餘弦相似度。"
+    },
+    {
+      "start": 902.47,
+      "end": 910.23,
+      "en": "Now I'm generating the histograms and you can see it's very similar to the previous video.",
+      "zh": "接著產生直方圖，可以看到與上一支影片非常相似。"
+    },
+    {
+      "start": 910.23,
+      "end": 912.43,
+      "en": "And also it's just a lot of copy pasting.",
+      "zh": "同樣只是大量複製貼上。"
+    },
+    {
+      "start": 912.43,
+      "end": 921.67,
+      "en": "So you you know the hardest part of coding this particular exercise I think is just making sure you are changing all of the variables correctly.",
+      "zh": "所以這個練習寫程式最困難的部分，我想就是確保所有變數都正確修改。"
+    },
+    {
+      "start": 921.67,
+      "end": 924.07,
+      "en": "So it's a good idea to go through these.",
+      "zh": "最好逐一檢查。"
+    },
+    {
+      "start": 924.11,
+      "end": 930.75,
+      "en": "And also what I often do is if you click on one variable, all the other variables that have exactly",
+      "zh": "我也經常這樣做：點選某個變數時，所有其他拼字完全"
+    },
+    {
+      "start": 930.75,
+      "end": 936.47,
+      "en": "the same spelling, you can see that they get this kind of background light blue highlight.",
+      "zh": "相同的變數，都會出現這種淺藍色背景標示。"
+    },
+    {
+      "start": 936.83,
+      "end": 937.87,
+      "en": "So this is actually good.",
+      "zh": "這其實很好用。"
+    },
+    {
+      "start": 937.87,
+      "end": 940.15,
+      "en": "Let's say you made a typo.",
+      "zh": "假設打錯字，"
+    },
+    {
+      "start": 940.23,
+      "end": 941.87,
+      "en": "You forgot to change this.",
+      "zh": "忘了修改這裡。"
+    },
+    {
+      "start": 941.87,
+      "end": 946.75,
+      "en": "So now when I click on this one I can see that this variable also lights up.",
+      "zh": "現在點這個，就能看到這個變數也亮起來，"
+    },
+    {
+      "start": 946.75,
+      "end": 949.83,
+      "en": "This also gets highlighted which is incorrect.",
+      "zh": "也被標示出來，但這是不對的。"
+    },
+    {
+      "start": 950.11,
+      "end": 951.95,
+      "en": "So it's good to do that.",
+      "zh": "所以這樣檢查很好。"
+    },
+    {
+      "start": 951.99,
+      "end": 960.13,
+      "en": "And what you want to confirm here is that this variable doesn't get highlighted anywhere else, indicating that I'm only using it here.",
+      "zh": "這裡要確認，這個變數不會在其他地方被標示出來，表示只在這裡使用它。"
+    },
+    {
+      "start": 961.25,
+      "end": 965.09,
+      "en": "Now we're starting to get to some cool visualizations.",
+      "zh": "現在開始進入一些很酷的視覺化。"
+    },
+    {
+      "start": 965.21,
+      "end": 970.69,
+      "en": "I think some of these curves will look familiar to you from the previous video.",
+      "zh": "我想你會覺得，其中一些曲線與上一支影片的很相似。"
+    },
+    {
+      "start": 971.13,
+      "end": 980.05,
+      "en": "Remember that in the previous video we focused on just one layer and we just used the small version of GPT two.",
+      "zh": "記住，上一支影片只研究一層，而且使用 GPT2 的小型版本。"
+    },
+    {
+      "start": 980.69,
+      "end": 986.61,
+      "en": "So here now we have one line per layer and it's a bigger model.",
+      "zh": "現在每一層都有一條線，而且模型更大。"
+    },
+    {
+      "start": 986.61,
+      "end": 989.29,
+      "en": "But the visualization is basically the same.",
+      "zh": "但視覺化基本上相同。"
+    },
+    {
+      "start": 989.57,
+      "end": 995.81,
+      "en": "So you created the histograms of cosine similarities in the previous exercise.",
+      "zh": "上一個練習已經建立餘弦相似度直方圖，"
+    },
+    {
+      "start": 995.93,
+      "end": 999.17,
+      "en": "So now you don't have any new analyses to run.",
+      "zh": "所以現在不需要再做新的分析。"
+    },
+    {
+      "start": 999.17,
+      "end": 1005.41,
+      "en": "You're just visualizing the analyses that you completed in the previous exercise.",
+      "zh": "只是將上一個練習完成的分析，呈現出來。"
+    },
+    {
+      "start": 1005.89,
+      "end": 1010.01,
+      "en": "So the line color in these plots corresponds to the layers.",
+      "zh": "這些圖中的線條顏色對應層數，"
+    },
+    {
+      "start": 1010.17,
+      "end": 1013.45,
+      "en": "And that you see in the color axis here on the right.",
+      "zh": "可以從右邊的色彩軸看到。"
+    },
+    {
+      "start": 1013.97,
+      "end": 1022.51,
+      "en": "It is really striking to see this smooth transition from the cosine similarities being extreme and large",
+      "zh": "很驚人的是，可以看到餘弦相似度從極端、絕對值很大，"
+    },
+    {
+      "start": 1022.51,
+      "end": 1028.63,
+      "en": "in magnitude towards shifting to zero as we get deeper into the model.",
+      "zh": "隨著模型越來越深，平順地轉向零。"
+    },
+    {
+      "start": 1029.31,
+      "end": 1036.11,
+      "en": "Now, the reason why that happens is that in the early layers, the model is actually still processing",
+      "zh": "原因是，在前面的層，模型其實還在處理"
+    },
+    {
+      "start": 1036.11,
+      "end": 1043.31,
+      "en": "the word her, and the word her is the same for all of the activations that these data come from.",
+      "zh": "her 這個字，而產生這些資料活化的，全部都是相同的 her。"
+    },
+    {
+      "start": 1043.63,
+      "end": 1054.51,
+      "en": "But the deeper we get into the model, the more the tokens shift from being about the current token to being about predicting the subsequent token.",
+      "zh": "但模型越深，token 就越從目前的 token，轉向預測後續的 token。"
+    },
+    {
+      "start": 1054.83,
+      "end": 1059.67,
+      "en": "And every sentence in this data set has a unique context.",
+      "zh": "而這份資料集中的每個句子，都有獨特的上下文。"
+    },
+    {
+      "start": 1059.83,
+      "end": 1067.43,
+      "en": "So the set of tokens that the processing shifts towards is going to be different for each sentence,",
+      "zh": "因此，處理過程轉向的 token 集合，在不同句子之間會不同，"
+    },
+    {
+      "start": 1067.43,
+      "end": 1075.11,
+      "en": "which means that the cosine similarities will be reduced, which means that the distributions will shift more towards zero.",
+      "zh": "這表示餘弦相似度降低，分布就會更往零移動。"
+    },
+    {
+      "start": 1075.61,
+      "end": 1080.97,
+      "en": "So you can visualize every layer as a line with a different color like this.",
+      "zh": "所以可以像這樣，將每一層畫成不同顏色的線。"
+    },
+    {
+      "start": 1081.25,
+      "end": 1085.73,
+      "en": "And you can also make images of the distributions like this.",
+      "zh": "也可以像這樣，將分布畫成影像。"
+    },
+    {
+      "start": 1086.17,
+      "end": 1092.73,
+      "en": "So what you're looking at now these two images is the same as these two line plots.",
+      "zh": "現在看到的兩張影像，與這兩張折線圖是相同資料。"
+    },
+    {
+      "start": 1093.17,
+      "end": 1098.33,
+      "en": "But now every line in this plot is a row in this image.",
+      "zh": "只是圖中的每一條線，變成影像中的一列，"
+    },
+    {
+      "start": 1098.57,
+      "end": 1105.29,
+      "en": "And the color in the image corresponds to the y axis height in the line plots.",
+      "zh": "影像顏色則對應折線圖中 y 軸的高度。"
+    },
+    {
+      "start": 1105.81,
+      "end": 1111.17,
+      "en": "Now, both of these ways of visualizing are really interesting and complementary.",
+      "zh": "這兩種視覺化方式都很有意思，而且互相補充。"
+    },
+    {
+      "start": 1111.53,
+      "end": 1120.57,
+      "en": "They technically show identical data, but I think you get different kinds of information more easily from one or the other plot.",
+      "zh": "嚴格來說，顯示的是完全相同的資料，但我覺得不同圖形，會讓不同種類的資訊更容易看出來。"
+    },
+    {
+      "start": 1120.65,
+      "end": 1123.41,
+      "en": "So you can try both and see what you think.",
+      "zh": "所以你可以兩種都試試，看自己怎麼想。"
+    },
+    {
+      "start": 1124.37,
+      "end": 1129.13,
+      "en": "I really enjoy making these kinds of visualizations and I hope that you do too.",
+      "zh": "我很喜歡製作這種視覺化，也希望你同樣喜歡。"
+    },
+    {
+      "start": 1129.65,
+      "end": 1136.55,
+      "en": "Anyway, now I will switch to the code and show my solution and discuss the results in a little bit more detail.",
+      "zh": "總之，現在切換到程式碼，展示解答，並更詳細地討論結果。"
+    },
+    {
+      "start": 1137.63,
+      "end": 1143.71,
+      "en": "The plotting code here is only slightly more complicated than the code from the previous video.",
+      "zh": "這裡的繪圖程式，只比上一支影片稍微複雜一點。"
+    },
+    {
+      "start": 1143.95,
+      "end": 1150.55,
+      "en": "In fact, you can copy the plotting code from the previous video and just, you know, put it inside a for loop.",
+      "zh": "其實可以複製上一支影片的繪圖程式，再放進 for 迴圈。"
+    },
+    {
+      "start": 1150.67,
+      "end": 1156.23,
+      "en": "If you want to get these colors to look really nice and fancy, then you can try doing something like this.",
+      "zh": "如果想讓顏色漂亮又精緻，可以試試這種做法。"
+    },
+    {
+      "start": 1156.23,
+      "end": 1157.31,
+      "en": "You can add this.",
+      "zh": "可以加上這個。"
+    },
+    {
+      "start": 1157.35,
+      "end": 1165.15,
+      "en": "Of course, if you want to color just using the built in color chooser from Python, that's also fine.",
+      "zh": "當然，如果只想用 Python 內建的選色功能，也沒問題。"
+    },
+    {
+      "start": 1165.63,
+      "end": 1168.39,
+      "en": "Okay, so let's see, I don't have a whole lot to say.",
+      "zh": "好，我看看，其實沒有太多要說的。"
+    },
+    {
+      "start": 1168.83,
+      "end": 1180.83,
+      "en": "Uh, you've seen me use this kind of scheme before where I color the different lines and then generate a color bar that maps the color onto the layer number.",
+      "zh": "之前看過我使用這種方式，將不同線條上色，再建立色條，將顏色對應到層數。"
+    },
+    {
+      "start": 1180.95,
+      "end": 1183.51,
+      "en": "So feel free to copy that and modify it.",
+      "zh": "歡迎直接複製並修改。"
+    },
+    {
+      "start": 1183.83,
+      "end": 1186.43,
+      "en": "You can use different color maps.",
+      "zh": "可以使用不同的色彩映射。"
+    },
+    {
+      "start": 1186.43,
+      "end": 1187.83,
+      "en": "I like this plasma.",
+      "zh": "我喜歡 plasma。"
+    },
+    {
+      "start": 1187.83,
+      "end": 1193.71,
+      "en": "Sometimes I do plasma R for plasma reverse that you see in uh.",
+      "zh": "有時會用 plasma_r，也就是反轉 plasma，你可以看到……"
+    },
+    {
+      "start": 1193.71,
+      "end": 1194.23,
+      "en": "Wait, sorry.",
+      "zh": "等等，抱歉，"
+    },
+    {
+      "start": 1194.27,
+      "end": 1196.61,
+      "en": "I also need to change this one.",
+      "zh": "這個也需要修改。"
+    },
+    {
+      "start": 1196.65,
+      "end": 1197.05,
+      "en": "Oh yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1197.05,
+      "end": 1197.85,
+      "en": "Well oops.",
+      "zh": "哎呀，"
+    },
+    {
+      "start": 1197.85,
+      "end": 1198.81,
+      "en": "Because it's in a loop.",
+      "zh": "因為它在迴圈裡，"
+    },
+    {
+      "start": 1198.81,
+      "end": 1201.01,
+      "en": "I can't really change all of them.",
+      "zh": "我沒辦法直接全部改掉。"
+    },
+    {
+      "start": 1201.05,
+      "end": 1201.45,
+      "en": "Uh, okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1201.49,
+      "end": 1203.85,
+      "en": "I would have to change all of them or none of them.",
+      "zh": "必須全部都改，或全部都不改。"
+    },
+    {
+      "start": 1203.85,
+      "end": 1208.65,
+      "en": "But anyway, just showing you that you can reverse the, uh, color order.",
+      "zh": "總之，只是示範可以反轉顏色順序。"
+    },
+    {
+      "start": 1208.65,
+      "end": 1212.77,
+      "en": "So let me switch that back to plasma and this back to plasma.",
+      "zh": "所以將這個改回 plasma，這個也改回 plasma。"
+    },
+    {
+      "start": 1212.77,
+      "end": 1216.77,
+      "en": "So basically if you want to reverse the color map, you have to reverse it on all of them.",
+      "zh": "基本上，要反轉色彩映射，就必須對所有部分都反轉。"
+    },
+    {
+      "start": 1216.97,
+      "end": 1217.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1217.49,
+      "end": 1220.25,
+      "en": "Anyway, uh, let's see what we can see.",
+      "zh": "總之，來看看能看到什麼。"
+    },
+    {
+      "start": 1220.53,
+      "end": 1232.37,
+      "en": "So as I already explained in the slides, essentially we see a shift in the distributions of cosine similarities from being more towards the extreme with, uh, earlier layers.",
+      "zh": "就像投影片解釋過的，基本上可以看到，前面幾層的餘弦相似度分布，較偏向極端值。"
+    },
+    {
+      "start": 1232.37,
+      "end": 1237.89,
+      "en": "So closer to the input, that's where the model is processing each token.",
+      "zh": "也就是越接近輸入端，模型越在處理每個 token。"
+    },
+    {
+      "start": 1238.29,
+      "end": 1243.41,
+      "en": "And as you go deeper into the model, more towards the output of the model.",
+      "zh": "而越深入模型、越接近模型的輸出端，"
+    },
+    {
+      "start": 1244.33,
+      "end": 1251.05,
+      "en": "Now the model is shifting its processing towards trying to predict what is the next token going to be.",
+      "zh": "模型就越將處理重點轉向預測下一個 token。"
+    },
+    {
+      "start": 1251.33,
+      "end": 1258.74,
+      "en": "Now the next token depends not just on the word her, but on all the other words that preceded the word her.",
+      "zh": "下一個 token 不只取決於 her，也取決於 her 之前的所有其他詞。"
+    },
+    {
+      "start": 1258.78,
+      "end": 1262.22,
+      "en": "And that is different for every sentence in this batch.",
+      "zh": "這在批次中的每個句子都不相同。"
+    },
+    {
+      "start": 1262.22,
+      "end": 1269.18,
+      "en": "And so therefore, we expect this kind of shift into the, uh, into smaller cosine similarities.",
+      "zh": "所以我們預期會看到這種轉向較小餘弦相似度的變化。"
+    },
+    {
+      "start": 1269.7,
+      "end": 1276.46,
+      "en": "As you also know from the previous video, from the end of the previous video, a lot of these, uh,",
+      "zh": "你也從上一支影片的結尾知道，這些分布的許多"
+    },
+    {
+      "start": 1276.54,
+      "end": 1284.22,
+      "en": "tails of the distributions here are actually attributable to average offsets to mean offsets in the",
+      "zh": "尾端，其實可歸因於注意力向量中的平均值偏移，"
+    },
+    {
+      "start": 1284.38,
+      "end": 1291.54,
+      "en": "attention vectors that are driving the cosine similarity, similarity values to the extreme.",
+      "zh": "這些偏移將餘弦相似度推向極端。"
+    },
+    {
+      "start": 1291.54,
+      "end": 1299.7,
+      "en": "So you can see that those vectors are also shifting closer to each other in their average values or their distributional shifts.",
+      "zh": "因此可以看到，這些向量的平均值，或者說分布偏移，也在變得更接近。"
+    },
+    {
+      "start": 1299.98,
+      "end": 1304.34,
+      "en": "The other part of this exercise was to show the images.",
+      "zh": "這個練習的另一部分，是顯示影像，"
+    },
+    {
+      "start": 1304.34,
+      "end": 1305.34,
+      "en": "And that's what I do here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 1305.34,
+      "end": 1308.5,
+      "en": "It's all the same data that I'm plotting above.",
+      "zh": "畫的全部都是上面相同的資料，"
+    },
+    {
+      "start": 1308.86,
+      "end": 1315.28,
+      "en": "Uh, I'm just showing using I am show now some of these like the maximum value here.",
+      "zh": "只是現在使用 imshow。這裡有些設定，例如最大值，"
+    },
+    {
+      "start": 1315.28,
+      "end": 1316.68,
+      "en": "This is a bit arbitrary.",
+      "zh": "有點任意。"
+    },
+    {
+      "start": 1316.72,
+      "end": 1326.16,
+      "en": "Often what ends up happening is you pick one value here, and then you look at the plot and you say, whoa, this is like completely, completely saturated.",
+      "zh": "經常會發生這種情況：選了一個值，看圖後覺得，哇，顏色完全飽和了。"
+    },
+    {
+      "start": 1326.16,
+      "end": 1329,
+      "en": "So let's try, you know, something much, much bigger.",
+      "zh": "那就試試大得多的數字。"
+    },
+    {
+      "start": 1329.2,
+      "end": 1337.84,
+      "en": "And you just kind of iterate through this procedure several times and then, uh, yeah, you will eventually find some value that seems to work.",
+      "zh": "這樣反覆試幾次，最後就會找到一個似乎可用的值。"
+    },
+    {
+      "start": 1338.2,
+      "end": 1341.16,
+      "en": "That said, these are non-normalized counts.",
+      "zh": "不過，這些是未正規化的計數。"
+    },
+    {
+      "start": 1341.16,
+      "end": 1350.44,
+      "en": "If you would transform these into density estimates, for example, then it would be a little bit easier to specify a value a priori.",
+      "zh": "如果轉成密度估計，例如這樣，可能就比較容易事先指定一個值。"
+    },
+    {
+      "start": 1350.72,
+      "end": 1355.8,
+      "en": "But yeah, I mean, in general it's sometimes a little bit tricky to find these colors.",
+      "zh": "但一般而言，找出這些顏色設定，有時確實有點棘手。"
+    },
+    {
+      "start": 1355.92,
+      "end": 1362.76,
+      "en": "Another option you can do is to pick the color based on the empirical maximum value.",
+      "zh": "另一個選項，是根據實際資料的最大值來選顏色。"
+    },
+    {
+      "start": 1362.92,
+      "end": 1366.04,
+      "en": "Now that sometimes works, but sometimes doesn't work.",
+      "zh": "有時有用，有時沒用。"
+    },
+    {
+      "start": 1366.2,
+      "end": 1370.32,
+      "en": "You can also try picking the max and scaling it down.",
+      "zh": "也可以取最大值，再往下縮放。"
+    },
+    {
+      "start": 1370.32,
+      "end": 1373.96,
+      "en": "So say for example 70% of the maximum value.",
+      "zh": "例如最大值的 70%。"
+    },
+    {
+      "start": 1374.1,
+      "end": 1375.14,
+      "en": "That still doesn't work.",
+      "zh": "這還是不行。"
+    },
+    {
+      "start": 1375.38,
+      "end": 1382.3,
+      "en": "Yeah, it's very tricky to set these color limits, because you will find that what you think is a really",
+      "zh": "設定這些顏色界限確實很棘手，因為你會發現，對一份資料集而言"
+    },
+    {
+      "start": 1382.3,
+      "end": 1388.14,
+      "en": "good number for one data set is just not going to work for another data set.",
+      "zh": "很好的數值，對另一份資料集卻行不通。"
+    },
+    {
+      "start": 1388.26,
+      "end": 1391.62,
+      "en": "In this case we have some really extreme values.",
+      "zh": "這裡有些非常極端的數值，"
+    },
+    {
+      "start": 1391.78,
+      "end": 1395.66,
+      "en": "And so that's why it's hard to get this color scheme to work.",
+      "zh": "所以才很難讓這個配色方式運作。"
+    },
+    {
+      "start": 1396.14,
+      "end": 1404.26,
+      "en": "Anyway, as long as you have the color bars indicated with some explanation of what the color maps onto, it's totally fine.",
+      "zh": "總之，只要標示色條，說明顏色對應什麼，就完全可以。"
+    },
+    {
+      "start": 1404.3,
+      "end": 1407.1,
+      "en": "There's nothing wrong with arbitrary color scaling.",
+      "zh": "任意選擇顏色縮放並沒有錯。"
+    },
+    {
+      "start": 1408.06,
+      "end": 1415.62,
+      "en": "And finally, we have exercise five, where you will visualize the means and the variances.",
+      "zh": "最後是練習五，要將平均數與變異數視覺化。"
+    },
+    {
+      "start": 1416.14,
+      "end": 1418.62,
+      "en": "Here you can make four scatterplots.",
+      "zh": "這裡可以畫四張散佈圖。"
+    },
+    {
+      "start": 1418.74,
+      "end": 1430.58,
+      "en": "You can see that these scatter plots have the layer on the x axis and three different markers for the query the keys and the values vectors.",
+      "zh": "可以看到，這些圖的 x 軸是層，三種不同標記則表示 query、key 與 value 向量。"
+    },
+    {
+      "start": 1431.26,
+      "end": 1438.96,
+      "en": "So what you plot here are the average activations for the targets and the non-targets.",
+      "zh": "這裡畫的是目標與非目標的平均活化。"
+    },
+    {
+      "start": 1439.08,
+      "end": 1446.12,
+      "en": "And then down here we have for the average variances again for targets and non-targets.",
+      "zh": "下面則是平均變異數，同樣分成目標與非目標。"
+    },
+    {
+      "start": 1446.64,
+      "end": 1453,
+      "en": "Obviously I'm not showing you the results here because I want you to create this plot and interpret it yourself.",
+      "zh": "我當然沒有在這裡展示結果，因為想讓你自己建立圖形並解讀。"
+    },
+    {
+      "start": 1453.36,
+      "end": 1460.08,
+      "en": "But what you want to look for here are any kinds of patterns over the laminar dimension.",
+      "zh": "要找的是沿著層這個維度，是否有任何模式。"
+    },
+    {
+      "start": 1460.08,
+      "end": 1466.2,
+      "en": "So over the x axis for example, are the means or the variances pretty steady.",
+      "zh": "也就是沿著 x 軸，例如平均數或變異數是否相當穩定？"
+    },
+    {
+      "start": 1466.24,
+      "end": 1470.28,
+      "en": "As you go deeper into the model, do they increase?",
+      "zh": "模型越深，它們是否增加？"
+    },
+    {
+      "start": 1470.28,
+      "end": 1473.12,
+      "en": "Do they decrease some weird nonlinear trends?",
+      "zh": "是否減少？有沒有奇怪的非線性趨勢？"
+    },
+    {
+      "start": 1473.32,
+      "end": 1477.48,
+      "en": "Are there any noticeable differences between the different matrices?",
+      "zh": "不同矩陣之間，有沒有明顯差異？"
+    },
+    {
+      "start": 1478.16,
+      "end": 1485.76,
+      "en": "Remember from earlier in the course that the Q and k vectors are fairly similar to each other, in that",
+      "zh": "記住課程前面說過，Q 與 K 向量相當相似，因為"
+    },
+    {
+      "start": 1485.76,
+      "end": 1497.34,
+      "en": "they combine to determine the probability that they're corresponding tokens get emphasized in the attention sublayer, whereas the V vectors.",
+      "zh": "它們會結合，決定對應 token 在注意力子層中受到強調的機率；而 V 向量，"
+    },
+    {
+      "start": 1497.34,
+      "end": 1505.18,
+      "en": "So the value vectors, that's what carries the actual information that gets weighted by the softmax.",
+      "zh": "也就是 value 向量，則攜帶真正由 softmax 加權的資訊。"
+    },
+    {
+      "start": 1505.38,
+      "end": 1510.9,
+      "en": "And then that is what gets passed on to the next layer, the MLP subblock.",
+      "zh": "接著傳到下一層，也就是 MLP 子區塊。"
+    },
+    {
+      "start": 1511.5,
+      "end": 1517.14,
+      "en": "This is the last exercise in this code challenge, and I hope you enjoy working your way through it.",
+      "zh": "這是這次程式挑戰的最後一個練習，希望你享受完成它的過程。"
+    },
+    {
+      "start": 1517.42,
+      "end": 1518.94,
+      "en": "And now I will switch to code.",
+      "zh": "現在切換到程式碼。"
+    },
+    {
+      "start": 1519.7,
+      "end": 1527.54,
+      "en": "The code here is fairly straightforward, especially if you ignore all of this stuff, which is just making the plots look a little bit nicer.",
+      "zh": "這裡的程式相當直接，尤其如果先忽略這些只是讓圖看起來更漂亮的部分。"
+    },
+    {
+      "start": 1527.58,
+      "end": 1535.98,
+      "en": "Really, all I'm doing is plotting the means across the three different matrices, and for the targets and non-targets.",
+      "zh": "我真正做的，只是畫出三個不同矩陣，以及目標與非目標的平均數。"
+    },
+    {
+      "start": 1536.34,
+      "end": 1537.34,
+      "en": "It's that simple.",
+      "zh": "就這麼簡單。"
+    },
+    {
+      "start": 1537.38,
+      "end": 1541.06,
+      "en": "Okay, so let's have a look at the means for the targets.",
+      "zh": "好，先看看目標的平均數。"
+    },
+    {
+      "start": 1541.1,
+      "end": 1544.86,
+      "en": "The non-targets we see the means are generally close to zero.",
+      "zh": "非目標這邊，可以看到平均數通常接近零。"
+    },
+    {
+      "start": 1544.98,
+      "end": 1552.74,
+      "en": "Remember these are averages across a lot of, you know, the 54 different presentations of the word",
+      "zh": "記住，這是將許多數值取平均，包括 her 這個字的 54 次不同"
+    },
+    {
+      "start": 1552.74,
+      "end": 1560.6,
+      "en": "her and also the 1600 different neurons within each of these submatrices.",
+      "zh": "出現，以及每個子矩陣中的 1,600 個不同神經元。"
+    },
+    {
+      "start": 1561,
+      "end": 1571.4,
+      "en": "So the means being close to zero does not mean that the mean of any given q vector, for example, is not, uh, is also must be zero.",
+      "zh": "所以平均數接近零，不表示個別 Q 向量的平均，例如，也一定要是零。"
+    },
+    {
+      "start": 1571.52,
+      "end": 1580.32,
+      "en": "So you could actually have some diversity in the averages, but at the population level the averages are pretty close to zero.",
+      "zh": "平均數其實可以有差異，但在整體群體層級，平均數相當接近零。"
+    },
+    {
+      "start": 1580.72,
+      "end": 1582.76,
+      "en": "And then yeah of course this is for targets.",
+      "zh": "當然，這裡是目標，"
+    },
+    {
+      "start": 1582.76,
+      "end": 1585.84,
+      "en": "So it's exactly the same word in every case.",
+      "zh": "每次都是完全相同的字。"
+    },
+    {
+      "start": 1586.28,
+      "end": 1592.68,
+      "en": "And here we have the non-targets where you really see this consistent distributional shift, especially",
+      "zh": "這裡則是非目標，可以看到一致的分布偏移，尤其"
+    },
+    {
+      "start": 1592.68,
+      "end": 1600.72,
+      "en": "as you get towards the middle part of the model where the model is starting to shift from processing",
+      "zh": "接近模型中段時，模型開始從處理"
+    },
+    {
+      "start": 1600.72,
+      "end": 1608.28,
+      "en": "the local features to processing more global features about the entire sentence or the whole sequence.",
+      "zh": "局部特徵，轉向處理關於整個句子、整個序列的更全域特徵。"
+    },
+    {
+      "start": 1608.56,
+      "end": 1609.92,
+      "en": "Okay, so that's for the means.",
+      "zh": "好，以上是平均數。"
+    },
+    {
+      "start": 1609.96,
+      "end": 1613.89,
+      "en": "Now here we have the same plot but for the variances.",
+      "zh": "現在是同樣的圖，但改看變異數。"
+    },
+    {
+      "start": 1613.93,
+      "end": 1617.73,
+      "en": "And now this one is super interesting, especially here with the targets.",
+      "zh": "這張非常有意思，尤其這裡的目標。"
+    },
+    {
+      "start": 1617.73,
+      "end": 1624.41,
+      "en": "You see that the variances across all three of these attention submatrices start off very small, really",
+      "zh": "可以看到，三個注意力子矩陣的變異數，一開始都很小，非常"
+    },
+    {
+      "start": 1624.41,
+      "end": 1633.05,
+      "en": "close to zero, and then they start increasing kind of linearly, almost monotonically until you get towards the very end.",
+      "zh": "接近零，接著開始近乎線性、幾乎單調地上升，直到接近最後。"
+    },
+    {
+      "start": 1633.05,
+      "end": 1641.49,
+      "en": "And then you really start to see shifts between the different, uh, divergence across the different submatrices of attention.",
+      "zh": "之後，注意力的不同子矩陣之間，才真正開始產生差異、出現分歧。"
+    },
+    {
+      "start": 1642.41,
+      "end": 1651.81,
+      "en": "And again, you know, it's the same basic interpretation at the kind of, you know, bird's eye view of a LM, that what's happening is here.",
+      "zh": "同樣，從語言模型的鳥瞰角度來看，基本解讀就是，這裡"
+    },
+    {
+      "start": 1651.81,
+      "end": 1654.25,
+      "en": "The model is processing the word her.",
+      "zh": "模型在處理 her 這個字，"
+    },
+    {
+      "start": 1654.45,
+      "end": 1659.05,
+      "en": "And, you know, it's just processing that individual token.",
+      "zh": "也就是只在處理那個個別 token。"
+    },
+    {
+      "start": 1659.05,
+      "end": 1666.25,
+      "en": "And the later you get in the layer, the more information, the more context information and predictive",
+      "zh": "而越到後面的層，越多資訊、越多上下文資訊，以及關於後續 token 的預測"
+    },
+    {
+      "start": 1666.25,
+      "end": 1673.15,
+      "en": "information about the subsequent token gets packed on to these embeddings vectors.",
+      "zh": "資訊，會被放進這些嵌入向量。"
+    },
+    {
+      "start": 1673.15,
+      "end": 1675.55,
+      "en": "So that means they're starting to diverge.",
+      "zh": "所以它們開始分歧，"
+    },
+    {
+      "start": 1675.55,
+      "end": 1678.63,
+      "en": "They get more and more distinct from each other.",
+      "zh": "彼此變得越來越不同。"
+    },
+    {
+      "start": 1678.79,
+      "end": 1688.43,
+      "en": "And for the non-targets, it's even higher because you have both token level differences and also sequence level differences.",
+      "zh": "非目標的變異更高，因為同時有 token 層級的差異，以及序列層級的差異。"
+    },
+    {
+      "start": 1688.43,
+      "end": 1692.67,
+      "en": "So they're the variance is just a higher consistently throughout.",
+      "zh": "所以它們的變異數，在整個過程中都一致地比較高。"
+    },
+    {
+      "start": 1693.47,
+      "end": 1695.87,
+      "en": "I hope you enjoyed this code challenge.",
+      "zh": "希望你喜歡這次程式挑戰。"
+    },
+    {
+      "start": 1695.99,
+      "end": 1703.23,
+      "en": "I like these kinds of large scaled zoom out analyses, because I think that they really help provide",
+      "zh": "我喜歡這種大尺度、拉遠視角的分析，因為我認為它們確實有助於提供"
+    },
+    {
+      "start": 1703.23,
+      "end": 1709.15,
+      "en": "some background context for the general flow of information in an LLM.",
+      "zh": "LLM 整體資訊流的一些背景脈絡。"
+    },
+    {
+      "start": 1709.79,
+      "end": 1716.07,
+      "en": "On the other hand, it's also fair to criticize these kinds of approaches by saying that they do not",
+      "zh": "另一方面，也可以合理批評這類方法，認為它們並沒有"
+    },
+    {
+      "start": 1716.11,
+      "end": 1725.95,
+      "en": "really reveal a lot of very specific insights into how llms work, but these kinds of zoomed out characteristics",
+      "zh": "真正揭示很多關於 LLM 如何運作的非常具體見解，但這些拉遠視角的特徵，"
+    },
+    {
+      "start": 1725.95,
+      "end": 1731.67,
+      "en": "also tend to be more reproducible, which is a pretty comforting thought in my opinion.",
+      "zh": "通常也比較容易重現，我覺得這是相當令人安心的想法。"
+    }
+  ]
+}

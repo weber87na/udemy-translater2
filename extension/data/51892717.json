@@ -1,0 +1,865 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892717",
+  "title": "Dealing with multitoken word embeddings",
+  "section": 18,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ed2c94b764fe8bee3ececc7b70c834d0dd6ee63b8f58141e7fec09f02019eae4",
+  "cues": [
+    {
+      "start": 2.24,
+      "end": 11.68,
+      "en": "Lots of words, especially in English, end up getting tokenized into a single token, often with a space in front of it.",
+      "zh": "很多單字，尤其英文，最後會被切成單一 token，通常前面帶空白。"
+    },
+    {
+      "start": 12.16,
+      "end": 19.32,
+      "en": "And that makes doing research fairly straightforward, because one activations vector often corresponds",
+      "zh": "這讓研究相當直接，因為一個活化向量，往往對應"
+    },
+    {
+      "start": 19.32,
+      "end": 26.56,
+      "en": "to one English word, but lots of other words are made up of multiple tokens.",
+      "zh": "一個英文單字，但很多其他單字由多個 token 組成。"
+    },
+    {
+      "start": 26.76,
+      "end": 31.76,
+      "en": "So let's say you have a target word that you want to look at the activations for.",
+      "zh": "假設有個目標單字，想查看它的活化。"
+    },
+    {
+      "start": 32.36,
+      "end": 36.72,
+      "en": "But that target word has 2 or 3 tokens, maybe even more tokens.",
+      "zh": "但它有兩、三個，甚至更多 token。"
+    },
+    {
+      "start": 36.96,
+      "end": 38.08,
+      "en": "So what do you do?",
+      "zh": "該怎麼辦？"
+    },
+    {
+      "start": 38.76,
+      "end": 42.16,
+      "en": "Answering that question is the goal of this video.",
+      "zh": "回答這個問題，就是這部影片的目標。"
+    },
+    {
+      "start": 42.4,
+      "end": 45.68,
+      "en": "I will tell you what is the best thing to do and explain why.",
+      "zh": "會告訴你最佳做法，並解釋原因。"
+    },
+    {
+      "start": 46,
+      "end": 54.84,
+      "en": "And then in the next video, you will use this knowledge to analyze category specific responses in MLP projections.",
+      "zh": "下一部影片，會用這些知識，分析 MLP 投影的類別特定反應。"
+    },
+    {
+      "start": 55.84,
+      "end": 60.38,
+      "en": "So here you see three words that are multi Token words.",
+      "zh": "這裡有三個多 token 單字。"
+    },
+    {
+      "start": 60.38,
+      "end": 62.02,
+      "en": "So let's look at toothpaste.",
+      "zh": "先看 toothpaste。"
+    },
+    {
+      "start": 62.06,
+      "end": 68.94,
+      "en": "The word toothpaste comprises two tokens, one for space tooth and one for no space.",
+      "zh": "toothpaste 由兩個 token 組成，一個是空白加 tooth，另一個沒有空白，"
+    },
+    {
+      "start": 68.94,
+      "end": 74.53999999999999,
+      "en": "And then paste and time machine, I suppose, is technically two words.",
+      "zh": "再接 paste；time machine 嚴格來說，應該是兩個單字。"
+    },
+    {
+      "start": 74.94,
+      "end": 78.18,
+      "en": "So therefore we have one token for each word.",
+      "zh": "所以，每個單字各有一個 token。"
+    },
+    {
+      "start": 78.3,
+      "end": 85.38,
+      "en": "But there are plenty of situations where time machine is treated as if it were one word, so you wouldn't",
+      "zh": "但很多情況會把 time machine 視為一個詞，"
+    },
+    {
+      "start": 85.38,
+      "end": 95.42,
+      "en": "want to use the word time without machine, and you wouldn't want to analyze the embeddings vectors for machine unless they were preceded by the token for time.",
+      "zh": "不想只用 time 而沒有 machine，也不想分析 machine 的嵌入，除非前面有 time 的 token。"
+    },
+    {
+      "start": 95.74000000000001,
+      "end": 106.62,
+      "en": "So even though this might technically be two separate words for the purpose of analysis, we might often want to treat this as if it were one word.",
+      "zh": "所以，技術上也許是兩個單字，但為了分析，經常希望視為一個詞。"
+    },
+    {
+      "start": 107.14,
+      "end": 111.7,
+      "en": "And here we have a hyphenated word which is represented by three tokens.",
+      "zh": "這裡還有一個連字號單字，由三個 token 表示。"
+    },
+    {
+      "start": 112.46000000000001,
+      "end": 118.14,
+      "en": "So which of these tokens would you focus on if you wanted to do some analyses?",
+      "zh": "如果想分析，會著重哪個 token？"
+    },
+    {
+      "start": 118.47,
+      "end": 124.39,
+      "en": "Perhaps you just look at the first token, or maybe the last token in this little mini sequence.",
+      "zh": "也許只看第一個，或這段小序列的最後一個。"
+    },
+    {
+      "start": 124.95,
+      "end": 131.99,
+      "en": "Or maybe you take all of them and you average the embeddings, vectors and the activations and whatever else you're looking at.",
+      "zh": "也許全部取出，把嵌入、向量、活化，或其他正在觀察的量，"
+    },
+    {
+      "start": 131.99,
+      "end": 135.03,
+      "en": "You would average them all together for all of the tokens.",
+      "zh": "跨所有 token 全部取平均。"
+    },
+    {
+      "start": 135.83,
+      "end": 139.39,
+      "en": "If you would like to take a moment to think about this issue.",
+      "zh": "如果想花點時間思考，"
+    },
+    {
+      "start": 139.59,
+      "end": 142.19,
+      "en": "Feel free to pause the video and give it some thought.",
+      "zh": "可以暫停影片。"
+    },
+    {
+      "start": 143.35,
+      "end": 150.71,
+      "en": "So it turns out that the best approach is just to analyze the final token in the target word or phrase.",
+      "zh": "最佳做法，是只分析目標單字或片語的最後一個 token。"
+    },
+    {
+      "start": 151.15,
+      "end": 161.19,
+      "en": "And the reason for this is that when the model sees the token for the word tooth, it does not yet know what token comes next.",
+      "zh": "因為，模型看到 tooth 這個 token 時，還不知道接下來是哪個。"
+    },
+    {
+      "start": 161.43,
+      "end": 169.67000000000002,
+      "en": "It knows all the tokens that came before, and all of that contextual information gets loaded onto the embeddings vector for tooth.",
+      "zh": "知道前面所有 token，而那些上下文資訊，會載入 tooth 的嵌入向量。"
+    },
+    {
+      "start": 170.31,
+      "end": 174.03,
+      "en": "But there's no guarantee that the next token will be paste.",
+      "zh": "但不能保證下一個是 paste。"
+    },
+    {
+      "start": 174.59,
+      "end": 174.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 174.95,
+      "end": 185.29,
+      "en": "Now when the model actually sees the token for paste, especially with the preceding without the preceding space, and the previous token is for tooth.",
+      "zh": "當模型真正看到 paste，尤其前面有，不，是沒有前導空白，而前一個 token 是 tooth，"
+    },
+    {
+      "start": 185.45,
+      "end": 193.29,
+      "en": "Then the vector, the embeddings vector for paste will be modulated such that or according to the information",
+      "zh": "paste 的向量、嵌入向量，就會受到調整，根據"
+    },
+    {
+      "start": 193.29,
+      "end": 201.69,
+      "en": "from the preceding token, which is truth, and then the model will know that this is toothpaste, which is different from any other kind of paste.",
+      "zh": "前一個 tooth token 的資訊，讓模型知道這是 toothpaste，與其他 paste 不同。"
+    },
+    {
+      "start": 201.69,
+      "end": 208.61,
+      "en": "And toothpaste is also a very different word, with different meanings and implications compared to just tooth on its own.",
+      "zh": "而 toothpaste，也與單獨 tooth 有非常不同的意義與含意。"
+    },
+    {
+      "start": 209.17000000000002,
+      "end": 217.49,
+      "en": "Another way to phrase this is that tooth doesn't know anything about paste, but paste knows a lot about tooth.",
+      "zh": "換個方式說，tooth 不知道 paste，但 paste 知道很多 tooth 的資訊。"
+    },
+    {
+      "start": 217.93,
+      "end": 227.29,
+      "en": "So therefore the idea is that analyzing the token paste actually means also analyzing information about toothpaste.",
+      "zh": "因此，分析 paste 這個 token，其實也就是分析 toothpaste 的資訊。"
+    },
+    {
+      "start": 227.77,
+      "end": 228.97,
+      "en": "Anyway, so that's the idea.",
+      "zh": "總之，概念如此。"
+    },
+    {
+      "start": 228.97,
+      "end": 231.25,
+      "en": "So conceptually that makes sense.",
+      "zh": "在概念上合理。"
+    },
+    {
+      "start": 231.65,
+      "end": 234.65,
+      "en": "In practice the coding can get a little bit tricky.",
+      "zh": "實務上，程式可能有點棘手。"
+    },
+    {
+      "start": 234.99,
+      "end": 242.83,
+      "en": "So therefore I have a little Python demo to show you, which will also provide code for the code challenge in the next video.",
+      "zh": "所以，有一個小 Python 示範，也提供下一部程式挑戰會用的程式。"
+    },
+    {
+      "start": 243.35,
+      "end": 249.67,
+      "en": "So before switching to code, let me first give you an overview of what you will see in the code demo.",
+      "zh": "切換之前，先概述示範內容。"
+    },
+    {
+      "start": 250.27,
+      "end": 262.23,
+      "en": "I will start by exploring some multi-token words with a reminder about the importance of preceding spaces and the impact that has on tokenization.",
+      "zh": "先探索一些多 token 單字，複習前導空白的重要性，以及對 token 化的影響。"
+    },
+    {
+      "start": 262.59,
+      "end": 272.83,
+      "en": "That is pretty striking in this toothpaste example, where getting rid of the space in front of toothpaste gives a very different tokenization, at least for tooth.",
+      "zh": "在 toothpaste 例子裡很明顯，移除前面空白，會得到很不同的 token 化，至少 tooth 是如此。"
+    },
+    {
+      "start": 273.79,
+      "end": 278.59000000000003,
+      "en": "Next, I will create a few sentences that contain each of these target words.",
+      "zh": "接著，建立幾個句子，分別包含各目標單字。"
+    },
+    {
+      "start": 278.87,
+      "end": 285.03,
+      "en": "And this is partly just to have a little bit of context for the model to have before the target word,",
+      "zh": "部分原因，是讓模型在目標單字之前有一點上下文，"
+    },
+    {
+      "start": 285.03,
+      "end": 293.19,
+      "en": "and also as a reminder about the issue of preceding spaces when you want to generate algorithmic text data.",
+      "zh": "也提醒，以程式產生文字資料時，要注意前導空白。"
+    },
+    {
+      "start": 293.89,
+      "end": 299.65,
+      "en": "Okay, now, the way that I've constructed these sentences, I know for a fact that the target words",
+      "zh": "以我建立這些句子的方式，確定目標單字"
+    },
+    {
+      "start": 299.65,
+      "end": 306.69,
+      "en": "and the target token sequences are always at the very end, but lots of other cases, including the",
+      "zh": "與 token 序列總是在最後，但其他很多情況，包括"
+    },
+    {
+      "start": 306.69,
+      "end": 315.89,
+      "en": "code challenge in the next video, you don't necessarily know where exactly so which index in the sequence a target word appears.",
+      "zh": "下一部影片的挑戰，不一定知道目標單字確切出現在哪個序列索引。"
+    },
+    {
+      "start": 317.01,
+      "end": 327.13,
+      "en": "So therefore I will show you some code that might seem a little bit overkill for this demo, but you'll see that it will be necessary for the next video.",
+      "zh": "所以，會展示一些對這個示範看似過度的程式，但下一部就會需要。"
+    },
+    {
+      "start": 327.73,
+      "end": 331.69,
+      "en": "Okay, so here we have a for loop over the sentences.",
+      "zh": "這裡用 for 迴圈走過各句。"
+    },
+    {
+      "start": 331.69,
+      "end": 333.33,
+      "en": "That's these sentences here.",
+      "zh": "也就是這些句子。"
+    },
+    {
+      "start": 333.33,
+      "end": 343.01,
+      "en": "And then I loop over all of the target words here I'm calculating how many tokens are in this particular target word.",
+      "zh": "再走過所有目標單字，計算這個特定目標有幾個 token。"
+    },
+    {
+      "start": 343.37,
+      "end": 350.81,
+      "en": "And then here in this third for loop I'm looping over all of the tokens in this sentence.",
+      "zh": "第三個 for 迴圈，走過句子中的所有 token。"
+    },
+    {
+      "start": 350.81,
+      "end": 359.22,
+      "en": "So this sequence in the batch and testing whether this token and the preceding several tokens match the target token.",
+      "zh": "也就是批次中的這段序列，測試目前與前面幾個 token，是否符合目標 token。"
+    },
+    {
+      "start": 359.9,
+      "end": 364.06,
+      "en": "If it does, then we can save this index for later analyses.",
+      "zh": "符合的話，儲存這個索引，供稍後分析。"
+    },
+    {
+      "start": 364.7,
+      "end": 368.34,
+      "en": "Okay, then I'm going to push all the tokens through the model.",
+      "zh": "接著，把所有 token 送過模型。"
+    },
+    {
+      "start": 368.5,
+      "end": 371.58,
+      "en": "These sentences have different numbers of tokens.",
+      "zh": "這些句子的 token 數不同。"
+    },
+    {
+      "start": 371.58,
+      "end": 382.86,
+      "en": "So to input them as a batch we also need to pad the sequences, which means we also need to input not only the tokens themselves but also the attention mask.",
+      "zh": "要當批次輸入，也要填補序列，因此不只輸入 token 本身，還要輸入 attention mask。"
+    },
+    {
+      "start": 382.86,
+      "end": 389.34,
+      "en": "And that's why I have this double asterisk over here to unpack this dictionary of inputs here.",
+      "zh": "所以，這裡用雙星號，解開這個輸入字典。"
+    },
+    {
+      "start": 389.86,
+      "end": 390.14,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 390.18,
+      "end": 393.86,
+      "en": "And then you can see the size of the hidden states over here.",
+      "zh": "這裡看到隱藏狀態大小。"
+    },
+    {
+      "start": 394.18,
+      "end": 403.26,
+      "en": "There are six sentences, 14 tokens including padding and of course 768 embeddings dimensions.",
+      "zh": "六個句子、14 個 token，包含填補，以及 768 個嵌入維度。"
+    },
+    {
+      "start": 403.26,
+      "end": 405.54,
+      "en": "This is with GPT two small.",
+      "zh": "使用 GPT-2 small。"
+    },
+    {
+      "start": 406.22,
+      "end": 414.8,
+      "en": "And finally, I'll do some very simple analyses to look at how the token embeddings change from one layer to the next.",
+      "zh": "最後，做非常簡單的分析，看 token 嵌入從一層到下一層如何改變。"
+    },
+    {
+      "start": 415.36,
+      "end": 423.36,
+      "en": "The way I did this analysis is that for each layer starting from hidden state layer one, I take the",
+      "zh": "做法是，從 hidden state 第 1 層開始，對每層取出"
+    },
+    {
+      "start": 423.36,
+      "end": 434.84,
+      "en": "embeddings vector for the final token in the target word, subtract it from the exact same token but from the previous layer, and then take the norm of that difference vector.",
+      "zh": "目標單字最後 token 的嵌入向量，用前一層完全相同 token 的向量減去它，再取差向量的範數。"
+    },
+    {
+      "start": 435.4,
+      "end": 441.96,
+      "en": "Now later on in the course, I will provide a geometric interpretation of this analysis.",
+      "zh": "課程稍後，會對這個分析提供幾何解讀。"
+    },
+    {
+      "start": 442.2,
+      "end": 449.56,
+      "en": "I will refer to it as the length of the path that the token embeddings vector is taking as it traverses through the model.",
+      "zh": "會稱為 token 嵌入向量穿過模型時，所走路徑的長度。"
+    },
+    {
+      "start": 449.92,
+      "end": 450.92,
+      "en": "But that's for later.",
+      "zh": "但那是之後的事。"
+    },
+    {
+      "start": 450.92,
+      "end": 458.96,
+      "en": "For now, you can just interpret this as a measure of how much the token vector changes from one layer to the next.",
+      "zh": "目前，只要解讀成 token 向量從一層到下一層，改變多少的指標。"
+    },
+    {
+      "start": 459.32,
+      "end": 464,
+      "en": "Okay, so I repeat this for the last token in the target word.",
+      "zh": "對目標單字最後一個 token 重複，"
+    },
+    {
+      "start": 464.12,
+      "end": 471.02,
+      "en": "The second to last token in the target word, and also for the last two tokens within each layer.",
+      "zh": "也對倒數第二個，以及每層最後兩個 token 做。"
+    },
+    {
+      "start": 471.46,
+      "end": 474.62,
+      "en": "Now, we don't really need to worry about interpreting this stuff here.",
+      "zh": "這裡不太需要擔心如何解讀。"
+    },
+    {
+      "start": 474.62,
+      "end": 482.46,
+      "en": "I just want to give you a bit of exposure to using these tokens to extract activation patterns from the model.",
+      "zh": "只是稍微接觸，使用這些 token，從模型擷取活化模式。"
+    },
+    {
+      "start": 482.78,
+      "end": 485.74,
+      "en": "Anyway, now let's switch to code and have a look.",
+      "zh": "現在切換到程式看看。"
+    },
+    {
+      "start": 486.78,
+      "end": 490.62,
+      "en": "We only need a few libraries for this video.",
+      "zh": "這部只需要幾個函式庫。"
+    },
+    {
+      "start": 490.62,
+      "end": 495.9,
+      "en": "Here I'm importing the GPT two tokenizer and GPT two small.",
+      "zh": "匯入 GPT-2 tokenizer 與 GPT-2 small。"
+    },
+    {
+      "start": 496.38,
+      "end": 499.74,
+      "en": "Okay, here is the example that I showed in the slides.",
+      "zh": "這是投影片展示的例子。"
+    },
+    {
+      "start": 499.74,
+      "end": 501.66,
+      "en": "So I have toothpaste with a space.",
+      "zh": "有前導空白的 toothpaste。"
+    },
+    {
+      "start": 501.66,
+      "end": 503.26,
+      "en": "Toothpaste without a space.",
+      "zh": "沒有前導空白的 toothpaste。"
+    },
+    {
+      "start": 503.3,
+      "end": 504.54,
+      "en": "Same for Time Machine.",
+      "zh": "time machine 也一樣。"
+    },
+    {
+      "start": 504.54,
+      "end": 511.18,
+      "en": "And I also have with a hyphen in here for just various spellings.",
+      "zh": "也有連字號，使用不同拼法。"
+    },
+    {
+      "start": 511.94,
+      "end": 518.38,
+      "en": "And then here I am creating some very interesting sentences, including that target word.",
+      "zh": "接著，建立一些非常有意思、包含目標單字的句子。"
+    },
+    {
+      "start": 518.78,
+      "end": 521.86,
+      "en": "Now one of the things I wanted to remind you of here.",
+      "zh": "有件事想提醒。"
+    },
+    {
+      "start": 521.9,
+      "end": 530.83,
+      "en": "Let me print this out here, is that if you are creating text data for running experiments in a language",
+      "zh": "先印出來；如果為了語言模型實驗，建立文字"
+    },
+    {
+      "start": 530.83,
+      "end": 539.99,
+      "en": "model, you need to be mindful of whether your target words that you are listing already include spaces before them or not, so this is sort of awkward.",
+      "zh": "資料，要留意列出的目標單字，是否本來已包含前導空白；這樣有點彆扭。"
+    },
+    {
+      "start": 539.99,
+      "end": 545.55,
+      "en": "Most written text does not have a double space before words, and something like this could actually",
+      "zh": "多數文字，單字前面不會有兩個空白；這樣其實可能"
+    },
+    {
+      "start": 545.55,
+      "end": 553.19,
+      "en": "confuse the model a little bit and have a negative impact on your analyses, so you just need to keep that in mind.",
+      "zh": "讓模型有點困惑，對分析有負面影響，所以要記得。"
+    },
+    {
+      "start": 553.31,
+      "end": 564.95,
+      "en": "Uh, you know, it would be a little bit more appropriate to do something like this, although then of course that's fine when you specify the target words with a preceding space, but not when you don't.",
+      "zh": "像這樣會稍適當，但只適用於指定目標單字已有前導空白時，沒有的話又不適用。"
+    },
+    {
+      "start": 564.95,
+      "end": 568.55,
+      "en": "So yeah, just something to be mindful of in the future.",
+      "zh": "總之，以後要留意。"
+    },
+    {
+      "start": 569.07,
+      "end": 569.35,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 569.35,
+      "end": 569.79,
+      "en": "Let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 569.79,
+      "end": 580.07,
+      "en": "So here is this ridiculous piece of code where I am identifying the location of the target, uh, in each of these sentences here.",
+      "zh": "這段看起來很誇張的程式，用來辨識各句中目標的位置。"
+    },
+    {
+      "start": 580.43,
+      "end": 588.05,
+      "en": "So I loop over sentences, loop over, uh, all the different targets that we are looking for, get the length of the targets.",
+      "zh": "迴圈走過句子，再走過各種目標，取得目標長度。"
+    },
+    {
+      "start": 588.05,
+      "end": 592.65,
+      "en": "And that is because each target can have a different number of tokens.",
+      "zh": "因為每個目標的 token 數可能不同。"
+    },
+    {
+      "start": 593.17,
+      "end": 597.13,
+      "en": "And then yeah, here I'm looping over all of the tokens in the sequence.",
+      "zh": "接著，走過序列所有 token。"
+    },
+    {
+      "start": 597.25,
+      "end": 599.21,
+      "en": "Here I say torch dot equal.",
+      "zh": "這裡使用 torch.equal。"
+    },
+    {
+      "start": 599.33,
+      "end": 605.53,
+      "en": "And I'm looking for the token sequence for this sentence for the current token.",
+      "zh": "查看這個句子的 token 序列，從目前 token，"
+    },
+    {
+      "start": 605.69,
+      "end": 607.93,
+      "en": "And then going back target length.",
+      "zh": "往回取目標長度。"
+    },
+    {
+      "start": 607.93,
+      "end": 612.01,
+      "en": "So however long the target is in terms of the number of tokens.",
+      "zh": "也就是目標有多少個 token。"
+    },
+    {
+      "start": 612.29,
+      "end": 616.81,
+      "en": "And then does that match the actual target token sequence.",
+      "zh": "再看是否符合真正目標 token 序列。"
+    },
+    {
+      "start": 617.09,
+      "end": 621.01,
+      "en": "So if those do not match then nothing happens.",
+      "zh": "不符合就什麼都不做。"
+    },
+    {
+      "start": 621.01,
+      "end": 630.45,
+      "en": "We go on to the next token in the sequence, and if these do match, then this means that we are looking at the end of a target word.",
+      "zh": "繼續下一個；符合的話，表示正在看目標單字的結尾，"
+    },
+    {
+      "start": 630.53,
+      "end": 636.53,
+      "en": "With however many targets, tokens are in the target word like 2 or 3.",
+      "zh": "不管目標單字有多少 token，例如兩、三個。"
+    },
+    {
+      "start": 636.85,
+      "end": 637.13,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 637.17,
+      "end": 643.65,
+      "en": "And then I just say that this sentence has a target word at this index here.",
+      "zh": "接著記錄，這個句子在這個索引有目標單字。"
+    },
+    {
+      "start": 643.89,
+      "end": 652.87,
+      "en": "And the reason for the minus one is just because of Python indexing starting from zero, whereas this loop I start from the target length.",
+      "zh": "減 1，是因為 Python 索引從零開始，而這個迴圈從目標長度開始。"
+    },
+    {
+      "start": 653.39,
+      "end": 654.71,
+      "en": "Okay, so we can run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 654.71,
+      "end": 657.47,
+      "en": "And here we see sentence zero.",
+      "zh": "這裡看到句子 0。"
+    },
+    {
+      "start": 657.47,
+      "end": 661.43,
+      "en": "So the first sentence has the first target at index 12.",
+      "zh": "第一句，在索引 12 有第一個目標。"
+    },
+    {
+      "start": 661.63,
+      "end": 663.95,
+      "en": "So we have six sentences here.",
+      "zh": "這裡有六句。"
+    },
+    {
+      "start": 663.95,
+      "end": 665.55,
+      "en": "So zero through five.",
+      "zh": "所以是 0 到 5。"
+    },
+    {
+      "start": 666.19,
+      "end": 668.23,
+      "en": "But we're missing a couple of targets.",
+      "zh": "但少了幾個目標。"
+    },
+    {
+      "start": 668.23,
+      "end": 670.83,
+      "en": "So some targets are just not identified here.",
+      "zh": "有些沒辨識出來。"
+    },
+    {
+      "start": 670.83,
+      "end": 675.19,
+      "en": "In particular targets one and two and four.",
+      "zh": "尤其目標 1、2、4。"
+    },
+    {
+      "start": 675.19,
+      "end": 681.55,
+      "en": "And those all correspond to the targets that I specified without the preceding space.",
+      "zh": "都對應我指定時，沒有前導空白的目標。"
+    },
+    {
+      "start": 681.75,
+      "end": 682.27,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 682.27,
+      "end": 685.07,
+      "en": "So now we know where the targets appear.",
+      "zh": "現在知道目標出現在哪裡。"
+    },
+    {
+      "start": 685.07,
+      "end": 689.23,
+      "en": "The final token for each target word in the sentence.",
+      "zh": "也就是句中各目標單字的最後一個 token。"
+    },
+    {
+      "start": 689.35,
+      "end": 691.91,
+      "en": "And yeah then I can do a forward pass.",
+      "zh": "接著做前向傳播。"
+    },
+    {
+      "start": 691.91,
+      "end": 694.87,
+      "en": "Here we get the hidden states as well.",
+      "zh": "也取得 hidden states。"
+    },
+    {
+      "start": 695.03,
+      "end": 701.83,
+      "en": "And now here I'm going to loop over all of the sentences and now all of the layers and grab the activations",
+      "zh": "這裡走過所有句子、所有層，取得活化，"
+    },
+    {
+      "start": 701.83,
+      "end": 707.41,
+      "en": "just for the final token of the target word in each sentence.",
+      "zh": "只取各句目標單字的最後 token。"
+    },
+    {
+      "start": 707.97,
+      "end": 715.77,
+      "en": "And I'm doing this twice for the final token, and for the last or the second to last token in the sentence.",
+      "zh": "做兩次，取最後一個，以及句中最後，或者倒數第二個 token。"
+    },
+    {
+      "start": 716.17,
+      "end": 717.97,
+      "en": "Okay, so that runs super fast.",
+      "zh": "好，這跑得非常快。"
+    },
+    {
+      "start": 717.97,
+      "end": 727.61,
+      "en": "So we have 13 layers, six sentences, 768 embeddings dimensions and two tokens, the final token of",
+      "zh": "有 13 層、六個句子、768 個嵌入維度，以及兩個 token，"
+    },
+    {
+      "start": 727.61,
+      "end": 732.01,
+      "en": "the target word and the second to last in the target word.",
+      "zh": "目標單字最後與倒數第二個。"
+    },
+    {
+      "start": 732.45,
+      "end": 732.61,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 732.61,
+      "end": 735.65,
+      "en": "And then here I don't really want to get into this too much.",
+      "zh": "這裡不想深入太多。"
+    },
+    {
+      "start": 735.65,
+      "end": 743.93,
+      "en": "This is just a quick demo of using these activations for doing some simple analyses and some simple visualizations.",
+      "zh": "只是快速示範，用活化做一些簡單分析與視覺化。"
+    },
+    {
+      "start": 743.93,
+      "end": 754.89,
+      "en": "In the next video in the code challenge, you're going to follow a kind of similar procedure, although it's going to be more complicated than what I've shown here, but you're going to be doing more interesting",
+      "zh": "下一部程式挑戰會依照類似程序，雖然更複雜，但分析也會更有意思，"
+    },
+    {
+      "start": 754.93,
+      "end": 757.37,
+      "en": "analyses that what I have done here.",
+      "zh": "比這裡做的更有意思。"
+    },
+    {
+      "start": 757.81,
+      "end": 763.82,
+      "en": "So here basically, I'm looping over all of the hidden states layers from index one.",
+      "zh": "基本上，從索引 1 開始，走過所有 hidden states 層。"
+    },
+    {
+      "start": 764.42,
+      "end": 772.7,
+      "en": "Remember that index one actually corresponds to the first transformer block, because zero is the embeddings the initial embeddings layer.",
+      "zh": "記得，索引 1 對應第一個 Transformer 區塊，零是初始嵌入層。"
+    },
+    {
+      "start": 772.74,
+      "end": 776.98,
+      "en": "I know I've repeated that like a million times, but I will probably say it again.",
+      "zh": "我知道，重複了無數次，但大概還會再說。"
+    },
+    {
+      "start": 777.42,
+      "end": 784.18,
+      "en": "So here I'm getting the difference in the embeddings vector for this layer compared to the previous",
+      "zh": "這裡計算該層與前一層嵌入向量之差，"
+    },
+    {
+      "start": 784.18,
+      "end": 789.66,
+      "en": "layer, and then calculating the norm of that difference vector and then plotting that.",
+      "zh": "再取差向量範數，畫出來。"
+    },
+    {
+      "start": 789.66,
+      "end": 796.98,
+      "en": "So essentially this is just measuring how much the embeddings vector changes from one transformer block to the next.",
+      "zh": "基本上，就是測量嵌入向量從一個 Transformer 區塊到下一個，改變多少。"
+    },
+    {
+      "start": 797.22,
+      "end": 803.26,
+      "en": "And all of those changes of course, are attributable to the adjustments that are calculated and added",
+      "zh": "當然，所有改變，都來自各區塊中注意力與 MLP 子區塊計算，"
+    },
+    {
+      "start": 803.26,
+      "end": 810.38,
+      "en": "on to the residual stream by the attention and by the MLP sub blocks within each transformer block.",
+      "zh": "並加到殘差流上的調整。"
+    },
+    {
+      "start": 810.98,
+      "end": 812.82,
+      "en": "So that's it for this video.",
+      "zh": "這部就到這裡。"
+    },
+    {
+      "start": 812.94,
+      "end": 820.5,
+      "en": "As I mentioned in the beginning of this video, you'll get to use some of the code here in the code challenge in the next video.",
+      "zh": "像開頭提過的，下一部程式挑戰會用到這裡部分程式。"
+    }
+  ]
+}

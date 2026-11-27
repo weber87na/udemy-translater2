@@ -1,0 +1,2293 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893625",
+  "title": "Sparse autoencoders: theory and code",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b891c2dc79f93c19ba70060b15b0491f1fa21986153974b9f7c730ab05032661",
+  "cues": [
+    {
+      "start": 2.16,
+      "end": 11.32,
+      "en": "An autoencoder is a specific type of deep learning model architecture that is being explored in interpretability",
+      "zh": "自編碼器是一種特定的深度學習模型架構，正在可解釋性"
+    },
+    {
+      "start": 11.32,
+      "end": 19.56,
+      "en": "research as a way to identify latent factors that are embedded in the patterns across different neurons.",
+      "zh": "研究中，用來辨識嵌入於不同神經元模式中的潛在因素。"
+    },
+    {
+      "start": 20.24,
+      "end": 27.44,
+      "en": "In this video, I will describe the architecture of the autoencoder and how it is used for interpretability.",
+      "zh": "這支影片會介紹自編碼器架構，以及如何用於可解釋性。"
+    },
+    {
+      "start": 27.8,
+      "end": 34.6,
+      "en": "And then I'll switch to Python and show you how interpret autoencoders are set up, how they are trained,",
+      "zh": "接著切換到 Python，示範自編碼器如何建立、如何訓練，"
+    },
+    {
+      "start": 34.6,
+      "end": 40.04,
+      "en": "and a few different ways of picking components to interpret and analyze.",
+      "zh": "以及幾種挑選成分來解讀、分析的方法。"
+    },
+    {
+      "start": 40.44,
+      "end": 41.48,
+      "en": "In the code demo.",
+      "zh": "這份程式示範，"
+    },
+    {
+      "start": 41.48,
+      "end": 47.28,
+      "en": "Here in this video I will use simulated data, not real LM data activations.",
+      "zh": "會使用模擬資料，而不是真實語言模型的活化資料。"
+    },
+    {
+      "start": 47.44,
+      "end": 54.16,
+      "en": "That's going to help us with the evaluating the performance of the autoencoder, and will also facilitate",
+      "zh": "這有助於評估自編碼器表現，也方便"
+    },
+    {
+      "start": 54.2,
+      "end": 61.34,
+      "en": "a critical discussion about some of the challenges of interpreting autoencoders in real data.",
+      "zh": "批判性討論，解讀真實資料自編碼器時的一些挑戰。"
+    },
+    {
+      "start": 61.82,
+      "end": 67.7,
+      "en": "And in the next video, I'll show another code demo with an autoencoder in real LM data.",
+      "zh": "下一支影片，會用真實語言模型資料，展示另一份自編碼器程式示範。"
+    },
+    {
+      "start": 67.94,
+      "end": 74.66,
+      "en": "And the video thereafter, you will get to continue exploring autoencoders in a code challenge.",
+      "zh": "再下一支，則透過程式挑戰，繼續探索。"
+    },
+    {
+      "start": 75.94,
+      "end": 86.14,
+      "en": "In this slide, I will give an overview of the big picture idea of using a sparse autoencoder to identify latent constructs.",
+      "zh": "這張投影片，概述使用稀疏自編碼器辨識潛在構念的整體想法。"
+    },
+    {
+      "start": 86.7,
+      "end": 91.66,
+      "en": "So imagine we have this representation of a noun in an la.",
+      "zh": "想像語言模型中，有名詞的這種表徵。"
+    },
+    {
+      "start": 92.7,
+      "end": 98.5,
+      "en": "Now we don't actually know how llms represent the concept of a noun.",
+      "zh": "其實不知道，LLM 如何表徵名詞概念。"
+    },
+    {
+      "start": 99.14,
+      "end": 103.74000000000001,
+      "en": "Language models are not trained to know concepts like parts of speech.",
+      "zh": "語言模型不是被訓練成知道詞性等概念，"
+    },
+    {
+      "start": 104.14,
+      "end": 107.62,
+      "en": "They do somehow learn it from next token prediction.",
+      "zh": "但某種程度上，透過下一個 token 預測學會了。"
+    },
+    {
+      "start": 107.97999999999999,
+      "end": 116.53999999999999,
+      "en": "But the question is where is this concept actually stored in the LLM weights and how is it represented?",
+      "zh": "問題是，這個概念實際存於 LLM 權重的哪裡，又如何表徵？"
+    },
+    {
+      "start": 117.58,
+      "end": 124.24,
+      "en": "Of course, a noun is a relatively simple latent concept in the context of AI safety.",
+      "zh": "當然，名詞是相對簡單的潛在概念。在 AI 安全脈絡，"
+    },
+    {
+      "start": 124.52,
+      "end": 133.04,
+      "en": "You could replace this with a concept like deception or a willingness to participate in illegal or harmful activities.",
+      "zh": "可以換成欺騙，或願意參與違法、有害活動等概念。"
+    },
+    {
+      "start": 133.84,
+      "end": 142,
+      "en": "Anyway, the concept of a noun is somehow embedded in the patterns of weights across the different transformer blocks.",
+      "zh": "總之，名詞概念，以某種方式嵌入不同 Transformer 區塊之間的權重模式。"
+    },
+    {
+      "start": 142.44,
+      "end": 144.56,
+      "en": "So this is a latent variable.",
+      "zh": "這是潛在變數，"
+    },
+    {
+      "start": 144.56,
+      "end": 146.84,
+      "en": "We cannot measure it directly.",
+      "zh": "無法直接測量。"
+    },
+    {
+      "start": 147.28,
+      "end": 155.24,
+      "en": "However, we can design experiments to elicit manifest variables that we actually can measure.",
+      "zh": "但可以設計實驗，引發真正能測量的顯現變數。"
+    },
+    {
+      "start": 155.84,
+      "end": 163.24,
+      "en": "For example, we can just present some tokens to the model and measure the activations in some embeddings",
+      "zh": "例如，直接將一些 token 呈現給模型，再測量某些嵌入"
+    },
+    {
+      "start": 163.24,
+      "end": 168.04,
+      "en": "dimensions or some MLP neurons to the nouns in the text.",
+      "zh": "維度、某些 MLP 神經元，對文字中名詞的活化。"
+    },
+    {
+      "start": 168.4,
+      "end": 171.64,
+      "en": "So these are our manifest variables.",
+      "zh": "這些就是顯現變數。"
+    },
+    {
+      "start": 172.12,
+      "end": 176.86,
+      "en": "Next we apply some analysis, in this case a sparse autoencoder.",
+      "zh": "接著套用分析，這裡是稀疏自編碼器。"
+    },
+    {
+      "start": 177.98,
+      "end": 185.06,
+      "en": "The idea is that we take all of our activations from our manifest variables and see if we can figure",
+      "zh": "概念是，取得顯現變數的全部活化，看看能否找出"
+    },
+    {
+      "start": 185.06,
+      "end": 193.34,
+      "en": "out some clever way of combining all of their activations, so that all the information in these manifest",
+      "zh": "某種巧妙方式，組合全部活化，也就是這些顯現變數中的全部資訊，"
+    },
+    {
+      "start": 193.34,
+      "end": 201.14,
+      "en": "variables, such that the combination of these activations using linear and nonlinear methods, leads",
+      "zh": "使用線性與非線性方法，組合這些活化，得到"
+    },
+    {
+      "start": 201.14,
+      "end": 208.06,
+      "en": "to a set of latent components that are estimated from the manifest variables.",
+      "zh": "一組從顯現變數估計的潛在成分。"
+    },
+    {
+      "start": 209.06,
+      "end": 215.18,
+      "en": "And actually, this high level overview on this slide basically works for any kind of latent model,",
+      "zh": "其實，這張投影片的高階概述，基本上適用於任何潛在模型，"
+    },
+    {
+      "start": 215.18,
+      "end": 221.46,
+      "en": "including generalized eigendecomposition that I'll talk about in a few videos, and also like factor",
+      "zh": "包括幾支影片後會談的廣義特徵分解，以及因素"
+    },
+    {
+      "start": 221.46,
+      "end": 229.42000000000002,
+      "en": "analysis, non-negative matrix factorization, etc., etc. lots of analyses could be plugged into this orange box here.",
+      "zh": "分析、非負矩陣分解等等，很多分析都能放進這個橘色方框。"
+    },
+    {
+      "start": 230.5,
+      "end": 237.43,
+      "en": "But anyway, the question is that we start from some concept that we want to understand, some latent factor.",
+      "zh": "但問題是，從一個想理解的概念、潛在因素開始，"
+    },
+    {
+      "start": 237.82999999999998,
+      "end": 242.55,
+      "en": "And what we get from our analysis is a set of components.",
+      "zh": "分析得到的，卻是一組成分，"
+    },
+    {
+      "start": 242.55,
+      "end": 248.35,
+      "en": "These are statistical combinations of the activations of the manifest variables.",
+      "zh": "是顯現變數活化的統計組合。"
+    },
+    {
+      "start": 248.79,
+      "end": 257.71,
+      "en": "Now ideally, one of these statistically reconstructed latent components actually maps onto the source",
+      "zh": "理想上，其中一個統計重建的潛在成分，確實映射到"
+    },
+    {
+      "start": 257.75,
+      "end": 261.35,
+      "en": "latent construct that we are interested in.",
+      "zh": "感興趣的原始潛在構念。"
+    },
+    {
+      "start": 262.03,
+      "end": 273.31,
+      "en": "But how do we know which of these latent variables corresponds to a representation of a noun that is really not trivial in the code demo.",
+      "zh": "但如何知道，哪個潛在變數對應名詞表徵？這並不簡單。程式示範，"
+    },
+    {
+      "start": 273.31,
+      "end": 278.19,
+      "en": "In this video I will be simulating ground truth latent concepts.",
+      "zh": "這支影片，會模擬有真值的潛在概念，"
+    },
+    {
+      "start": 278.31,
+      "end": 281.99,
+      "en": "So we will know for sure how to get the right answer.",
+      "zh": "所以確定知道，如何找出正確答案。"
+    },
+    {
+      "start": 282.67,
+      "end": 284.99,
+      "en": "But in real data it's much more challenging.",
+      "zh": "真實資料則困難得多。"
+    },
+    {
+      "start": 285.23,
+      "end": 295.09000000000003,
+      "en": "So maybe, for example, you can see which of these latent components has more activation for nouns compared to verbs and adjectives and so on.",
+      "zh": "例如，可以看哪些潛在成分，對名詞的活化，比動詞、形容詞等更強。"
+    },
+    {
+      "start": 295.40999999999997,
+      "end": 306.57,
+      "en": "That's a good way to go about it, but it is one more layer of statistics that increases the amount of uncertainty and also needs to be evaluated carefully.",
+      "zh": "這是不錯的方法，但又多一層統計，增加不確定性，也需要仔細評估。"
+    },
+    {
+      "start": 307.37,
+      "end": 315.61,
+      "en": "My point here is not that these statistically reconstructed components cannot be linked back to the latent construct that we're interested in.",
+      "zh": "不是說，統計重建的成分，無法連回感興趣的潛在構念，"
+    },
+    {
+      "start": 316.13,
+      "end": 322.05,
+      "en": "Instead, my point is just that it can be challenging, especially with limited or noisy data.",
+      "zh": "只是說，可能很有挑戰，尤其資料有限或有雜訊時。"
+    },
+    {
+      "start": 323.33,
+      "end": 328.33,
+      "en": "Okay, so now let me give you a little more detail about a sparse autoencoder.",
+      "zh": "好，現在更詳細介紹稀疏自編碼器。"
+    },
+    {
+      "start": 329.09,
+      "end": 334.45,
+      "en": "Here you see a general overview of the architecture of an autoencoder.",
+      "zh": "這裡是一般自編碼器架構的概覽。"
+    },
+    {
+      "start": 334.97,
+      "end": 341.89,
+      "en": "Each of these vertical blocks corresponds to or represents a different layer of the model.",
+      "zh": "每個垂直區塊，對應、代表模型不同層。"
+    },
+    {
+      "start": 342.53,
+      "end": 345.69,
+      "en": "This corresponds to the input data into the model.",
+      "zh": "這是模型的輸入資料，"
+    },
+    {
+      "start": 345.81,
+      "end": 353.27,
+      "en": "So in our case, the activation of 3000 MLP neurons elicited by a particular token.",
+      "zh": "在這裡，就是某個 token 引發的 3,000 個 MLP 神經元活化。"
+    },
+    {
+      "start": 354.43,
+      "end": 356.87,
+      "en": "Then we have what's called the encoder layer.",
+      "zh": "接著是所謂編碼器層，"
+    },
+    {
+      "start": 357.31,
+      "end": 367.59,
+      "en": "This is a pretty straightforward linear layer that transforms the input data using a feed forward operation with some non-linearity at the end.",
+      "zh": "相當直接的線性層，利用前饋運算轉換輸入，末端再加一個非線性。"
+    },
+    {
+      "start": 368.19,
+      "end": 375.71,
+      "en": "And then in the middle, we have what is variously called the bottleneck or the latent, or the code layer of the model.",
+      "zh": "中間則有不同名稱，瓶頸層、潛在層，或模型的編碼層，"
+    },
+    {
+      "start": 376.27,
+      "end": 380.59,
+      "en": "This is where the variables get transformed in the innermost layer.",
+      "zh": "變數在最內層被轉換。"
+    },
+    {
+      "start": 381.07,
+      "end": 389.43,
+      "en": "And then we go to a decoder layer where the dimensionality of the data matches the dimensionality at the encoder layer.",
+      "zh": "接著到解碼器層，資料維度與編碼器層匹配。"
+    },
+    {
+      "start": 389.99,
+      "end": 401.43,
+      "en": "In fact, autoencoder models will sometimes tie the encoder and decoder weights together so that the decoder is literally just the transpose of the encoder.",
+      "zh": "其實，自編碼器有時會將編碼器與解碼器權重綁定，讓解碼器真的就是編碼器的轉置。"
+    },
+    {
+      "start": 402.55,
+      "end": 408.19,
+      "en": "That's not what I'm going to do in this video, but I will show you what that looks like in the next video.",
+      "zh": "這支影片不會這麼做，但下一支會展示。"
+    },
+    {
+      "start": 408.71,
+      "end": 412.13,
+      "en": "And then finally we have the output of the autoencoder.",
+      "zh": "最後是自編碼器輸出，"
+    },
+    {
+      "start": 412.40999999999997,
+      "end": 419.93,
+      "en": "Now this is always the same, or the size of this output is always the same as the size of the initial input.",
+      "zh": "它永遠相同，或者說，輸出大小永遠與最初輸入相同。"
+    },
+    {
+      "start": 420.37,
+      "end": 429.53,
+      "en": "In fact, the entire goal of training an autoencoder is to get the output to match the input as closely as possible.",
+      "zh": "其實，訓練自編碼器的全部目標，就是讓輸出盡可能符合輸入。"
+    },
+    {
+      "start": 430.13,
+      "end": 438.01,
+      "en": "So, for example, if there was just one linear layer in between input and output with no non-linearities,",
+      "zh": "例如，如果輸入與輸出之間只有一個線性層，沒有非線性，"
+    },
+    {
+      "start": 438.25,
+      "end": 445.61,
+      "en": "then the model would just learn that the identity matrix is the optimal way to get the output to match the input.",
+      "zh": "模型只會學到，單位矩陣是讓輸出符合輸入的最佳方式。"
+    },
+    {
+      "start": 446.69,
+      "end": 458.01,
+      "en": "But in these autoencoder architectures, the model needs to learn to transform the data with changing dimensionalities and also with non-linear transforms.",
+      "zh": "但這種自編碼器架構，需要學習在維度改變、也有非線性轉換的情況下，轉換資料。"
+    },
+    {
+      "start": 458.40999999999997,
+      "end": 462.17,
+      "en": "So it's really not trivial to learn this input output mapping.",
+      "zh": "所以學會輸入到輸出的映射，並不簡單。"
+    },
+    {
+      "start": 463.01,
+      "end": 471.19,
+      "en": "Now, in a typical autoencoder architecture that is used in, for example, data compression and image denoising.",
+      "zh": "典型自編碼器，例如用於資料壓縮、影像去雜訊的架構，"
+    },
+    {
+      "start": 471.43,
+      "end": 478.75,
+      "en": "The latent layer is small, by which I mean it has a lower dimensionality than the input, and then",
+      "zh": "潛在層很小，也就是維度低於輸入與"
+    },
+    {
+      "start": 478.75,
+      "end": 489.47,
+      "en": "the encoder layer that forces the model to learn a low dimensional representation, which is going to be more efficient than the full dimensional input.",
+      "zh": "編碼器層，迫使模型學習低維表徵，比完整維度輸入更有效率。"
+    },
+    {
+      "start": 490.23,
+      "end": 497.75,
+      "en": "On the other hand, for sparse autoencoders, for example, the kinds we use in interpretability, we actually do the opposite.",
+      "zh": "但稀疏自編碼器，例如可解釋性使用的類型，其實相反，"
+    },
+    {
+      "start": 497.75,
+      "end": 504.35,
+      "en": "We expand the dimensionality of the middle layer so that it's larger than the size of the input.",
+      "zh": "會擴張中間層，讓它大於輸入。"
+    },
+    {
+      "start": 505.51,
+      "end": 513.03,
+      "en": "Now, you might think that that would lead to an overcomplete and redundant set of representations and transformations.",
+      "zh": "你可能覺得，這會形成過完備、冗餘的表徵與轉換，"
+    },
+    {
+      "start": 513.43,
+      "end": 522.07,
+      "en": "But if you impose sparsity such that a lot of these activations are forced to be zero, then what ends",
+      "zh": "但如果強制稀疏，讓許多活化為零，"
+    },
+    {
+      "start": 522.07,
+      "end": 532.13,
+      "en": "up happening is you get a relatively small number of units in this latent layer to be active, and a lot of the rest of them are zeros.",
+      "zh": "最後就只有相對少量潛在層單元活躍，其餘大多為零。"
+    },
+    {
+      "start": 532.77,
+      "end": 540.93,
+      "en": "Now, it's not necessarily intuitively obvious that that would de-correlate the variables to identify",
+      "zh": "直覺上，不一定明顯能理解，這如何讓變數解相關，辨識"
+    },
+    {
+      "start": 540.97,
+      "end": 547.57,
+      "en": "latent factors that are embedded in the patterns distributed across the manifest variables, but that",
+      "zh": "分布在顯現變數模式中的潛在因素，"
+    },
+    {
+      "start": 547.57,
+      "end": 556.69,
+      "en": "is actually what ends up happening, at least under ideal conditions of a sufficient amount of clean data and separability in the data.",
+      "zh": "但至少在資料足夠、乾淨、可分的理想條件下，確實會發生。"
+    },
+    {
+      "start": 558.05,
+      "end": 563.49,
+      "en": "The last thing I want to mention before telling you about the Python demo is the loss function.",
+      "zh": "介紹 Python 示範之前，最後想談損失函數。"
+    },
+    {
+      "start": 564.21,
+      "end": 572.25,
+      "en": "As I already mentioned, the goal of training this model is to get the output to match the input as closely as possible.",
+      "zh": "剛才提過，訓練目標，是讓輸出盡可能符合輸入。"
+    },
+    {
+      "start": 572.73,
+      "end": 584.53,
+      "en": "So the loss function is the difference of the input and the output, and partly because we don't care about whether the little discrepancies happen to be positive or negative.",
+      "zh": "所以損失是輸入與輸出的差，部分原因是不在意微小差異是正或負，"
+    },
+    {
+      "start": 584.97,
+      "end": 592.91,
+      "en": "And also because squaring a loss function makes for a really simple derivative to calculate the input",
+      "zh": "另外，損失平方後，導數很容易計算，因此輸入"
+    },
+    {
+      "start": 592.95,
+      "end": 600.23,
+      "en": "output derivative difference is squared and this is called mean squared error or MSE.",
+      "zh": "與輸出之間的差會平方，稱為均方誤差，MSE。"
+    },
+    {
+      "start": 600.63,
+      "end": 603.03,
+      "en": "You will see that in the code in a few moments.",
+      "zh": "稍後程式會看到。"
+    },
+    {
+      "start": 604.71,
+      "end": 608.07,
+      "en": "So here is the idea of the Python demo.",
+      "zh": "這是 Python 示範的概念。"
+    },
+    {
+      "start": 608.43,
+      "end": 616.63,
+      "en": "I will start by simulating two latent sources that I will mix together to create the manifest variables.",
+      "zh": "先模擬兩個潛在來源，混合起來，建立顯現變數。"
+    },
+    {
+      "start": 617.11,
+      "end": 620.55,
+      "en": "And this figure illustrates the idea of the simulations.",
+      "zh": "這張圖，示範模擬的概念。"
+    },
+    {
+      "start": 620.87,
+      "end": 625.07,
+      "en": "So up here we have the two latent sources that I created.",
+      "zh": "上面是我建立的兩個潛在來源，"
+    },
+    {
+      "start": 625.19,
+      "end": 631.91,
+      "en": "One is a sine wave and the other is just an alternating sequence of zeros and twos.",
+      "zh": "一個是正弦波，另一個是零與二交替的序列。"
+    },
+    {
+      "start": 632.55,
+      "end": 636.23,
+      "en": "Here you see the histogram of the two latent variables.",
+      "zh": "這裡是兩個潛在變數的直方圖。"
+    },
+    {
+      "start": 636.63,
+      "end": 642.15,
+      "en": "Here I mix them together to simulate the manifest variables that we can actually measure.",
+      "zh": "這裡混在一起，模擬真正能測量的顯現變數，"
+    },
+    {
+      "start": 642.39,
+      "end": 648.84,
+      "en": "So these would be like the activations from two different embeddings dimensions in a language model.",
+      "zh": "就像語言模型中，兩個不同嵌入維度的活化。"
+    },
+    {
+      "start": 649.16,
+      "end": 653.8,
+      "en": "And here you see the histograms of those two manifest variables.",
+      "zh": "這裡則是兩個顯現變數的直方圖。"
+    },
+    {
+      "start": 654.28,
+      "end": 663.36,
+      "en": "And now the goal is going to be to see if we can train an autoencoder to transform these mixed manifest",
+      "zh": "現在目標，是看看能否訓練自編碼器，將混合的顯現"
+    },
+    {
+      "start": 663.36,
+      "end": 674.72,
+      "en": "variables in such a way that the two original latent sources are separated in the autoencoder latent layer and identified.",
+      "zh": "變數轉換，讓兩個原始潛在來源，在自編碼器潛在層分離並被辨識。"
+    },
+    {
+      "start": 675.56,
+      "end": 684.04,
+      "en": "Now, in this case, using simulated data for this demo is a real advantage because we literally have the ground truth right here.",
+      "zh": "這份示範使用模擬資料，很有優勢，因為這裡真的有真值。"
+    },
+    {
+      "start": 684.28,
+      "end": 691,
+      "en": "So if we can get two latent variables from the autoencoder that look just like, or at least really",
+      "zh": "如果從自編碼器得到兩個潛在變數，看起來就像，至少非常"
+    },
+    {
+      "start": 691,
+      "end": 696.8,
+      "en": "close to the blue dots and the green dots here, then we know that the procedure worked.",
+      "zh": "接近這裡的藍點與綠點，就知道程序成功。"
+    },
+    {
+      "start": 697.64,
+      "end": 701.24,
+      "en": "So here you see an overview of the model architecture.",
+      "zh": "這裡是模型架構概覽。"
+    },
+    {
+      "start": 701.24,
+      "end": 704.74,
+      "en": "I have an encoder and a decoder part.",
+      "zh": "有編碼器與解碼器。"
+    },
+    {
+      "start": 704.94,
+      "end": 711.9,
+      "en": "Here in the forward method you can see that I take the input data x, push it through the encoder weights",
+      "zh": "forward 方法中，取得輸入 x，通過編碼器權重"
+    },
+    {
+      "start": 711.9,
+      "end": 722.82,
+      "en": "matrix, apply a jlu non-linearity, and then push that back through the decoder weights, and that gives me the output which I return.",
+      "zh": "矩陣，套用 GELU 非線性，再送過解碼器權重，就得到傳回的輸出。"
+    },
+    {
+      "start": 723.5,
+      "end": 733.38,
+      "en": "I'm also going to return the latent variable activations because once the model is trained I want to analyze these latent variables.",
+      "zh": "也傳回潛在變數活化，因為訓練完成後，要分析潛在變數。"
+    },
+    {
+      "start": 734.14,
+      "end": 741.22,
+      "en": "Now hopefully two of these latent variables will look like the original sources that I simulated here.",
+      "zh": "希望其中兩個，看起來像這裡模擬的原始來源。"
+    },
+    {
+      "start": 741.98,
+      "end": 746.42,
+      "en": "By the way, in this case I used a hidden dimension of 20.",
+      "zh": "順帶一提，這裡用了 20 個隱藏維度，"
+    },
+    {
+      "start": 746.7,
+      "end": 753.66,
+      "en": "So there are 20 latent factors or estimated latent factors that this model will calculate.",
+      "zh": "所以模型會計算 20 個潛在因素、估計的潛在因素。"
+    },
+    {
+      "start": 754.06,
+      "end": 757.22,
+      "en": "So this is really all there is to an autoencoder.",
+      "zh": "這就是自編碼器的全部內容，"
+    },
+    {
+      "start": 757.26,
+      "end": 758.98,
+      "en": "It's pretty simple architecture.",
+      "zh": "架構很簡單。"
+    },
+    {
+      "start": 759.34,
+      "end": 766.64,
+      "en": "But we want this to be a sparse autoencoder, which means that we need an L1 penalty term.",
+      "zh": "但要成為稀疏自編碼器，就需要 L1 懲罰項。"
+    },
+    {
+      "start": 767.2,
+      "end": 777.52,
+      "en": "Of course, you are now highly familiar with L1 penalties and regularization, so I'm sure that this line of code here will look familiar to you.",
+      "zh": "你已非常熟悉 L1 懲罰與正規化，相信這行程式很眼熟。"
+    },
+    {
+      "start": 777.76,
+      "end": 788.2,
+      "en": "I'm just taking the average of the absolute values of the latent activations and multiplying by this variable, which here I call sparsity weight.",
+      "zh": "只取潛在活化絕對值的平均，乘以這個 sparsity weight 變數，"
+    },
+    {
+      "start": 788.4,
+      "end": 795.04,
+      "en": "But that would correspond to the parameter lambda that I discussed in the logistic regression a few videos ago.",
+      "zh": "它對應前幾支影片邏輯斯迴歸中的 lambda。"
+    },
+    {
+      "start": 795.92,
+      "end": 804.8,
+      "en": "Now, this is not exactly the same thing as a lasso regularization, because that penalty term is based",
+      "zh": "這與 Lasso 正規化不完全相同，因為後者的懲罰以"
+    },
+    {
+      "start": 804.8,
+      "end": 811.24,
+      "en": "on the coefficients, whereas here this is based on the activations which are data dependent.",
+      "zh": "係數為基礎，這裡則是以取決於資料的活化為基礎。"
+    },
+    {
+      "start": 811.24,
+      "end": 813.2,
+      "en": "But it's a pretty similar idea.",
+      "zh": "但概念相當相似，"
+    },
+    {
+      "start": 813.2,
+      "end": 820.34,
+      "en": "We are forcing the model to have some sparsity by having lots of zero valued activations.",
+      "zh": "藉由大量零活化，迫使模型有稀疏性。"
+    },
+    {
+      "start": 820.98,
+      "end": 821.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 821.34,
+      "end": 828.74,
+      "en": "And then I also included here another penalty term for the covariance across the different latent factors.",
+      "zh": "這裡也加入另一個懲罰項，針對不同潛在因素之間的共變異數。"
+    },
+    {
+      "start": 829.26,
+      "end": 833.86,
+      "en": "I will explain this code and the math in a bit more detail when I switch to code.",
+      "zh": "切換到程式碼後，會更詳細解釋程式與數學。"
+    },
+    {
+      "start": 834.18,
+      "end": 841.78,
+      "en": "I actually ended up not using this loss term here in this demo, but I do use it in the next couple of videos.",
+      "zh": "這份示範，最後其實沒用這個損失項，但接下來幾支影片會用。"
+    },
+    {
+      "start": 842.74,
+      "end": 849.62,
+      "en": "But basically the idea is to encourage the latent variables to be weakly or not at all correlated with",
+      "zh": "基本想法，是鼓勵潛在變數彼此弱相關，或完全不"
+    },
+    {
+      "start": 849.62,
+      "end": 856.82,
+      "en": "each other, to avoid having too much redundancy in the latent components estimated by the model.",
+      "zh": "相關，避免模型估計的潛在成分有太多冗餘。"
+    },
+    {
+      "start": 857.58,
+      "end": 866.74,
+      "en": "So then I trained the model on the manifest variables, which are the mixed signals that I showed a moment ago in this screenshot over here.",
+      "zh": "接著，對顯現變數訓練模型，也就是剛才截圖裡的混合訊號。"
+    },
+    {
+      "start": 867.18,
+      "end": 869.18,
+      "en": "So here you see the two losses.",
+      "zh": "這裡可以看到兩個損失，"
+    },
+    {
+      "start": 869.34,
+      "end": 872.62,
+      "en": "And yeah in general the total loss goes down.",
+      "zh": "一般而言，總損失下降，"
+    },
+    {
+      "start": 872.94,
+      "end": 874.78,
+      "en": "And that looks quite nice.",
+      "zh": "看起來很好。"
+    },
+    {
+      "start": 874.82,
+      "end": 881.6,
+      "en": "Interestingly the L1 loss kept actually increasing for a bit before it started settling down.",
+      "zh": "有意思的是，L1 損失持續上升一段時間，才開始穩定。"
+    },
+    {
+      "start": 882.64,
+      "end": 894,
+      "en": "By the way, note that the L1 and the MSE losses are on very different scales, and so in this graph they have their own separate y axes.",
+      "zh": "注意，L1 與 MSE 的尺度非常不同，所以圖中使用獨立 y 軸。"
+    },
+    {
+      "start": 895.04,
+      "end": 903.92,
+      "en": "Here you see the correlation matrix of all the latent variables that were estimated in the middle layer the latent layer of the autoencoder.",
+      "zh": "這是自編碼器中間層、潛在層，估計出的全部潛在變數相關矩陣。"
+    },
+    {
+      "start": 904.36,
+      "end": 910.8,
+      "en": "In general there are some pretty strong correlations among the different pairs of latent variables.",
+      "zh": "一般而言，不同潛在變數配對之間，有些相當強的相關。"
+    },
+    {
+      "start": 911.32,
+      "end": 916.88,
+      "en": "You can see that a lot of the block elements are either 1 or -1.",
+      "zh": "許多區塊元素，是 1 或 −1，"
+    },
+    {
+      "start": 917.28,
+      "end": 920.04,
+      "en": "And that means that yeah, there's a lot of redundancy in here.",
+      "zh": "表示有很多冗餘。"
+    },
+    {
+      "start": 920.04,
+      "end": 927.72,
+      "en": "And that's actually not so surprising considering that there are only two manifest variables and two latent sources.",
+      "zh": "考慮到只有兩個顯現變數、兩個潛在來源，其實不太意外。"
+    },
+    {
+      "start": 928.2,
+      "end": 932.64,
+      "en": "But here is the challenging part of doing sparse autoencoder analyses.",
+      "zh": "但稀疏自編碼器分析，困難在於，"
+    },
+    {
+      "start": 933,
+      "end": 939.78,
+      "en": "Which of these latent Components do we choose to interpret and analyze?",
+      "zh": "要挑哪些潛在成分解讀、分析？"
+    },
+    {
+      "start": 940.94,
+      "end": 945.98,
+      "en": "Even in the ideal case of a perfect reconstruction of the latent sources?",
+      "zh": "即使理想情況，完美重建潛在來源，"
+    },
+    {
+      "start": 946.3,
+      "end": 951.14,
+      "en": "It means that two of these are meaningful and the rest are redundant or noise.",
+      "zh": "仍表示只有兩個有意義，其餘冗餘或雜訊。"
+    },
+    {
+      "start": 951.9,
+      "end": 956.7,
+      "en": "Well, this is where having simulated data really comes in handy.",
+      "zh": "這時，有模擬資料就非常方便。"
+    },
+    {
+      "start": 956.86,
+      "end": 963.42,
+      "en": "So what I did here, what I'll show you in the code in a moment, is to correlate the latent scores",
+      "zh": "我的做法，稍後程式會展示，是將一開始模擬的潛在分數，"
+    },
+    {
+      "start": 963.42,
+      "end": 972.06,
+      "en": "that I simulated at the beginning with the activations from the estimated latent components inside the autoencoder.",
+      "zh": "與自編碼器內部，估計之潛在成分的活化計算相關。"
+    },
+    {
+      "start": 972.66,
+      "end": 978.78,
+      "en": "And then I found two components that correlated basically perfectly with the simulated scores.",
+      "zh": "接著找到兩個成分，與模擬分數幾乎完美相關。"
+    },
+    {
+      "start": 978.94,
+      "end": 983.18,
+      "en": "Those happen to be in this run component eight and component 19.",
+      "zh": "這次執行，剛好是成分 8 與 19。"
+    },
+    {
+      "start": 984.34,
+      "end": 986.62,
+      "en": "And here you see their activations.",
+      "zh": "這裡可以看到活化。"
+    },
+    {
+      "start": 987.06,
+      "end": 994.1,
+      "en": "Now please don't interpret the values on the y axis or the scaling of the y axis that's arbitrarily",
+      "zh": "請不要解讀 y 軸數值或尺度，它會根據參數等因素"
+    },
+    {
+      "start": 994.1,
+      "end": 1001.48,
+      "en": "scaled depending on the parameters and so on, but the overall shapes of the reconstructed sources, it's really good.",
+      "zh": "任意縮放，但重建來源的整體形狀，非常好，"
+    },
+    {
+      "start": 1001.48,
+      "end": 1004.64,
+      "en": "It's really, you know, it's a close match to what I simulated.",
+      "zh": "與模擬內容很接近，"
+    },
+    {
+      "start": 1004.68,
+      "end": 1007.6,
+      "en": "Not exactly perfect, but quite good.",
+      "zh": "不完全完美，但相當不錯。"
+    },
+    {
+      "start": 1008.08,
+      "end": 1014.04,
+      "en": "Of course, in real data we do not actually have the ground truth to compare against.",
+      "zh": "當然，真實資料沒有真值可比較，"
+    },
+    {
+      "start": 1014.04,
+      "end": 1016.76,
+      "en": "So that presents some challenges.",
+      "zh": "所以有一些挑戰。"
+    },
+    {
+      "start": 1016.76,
+      "end": 1024.4,
+      "en": "I will discuss that in a bit more detail in the next video when I show another demo with real LM data.",
+      "zh": "下一支用真實語言模型資料示範時，會更詳細討論。"
+    },
+    {
+      "start": 1024.76,
+      "end": 1027.96,
+      "en": "But for now, let's switch to code and have a deeper look.",
+      "zh": "現在先切換到程式碼，深入看看。"
+    },
+    {
+      "start": 1029.56,
+      "end": 1032.32,
+      "en": "Import the typical libraries that we always import.",
+      "zh": "匯入平常的函式庫。"
+    },
+    {
+      "start": 1032.36,
+      "end": 1034.72,
+      "en": "Okay, so here I'm creating some data.",
+      "zh": "好，這裡建立資料，"
+    },
+    {
+      "start": 1034.72,
+      "end": 1037.08,
+      "en": "There's going to be 3000 samples.",
+      "zh": "有 3,000 個樣本。"
+    },
+    {
+      "start": 1037.2,
+      "end": 1043.32,
+      "en": "And here is how I define the ground truth latent source for component one.",
+      "zh": "這裡定義成分一的真值潛在來源，"
+    },
+    {
+      "start": 1043.32,
+      "end": 1047.8,
+      "en": "So source one that is a sine wave I just shift it up on the y axis.",
+      "zh": "來源一是正弦波，只在 y 軸向上移，"
+    },
+    {
+      "start": 1047.8,
+      "end": 1049.44,
+      "en": "So it has positive values.",
+      "zh": "所以有正值。"
+    },
+    {
+      "start": 1049.44,
+      "end": 1056.14,
+      "en": "And here I take the sine of a faster sine wave and also shift it up on the y axis.",
+      "zh": "這裡則對更快的正弦波取正弦，也在 y 軸向上移。"
+    },
+    {
+      "start": 1056.5,
+      "end": 1056.86,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1056.9,
+      "end": 1061.38,
+      "en": "And then what I do here is develop a mixing matrix.",
+      "zh": "接著建立混合矩陣，"
+    },
+    {
+      "start": 1061.54,
+      "end": 1063.46,
+      "en": "This is a two by two matrix.",
+      "zh": "一個 2×2 矩陣。"
+    },
+    {
+      "start": 1063.46,
+      "end": 1075.42,
+      "en": "And the idea is that I will create a data set comprising the two original latent sources the ground truth sources and then matrix multiply them.",
+      "zh": "建立包含兩個原始潛在來源、真值來源的資料集，再做矩陣乘法，"
+    },
+    {
+      "start": 1075.42,
+      "end": 1080.58,
+      "en": "So I'm going to rotate them by this rotation matrix here.",
+      "zh": "也就是用這個旋轉矩陣旋轉。"
+    },
+    {
+      "start": 1080.58,
+      "end": 1082.62,
+      "en": "And this is an impure rotation matrix.",
+      "zh": "這是不純的旋轉矩陣，"
+    },
+    {
+      "start": 1082.62,
+      "end": 1088.02,
+      "en": "So it will stretch and also rotate not only pure rotation.",
+      "zh": "會伸縮，也會旋轉，不只是純旋轉。"
+    },
+    {
+      "start": 1088.38,
+      "end": 1100.14,
+      "en": "Anyway so the idea is that once we multiply the ground truth sources by the linear mixing matrix, this gives us our manifest variables.",
+      "zh": "總之，真值來源乘以線性混合矩陣，就得到顯現變數。"
+    },
+    {
+      "start": 1100.14,
+      "end": 1106.74,
+      "en": "So you can imagine, you know, at a very abstract level these would correspond to a language models",
+      "zh": "可以非常抽象地想成，它們對應語言模型"
+    },
+    {
+      "start": 1106.74,
+      "end": 1112.23,
+      "en": "internal representation of a noun, what a noun means and what a verb means.",
+      "zh": "對名詞、名詞意義與動詞意義的內部表徵。"
+    },
+    {
+      "start": 1112.71,
+      "end": 1121.83,
+      "en": "And what we have here in data are the activations of two MLP neurons to, uh, token to processing tokens",
+      "zh": "這裡資料，則是兩個 MLP 神經元在處理"
+    },
+    {
+      "start": 1121.83,
+      "end": 1124.07,
+      "en": "that are either nouns or verbs.",
+      "zh": "名詞或動詞 token 時的活化。"
+    },
+    {
+      "start": 1124.79,
+      "end": 1125.15,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1125.19,
+      "end": 1125.83,
+      "en": "So yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1125.83,
+      "end": 1129.63,
+      "en": "So that's creating the manifest variables from simulated data.",
+      "zh": "這就是從模擬資料建立顯現變數。"
+    },
+    {
+      "start": 1129.79,
+      "end": 1133.99,
+      "en": "Here I'm just visualizing visualizing them exactly as you saw.",
+      "zh": "這裡只是照剛才的方式畫出來。"
+    },
+    {
+      "start": 1134.19,
+      "end": 1141.59,
+      "en": "What I would like to point out here is that the latent sources are completely uncorrelated with each other.",
+      "zh": "想指出，潛在來源彼此完全不相關，"
+    },
+    {
+      "start": 1141.67,
+      "end": 1151.47,
+      "en": "So the blue dots and the green dots that corresponds to latent uh one and latent two, those are correlated with each other.",
+      "zh": "藍點與綠點，對應潛在一與潛在二，它們彼此的相關，"
+    },
+    {
+      "start": 1151.51,
+      "end": 1153.07,
+      "en": "Exactly zero.",
+      "zh": "恰好為零。"
+    },
+    {
+      "start": 1153.83,
+      "end": 1160.03,
+      "en": "But uh, the mixed signals, the manifest variables are strongly correlated with each other.",
+      "zh": "但混合訊號，也就是顯現變數，彼此高度相關。"
+    },
+    {
+      "start": 1160.15,
+      "end": 1169.99,
+      "en": "This is the sort of thing that happens when you have latent components that are projecting to manifest variables, and their dynamics get mixed together.",
+      "zh": "潛在成分投影到顯現變數，動態混在一起時，就會發生這種事情。"
+    },
+    {
+      "start": 1170.17,
+      "end": 1176.97,
+      "en": "So now the question is based on these data which we actually can measure, uh, how do we get back?",
+      "zh": "現在問題是，根據真正能測量的這些資料，要如何回去？"
+    },
+    {
+      "start": 1176.97,
+      "end": 1183.01,
+      "en": "How can we, uh, somehow combine and pool and, you know, linear and non-linear ways?",
+      "zh": "如何以某種線性、非線性方式，組合、彙集，"
+    },
+    {
+      "start": 1183.01,
+      "end": 1191.73,
+      "en": "How can we combine these channels, these, uh, manifest variables in a way that can reconstruct these sources?",
+      "zh": "將這些通道、顯現變數組合，重建來源？"
+    },
+    {
+      "start": 1191.93,
+      "end": 1194.45,
+      "en": "That's the goal of the autoencoder.",
+      "zh": "這就是自編碼器目標。"
+    },
+    {
+      "start": 1195.65,
+      "end": 1196.13,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1196.17,
+      "end": 1196.41,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1196.41,
+      "end": 1199.05,
+      "en": "So here I create the sparse autoencoder.",
+      "zh": "這裡建立稀疏自編碼器。"
+    },
+    {
+      "start": 1199.09,
+      "end": 1204.41,
+      "en": "The encoder and the decoder are two separate sets of parameters.",
+      "zh": "編碼器與解碼器，是兩組獨立參數，"
+    },
+    {
+      "start": 1204.81,
+      "end": 1208.85,
+      "en": "Uh, and then we have the sparsity weights which by default is one.",
+      "zh": "稀疏權重預設是 1。"
+    },
+    {
+      "start": 1209.01,
+      "end": 1211.85,
+      "en": "And uh yeah we can play around with what that mean.",
+      "zh": "可以調整看看代表什麼，"
+    },
+    {
+      "start": 1211.85,
+      "end": 1216.97,
+      "en": "Or I will encourage you to play around with that impact of that parameter.",
+      "zh": "或者說，鼓勵你探索這個參數的影響。"
+    },
+    {
+      "start": 1216.97,
+      "end": 1222.97,
+      "en": "But this kind of corresponds to the lambda parameter from the L1 regularization term.",
+      "zh": "它多少對應 L1 正規化的 lambda，"
+    },
+    {
+      "start": 1223.21,
+      "end": 1226.33,
+      "en": "Not literally exactly, but certainly conceptually.",
+      "zh": "不是字面上完全相同，但概念上確實如此。"
+    },
+    {
+      "start": 1226.33,
+      "end": 1228.79,
+      "en": "That's what this parameter means here.",
+      "zh": "這就是這個參數的意義。"
+    },
+    {
+      "start": 1229.31,
+      "end": 1237.43,
+      "en": "Okay, now in this video, I'm going to train the model to have separate encoder and decoder weights.",
+      "zh": "好，這支影片中，我會讓模型的編碼器和解碼器使用各自獨立的權重來訓練。"
+    },
+    {
+      "start": 1237.87,
+      "end": 1244.15,
+      "en": "In the next couple of videos, the models are going to get bigger, considerably bigger.",
+      "zh": "接下來幾支影片中的模型會變大，而且會大上許多。"
+    },
+    {
+      "start": 1244.15,
+      "end": 1252.67,
+      "en": "And so therefore I'm actually not going to have a separate weights matrix for the decoder, but just tied together the encoder and the decoder.",
+      "zh": "因此，我其實不會另外為解碼器建立權重矩陣，而是讓編碼器與解碼器共用權重。"
+    },
+    {
+      "start": 1252.71,
+      "end": 1255.47,
+      "en": "Anyway, more on that in the next video.",
+      "zh": "下支影片再多談這一點。"
+    },
+    {
+      "start": 1256.43,
+      "end": 1257.59,
+      "en": "Here's the forward pass.",
+      "zh": "這裡是前向傳播。"
+    },
+    {
+      "start": 1257.59,
+      "end": 1258.39,
+      "en": "Very simple.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 1258.43,
+      "end": 1262.47,
+      "en": "The data goes to the encoder non-linearity and then the decoder.",
+      "zh": "資料通過編碼器、非線性函數，然後是解碼器。"
+    },
+    {
+      "start": 1262.63,
+      "end": 1273.95,
+      "en": "And the only reason why I'm separating this into two lines is that I want to get the activations from the innermost layer, which are the estimated latent components.",
+      "zh": "我把這段分成兩行，唯一的原因是想取得最內層的活化，也就是估計出的潛在成分。"
+    },
+    {
+      "start": 1274.59,
+      "end": 1274.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1274.91,
+      "end": 1279.47,
+      "en": "So then here is the L1 penalty term as I explained in the slides.",
+      "zh": "接著，這是投影片中介紹的 L1 懲罰項。"
+    },
+    {
+      "start": 1279.83,
+      "end": 1286.75,
+      "en": "I'm just taking the absolute value of all of the activations and averaging those together, and then",
+      "zh": "我只是對所有活化取絕對值，再求平均，然後"
+    },
+    {
+      "start": 1286.97,
+      "end": 1292.09,
+      "en": "multiplying that by the same sparsity weight that I defined up here.",
+      "zh": "乘上我在這裡定義的同一個稀疏性權重。"
+    },
+    {
+      "start": 1292.45,
+      "end": 1304.25,
+      "en": "So basically this is going to discourage the model from having lots of activations in the different uh estimated components for the different tokens.",
+      "zh": "基本上，這會抑制模型在各個 token 的不同估計成分中產生大量活化。"
+    },
+    {
+      "start": 1304.85,
+      "end": 1308.13,
+      "en": "And then finally I have this decorrelation loss.",
+      "zh": "最後，還有這個去相關損失。"
+    },
+    {
+      "start": 1308.13,
+      "end": 1313.45,
+      "en": "So a separate loss function, as I mentioned in the slides I don't actually use this here.",
+      "zh": "這是另一個損失函數。如投影片所述，我在這裡其實沒有使用它。"
+    },
+    {
+      "start": 1313.45,
+      "end": 1319.85,
+      "en": "I started using it, but when I was testing this code, it turned out that this was actually not really helping that much.",
+      "zh": "我一開始有用，但測試這份程式碼時，發現它其實沒有多大幫助。"
+    },
+    {
+      "start": 1319.85,
+      "end": 1330.97,
+      "en": "But I do think it helps in, uh, in real models to help the components be decorrelated from each other so you get less redundancy in the components.",
+      "zh": "不過我認為，實際模型中，它有助於讓成分彼此去相關，減少成分之間的冗餘。"
+    },
+    {
+      "start": 1330.97,
+      "end": 1335.41,
+      "en": "It also helps promote sparsity and interpretability.",
+      "zh": "它也有助於促進稀疏性和可解釋性。"
+    },
+    {
+      "start": 1335.89,
+      "end": 1336.81,
+      "en": "So how does this work.",
+      "zh": "這是怎麼運作的？"
+    },
+    {
+      "start": 1336.81,
+      "end": 1343.05,
+      "en": "So I take all of the data the latent activations calculate their covariance matrix.",
+      "zh": "我取出所有資料，也就是潛在活化，計算它們的共變異數矩陣。"
+    },
+    {
+      "start": 1343.45,
+      "end": 1351.75,
+      "en": "And then I subtract diag diag of the covariance matrix from the covariance matrix, so this looks a little confusing.",
+      "zh": "然後，從共變異數矩陣減掉對該矩陣連續做兩次 diag 的結果。這看起來有點令人困惑。"
+    },
+    {
+      "start": 1351.99,
+      "end": 1354.99,
+      "en": "Let me just very quickly walk you through what that does.",
+      "zh": "我很快說明一下它的作用。"
+    },
+    {
+      "start": 1355.43,
+      "end": 1359.43,
+      "en": "So let's imagine let's see I've torch dot diag.",
+      "zh": "假設我有 torch.diag。"
+    },
+    {
+      "start": 1359.63,
+      "end": 1362.79,
+      "en": "And let's say I have I think this doesn't work with a list.",
+      "zh": "假設我有……我記得這不能接受串列。"
+    },
+    {
+      "start": 1362.83,
+      "end": 1363.55,
+      "en": "Let me just try this.",
+      "zh": "試試看。"
+    },
+    {
+      "start": 1363.87,
+      "end": 1364.27,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1364.51,
+      "end": 1367.47,
+      "en": "Uh this won't work with actually maybe I'll just do this with I think.",
+      "zh": "這不能用。其實也許我改用……我想，"
+    },
+    {
+      "start": 1367.71,
+      "end": 1367.95,
+      "en": "Yeah.",
+      "zh": "對，"
+    },
+    {
+      "start": 1368.07,
+      "end": 1369.55,
+      "en": "NumPy it does work with a list.",
+      "zh": "NumPy 可以接受串列。"
+    },
+    {
+      "start": 1369.99,
+      "end": 1372.03,
+      "en": "Okay so numpy dot diag.",
+      "zh": "好，使用 numpy.diag。"
+    },
+    {
+      "start": 1372.07,
+      "end": 1375.47,
+      "en": "Same functionality as PyTorch diag function.",
+      "zh": "它的功能與 PyTorch 的 diag 函數相同。"
+    },
+    {
+      "start": 1376.51,
+      "end": 1378.23,
+      "en": "So I input a list.",
+      "zh": "我輸入一個串列。"
+    },
+    {
+      "start": 1378.23,
+      "end": 1380.39,
+      "en": "Or it can also be a numpy array.",
+      "zh": "也可以輸入 NumPy 陣列。"
+    },
+    {
+      "start": 1380.55,
+      "end": 1388.15,
+      "en": "And what I get out is a diagonal matrix with zeros on the off diagonal, and these numbers on the diagonal.",
+      "zh": "得到的就是對角矩陣，非對角元素都是零，而對角線上是這幾個數字。"
+    },
+    {
+      "start": 1388.47,
+      "end": 1392.51,
+      "en": "But what I want here is just the diagonal.",
+      "zh": "但我這裡只想要對角線。"
+    },
+    {
+      "start": 1392.51,
+      "end": 1398.79,
+      "en": "So given that I already have a dense matrix, how can I just get out the diagonal elements?",
+      "zh": "既然我已經有一個稠密矩陣，要怎麼只取出對角元素？"
+    },
+    {
+      "start": 1398.95,
+      "end": 1406.65,
+      "en": "Well, to do that I can use diag again and then that is going to return just the diagonal elements.",
+      "zh": "只要再使用一次 diag，它就會只傳回對角元素。"
+    },
+    {
+      "start": 1406.81,
+      "end": 1407.13,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1407.17,
+      "end": 1408.85,
+      "en": "So that is the idea here.",
+      "zh": "這就是這裡的概念。"
+    },
+    {
+      "start": 1408.89,
+      "end": 1410.93,
+      "en": "Torch is identical.",
+      "zh": "Torch 也一樣。"
+    },
+    {
+      "start": 1410.93,
+      "end": 1415.37,
+      "en": "You would just need to make this thing be a PyTorch tensor.",
+      "zh": "只是需要讓這個東西成為 PyTorch 張量。"
+    },
+    {
+      "start": 1415.61,
+      "end": 1418.85,
+      "en": "And I was just too lazy to do all that extra typing.",
+      "zh": "我只是懶得多打那些字。"
+    },
+    {
+      "start": 1419.13,
+      "end": 1419.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1419.65,
+      "end": 1422.77,
+      "en": "Anyway, uh, let's see, where are we here?",
+      "zh": "總之，看看現在進行到哪裡。"
+    },
+    {
+      "start": 1422.81,
+      "end": 1428.17,
+      "en": "Okay, so then I subtract off this from the covariance matrix.",
+      "zh": "好，接著我從共變異數矩陣中減掉這個。"
+    },
+    {
+      "start": 1428.17,
+      "end": 1431.69,
+      "en": "And basically what this does is take the covariance matrix.",
+      "zh": "基本上，這個操作會取共變異數矩陣，"
+    },
+    {
+      "start": 1431.69,
+      "end": 1442.13,
+      "en": "It leaves all of the off diagonal terms preserved and it obliterates it, zeros out all of the diagonal terms which are the variances.",
+      "zh": "保留所有非對角元素，並消除、歸零所有對角元素，也就是變異數。"
+    },
+    {
+      "start": 1442.33,
+      "end": 1447.57,
+      "en": "And then basically I just square all of those and sum that matrix.",
+      "zh": "接著，我把所有元素平方，再對整個矩陣求和。"
+    },
+    {
+      "start": 1447.69,
+      "end": 1457.45,
+      "en": "So what this does is give me, uh, larger values when the covariance is across the different, uh, estimated components.",
+      "zh": "這樣一來，當各個估計成分之間的共變異數，"
+    },
+    {
+      "start": 1457.45,
+      "end": 1465.55,
+      "en": "The latent components inside the autoencoder model are really large, and when we use that as a penalty",
+      "zh": "也就是自編碼器模型內部潛在成分的共變異數很大時，得到的值就會比較大。把它當作懲罰"
+    },
+    {
+      "start": 1465.59,
+      "end": 1473.87,
+      "en": "term, then it encourages the model to reduce the off diagonal covariances, which means it encourages",
+      "zh": "項使用，就會鼓勵模型降低非對角的共變異數，也就是鼓勵"
+    },
+    {
+      "start": 1474.11,
+      "end": 1484.03,
+      "en": "the model to generate components that are weakly correlated with each other instead of being strongly correlated with each other and therefore redundant.",
+      "zh": "模型產生彼此弱相關的成分，而非彼此高度相關、因此具有冗餘的成分。"
+    },
+    {
+      "start": 1484.55,
+      "end": 1491.55,
+      "en": "Okay, so I realize I took a long time to explain this, but you are going to see essentially this same",
+      "zh": "好，我知道這部分解釋得很久，但接下來兩支影片基本上也會看到這個"
+    },
+    {
+      "start": 1491.63,
+      "end": 1499.23,
+      "en": "model in the next two videos, including the code challenge, where you will need to be working with a model that looks like this.",
+      "zh": "模型，包括程式挑戰，你需要使用類似這樣的模型。"
+    },
+    {
+      "start": 1499.83,
+      "end": 1505.07,
+      "en": "Okay, so here I'm going to create an instance of this class of this model.",
+      "zh": "好，這裡我要建立這個類別、這個模型的一個實例。"
+    },
+    {
+      "start": 1505.19,
+      "end": 1507.91,
+      "en": "We have two inputs two manifest variables.",
+      "zh": "有兩個輸入，也就是兩個顯現變數。"
+    },
+    {
+      "start": 1508.07,
+      "end": 1511.15,
+      "en": "And I'm specifying 20 hidden dimensions.",
+      "zh": "我指定 20 個隱藏維度。"
+    },
+    {
+      "start": 1511.15,
+      "end": 1513.91,
+      "en": "So here you see what this looks like okay.",
+      "zh": "這裡可以看到它的樣子。"
+    },
+    {
+      "start": 1513.95,
+      "end": 1517.35,
+      "en": "And here I'm just pushing through a bit of junk data.",
+      "zh": "這裡只是讓一點無用的資料通過模型。"
+    },
+    {
+      "start": 1517.63,
+      "end": 1523.6,
+      "en": "You will remember from earlier in the course when we were building models that I.",
+      "zh": "你應該記得，課程前面建立模型時，"
+    },
+    {
+      "start": 1523.72,
+      "end": 1529.48,
+      "en": "I really like the idea of pushing a little bit of noise through the data.",
+      "zh": "我很喜歡先讓一點雜訊通過資料流程。"
+    },
+    {
+      "start": 1529.52,
+      "end": 1532.16,
+      "en": "You don't have to worry about what the outputs mean.",
+      "zh": "不用在意輸出代表什麼。"
+    },
+    {
+      "start": 1532.16,
+      "end": 1533.36,
+      "en": "You cannot interpret these.",
+      "zh": "這些結果無法解讀。"
+    },
+    {
+      "start": 1533.4,
+      "end": 1534.6,
+      "en": "It's literally just noise.",
+      "zh": "它真的只是雜訊。"
+    },
+    {
+      "start": 1534.96,
+      "end": 1540.48,
+      "en": "But, uh, this just basically checks for for bugs in the code.",
+      "zh": "但這基本上可以檢查程式碼有沒有錯誤。"
+    },
+    {
+      "start": 1540.84,
+      "end": 1541.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1541.16,
+      "end": 1543.76,
+      "en": "So the fact that we get some output is great.",
+      "zh": "能得到一些輸出，就很好。"
+    },
+    {
+      "start": 1543.8,
+      "end": 1547.6,
+      "en": "These correspond to the final outputs of the model.",
+      "zh": "這些對應模型的最終輸出。"
+    },
+    {
+      "start": 1547.6,
+      "end": 1552.08,
+      "en": "And these correspond to the internal latent activations.",
+      "zh": "這些則對應內部的潛在活化。"
+    },
+    {
+      "start": 1552.24,
+      "end": 1557.52,
+      "en": "So the goal of the model training is to get this to look like the input.",
+      "zh": "模型訓練的目標，是讓這個結果看起來像輸入。"
+    },
+    {
+      "start": 1557.72,
+      "end": 1564.48,
+      "en": "And once that is the case then we want to analyze these components these data here.",
+      "zh": "一旦做到這一點，我們就要分析這些成分，也就是這裡的資料。"
+    },
+    {
+      "start": 1564.96,
+      "end": 1565.2,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1565.24,
+      "end": 1570.36,
+      "en": "So here I'm training the model 600 epochs a learning rate of 0.007.",
+      "zh": "這裡我要訓練模型 600 個 epoch，學習率是 0.007。"
+    },
+    {
+      "start": 1570.84,
+      "end": 1576.08,
+      "en": "Uh using the Adam optimizer here you can see I'm using a mean squared error loss.",
+      "zh": "使用 Adam 最佳化器。這裡可以看到，我使用均方誤差損失。"
+    },
+    {
+      "start": 1576.32,
+      "end": 1581.26,
+      "en": "And that is going to help us match the output to the input of the model.",
+      "zh": "它會幫助我們讓模型輸出符合輸入。"
+    },
+    {
+      "start": 1581.38,
+      "end": 1583.18,
+      "en": "That's the main loss function.",
+      "zh": "這是主要的損失函數。"
+    },
+    {
+      "start": 1583.62,
+      "end": 1583.86,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1583.9,
+      "end": 1590.06,
+      "en": "And then here earlier in the beginning of the code, I created the data to be a numpy array.",
+      "zh": "在程式碼一開始，我建立的資料是 NumPy 陣列。"
+    },
+    {
+      "start": 1590.18,
+      "end": 1593.66,
+      "en": "So here I'm just transforming it into a PyTorch tensor.",
+      "zh": "所以這裡只是把它轉換成 PyTorch 張量。"
+    },
+    {
+      "start": 1593.98,
+      "end": 1601.14,
+      "en": "And why a learning rate of 0.0007 and not like 0.0004, or, you know, any other possible number?",
+      "zh": "為什麼學習率是 0.0007，而不是 0.0004，或其他任何數字？"
+    },
+    {
+      "start": 1601.9,
+      "end": 1603.98,
+      "en": "Autoencoders can be a bit finicky.",
+      "zh": "自編碼器有時很挑剔。"
+    },
+    {
+      "start": 1604.02,
+      "end": 1613.94,
+      "en": "They can be a little bit tricky and pretty sensitive to the exact parameters of the model architecture and the the hyperparameters.",
+      "zh": "它們可能有點難處理，對模型架構的確切參數和超參數相當敏感。"
+    },
+    {
+      "start": 1614.02,
+      "end": 1621.66,
+      "en": "So you often need to just experiment and explore and use some intuition and play around with these parameters a little bit.",
+      "zh": "所以通常需要嘗試、探索，運用一些直覺，稍微調整這些參數。"
+    },
+    {
+      "start": 1622.3,
+      "end": 1624.58,
+      "en": "Okay, so now we are ready to train the model.",
+      "zh": "好，現在準備好訓練模型了。"
+    },
+    {
+      "start": 1624.58,
+      "end": 1630.62,
+      "en": "I hope a lot of this stuff is nicely familiar to you from earlier in the course.",
+      "zh": "希望這些東西，因為課程前面的內容，對你來說都很熟悉。"
+    },
+    {
+      "start": 1630.9,
+      "end": 1633.38,
+      "en": "So we loop over 600 epochs.",
+      "zh": "我們迴圈執行 600 個 epoch。"
+    },
+    {
+      "start": 1634.46,
+      "end": 1639,
+      "en": "And yeah we do a forward pass here and we calculate the loss.",
+      "zh": "在這裡做前向傳播，並計算損失。"
+    },
+    {
+      "start": 1639.08,
+      "end": 1642.28,
+      "en": "Now you can see there are two losses actually three.",
+      "zh": "可以看到有兩個損失，其實是三個。"
+    },
+    {
+      "start": 1642.28,
+      "end": 1643.8,
+      "en": "But this is commented out.",
+      "zh": "不過這個已經註解掉。"
+    },
+    {
+      "start": 1643.8,
+      "end": 1650.08,
+      "en": "So I have the sparsity loss I have the decorrelation loss which I'm not using here.",
+      "zh": "有稀疏性損失，以及這裡沒有使用的去相關損失。"
+    },
+    {
+      "start": 1650.4,
+      "end": 1653.12,
+      "en": "And I have the mean squared error loss.",
+      "zh": "還有均方誤差損失。"
+    },
+    {
+      "start": 1653.12,
+      "end": 1655.2,
+      "en": "This is the main measure of loss.",
+      "zh": "這是主要的損失衡量指標。"
+    },
+    {
+      "start": 1655.6,
+      "end": 1658.76,
+      "en": "And then I'm storing the L1 loss and the MSE loss.",
+      "zh": "接著，我儲存 L1 損失和 MSE 損失。"
+    },
+    {
+      "start": 1659.08,
+      "end": 1663.24,
+      "en": "If you would like you can also uncomment this.",
+      "zh": "如果你願意，也可以取消這裡的註解。"
+    },
+    {
+      "start": 1663.48,
+      "end": 1665.2,
+      "en": "And I guess you'd have to rename this.",
+      "zh": "不過我想，你必須把它重新命名。"
+    },
+    {
+      "start": 1665.2,
+      "end": 1669.56,
+      "en": "I think that's just a little mistake that this is also named L1 loss.",
+      "zh": "這裡也命名為 L1 loss，應該只是個小錯誤。"
+    },
+    {
+      "start": 1669.56,
+      "end": 1676,
+      "en": "But you can do this and you can add you know, you can also track that loss and so on.",
+      "zh": "你可以這樣做，也可以追蹤那個損失等等。"
+    },
+    {
+      "start": 1676,
+      "end": 1678.4,
+      "en": "But I'm going to leave this commented for now.",
+      "zh": "但我目前會保留註解。"
+    },
+    {
+      "start": 1678.76,
+      "end": 1679.08,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1679.12,
+      "end": 1684.92,
+      "en": "So then the actual loss that we use to train the model is MSE plus L1.",
+      "zh": "接著，實際用來訓練模型的損失，就是 MSE 加上 L1。"
+    },
+    {
+      "start": 1685.44,
+      "end": 1690.2,
+      "en": "And embedded in here is already the lambda term okay.",
+      "zh": "這裡已經包含 lambda 項了。"
+    },
+    {
+      "start": 1690.48,
+      "end": 1691.92,
+      "en": "I'm also using three L's.",
+      "zh": "我也用了三個 L。"
+    },
+    {
+      "start": 1691.92,
+      "end": 1696.62,
+      "en": "It's just a little bit of a joke to myself because you know we we use this loss function.",
+      "zh": "這只是我自己開的一個小玩笑，因為我們使用這個損失函數。"
+    },
+    {
+      "start": 1696.62,
+      "end": 1700.54,
+      "en": "It's like net loss for negative log likelihood loss.",
+      "zh": "像是負對數概似損失的 NLL loss。"
+    },
+    {
+      "start": 1700.58,
+      "end": 1703.26,
+      "en": "Anyway, it's probably not even that funny to me.",
+      "zh": "總之，可能連我自己都覺得不太好笑。"
+    },
+    {
+      "start": 1703.9,
+      "end": 1708.06,
+      "en": "I should probably just edit that part out of the video because that's such a terrible joke.",
+      "zh": "這個笑話實在太爛了，我應該把這段從影片中剪掉。"
+    },
+    {
+      "start": 1708.22,
+      "end": 1710.18,
+      "en": "Okay, let's run this code.",
+      "zh": "好，執行程式碼。"
+    },
+    {
+      "start": 1710.42,
+      "end": 1711.82,
+      "en": "This runs quite fast.",
+      "zh": "這執行得相當快。"
+    },
+    {
+      "start": 1711.86,
+      "end": 1719.78,
+      "en": "You will see in the next video that when we start working with real data, these models can take a pretty long time to run.",
+      "zh": "下支影片開始處理真實資料時，你會看到這些模型可能需要執行相當久。"
+    },
+    {
+      "start": 1719.9,
+      "end": 1723.7,
+      "en": "So in fact, 600 epochs is a really long.",
+      "zh": "所以，其實 600 個 epoch 是很長的。"
+    },
+    {
+      "start": 1723.98,
+      "end": 1729.62,
+      "en": "It's a lot of epochs to run for a model that we want to use for teaching purposes.",
+      "zh": "對於教學用途的模型來說，這是很多個 epoch。"
+    },
+    {
+      "start": 1730.14,
+      "end": 1734.78,
+      "en": "Nonetheless, you can see that the losses are going down, in particular the MSE loss.",
+      "zh": "不過，你可以看到損失正在下降，尤其是 MSE 損失。"
+    },
+    {
+      "start": 1734.78,
+      "end": 1737.9,
+      "en": "It drops two orders of magnitude, which is great.",
+      "zh": "它下降了兩個數量級，這很好。"
+    },
+    {
+      "start": 1738.74,
+      "end": 1744.3,
+      "en": "So let's plot this and see how it looks basically the same as what I showed in the slides.",
+      "zh": "把它畫出來看看，基本上與投影片中展示的相同。"
+    },
+    {
+      "start": 1744.34,
+      "end": 1746.3,
+      "en": "Of course it's going to look slightly different.",
+      "zh": "當然，每次執行看起來會稍微不同。"
+    },
+    {
+      "start": 1746.3,
+      "end": 1756.24,
+      "en": "Run to run because yeah, there's so much randomness in here, but it is pretty consistent that the L1 loss starts to pick up and then it decreases.",
+      "zh": "因為這裡有很多隨機性，但相當一致的是，L1 損失先上升，接著下降。"
+    },
+    {
+      "start": 1756.72,
+      "end": 1757.84,
+      "en": "Uh, maybe.",
+      "zh": "也許吧。"
+    },
+    {
+      "start": 1758,
+      "end": 1758.28,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1758.32,
+      "end": 1764.4,
+      "en": "It's not clear to me whether there would be any real benefit of doing more than 600 epochs.",
+      "zh": "我不確定，執行超過 600 個 epoch 是否真的會有什麼好處。"
+    },
+    {
+      "start": 1764.4,
+      "end": 1765.4,
+      "en": "But anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 1765.96,
+      "end": 1768.52,
+      "en": "Okay, so now let's have a look at the model.",
+      "zh": "好，現在來看模型。"
+    },
+    {
+      "start": 1768.52,
+      "end": 1770.24,
+      "en": "So now the model is trained.",
+      "zh": "模型現在已經訓練好了。"
+    },
+    {
+      "start": 1770.24,
+      "end": 1771.4,
+      "en": "We're done with training.",
+      "zh": "訓練結束。"
+    },
+    {
+      "start": 1771.68,
+      "end": 1776.16,
+      "en": "So I'm going to do one more forward pass I don't really care about this.",
+      "zh": "我要再做一次前向傳播。我其實不太在意這個。"
+    },
+    {
+      "start": 1776.16,
+      "end": 1782.2,
+      "en": "What I care about is this the estimated latent component activations.",
+      "zh": "我在意的是這個：估計出的潛在成分活化。"
+    },
+    {
+      "start": 1782.4,
+      "end": 1794.04,
+      "en": "And here I'm just detaching them from the computational graph in PyTorch and transforming them into numpy, just to make it easier for some of the subsequent analyses.",
+      "zh": "這裡只是把它們從 PyTorch 的計算圖分離出來，再轉換成 NumPy，方便後續一些分析。"
+    },
+    {
+      "start": 1795.16,
+      "end": 1795.44,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1795.48,
+      "end": 1800.88,
+      "en": "So here you see those are the correlations across the latent variables.",
+      "zh": "這裡可以看到潛在變數之間的相關性。"
+    },
+    {
+      "start": 1801.04,
+      "end": 1809.24,
+      "en": "And it actually looks like there's less correlations here than the run that I took the screenshot for in the slides.",
+      "zh": "其實這次的相關性，看起來比我在投影片中截圖的那次執行還要低。"
+    },
+    {
+      "start": 1809.68,
+      "end": 1811.84,
+      "en": "Now these are the variables here.",
+      "zh": "這裡是那些變數。"
+    },
+    {
+      "start": 1811.84,
+      "end": 1818.74,
+      "en": "These are the numbers on the off diagonals that you would expect to be lower, so less extreme closer",
+      "zh": "如果加入我註解掉的去相關損失懲罰，你會預期這些非對角線上的數字更低，"
+    },
+    {
+      "start": 1818.74,
+      "end": 1827.14,
+      "en": "to zero if you would include the decorrelation loss penalty that I commented out.",
+      "zh": "也就是較不極端、更接近零。"
+    },
+    {
+      "start": 1828.38,
+      "end": 1839.5,
+      "en": "Okay, so now what I'm going to do is find which of these 20 components best matches the original ground truth source data, right?",
+      "zh": "好，現在我要找出，這 20 個成分中，哪幾個最符合原本具有真值的來源資料。"
+    },
+    {
+      "start": 1839.54,
+      "end": 1843.54,
+      "en": "So that is the data that I showed here.",
+      "zh": "也就是我在這裡展示的資料。"
+    },
+    {
+      "start": 1843.62,
+      "end": 1848.14,
+      "en": "Remember, the idea is that we trained the autoencoder on these data.",
+      "zh": "記得，我們是用這些資料訓練自編碼器。"
+    },
+    {
+      "start": 1848.34,
+      "end": 1857.38,
+      "en": "And we want that middle layer some component in those in the middle layer to to separate out these two sources and reconstruct them.",
+      "zh": "希望中間層的某些成分，能把這兩個來源分離並重建出來。"
+    },
+    {
+      "start": 1858.5,
+      "end": 1858.78,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1858.82,
+      "end": 1863.46,
+      "en": "So how can we find which of these 20 are the two best ones?",
+      "zh": "要怎麼找出這 20 個成分中最好的兩個？"
+    },
+    {
+      "start": 1863.86,
+      "end": 1873.84,
+      "en": "Now, because I have access to the ground truth, what I can do is literally just correlate them with the latent variable and see which one is best.",
+      "zh": "因為我能取得真值，所以可以直接計算它們與潛在變數的相關性，看看哪個最好。"
+    },
+    {
+      "start": 1874.04,
+      "end": 1885.56,
+      "en": "So what I do here is create a new matrix where I take the estimated latent components, and then I concatenate onto the end of that matrix the ground truth data.",
+      "zh": "這裡的做法是建立新矩陣，取出估計的潛在成分，再把真值資料串接到矩陣的最後。"
+    },
+    {
+      "start": 1885.72,
+      "end": 1887.6,
+      "en": "And then I correlate all of them.",
+      "zh": "然後計算它們全部的相關性。"
+    },
+    {
+      "start": 1888.56,
+      "end": 1894.64,
+      "en": "And then I look for the correlation in the final row which is this ground truth data.",
+      "zh": "接著，查看最後一列的相關性，也就是這份真值資料。"
+    },
+    {
+      "start": 1894.92,
+      "end": 1898.6,
+      "en": "And I correlate up to the final column.",
+      "zh": "而且，我計算相關性的範圍到最後一欄之前。"
+    },
+    {
+      "start": 1898.6,
+      "end": 1903.04,
+      "en": "And the reason why we don't want the final column is because that's the autocorrelation.",
+      "zh": "不取最後一欄，是因為那是自我相關。"
+    },
+    {
+      "start": 1903.04,
+      "end": 1905.64,
+      "en": "It's trivially going to be the best.",
+      "zh": "它當然一定會最好。"
+    },
+    {
+      "start": 1906.08,
+      "end": 1906.36,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1906.4,
+      "end": 1908,
+      "en": "So that's for component one.",
+      "zh": "這是第一個成分。"
+    },
+    {
+      "start": 1908.04,
+      "end": 1910.2,
+      "en": "And then I repeat it for component two.",
+      "zh": "接著，對第二個成分重複一次。"
+    },
+    {
+      "start": 1910.56,
+      "end": 1919.84,
+      "en": "And now I see that component six and component ten were the best components in the estimated model in the middle layer.",
+      "zh": "現在可以看到，中間層估計模型中的第六與第十個成分，是最好的成分。"
+    },
+    {
+      "start": 1919.84,
+      "end": 1923.84,
+      "en": "So they correlated at not exactly one but really really close.",
+      "zh": "它們的相關係數不完全是 1，但非常接近。"
+    },
+    {
+      "start": 1923.84,
+      "end": 1925.6,
+      "en": "That's a really strong correlation.",
+      "zh": "這是非常強的相關。"
+    },
+    {
+      "start": 1926.96,
+      "end": 1927.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1927.32,
+      "end": 1934.29,
+      "en": "So then I can generate this plot here and we see what the components actually look like.",
+      "zh": "接著就能產生這張圖，看看成分實際長什麼樣子。"
+    },
+    {
+      "start": 1934.29,
+      "end": 1941.97,
+      "en": "Now, in this case, the the estimated components are uncorrelated, but they don't really seem to match",
+      "zh": "這次估計的成分彼此不相關，但它們似乎沒有像我在"
+    },
+    {
+      "start": 1942.01,
+      "end": 1951.69,
+      "en": "onto the original source, the ground truth source, as well as what the version that I showed in the",
+      "zh": "投影片展示的版本那樣，"
+    },
+    {
+      "start": 1951.69,
+      "end": 1952.25,
+      "en": "slides.",
+      "zh": "那麼符合原始的真值來源。"
+    },
+    {
+      "start": 1952.61,
+      "end": 1953.77,
+      "en": "Again, that happens.",
+      "zh": "這種情況確實會發生。"
+    },
+    {
+      "start": 1953.77,
+      "end": 1955.81,
+      "en": "Autoencoders are finicky.",
+      "zh": "自編碼器很挑剔。"
+    },
+    {
+      "start": 1956.05,
+      "end": 1963.29,
+      "en": "They don't always work perfectly, and sometimes you just also get unlucky with an initial noise matrix.",
+      "zh": "它們不一定總是完美運作，有時也只是初始雜訊矩陣運氣不好。"
+    },
+    {
+      "start": 1963.29,
+      "end": 1965.17,
+      "en": "But still it does look pretty good.",
+      "zh": "但看起來仍然相當不錯。"
+    },
+    {
+      "start": 1965.17,
+      "end": 1968.97,
+      "en": "So you see this blue component is clearly capturing a sine wave.",
+      "zh": "可以看到，藍色成分很明顯捕捉到了正弦波。"
+    },
+    {
+      "start": 1969.25,
+      "end": 1972.85,
+      "en": "So that looks really close to a component one.",
+      "zh": "它看起來非常接近第一個成分。"
+    },
+    {
+      "start": 1973.29,
+      "end": 1975.81,
+      "en": "And the green one is kind of matching.",
+      "zh": "綠色的也有點符合。"
+    },
+    {
+      "start": 1975.89,
+      "end": 1978.33,
+      "en": "Let me just scroll back up here real quick.",
+      "zh": "我很快往上捲回去。"
+    },
+    {
+      "start": 1979.01,
+      "end": 1981.17,
+      "en": "Uh that was here.",
+      "zh": "在這裡。"
+    },
+    {
+      "start": 1981.29,
+      "end": 1991.03,
+      "en": "So the green one should be uh, there shouldn't be any variability other than zero and two or, you know, a very small value and a very large value.",
+      "zh": "綠色成分除了零和二之外，不應該有其他變化；或者說，只有一個很小的值和一個很大的值。"
+    },
+    {
+      "start": 1991.39,
+      "end": 2000.47,
+      "en": "And you do see it's kind of capturing some of those dynamics, the discretization, the kind of alternating between low values and high values.",
+      "zh": "可以看到，它有點捕捉到那些動態：離散化，以及在低值和高值之間交替的情況。"
+    },
+    {
+      "start": 2000.63,
+      "end": 2002.43,
+      "en": "But it's not that perfect.",
+      "zh": "但還不是那麼完美。"
+    },
+    {
+      "start": 2002.43,
+      "end": 2005.19,
+      "en": "So I'm just going to run the entire code from scratch.",
+      "zh": "所以我要從頭重新執行整份程式碼。"
+    },
+    {
+      "start": 2005.23,
+      "end": 2009.27,
+      "en": "Again, just out of curiosity, I'm not changing anything.",
+      "zh": "純粹出於好奇，沒有改任何東西。"
+    },
+    {
+      "start": 2009.31,
+      "end": 2009.63,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 2009.67,
+      "end": 2010.83,
+      "en": "This one also.",
+      "zh": "這次也是。"
+    },
+    {
+      "start": 2010.87,
+      "end": 2011.87,
+      "en": "Yeah, kind of similar.",
+      "zh": "對，有點類似。"
+    },
+    {
+      "start": 2011.91,
+      "end": 2015.31,
+      "en": "Like it's capturing some of the dynamics but not really that well.",
+      "zh": "它有捕捉到一些動態，但並沒有很好。"
+    },
+    {
+      "start": 2015.63,
+      "end": 2022.39,
+      "en": "This is just a general feature of autoencoders for source reconstruction.",
+      "zh": "這是使用自編碼器做來源重建時的一般特性。"
+    },
+    {
+      "start": 2022.39,
+      "end": 2024.75,
+      "en": "Sometimes it works well, sometimes it doesn't.",
+      "zh": "有時效果很好，有時沒有。"
+    },
+    {
+      "start": 2024.75,
+      "end": 2030.47,
+      "en": "There are some tricks you can apply to try to improve these models, but they are finicky.",
+      "zh": "可以運用一些技巧來改善模型，但它們很挑剔。"
+    },
+    {
+      "start": 2030.47,
+      "end": 2034.35,
+      "en": "They're difficult to get to work in a consistent and robust manner.",
+      "zh": "很難讓它們以一致而穩健的方式運作。"
+    },
+    {
+      "start": 2036.11,
+      "end": 2041.67,
+      "en": "Autoencoders are a very cool and very powerful deep learning architecture.",
+      "zh": "自編碼器是很酷、很強大的深度學習架構。"
+    },
+    {
+      "start": 2042.03,
+      "end": 2048.69,
+      "en": "They have lots of applications in machine learning and can be pretty insightful for interpretability.",
+      "zh": "它們在機器學習中有許多應用，也能為可解釋性提供相當有用的洞見。"
+    },
+    {
+      "start": 2049.25,
+      "end": 2056.85,
+      "en": "The two main challenges of sparse autoencoders for interpretability are that, as you just saw, they",
+      "zh": "稀疏自編碼器在可解釋性上的兩大挑戰是，如你剛才所見，"
+    },
+    {
+      "start": 2056.85,
+      "end": 2065.61,
+      "en": "can be kind of tricky to work in that you have to select the parameters carefully, and you never really know if you have the right set of parameters.",
+      "zh": "它們可能不太容易操作，因為必須仔細選擇參數，而且你始終無法確定自己是否選對了參數組合。"
+    },
+    {
+      "start": 2066.29,
+      "end": 2076.81,
+      "en": "The second thing that makes these analyses tricky is figuring out which of the estimated latent components to interpret and analyze.",
+      "zh": "第二個讓這些分析棘手的地方，是要判斷估計出的潛在成分中，哪些值得解讀與分析。"
+    },
+    {
+      "start": 2077.41,
+      "end": 2082.81,
+      "en": "Of course, when you are learning about these methods using simulated data, you have ground truth.",
+      "zh": "當然，用模擬資料學習這些方法時，你知道真值。"
+    },
+    {
+      "start": 2082.81,
+      "end": 2084.41,
+      "en": "That's what I showed you in this video.",
+      "zh": "這就是我在這支影片中展示的。"
+    },
+    {
+      "start": 2085.29,
+      "end": 2092.45,
+      "en": "But in practice, you need to use autoencoders with carefully designed experiments and statistical controls.",
+      "zh": "但實務上，使用自編碼器時，需要搭配仔細設計的實驗和統計控制。"
+    },
+    {
+      "start": 2093.09,
+      "end": 2097.73,
+      "en": "Sparse autoencoders are certainly not a magic bullet that always works.",
+      "zh": "稀疏自編碼器絕對不是永遠有效的萬靈丹。"
+    },
+    {
+      "start": 2098.25,
+      "end": 2104.69,
+      "en": "They're not always interpretable, but it is a great analysis method to have in your toolkit.",
+      "zh": "它們不一定總能解讀，但確實是值得放進工具箱的分析方法。"
+    }
+  ]
+}

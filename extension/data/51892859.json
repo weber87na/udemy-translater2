@@ -1,0 +1,1423 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892859",
+  "title": "The Logit Lens",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "4391f0cee4d273117e9657a3960aa022ef121c7884481e61fd2e59b004d50518",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 9.52,
+      "en": "The last method that I will introduce you to in this section is called the logit lens.",
+      "zh": "本章最後要介紹的方法，叫作 Logit Lens，也就是 logit 透鏡。"
+    },
+    {
+      "start": 9.72,
+      "end": 17.32,
+      "en": "It's a very simple, yet clever insight to peer into the transformations of the embeddings vectors,",
+      "zh": "這是個非常簡單、卻巧妙的想法，用來窺看嵌入向量的轉換，"
+    },
+    {
+      "start": 17.52,
+      "end": 27.36,
+      "en": "and in particular, how each token or token embedding vector gets slowly transformed into a prediction for the subsequent token.",
+      "zh": "尤其是每個 token、每個 token 嵌入向量，如何逐漸轉成後續 token 的預測。"
+    },
+    {
+      "start": 27.92,
+      "end": 34.32,
+      "en": "It's also like lots of other analyses you learn about in this course, quite versatile in the sense",
+      "zh": "它也像這門課學到的其他許多分析一樣，非常靈活，"
+    },
+    {
+      "start": 34.32,
+      "end": 40.8,
+      "en": "that there's a lot you can do once you understand the basic framework of how this analysis works.",
+      "zh": "理解分析運作的基本架構後，就能做很多事情。"
+    },
+    {
+      "start": 41.4,
+      "end": 48.64,
+      "en": "So in this video, I will explain the concept and show one application in code, and in the next video",
+      "zh": "這支影片會解釋概念，並在程式中展示一種應用；下一支影片，"
+    },
+    {
+      "start": 48.68,
+      "end": 55.12,
+      "en": "you will extend the analyses using missing token predictions in a Bert model.",
+      "zh": "則會用 BERT 模型中的缺失 token 預測，延伸分析。"
+    },
+    {
+      "start": 55.64,
+      "end": 62.56,
+      "en": "And if you like this approach in general, then I will also give you the link for the post that described",
+      "zh": "如果整體上喜歡這種方法，我也會提供最初描述"
+    },
+    {
+      "start": 62.56,
+      "end": 71.32,
+      "en": "this method initially, where you can also find several other applications and inspirations for what to do with the logit lens.",
+      "zh": "這個方法的文章連結，其中還有幾種其他應用，以及使用 logit lens 的靈感。"
+    },
+    {
+      "start": 72.12,
+      "end": 76.44,
+      "en": "So here again is an overview of an LM.",
+      "zh": "這裡再次概述語言模型。"
+    },
+    {
+      "start": 76.88,
+      "end": 85.76,
+      "en": "And what I want to stress in this slide is that the results of the final transformer block is transformed",
+      "zh": "這張投影片想強調，最後一個 Transformer 區塊的結果，會轉換"
+    },
+    {
+      "start": 85.76,
+      "end": 90.48,
+      "en": "into an embeddings matrix, from which tokens are selected.",
+      "zh": "到嵌入矩陣，再從中選出 token。"
+    },
+    {
+      "start": 91.12,
+      "end": 96.32,
+      "en": "But why is the embeddings matrix attached to the final transformer block?",
+      "zh": "但為什麼嵌入矩陣接在最後一個 Transformer 區塊後面？"
+    },
+    {
+      "start": 97.08,
+      "end": 99.72,
+      "en": "Well, okay, that's probably a stupid question.",
+      "zh": "好吧，這大概是個笨問題。"
+    },
+    {
+      "start": 99.75999999999999,
+      "end": 108.68,
+      "en": "It wouldn't make any sense to attach the embeddings matrix to the first transformer block, because then what is the point of all the other transformer blocks?",
+      "zh": "接在第一個 Transformer 區塊後面，沒有道理，因為那樣其他所有區塊還有什麼用？"
+    },
+    {
+      "start": 109.72,
+      "end": 112.36,
+      "en": "Or maybe it's not such a stupid question.",
+      "zh": "但也許，這個問題沒那麼笨。"
+    },
+    {
+      "start": 113.16,
+      "end": 122.44,
+      "en": "Maybe if we took the output of the transformer block one And put that output right into the embeddings",
+      "zh": "也許取第一個 Transformer 區塊的輸出，直接送進嵌入"
+    },
+    {
+      "start": 122.44,
+      "end": 123.36,
+      "en": "matrix.",
+      "zh": "矩陣，"
+    },
+    {
+      "start": 123.72,
+      "end": 134.72,
+      "en": "Maybe that would tell us what kinds of tokens the model would predict for the next token, if it couldn't fully finish processing the token embeddings.",
+      "zh": "就能知道，如果模型無法完整處理 token 嵌入，會預測哪些 token 作為下一個 token。"
+    },
+    {
+      "start": 135.4,
+      "end": 141.8,
+      "en": "Well, that is exactly the idea of the logit lens, and that's what I'm depicting here.",
+      "zh": "這正是 logit lens 的概念，也是這張圖表示的事情。"
+    },
+    {
+      "start": 142.32,
+      "end": 151.56,
+      "en": "So remember that the output dimensionality of each transformer block matches the dimensionality of the embeddings matrix.",
+      "zh": "記住，每個 Transformer 區塊的輸出維度，都符合嵌入矩陣的維度。"
+    },
+    {
+      "start": 152.12,
+      "end": 161.52,
+      "en": "And so the only reason why the embeddings are attached to the final transformer block is that that's where we've finished processing.",
+      "zh": "因此，嵌入接在最後一個 Transformer 區塊的唯一理由，就是那裡才完成處理，"
+    },
+    {
+      "start": 161.52,
+      "end": 168.76,
+      "en": "And that's what the model has been trained to have as the final transformer, the final set of transformations.",
+      "zh": "而模型也被訓練成，讓最後那個 Transformer 執行最後一組轉換。"
+    },
+    {
+      "start": 169.76,
+      "end": 177.92000000000002,
+      "en": "So the idea of the logit lens is to decode the output of an earlier transformer block, and hopefully",
+      "zh": "所以 logit lens 的概念，是解碼較早 Transformer 區塊的輸出，希望"
+    },
+    {
+      "start": 177.92000000000002,
+      "end": 184.19,
+      "en": "that can yield some insights into the calculations performed at each transformer layer.",
+      "zh": "藉此了解每個 Transformer 層執行的計算。"
+    },
+    {
+      "start": 184.47,
+      "end": 194.47,
+      "en": "By the way, in popular descriptions, this approach has sometimes been inappropriately called mind reading or reading the thoughts of an LLM.",
+      "zh": "順帶一提，通俗描述有時不恰當地將這種方法稱為讀心，或讀取 LLM 的想法。"
+    },
+    {
+      "start": 195.07,
+      "end": 203.75,
+      "en": "I get why journalists would write things like that, because they're looking for attention grabbing headlines to get clicks online.",
+      "zh": "我理解記者為什麼這樣寫，因為他們想要吸引目光的標題，取得網路點閱。"
+    },
+    {
+      "start": 203.75,
+      "end": 212.03,
+      "en": "But please do not use that kind of loose end, inappropriate and unscientific language in a formal or scientific context.",
+      "zh": "但在正式或科學脈絡中，請不要使用這種鬆散、不適當、不科學的語言。"
+    },
+    {
+      "start": 212.55,
+      "end": 220.43,
+      "en": "Anyway, you can actually decode at any layer you want, not just the first or the final transformer transformer.",
+      "zh": "總之，其實可以在任何一層解碼，不只第一個或最後一個 Transformer。"
+    },
+    {
+      "start": 221.43,
+      "end": 228.79,
+      "en": "And so the idea of the logit lens is to process some text, grab all of the hidden state activations,",
+      "zh": "所以 logit lens 的概念，是處理文字，取得所有隱藏狀態活化，"
+    },
+    {
+      "start": 228.91,
+      "end": 240.79,
+      "en": "and then push those activations through the embeddings and get the predicted tokens even before we fully finished processing those embeddings vectors.",
+      "zh": "再將它們通過嵌入，即使還沒完整處理那些嵌入向量，也取得預測的 token。"
+    },
+    {
+      "start": 241.71,
+      "end": 248.27,
+      "en": "Here is the post on the website lesswrong that initially described this procedure.",
+      "zh": "這是 LessWrong 網站上，最初描述這個程序的文章。"
+    },
+    {
+      "start": 248.71,
+      "end": 254.59,
+      "en": "You can find this page by googling the title or by looking in the code file.",
+      "zh": "可以搜尋標題，或查看程式檔，"
+    },
+    {
+      "start": 254.59,
+      "end": 260.83,
+      "en": "The Python code demo file for this video, and I've pasted the direct link into that notebook file.",
+      "zh": "也就是這支影片的 Python 示範檔，我已將直接連結貼在 Notebook 裡。"
+    },
+    {
+      "start": 261.27,
+      "end": 266.91,
+      "en": "It doesn't take too long to read, and it comes with some Python code that you can use to get started.",
+      "zh": "文章不會花太久閱讀，也附有能開始使用的 Python 程式。"
+    },
+    {
+      "start": 267.43,
+      "end": 272.71,
+      "en": "They also propose several additional analyses that you can perform with this approach.",
+      "zh": "他們還提出幾項可以用這種方法進行的額外分析。"
+    },
+    {
+      "start": 272.95,
+      "end": 280.07,
+      "en": "And what I'm going to do in the Python demo here is just introduce you to one of the analyses.",
+      "zh": "這裡的 Python 示範，只會介紹其中一種分析。"
+    },
+    {
+      "start": 280.63,
+      "end": 284.95,
+      "en": "So in particular here is what you will see in the Python demo.",
+      "zh": "具體而言，以下是 Python 示範會看到的內容。"
+    },
+    {
+      "start": 285.51,
+      "end": 292.43,
+      "en": "I'll start by importing GPT two, writing a little bit of text and then pushing that through the model.",
+      "zh": "先匯入 GPT2，寫一小段文字，再將它送進模型。"
+    },
+    {
+      "start": 292.99,
+      "end": 300.11,
+      "en": "We need the hidden states here, but we don't need any of the intermediate activations within a transformer block.",
+      "zh": "需要隱藏狀態，但不需要 Transformer 區塊內部的中間活化，"
+    },
+    {
+      "start": 300.39,
+      "end": 303.07,
+      "en": "So we don't need any hooks or anything.",
+      "zh": "所以不需要 hook 或其他相關操作。"
+    },
+    {
+      "start": 303.63,
+      "end": 315.55,
+      "en": "So then what I will do is just focus on transformer block three and calculate the log softmax probabilities for when the model processes the token do.",
+      "zh": "接著，只看 Transformer 區塊 3，計算模型處理 do 這個 token 時的 log-softmax 機率。"
+    },
+    {
+      "start": 315.75,
+      "end": 322.47,
+      "en": "So the way you do anything and that is the fourth word in this text.",
+      "zh": "也就是「The way you do anything」中的 do，它是這段文字第四個字。"
+    },
+    {
+      "start": 322.47,
+      "end": 331.79,
+      "en": "So we're going to basically see how the model internally processes this token and generates a prediction for what the next word should be.",
+      "zh": "基本上，要看模型如何在內部處理這個 token，並產生下一個字的預測。"
+    },
+    {
+      "start": 331.83,
+      "end": 335.90999999999997,
+      "en": "Now we already know that the next token is the word anything.",
+      "zh": "我們已經知道，下一個 token 是 anything。"
+    },
+    {
+      "start": 335.90999999999997,
+      "end": 340.11,
+      "en": "And the question is already at transformer block three.",
+      "zh": "問題是，到了 Transformer 區塊 3，"
+    },
+    {
+      "start": 340.15,
+      "end": 345.59000000000003,
+      "en": "Do we get some sensible prediction for the next token after the word do?",
+      "zh": "對 do 後面的下一個 token，是否已經有合理預測？"
+    },
+    {
+      "start": 346.43,
+      "end": 351.63,
+      "en": "Now you have seen plots that look like this before, but previously in the course.",
+      "zh": "這種圖以前看過，但課程之前，"
+    },
+    {
+      "start": 351.63,
+      "end": 355.71,
+      "en": "This kind of plot always showed the final output logits.",
+      "zh": "它一向顯示最終輸出的 logits，"
+    },
+    {
+      "start": 355.71,
+      "end": 364.11,
+      "en": "So at the very end of the model and this here, these data are actually coming from one of the earlier transformer blocks.",
+      "zh": "也就是模型最末端的結果；這裡的資料，則來自較早的 Transformer 區塊之一。"
+    },
+    {
+      "start": 364.59,
+      "end": 373.99,
+      "en": "So the question that we are asking here is if we cut the model at exactly layer three, what would be the next token prediction.",
+      "zh": "所以這裡問的是，如果恰好在第 3 層切斷模型，下一個 token 的預測會是什麼？"
+    },
+    {
+      "start": 374.59,
+      "end": 380.47,
+      "en": "Well, the maximum softmax value in this case corresponds to the token.",
+      "zh": "這個情況，最大的 softmax 值，對應 token，"
+    },
+    {
+      "start": 380.47,
+      "end": 380.91,
+      "en": "It.",
+      "zh": "it。"
+    },
+    {
+      "start": 381.63,
+      "end": 384.67,
+      "en": "Now on the one hand, that is categorically incorrect.",
+      "zh": "一方面，這在類別上是錯誤的。"
+    },
+    {
+      "start": 384.67,
+      "end": 390.19,
+      "en": "When we look at the text, we see that the word anything comes after the word do.",
+      "zh": "看原文，do 後面出現的是 anything。"
+    },
+    {
+      "start": 390.75,
+      "end": 395.43,
+      "en": "But on the other hand, this word is certainly context appropriate.",
+      "zh": "但另一方面，這個字確實符合上下文，"
+    },
+    {
+      "start": 395.43,
+      "end": 396.87,
+      "en": "So the way you do it.",
+      "zh": "也就是「The way you do it」。"
+    },
+    {
+      "start": 397.35,
+      "end": 405.31,
+      "en": "So the model is clearly already making some kind of context appropriate prediction for the subsequent token.",
+      "zh": "所以模型顯然已經能對後續 token，做出某種符合上下文的預測。"
+    },
+    {
+      "start": 405.71,
+      "end": 410.03,
+      "en": "And this is only at transformer block three out of 12.",
+      "zh": "而這才是 12 個 Transformer 區塊中的第 3 個。"
+    },
+    {
+      "start": 410.63,
+      "end": 419.75,
+      "en": "So we can repeat this kind of analysis over all the words and over all the layers, and we can get a visualization that looks like this.",
+      "zh": "可以對所有字、所有層重複這種分析，得到這樣的視覺化。"
+    },
+    {
+      "start": 419.90999999999997,
+      "end": 429.95,
+      "en": "So what you see here are the tokens with the largest softmax for each word in the text, and the bottom row shows the target token in each position.",
+      "zh": "這裡顯示文字中每個字，在各層 softmax 最大的 token；最下面一列，是各位置的目標 token。"
+    },
+    {
+      "start": 430.35,
+      "end": 437.55,
+      "en": "So the model sees the word the and it's supposed to predict that the subsequent token is the word way.",
+      "zh": "所以模型看到 the，應該預測後續 token 是 way。"
+    },
+    {
+      "start": 438.15,
+      "end": 444.07,
+      "en": "Now ideally the output of layer 12 would be more or less the correct token sequence.",
+      "zh": "理想上，第 12 層的輸出，會大致是正確的 token 序列，"
+    },
+    {
+      "start": 444.23,
+      "end": 447.31,
+      "en": "And that would match the target sequence.",
+      "zh": "與目標序列匹配。"
+    },
+    {
+      "start": 447.67,
+      "end": 452.67,
+      "en": "In this case, it doesn't really work that well because it's a fairly short piece of text.",
+      "zh": "這裡其實效果不太好，因為文字相當短，"
+    },
+    {
+      "start": 452.67,
+      "end": 456.03,
+      "en": "So there isn't a whole lot of context to leverage.",
+      "zh": "沒有很多上下文可利用，"
+    },
+    {
+      "start": 456.27,
+      "end": 462.03,
+      "en": "And this is only GPT two small, but it does write some interesting text.",
+      "zh": "而且這只是 GPT2-small，不過確實寫出一些有意思的文字。"
+    },
+    {
+      "start": 462.03,
+      "end": 469.11,
+      "en": "And it's interesting to see how the tokens transform over the course of internal processing.",
+      "zh": "也很有意思的是，觀察 token 如何在內部處理過程中轉變。"
+    },
+    {
+      "start": 469.71,
+      "end": 477.5,
+      "en": "Now, the color behind each little piece of text each token corresponds to the scaled Logsoftmax values.",
+      "zh": "每小段文字、每個 token 背後的顏色，對應縮放後的 log-softmax 值。"
+    },
+    {
+      "start": 477.94,
+      "end": 484.7,
+      "en": "I will have more to say about all of this in the code, so let's switch to Python and see how this analysis works.",
+      "zh": "程式部分會再多說明，所以切換到 Python，看看分析如何運作。"
+    },
+    {
+      "start": 485.62,
+      "end": 488.14,
+      "en": "Here are the libraries that we need.",
+      "zh": "這裡是需要的函式庫。"
+    },
+    {
+      "start": 488.14,
+      "end": 494.14,
+      "en": "Here I'm importing GPT two small and switching it to eval mode.",
+      "zh": "匯入 GPT2-small，切換到 eval 模式。"
+    },
+    {
+      "start": 494.62,
+      "end": 495.7,
+      "en": "And let's see.",
+      "zh": "接著看看。"
+    },
+    {
+      "start": 495.74,
+      "end": 500.1,
+      "en": "Here is the text we will use to work with in this demo.",
+      "zh": "這是示範會使用的文字。"
+    },
+    {
+      "start": 500.34,
+      "end": 503.62,
+      "en": "The way you do anything is the way you do everything.",
+      "zh": "「The way you do anything is the way you do everything」，做任何一件事的方式，就是你做所有事的方式。"
+    },
+    {
+      "start": 503.62,
+      "end": 505.06,
+      "en": "I like that quote a lot.",
+      "zh": "我很喜歡這句話。"
+    },
+    {
+      "start": 505.42,
+      "end": 513.34,
+      "en": "Uh, here I am tokenizing the text, and here I'm pushing the text through the model or pushing the tokens through the model.",
+      "zh": "這裡將文字 token 化，再將文字，或者說 token，送進模型。"
+    },
+    {
+      "start": 513.5,
+      "end": 515.42,
+      "en": "Now, this is a small model.",
+      "zh": "這是小模型，"
+    },
+    {
+      "start": 515.42,
+      "end": 517.14,
+      "en": "It's a small piece of text.",
+      "zh": "文字也很短，"
+    },
+    {
+      "start": 517.14,
+      "end": 519.66,
+      "en": "It takes a very little time to go through.",
+      "zh": "所以處理時間很少。"
+    },
+    {
+      "start": 519.7,
+      "end": 526.62,
+      "en": "We absolutely do not need the GPU for this code file or really this analysis.",
+      "zh": "這份程式、這項分析，絕對不需要 GPU。"
+    },
+    {
+      "start": 526.66,
+      "end": 530.3,
+      "en": "It's generally pretty fast unless you're running a ton of text through.",
+      "zh": "除非處理大量文字，否則一般相當快。"
+    },
+    {
+      "start": 530.78,
+      "end": 538.26,
+      "en": "Okay, so this code here is just serving to confirm that we have gotten a sensible result.",
+      "zh": "好，這段程式只是確認，取得合理的結果。"
+    },
+    {
+      "start": 538.38,
+      "end": 541.86,
+      "en": "So the number of hidden states that we have is 13.",
+      "zh": "隱藏狀態數量是 13，"
+    },
+    {
+      "start": 542.26,
+      "end": 549.86,
+      "en": "Of course, you know, that corresponds to the output of the embeddings matrix, the initial token plus position embeddings.",
+      "zh": "當然對應嵌入矩陣的輸出，也就是最初的 token 加位置嵌入，"
+    },
+    {
+      "start": 549.98,
+      "end": 552.98,
+      "en": "And then we have the 12 transformer blocks.",
+      "zh": "再加上 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 552.98,
+      "end": 556.62,
+      "en": "And then here within any one of these blocks I'm just picking this one.",
+      "zh": "這裡從其中一個區塊，我只是挑這個，"
+    },
+    {
+      "start": 557.1,
+      "end": 563.46,
+      "en": "We have one sequence of 11 tokens and 768 dimensions.",
+      "zh": "有一個序列，11 個 token，768 個維度。"
+    },
+    {
+      "start": 563.94,
+      "end": 573.14,
+      "en": "Here is the URL to the report that, as far as I am aware, first proposed and described this method",
+      "zh": "這裡是那份報告的網址，據我所知，它最早提出並描述這種"
+    },
+    {
+      "start": 573.14,
+      "end": 574.74,
+      "en": "of the logit lens.",
+      "zh": "logit lens 方法。"
+    },
+    {
+      "start": 575.38,
+      "end": 575.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 575.74,
+      "end": 577.9,
+      "en": "So here is the basic analysis.",
+      "zh": "這裡是基本分析，"
+    },
+    {
+      "start": 577.9,
+      "end": 579.98,
+      "en": "This is just for one layer.",
+      "zh": "只看一層，"
+    },
+    {
+      "start": 579.98,
+      "end": 583.86,
+      "en": "And I'll extend it to all the layers in a little bit.",
+      "zh": "稍後會擴充到所有層。"
+    },
+    {
+      "start": 584.62,
+      "end": 592.3,
+      "en": "So I'm grabbing the activations the outputs from one transformer block here I'm just using three.",
+      "zh": "這裡取得某個 Transformer 區塊的活化、輸出，只選第 3 個。"
+    },
+    {
+      "start": 592.5,
+      "end": 594.66,
+      "en": "This zero here is for.",
+      "zh": "這裡的 0，是為了，"
+    },
+    {
+      "start": 595.14,
+      "end": 596.7,
+      "en": "That's for this here.",
+      "zh": "就是對應這個，"
+    },
+    {
+      "start": 596.7,
+      "end": 599.86,
+      "en": "This is the first sequence in this batch.",
+      "zh": "批次中的第一個序列。"
+    },
+    {
+      "start": 599.86,
+      "end": 601.38,
+      "en": "But the batch is only one.",
+      "zh": "但批次其實只有一個，"
+    },
+    {
+      "start": 601.38,
+      "end": 606.7,
+      "en": "So this just helps reduce the matrix size a little bit okay.",
+      "zh": "所以這只是稍微減少矩陣的大小。"
+    },
+    {
+      "start": 606.74,
+      "end": 609.5,
+      "en": "And here I'm getting the embeddings matrix.",
+      "zh": "這裡取得嵌入矩陣，"
+    },
+    {
+      "start": 609.5,
+      "end": 619.7,
+      "en": "So model for language model underscore weight I'm going to have a few things to say about this in a",
+      "zh": "也就是模型語言模型部分的 weight；關於這點，稍後會再說一些"
+    },
+    {
+      "start": 619.7,
+      "end": 620.38,
+      "en": "moment.",
+      "zh": "內容。"
+    },
+    {
+      "start": 620.38,
+      "end": 628.3,
+      "en": "But first I want to show you how easy it is to calculate the logits at any of the layers.",
+      "zh": "不過先展示，要在任何一層計算 logits，有多麼容易。"
+    },
+    {
+      "start": 628.3,
+      "end": 639.1,
+      "en": "So we get out the final activations, and then we simply multiply by the transpose of the embeddings matrix and the size of this matrix.",
+      "zh": "取得最終活化，再直接乘以嵌入矩陣的轉置，而這個矩陣的大小，"
+    },
+    {
+      "start": 639.1,
+      "end": 643.42,
+      "en": "Here this variable logits is 11 by 50,000.",
+      "zh": "也就是 logits 這個變數，是 11×50,000。"
+    },
+    {
+      "start": 643.58,
+      "end": 648.82,
+      "en": "And basically that corresponds to the 11 tokens in this text.",
+      "zh": "基本上，對應文字中的 11 個 token，"
+    },
+    {
+      "start": 648.82,
+      "end": 655.94,
+      "en": "And each of those tokens has a logit projecting to each of the elements in the vocab.",
+      "zh": "而每個 token，都有一個投影到詞彙表中各元素的 logit。"
+    },
+    {
+      "start": 655.94,
+      "end": 661.22,
+      "en": "So all the tokens in the vocab, that's 50,257 tokens.",
+      "zh": "也就是詞彙表全部 token，共 50,257 個。"
+    },
+    {
+      "start": 662.34,
+      "end": 672.5,
+      "en": "So then basically what we want to do is see for each of these tokens, what is the largest value of or which token has the largest logit.",
+      "zh": "接著基本上，對每個 token，要找出最大值，或哪個 token 有最大的 logit，"
+    },
+    {
+      "start": 672.54,
+      "end": 674.66,
+      "en": "The largest projection okay.",
+      "zh": "也就是最大的投影。"
+    },
+    {
+      "start": 674.7,
+      "end": 678.66,
+      "en": "Now one quick note about this here.",
+      "zh": "關於這裡，先快速補充一點。"
+    },
+    {
+      "start": 678.66,
+      "end": 680.42,
+      "en": "So where do we get that from.",
+      "zh": "那究竟從哪裡取得？"
+    },
+    {
+      "start": 680.78,
+      "end": 683.74,
+      "en": "That comes from here is the entire model.",
+      "zh": "這裡是整個模型。"
+    },
+    {
+      "start": 683.74,
+      "end": 694.22,
+      "en": "You can see most of this is the transformer here at the end of the transformer is the final layer norm after the last transformer block.",
+      "zh": "可以看到，大部分是 Transformer；在最末端、最後一個 Transformer 區塊後面，是最終 layer norm。"
+    },
+    {
+      "start": 694.62,
+      "end": 698.38,
+      "en": "And then we get to this part of the model LM underscore head.",
+      "zh": "接著來到模型的 lm_head。"
+    },
+    {
+      "start": 698.38,
+      "end": 700.54,
+      "en": "This is an non-linear.",
+      "zh": "這是非線性的。"
+    },
+    {
+      "start": 700.78,
+      "end": 704.78,
+      "en": "It is literally nothing more than one matrix.",
+      "zh": "它真的就只是一個矩陣，"
+    },
+    {
+      "start": 704.78,
+      "end": 707.62,
+      "en": "It's just one matrix of numbers.",
+      "zh": "一個數字矩陣而已。"
+    },
+    {
+      "start": 707.86,
+      "end": 714.38,
+      "en": "And when we transpose this matrix, that's what we multiply with the final output logits.",
+      "zh": "將這個矩陣轉置後，就是拿它與最終輸出 logits 相乘。"
+    },
+    {
+      "start": 714.38,
+      "end": 718.94,
+      "en": "And this is what we are multiplying by all of the other logits.",
+      "zh": "也用它來與其他所有 logits 相乘，"
+    },
+    {
+      "start": 718.94,
+      "end": 722.42,
+      "en": "So the output of all these other 12 transformer blocks.",
+      "zh": "也就是其他這 12 個 Transformer 區塊的輸出。"
+    },
+    {
+      "start": 723.46,
+      "end": 729.66,
+      "en": "Now I'm going into detail about this because you will see in the next video in the code challenge.",
+      "zh": "之所以詳細說明，是因為下一支影片的程式挑戰，"
+    },
+    {
+      "start": 729.66,
+      "end": 737.1,
+      "en": "In the next video, we are going to be using the Bert model instead of the OpenAI GPT model.",
+      "zh": "會使用 BERT，而不是 OpenAI 的 GPT 模型。"
+    },
+    {
+      "start": 737.38,
+      "end": 740.34,
+      "en": "And this is going to look a little bit different.",
+      "zh": "這裡的樣子就會稍微不同。"
+    },
+    {
+      "start": 740.34,
+      "end": 750.58,
+      "en": "So these two lines of code here, this works for GPT like OpenAI's GPT style embeddings matrix.",
+      "zh": "所以這兩行程式，適用於 GPT 這類、OpenAI GPT 風格的嵌入矩陣。"
+    },
+    {
+      "start": 750.58,
+      "end": 754.82,
+      "en": "And in the next video you will see it's conceptually the same with Birch.",
+      "zh": "下一支影片會看到，BERT 的概念相同，"
+    },
+    {
+      "start": 754.82,
+      "end": 757.82,
+      "en": "But the implementation is a little bit different.",
+      "zh": "但實作稍微不同。"
+    },
+    {
+      "start": 758.26,
+      "end": 760.5,
+      "en": "Okay, so pin that in the back of your brain.",
+      "zh": "好，先將這點記在腦中，"
+    },
+    {
+      "start": 760.5,
+      "end": 763.14,
+      "en": "We'll get back to that in the next video.",
+      "zh": "下一支影片會再談。"
+    },
+    {
+      "start": 763.74,
+      "end": 764.02,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 764.06,
+      "end": 769.54,
+      "en": "So now what I'm going to do is create the figure that I showed in the slides.",
+      "zh": "現在要建立投影片展示的圖。"
+    },
+    {
+      "start": 769.54,
+      "end": 778.86,
+      "en": "So from these logits, from this output of the one of the transformer blocks, I am log softmax to get",
+      "zh": "從這些 logits，也就是某個 Transformer 區塊的輸出，套用 log-softmax，取得"
+    },
+    {
+      "start": 778.9,
+      "end": 781.5,
+      "en": "log softmax outputs.",
+      "zh": "log-softmax 輸出。"
+    },
+    {
+      "start": 781.7,
+      "end": 788.42,
+      "en": "And then I find the maximum of these logsoftmax outputs for the fourth token.",
+      "zh": "接著找出第四個 token 的這些 log-softmax 輸出最大值，"
+    },
+    {
+      "start": 788.42,
+      "end": 793.06,
+      "en": "So the token of index three and all of the vocab elements.",
+      "zh": "也就是 token 索引 3，並查看所有詞彙表元素。"
+    },
+    {
+      "start": 793.54,
+      "end": 795.7,
+      "en": "Now uh, just something to remember.",
+      "zh": "有一點要記得，"
+    },
+    {
+      "start": 795.7,
+      "end": 800.94,
+      "en": "Logsoftmax is a non-linear transformation, but it is a monotonic transformation.",
+      "zh": "log-softmax 是非線性轉換，但它是單調轉換。"
+    },
+    {
+      "start": 801.18,
+      "end": 808.42,
+      "en": "So the maximum here is the maximum here which is the maximum of this before the logsoftmax.",
+      "zh": "所以這裡的最大值，就是這裡的最大值，也就是做 log-softmax 之前的最大值。"
+    },
+    {
+      "start": 808.7,
+      "end": 816.7,
+      "en": "So technically you do not need to transform these logits in order to make a prediction for the next token.",
+      "zh": "嚴格來說，要預測下一個 token，並不需要轉換這些 logits。"
+    },
+    {
+      "start": 817.02,
+      "end": 821.54,
+      "en": "But I'm transforming it here mainly for visualization.",
+      "zh": "這裡轉換，主要是為了視覺呈現。"
+    },
+    {
+      "start": 821.58,
+      "end": 826.06,
+      "en": "And that's also the reason why I will do it the way I set it up in the next slide.",
+      "zh": "這也是下一張投影片，我會採用那種設定方式的原因。"
+    },
+    {
+      "start": 826.66,
+      "end": 826.98,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 827.02,
+      "end": 834.57,
+      "en": "So here we see, for the token following do, which is the fourth token in this text.",
+      "zh": "這裡可以看到，對 do 後面的 token，do 是文字中的第四個 token，"
+    },
+    {
+      "start": 834.73,
+      "end": 843.61,
+      "en": "The predicted next token is the word not, which is not the same as the word it, which is what I showed in the slides a moment ago.",
+      "zh": "預測的下一個 token 是 not，與剛才投影片展示的 it 不同。"
+    },
+    {
+      "start": 843.97,
+      "end": 848.73,
+      "en": "Uh, I don't, uh, I think I just did something different when I created the slides.",
+      "zh": "我想製作投影片時，應該做了些不同的事情。"
+    },
+    {
+      "start": 848.73,
+      "end": 850.41,
+      "en": "But anyway, uh, it's fine.",
+      "zh": "不過沒關係。"
+    },
+    {
+      "start": 850.61,
+      "end": 859.69,
+      "en": "You can certainly imagine that when the model sees the token do, it's reasonable to think that the next token could be not.",
+      "zh": "你當然可以想像，模型看到 do 這個 token 時，下一個 token 可能是 not，這很合理。"
+    },
+    {
+      "start": 859.97,
+      "end": 864.69,
+      "en": "So although this is not correct, this is not categorically the correct answer.",
+      "zh": "所以雖然不正確，並不是類別上的正確答案，"
+    },
+    {
+      "start": 864.81,
+      "end": 867.01,
+      "en": "Again, it's not complete nonsense, right?",
+      "zh": "但也不是完全胡言亂語，對吧？"
+    },
+    {
+      "start": 867.05,
+      "end": 870.49,
+      "en": "Because this word does often follow this word.",
+      "zh": "因為這個字確實經常接在那個字後面。"
+    },
+    {
+      "start": 871.41,
+      "end": 871.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 871.69,
+      "end": 872.37,
+      "en": "Very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 872.37,
+      "end": 877.89,
+      "en": "So this, uh, analysis that I've shown you so far is for one token.",
+      "zh": "到目前為止，展示的分析只針對一個 token，"
+    },
+    {
+      "start": 877.89,
+      "end": 879.53,
+      "en": "For one layer.",
+      "zh": "一個層。"
+    },
+    {
+      "start": 879.73,
+      "end": 885.49,
+      "en": "So now to expand this to the full logit lens analysis is super straightforward.",
+      "zh": "現在要擴充成完整 logit lens 分析，非常直接。"
+    },
+    {
+      "start": 885.49,
+      "end": 892.25,
+      "en": "All we need to do is run this again over all of the tokens and then over all the layers.",
+      "zh": "只需要對所有 token，再對所有層，重新執行一次。"
+    },
+    {
+      "start": 892.29,
+      "end": 893.33,
+      "en": "Pretty straightforward.",
+      "zh": "相當直接。"
+    },
+    {
+      "start": 893.61,
+      "end": 897.29,
+      "en": "So that's what I do in this code cell over here.",
+      "zh": "這個程式區塊，就是這麼做。"
+    },
+    {
+      "start": 898.25,
+      "end": 900.01,
+      "en": "So, uh, let's see.",
+      "zh": "我看看。"
+    },
+    {
+      "start": 900.01,
+      "end": 903.41,
+      "en": "This is a loop over all of the layers.",
+      "zh": "這是遍歷所有層的迴圈，"
+    },
+    {
+      "start": 903.45,
+      "end": 905.17,
+      "en": "Actually it's not all of the layers.",
+      "zh": "其實不是全部，"
+    },
+    {
+      "start": 905.17,
+      "end": 906.73,
+      "en": "We skip the first layer.",
+      "zh": "會跳過第一層。"
+    },
+    {
+      "start": 907.01,
+      "end": 910.13,
+      "en": "And why do we skip the first layer of the hidden states?",
+      "zh": "為什麼要跳過隱藏狀態的第一層？"
+    },
+    {
+      "start": 910.81,
+      "end": 911.93,
+      "en": "I'm sure you guessed it.",
+      "zh": "相信你已經猜到了。"
+    },
+    {
+      "start": 912.01,
+      "end": 914.73,
+      "en": "The reason is that the first layer.",
+      "zh": "因為第一層，"
+    },
+    {
+      "start": 914.81,
+      "end": 916.61,
+      "en": "So hidden states zero.",
+      "zh": "也就是 hidden states 0，"
+    },
+    {
+      "start": 917.13,
+      "end": 921.57,
+      "en": "That is the output of the embeddings, the token plus position embeddings.",
+      "zh": "是嵌入的輸出，token 加位置嵌入。"
+    },
+    {
+      "start": 921.73,
+      "end": 931.13,
+      "en": "It really doesn't make any sense to take those initial embeddings vectors and then immediately plug them into the embeddings matrix.",
+      "zh": "取這些最初的嵌入向量，再立刻放回嵌入矩陣，其實沒有什麼道理。"
+    },
+    {
+      "start": 931.45,
+      "end": 938.57,
+      "en": "There hasn't been any transformations at that point, so that's not going to be terribly useful or insightful.",
+      "zh": "當時還沒有做任何轉換，所以不太有用，也無法帶來什麼見解。"
+    },
+    {
+      "start": 938.89,
+      "end": 941.57,
+      "en": "So therefore we just skip the first one.",
+      "zh": "因此直接跳過第一個。"
+    },
+    {
+      "start": 941.57,
+      "end": 948.17,
+      "en": "And we are only interested in the analysis starting from the first transformer block.",
+      "zh": "只關心從第一個 Transformer 區塊開始的分析。"
+    },
+    {
+      "start": 949.45,
+      "end": 953.53,
+      "en": "Okay, then here I calculate the logits exactly as I showed above.",
+      "zh": "好，接著與上面完全相同，計算 logits。"
+    },
+    {
+      "start": 953.93,
+      "end": 956.45,
+      "en": "Here I'm finding the maximum.",
+      "zh": "這裡找出最大值，"
+    },
+    {
+      "start": 956.45,
+      "end": 960.25,
+      "en": "So argmax for each of these logits.",
+      "zh": "對每個 logits 使用 argmax。"
+    },
+    {
+      "start": 960.25,
+      "end": 963.73,
+      "en": "So this variable here predicted next talks.",
+      "zh": "這個變數，predicted next tokens，"
+    },
+    {
+      "start": 964.09,
+      "end": 973.93,
+      "en": "This is going to tell me for each of the 11 tokens what is the model's maximum projection onto the vocab.",
+      "zh": "會告訴我，這 11 個 token 各自對詞彙表的最大投影，"
+    },
+    {
+      "start": 974.25,
+      "end": 978.05,
+      "en": "So in other words what is the prediction for the next token.",
+      "zh": "換句話說，就是下一個 token 的預測。"
+    },
+    {
+      "start": 978.45,
+      "end": 978.85,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 978.89,
+      "end": 979.89,
+      "en": "And then yeah.",
+      "zh": "接著，對。"
+    },
+    {
+      "start": 979.89,
+      "end": 987.01,
+      "en": "So you can see here I'm not calculating logsoftmax because I really only need the maximum over here.",
+      "zh": "可以看到，這裡沒有計算 log-softmax，因為只需要最大值。"
+    },
+    {
+      "start": 987.01,
+      "end": 989.57,
+      "en": "I actually am calculating softmax.",
+      "zh": "其實有計算 softmax，"
+    },
+    {
+      "start": 989.77,
+      "end": 992.13,
+      "en": "But that's not for the analysis.",
+      "zh": "但不是為了分析，"
+    },
+    {
+      "start": 992.13,
+      "end": 995.65,
+      "en": "That's for a visualization that I will show you later on.",
+      "zh": "而是稍後會展示的視覺化，"
+    },
+    {
+      "start": 995.65,
+      "end": 998.61,
+      "en": "That's for the text heatmap okay.",
+      "zh": "也就是文字熱圖。"
+    },
+    {
+      "start": 998.65,
+      "end": 1002.41,
+      "en": "So here I'm getting all of the softmaxes from the logits.",
+      "zh": "這裡從 logits 取得全部 softmax 值。"
+    },
+    {
+      "start": 1002.49,
+      "end": 1009.61,
+      "en": "And here I am storing for this layer and for all of the tokens in the sequence.",
+      "zh": "接著針對這一層，以及序列中的所有 token，儲存結果。"
+    },
+    {
+      "start": 1009.97,
+      "end": 1018.41,
+      "en": "You can see I'm looping through all of the predicted next tokens and then getting the softmax from the predicted token.",
+      "zh": "可以看到，逐一迭代所有預測的下一個 token，再取得該預測 token 的 softmax。"
+    },
+    {
+      "start": 1018.41,
+      "end": 1027.97,
+      "en": "So yeah, this is just for visualizing the color behind the selected text or the predicted text in the next that I'll show a little bit below.",
+      "zh": "這只是為了稍後選出的文字、預測文字背後的顏色視覺化。"
+    },
+    {
+      "start": 1028.37,
+      "end": 1028.57,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1028.61,
+      "end": 1031.37,
+      "en": "And then here I'm actually decoding the text.",
+      "zh": "這裡實際解碼文字，"
+    },
+    {
+      "start": 1031.61,
+      "end": 1034.33,
+      "en": "So getting the predicted next tokens.",
+      "zh": "取得預測的下一個 token。"
+    },
+    {
+      "start": 1034.33,
+      "end": 1035.53,
+      "en": "These are indices.",
+      "zh": "它們是索引，"
+    },
+    {
+      "start": 1035.69,
+      "end": 1038.81,
+      "en": "And now here I'm transforming those into text.",
+      "zh": "這裡將它們轉成文字，"
+    },
+    {
+      "start": 1038.81,
+      "end": 1042.93,
+      "en": "And then appending that onto this list over here.",
+      "zh": "再附加到這裡的串列。"
+    },
+    {
+      "start": 1043.37,
+      "end": 1045.17,
+      "en": "And what does that list look like.",
+      "zh": "那串列長什麼樣子？"
+    },
+    {
+      "start": 1045.49,
+      "end": 1053.53,
+      "en": "Uh it is actually a list of lists where each list in this list of lists contains a bunch of words.",
+      "zh": "其實是一個串列的串列，每個內層串列，都包含一串字，"
+    },
+    {
+      "start": 1053.53,
+      "end": 1057.81,
+      "en": "And these are all of the predictions for the subsequent token.",
+      "zh": "這些全部都是後續 token 的預測。"
+    },
+    {
+      "start": 1058.13,
+      "end": 1061.21,
+      "en": "So this is for, uh, transformer block one.",
+      "zh": "這個是 Transformer 區塊 1，"
+    },
+    {
+      "start": 1061.37,
+      "end": 1064.29,
+      "en": "This is transformer block two and so on.",
+      "zh": "這個是區塊 2，依此類推。"
+    },
+    {
+      "start": 1064.57,
+      "end": 1069.97,
+      "en": "This is not a very useful way to visualize the results of this analysis.",
+      "zh": "這不是呈現分析結果的實用方式，"
+    },
+    {
+      "start": 1070.81,
+      "end": 1073.53,
+      "en": "So therefore we'll do some other visualizations.",
+      "zh": "所以要做其他視覺化。"
+    },
+    {
+      "start": 1073.85,
+      "end": 1075.41,
+      "en": "Here I'm actually just printing it out.",
+      "zh": "這裡直接列印出來。"
+    },
+    {
+      "start": 1075.85,
+      "end": 1077.69,
+      "en": "This is the original text.",
+      "zh": "這是原始文字，"
+    },
+    {
+      "start": 1077.73,
+      "end": 1080.81,
+      "en": "The way you do anything is the way you do everything.",
+      "zh": "「The way you do anything is the way you do everything」。"
+    },
+    {
+      "start": 1081.21,
+      "end": 1085.05,
+      "en": "Here are the predictions at the first transformer block.",
+      "zh": "這是第一個 Transformer 區塊的預測，"
+    },
+    {
+      "start": 1085.41,
+      "end": 1088.25,
+      "en": "The way the the else the the way the the the.",
+      "zh": "「The way the the else the the way the the the」。"
+    },
+    {
+      "start": 1088.65,
+      "end": 1092.25,
+      "en": "It has a nice rhythm to it, but it is not very sensible.",
+      "zh": "節奏不錯，但不太合理。"
+    },
+    {
+      "start": 1092.45,
+      "end": 1097.01,
+      "en": "And then at the final transformer block we have to do it is to same.",
+      "zh": "最後一個 Transformer 區塊，則是「to do it is to same」，"
+    },
+    {
+      "start": 1097.01,
+      "end": 1097.69,
+      "en": "You do it.",
+      "zh": "「you do it」。"
+    },
+    {
+      "start": 1098.21,
+      "end": 1103.45,
+      "en": "It's a little bit more sensible than this, but it's not really that sensible.",
+      "zh": "比這個稍微合理一點，但也沒那麼合理。"
+    },
+    {
+      "start": 1103.89,
+      "end": 1112.89,
+      "en": "You will see in the code challenge in the next video that Bert does a much better job at this than GPT two small.",
+      "zh": "下一支影片的程式挑戰會看到，BERT 在這件事上，比 GPT2-small 好很多。"
+    },
+    {
+      "start": 1113.45,
+      "end": 1121.25,
+      "en": "I think you could also try this with GPT two large or XL, and probably this would work better.",
+      "zh": "我想也可以試試 GPT2-large 或 XL，應該會更好。"
+    },
+    {
+      "start": 1122.49,
+      "end": 1128.76,
+      "en": "Okay, so now the last thing I'm going to do is the visualization with a heat map.",
+      "zh": "好，最後要做的是熱圖視覺化。"
+    },
+    {
+      "start": 1128.88,
+      "end": 1129.6,
+      "en": "So let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 1129.64,
+      "end": 1131.8,
+      "en": "Let me actually first create this.",
+      "zh": "其實先建立這個。"
+    },
+    {
+      "start": 1131.8,
+      "end": 1138.96,
+      "en": "Now this code here looks a little bit different from some of the other heat maps that I have created in this course.",
+      "zh": "這裡的程式，與課程中其他一些熱圖略有不同。"
+    },
+    {
+      "start": 1139.08,
+      "end": 1150.16,
+      "en": "In particular, I do not have this initial cell code cell where I am doing some stuff to identify the width of a letter.",
+      "zh": "尤其是，沒有最初那個用來辨識字母寬度的程式區塊。"
+    },
+    {
+      "start": 1150.56,
+      "end": 1159.68,
+      "en": "And the reason why this approach is simpler here is that I'm actually just creating a grid of of words of tokens.",
+      "zh": "這裡做法更簡單，原因是其實只在建立字詞、token 的格狀排列，"
+    },
+    {
+      "start": 1159.8,
+      "end": 1162.8,
+      "en": "So we don't actually need to have all of the spacing.",
+      "zh": "所以不需要處理全部間距，"
+    },
+    {
+      "start": 1162.8,
+      "end": 1167.8,
+      "en": "We don't need to deal with different letters and different sizes of words and so on.",
+      "zh": "不需要處理不同字母、不同詞長等等。"
+    },
+    {
+      "start": 1167.92,
+      "end": 1170.44,
+      "en": "So this is just a little bit simpler okay.",
+      "zh": "因此稍微簡單一些。"
+    },
+    {
+      "start": 1170.48,
+      "end": 1177.2,
+      "en": "Anyway, the point is that here you see the output of each layer for the maximum prediction.",
+      "zh": "總之，重點是，這裡可以看到每一層最大預測的輸出。"
+    },
+    {
+      "start": 1177.36,
+      "end": 1185.24,
+      "en": "And the color behind each of these words or each of these tokens corresponds to the softmax probability",
+      "zh": "這些字、token 背後的顏色，對應從遍歷所有不同層的 for 迴圈中"
+    },
+    {
+      "start": 1185.24,
+      "end": 1190.76,
+      "en": "that I extracted from that for loop over all of the different layers.",
+      "zh": "擷取的 softmax 機率。"
+    },
+    {
+      "start": 1191.08,
+      "end": 1198.44,
+      "en": "So if we would slice the model at transformer block six, then and then just decode its outputs, we",
+      "zh": "如果在 Transformer 區塊 6 切開模型，再直接解碼輸出，"
+    },
+    {
+      "start": 1198.44,
+      "end": 1206.04,
+      "en": "would get the the can not else not same you can a else again a little clunky.",
+      "zh": "會得到「the the can not else not same you can a else」，同樣有點不順。"
+    },
+    {
+      "start": 1206.36,
+      "end": 1211.64,
+      "en": "Uh maybe you can make a song out of that, but it's not really very insightful as text.",
+      "zh": "也許可以把它譜成歌，但作為文字，其實不太有啟發性。"
+    },
+    {
+      "start": 1212.4,
+      "end": 1212.8,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1213.04,
+      "end": 1213.24,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1213.24,
+      "end": 1218.44,
+      "en": "In general, GPT two small does not do super well on tasks like this.",
+      "zh": "一般而言，GPT2-small 在這類任務上，表現不是特別好。"
+    },
+    {
+      "start": 1218.64,
+      "end": 1223,
+      "en": "You will see that, uh, Bert, uh, does, uh, quite a bit better.",
+      "zh": "你會看到，BERT 做得好不少。"
+    },
+    {
+      "start": 1223.04,
+      "end": 1228.56,
+      "en": "And pretty interesting how Bert performs in the logit lens.",
+      "zh": "BERT 在 logit lens 中的表現，相當有意思。"
+    },
+    {
+      "start": 1229.32,
+      "end": 1234.76,
+      "en": "So that's the basics of the logit lens analysis in the code challenge.",
+      "zh": "以上是 logit lens 分析的基礎。程式挑戰，"
+    },
+    {
+      "start": 1234.76,
+      "end": 1240.92,
+      "en": "In the next video, you will continue exploring this analysis method in the Bert model.",
+      "zh": "也就是下一支影片，會繼續用 BERT 模型探索這個分析方法。"
+    }
+  ]
+}

@@ -1,0 +1,1537 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840077",
+  "title": "Randomly sampling words with torch.multinomial",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "4ba112889fc263a2bb9aca43b3a7a3818dfd984f01f2af2808cda8d8d1bca1ad",
+  "cues": [
+    {
+      "start": 2.2,
+      "end": 9.2,
+      "en": "The purpose of this video is to tell you about the function multinomial.",
+      "zh": "這支影片，要介紹 multinomial 函式。"
+    },
+    {
+      "start": 9.76,
+      "end": 17.48,
+      "en": "It is not a very difficult function to use or to understand, but it's not necessarily obvious what it does.",
+      "zh": "使用與理解不難，但它的作用不一定很明顯，"
+    },
+    {
+      "start": 17.64,
+      "end": 23.48,
+      "en": "And yet it is very important for generating text in language models.",
+      "zh": "卻對語言模型產生文字，非常重要。"
+    },
+    {
+      "start": 23.84,
+      "end": 27.36,
+      "en": "So this video I will just discuss this function.",
+      "zh": "所以，只討論這個函式。"
+    },
+    {
+      "start": 27.6,
+      "end": 37.52,
+      "en": "And you will also learn a little bit more about softmax and the implications of softmax for probability functions and token selection.",
+      "zh": "也會多學一點 softmax，以及它對機率函數、token 選擇的影響。"
+    },
+    {
+      "start": 38.36,
+      "end": 44.08,
+      "en": "So this is a screenshot of the model that we developed a couple of videos ago.",
+      "zh": "這是幾支影片前，開發的模型截圖，"
+    },
+    {
+      "start": 44.12,
+      "end": 45.96,
+      "en": "This was called model one.",
+      "zh": "叫作模型一。"
+    },
+    {
+      "start": 46.6,
+      "end": 52.76,
+      "en": "Now this is the generate method here that generates new tokens.",
+      "zh": "這是 generate 方法，產生新 token。"
+    },
+    {
+      "start": 53.24,
+      "end": 61.56,
+      "en": "In particular I mentioned this line here which samples from the softmax probabilities of the tokens.",
+      "zh": "尤其提過這一行，從 token 的 softmax 機率抽樣。"
+    },
+    {
+      "start": 62.18,
+      "end": 69.26,
+      "en": "I also mentioned and in that video that I was going to talk more about how that function works and what it does.",
+      "zh": "當時也說過，會在後面的影片，進一步談它的運作"
+    },
+    {
+      "start": 69.74,
+      "end": 70.98,
+      "en": "In a later video.",
+      "zh": "與功能。"
+    },
+    {
+      "start": 71.3,
+      "end": 73.1,
+      "en": "And here we are in the future.",
+      "zh": "現在，來到未來了。"
+    },
+    {
+      "start": 73.78,
+      "end": 74.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 74.1,
+      "end": 76.3,
+      "en": "So here's what we're going to do in Python.",
+      "zh": "Python 會做這些事。"
+    },
+    {
+      "start": 76.3,
+      "end": 82.74,
+      "en": "We're going to create a really small data set to explore this multinomial function.",
+      "zh": "建立非常小的資料集，探索 multinomial。"
+    },
+    {
+      "start": 83.3,
+      "end": 89.3,
+      "en": "Now some of the random sampling results that we will get are not very surprising.",
+      "zh": "有些隨機抽樣結果，不太意外，"
+    },
+    {
+      "start": 89.78,
+      "end": 97.74000000000001,
+      "en": "And other results that we will get may seem initially surprising, but that's actually related to understanding softmax.",
+      "zh": "有些乍看意外，但其實與 softmax 的理解有關。"
+    },
+    {
+      "start": 97.74000000000001,
+      "end": 103.3,
+      "en": "So in fact, this result, this discrepancy is not going to be surprising.",
+      "zh": "所以，這個差異，"
+    },
+    {
+      "start": 103.5,
+      "end": 111.1,
+      "en": "After we look through all of the code, of course, we're going to get error messages in PyTorch because why not?",
+      "zh": "看完程式就不會意外。當然，也會遇到 PyTorch 錯誤，何樂不為？"
+    },
+    {
+      "start": 111.62,
+      "end": 117.06,
+      "en": "But it turns out that the multinomial function is very sensitive to its inputs.",
+      "zh": "multinomial 對輸入，非常敏感。"
+    },
+    {
+      "start": 117.22,
+      "end": 120.78,
+      "en": "So I will show you several cases where you can get errors.",
+      "zh": "會展示幾種出錯情況，"
+    },
+    {
+      "start": 121.06,
+      "end": 128.13,
+      "en": "And this will help you better understand how this particular function works, and will also help you",
+      "zh": "幫助理解這個函式，也有助"
+    },
+    {
+      "start": 128.17,
+      "end": 133.89,
+      "en": "diagnose other errors, not only with this function, but just working with PyTorch in general.",
+      "zh": "診斷其他錯誤，不只這個函式，而是整體 PyTorch 使用。"
+    },
+    {
+      "start": 135.01,
+      "end": 146.57,
+      "en": "Finally, we're also going to compare this multinomial function with a numpy function that might initially seem like it should be the same, but actually turns out to be different.",
+      "zh": "最後，和一個 NumPy 函式比較，可能以為相同，實際卻不同。"
+    },
+    {
+      "start": 147.09,
+      "end": 148.93,
+      "en": "Anyway, let's switch to code.",
+      "zh": "切換程式。"
+    },
+    {
+      "start": 149.93,
+      "end": 153.09,
+      "en": "Import a couple of libraries that we will need here.",
+      "zh": "匯入需要的幾個函式庫。"
+    },
+    {
+      "start": 153.45,
+      "end": 157.25,
+      "en": "And here I'm going to create a very small data set.",
+      "zh": "建立很小的資料集，"
+    },
+    {
+      "start": 157.25,
+      "end": 159.45,
+      "en": "Just a vector 125.",
+      "zh": "就是向量 1、2、5。"
+    },
+    {
+      "start": 159.49,
+      "end": 163.77,
+      "en": "It has to be a PyTorch tensor and floating point numbers.",
+      "zh": "必須是浮點數的 PyTorch 張量，"
+    },
+    {
+      "start": 163.77,
+      "end": 165.65,
+      "en": "I will get back to that in a moment.",
+      "zh": "稍後再談。"
+    },
+    {
+      "start": 166.05,
+      "end": 172.81,
+      "en": "And here I'm using the function torch dot multinomial inputting this vector that we created here.",
+      "zh": "用 torch.multinomial，輸入這個向量，"
+    },
+    {
+      "start": 172.93,
+      "end": 174.21,
+      "en": "And the number one.",
+      "zh": "以及數字 1。"
+    },
+    {
+      "start": 174.21,
+      "end": 181.53,
+      "en": "So the idea is that this is a vector or a matrix or a tensor that we will sample from.",
+      "zh": "概念是，這是要抽樣的向量、矩陣或張量，"
+    },
+    {
+      "start": 182.17,
+      "end": 184.99,
+      "en": "And one means that we're going to get one number.",
+      "zh": "1 表示取得一個數字，"
+    },
+    {
+      "start": 184.99,
+      "end": 187.75,
+      "en": "So we're just going to get one sample out of this number.",
+      "zh": "也就是抽一個樣本。"
+    },
+    {
+      "start": 188.19,
+      "end": 190.87,
+      "en": "So when I run this we get the number two which is great.",
+      "zh": "執行，得到 2，很好，"
+    },
+    {
+      "start": 190.87,
+      "end": 192.15,
+      "en": "That's this number here.",
+      "zh": "就是這裡的數字。"
+    },
+    {
+      "start": 192.27,
+      "end": 192.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 192.71,
+      "end": 193.47,
+      "en": "Run it again.",
+      "zh": "再跑，"
+    },
+    {
+      "start": 194.03,
+      "end": 194.83,
+      "en": "Also get two.",
+      "zh": "也是 2，"
+    },
+    {
+      "start": 194.87,
+      "end": 195.67,
+      "en": "That can happen.",
+      "zh": "可能發生。"
+    },
+    {
+      "start": 196.27,
+      "end": 196.87,
+      "en": "Two again.",
+      "zh": "又是 2，"
+    },
+    {
+      "start": 196.87,
+      "end": 199.35,
+      "en": "That can happen two again one okay.",
+      "zh": "又是 2，接著是 1。"
+    },
+    {
+      "start": 199.35,
+      "end": 199.75,
+      "en": "Let me see.",
+      "zh": "看看，"
+    },
+    {
+      "start": 199.75,
+      "end": 201.11,
+      "en": "What am I looking for here?",
+      "zh": "我在等什麼？"
+    },
+    {
+      "start": 201.23,
+      "end": 204.39,
+      "en": "I'm waiting for this result here okay.",
+      "zh": "就是這個結果。"
+    },
+    {
+      "start": 204.43,
+      "end": 206.67000000000002,
+      "en": "So here we get a result of zero.",
+      "zh": "這裡得到 0，"
+    },
+    {
+      "start": 206.95,
+      "end": 211.15,
+      "en": "And yet zero does not actually appear anywhere in this vector.",
+      "zh": "但向量裡根本沒有 0。"
+    },
+    {
+      "start": 211.47,
+      "end": 214.43,
+      "en": "That's why I have this question mark over here.",
+      "zh": "所以，這裡有問號。"
+    },
+    {
+      "start": 214.82999999999998,
+      "end": 223.15,
+      "en": "So, as you might have guessed by now, the output of multinomial is not one of these numbers.",
+      "zh": "你應該猜到，multinomial 輸出不是這些值之一，"
+    },
+    {
+      "start": 223.15,
+      "end": 227.82999999999998,
+      "en": "It is instead an index into this tensor.",
+      "zh": "而是這個張量的索引，"
+    },
+    {
+      "start": 227.87,
+      "end": 231.39,
+      "en": "This this array here this set of numbers.",
+      "zh": "也就是這個陣列、這組數字的位置。"
+    },
+    {
+      "start": 231.51,
+      "end": 238.82999999999998,
+      "en": "So if we want to know the actual number that got randomly picked, then we could use that as an index.",
+      "zh": "想知道實際隨機選到的數字，就用它作為索引，"
+    },
+    {
+      "start": 238.82999999999998,
+      "end": 240.43,
+      "en": "And you know something like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 240.83,
+      "end": 243.35,
+      "en": "So now we are getting one okay.",
+      "zh": "現在取得 1。"
+    },
+    {
+      "start": 243.39,
+      "end": 246.21,
+      "en": "And now you can see also this is a floating point number.",
+      "zh": "也能看到，這是浮點數，"
+    },
+    {
+      "start": 246.37,
+      "end": 252.01,
+      "en": "There's a decimal point, whereas here there's no decimal point.",
+      "zh": "有小數點，而這裡沒有，"
+    },
+    {
+      "start": 252.01,
+      "end": 252.85,
+      "en": "It's an integer.",
+      "zh": "是整數。"
+    },
+    {
+      "start": 252.85,
+      "end": 256.29,
+      "en": "Because the output of multinomial is an index.",
+      "zh": "因為 multinomial 回傳索引，"
+    },
+    {
+      "start": 256.29,
+      "end": 261.21,
+      "en": "It's not the number that is actually being probabilistically selected.",
+      "zh": "不是依機率選出的數值本身。"
+    },
+    {
+      "start": 262.61,
+      "end": 262.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 262.93,
+      "end": 264.37,
+      "en": "Let's talk about errors.",
+      "zh": "談談錯誤。"
+    },
+    {
+      "start": 264.41,
+      "end": 264.77,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 264.81,
+      "end": 267.25,
+      "en": "So um here looks fine.",
+      "zh": "這裡看似正常，"
+    },
+    {
+      "start": 267.29,
+      "end": 269.69,
+      "en": "I mean this is basically the same thing as this right.",
+      "zh": "基本上，和這個相同，對吧？"
+    },
+    {
+      "start": 269.73,
+      "end": 271.97,
+      "en": "Just 125125.",
+      "zh": "只是 1、2、5，1、2、5。"
+    },
+    {
+      "start": 272.01,
+      "end": 273.57,
+      "en": "We have floating point numbers.",
+      "zh": "有浮點數，"
+    },
+    {
+      "start": 273.69,
+      "end": 274.89,
+      "en": "Everything is fine.",
+      "zh": "一切正常。"
+    },
+    {
+      "start": 275.29,
+      "end": 275.65,
+      "en": "Uh oh.",
+      "zh": "糟了，"
+    },
+    {
+      "start": 275.81,
+      "end": 277.21,
+      "en": "Everything is not fine.",
+      "zh": "並不正常。"
+    },
+    {
+      "start": 277.73,
+      "end": 283.77,
+      "en": "Uh, here you see, the error message is that the input must be a tensor, not a list.",
+      "zh": "錯誤訊息說，輸入必須是張量，而不是串列。"
+    },
+    {
+      "start": 283.77,
+      "end": 285.29,
+      "en": "So this is a list.",
+      "zh": "這是串列，"
+    },
+    {
+      "start": 285.73,
+      "end": 286.09000000000003,
+      "en": "It.",
+      "zh": "它，"
+    },
+    {
+      "start": 286.25,
+      "end": 287.89,
+      "en": "PyTorch needs this to be a tensor.",
+      "zh": "PyTorch 需要張量，"
+    },
+    {
+      "start": 287.89,
+      "end": 290.29,
+      "en": "It can't even be a numpy array.",
+      "zh": "甚至不能是 NumPy 陣列。"
+    },
+    {
+      "start": 290.57,
+      "end": 295.53,
+      "en": "You know, some PyTorch functions can work on lists and numpy arrays.",
+      "zh": "有些 PyTorch 函式，能用串列與 NumPy 陣列，"
+    },
+    {
+      "start": 295.81,
+      "end": 298.85,
+      "en": "This particular one cannot work on numpy arrays.",
+      "zh": "但這個不行，"
+    },
+    {
+      "start": 298.85,
+      "end": 302.61,
+      "en": "It needs to be a torch dot tensor.",
+      "zh": "必須是 torch.tensor。"
+    },
+    {
+      "start": 302.97,
+      "end": 306.04,
+      "en": "And then we get a result Okay.",
+      "zh": "這樣，就能取得結果。"
+    },
+    {
+      "start": 306.28,
+      "end": 308.28,
+      "en": "And then let me comment this out.",
+      "zh": "先註解這裡。"
+    },
+    {
+      "start": 308.88,
+      "end": 309.44,
+      "en": "Uh oh.",
+      "zh": "糟了，"
+    },
+    {
+      "start": 309.48,
+      "end": 309.72,
+      "en": "Yeah.",
+      "zh": "對，"
+    },
+    {
+      "start": 309.76,
+      "end": 311.56,
+      "en": "So this was the other thing I was going to say.",
+      "zh": "這就是另一點，"
+    },
+    {
+      "start": 311.76,
+      "end": 314.04,
+      "en": "Uh, also numpy array doesn't work here.",
+      "zh": "NumPy 陣列也不行。"
+    },
+    {
+      "start": 314.4,
+      "end": 314.96,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 315,
+      "end": 317,
+      "en": "Here is another error.",
+      "zh": "另一個錯誤。"
+    },
+    {
+      "start": 317.4,
+      "end": 318.56,
+      "en": "Now, what are we doing here?",
+      "zh": "這裡做什麼？"
+    },
+    {
+      "start": 318.6,
+      "end": 321.96,
+      "en": "So previously I only asked for one number.",
+      "zh": "先前只要一個數字，"
+    },
+    {
+      "start": 321.96,
+      "end": 324.12,
+      "en": "But, you know, we can also ask for two numbers.",
+      "zh": "也能要兩個，"
+    },
+    {
+      "start": 324.12,
+      "end": 324.8,
+      "en": "That's fine.",
+      "zh": "沒問題，"
+    },
+    {
+      "start": 325.08,
+      "end": 327.52,
+      "en": "Here we're getting two numbers randomly selected.",
+      "zh": "這裡隨機選兩個。"
+    },
+    {
+      "start": 327.76,
+      "end": 331.72,
+      "en": "But let's say I put in length of vector plus one.",
+      "zh": "但若輸入向量長度加 1 呢？"
+    },
+    {
+      "start": 332.08,
+      "end": 333.64,
+      "en": "Now that seems fine.",
+      "zh": "看似合理，"
+    },
+    {
+      "start": 333.64,
+      "end": 337.68,
+      "en": "I want to get four numbers randomly selected from this set.",
+      "zh": "想從集合隨機選四個，"
+    },
+    {
+      "start": 337.72,
+      "end": 338.36,
+      "en": "No problem.",
+      "zh": "沒問題，"
+    },
+    {
+      "start": 338.36,
+      "end": 339.04,
+      "en": "It's this one.",
+      "zh": "這個，"
+    },
+    {
+      "start": 339.04,
+      "end": 340.36,
+      "en": "This one, this one and this one.",
+      "zh": "這個、這個，再這個，"
+    },
+    {
+      "start": 340.4,
+      "end": 341.36,
+      "en": "There's four numbers.",
+      "zh": "總共四個。"
+    },
+    {
+      "start": 342.4,
+      "end": 346.24,
+      "en": "What I just did is called sampling with replacement.",
+      "zh": "剛才做的，叫放回抽樣。"
+    },
+    {
+      "start": 346.44,
+      "end": 351.8,
+      "en": "But the default in multinomial is without replacement.",
+      "zh": "但 multinomial 預設不放回。"
+    },
+    {
+      "start": 352.08,
+      "end": 361.92,
+      "en": "So that means that every time multinomial picks this number, for example, it plucks it out of the data set so it can never be selected again.",
+      "zh": "表示，例如每次選到這個，就從資料集中拿掉，不再選。"
+    },
+    {
+      "start": 362.28,
+      "end": 370.1,
+      "en": "After selecting this one, the the data set then only contains two numbers according to torched multinomial.",
+      "zh": "選完一個後，對 torch.multinomial 而言，只剩兩個數。"
+    },
+    {
+      "start": 370.42,
+      "end": 377.78,
+      "en": "So therefore we need to explicitly tell this function that we want to sample with replacement.",
+      "zh": "所以，要明確指定放回抽樣，"
+    },
+    {
+      "start": 377.78,
+      "end": 378.86,
+      "en": "And then that will work.",
+      "zh": "就可以。"
+    },
+    {
+      "start": 378.86,
+      "end": 381.26,
+      "en": "So replacement equals true.",
+      "zh": "也就是 replacement=True。"
+    },
+    {
+      "start": 381.62,
+      "end": 383.3,
+      "en": "And now it's no problem.",
+      "zh": "現在沒問題。"
+    },
+    {
+      "start": 383.34,
+      "end": 388.82,
+      "en": "Here we happen to get all four of these numbers that we wanted were index two.",
+      "zh": "這次四個全都剛好是索引 2，"
+    },
+    {
+      "start": 388.86,
+      "end": 390.1,
+      "en": "So we got all fives.",
+      "zh": "所以，全得到 5。"
+    },
+    {
+      "start": 390.14,
+      "end": 390.98,
+      "en": "That can happen.",
+      "zh": "可能發生。"
+    },
+    {
+      "start": 391.54,
+      "end": 392.74,
+      "en": "Okay so that's another one.",
+      "zh": "這是另一種情況。"
+    },
+    {
+      "start": 392.78,
+      "end": 395.38,
+      "en": "Here is another error that you can encounter.",
+      "zh": "還可能遇到這個錯誤。"
+    },
+    {
+      "start": 395.65999999999997,
+      "end": 397.65999999999997,
+      "en": "Here this is a PyTorch tensor.",
+      "zh": "這裡是 PyTorch 張量，"
+    },
+    {
+      "start": 398.14,
+      "end": 400.14,
+      "en": "This is you know, just one number.",
+      "zh": "只想抽一個數字，"
+    },
+    {
+      "start": 400.14,
+      "end": 401.14,
+      "en": "That should be fine.",
+      "zh": "應該沒問題。"
+    },
+    {
+      "start": 401.42,
+      "end": 407.34000000000003,
+      "en": "But the issue here is that this function only accepts floating point numbers.",
+      "zh": "但函式只接受浮點數，"
+    },
+    {
+      "start": 407.34000000000003,
+      "end": 409.62,
+      "en": "These are all integers okay.",
+      "zh": "這些全是整數。"
+    },
+    {
+      "start": 409.65999999999997,
+      "end": 411.58,
+      "en": "Fortunately, that one's pretty easy to solve.",
+      "zh": "幸好，容易解決，"
+    },
+    {
+      "start": 411.58,
+      "end": 417.58,
+      "en": "We can just put a decimal point and that already makes it a floating point number.",
+      "zh": "加個小數點，就變成浮點數。"
+    },
+    {
+      "start": 417.7,
+      "end": 420.58,
+      "en": "You can also do this here.",
+      "zh": "也可以在這裡，"
+    },
+    {
+      "start": 420.58,
+      "end": 425.3,
+      "en": "Specify that the data type is torch float on these integers.",
+      "zh": "指定整數資料的 dtype 為 torch.float。"
+    },
+    {
+      "start": 425.3,
+      "end": 427.86,
+      "en": "Lots of ways you can solve this correctly.",
+      "zh": "很多正確方法。"
+    },
+    {
+      "start": 429.24,
+      "end": 429.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 429.72,
+      "end": 436.84,
+      "en": "And then the final possible error message that I will show here is this one here where we have floating point numbers.",
+      "zh": "最後一種錯誤，這裡有浮點數，"
+    },
+    {
+      "start": 437.08,
+      "end": 437.64,
+      "en": "No problem.",
+      "zh": "沒問題，"
+    },
+    {
+      "start": 437.64,
+      "end": 439.2,
+      "en": "Lots of other things are fine.",
+      "zh": "其他也正常，"
+    },
+    {
+      "start": 439.44,
+      "end": 442.04,
+      "en": "But I have a negative number in here.",
+      "zh": "但其中有負數。"
+    },
+    {
+      "start": 442.32,
+      "end": 447.32,
+      "en": "And yeah probability tensors cannot contain negative numbers.",
+      "zh": "機率張量不能包含負值。"
+    },
+    {
+      "start": 447.52,
+      "end": 458.68,
+      "en": "So these are the various kinds of error messages that you might run into when using PyTorch multinomial and in general lots of other PyTorch functions.",
+      "zh": "這些，就是 PyTorch multinomial，以及許多其他函式，可能遇到的錯誤。"
+    },
+    {
+      "start": 459.6,
+      "end": 460,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 460.36,
+      "end": 463,
+      "en": "So that was a very quick intro.",
+      "zh": "這是快速介紹。"
+    },
+    {
+      "start": 463.04,
+      "end": 468.72,
+      "en": "What I want to do now is explore this function a little bit more and how it works.",
+      "zh": "接著，更深入探索功能與運作。"
+    },
+    {
+      "start": 468.88,
+      "end": 469.2,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 469.24,
+      "end": 473.96,
+      "en": "Here I'm going to sample ten numbers from that vector.",
+      "zh": "從向量抽十個數字，"
+    },
+    {
+      "start": 474.08,
+      "end": 475.96,
+      "en": "I set replacement equals true.",
+      "zh": "設 replacement=True，"
+    },
+    {
+      "start": 476.28,
+      "end": 477.2,
+      "en": "So no problem.",
+      "zh": "所以，沒問題。"
+    },
+    {
+      "start": 477.2,
+      "end": 479.24,
+      "en": "We can get ones or twos or fives.",
+      "zh": "可能取得 1、2 或 5。"
+    },
+    {
+      "start": 479.24,
+      "end": 481.6,
+      "en": "But looks like there's more fives right.",
+      "zh": "但 5 好像比較多，對吧？"
+    },
+    {
+      "start": 481.64,
+      "end": 483.96,
+      "en": "There's only, you know, a couple of ones.",
+      "zh": "只有幾個 1，"
+    },
+    {
+      "start": 483.96,
+      "end": 484.68,
+      "en": "There's only one.",
+      "zh": "只有一個，"
+    },
+    {
+      "start": 484.68,
+      "end": 485.44,
+      "en": "Two actually.",
+      "zh": "2，"
+    },
+    {
+      "start": 485.44,
+      "end": 486.44,
+      "en": "Mostly fives.",
+      "zh": "大多是 5。"
+    },
+    {
+      "start": 486.48,
+      "end": 488.04,
+      "en": "That could happen by chance.",
+      "zh": "可能只是巧合，"
+    },
+    {
+      "start": 488.56,
+      "end": 489.55,
+      "en": "So random numbers.",
+      "zh": "畢竟隨機。"
+    },
+    {
+      "start": 489.59,
+      "end": 492.47,
+      "en": "Oh, look here, we got mostly fives again.",
+      "zh": "看，又大多是 5，"
+    },
+    {
+      "start": 492.51,
+      "end": 494.51,
+      "en": "In fact, they're all fives except for one.",
+      "zh": "其實，除了單一個"
+    },
+    {
+      "start": 494.51,
+      "end": 494.87,
+      "en": "Two.",
+      "zh": "2，全是 5。"
+    },
+    {
+      "start": 496.39,
+      "end": 496.99,
+      "en": "Uh, again.",
+      "zh": "再跑，"
+    },
+    {
+      "start": 497.03,
+      "end": 497.35,
+      "en": "Here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 497.39,
+      "end": 497.79,
+      "en": "Okay, here.",
+      "zh": "好，這次，"
+    },
+    {
+      "start": 497.79,
+      "end": 500.47,
+      "en": "It doesn't really look like we're dominated by five.",
+      "zh": "看起來沒有被 5 主導。"
+    },
+    {
+      "start": 500.71,
+      "end": 508.47,
+      "en": "But very often when you run this code, you will see it kind of seems like we're getting more fives than any of the other numbers.",
+      "zh": "但經常執行，似乎 5 比其他數多。"
+    },
+    {
+      "start": 508.83,
+      "end": 511.19,
+      "en": "So let's see if that's a real phenomenon.",
+      "zh": "看看是否真有這個現象。"
+    },
+    {
+      "start": 511.43,
+      "end": 519.47,
+      "en": "Okay, so what I'm doing here is sampling 10,000 numbers from this three number, uh, vector.",
+      "zh": "這裡，從三個數字的向量，抽一萬次。"
+    },
+    {
+      "start": 519.51,
+      "end": 523.59,
+      "en": "So there's only three possible numbers, but we're sampling 10,000 times.",
+      "zh": "只有三個可能值，但抽一萬個樣本。"
+    },
+    {
+      "start": 523.91,
+      "end": 526.95,
+      "en": "And then I use a numpy dot uniq.",
+      "zh": "再用 numpy.unique，"
+    },
+    {
+      "start": 527.19,
+      "end": 536.35,
+      "en": "So I just want to know, uh, what is the counts of how often does, uh, the, uh, integer zero appear here.",
+      "zh": "想知道整數 0，出現多少次，"
+    },
+    {
+      "start": 536.35,
+      "end": 538.95,
+      "en": "How often does integer one and integer two.",
+      "zh": "1 與 2，各出現多少次。"
+    },
+    {
+      "start": 539.19,
+      "end": 539.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 539.47,
+      "end": 541.03,
+      "en": "And then I'm printing those out.",
+      "zh": "再印出。"
+    },
+    {
+      "start": 542.39,
+      "end": 548.11,
+      "en": "So we see here that zero was sampled uh 12% of the time.",
+      "zh": "0 被抽到約 12%，"
+    },
+    {
+      "start": 548.27,
+      "end": 558.17,
+      "en": "One was sampled 25% of the time, and two remember, these are indices, not the actual numbers was sampled 62% almost 63% of the time.",
+      "zh": "1 約 25%，2，記得是索引而不是實際數值，約 62%，接近 63%。"
+    },
+    {
+      "start": 558.41,
+      "end": 568.21,
+      "en": "So almost two thirds of the time the number five was selected at random, whereas the number one was",
+      "zh": "所以，數字 5 隨機被選到的機率，接近三分之二，"
+    },
+    {
+      "start": 568.21,
+      "end": 572.25,
+      "en": "selected at random only a little over 10% of the time.",
+      "zh": "1 卻只略多於 10%。"
+    },
+    {
+      "start": 572.53,
+      "end": 573.97,
+      "en": "So what is the deal with that?",
+      "zh": "怎麼回事？"
+    },
+    {
+      "start": 573.97,
+      "end": 575.61,
+      "en": "So why is that the case?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 575.81,
+      "end": 578.81,
+      "en": "Shouldn't it be, you know, like one third, one third, one third?",
+      "zh": "不是應該各三分之一嗎？"
+    },
+    {
+      "start": 578.85,
+      "end": 582.93,
+      "en": "If this is, uh, just, uh, three random numbers?",
+      "zh": "如果只是三個隨機數。"
+    },
+    {
+      "start": 583.25,
+      "end": 583.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 583.61,
+      "end": 590.17,
+      "en": "Well, I think you've probably guessed what's really going on here, which is that torched out multinomial,",
+      "zh": "我想，你已猜到，torch.multinomial"
+    },
+    {
+      "start": 590.17,
+      "end": 596.01,
+      "en": "is actually transforming these numbers into a probability function.",
+      "zh": "其實把這些數字，轉成機率函數。"
+    },
+    {
+      "start": 596.57,
+      "end": 596.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 596.93,
+      "end": 600.13,
+      "en": "So these get converted into probabilities.",
+      "zh": "先轉成機率，"
+    },
+    {
+      "start": 600.25,
+      "end": 608.65,
+      "en": "And then each of these numbers is probabilistically selected according to the probability of that number.",
+      "zh": "再根據各自的機率，隨機選擇。"
+    },
+    {
+      "start": 609.65,
+      "end": 612.56,
+      "en": "So let me show you how that works.",
+      "zh": "示範運作。"
+    },
+    {
+      "start": 613.2,
+      "end": 614.16,
+      "en": "Uh, okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 614.2,
+      "end": 617,
+      "en": "So that is this loop here.",
+      "zh": "就是這個迴圈。"
+    },
+    {
+      "start": 617.16,
+      "end": 617.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 617.44,
+      "end": 621.36,
+      "en": "So we're still working with these counts here and these values here.",
+      "zh": "仍是這些計數與值，"
+    },
+    {
+      "start": 621.36,
+      "end": 623.88,
+      "en": "So it's still from this line of code.",
+      "zh": "來自這行程式。"
+    },
+    {
+      "start": 623.88,
+      "end": 626.76,
+      "en": "I'm just presenting a little bit more information.",
+      "zh": "只是多顯示一些資訊。"
+    },
+    {
+      "start": 627.08,
+      "end": 629.12,
+      "en": "So here is the observed frequency.",
+      "zh": "這是觀察頻率，"
+    },
+    {
+      "start": 629.12,
+      "end": 635.28,
+      "en": "This is literally just the proportion of times that each of those indices was selected.",
+      "zh": "也就是各索引被選中的比例，"
+    },
+    {
+      "start": 635.32,
+      "end": 638.4,
+      "en": "That's exactly this information here.",
+      "zh": "正是這裡的資訊。"
+    },
+    {
+      "start": 638.84,
+      "end": 641.52,
+      "en": "And here I'm putting the expected frequency.",
+      "zh": "這裡加上預期頻率。"
+    },
+    {
+      "start": 641.52,
+      "end": 643.32,
+      "en": "And what is the expected frequency.",
+      "zh": "預期頻率是什麼？"
+    },
+    {
+      "start": 643.32,
+      "end": 650,
+      "en": "If we convert the numbers 1 to 5 into a probability function.",
+      "zh": "如果把 1、2、5，轉成機率函數，"
+    },
+    {
+      "start": 650.28,
+      "end": 655.36,
+      "en": "Well we have to sum up all of those numbers and put that in the denominator.",
+      "zh": "把數字加總，放在分母，"
+    },
+    {
+      "start": 655.36,
+      "end": 657.36,
+      "en": "So that's eight in the denominator.",
+      "zh": "所以，分母是 8。"
+    },
+    {
+      "start": 657.68,
+      "end": 665.96,
+      "en": "And then each individual value coming from this variable which is coming from the definition of the vector that goes in the numerator.",
+      "zh": "分子則是向量定義的每個個別值。"
+    },
+    {
+      "start": 665.96,
+      "end": 669.48,
+      "en": "So it's just the number divided by the sum of all the numbers.",
+      "zh": "就是各數字，除以全部總和。"
+    },
+    {
+      "start": 669.72,
+      "end": 679.42,
+      "en": "In fact this is almost a softmax calculation here, except I'm using the actual numbers and not E to those numbers.",
+      "zh": "很像 softmax，只是用原數字，而不是它們的指數。"
+    },
+    {
+      "start": 679.98,
+      "end": 680.18,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 680.22,
+      "end": 684.42,
+      "en": "And then multiplying by 100 just to give me percent instead of proportion.",
+      "zh": "乘以 100，只是從比例轉成百分比。"
+    },
+    {
+      "start": 684.86,
+      "end": 693.54,
+      "en": "And now when we do that we see that the expected probabilities and the observed probabilities match really closely.",
+      "zh": "現在，預期與觀察機率，非常接近。"
+    },
+    {
+      "start": 693.9,
+      "end": 700.5,
+      "en": "They you know, we don't expect them to be exactly a perfect match because just random probability selection.",
+      "zh": "當然，不預期完全吻合，畢竟隨機抽樣，"
+    },
+    {
+      "start": 700.5,
+      "end": 702.26,
+      "en": "But it's a quite close match.",
+      "zh": "但非常接近。"
+    },
+    {
+      "start": 703.46,
+      "end": 703.86,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 704.38,
+      "end": 708.78,
+      "en": "Next what I want to do is extend this to discuss softmax.",
+      "zh": "接著，延伸談 softmax。"
+    },
+    {
+      "start": 708.98,
+      "end": 716.18,
+      "en": "So now what I'm doing is applying the softmax calculation to the numbers in our data set.",
+      "zh": "對資料集的數字，做 softmax，"
+    },
+    {
+      "start": 716.22,
+      "end": 719.42,
+      "en": "Again this is just the three numbers 1 to 5.",
+      "zh": "同樣，是 1、2、5 三個數字，"
+    },
+    {
+      "start": 719.78,
+      "end": 721.74,
+      "en": "And then I have softmax that.",
+      "zh": "現在做 softmax。"
+    },
+    {
+      "start": 722.18,
+      "end": 731.82,
+      "en": "And now what I'm printing out here is the softmax probability versus the actual proportion of times that we got the numbers.",
+      "zh": "印出 softmax 機率，與實際抽樣比例比較。"
+    },
+    {
+      "start": 731.82,
+      "end": 733.72,
+      "en": "These definitely do not match.",
+      "zh": "明顯不吻合，"
+    },
+    {
+      "start": 733.72,
+      "end": 736.64,
+      "en": "These numbers are not matching.",
+      "zh": "數字不相符。"
+    },
+    {
+      "start": 736.64,
+      "end": 738.04,
+      "en": "And why are they not matching?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 738.2,
+      "end": 744.92,
+      "en": "Well because you know, this is still taking these data from the values and the counts.",
+      "zh": "因為仍使用這些值與計數，"
+    },
+    {
+      "start": 745.12,
+      "end": 754.68,
+      "en": "That's actually coming from this line of code up here where we were using the original vector before we softmax.",
+      "zh": "來自上方那行，當時輸入尚未 softmax 的原向量。"
+    },
+    {
+      "start": 754.84,
+      "end": 766.48,
+      "en": "So these are softmax expected probabilities but non softmax observed probabilities okay.",
+      "zh": "所以，是 softmax 的預期機率，比較未 softmax 的觀察機率。"
+    },
+    {
+      "start": 766.52,
+      "end": 772,
+      "en": "So therefore what I'm going to do here is rerun torch dot multinomial.",
+      "zh": "因此，重新執行 torch.multinomial，"
+    },
+    {
+      "start": 772.24,
+      "end": 775.48,
+      "en": "This is the same function same call as above.",
+      "zh": "同樣函式、同樣呼叫，"
+    },
+    {
+      "start": 775.48,
+      "end": 779.56,
+      "en": "Except now I'm using the softmax transformation.",
+      "zh": "只是改用 softmax 轉換結果。"
+    },
+    {
+      "start": 779.92,
+      "end": 782.6,
+      "en": "And then all of this code is basically the same.",
+      "zh": "後面程式基本相同，"
+    },
+    {
+      "start": 782.6,
+      "end": 785.48,
+      "en": "We just have a new version of these data here.",
+      "zh": "只是有了新版本的資料。"
+    },
+    {
+      "start": 785.84,
+      "end": 795.03,
+      "en": "And then we see that when we softmax transform these data first, then we see that the observed probabilities",
+      "zh": "先做 softmax，再抽樣，可以看到，各索引被選的"
+    },
+    {
+      "start": 795.03,
+      "end": 800.99,
+      "en": "of picking these different indices corresponds very closely to the softmax probabilities.",
+      "zh": "觀察機率，與 softmax 機率非常接近。"
+    },
+    {
+      "start": 801.55,
+      "end": 808.63,
+      "en": "By the way, here you also see another example of what I mentioned in the previous video about softmax,",
+      "zh": "這也再次說明，上一支影片提到，softmax"
+    },
+    {
+      "start": 808.63,
+      "end": 819.95,
+      "en": "stretching out the distributions such that the probability distribution such that the largest probability values really skyrocket, they really pop up to the top.",
+      "zh": "會拉開分布，讓最大的機率大幅突出。"
+    },
+    {
+      "start": 820.15,
+      "end": 830.79,
+      "en": "So here is, you know, 2%, 5% and 93% versus before we softmax it was 12% 25 and 62.",
+      "zh": "這裡是 2%、5%、93%；softmax 前，則是 12%、25%、62%。"
+    },
+    {
+      "start": 831.19,
+      "end": 837.75,
+      "en": "That is yeah a bit about torched multinomial and also a review of softmax.",
+      "zh": "這就是 torch.multinomial，也複習了 softmax。"
+    },
+    {
+      "start": 838.07,
+      "end": 847.67,
+      "en": "Now what I want to do is compare the multinomial function in PyTorch to numpy random choice.",
+      "zh": "接著，與 numpy.random.choice 比較。"
+    },
+    {
+      "start": 848.03,
+      "end": 854.27,
+      "en": "And the reason why I'm doing this is that you might have initially thought maybe before this video you",
+      "zh": "為什麼？你可能最初，或者看這支影片前，"
+    },
+    {
+      "start": 854.27,
+      "end": 863.37,
+      "en": "might have initially thought that Torched Multinomial is basically implementing what Numpy's choice function does.",
+      "zh": "以為 torch.multinomial，基本上就是 NumPy choice 的做法。"
+    },
+    {
+      "start": 864.77,
+      "end": 867.93,
+      "en": "So for example, here I'm putting in the vector.",
+      "zh": "例如，輸入這個向量，"
+    },
+    {
+      "start": 867.97,
+      "end": 870.13,
+      "en": "Again this is the numbers 125.",
+      "zh": "同樣是 1、2、5。"
+    },
+    {
+      "start": 870.81,
+      "end": 873.25,
+      "en": "Uh numpy dot random.choice comma ten.",
+      "zh": "呼叫 numpy.random.choice，再輸入 10。"
+    },
+    {
+      "start": 873.29,
+      "end": 883.49,
+      "en": "We already see several differences between numpy and uh numpy's choice and pytorch's multinomial.",
+      "zh": "已能看到，NumPy choice 與 PyTorch multinomial，有幾個差別。"
+    },
+    {
+      "start": 884.01,
+      "end": 894.85,
+      "en": "For one thing, we don't need to specify uh with replacement because the default for numpy is actually with replacement, whereas the default for PyTorch is without replacement.",
+      "zh": "首先，不必指定放回，因為 NumPy 預設放回，PyTorch 則預設不放回。"
+    },
+    {
+      "start": 895.57,
+      "end": 898.77,
+      "en": "I know it's confusing, but that's just how it is.",
+      "zh": "我知道，混淆，但就是如此。"
+    },
+    {
+      "start": 899.17,
+      "end": 904.09,
+      "en": "PyTorch is multinomial function does not output the actual values.",
+      "zh": "PyTorch multinomial 不輸出實際值，"
+    },
+    {
+      "start": 904.09,
+      "end": 912.33,
+      "en": "It outputs the indices of those values, whereas Numpy.random is not outputting the indices.",
+      "zh": "而輸出索引；NumPy random.choice，不回傳索引，"
+    },
+    {
+      "start": 912.33,
+      "end": 915.13,
+      "en": "Instead, it is directly outputting the values.",
+      "zh": "而直接輸出值。"
+    },
+    {
+      "start": 915.13,
+      "end": 916.31,
+      "en": "Use again.",
+      "zh": "值。"
+    },
+    {
+      "start": 916.31,
+      "end": 917.39,
+      "en": "Kind of confusing.",
+      "zh": "有點混淆。"
+    },
+    {
+      "start": 917.79,
+      "end": 918.23,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 918.51,
+      "end": 919.15,
+      "en": "Uh, here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 919.19,
+      "end": 928.67,
+      "en": "Now I'm using numpy dot random choice to select 10,000 random selections random choices from this three element vector.",
+      "zh": "用 numpy.random.choice，從三元素向量，隨機抽一萬次。"
+    },
+    {
+      "start": 928.99,
+      "end": 931.71,
+      "en": "Now we don't actually need to include replace equals.",
+      "zh": "其實，不需要指定 replace="
+    },
+    {
+      "start": 931.71,
+      "end": 932.11,
+      "en": "True.",
+      "zh": "True，"
+    },
+    {
+      "start": 932.15,
+      "end": 935.11,
+      "en": "That is the default I'm just showing it here.",
+      "zh": "本來就是預設，只是展示。"
+    },
+    {
+      "start": 935.63,
+      "end": 935.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 935.95,
+      "end": 941.99,
+      "en": "And then uh, what you see here is that these uh three options.",
+      "zh": "看到這三個選項，"
+    },
+    {
+      "start": 941.99,
+      "end": 946.55,
+      "en": "So one, two and five were sampled each 33% of the time.",
+      "zh": "1、2、5，各被選約 33%。"
+    },
+    {
+      "start": 946.67,
+      "end": 948.95,
+      "en": "And that is the expected probability.",
+      "zh": "這是預期機率。"
+    },
+    {
+      "start": 949.67,
+      "end": 959.87,
+      "en": "So numpy dot random dot choice is actually not selecting according to the probabilities of the numerical values in the data that you input.",
+      "zh": "所以，numpy.random.choice，沒有依輸入數值的大小作為機率，"
+    },
+    {
+      "start": 960.23,
+      "end": 966.59,
+      "en": "Instead it is selecting each possible value completely uniformly at random.",
+      "zh": "而是對每個可能項目，完全均勻隨機選。"
+    },
+    {
+      "start": 966.71,
+      "end": 972.71,
+      "en": "So this is also a difference with uh PyTorch dot multinomial okay.",
+      "zh": "這也和 PyTorch multinomial 不同。"
+    },
+    {
+      "start": 972.75,
+      "end": 980.58,
+      "en": "The last thing I want to show here is that we actually can get Numpy's random dot choice function to",
+      "zh": "最後，NumPy random.choice，也能"
+    },
+    {
+      "start": 980.62,
+      "end": 987.94,
+      "en": "select according to the probabilities, and that is given by an optional input called p for probabilities.",
+      "zh": "依機率抽樣，透過選用參數 p，代表 probabilities。"
+    },
+    {
+      "start": 988.26,
+      "end": 995.46,
+      "en": "Here I'm setting p equals this variable prob vowels, which is vector times the sum of the vectors.",
+      "zh": "設 p 等於 prob vals，也就是向量除以各值總和。"
+    },
+    {
+      "start": 995.46,
+      "end": 1001.94,
+      "en": "So here I'm just converting the numbers 1 to 5 into a probability vector.",
+      "zh": "把 1、2、5，轉成機率向量，"
+    },
+    {
+      "start": 1003.1,
+      "end": 1005.46,
+      "en": "And then I'm repeating this okay.",
+      "zh": "再重複。"
+    },
+    {
+      "start": 1005.5,
+      "end": 1013.14,
+      "en": "And then we see that the observed probabilities of picking each one of these numbers, each one of these",
+      "zh": "可以看到，各數字、各選項的觀察"
+    },
+    {
+      "start": 1013.3,
+      "end": 1024.54,
+      "en": "options actually does conform to the probabilities that we would expect if we treat the numbers as probability weightings, which is what PyTorch does by default.",
+      "zh": "機率，符合把數值當作機率權重的預期，也就是 PyTorch 的預設做法。"
+    },
+    {
+      "start": 1025.18,
+      "end": 1036.66,
+      "en": "I hope you enjoyed this video, and I hope you found that there's a nice balance between the heavier and more challenging videos, and the ones like this one that are a little bit easier to digest.",
+      "zh": "希望你喜歡，也覺得比較難的影片，與這支較容易消化的影片之間，有不錯平衡。"
+    }
+  ]
+}

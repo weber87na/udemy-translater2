@@ -1,0 +1,745 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51894511",
+  "title": "ANN math part 3 (backprop)",
+  "section": 39,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ce263a04d3c0bc7fa89478d25ef795c739b65f560801c2384bcd8e58c81f0696",
+  "cues": [
+    {
+      "start": 1.96,
+      "end": 6.96,
+      "en": "Now for part three of the math and mechanisms of deep learning.",
+      "zh": "現在進入深度學習數學與機制的第三部分。"
+    },
+    {
+      "start": 7.44,
+      "end": 19.2,
+      "en": "You'll see how we go from a perceptron to a deep network, and you will learn how gradient descent is extended to deal with activation functions.",
+      "zh": "你會看到，如何從感知器變成深層網路，以及如何擴充梯度下降，處理活化函式。"
+    },
+    {
+      "start": 19.88,
+      "end": 28.08,
+      "en": "It does start to get a little bit hairy towards the end, but the good part is you already know all the math that I'm going to cover here.",
+      "zh": "後面會稍微複雜，但好消息是，這裡用到的數學，你已經都知道。"
+    },
+    {
+      "start": 28.44,
+      "end": 32.8,
+      "en": "It's just a matter of putting all the pieces together in the right way.",
+      "zh": "只需要把各部分正確組合起來。"
+    },
+    {
+      "start": 33.8,
+      "end": 38.28,
+      "en": "Now, before moving forwards, we need to have a bit of a simplification.",
+      "zh": "繼續之前，先做一點簡化。"
+    },
+    {
+      "start": 38.84,
+      "end": 42.64,
+      "en": "And that's because the networks are going to start getting complicated.",
+      "zh": "因為網路會開始變複雜。"
+    },
+    {
+      "start": 43.24,
+      "end": 50.4,
+      "en": "So far in this course we've been looking at diagrams like this where I listed the inputs to the model,",
+      "zh": "到目前為止，示意圖都是像這樣，列出模型輸入、"
+    },
+    {
+      "start": 50.72,
+      "end": 59.44,
+      "en": "the weights, the linear summation feeding into the non-linear activation function which provides the output of the perceptron model.",
+      "zh": "權重、線性加總，再接上非線性活化函式，提供感知器的輸出。"
+    },
+    {
+      "start": 60.08,
+      "end": 68.51,
+      "en": "Now this is a useful diagram because it illustrates all of the computations that take place, but it's",
+      "zh": "這種圖很有用，能顯示所有計算，但也，"
+    },
+    {
+      "start": 68.51,
+      "end": 72.91,
+      "en": "also cumbersome and it takes up a lot of visual space.",
+      "zh": "有點笨重，佔據很多畫面空間。"
+    },
+    {
+      "start": 73.75,
+      "end": 81.27,
+      "en": "So therefore, from now on, I'm going to simplify this entire diagram with just one circle.",
+      "zh": "所以，之後會把整張圖，簡化成一個圓圈。"
+    },
+    {
+      "start": 81.59,
+      "end": 89.11,
+      "en": "So everything you see here in this perceptron model is taking place inside this circle here.",
+      "zh": "這個感知器裡看到的所有計算，都在這個圓圈內進行。"
+    },
+    {
+      "start": 89.63,
+      "end": 93.15,
+      "en": "Now sometimes people call this thing an artificial neuron.",
+      "zh": "有時候，大家把它叫做人工神經元。"
+    },
+    {
+      "start": 93.35,
+      "end": 100.47,
+      "en": "But you know, from the beginning of this course that I don't really like that term because this computation,",
+      "zh": "但從課程開頭，你已經知道，我不太喜歡這個詞，因為這項計算，"
+    },
+    {
+      "start": 100.47,
+      "end": 108.99000000000001,
+      "en": "although incredibly simple and yet incredibly powerful, actually has really nothing to do with how real neurons behave.",
+      "zh": "雖然非常簡單又非常強大，實際上和真實神經元的行為，幾乎沒有關係。"
+    },
+    {
+      "start": 109.27000000000001,
+      "end": 113.27000000000001,
+      "en": "So I am going to call this a unit or a node.",
+      "zh": "所以，我會稱它為單元或節點。"
+    },
+    {
+      "start": 113.87,
+      "end": 114.19,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 114.22999999999999,
+      "end": 118.50999999999999,
+      "en": "So here we see our diagram of a deep learning network.",
+      "zh": "這裡看到深度學習網路的示意圖。"
+    },
+    {
+      "start": 118.83,
+      "end": 126.86,
+      "en": "Again each of these nodes each of these circles is actually an entire perceptron all on its own.",
+      "zh": "再次提醒，每個節點、每個圓圈，本身都是完整的感知器。"
+    },
+    {
+      "start": 127.38,
+      "end": 132.46,
+      "en": "So each of these nodes in this network is taking in the inputs.",
+      "zh": "網路裡的每個節點，都接收輸入，"
+    },
+    {
+      "start": 132.66,
+      "end": 143.06,
+      "en": "Computing a weighted sum over those inputs, passing that through a non-linearity, and then sending that to the next node in the next layer of the network.",
+      "zh": "計算輸入的加權總和，經過非線性，再把結果傳給下一層的下一個節點。"
+    },
+    {
+      "start": 143.57999999999998,
+      "end": 151.98,
+      "en": "Now you can see that these units, these nodes give multiple outputs, but in fact it's the exact same output, the same numerical value.",
+      "zh": "可以看到，單元有多個輸出，但實際上，是完全相同的數值。"
+    },
+    {
+      "start": 151.98,
+      "end": 155.5,
+      "en": "It's just copied to multiple units.",
+      "zh": "只是複製給多個單元。"
+    },
+    {
+      "start": 156.1,
+      "end": 163.26,
+      "en": "So these units on the left, these ones are actually getting input from the data, the measurements from the outside world.",
+      "zh": "左邊這些單元，真的直接接收資料，也就是外界的測量值。"
+    },
+    {
+      "start": 163.5,
+      "end": 171.22,
+      "en": "You know, for example, how many hours the student studied and slept or the image pixel values or the clinical measures.",
+      "zh": "例如學生讀書與睡眠的小時數、影像像素，或者臨床測量值。"
+    },
+    {
+      "start": 171.42000000000002,
+      "end": 177.02,
+      "en": "But these units here, these are actually not getting inputs directly from the data.",
+      "zh": "但這些單元，並不是直接從資料取得輸入。"
+    },
+    {
+      "start": 177.06,
+      "end": 182.86,
+      "en": "They get their inputs as outputs of the units from previous layers.",
+      "zh": "它們的輸入，來自前一層單元的輸出。"
+    },
+    {
+      "start": 183.29,
+      "end": 187.53,
+      "en": "and those previous layers have a non-linearity built in.",
+      "zh": "而那些前面的層，已經包含非線性。"
+    },
+    {
+      "start": 187.89,
+      "end": 194.45,
+      "en": "And so this is the mechanism of applying non-linear transformations to the input data.",
+      "zh": "這就是對輸入資料套用非線性轉換的機制。"
+    },
+    {
+      "start": 194.85,
+      "end": 205.17000000000002,
+      "en": "And again each of these nodes is actually implementing the same exact computation linear weighted sum and non-linear activation function.",
+      "zh": "再次強調，每個節點都進行完全相同類型的計算：線性加權總和，再接非線性活化函式。"
+    },
+    {
+      "start": 205.53,
+      "end": 213.49,
+      "en": "Now one thing you need to understand about these architectures is that each node is independent of each other node.",
+      "zh": "理解這些架構時，有一點很重要：每個節點都獨立於其他節點。"
+    },
+    {
+      "start": 213.85,
+      "end": 220.37,
+      "en": "In other words, this node here doesn't actually know that it is part of a larger network.",
+      "zh": "也就是，這個節點其實不知道自己是大網路的一部分。"
+    },
+    {
+      "start": 220.85,
+      "end": 226.25,
+      "en": "This guy here thinks that he is the only unit in the entire universe.",
+      "zh": "它覺得自己是全宇宙唯一的單元。"
+    },
+    {
+      "start": 226.45,
+      "end": 236.45,
+      "en": "He gets his inputs here, but he doesn't know that these inputs come from the outputs of other units, and he computes and passes on his output.",
+      "zh": "接收輸入，卻不知道它們來自其他單元；接著計算，傳出輸出。"
+    },
+    {
+      "start": 236.77,
+      "end": 240.25,
+      "en": "But he doesn't know what this output is used for.",
+      "zh": "也不知道輸出會被拿來做什麼。"
+    },
+    {
+      "start": 240.65,
+      "end": 246.84,
+      "en": "So each unit in the network acts independently of all of the other units.",
+      "zh": "所以，網路裡每個單元，都獨立於其他單元運作。"
+    },
+    {
+      "start": 247.16,
+      "end": 255.32,
+      "en": "In fact, every unit in this network simply takes input processes and passes on the output, so they",
+      "zh": "事實上，每個單元只管接收、處理與傳出，所以它們，"
+    },
+    {
+      "start": 255.32,
+      "end": 259.6,
+      "en": "all think they are individually the only unit in the universe.",
+      "zh": "都覺得自己是宇宙裡唯一的單元。"
+    },
+    {
+      "start": 260,
+      "end": 266.4,
+      "en": "It's a lonely life, but fortunately, you know, these things are not actually conscious, so we don't have to feel bad for them.",
+      "zh": "生活有點孤單，但幸好它們沒有意識，不需要替它們難過。"
+    },
+    {
+      "start": 266.96,
+      "end": 268.4,
+      "en": "Now, why do I mention this?",
+      "zh": "為什麼要提這件事？"
+    },
+    {
+      "start": 268.44,
+      "end": 269.6,
+      "en": "Why is this important?",
+      "zh": "為什麼重要？"
+    },
+    {
+      "start": 270.16,
+      "end": 275.88,
+      "en": "It's important because we need to adjust the weights for each node independently.",
+      "zh": "因為需要分別調整每個節點的權重。"
+    },
+    {
+      "start": 276.28,
+      "end": 280.4,
+      "en": "So this guy here, he happens to be the final output node.",
+      "zh": "這個剛好是最後的輸出節點。"
+    },
+    {
+      "start": 281,
+      "end": 285.48,
+      "en": "And the loss function which I told you about in the previous video.",
+      "zh": "上一支影片介紹的損失函式，"
+    },
+    {
+      "start": 285.48,
+      "end": 291.52,
+      "en": "So the difference between his output y hat and what we know is the true state of the world.",
+      "zh": "也就是它的輸出 y-hat，和已知真實世界狀態之間的差。"
+    },
+    {
+      "start": 291.52,
+      "end": 293.8,
+      "en": "So that would be y or the target variable.",
+      "zh": "真實狀態就是 y，或者目標變數。"
+    },
+    {
+      "start": 294.15999999999997,
+      "end": 297.24,
+      "en": "But that error is computed over here.",
+      "zh": "但誤差是在這裡計算。"
+    },
+    {
+      "start": 297.24,
+      "end": 299,
+      "en": "And it's used for learning.",
+      "zh": "並用於學習。"
+    },
+    {
+      "start": 299.36,
+      "end": 308.47,
+      "en": "And because that error signal is used for learning it needs to propagate Gate backwards through the network to reach all of these other nodes.",
+      "zh": "因為誤差訊號用於學習，就必須往回傳播，穿過網路，抵達其他節點。"
+    },
+    {
+      "start": 308.87,
+      "end": 316.35,
+      "en": "And that learning process needs to be done independently for each individual node in this network.",
+      "zh": "而這個學習過程，必須分別對每個節點執行。"
+    },
+    {
+      "start": 317.19,
+      "end": 317.51,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 317.55,
+      "end": 321.19,
+      "en": "And with that we are now going to discuss backpropagation.",
+      "zh": "接著，來討論反向傳播。"
+    },
+    {
+      "start": 321.71,
+      "end": 328.67,
+      "en": "The thing about backpropagation is that it is exactly the same thing as gradient descent.",
+      "zh": "反向傳播，其實和梯度下降完全是同一件事。"
+    },
+    {
+      "start": 328.95,
+      "end": 330.71,
+      "en": "So that's this step here.",
+      "zh": "就是這個步驟。"
+    },
+    {
+      "start": 331.31,
+      "end": 339.63,
+      "en": "Updating the estimate of the local minimum according to itself, minus the gradient times the learning rate.",
+      "zh": "更新局部極小值估計，等於原本數值，減掉梯度乘以學習率。"
+    },
+    {
+      "start": 340.39,
+      "end": 343.99,
+      "en": "So backpropagation is just gradient descent.",
+      "zh": "所以，反向傳播就是梯度下降。"
+    },
+    {
+      "start": 344.43,
+      "end": 349.79,
+      "en": "Now there is a little bit more that's involved because we have a high dimensional feature space.",
+      "zh": "但還需要多做一些事，因為特徵空間維度很高。"
+    },
+    {
+      "start": 350.19,
+      "end": 353.03,
+      "en": "And because we have embedded functions.",
+      "zh": "而且，有巢狀函式。"
+    },
+    {
+      "start": 353.03,
+      "end": 356.51,
+      "en": "So we're going to need to use the chain rule of derivatives.",
+      "zh": "所以，需要使用微分的連鎖法則。"
+    },
+    {
+      "start": 356.75,
+      "end": 359.03,
+      "en": "But the concept is the same.",
+      "zh": "但概念相同。"
+    },
+    {
+      "start": 359.79,
+      "end": 369.98,
+      "en": "So thinking back to the previous section the x axis there was called simply X, but these things are actually going to be the weights of the model.",
+      "zh": "回想上一節，當時 x 軸只叫做 x，但這些其實會是模型的權重。"
+    },
+    {
+      "start": 370.1,
+      "end": 378.5,
+      "en": "And again, the idea is to keep moving along this axis, the x axis or the weights axis, until we find",
+      "zh": "概念同樣是，持續沿 x 軸，或者權重軸移動，直到找到，"
+    },
+    {
+      "start": 378.5,
+      "end": 383.66,
+      "en": "the set of weights that minimizes our loss or our cost function.",
+      "zh": "讓損失或成本最小的權重集合。"
+    },
+    {
+      "start": 384.34,
+      "end": 390.9,
+      "en": "Now this is in one dimension which is convenient for visualization, but we have to start abstracting",
+      "zh": "這裡是一維，方便視覺化，但必須開始把，"
+    },
+    {
+      "start": 390.9,
+      "end": 397.98,
+      "en": "this picture because we want the gradient descent procedure to work in any number of higher dimensions.",
+      "zh": "這張圖抽象化，因為希望梯度下降能適用於任意更高維度。"
+    },
+    {
+      "start": 398.34000000000003,
+      "end": 401.5,
+      "en": "Nonetheless, this is the picture that you can keep in mind.",
+      "zh": "不過，你可以把這張圖像放在腦中。"
+    },
+    {
+      "start": 401.54,
+      "end": 410.82,
+      "en": "We continue to adjust the weights according to the derivative of the weights in order to minimize the loss or the cost function.",
+      "zh": "依照權重的導數，不斷調整權重，讓損失或成本最小。"
+    },
+    {
+      "start": 411.9,
+      "end": 414.62,
+      "en": "So let's go through this procedure step by step.",
+      "zh": "逐步看這個程序。"
+    },
+    {
+      "start": 414.7,
+      "end": 417.65999999999997,
+      "en": "So here we have our unit our perceptron.",
+      "zh": "這裡有一個單元，也就是感知器。"
+    },
+    {
+      "start": 417.94,
+      "end": 425.14,
+      "en": "Again this is the math that is taking place inside each node of the deep learning network.",
+      "zh": "再次提醒，這是深度學習網路裡，每個節點內部的數學。"
+    },
+    {
+      "start": 425.14,
+      "end": 425.21,
+      "en": "work.",
+      "zh": "就是網路內的計算。"
+    },
+    {
+      "start": 425.81,
+      "end": 428.21,
+      "en": "Now the X's are fixed.",
+      "zh": "現在，x 是固定的。"
+    },
+    {
+      "start": 428.73,
+      "end": 430.17,
+      "en": "We cannot change them.",
+      "zh": "不能改變。"
+    },
+    {
+      "start": 430.41,
+      "end": 434.73,
+      "en": "And the output y hat is simply the result of the computation.",
+      "zh": "輸出 y-hat 只是計算的結果。"
+    },
+    {
+      "start": 435.05,
+      "end": 440.13,
+      "en": "The only thing that we can change is w which are the weights.",
+      "zh": "唯一能改的是 w，也就是權重。"
+    },
+    {
+      "start": 440.65,
+      "end": 448.85,
+      "en": "So therefore we update the weights to be themselves minus the gradient times the learning rate.",
+      "zh": "所以，權重更新為原本數值，減掉梯度乘以學習率。"
+    },
+    {
+      "start": 449.29,
+      "end": 450.97,
+      "en": "So here is the learning rate.",
+      "zh": "這裡是學習率。"
+    },
+    {
+      "start": 450.97,
+      "end": 454.21,
+      "en": "It's often indicated using the Greek letter eta.",
+      "zh": "經常用希臘字母 eta 表示。"
+    },
+    {
+      "start": 454.81,
+      "end": 459.37,
+      "en": "And here is the derivative or partial L or sometimes called dl.",
+      "zh": "這裡是導數，也就是偏 L，有時也叫 dL。"
+    },
+    {
+      "start": 459.97,
+      "end": 464.17,
+      "en": "This is the derivative of the loss function with respect to the weights.",
+      "zh": "它是損失函式對權重的導數。"
+    },
+    {
+      "start": 464.53,
+      "end": 468.85,
+      "en": "So you can see here that this is just vanilla gradient descent.",
+      "zh": "所以，可以看到，這只是基本的梯度下降。"
+    },
+    {
+      "start": 469.33,
+      "end": 469.65,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 469.69,
+      "end": 478.37,
+      "en": "So now let's talk about this term here this derivative we need to compute the gradient of the loss function with respect to the weights.",
+      "zh": "現在談這一項，也就是需要計算損失函式對權重的梯度。"
+    },
+    {
+      "start": 478.37,
+      "end": 484.25,
+      "en": "And it's with respect to the weights again because those are the variables that are changing.",
+      "zh": "再次強調，是對權重，因為變動的變數就是權重。"
+    },
+    {
+      "start": 484.89,
+      "end": 494.48,
+      "en": "So this little partial L over here actually expands to DL by DW or partial L partial W, which we can",
+      "zh": "這裡的小小偏 L，實際上展開成 dL/dw，或 ∂L/∂w，還可以，"
+    },
+    {
+      "start": 494.48,
+      "end": 502.88,
+      "en": "expand further to replace y hat with the computation that is actually taking place inside each node.",
+      "zh": "把 y-hat 換成每個節點實際進行的計算，進一步展開。"
+    },
+    {
+      "start": 503.56,
+      "end": 506.28,
+      "en": "Well, how do we actually compute this derivative.",
+      "zh": "實際要怎麼算這個導數？"
+    },
+    {
+      "start": 506.56,
+      "end": 510.56,
+      "en": "Let's take the MSE or mean squared error as an example.",
+      "zh": "以 MSE，也就是均方誤差為例。"
+    },
+    {
+      "start": 511.04,
+      "end": 517.24,
+      "en": "So this is the mean squared error function that you learned about in the previous video.",
+      "zh": "這就是上一支影片學到的均方誤差函式。"
+    },
+    {
+      "start": 517.72,
+      "end": 522.8,
+      "en": "And now we need to compute the derivative of this function with respect to w.",
+      "zh": "現在需要計算它對 w 的導數。"
+    },
+    {
+      "start": 523.44,
+      "end": 526.24,
+      "en": "Now notice that this is a compound function.",
+      "zh": "注意，這是複合函式。"
+    },
+    {
+      "start": 526.24,
+      "end": 528.2,
+      "en": "This is an embedded function.",
+      "zh": "是一個巢狀函式。"
+    },
+    {
+      "start": 528.6,
+      "end": 537.56,
+      "en": "So there's this function here which is embedded inside the activation function which is further embedded inside this polynomial.",
+      "zh": "這個函式放在活化函式裡面，活化函式又放進這個多項式裡。"
+    },
+    {
+      "start": 538.12,
+      "end": 540.88,
+      "en": "So we need the chain rule to unpack this.",
+      "zh": "所以，需要連鎖法則，把它拆開。"
+    },
+    {
+      "start": 540.88,
+      "end": 543.76,
+      "en": "And the math is going to start getting a little bit hairy.",
+      "zh": "數學開始有點複雜。"
+    },
+    {
+      "start": 544.2,
+      "end": 549.59,
+      "en": "So for simplicity I'm going to replace all of this inside stuff with you.",
+      "zh": "為了簡潔，把裡面這一整塊換成 u。"
+    },
+    {
+      "start": 549.63,
+      "end": 550.71,
+      "en": "The variable you.",
+      "zh": "也就是變數 u。"
+    },
+    {
+      "start": 551.23,
+      "end": 555.15,
+      "en": "So now we can write out the chain rule with this substitution.",
+      "zh": "現在，可以透過這個代換，寫出連鎖法則。"
+    },
+    {
+      "start": 555.55,
+      "end": 562.79,
+      "en": "And this means that we need to compute the derivative of the loss function of u with respect to u times",
+      "zh": "需要計算 L(u) 對 u 的導數，再乘上，"
+    },
+    {
+      "start": 562.79,
+      "end": 572.19,
+      "en": "the derivative of u with respect to w, and then we can expand u here to show that this is the derivative of the forward propagation step.",
+      "zh": "u 對 w 的導數；然後把 u 展開，可以看出這是在對前向傳播步驟求導。"
+    },
+    {
+      "start": 572.71,
+      "end": 582.91,
+      "en": "Now exactly how we proceed from this point depends on the activation function, because each activation function has its own derivative.",
+      "zh": "之後怎麼計算，取決於活化函式，因為每種活化函式都有自己的導數。"
+    },
+    {
+      "start": 583.47,
+      "end": 590.43,
+      "en": "And I would like us to focus more on the principle here that this expression updating the weights according",
+      "zh": "我希望更專注於這個原理：依照，"
+    },
+    {
+      "start": 590.47,
+      "end": 597.43,
+      "en": "to the derivative of the loss function with respect to the weights times the learning rate, or eta,",
+      "zh": "損失對權重的導數，乘上學習率，也就是 eta，來更新權重，"
+    },
+    {
+      "start": 597.87,
+      "end": 604.19,
+      "en": "is the same thing as gradient descent, and that working through all of the details of the math gets",
+      "zh": "和梯度下降是同一件事；至於完整展開所有數學細節，"
+    },
+    {
+      "start": 604.19,
+      "end": 611.58,
+      "en": "pretty complicated pretty quickly, because it depends on a variety of choices that you make when constructing",
+      "zh": "很快就會變複雜，因為取決於建立模型時，"
+    },
+    {
+      "start": 611.58,
+      "end": 619.14,
+      "en": "the model, including which loss function you use and which activation function is computed inside each node.",
+      "zh": "所做的各種選擇，包括損失函式，以及每個節點使用哪種活化函式。"
+    },
+    {
+      "start": 619.7,
+      "end": 630.94,
+      "en": "Also note that I'm showing everything here with the loss function, but of course you can simply substitute the cost function for the loss function, which doesn't actually change the idea.",
+      "zh": "也注意，這裡用損失函式示範，但可以直接替換成成本函式，概念不變。"
+    },
+    {
+      "start": 631.1,
+      "end": 638.98,
+      "en": "It just means that we're averaging over a collection of samples instead of running back propagation one sample at a time.",
+      "zh": "只是把一組樣本取平均，而不是每次只對一筆樣本執行反向傳播。"
+    },
+    {
+      "start": 639.42,
+      "end": 643.66,
+      "en": "Again, it's going to make everything one layer more complicated.",
+      "zh": "同樣，會讓式子再複雜一層。"
+    },
+    {
+      "start": 643.66,
+      "end": 645.62,
+      "en": "It adds a little bit more complexity.",
+      "zh": "多一點複雜度。"
+    },
+    {
+      "start": 645.86,
+      "end": 648.9,
+      "en": "It doesn't change the fundamental principle here.",
+      "zh": "但基本原理沒有改變。"
+    },
+    {
+      "start": 649.74,
+      "end": 654.06,
+      "en": "So I hope that helps understand the mechanism of backpropagation.",
+      "zh": "希望這能幫助你理解反向傳播機制。"
+    },
+    {
+      "start": 654.34,
+      "end": 662.94,
+      "en": "I admit that I went through the calculus part of it rather briskly, but the exact formulation depends on the activation function.",
+      "zh": "我承認，微積分部分講得很快，但確切形式取決於活化函式。"
+    },
+    {
+      "start": 662.94,
+      "end": 673.61,
+      "en": "And as is always the case with partial derivatives in calculus, it quickly becomes quite tedious without any real benefit to comprehension in my opinion.",
+      "zh": "而偏導數計算，照慣例，很快就會變得繁瑣，我覺得對理解沒有實際幫助。"
+    },
+    {
+      "start": 674.25,
+      "end": 680.01,
+      "en": "But even if I went through all the calculus, that wouldn't still fully explain how it actually works",
+      "zh": "但就算完整走過微積分，也仍然無法完全解釋，"
+    },
+    {
+      "start": 680.01,
+      "end": 687.89,
+      "en": "in practice, because the actual code implementations are a little bit different from the formulas that I showed.",
+      "zh": "實務上究竟如何運作，因為實際程式實作，和這裡的公式略有不同。"
+    },
+    {
+      "start": 688.13,
+      "end": 698.49,
+      "en": "Due to the potential for numerical instabilities, and also from computation time issues that arise from implementing the calculus directly.",
+      "zh": "原因是數值不穩定的可能性，以及直接實作微積分時，會遇到運算時間問題。"
+    },
+    {
+      "start": 699.25,
+      "end": 706.57,
+      "en": "So, in fact, the developers of PyTorch and other deep learning toolboxes have come up with some computational",
+      "zh": "所以，PyTorch 與其他深度學習工具的開發者，想出一些運算，"
+    },
+    {
+      "start": 706.57,
+      "end": 711.49,
+      "en": "tricks to make the backpropagation procedure fast and stable.",
+      "zh": "技巧，讓反向傳播快速又穩定。"
+    },
+    {
+      "start": 711.53,
+      "end": 717.57,
+      "en": "But again, the concept is exactly the same as what you learned about in gradient descent.",
+      "zh": "但再說一次，概念和梯度下降學過的完全相同。"
+    },
+    {
+      "start": 718.33,
+      "end": 718.61,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 718.65,
+      "end": 727.61,
+      "en": "Anyway, I would like to now switch to working through examples of developing, training, and evaluating deep learning models.",
+      "zh": "接下來，我想切換到具體範例，實際建立、訓練與評估深度學習模型。"
+    }
+  ]
+}

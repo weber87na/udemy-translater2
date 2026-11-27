@@ -1,0 +1,1999 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893861",
+  "title": "CodeChallenge: Token prediction after head ablations (part 1)",
+  "section": 25,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "f4c48466e41c3cb7b6b4f194a961c7fcb746b518ce1f80da2ad18bda1e9e206f",
+  "cues": [
+    {
+      "start": 2.2,
+      "end": 6.76,
+      "en": "This code challenge directly follows from the previous video.",
+      "zh": "這次程式挑戰，直接延續上一支影片。"
+    },
+    {
+      "start": 7.28,
+      "end": 15.04,
+      "en": "In fact, this code challenge starts by basically copying and then extending what we did in the previous",
+      "zh": "其實，一開始基本上就是複製，再延伸上一支"
+    },
+    {
+      "start": 15.04,
+      "end": 22.28,
+      "en": "video to explore what happens when we manipulate the attention heads across all the layers of the model,",
+      "zh": "影片的內容，探索操作模型所有層的注意力頭時，會發生什麼，"
+    },
+    {
+      "start": 22.68,
+      "end": 32.32,
+      "en": "whether it matters which tokens we ablate and whether it matters if we set the attention head value to zero or some other value.",
+      "zh": "消融哪些 token 是否重要，以及將注意力頭的值設為零或其他值，是否重要。"
+    },
+    {
+      "start": 32.72,
+      "end": 34.04,
+      "en": "So there's a lot to do here.",
+      "zh": "所以，這裡有很多事情要做。"
+    },
+    {
+      "start": 34.08,
+      "end": 35.36,
+      "en": "Let's get started.",
+      "zh": "開始吧。"
+    },
+    {
+      "start": 36.08,
+      "end": 38.08,
+      "en": "A lot of exercise.",
+      "zh": "練習"
+    },
+    {
+      "start": 38.08,
+      "end": 43.64,
+      "en": "One can be solved by copying and pasting code from the previous video.",
+      "zh": "一有很多部分，可以複製貼上上一支影片的程式碼完成。"
+    },
+    {
+      "start": 44.36,
+      "end": 47.56,
+      "en": "The biggest change is to the hook function.",
+      "zh": "最大改變，是 hook 函數。"
+    },
+    {
+      "start": 48.12,
+      "end": 55.2,
+      "en": "In the previous video, I hardcoded the function so that it would only hook into exactly one layer.",
+      "zh": "上一支影片，我把函數寫死，只掛接一個特定層。"
+    },
+    {
+      "start": 55.72,
+      "end": 67.31,
+      "en": "Now here in exercise one, you want to hook into every layer and be able to specify which layer you want to manipulate, not only which head.",
+      "zh": "現在練習一，要掛接每一層，除了指定操作哪個頭，也能指定操作哪一層。"
+    },
+    {
+      "start": 67.87,
+      "end": 73.87,
+      "en": "So to be clear, you want to be able to manipulate any head in any layer.",
+      "zh": "說清楚，就是能操作任何層中的任何注意力頭。"
+    },
+    {
+      "start": 74.31,
+      "end": 77.03,
+      "en": "That's one change from the previous video.",
+      "zh": "這是與上一支影片的一項差異。"
+    },
+    {
+      "start": 77.63,
+      "end": 84.87,
+      "en": "Another change is that you want to be able to choose whether to replace the activations in a given head",
+      "zh": "另一項差異，是能選擇，要把某個頭的活化替換成"
+    },
+    {
+      "start": 84.87,
+      "end": 91.19,
+      "en": "with all zeros, or the average activation value in that head.",
+      "zh": "全零，還是那個頭的平均活化值。"
+    },
+    {
+      "start": 91.91,
+      "end": 95.63,
+      "en": "So you will need another variable to toggle that choice.",
+      "zh": "所以，需要另一個變數，切換這個選擇。"
+    },
+    {
+      "start": 96.27000000000001,
+      "end": 107.35,
+      "en": "The third change from the previous video is that you want to calculate the average activation, and store that as a variable that we can analyze later.",
+      "zh": "第三項差異，是計算平均活化，儲存成稍後可分析的變數。"
+    },
+    {
+      "start": 108.47,
+      "end": 108.78999999999999,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 108.83,
+      "end": 119.11,
+      "en": "So just to make sure this is really clear, in the previous video I hardcoded the hook function to replace a given head activation with zeros.",
+      "zh": "再確認一次，上一支影片的 hook 函數，寫死為將某個頭的活化替換成零。"
+    },
+    {
+      "start": 119.63,
+      "end": 129.63,
+      "en": "And what you are going to do here is first calculate the actual average of the activations in a given head in a given layer.",
+      "zh": "這裡要先計算特定層、特定頭的實際平均活化。"
+    },
+    {
+      "start": 129.91,
+      "end": 132.27,
+      "en": "That's done before you do any manipulations.",
+      "zh": "在做任何操作之前計算。"
+    },
+    {
+      "start": 132.75,
+      "end": 137.51,
+      "en": "And then you store that average value in a variable.",
+      "zh": "再把平均值存成變數。"
+    },
+    {
+      "start": 137.79,
+      "end": 146.15,
+      "en": "And depending on the state of this toggle, you would then replace the attention head with zeros or with that average value.",
+      "zh": "根據這個切換設定，再用零或那個平均值，替換注意力頭。"
+    },
+    {
+      "start": 146.79,
+      "end": 154.71,
+      "en": "Now, because all of this is done inside a function, any variables you create inside this function",
+      "zh": "因為這些都在函數內完成，所以，在函數內建立的任何變數，"
+    },
+    {
+      "start": 154.71,
+      "end": 160.07,
+      "en": "only live inside the function and are deleted once that function finishes running.",
+      "zh": "都只存在於函數內，函數執行結束後就刪除。"
+    },
+    {
+      "start": 160.51,
+      "end": 163.91,
+      "en": "And that is because functions have local scope.",
+      "zh": "這是因為函數有區域作用域。"
+    },
+    {
+      "start": 164.11,
+      "end": 174.67000000000002,
+      "en": "So to be able to access the average from outside the function, you need to define the variable as a global variable before the function is called.",
+      "zh": "要在函數外存取平均值，就需要在函數呼叫前，將變數定義為全域變數。"
+    },
+    {
+      "start": 175.75,
+      "end": 181.02,
+      "en": "So if you're not sure how to do that, then don't worry about that part of the exercise.",
+      "zh": "如果不確定怎麼做，就先不用擔心這部分練習。"
+    },
+    {
+      "start": 181.02,
+      "end": 184.9,
+      "en": "You can just watch me introduce that idea when I switch to code.",
+      "zh": "可以在切換到程式碼時，看我介紹這個概念。"
+    },
+    {
+      "start": 185.74,
+      "end": 193.5,
+      "en": "The final thing to do in exercise one is to prepare and tokenize the exact same text with the exact",
+      "zh": "練習一最後，要準備、token 化與上一支影片完全相同的文字，以及完全"
+    },
+    {
+      "start": 193.5,
+      "end": 198.86,
+      "en": "same target and non-target tokens that we used in the previous video.",
+      "zh": "相同的目標和非目標 token。"
+    },
+    {
+      "start": 199.78,
+      "end": 205.62,
+      "en": "Okay, so now you should pause the video and now I will switch to code and discuss my solution.",
+      "zh": "好，現在請暫停影片；接著我會切換到程式碼，討論解答。"
+    },
+    {
+      "start": 206.94,
+      "end": 212.46,
+      "en": "Here are all the libraries that we will need for all of the exercises in this code challenge.",
+      "zh": "這裡是這次程式挑戰全部練習會需要的函式庫。"
+    },
+    {
+      "start": 212.78,
+      "end": 216.02,
+      "en": "And now here we get to exercise one.",
+      "zh": "現在進入練習一。"
+    },
+    {
+      "start": 216.34,
+      "end": 221.62,
+      "en": "So load in a model push it to the GPU and some variables.",
+      "zh": "載入模型、移到 GPU，以及一些變數。"
+    },
+    {
+      "start": 221.78,
+      "end": 222.82,
+      "en": "Let me see where are we.",
+      "zh": "讓我看看，在哪裡。"
+    },
+    {
+      "start": 222.86,
+      "end": 223.74,
+      "en": "Here we are.",
+      "zh": "在這裡。"
+    },
+    {
+      "start": 223.86,
+      "end": 228.18,
+      "en": "Here's these variables exactly as in the previous video.",
+      "zh": "這些變數與上一支影片完全相同。"
+    },
+    {
+      "start": 228.5,
+      "end": 231.34,
+      "en": "And now here we get to this hook function.",
+      "zh": "現在來看 hook 函數。"
+    },
+    {
+      "start": 231.54,
+      "end": 240.45,
+      "en": "Now in the previous video I did not have this outer hook where we get to specify or provide an input of the layer Number.",
+      "zh": "上一支影片，沒有這個能指定、輸入層編號的外層 hook。"
+    },
+    {
+      "start": 240.65,
+      "end": 247.01,
+      "en": "Instead, I just had this function and yeah, then that was only implanted into one layer.",
+      "zh": "只有這個函數，而且只植入一層。"
+    },
+    {
+      "start": 247.17,
+      "end": 249.05,
+      "en": "So here this part looks the same.",
+      "zh": "這部分看起來相同。"
+    },
+    {
+      "start": 249.05,
+      "end": 257.13,
+      "en": "We are implanting this hook into C proj, and is a pre hook that will allow us to access the individual",
+      "zh": "把 hook 植入 c_proj，而且是 pre-hook，讓我們存取已串接，"
+    },
+    {
+      "start": 257.29,
+      "end": 262.81,
+      "en": "attention heads when they are concatenated, but before they are mixed together.",
+      "zh": "但尚未混合的個別注意力頭。"
+    },
+    {
+      "start": 263.21,
+      "end": 270.49,
+      "en": "And here you see that I am importing that hook function into all of the layers of the model.",
+      "zh": "這裡可以看到，我把 hook 函數植入模型所有層。"
+    },
+    {
+      "start": 271.49,
+      "end": 279.89,
+      "en": "Okay, so now this hook function is somewhat similar to the hook function in the previous video, but quite a few new things in here.",
+      "zh": "好，這個 hook 函數與上一支影片有些相似，但也有不少新東西。"
+    },
+    {
+      "start": 280.29,
+      "end": 285.57,
+      "en": "First of all, I have this statement here where I am actually commenting out.",
+      "zh": "首先，這裡這個陳述式，目前被註解掉。"
+    },
+    {
+      "start": 285.57,
+      "end": 293.13,
+      "en": "But if you would uncomment this, then this is just going to print out the length of this input, the type of the input.",
+      "zh": "如果取消註解，就會印出 input 的長度和型別。"
+    },
+    {
+      "start": 293.13,
+      "end": 294.33,
+      "en": "So this is a tuple.",
+      "zh": "它是元組。"
+    },
+    {
+      "start": 294.85,
+      "end": 298.29,
+      "en": "By default this is only going to contain one element.",
+      "zh": "預設只會包含一個元素。"
+    },
+    {
+      "start": 298.40999999999997,
+      "end": 305.28,
+      "en": "It can contain other elements depending on what kinds of inputs you provide into the model in the forward pass.",
+      "zh": "依照前向傳播時，提供給模型什麼輸入，也可能包含其他元素。"
+    },
+    {
+      "start": 305.68,
+      "end": 311.32,
+      "en": "But usually, at least certainly for our purposes here, this will be a one element tuple.",
+      "zh": "但通常，至少就這裡的目的而言，它會是只有一個元素的元組。"
+    },
+    {
+      "start": 311.52,
+      "end": 313.56,
+      "en": "And then here you can print out the shape.",
+      "zh": "接著，可以在這裡印出形狀。"
+    },
+    {
+      "start": 313.56,
+      "end": 319.92,
+      "en": "And the shape of that is sequences in the batch by tokens by embeddings dimension.",
+      "zh": "形狀是批次中的序列數，乘上 token 數，乘上嵌入維度。"
+    },
+    {
+      "start": 319.92,
+      "end": 325.68,
+      "en": "But the embeddings dimension is actually all of the attention heads concatenated together.",
+      "zh": "但這個嵌入維度，其實是全部注意力頭串接起來的。"
+    },
+    {
+      "start": 325.68,
+      "end": 332.64,
+      "en": "And that you will see with this if you leave that code Uncommented when you define and implant those hooks.",
+      "zh": "定義、植入 hook 時，如果保留這段不註解，就能看到。"
+    },
+    {
+      "start": 333.28,
+      "end": 333.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 333.68,
+      "end": 343.08,
+      "en": "So then here I'm saying only modify this layer if this layer that we are currently hooking into in the",
+      "zh": "這裡表示，只有目前前向傳播正在掛接的"
+    },
+    {
+      "start": 343.08,
+      "end": 349.56,
+      "en": "forward pass equals this other variable here layer to ablate, I have not yet defined this variable.",
+      "zh": "層，等於 layer to ablate 這個變數時，才修改。這個變數還沒有定義。"
+    },
+    {
+      "start": 349.56,
+      "end": 353.68,
+      "en": "I'm going to define it later on before I do a forward pass.",
+      "zh": "之後做前向傳播之前才會定義。"
+    },
+    {
+      "start": 354.64,
+      "end": 363.68,
+      "en": "Basically, this is the way to allow us to modify only one layer while putting the hook into all of the layers.",
+      "zh": "基本上，這樣就能將 hook 放進所有層，但只修改一層。"
+    },
+    {
+      "start": 364.24,
+      "end": 371.6,
+      "en": "Okay, so if this statement is true, that means that we are working with the layer that we want to manipulate.",
+      "zh": "好，如果條件為 True，代表目前正在處理想操作的那一層。"
+    },
+    {
+      "start": 371.96,
+      "end": 378.64,
+      "en": "Then yeah, this is just some convenient reshaping so we can index the heads a little more easily.",
+      "zh": "接著，只是方便地重塑，讓注意力頭索引更容易。"
+    },
+    {
+      "start": 378.64,
+      "end": 379.8,
+      "en": "This you've seen before.",
+      "zh": "這已經看過。"
+    },
+    {
+      "start": 380.08,
+      "end": 381.24,
+      "en": "Here's the other toggle.",
+      "zh": "這裡是另一個切換設定。"
+    },
+    {
+      "start": 381.24,
+      "end": 388.32,
+      "en": "So again a variable that does not yet exist I will define this later before actually running this function.",
+      "zh": "同樣，目前不存在這個變數，之後實際執行函數前才會定義。"
+    },
+    {
+      "start": 388.76,
+      "end": 395.64,
+      "en": "And I say if replace zero equals true then uh the value to replace is zero.",
+      "zh": "如果 replace zero 等於 True，要替換成的值就是零。"
+    },
+    {
+      "start": 395.64,
+      "end": 397.68,
+      "en": "And that gets replaced over here.",
+      "zh": "在這裡替換。"
+    },
+    {
+      "start": 398.08,
+      "end": 404.6,
+      "en": "And this line of code you've also seen exactly before in the previous video in that code demo.",
+      "zh": "這行程式碼，也在上一支影片的程式示範中完整看過。"
+    },
+    {
+      "start": 405.8,
+      "end": 406.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 406.15999999999997,
+      "end": 415,
+      "en": "Now if replace with zeros is not true, then what we are going to do is replace that value instead of",
+      "zh": "如果 replace with zeros 不是 True，要替換成的值，"
+    },
+    {
+      "start": 415,
+      "end": 418.64,
+      "en": "being zeros it's going to be the head tensor.",
+      "zh": "就不是零，而是這個 head 張量。"
+    },
+    {
+      "start": 418.64,
+      "end": 422.55,
+      "en": "So this variable up here, all of these sequences.",
+      "zh": "也就是上面的變數，取全部序列。"
+    },
+    {
+      "start": 422.55,
+      "end": 424.55,
+      "en": "We're only going to have one sequence here.",
+      "zh": "這裡只有一個序列。"
+    },
+    {
+      "start": 425.31,
+      "end": 431.23,
+      "en": "All of the tokens in that sequence, only this specific head and all of the dimensions.",
+      "zh": "該序列的全部 token，只取特定的這個頭，以及全部維度。"
+    },
+    {
+      "start": 431.23,
+      "end": 433.75,
+      "en": "Remember this is 64 here.",
+      "zh": "記得，這裡是 64。"
+    },
+    {
+      "start": 433.75,
+      "end": 436.99,
+      "en": "This is not 768 for GPT two small.",
+      "zh": "對 GPT2 small 而言，這不是 768。"
+    },
+    {
+      "start": 437.27,
+      "end": 442.51,
+      "en": "And then we want the average of all of those values okay.",
+      "zh": "接著，對全部這些值取平均。"
+    },
+    {
+      "start": 442.83,
+      "end": 446.75,
+      "en": "And then I'm defining a global variable called observed head mean.",
+      "zh": "再定義一個叫 observed head mean 的全域變數。"
+    },
+    {
+      "start": 446.91,
+      "end": 454.31,
+      "en": "And setting that to be equal to this value here, which is the mean of the attention head activation values.",
+      "zh": "把它設為這裡的值，也就是注意力頭活化值的平均。"
+    },
+    {
+      "start": 454.67,
+      "end": 460.23,
+      "en": "When I define it as a global variable here, that means that this will be available.",
+      "zh": "在這裡定義為全域變數，代表它可以在外面取得。"
+    },
+    {
+      "start": 460.23,
+      "end": 464.31,
+      "en": "We can read this variable from outside the function.",
+      "zh": "函數外可以讀取這個變數。"
+    },
+    {
+      "start": 464.31,
+      "end": 466.07,
+      "en": "That's going to be useful for later.",
+      "zh": "稍後會很有用。"
+    },
+    {
+      "start": 467.03,
+      "end": 470.11,
+      "en": "By the way, there are several other ways that you could have solved this.",
+      "zh": "順帶一提，也有其他幾種解法。"
+    },
+    {
+      "start": 470.11,
+      "end": 473.87,
+      "en": "For example, you can create a dictionary outside of this hook.",
+      "zh": "例如，可以在 hook 外建立字典。"
+    },
+    {
+      "start": 473.90999999999997,
+      "end": 475.19,
+      "en": "You can create a dictionary.",
+      "zh": "可以建立字典。"
+    },
+    {
+      "start": 475.19,
+      "end": 476.63,
+      "en": "I'll just call it D for now.",
+      "zh": "暫時叫它 D。"
+    },
+    {
+      "start": 476.95,
+      "end": 482.06,
+      "en": "And then once that dictionary is defined in the global workspace.",
+      "zh": "一旦字典在全域工作空間中定義，"
+    },
+    {
+      "start": 482.3,
+      "end": 486.06,
+      "en": "You can then say something like D uh, you know.",
+      "zh": "就可以寫成 D 之類的。"
+    },
+    {
+      "start": 486.1,
+      "end": 495.38,
+      "en": "And then, uh, yeah, you would want this to be like this, something that would tell us the layer and also the head that we are working with.",
+      "zh": "接著，會希望像這樣，用某種方式指出目前處理的層與頭。"
+    },
+    {
+      "start": 495.5,
+      "end": 497.66,
+      "en": "So that would also be a solution.",
+      "zh": "所以，那也是解法。"
+    },
+    {
+      "start": 497.98,
+      "end": 502.26,
+      "en": "Uh, I have actually done things like that before, but I chose to do it this way.",
+      "zh": "我以前確實做過，但這次選擇這種方式。"
+    },
+    {
+      "start": 502.3,
+      "end": 505.94,
+      "en": "Define it explicitly as a global variable just for some variety.",
+      "zh": "明確定義成全域變數，只是換個做法。"
+    },
+    {
+      "start": 506.74,
+      "end": 513.78,
+      "en": "Okay, again, here is some confirmation of the layer and the head that we are manipulating.",
+      "zh": "好，這裡再次確認，正在操作哪一層、哪個頭。"
+    },
+    {
+      "start": 513.82,
+      "end": 523.34,
+      "en": "Actually, this is what you could copy paste into the name of the key for the dictionary if you wanted to use that to store the average head value.",
+      "zh": "如果想用字典儲存注意力頭平均值，其實可以把這個複製貼上，當作字典的鍵名稱。"
+    },
+    {
+      "start": 523.58,
+      "end": 526.06,
+      "en": "Uh, and again, yeah, I'm just commenting this out.",
+      "zh": "同樣，我把它註解掉。"
+    },
+    {
+      "start": 526.1,
+      "end": 534.62,
+      "en": "These are the kinds of print statements that I encourage you to include in your code when you are developing and working through and debugging your code.",
+      "zh": "這類 print 陳述式，是我鼓勵你在開發、逐步檢查與除錯時，放進程式碼的。"
+    },
+    {
+      "start": 535.06,
+      "end": 535.34,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 535.38,
+      "end": 537.78,
+      "en": "And then this stuff you've seen before as well.",
+      "zh": "這些也都看過。"
+    },
+    {
+      "start": 537.9,
+      "end": 539.94,
+      "en": "So run that function.",
+      "zh": "執行那個函數。"
+    },
+    {
+      "start": 539.94,
+      "end": 541.86,
+      "en": "Hook it into the model.",
+      "zh": "掛接到模型。"
+    },
+    {
+      "start": 541.98,
+      "end": 543.5,
+      "en": "Here I get the tokens.",
+      "zh": "這裡取得 token。"
+    },
+    {
+      "start": 543.5,
+      "end": 546.14,
+      "en": "Berlin is the capital of blank.",
+      "zh": "Berlin is the capital of，空白。"
+    },
+    {
+      "start": 546.18,
+      "end": 552.78,
+      "en": "And of course, we want to know what the model thinks is the Berlin is the capital of.",
+      "zh": "當然，想知道模型認為，Berlin 是哪個地方的首都。"
+    },
+    {
+      "start": 553.06,
+      "end": 557.5,
+      "en": "Okay, so this is all just literally copy pasted from the previous video.",
+      "zh": "好，這真的全都是從上一支影片複製貼上的。"
+    },
+    {
+      "start": 559.14,
+      "end": 561.38,
+      "en": "Now for exercise two.",
+      "zh": "現在是練習二。"
+    },
+    {
+      "start": 561.82,
+      "end": 570.66,
+      "en": "The goal of exercise two is to have a clean set of softmax outputs from the model without any manipulations.",
+      "zh": "目標是取得一組乾淨、沒有操作的模型 softmax 輸出。"
+    },
+    {
+      "start": 571.22,
+      "end": 576.22,
+      "en": "This is very similar to what you saw in the previous video, except here.",
+      "zh": "與上一支影片看到的非常相似，不過這裡，"
+    },
+    {
+      "start": 576.26,
+      "end": 581.66,
+      "en": "Now in exercise two I want you to work with softmax.",
+      "zh": "練習二我要你使用 softmax。"
+    },
+    {
+      "start": 581.78,
+      "end": 587.82,
+      "en": "So in the previous video I did all the analyses, all the visualizations as log softmax.",
+      "zh": "上一支影片，所有分析與視覺化，都是 log_softmax。"
+    },
+    {
+      "start": 588.06,
+      "end": 590.74,
+      "en": "And here in this video we're going to use softmax.",
+      "zh": "這支影片則使用 softmax。"
+    },
+    {
+      "start": 590.74,
+      "end": 592.1,
+      "en": "So without the log.",
+      "zh": "也就是不取對數。"
+    },
+    {
+      "start": 592.22,
+      "end": 599.41,
+      "en": "For reasons that I will explain when I switch to code and when I write percent softmax over here.",
+      "zh": "切換到程式碼時，會解釋原因。這裡寫百分比 softmax，"
+    },
+    {
+      "start": 599.89,
+      "end": 609.21,
+      "en": "I just mean to multiply the softmax probability values by 100 so that we get values between 0 and 100 instead of between 0 and 1.",
+      "zh": "只是指把 softmax 機率乘以 100，讓值介於 0 到 100，而非 0 到 1。"
+    },
+    {
+      "start": 609.97,
+      "end": 615.17,
+      "en": "Okay, now that said, you can see that this plot actually shows logsoftmax.",
+      "zh": "好，不過可以看到，這張圖其實顯示 log_softmax。"
+    },
+    {
+      "start": 615.45,
+      "end": 618.25,
+      "en": "So I do want you to take the log transform.",
+      "zh": "所以，我確實要你做對數轉換。"
+    },
+    {
+      "start": 618.25,
+      "end": 621.81,
+      "en": "But that's just for this visualization.",
+      "zh": "但只是為了這個視覺化。"
+    },
+    {
+      "start": 622.41,
+      "end": 628.29,
+      "en": "As you know from the previous video, these two data points here are important because they will be",
+      "zh": "從上一支影片你已經知道，這兩個資料點很重要，因為它們會是"
+    },
+    {
+      "start": 628.29,
+      "end": 635.69,
+      "en": "the comparison reference values for the experiments that you will run in the next several exercises.",
+      "zh": "接下來幾個練習實驗的比較參考值。"
+    },
+    {
+      "start": 636.85,
+      "end": 637.65,
+      "en": "Okey dokey.",
+      "zh": "好。"
+    },
+    {
+      "start": 637.69,
+      "end": 648.29,
+      "en": "Now you should pause the video and code away and I'll discuss my solution and also why I prefer us to work with softmax in this video instead of logsoftmax.",
+      "zh": "現在請暫停影片，開始寫程式。我會討論解答，以及為何這支影片，我比較希望使用 softmax，而非 log_softmax。"
+    },
+    {
+      "start": 649.41,
+      "end": 657.69,
+      "en": "To get clean outputs from the model, I am creating these two variables, which I showed you in the previous exercise.",
+      "zh": "為了取得乾淨模型輸出，我建立這兩個變數，上一個練習中已經展示過。"
+    },
+    {
+      "start": 657.69,
+      "end": 664.84,
+      "en": "In the hook function, I'm setting them to be values that are way higher than any layer that we have or head that we have.",
+      "zh": "在 hook 函數中，把它們設成比任何層或頭都大很多的值。"
+    },
+    {
+      "start": 665.04,
+      "end": 670.28,
+      "en": "And this means that, yeah, that nothing is going to happen when we do the forward pass.",
+      "zh": "這代表，前向傳播時，什麼都不會發生。"
+    },
+    {
+      "start": 670.44,
+      "end": 677.68,
+      "en": "So just to make sure that is clear, when I set the layer number to be a thousand, then this is false.",
+      "zh": "確認一下，層編號設為一千時，這個條件就是 False。"
+    },
+    {
+      "start": 677.68,
+      "end": 680.44,
+      "en": "And so none of the rest of this stuff ever gets run.",
+      "zh": "其餘這些程式碼，都不會執行。"
+    },
+    {
+      "start": 680.96,
+      "end": 685.24,
+      "en": "Looking at this code now, I suppose it actually would make sense to say like this.",
+      "zh": "現在看這段程式碼，我想，這樣寫其實比較合理。"
+    },
+    {
+      "start": 685.24,
+      "end": 687.36,
+      "en": "And then also add another.",
+      "zh": "再加上另一個，"
+    },
+    {
+      "start": 687.64,
+      "end": 699.2,
+      "en": "And if the head to ablate is less than or, you know, it should be, uh, in the range of zero to the number of heads, this is probably a little bit safer.",
+      "zh": "而且 head to ablate 必須小於……應該落在零到頭數的範圍內，這樣大概比較安全。"
+    },
+    {
+      "start": 699.4,
+      "end": 700.8,
+      "en": "But anyway that's fine.",
+      "zh": "不過，這樣也沒關係。"
+    },
+    {
+      "start": 701.28,
+      "end": 701.68,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 701.72,
+      "end": 702.84,
+      "en": "So let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 702.88,
+      "end": 703.16,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 703.2,
+      "end": 705.48,
+      "en": "So this means that nothing is going to happen.",
+      "zh": "這代表，什麼都不會發生。"
+    },
+    {
+      "start": 705.48,
+      "end": 710.36,
+      "en": "We're not going to do any manipulations to the model here.",
+      "zh": "這裡不會對模型做任何操作。"
+    },
+    {
+      "start": 710.36,
+      "end": 713.64,
+      "en": "I'm getting the output logits for the first sequence.",
+      "zh": "取得第一個序列的輸出 logit。"
+    },
+    {
+      "start": 713.64,
+      "end": 716.8,
+      "en": "There's only one sequence the final target.",
+      "zh": "只有一個序列，最後的目標，"
+    },
+    {
+      "start": 716.8,
+      "end": 718.24,
+      "en": "That's the final token.",
+      "zh": "也就是最後一個 token。"
+    },
+    {
+      "start": 718.24,
+      "end": 720.39,
+      "en": "That's the one we want to analyze.",
+      "zh": "這是要分析的。"
+    },
+    {
+      "start": 720.39,
+      "end": 723.55,
+      "en": "And all of the vocab elements for the logits.",
+      "zh": "以及全部詞彙表元素的 logit。"
+    },
+    {
+      "start": 723.91,
+      "end": 727.03,
+      "en": "Then I'm converting them to softmax, not logsoftmax.",
+      "zh": "再把它們轉換成 softmax，不是 log_softmax。"
+    },
+    {
+      "start": 727.03,
+      "end": 727.87,
+      "en": "That's what I did.",
+      "zh": "那是我之前做的。"
+    },
+    {
+      "start": 727.91,
+      "end": 728.15,
+      "en": "Oops.",
+      "zh": "哎。"
+    },
+    {
+      "start": 728.15,
+      "end": 728.51,
+      "en": "Like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 728.51,
+      "end": 730.79,
+      "en": "That's what I did in the previous video.",
+      "zh": "那是上一支影片做的。"
+    },
+    {
+      "start": 731.11,
+      "end": 736.31,
+      "en": "But here I just want to focus on softmax and then multiply by 100.",
+      "zh": "但這裡只想聚焦於 softmax，再乘以 100。"
+    },
+    {
+      "start": 736.63,
+      "end": 738.23,
+      "en": "Okay, now for the plotting.",
+      "zh": "好，現在是畫圖。"
+    },
+    {
+      "start": 738.79,
+      "end": 741.55,
+      "en": "Uh, we do actually want the logsoftmax.",
+      "zh": "這裡其實要 log_softmax。"
+    },
+    {
+      "start": 741.67,
+      "end": 747.63,
+      "en": "And why do we want the logsoftmax just because I said so in the, uh, instructions.",
+      "zh": "為什麼要？只是因為我在指示裡這麼說。"
+    },
+    {
+      "start": 747.63,
+      "end": 753.27,
+      "en": "But just make sure that you are dividing by 100 here because I multiply by 100 here.",
+      "zh": "但確認這裡有除以 100，因為這裡曾經乘以 100。"
+    },
+    {
+      "start": 754.35,
+      "end": 754.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 754.71,
+      "end": 762.51,
+      "en": "So really, the only point of doing, uh, this visualization here is just to make sure that everything",
+      "zh": "這個視覺化的唯一目的，其實只是確認一切"
+    },
+    {
+      "start": 762.55,
+      "end": 771.43,
+      "en": "still works, just like in the previous video, we can plot this again using the, uh, just the softmax values.",
+      "zh": "仍然正常，就像上一支影片。也可以改用單純 softmax 值重新畫圖。"
+    },
+    {
+      "start": 771.59,
+      "end": 776.67,
+      "en": "And here you see that the numbers are basically just a little bit more extreme.",
+      "zh": "這裡可以看到，數字基本上只是稍微更極端。"
+    },
+    {
+      "start": 777.07,
+      "end": 777.39,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 777.43,
+      "end": 779.63,
+      "en": "These values are negative here.",
+      "zh": "這些值是負的。"
+    },
+    {
+      "start": 779.67,
+      "end": 788.15,
+      "en": "Okay, I have to I forgot I need to remove the log from all of this and also remove the division by 100 from all of this.",
+      "zh": "好，忘了，必須把這些對數全部移除，也移除全部除以 100 的操作。"
+    },
+    {
+      "start": 788.63,
+      "end": 790.35,
+      "en": "Okay, so now you see what it looks like.",
+      "zh": "好，現在可以看到它的樣子。"
+    },
+    {
+      "start": 790.35,
+      "end": 792.31,
+      "en": "Just 4% softmax.",
+      "zh": "只使用百分比 softmax。"
+    },
+    {
+      "start": 792.43,
+      "end": 802.99,
+      "en": "Now, the difference here is that when you just look at the softmax and not the log softmax, the largest values really, really pop out of the distribution.",
+      "zh": "這裡的差異是，只看 softmax，而不是 log_softmax 時，最大的值真的會從分布中特別凸顯。"
+    },
+    {
+      "start": 803.39,
+      "end": 810.27,
+      "en": "That means that if you have subtle effects in your experiments with softmax, it's just a little bit",
+      "zh": "這代表，如果實驗使用 softmax，效果很細微，視覺化會稍微"
+    },
+    {
+      "start": 810.27,
+      "end": 817.07,
+      "en": "easier to visualize, because the large values really pop out from the rest of the distribution.",
+      "zh": "容易一些，因為大值真的會凸顯於其餘分布。"
+    },
+    {
+      "start": 817.47,
+      "end": 822.35,
+      "en": "And the effects that we are going to observe in this video are not that great, right?",
+      "zh": "這支影片要觀察的效果，沒有那麼大。"
+    },
+    {
+      "start": 822.39,
+      "end": 827.75,
+      "en": "We're doing really subtle, specific targeted manipulations to the model.",
+      "zh": "我們對模型做的是非常細微、具體、有目標的操作。"
+    },
+    {
+      "start": 827.99,
+      "end": 832.23,
+      "en": "And so therefore the effect sizes are not going to be huge.",
+      "zh": "所以，效果量不會很大。"
+    },
+    {
+      "start": 832.43,
+      "end": 839.22,
+      "en": "And so I decided that we will run this experiment with probabilities instead of log probabilities.",
+      "zh": "因此，我決定使用機率，而不是對數機率來做實驗。"
+    },
+    {
+      "start": 839.46,
+      "end": 840.62,
+      "en": "That's just a choice.",
+      "zh": "這只是一種選擇。"
+    },
+    {
+      "start": 840.62,
+      "end": 842.94,
+      "en": "If you do not like that, then that's great.",
+      "zh": "如果不喜歡，也很好。"
+    },
+    {
+      "start": 842.94,
+      "end": 850.58,
+      "en": "You're free to disagree with me and you can do the whole exercises with logs instead of the raw probability values.",
+      "zh": "你可以不同意，整份練習都用對數，而不是原始機率值。"
+    },
+    {
+      "start": 852.98,
+      "end": 855.62,
+      "en": "And now for exercise three.",
+      "zh": "現在是練習三。"
+    },
+    {
+      "start": 856.1,
+      "end": 860.34,
+      "en": "Here you will start doing analyses and visualizations.",
+      "zh": "這裡開始做分析與視覺化。"
+    },
+    {
+      "start": 860.66,
+      "end": 866.78,
+      "en": "You need to set up a double for loop to loop over all of the transformer blocks.",
+      "zh": "需要設定雙層 for 迴圈，遍歷全部 Transformer 區塊。"
+    },
+    {
+      "start": 866.78,
+      "end": 871.74,
+      "en": "So all the layers and all of the heads within each transformer block.",
+      "zh": "也就是全部層，以及每個區塊內的所有頭。"
+    },
+    {
+      "start": 872.46,
+      "end": 879.7,
+      "en": "And then for each iteration of that double for loop, you run the forward pass, collect the softmax",
+      "zh": "雙層 for 迴圈每次迭代，都做前向傳播，收集最終模型輸出對目標與非目標 token 的 softmax"
+    },
+    {
+      "start": 879.7,
+      "end": 885.42,
+      "en": "probabilities of the final model output for the target and non-target tokens.",
+      "zh": "機率。"
+    },
+    {
+      "start": 885.42,
+      "end": 891.42,
+      "en": "So space Germany and space France and also get the attention head averages.",
+      "zh": "也就是前置空白加 Germany、前置空白加 France，也取得注意力頭的平均。"
+    },
+    {
+      "start": 892.54,
+      "end": 899.21,
+      "en": "I recommend storing all of the results in a three dimensional matrix where the dimensions would correspond",
+      "zh": "建議把全部結果存在三維矩陣，各維度對應"
+    },
+    {
+      "start": 899.21,
+      "end": 905.61,
+      "en": "to the layer, the head within each layer, and the particular result that you store.",
+      "zh": "層、層內的頭，以及所儲存的特定結果。"
+    },
+    {
+      "start": 906.25,
+      "end": 917.97,
+      "en": "Once that double for loop finishes, you can visualize the results as the difference in the softmax probability between the manipulation and the clean version.",
+      "zh": "雙層 for 迴圈結束後，可以將操作版本與乾淨版本之間的 softmax 機率差，"
+    },
+    {
+      "start": 918.25,
+      "end": 920.37,
+      "en": "In heatmaps that look like this.",
+      "zh": "視覺化成這樣的熱圖。"
+    },
+    {
+      "start": 920.77,
+      "end": 927.69,
+      "en": "So we have layer index on the x axis and head index on the y axis.",
+      "zh": "x 軸是層索引，y 軸是頭索引。"
+    },
+    {
+      "start": 927.97,
+      "end": 937.45,
+      "en": "And the color in this image is the percent softmax of the target logit in the manipulated run minus",
+      "zh": "影像顏色，是操作執行中，目標 logit 的百分比 softmax，"
+    },
+    {
+      "start": 937.45,
+      "end": 940.13,
+      "en": "the target logit from the clean run.",
+      "zh": "減去乾淨執行的目標 logit。"
+    },
+    {
+      "start": 940.73,
+      "end": 941.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 941.13,
+      "end": 942.81,
+      "en": "So this is for the target run.",
+      "zh": "這是目標的執行結果。"
+    },
+    {
+      "start": 942.81,
+      "end": 946.97,
+      "en": "And then here on the right this is for the non-target word.",
+      "zh": "右邊則是非目標詞。"
+    },
+    {
+      "start": 946.97,
+      "end": 948.33,
+      "en": "This is the word France.",
+      "zh": "也就是 France。"
+    },
+    {
+      "start": 948.61,
+      "end": 955.29,
+      "en": "So that is one analysis to show what you also need to store from each iteration.",
+      "zh": "這是一項分析。雙層 for 迴圈每次迭代，還需要儲存的，"
+    },
+    {
+      "start": 955.29,
+      "end": 961.01,
+      "en": "In the double for loop is the actual token that had the highest logit output.",
+      "zh": "是輸出 logit 最高的實際 token。"
+    },
+    {
+      "start": 961.61,
+      "end": 966.13,
+      "en": "Of course, you know that the correct answer that the model should give is Germany.",
+      "zh": "當然，你知道模型應該給的正確答案是 Germany。"
+    },
+    {
+      "start": 966.57,
+      "end": 970.77,
+      "en": "And in fact, that turns out to be Germany in all of these cases.",
+      "zh": "事實上，結果在這些案例中全都是 Germany。"
+    },
+    {
+      "start": 970.93,
+      "end": 975.81,
+      "en": "But you will see in later exercises that you'll get some different tokens in here as well.",
+      "zh": "但後面的練習，會看到這裡出現一些不同 token。"
+    },
+    {
+      "start": 976.49,
+      "end": 980.77,
+      "en": "By the way, where does this number 144 come from?",
+      "zh": "順帶一提，144 這個數字從哪裡來？"
+    },
+    {
+      "start": 980.97,
+      "end": 985.41,
+      "en": "Make sure you understand why there are 144 runs.",
+      "zh": "確認你理解，為什麼執行 144 次。"
+    },
+    {
+      "start": 985.69,
+      "end": 988.69,
+      "en": "I will discuss the answer when I show my code.",
+      "zh": "展示程式碼時，我會討論答案。"
+    },
+    {
+      "start": 989.57,
+      "end": 991.17,
+      "en": "So that's it for exercise three.",
+      "zh": "練習三就是這樣。"
+    },
+    {
+      "start": 991.17,
+      "end": 993.05,
+      "en": "I hope you find this one interesting.",
+      "zh": "希望你覺得有趣。"
+    },
+    {
+      "start": 993.21,
+      "end": 997.57,
+      "en": "It's also going to set us up for the next several exercises.",
+      "zh": "它也會替接下來幾個練習做好準備。"
+    },
+    {
+      "start": 998.09,
+      "end": 1000.29,
+      "en": "Anyway, now I will switch to code.",
+      "zh": "總之，現在切換到程式碼。"
+    },
+    {
+      "start": 1001.73,
+      "end": 1008.17,
+      "en": "Here I'm making sure that this toggle replaced with zeros is still set to true.",
+      "zh": "這裡確認，replace with zeros 這個切換設定，仍然是 True。"
+    },
+    {
+      "start": 1008.69,
+      "end": 1012.89,
+      "en": "Here is where I'm going to store all of my results.",
+      "zh": "這是要儲存全部結果的地方。"
+    },
+    {
+      "start": 1012.93,
+      "end": 1018.84,
+      "en": "I call this variable results zero because I'm going to be zeroing out the heads.",
+      "zh": "我稱為 results zero，因為要將注意力頭歸零。"
+    },
+    {
+      "start": 1018.84,
+      "end": 1028.04,
+      "en": "You'll see that contrasting with the variable that I'll define in a later exercise, where we will store the means or replace with the means instead of the zeros.",
+      "zh": "稍後另一個練習會定義不同變數；那時儲存平均，或以平均而非零替換，兩者可以對照。"
+    },
+    {
+      "start": 1028.64,
+      "end": 1028.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1029,
+      "end": 1033.2,
+      "en": "So that is going to be layers by heads by three.",
+      "zh": "所以，大小是層數乘上頭數，再乘以三。"
+    },
+    {
+      "start": 1033.48,
+      "end": 1041.24,
+      "en": "And three corresponds to the three kinds of results that I want to save from this analysis, which I will get to in a moment.",
+      "zh": "三對應這個分析中，要儲存的三種結果，稍後會說明。"
+    },
+    {
+      "start": 1041.64,
+      "end": 1051.12,
+      "en": "Okay, so here's our double for loop to run the experiment, looping over all of the layers and then looping over all of the heads within each layer.",
+      "zh": "好，這是執行實驗的雙層 for 迴圈，遍歷所有層，再遍歷每層中的所有頭。"
+    },
+    {
+      "start": 1051.48,
+      "end": 1058.44,
+      "en": "And I'm using this function tqdm to give a little progress bar at the bottom, although I don't really need that.",
+      "zh": "使用 tqdm 函數，在下面顯示小進度條，不過其實不太需要。"
+    },
+    {
+      "start": 1058.48,
+      "end": 1060.92,
+      "en": "This actually goes pretty quick.",
+      "zh": "執行得相當快。"
+    },
+    {
+      "start": 1060.92,
+      "end": 1061.6,
+      "en": "But anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 1061.92,
+      "end": 1064,
+      "en": "Okay so here I do a forward pass.",
+      "zh": "好，這裡做前向傳播。"
+    },
+    {
+      "start": 1064,
+      "end": 1069.76,
+      "en": "Now in this forward pass these variables here layer to ablate and head to ablate.",
+      "zh": "前向傳播時，這些 layer to ablate 與 head to ablate 變數，"
+    },
+    {
+      "start": 1069.84,
+      "end": 1073.32,
+      "en": "Those are variables that are defined here in the for loop.",
+      "zh": "就是這裡 for 迴圈定義的變數。"
+    },
+    {
+      "start": 1073.52,
+      "end": 1082.07,
+      "en": "And they will be used inside the hook function Him over here to figure out which head to set to zero,",
+      "zh": "hook 函數會在這裡使用它們，判斷哪個頭要設成零，"
+    },
+    {
+      "start": 1082.31,
+      "end": 1086.31,
+      "en": "and over here to determine which layer to manipulate.",
+      "zh": "這裡則決定操作哪一層。"
+    },
+    {
+      "start": 1087.43,
+      "end": 1087.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1087.91,
+      "end": 1092.71,
+      "en": "So let's see okay so there's the forward pass here I do softmax again.",
+      "zh": "看看，這裡是前向傳播，再次做 softmax。"
+    },
+    {
+      "start": 1092.71,
+      "end": 1098.95,
+      "en": "This is exactly the same code as what I showed in the previous exercise okay.",
+      "zh": "這與上一個練習展示的程式碼完全相同。"
+    },
+    {
+      "start": 1098.99,
+      "end": 1100.39,
+      "en": "So now I'm storing the results.",
+      "zh": "現在儲存結果。"
+    },
+    {
+      "start": 1100.39,
+      "end": 1101.51,
+      "en": "And what are we storing.",
+      "zh": "儲存什麼？"
+    },
+    {
+      "start": 1101.63,
+      "end": 1106.87,
+      "en": "First is the softmax for the target the softmax for the non-target.",
+      "zh": "首先，目標的 softmax、非目標的 softmax。"
+    },
+    {
+      "start": 1106.87,
+      "end": 1112.87,
+      "en": "And then the argmax of the softmax which is the logit that has the largest value.",
+      "zh": "接著，是 softmax 的 argmax，也就是值最大的 logit。"
+    },
+    {
+      "start": 1113.03,
+      "end": 1119.23,
+      "en": "And then later on we can convert this into a token to see what the text looks like.",
+      "zh": "稍後，可以把它轉成 token，看看文字長什麼樣子。"
+    },
+    {
+      "start": 1119.87,
+      "end": 1120.15,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1120.19,
+      "end": 1126.87,
+      "en": "So now I run all of that code and we get an error because I haven't run this cell yet okay.",
+      "zh": "執行全部程式碼，得到錯誤，因為還沒執行這個儲存格。"
+    },
+    {
+      "start": 1127.19,
+      "end": 1127.83,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1127.87,
+      "end": 1128.11,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1128.15,
+      "end": 1130.07,
+      "en": "You can see this goes super fast.",
+      "zh": "可以看到，執行非常快。"
+    },
+    {
+      "start": 1130.11,
+      "end": 1137.27,
+      "en": "I actually first wrote this code, uh, testing it on the CPU, and then it took a little bit longer on the CPU.",
+      "zh": "其實，一開始寫這份程式碼時，是在 CPU 上測試，CPU 花的時間稍微久一點。"
+    },
+    {
+      "start": 1137.27,
+      "end": 1141.38,
+      "en": "So that's why I decided to include this update progress bar.",
+      "zh": "所以，我才決定加上這個更新進度條。"
+    },
+    {
+      "start": 1141.58,
+      "end": 1143.66,
+      "en": "But then I switched to running it on the GPU.",
+      "zh": "但後來改成在 GPU 上執行。"
+    },
+    {
+      "start": 1143.78,
+      "end": 1147.02,
+      "en": "And yeah, now it runs really fast anyway.",
+      "zh": "現在反正執行得很快。"
+    },
+    {
+      "start": 1147.5,
+      "end": 1149.54,
+      "en": "Okay, so here we show the images.",
+      "zh": "好，這裡顯示影像。"
+    },
+    {
+      "start": 1149.54,
+      "end": 1157.38,
+      "en": "So this is uh, I am show so image show here I'm showing the results for zero.",
+      "zh": "這是 imshow，也就是 image show，這裡顯示零的結果。"
+    },
+    {
+      "start": 1157.42,
+      "end": 1168.74,
+      "en": "This is the softmax probability for the target minus the softmax probability from the target, but from the clean version of the model okay.",
+      "zh": "這是目標的 softmax 機率，減去乾淨模型版本中，目標的 softmax 機率。"
+    },
+    {
+      "start": 1168.78,
+      "end": 1170.62,
+      "en": "So this is for zero.",
+      "zh": "所以，這是零。"
+    },
+    {
+      "start": 1170.62,
+      "end": 1176.7,
+      "en": "And this is for one which means that this was for the target or the word Germany should be the correct answer.",
+      "zh": "這是一，也就是這個是目標，Germany 這個詞應該是正確答案。"
+    },
+    {
+      "start": 1176.7,
+      "end": 1181.22,
+      "en": "And here is for one this was the non-target that was for France.",
+      "zh": "這裡是一，非目標，也就是 France。"
+    },
+    {
+      "start": 1181.7,
+      "end": 1184.74,
+      "en": "And here you see what those images look like.",
+      "zh": "這裡可以看到影像的樣子。"
+    },
+    {
+      "start": 1184.9,
+      "end": 1192.74,
+      "en": "So a value of zero would mean that zeroing out or ablating or nullifying whatever term you want to use",
+      "zh": "值為零，代表把某一特定層的某個特定頭歸零、消融、"
+    },
+    {
+      "start": 1192.9,
+      "end": 1200.82,
+      "en": "one particular head in one particular layer has no impact on the final token, logit.",
+      "zh": "消除，隨你怎麼稱呼，對最後 token 的 logit 沒有影響。"
+    },
+    {
+      "start": 1200.82,
+      "end": 1208.42,
+      "en": "That's what a value of zero would mean relative to the clean version of the model when we didn't do any manipulations.",
+      "zh": "這就是相對於乾淨、沒有操作的模型版本，值為零的意義。"
+    },
+    {
+      "start": 1208.86,
+      "end": 1215.46,
+      "en": "If the number is positive here, then that would mean that zeroing out the attention head actually increased",
+      "zh": "如果這裡是正數，代表將注意力頭歸零，反而增加"
+    },
+    {
+      "start": 1215.62,
+      "end": 1221.62,
+      "en": "the logit and a negative value here, which would mean colors more towards the purple end of the spectrum,",
+      "zh": "logit；如果是負值，也就是顏色更偏紫色端，"
+    },
+    {
+      "start": 1221.9,
+      "end": 1229.42,
+      "en": "would mean that we actually decreased the, uh, the probability of selecting the token for Germany.",
+      "zh": "代表降低了選擇 Germany token 的機率。"
+    },
+    {
+      "start": 1229.9,
+      "end": 1241.02,
+      "en": "So again, for the targets and the non-targets, it is quite clear when you put them on the same color scale that, uh, yeah, we didn't really have much of an impact on the non-target word.",
+      "zh": "所以，對目標與非目標使用相同色階時，很清楚，我們對非目標詞其實"
+    },
+    {
+      "start": 1241.06,
+      "end": 1245.66,
+      "en": "There is some impact here and there, but not much, uh, versus for the target word.",
+      "zh": "沒有太大影響。這裡、那裡有些影響，但不多，相對於目標詞，"
+    },
+    {
+      "start": 1245.66,
+      "end": 1248.18,
+      "en": "And there it's, uh, much stronger.",
+      "zh": "目標詞的影響則強得多。"
+    },
+    {
+      "start": 1248.18,
+      "end": 1253.58,
+      "en": "So it's really into multiple percent difference in softmax probability.",
+      "zh": "softmax 機率真的有好幾個百分點的差異。"
+    },
+    {
+      "start": 1254.06,
+      "end": 1261.21,
+      "en": "Now you can see that sometimes it's increasing and sometimes it is decreasing the probability and it",
+      "zh": "可以看到，有時增加機率，有時降低，"
+    },
+    {
+      "start": 1261.21,
+      "end": 1269.01,
+      "en": "doesn't look like there's any obvious patterns, like for example, going from positive to negative as we go through the layers.",
+      "zh": "但似乎沒有明顯模式，例如隨著不同層，從正變負。"
+    },
+    {
+      "start": 1269.01,
+      "end": 1274.29,
+      "en": "So we are going to look at histograms of this distribution in a later exercise.",
+      "zh": "後面的練習，會查看這個分布的直方圖。"
+    },
+    {
+      "start": 1274.29,
+      "end": 1275.77,
+      "en": "So you don't have to worry about that now.",
+      "zh": "現在不用擔心。"
+    },
+    {
+      "start": 1275.89,
+      "end": 1287.73,
+      "en": "But for now you can just notice that it's interesting that there's quite a bit of variability in terms of giving a positive or a negative impact on the final softmax probability.",
+      "zh": "目前，只要注意，對最終 softmax 機率的正面或負面影響，有相當多變化，這很有趣。"
+    },
+    {
+      "start": 1288.29,
+      "end": 1288.73,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1288.89,
+      "end": 1296.93,
+      "en": "One other thing I would like to mention is that remember that these heads have no intrinsic ordering to them.",
+      "zh": "另一件想提的事，是記得這些頭沒有內在順序。"
+    },
+    {
+      "start": 1297.13,
+      "end": 1307.53,
+      "en": "There's no like spatial orientation organization inside the model such that heads four and five are closer to each other than are like four and eight.",
+      "zh": "模型內部沒有某種空間方向或組織，讓第四、第五個頭，比第四、第八個頭更接近。"
+    },
+    {
+      "start": 1307.53,
+      "end": 1309.25,
+      "en": "So the numbers are just arbitrary.",
+      "zh": "所以，數字只是任意的。"
+    },
+    {
+      "start": 1309.25,
+      "end": 1311.17,
+      "en": "The indices are arbitrary.",
+      "zh": "索引是任意的。"
+    },
+    {
+      "start": 1311.17,
+      "end": 1315.73,
+      "en": "There's no meaningful spatial relationship down the y axis here.",
+      "zh": "這裡 y 軸上下，沒有有意義的空間關係。"
+    },
+    {
+      "start": 1316.33,
+      "end": 1316.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1316.69,
+      "end": 1326.08,
+      "en": "Anyway, the Anyway, the last thing I'm going to do here is find the unique elements in the third element in this matrix.",
+      "zh": "總之，最後要做的是，在這個矩陣第三個元素中，找出不重複的元素。"
+    },
+    {
+      "start": 1326.08,
+      "end": 1335.84,
+      "en": "And remember that is the maximum token that was predicted for the token after the word of at the end of the token sequence.",
+      "zh": "記得，那是模型為 token 序列最後，of 這個詞之後，所預測的最高 token。"
+    },
+    {
+      "start": 1336.2,
+      "end": 1336.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1336.56,
+      "end": 1339.6,
+      "en": "So getting all of the unique values and just printing them out.",
+      "zh": "取得全部不重複值，直接印出。"
+    },
+    {
+      "start": 1339.64,
+      "end": 1344.2,
+      "en": "And then we see interestingly, most of the time it was Germany.",
+      "zh": "有趣的是，大部分時候是 Germany。"
+    },
+    {
+      "start": 1344.2,
+      "end": 1349.08,
+      "en": "And here we got one out of 144 to be the token for space.",
+      "zh": "這裡，144 次中有一次是前置空白加"
+    },
+    {
+      "start": 1349.12,
+      "end": 1353.72,
+      "en": "The okay so let me first say why this is 144.",
+      "zh": "the 的 token。先說明為何是 144。"
+    },
+    {
+      "start": 1354.08,
+      "end": 1356.48,
+      "en": "There are 12 layers and there are 12 heads.",
+      "zh": "有 12 層、12 個頭。"
+    },
+    {
+      "start": 1356.48,
+      "end": 1359.04,
+      "en": "And we have a double for loop over all of them.",
+      "zh": "雙層 for 迴圈遍歷全部組合。"
+    },
+    {
+      "start": 1359.04,
+      "end": 1360.64,
+      "en": "So that's 144.",
+      "zh": "所以是 144。"
+    },
+    {
+      "start": 1361.04,
+      "end": 1361.32,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1361.36,
+      "end": 1368.4,
+      "en": "Now for the word the if we go back and look at this sentence, uh, where is it here.",
+      "zh": "至於 the，如果回去看句子，它在哪裡？"
+    },
+    {
+      "start": 1368.68,
+      "end": 1375.12,
+      "en": "So Berlin is the capital of Germany, but is it so weird to have the in here like this?",
+      "zh": "Berlin is the capital of Germany，但這裡放入 the，真的很奇怪嗎？"
+    },
+    {
+      "start": 1375.12,
+      "end": 1375.76,
+      "en": "Probably not.",
+      "zh": "大概不會。"
+    },
+    {
+      "start": 1375.8,
+      "end": 1376.64,
+      "en": "That could be.",
+      "zh": "可以是，"
+    },
+    {
+      "start": 1376.64,
+      "end": 1379.52,
+      "en": "B Berlin is the capital of the country.",
+      "zh": "Berlin is the capital of the country，"
+    },
+    {
+      "start": 1379.68,
+      "end": 1381.44,
+      "en": "Germany, for example.",
+      "zh": "Germany，例如這樣。"
+    },
+    {
+      "start": 1381.68,
+      "end": 1388.92,
+      "en": "So the is not the expected word that we would think should be there, but it's also not completely off.",
+      "zh": "所以，the 不是我們預期應該出現的詞，但也不是完全不對。"
+    },
+    {
+      "start": 1388.92,
+      "end": 1395.2,
+      "en": "It's not like Berlin is the capital of watermelon or, you know, something just totally off the wall like that.",
+      "zh": "不像 Berlin is the capital of watermelon，或其他完全離譜的東西。"
+    },
+    {
+      "start": 1395.52,
+      "end": 1405.88,
+      "en": "Okay, so interestingly, you can see that, yeah, these models still exhibit some stochasticity, even though we are not doing probabilistic token selection here.",
+      "zh": "好，有趣的是，即使沒有做機率式 token 選擇，這些模型仍呈現某種隨機性。"
+    },
+    {
+      "start": 1407.4,
+      "end": 1412.52,
+      "en": "Exercise four is nearly identical to exercise three.",
+      "zh": "練習四，幾乎與練習三完全相同。"
+    },
+    {
+      "start": 1413.08,
+      "end": 1424.72,
+      "en": "The difference is that here you will switch the toggle so that you replace each head activation with the average of that head instead of ablating it to a value of zero.",
+      "zh": "差別是，切換設定，讓每個頭的活化，用該頭的平均替換，而不是消融成零。"
+    },
+    {
+      "start": 1425.4,
+      "end": 1430.04,
+      "en": "But there is one more thing to do here in exercise four.",
+      "zh": "但練習四還有另一件事。"
+    },
+    {
+      "start": 1430.36,
+      "end": 1436.6,
+      "en": "The second plot for this exercise is to show the actual head averages.",
+      "zh": "這份練習第二張圖，要顯示實際注意力頭平均。"
+    },
+    {
+      "start": 1436.6,
+      "end": 1436.63,
+      "en": "Bridges.",
+      "zh": "平均。"
+    },
+    {
+      "start": 1436.91,
+      "end": 1442.63,
+      "en": "This is the variable that you defined as a global variable in the hook function.",
+      "zh": "這就是 hook 函數中，定義為全域變數的那個變數。"
+    },
+    {
+      "start": 1442.99,
+      "end": 1447.31,
+      "en": "So you're going to get one average per head per layer.",
+      "zh": "所以，每層、每個頭，都會得到一個平均。"
+    },
+    {
+      "start": 1447.55,
+      "end": 1452.39,
+      "en": "So then you can visualize them as a scatter plot linearized.",
+      "zh": "可以把它們攤開，畫成散布圖。"
+    },
+    {
+      "start": 1452.39,
+      "end": 1455.67,
+      "en": "So here the x axis is heads by layers.",
+      "zh": "這裡 x 軸是頭乘以層。"
+    },
+    {
+      "start": 1455.67,
+      "end": 1457.75,
+      "en": "So there's 144 of them here.",
+      "zh": "所以，有 144 個。"
+    },
+    {
+      "start": 1458.03,
+      "end": 1464.31,
+      "en": "And you can also visualize them as an image similar to the images from the previous figure.",
+      "zh": "也可以畫成影像，類似上一張圖中的影像。"
+    },
+    {
+      "start": 1464.91,
+      "end": 1471.43,
+      "en": "And what you want to look for in particular is whether there seem to be any trends in the averages.",
+      "zh": "特別要觀察，平均值是否似乎有趨勢。"
+    },
+    {
+      "start": 1471.51,
+      "end": 1479.19,
+      "en": "For example, if the average values in the head increases as we go deeper into the model, that kind",
+      "zh": "例如，越深入模型，頭內的平均值是否增加。那種"
+    },
+    {
+      "start": 1479.19,
+      "end": 1485.79,
+      "en": "of result would suggest that there is like a drift in the distribution as we go deeper into the model.",
+      "zh": "結果會暗示，越深入模型，分布有某種漂移。"
+    },
+    {
+      "start": 1486.35,
+      "end": 1489.15,
+      "en": "Anyway, I'm not telling you that that's what's going to happen.",
+      "zh": "總之，我不是說一定會發生那種結果。"
+    },
+    {
+      "start": 1489.19,
+      "end": 1491.95,
+      "en": "That's just the kind of pattern that you could look for.",
+      "zh": "只是舉例說明，可以尋找什麼模式。"
+    },
+    {
+      "start": 1492.83,
+      "end": 1493.47,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 1493.51,
+      "end": 1494.51,
+      "en": "You know what to do.",
+      "zh": "你知道該做什麼。"
+    },
+    {
+      "start": 1494.67,
+      "end": 1496.35,
+      "en": "And now I will switch to code.",
+      "zh": "現在切換到程式碼。"
+    },
+    {
+      "start": 1497.78,
+      "end": 1503.62,
+      "en": "So here I'm switching the toggle to have this variable replace with zeros equal false.",
+      "zh": "這裡切換設定，把 replace with zeros 設為 False。"
+    },
+    {
+      "start": 1504.1,
+      "end": 1509.14,
+      "en": "And now you can see I have this variable result mean instead of results zero.",
+      "zh": "現在可以看到，這個變數叫 results mean，而不是 results zero。"
+    },
+    {
+      "start": 1509.46,
+      "end": 1512.54,
+      "en": "This is now four elements in the final dimension.",
+      "zh": "最後一個維度，現在有四個元素。"
+    },
+    {
+      "start": 1512.54,
+      "end": 1519.22,
+      "en": "Whereas results zero from exercise three had three elements in the final dimension.",
+      "zh": "練習三的 results zero，最後一個維度則有三個元素。"
+    },
+    {
+      "start": 1519.5,
+      "end": 1526.46,
+      "en": "And the new piece of information that we are observing here is the empirically observed mean in the head.",
+      "zh": "新增的觀察資訊，就是頭內實際觀察到的平均。"
+    },
+    {
+      "start": 1526.46,
+      "end": 1536.5,
+      "en": "So the average of all the activation values within that head that we are then using to replace with the all the values of the head instead of zero.",
+      "zh": "也就是那個頭中，所有活化值的平均；之後用這個值替換頭的所有值，而不是零。"
+    },
+    {
+      "start": 1537.02,
+      "end": 1537.26,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1537.3,
+      "end": 1542.1,
+      "en": "Otherwise all of this code is exactly the same as the code for exercise three.",
+      "zh": "除此之外，全部程式碼與練習三完全相同。"
+    },
+    {
+      "start": 1542.38,
+      "end": 1543.94,
+      "en": "So just this line is different.",
+      "zh": "只有這一行不同。"
+    },
+    {
+      "start": 1543.94,
+      "end": 1548.66,
+      "en": "And of course this is now three instead of having a value of two okay.",
+      "zh": "當然，這裡現在是三，而不是二。"
+    },
+    {
+      "start": 1548.7,
+      "end": 1550.98,
+      "en": "So here again we see the results.",
+      "zh": "這裡再次看到結果。"
+    },
+    {
+      "start": 1551.02,
+      "end": 1559.49,
+      "en": "Now qualitatively at first pass inspection these look really really similar to the results from exercise three.",
+      "zh": "初步從性質上看，它們與練習三結果真的非常相似。"
+    },
+    {
+      "start": 1559.89,
+      "end": 1567.37,
+      "en": "Again, I'm not claiming yet that it doesn't matter whether you replace the head with zero or with the observed mean.",
+      "zh": "再說一次，我還沒有主張，以零或觀察到的平均替換頭，沒有差別。"
+    },
+    {
+      "start": 1567.57,
+      "end": 1576.97,
+      "en": "All I'm saying is that at a very first pass glance, this looks really similar to what we saw in the previous exercise.",
+      "zh": "只是說，第一眼看起來，與上一個練習非常類似。"
+    },
+    {
+      "start": 1578.21,
+      "end": 1578.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1578.49,
+      "end": 1587.09,
+      "en": "And here again we see almost all the time the model actually did select the word Germany and only once did it select the token the.",
+      "zh": "這裡也再次看到，幾乎每次模型都選 Germany，只有一次選 the token。"
+    },
+    {
+      "start": 1587.49,
+      "end": 1598.85,
+      "en": "So if you want you could find out which that which one that is that's you know one of these presumably it's one of these dark purple, uh, head layer combinations over here.",
+      "zh": "如果願意，可以找出那是哪一個，推測會是這裡某個深紫色的頭與層組合。"
+    },
+    {
+      "start": 1598.85,
+      "end": 1603.49,
+      "en": "Because that would mean that the softmax probability for Germany went down.",
+      "zh": "因為那代表，Germany 的 softmax 機率下降。"
+    },
+    {
+      "start": 1603.65,
+      "end": 1608.85,
+      "en": "And then that would allow the softmax probability for the word the to increase.",
+      "zh": "接著，就讓 the 的 softmax 機率能上升。"
+    },
+    {
+      "start": 1609.61,
+      "end": 1609.97,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1610.01,
+      "end": 1613.73,
+      "en": "And then here I'm showing the head averaged activations.",
+      "zh": "這裡展示注意力頭的平均活化。"
+    },
+    {
+      "start": 1613.73,
+      "end": 1621.33,
+      "en": "So these are the actual values of the heads that were measured before I replaced them with these actual",
+      "zh": "這些是在用實際平均值替換之前，從頭測得的實際"
+    },
+    {
+      "start": 1621.33,
+      "end": 1629.17,
+      "en": "values, and they appear to be roughly normally distributed in the sense that there's a lot of values close to zero.",
+      "zh": "值；它們看起來大致常態分布，因為有很多值接近零。"
+    },
+    {
+      "start": 1629.37,
+      "end": 1633.61,
+      "en": "And the further we get from zero, the fewer data points there are.",
+      "zh": "離零越遠，資料點越少。"
+    },
+    {
+      "start": 1633.89,
+      "end": 1635.85,
+      "en": "Also, these are very small numbers.",
+      "zh": "這些數字也非常小。"
+    },
+    {
+      "start": 1636.01,
+      "end": 1643.13,
+      "en": "And here you see as an image, there does not appear to be at least you know by first pass visual inspection,",
+      "zh": "這裡以影像顯示，至少初步視覺檢查，"
+    },
+    {
+      "start": 1643.37,
+      "end": 1649.17,
+      "en": "it doesn't really look like there's any at least any obvious consistent patterns.",
+      "zh": "似乎沒有任何明顯、一致的模式。"
+    },
+    {
+      "start": 1649.17,
+      "end": 1656.77,
+      "en": "As we go deeper into the model, for example, it's not going from like yellow columns to purple columns or vice versa.",
+      "zh": "例如，越深入模型，並沒有從黃色欄變成紫色欄，或反過來。"
+    },
+    {
+      "start": 1656.97,
+      "end": 1660.01,
+      "en": "So it kind of seems like it's just all over the place.",
+      "zh": "所以，看起來有點散布各處。"
+    },
+    {
+      "start": 1660.05,
+      "end": 1663.25,
+      "en": "Maybe the variability is a little bit higher earlier in the model.",
+      "zh": "也許模型早期的變化稍大。"
+    },
+    {
+      "start": 1663.25,
+      "end": 1670.29,
+      "en": "So the colors are a little bit more differentiated here, but nothing pops out as being super visually obvious.",
+      "zh": "這裡的顏色稍微更有區別，但沒有什麼在視覺上非常明顯的東西。"
+    }
+  ]
+}

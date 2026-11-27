@@ -1,0 +1,1153 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51877073",
+  "title": "Numerical issues in logits and softmax",
+  "section": 11,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "ce2b5105a03a859e27a0378e435b316ca27c57e0dda1ab0686b9b645c21ee34b",
+  "cues": [
+    {
+      "start": 1.76,
+      "end": 11.32,
+      "en": "You have already encountered and used softmax many times in this course, and possibly also in other courses or applications.",
+      "zh": "這門課已經多次使用 softmax，你也可能在其他課程或應用用過。"
+    },
+    {
+      "start": 11.68,
+      "end": 20.64,
+      "en": "What I'm going to discuss in this video is some numerical issues that can arise when calculating softmax",
+      "zh": "這支影片要談，直接從原始 logits 計算 softmax 時，可能發生的數值問題，"
+    },
+    {
+      "start": 20.64,
+      "end": 28.24,
+      "en": "from raw logit values, especially in very large models with very large vocabs.",
+      "zh": "尤其在詞彙表很大的超大型模型裡。"
+    },
+    {
+      "start": 28.84,
+      "end": 33.8,
+      "en": "This is a pretty serious issue, but fortunately there is a really simple fix.",
+      "zh": "問題相當嚴重，但幸好修正非常簡單。"
+    },
+    {
+      "start": 34.2,
+      "end": 41.56,
+      "en": "And it turns out that PyTorch softmax function implements this kind of normalization.",
+      "zh": "而且 PyTorch 的 softmax 函數，已經實作這種正規化。"
+    },
+    {
+      "start": 42.56,
+      "end": 46.2,
+      "en": "So this is a slide you've seen previously in the course.",
+      "zh": "這張投影片之前看過。"
+    },
+    {
+      "start": 46.32,
+      "end": 54.56,
+      "en": "I just want to remind you very quickly about the formula for the softmax transformation and the goal of softmax.",
+      "zh": "快速提醒 softmax 轉換的公式與目的。"
+    },
+    {
+      "start": 55.12,
+      "end": 67.03,
+      "en": "So softmax just means taking the natural exponential of some number, and dividing it by the sum over all of the natural exponentials of the whole data set.",
+      "zh": "softmax 就是對某個數取自然指數，再除以整組資料"
+    },
+    {
+      "start": 67.07,
+      "end": 68.63,
+      "en": "So all the relevant values.",
+      "zh": "所有相關數值之自然指數的總和。"
+    },
+    {
+      "start": 69.15,
+      "end": 78.63,
+      "en": "The resulting softmax values are non-negative, and they are normalized such that they form a probability",
+      "zh": "得到的 softmax 值非負，並經正規化，形成機率"
+    },
+    {
+      "start": 78.63,
+      "end": 79.78999999999999,
+      "en": "distribution.",
+      "zh": "分布。"
+    },
+    {
+      "start": 80.95,
+      "end": 88.47,
+      "en": "In machine learning and in deep learning, the goal of a softmax transformation is to transform any",
+      "zh": "機器學習與深度學習中，softmax 的目的，是把任何"
+    },
+    {
+      "start": 88.51,
+      "end": 93.47,
+      "en": "set of arbitrary values into a probability function.",
+      "zh": "一組任意數值，轉成機率函數。"
+    },
+    {
+      "start": 94.22999999999999,
+      "end": 102.31,
+      "en": "In an LL, these values correspond to the output logits, which are the numbers for each possible token",
+      "zh": "在 LLM，這些值就是輸出 logits，對應詞彙表裡"
+    },
+    {
+      "start": 102.31,
+      "end": 106.55,
+      "en": "in the vocab, and we would want to softmax.",
+      "zh": "每個可能詞元；如果想得到所有詞元的機率分布，"
+    },
+    {
+      "start": 106.75,
+      "end": 115.27000000000001,
+      "en": "If we are trying to get a probability distribution over all the tokens in order to probabilistically generate new tokens.",
+      "zh": "以機率方式生成新詞元，就會做 softmax。"
+    },
+    {
+      "start": 115.87,
+      "end": 118.67,
+      "en": "Okay, so that is all just a very quick reminder.",
+      "zh": "以上是快速複習。"
+    },
+    {
+      "start": 118.67,
+      "end": 127.5,
+      "en": "Here's what we are going to do In the Python demo, I'm going to import the GPT two small and GPT two",
+      "zh": "Python 示範會匯入 GPT-2 small 與 GPT-2"
+    },
+    {
+      "start": 127.54,
+      "end": 132.98,
+      "en": "large versions push a little bit of text through just to get the output logits.",
+      "zh": "large，送一點文字進去，取得輸出 logits。"
+    },
+    {
+      "start": 133.46,
+      "end": 137.9,
+      "en": "Remember that they have the same tokenizer and the same architecture.",
+      "zh": "記得，它們使用相同 tokenizer 與架構，"
+    },
+    {
+      "start": 138.1,
+      "end": 145.86,
+      "en": "Although the number of parameters and layers is different between the small and the large version of GPT two.",
+      "zh": "但 small 與 large 的參數量、層數不同。"
+    },
+    {
+      "start": 147.02,
+      "end": 153.42000000000002,
+      "en": "So even though I pushed exactly the same tokens through, and I'm looking at the logits for exactly",
+      "zh": "所以，即使送入完全相同的詞元，查看序列中"
+    },
+    {
+      "start": 153.42000000000002,
+      "end": 161.94,
+      "en": "the same token in the sequence, the raw numerical values are actually enormously different, like an order of magnitude.",
+      "zh": "同一個位置的 logits，原始數值也差非常多，約一個數量級。"
+    },
+    {
+      "start": 162.42000000000002,
+      "end": 169.14,
+      "en": "Here you see the plot of the logits from the small versus the large GPT two.",
+      "zh": "這是兩個版本的 logits 圖。"
+    },
+    {
+      "start": 169.57999999999998,
+      "end": 181.33,
+      "en": "And although they certainly are correlated, clearly the two models are processing these tokens in at least slightly different ways, but that is not the main focus of this video.",
+      "zh": "它們確實相關，但顯然以至少稍有不同的方式處理詞元；不過這不是重點。"
+    },
+    {
+      "start": 181.37,
+      "end": 190.37,
+      "en": "What I'm going to do next is softmax, these logit values to transform them into a probability distribution.",
+      "zh": "接著把 logits 做 softmax，轉成機率分布。"
+    },
+    {
+      "start": 191.01,
+      "end": 194.09,
+      "en": "And unfortunately, something went wrong.",
+      "zh": "可惜，出問題了。"
+    },
+    {
+      "start": 194.41,
+      "end": 196.85,
+      "en": "It worked for GPT two large.",
+      "zh": "GPT-2 large 成功。"
+    },
+    {
+      "start": 197.09,
+      "end": 201.69,
+      "en": "But here we just get a picture of two white bunny rabbits in a snowstorm.",
+      "zh": "但這裡只看到暴風雪中的兩隻白兔。"
+    },
+    {
+      "start": 202.25,
+      "end": 208.65,
+      "en": "So something terrible happened in the transformation, even though the code itself was identical.",
+      "zh": "也就是轉換出了嚴重問題，雖然程式完全相同。"
+    },
+    {
+      "start": 209.17000000000002,
+      "end": 215.17000000000002,
+      "en": "And when I switched to Python code, I will explain what happened and why it happens.",
+      "zh": "切到 Python 時，會解釋發生什麼，以及原因。"
+    },
+    {
+      "start": 215.65,
+      "end": 224.05,
+      "en": "Then I will apply a super simple normalization to the logit data so that we actually can calculate softmax.",
+      "zh": "再對 logits 做極簡單的正規化，讓 softmax 算得出來。"
+    },
+    {
+      "start": 224.49,
+      "end": 227.09,
+      "en": "And this transformation is really simple.",
+      "zh": "這個轉換很簡單。"
+    },
+    {
+      "start": 227.09,
+      "end": 231.45,
+      "en": "All I did was shift the entire distribution up a little bit.",
+      "zh": "只是把整個分布稍微往上移。"
+    },
+    {
+      "start": 232.09,
+      "end": 240.37,
+      "en": "And then I will show you that this kind of normalization is done internally in pytorch's is softmax function.",
+      "zh": "接著示範，PyTorch 的 softmax 內部已經做了這種正規化。"
+    },
+    {
+      "start": 241.65,
+      "end": 243.93,
+      "en": "Here are the libraries that we will need.",
+      "zh": "這是需要的函式庫。"
+    },
+    {
+      "start": 244.21,
+      "end": 248.01,
+      "en": "Here I'm importing two GPT two versions.",
+      "zh": "這裡匯入兩個 GPT-2 版本，"
+    },
+    {
+      "start": 248.41,
+      "end": 250.77,
+      "en": "The small version and the large version.",
+      "zh": "small 與 large。"
+    },
+    {
+      "start": 250.89,
+      "end": 255.29,
+      "en": "Of course they all rely on the same tokenizer, so we only need that once.",
+      "zh": "都使用相同 tokenizer，所以只需要一份。"
+    },
+    {
+      "start": 255.29,
+      "end": 261.09,
+      "en": "And you can see I'm calling these variables GPT two small and large okay.",
+      "zh": "變數名稱分別是 GPT-2 small 與 large。"
+    },
+    {
+      "start": 261.13,
+      "end": 266.49,
+      "en": "In this code cell I'm just grabbing some data from the models.",
+      "zh": "這個儲存格只是從模型取一些資料。"
+    },
+    {
+      "start": 266.49,
+      "end": 270.97,
+      "en": "I don't really care what it is, it's just some random stream of text.",
+      "zh": "內容不重要，只是隨意的一段文字。"
+    },
+    {
+      "start": 270.97,
+      "end": 278.40999999999997,
+      "en": "But basically I just want a couple of tokens to be processed so I can get the logits coming out of the model.",
+      "zh": "只想處理幾個詞元，取得輸出 logits。"
+    },
+    {
+      "start": 278.93,
+      "end": 284.09000000000003,
+      "en": "By the way, I'm running this code on the CPU, not on the GPU.",
+      "zh": "順帶一提，這段在 CPU 跑，不用 GPU。"
+    },
+    {
+      "start": 284.53,
+      "end": 295.77,
+      "en": "If you're only using these models to run a little bit of a forward pass here and there, you're not really doing any really intense calculations or backprop or anything, then it's probably better just",
+      "zh": "如果只是偶爾做一點前向傳播，沒有大量計算、反向傳播等等，也許"
+    },
+    {
+      "start": 295.77,
+      "end": 297.01,
+      "en": "to stick with the CPU.",
+      "zh": "直接用 CPU 比較好。"
+    },
+    {
+      "start": 297.05,
+      "end": 301,
+      "en": "It's a little bit easier and you're not using up GPU resources.",
+      "zh": "操作稍微簡單，也不消耗 GPU 資源。"
+    },
+    {
+      "start": 301.44,
+      "end": 303.48,
+      "en": "Okay, so that didn't take too long.",
+      "zh": "好，沒有花很久。"
+    },
+    {
+      "start": 303.64,
+      "end": 308.16,
+      "en": "And now here what I'm doing is just extracting the final logit.",
+      "zh": "現在只取出最後的 logits。"
+    },
+    {
+      "start": 308.28,
+      "end": 313.72,
+      "en": "So this is one sequence which means there's a batch size of one.",
+      "zh": "只有一個序列，所以批次大小是 1。"
+    },
+    {
+      "start": 313.84,
+      "end": 319.96,
+      "en": "So this is the first element in the batch dimension which is actually the only element in the batch dimension.",
+      "zh": "取批次維度第一個元素，也就是唯一元素。"
+    },
+    {
+      "start": 320.2,
+      "end": 321.92,
+      "en": "Here actually, you know, let me do this.",
+      "zh": "其實，讓我這樣做。"
+    },
+    {
+      "start": 322.08,
+      "end": 324.64,
+      "en": "Uh, I'll just make sure this is really clear.",
+      "zh": "確保講清楚。"
+    },
+    {
+      "start": 324.68,
+      "end": 325.2,
+      "en": "Outputs.",
+      "zh": "outputs，"
+    },
+    {
+      "start": 325.2,
+      "end": 327.2,
+      "en": "Dot small dot shape.",
+      "zh": "small 的 .shape。"
+    },
+    {
+      "start": 327.4,
+      "end": 332.44,
+      "en": "Okay, so this is the oops I want, uh, dot logits dot shape.",
+      "zh": "哎，應該要 .logits.shape。"
+    },
+    {
+      "start": 332.84000000000003,
+      "end": 333.08,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 333.12,
+      "end": 343.64,
+      "en": "So we have one because there's only one sequence seven because this ended up being seven tokens and 50,000 because the vocab size is 50,000.",
+      "zh": "1 是只有一個序列；7 是這段文字剛好七個詞元；五萬是詞彙表大小。"
+    },
+    {
+      "start": 344.76,
+      "end": 345.08,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 345.12,
+      "end": 348.4,
+      "en": "So just for convenience, I'm only extracting the final token.",
+      "zh": "方便起見，只取最後一個詞元。"
+    },
+    {
+      "start": 348.4,
+      "end": 350.88,
+      "en": "We really just need some numbers to play around with.",
+      "zh": "只是需要一些數字來實驗。"
+    },
+    {
+      "start": 351.24,
+      "end": 351.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 351.56,
+      "end": 360.91,
+      "en": "And then I am plotting the logits for the small GPT, for the large GPT, and then a scatter plot of these two by each other.",
+      "zh": "接著畫 small、large 的 logits，以及兩者互相比較的散佈圖。"
+    },
+    {
+      "start": 361.07,
+      "end": 364.83,
+      "en": "Exactly the same figure that I showed in the slides a moment ago.",
+      "zh": "和剛才投影片完全相同。"
+    },
+    {
+      "start": 365.43,
+      "end": 366.59,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 366.63,
+      "end": 369.59,
+      "en": "And mainly what I want to point out here is two things.",
+      "zh": "主要想指出兩件事。"
+    },
+    {
+      "start": 369.59,
+      "end": 372.79,
+      "en": "One, that we get valid data, we get a plot.",
+      "zh": "第一，有有效資料，畫得出圖。"
+    },
+    {
+      "start": 372.79,
+      "end": 383.39,
+      "en": "So there is nothing wrong with these data at the moment that I am generating this plot, that's going to be relevant knowledge for the next plot.",
+      "zh": "所以畫這張圖時，資料沒有問題；這點對下一張圖很重要。"
+    },
+    {
+      "start": 383.91,
+      "end": 394.99,
+      "en": "And also we see that there is this huge numerical difference between the logits, the raw logits outputted from GPT two, small versus large.",
+      "zh": "另外，GPT-2 small 與 large 的原始 logits，有很大的數值差異。"
+    },
+    {
+      "start": 395.23,
+      "end": 396.35,
+      "en": "Why that happens.",
+      "zh": "為什麼會這樣？"
+    },
+    {
+      "start": 396.39,
+      "end": 400.03,
+      "en": "It's basically just has to do with normalizations and so on.",
+      "zh": "基本上與正規化等等有關。"
+    },
+    {
+      "start": 400.07,
+      "end": 401.39,
+      "en": "But that doesn't matter.",
+      "zh": "但那不重要。"
+    },
+    {
+      "start": 401.43,
+      "end": 407.31,
+      "en": "What does matter is that these numbers are smaller than these numbers, or at least more negative.",
+      "zh": "重要的是，這些值比較小，或至少更負。"
+    },
+    {
+      "start": 408.55,
+      "end": 414.95,
+      "en": "Okay, so what I do here is calculate softmax by implementing the formula directly.",
+      "zh": "這裡直接實作公式，計算 softmax。"
+    },
+    {
+      "start": 415.19,
+      "end": 416.59000000000003,
+      "en": "Super simple formula.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 416.59000000000003,
+      "end": 421.1,
+      "en": "We just take all of our data and we say E to the data values.",
+      "zh": "對所有資料取 e 的次方。"
+    },
+    {
+      "start": 421.1,
+      "end": 429.86,
+      "en": "This was Z that I showed in the formula in the slides a few moments ago, divided by the sum over E to the all of the numbers.",
+      "zh": "就是投影片公式中的 z，再除以所有數值之 e 次方的總和。"
+    },
+    {
+      "start": 430.46,
+      "end": 434.7,
+      "en": "So I do that for the small and for the large, and then I plot it again.",
+      "zh": "small 與 large 都這樣算，再畫圖。"
+    },
+    {
+      "start": 435.14,
+      "end": 438.22,
+      "en": "And then now we see something strange happening.",
+      "zh": "現在發生奇怪的事。"
+    },
+    {
+      "start": 439.1,
+      "end": 444.54,
+      "en": "And what is strange happening is that there is nothing here for GPT two small.",
+      "zh": "GPT-2 small 這裡什麼都沒有。"
+    },
+    {
+      "start": 444.78,
+      "end": 448.7,
+      "en": "We do get data for GPT two large, but not for small.",
+      "zh": "large 有資料，small 卻沒有。"
+    },
+    {
+      "start": 448.78,
+      "end": 449.62,
+      "en": "And what is going on?",
+      "zh": "怎麼回事？"
+    },
+    {
+      "start": 449.66,
+      "end": 451.58,
+      "en": "So let's look at this this variable here.",
+      "zh": "看看這個變數。"
+    },
+    {
+      "start": 451.58,
+      "end": 453.14,
+      "en": "This is the softmax.",
+      "zh": "就是 softmax，"
+    },
+    {
+      "start": 453.3,
+      "end": 454.94,
+      "en": "Manual small.",
+      "zh": "manual_small。"
+    },
+    {
+      "start": 454.94,
+      "end": 456.65999999999997,
+      "en": "That's the data that I'm trying to plot.",
+      "zh": "也就是想畫出的資料。"
+    },
+    {
+      "start": 456.65999999999997,
+      "end": 459.58,
+      "en": "Here they are all Nans.",
+      "zh": "全部是 NaN。"
+    },
+    {
+      "start": 459.78,
+      "end": 461.9,
+      "en": "Why are they all Nans.",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 462.1,
+      "end": 463.94,
+      "en": "Well again we can look at this formula.",
+      "zh": "再看看公式。"
+    },
+    {
+      "start": 463.94,
+      "end": 466.22,
+      "en": "And where do we get Nans?",
+      "zh": "哪裡會產生 NaN？"
+    },
+    {
+      "start": 466.34000000000003,
+      "end": 469.38,
+      "en": "Nans come from dividing zero by zero.",
+      "zh": "零除以零，就會產生 NaN。"
+    },
+    {
+      "start": 469.54,
+      "end": 472.3,
+      "en": "So maybe we're dividing zero by zero here.",
+      "zh": "所以也許這裡在做零除以零。"
+    },
+    {
+      "start": 472.65999999999997,
+      "end": 474.78,
+      "en": "In theory, that should not be the case.",
+      "zh": "理論上不應該，"
+    },
+    {
+      "start": 474.78,
+      "end": 476.26,
+      "en": "But maybe it is happening.",
+      "zh": "但也許真的發生了。"
+    },
+    {
+      "start": 477.40999999999997,
+      "end": 477.77,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 477.81,
+      "end": 479.33,
+      "en": "First let's have a look at.",
+      "zh": "先看這裡。"
+    },
+    {
+      "start": 479.37,
+      "end": 481.57,
+      "en": "So here I just picked some random numbers.",
+      "zh": "我隨意挑個數字。"
+    },
+    {
+      "start": 481.57,
+      "end": 483.01,
+      "en": "So 10,000.",
+      "zh": "10,000。"
+    },
+    {
+      "start": 483.05,
+      "end": 489.81,
+      "en": "And the logit for token index 10,000 is -123.",
+      "zh": "詞元索引 10,000 的 logit 是負 123。"
+    },
+    {
+      "start": 490.05,
+      "end": 492.01,
+      "en": "That's not an extreme number.",
+      "zh": "這不算極端。"
+    },
+    {
+      "start": 492.05,
+      "end": 501.41,
+      "en": "You know there's no that's you know, we're not pushing the boundaries of the computational limits of a CPU with the number one, two, three.",
+      "zh": "123 這個數字，沒有逼近 CPU 的計算極限。"
+    },
+    {
+      "start": 501.85,
+      "end": 510.57,
+      "en": "But remember that when you take the natural exponential of a negative number that goes vanishing to zero.",
+      "zh": "但記得，負數的自然指數會趨近於零。"
+    },
+    {
+      "start": 510.89,
+      "end": 515.25,
+      "en": "So in fact, this number here in theory this is not zero.",
+      "zh": "理論上這個數不是零。"
+    },
+    {
+      "start": 515.29,
+      "end": 515.57,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 515.61,
+      "end": 518.13,
+      "en": "E to the anything is never zero.",
+      "zh": "e 的任何有限次方，都不會是零。"
+    },
+    {
+      "start": 518.57,
+      "end": 525.13,
+      "en": "But this number is sufficiently small that PyTorch just considers it to be zero.",
+      "zh": "但數值小到，PyTorch 把它視為零。"
+    },
+    {
+      "start": 525.57,
+      "end": 535.97,
+      "en": "So therefore when we take E to the all of these numbers, then we get lots of zeros and then well we sum up over lots of zeros and we get zero.",
+      "zh": "所以對這些數取自然指數，得到很多零；全部加總，還是零。"
+    },
+    {
+      "start": 536.09,
+      "end": 537.96,
+      "en": "And this thing here.",
+      "zh": "這一項，"
+    },
+    {
+      "start": 538.4,
+      "end": 542.8,
+      "en": "This is exactly the denominator in softmax here.",
+      "zh": "就是 softmax 的分母。"
+    },
+    {
+      "start": 543.24,
+      "end": 546.72,
+      "en": "It looks slightly different in the code because here I'm using functions.",
+      "zh": "程式看起來稍有不同，因為這裡使用函數，"
+    },
+    {
+      "start": 546.72,
+      "end": 550.6,
+      "en": "And here I'm just calling the methods directly on this tensor.",
+      "zh": "另一邊直接呼叫張量的方法。"
+    },
+    {
+      "start": 550.6,
+      "end": 551.64,
+      "en": "But it doesn't matter.",
+      "zh": "但沒差。"
+    },
+    {
+      "start": 551.64,
+      "end": 553.72,
+      "en": "So we are dividing by zero.",
+      "zh": "因此，我們除以零。"
+    },
+    {
+      "start": 554.76,
+      "end": 562.16,
+      "en": "Now here I just want to show you that different libraries deal with these numerical issues in different ways.",
+      "zh": "這裡想展示，不同函式庫會以不同方式處理數值問題。"
+    },
+    {
+      "start": 562.4,
+      "end": 568.96,
+      "en": "So if we say so here, I'm just saying, you know, some variable equals -123.",
+      "zh": "假設某個變數等於負 123。"
+    },
+    {
+      "start": 569.36,
+      "end": 571.92,
+      "en": "In numpy I do not get zero.",
+      "zh": "NumPy 算出來不是零，"
+    },
+    {
+      "start": 571.96,
+      "end": 575.56,
+      "en": "Although this is not really distinguishable from zero.",
+      "zh": "雖然幾乎無法與零區分。"
+    },
+    {
+      "start": 575.56,
+      "end": 578.24,
+      "en": "It's ten to the -54.",
+      "zh": "是 10 的負 54 次方。"
+    },
+    {
+      "start": 578.28,
+      "end": 580.04,
+      "en": "It's a crazy tiny number.",
+      "zh": "極度微小。"
+    },
+    {
+      "start": 580.48,
+      "end": 584.44,
+      "en": "Uh, and then in PyTorch, uh, we, we actually get zero.",
+      "zh": "PyTorch 卻真的得到零。"
+    },
+    {
+      "start": 584.6,
+      "end": 585.12,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 585.2,
+      "end": 586.04,
+      "en": "But it doesn't matter.",
+      "zh": "但不重要。"
+    },
+    {
+      "start": 586.04,
+      "end": 594,
+      "en": "Even if we were running these calculations in numpy instead of in PyTorch, we would still get nonsense.",
+      "zh": "即使改用 NumPy，而不是 PyTorch，仍會得到毫無意義、"
+    },
+    {
+      "start": 594,
+      "end": 595,
+      "en": "Untrustable.",
+      "zh": "不可信的"
+    },
+    {
+      "start": 595.2,
+      "end": 596.16,
+      "en": "Uh, results.",
+      "zh": "結果。"
+    },
+    {
+      "start": 596.71,
+      "end": 604.19,
+      "en": "Okay, so now I'm applying a super duper sophisticated ultra mega fancy normalization.",
+      "zh": "好，現在使用超級精密、超級華麗的正規化。"
+    },
+    {
+      "start": 604.59,
+      "end": 605.43,
+      "en": "I'm just kidding.",
+      "zh": "開玩笑的。"
+    },
+    {
+      "start": 605.67,
+      "end": 607.87,
+      "en": "Normalization is really simple.",
+      "zh": "其實非常簡單。"
+    },
+    {
+      "start": 607.87,
+      "end": 613.79,
+      "en": "All I'm doing is taking the maximum value and subtracting it from all of the values.",
+      "zh": "只要取最大值，從全部數值減掉它。"
+    },
+    {
+      "start": 613.83,
+      "end": 615.03,
+      "en": "And what does that do?",
+      "zh": "有什麼效果？"
+    },
+    {
+      "start": 615.19,
+      "end": 624.39,
+      "en": "That just takes this entire distribution here and shifts it up such that the largest value is zero.",
+      "zh": "把整個分布往上移，讓最大值為零。"
+    },
+    {
+      "start": 624.67,
+      "end": 626.63,
+      "en": "And that you see here.",
+      "zh": "這裡看得到。"
+    },
+    {
+      "start": 626.87,
+      "end": 633.23,
+      "en": "So this plot is literally exactly the same as the plot that I just showed a moment ago.",
+      "zh": "這張圖和剛才完全一樣。"
+    },
+    {
+      "start": 633.43,
+      "end": 644.03,
+      "en": "But all of the numerical values have been shifted so that so that the largest value is zero for both GPT two small and for large.",
+      "zh": "但 small 與 large 的所有數值，都已平移，讓最大值為零。"
+    },
+    {
+      "start": 644.35,
+      "end": 648.15,
+      "en": "Of course, this relationship doesn't change the x axis values change.",
+      "zh": "當然，這個關係不變；x 軸數值會變，"
+    },
+    {
+      "start": 648.47,
+      "end": 650.11,
+      "en": "The y axis values change.",
+      "zh": "y 軸數值也會變。"
+    },
+    {
+      "start": 651.31,
+      "end": 658.26,
+      "en": "Okay, so now I am going to also repeat exactly this code up here.",
+      "zh": "好的，接著重複上面完全相同的程式。"
+    },
+    {
+      "start": 658.26,
+      "end": 661.42,
+      "en": "So this code that created this figure that was problematic.",
+      "zh": "也就是產生出問題那張圖的程式。"
+    },
+    {
+      "start": 661.58,
+      "end": 664.9,
+      "en": "And now I am recreating this literally copy pasted.",
+      "zh": "現在直接複製貼上。"
+    },
+    {
+      "start": 664.9,
+      "end": 675.54,
+      "en": "The only thing I did was change the variable names to have norm and this capital n here, instead of the raw logits that I got out.",
+      "zh": "唯一改動，是變數名稱加上 norm 與大寫 N，不再使用原始 logits。"
+    },
+    {
+      "start": 675.94,
+      "end": 677.26,
+      "en": "And now there's no problem.",
+      "zh": "現在沒問題了。"
+    },
+    {
+      "start": 677.26,
+      "end": 678.9,
+      "en": "Now we get valid results.",
+      "zh": "得到有效結果。"
+    },
+    {
+      "start": 678.9,
+      "end": 686.1,
+      "en": "In both cases it's kind of hard to visualize because basically, I don't know if you can see this on",
+      "zh": "這兩張不太好看清楚，不知道你的"
+    },
+    {
+      "start": 686.34,
+      "end": 692.58,
+      "en": "your computer screen that you're watching this video on, but if you run this Python code, you will be able to see this.",
+      "zh": "螢幕是否看得到，但自己執行 Python 程式就看得到。"
+    },
+    {
+      "start": 692.58,
+      "end": 694.94,
+      "en": "There's one tiny dot over here.",
+      "zh": "這裡有一個小點。"
+    },
+    {
+      "start": 695.26,
+      "end": 701.58,
+      "en": "Uh, and that is basically the model's prediction of what token should come next.",
+      "zh": "基本上，就是模型預測的下一個詞元。"
+    },
+    {
+      "start": 701.86,
+      "end": 707.3,
+      "en": "So a softmax probability, all of these numbers have been squashed down to zero.",
+      "zh": "經過 softmax，其他這些數字都被壓到零附近。"
+    },
+    {
+      "start": 707.62,
+      "end": 710.54,
+      "en": "And there's one data point that is all the way up there.",
+      "zh": "只有一個資料點高高在上。"
+    },
+    {
+      "start": 710.54,
+      "end": 719.14,
+      "en": "We should be able to see that, uh, up here, when we look at the raw logits, it's this value over here in GPT large.",
+      "zh": "看原始 logits，應該能在上面 GPT large 的這個值看到。"
+    },
+    {
+      "start": 719.18,
+      "end": 721.66,
+      "en": "It has a value of somewhere around ten.",
+      "zh": "大約是 10。"
+    },
+    {
+      "start": 721.7,
+      "end": 723.3,
+      "en": "A logit of somewhere around ten.",
+      "zh": "logit 大約 10。"
+    },
+    {
+      "start": 723.78,
+      "end": 733.86,
+      "en": "And the softmax is basically going to take the rest of this distribution and squash it down so that it's not exactly zero, but very small, very close to zero.",
+      "zh": "softmax 基本上把其他分布壓小，不是精確為零，而是很小、接近零。"
+    },
+    {
+      "start": 734.14,
+      "end": 734.42,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 734.46,
+      "end": 737.06,
+      "en": "So that you see here that you see here okay.",
+      "zh": "這裡、這裡都看得到。"
+    },
+    {
+      "start": 737.1,
+      "end": 741.14,
+      "en": "But the point is we do get right like valid numbers.",
+      "zh": "但重點是，得到有效數字。"
+    },
+    {
+      "start": 741.14,
+      "end": 746.98,
+      "en": "Now just from applying this very simple normalization where we shift the values.",
+      "zh": "只需要這種簡單平移正規化。"
+    },
+    {
+      "start": 746.98,
+      "end": 754.06,
+      "en": "And the point of shifting the values is just so that the numerical range is a little bit larger.",
+      "zh": "平移的目的，是讓數值範圍稍微大一點。"
+    },
+    {
+      "start": 754.18,
+      "end": 757.46,
+      "en": "So now I can run this code again.",
+      "zh": "現在再執行這段。"
+    },
+    {
+      "start": 757.46,
+      "end": 761.86,
+      "en": "Let me go back up here and we can look at let's see.",
+      "zh": "回上面看看。"
+    },
+    {
+      "start": 761.9,
+      "end": 765.1,
+      "en": "So now this was called oh no it was called like this.",
+      "zh": "這個叫，喔不，是這個名稱。"
+    },
+    {
+      "start": 765.14,
+      "end": 765.34,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 765.34,
+      "end": 767.42,
+      "en": "This is just to show you we get valid numbers.",
+      "zh": "只是確認，會得到有效數字。"
+    },
+    {
+      "start": 767.54,
+      "end": 769.38,
+      "en": "And here let me see.",
+      "zh": "這裡看看。"
+    },
+    {
+      "start": 769.38,
+      "end": 772.94,
+      "en": "So now remember from the original data that was zero.",
+      "zh": "記得，原始資料算出來是零。"
+    },
+    {
+      "start": 773.18,
+      "end": 775.45,
+      "en": "And now with these data it is.",
+      "zh": "現在換這組資料，"
+    },
+    {
+      "start": 775.49,
+      "end": 778.53,
+      "en": "It was this variable, uh, zero.",
+      "zh": "是這個變數的第 0 個值。"
+    },
+    {
+      "start": 778.57,
+      "end": 779.89,
+      "en": "That one came from here.",
+      "zh": "它來自這裡。"
+    },
+    {
+      "start": 780.17,
+      "end": 783.53,
+      "en": "Okay, so now we have a value of -16.",
+      "zh": "好的，現在值是負 16。"
+    },
+    {
+      "start": 784.05,
+      "end": 789.77,
+      "en": "And then when we exponentiate that, we get still a small number, but definitely non-zero.",
+      "zh": "取自然指數後，仍然很小，但肯定不是零。"
+    },
+    {
+      "start": 790.69,
+      "end": 791.01,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 791.05,
+      "end": 791.73,
+      "en": "Very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 791.81,
+      "end": 798.21,
+      "en": "So then the last thing I want to discuss is pytorch's softmax function.",
+      "zh": "最後談 PyTorch 的 softmax 函數。"
+    },
+    {
+      "start": 798.53,
+      "end": 803.13,
+      "en": "So softmax and then I'm inputting not the normalized values.",
+      "zh": "呼叫 softmax，輸入的不是正規化後的值。"
+    },
+    {
+      "start": 803.13,
+      "end": 805.13,
+      "en": "Those were called like this.",
+      "zh": "那些叫這個名稱。"
+    },
+    {
+      "start": 805.13,
+      "end": 809.89,
+      "en": "But instead just the raw output logits from the two models.",
+      "zh": "而是兩個模型的原始輸出 logits。"
+    },
+    {
+      "start": 809.89,
+      "end": 817.69,
+      "en": "These are exactly the same data that were problematic for us before when manually calculating the softmax.",
+      "zh": "正是之前手動計算 softmax 時出問題的資料。"
+    },
+    {
+      "start": 817.97,
+      "end": 821.33,
+      "en": "And now we find that we get normal values here.",
+      "zh": "現在卻得到正常值。"
+    },
+    {
+      "start": 821.61,
+      "end": 824.41,
+      "en": "And again you see these normal values.",
+      "zh": "這裡也能看到正常數值。"
+    },
+    {
+      "start": 824.45,
+      "end": 832.77,
+      "en": "Now the softmax documentation does not clearly state that they impose this kind of normalization.",
+      "zh": "softmax 文件沒有清楚說明，會做這種正規化。"
+    },
+    {
+      "start": 832.77,
+      "end": 835.32,
+      "en": "But you do see fairly often in PyTorch.",
+      "zh": "但 PyTorch 常常會在"
+    },
+    {
+      "start": 835.36,
+      "end": 837.84,
+      "en": "Functions that they have built in.",
+      "zh": "內建函數裡，"
+    },
+    {
+      "start": 837.88,
+      "end": 840.88,
+      "en": "Mechanisms to deal with the possibility.",
+      "zh": "加入機制，處理"
+    },
+    {
+      "start": 840.88,
+      "end": 844.32,
+      "en": "The risk of numerical instabilities.",
+      "zh": "數值不穩定的風險。"
+    },
+    {
+      "start": 844.68,
+      "end": 852.4,
+      "en": "But you do see here that they write rescale so that the elements lie in the range of 0 to 1 and sum to one.",
+      "zh": "這裡有寫，重新縮放，讓元素在 0 到 1 之間，總和為 1。"
+    },
+    {
+      "start": 852.4,
+      "end": 862.04,
+      "en": "So basically they are adding a couple of normalization factors to guarantee or to ensure that the output really is a probability distribution.",
+      "zh": "基本上，加入一些正規化因子，確保輸出真的是機率分布。"
+    },
+    {
+      "start": 862.92,
+      "end": 865.56,
+      "en": "I hope you found this video insightful.",
+      "zh": "希望這支影片有啟發。"
+    },
+    {
+      "start": 865.92,
+      "end": 872.52,
+      "en": "I don't want you to think that you should never calculate softmax by implementing the formula directly.",
+      "zh": "不是要你認為，永遠不能直接實作公式計算 softmax。"
+    },
+    {
+      "start": 873,
+      "end": 878.36,
+      "en": "Very, very often that is a completely fine and safe thing to do.",
+      "zh": "很多時候，那樣完全沒問題，也很安全。"
+    },
+    {
+      "start": 878.96,
+      "end": 889.68,
+      "en": "But there are considerations when working with extremely large models that you basically never have to think about when working with smaller models.",
+      "zh": "但處理超大型模型時，有些考量，在小模型中幾乎不會想到。"
+    },
+    {
+      "start": 889.84,
+      "end": 893.84,
+      "en": "And in this video, I highlighted one example of that.",
+      "zh": "這支影片就凸顯了其中一例。"
+    }
+  ]
+}

@@ -1,0 +1,2239 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840067",
+  "title": "Model 1: Embedding (input) and unembedding (output)",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d42e048ac26728c803eb33038e0683ec52a34c1ac96f8f2a437c1a8e1dc06770",
+  "cues": [
+    {
+      "start": 2.04,
+      "end": 9,
+      "en": "I hope that I convinced you in the previous video that you should not be building your own language models from scratch.",
+      "zh": "希望上一支影片，已說服你，不該從零建立自己的語言模型。"
+    },
+    {
+      "start": 9.76,
+      "end": 14.8,
+      "en": "And with that said, now it's time to start building our own language models from scratch.",
+      "zh": "話雖如此，現在開始從零建立自己的語言模型。"
+    },
+    {
+      "start": 15.48,
+      "end": 21.92,
+      "en": "I will first say a few general words about what's going to happen in the rest of this section, and",
+      "zh": "先簡單說明，這一章接下來會做什麼，"
+    },
+    {
+      "start": 21.92,
+      "end": 30.24,
+      "en": "then I will introduce you to what I'm here calling model one, which is the simplest language model that is useful to start with.",
+      "zh": "再介紹這裡稱為模型一的東西，也就是適合當起點的最簡單語言模型。"
+    },
+    {
+      "start": 30.52,
+      "end": 37,
+      "en": "It's actually not much different from the embeddings and embeddings model from the previous section.",
+      "zh": "它和上一章的嵌入、反嵌入模型，其實差不多。"
+    },
+    {
+      "start": 37.56,
+      "end": 43.36,
+      "en": "The final result of this section will be the GPT two model from scratch.",
+      "zh": "這一章最後，會從零建立 GPT-2。"
+    },
+    {
+      "start": 43.84,
+      "end": 52.36,
+      "en": "Now, I used the word small here because there are multiple GPT two models that vary in size and number",
+      "zh": "這裡特別寫 small，因為 GPT-2 有不同大小、不同參數數量的版本，"
+    },
+    {
+      "start": 52.36,
+      "end": 56.72,
+      "en": "of parameters, although they're all architecturally basically the same.",
+      "zh": "但架構基本相同。"
+    },
+    {
+      "start": 57.28,
+      "end": 64.26,
+      "en": "So we will explore some other GPT two variants later in the course, but here we focus on the small version.",
+      "zh": "課程稍後會探索其他版本，這裡先專注小型版。"
+    },
+    {
+      "start": 64.78,
+      "end": 72.5,
+      "en": "Now, the model that we will construct by the end of this section is going to match the OpenAI GPT two model.",
+      "zh": "本章最後建立的模型，會與 OpenAI GPT-2 對應。"
+    },
+    {
+      "start": 72.94,
+      "end": 79.86,
+      "en": "But the focus here will be on the details of putting the model together and how it works algorithmically.",
+      "zh": "但重點是，組合模型的細節，以及演算法如何運作。"
+    },
+    {
+      "start": 80.18,
+      "end": 85.66,
+      "en": "We're not going to do any training in this section, so the weights will be completely random.",
+      "zh": "這章不訓練，權重完全隨機。"
+    },
+    {
+      "start": 85.66,
+      "end": 94.22,
+      "en": "And we're not going to expect any like sensible interpretable model outputs as long as we don't get any error messages.",
+      "zh": "不預期輸出有意義、可解讀，只要沒有錯誤訊息即可。"
+    },
+    {
+      "start": 94.9,
+      "end": 98.97999999999999,
+      "en": "So yeah, we focus on architecture and implementations.",
+      "zh": "所以，專注架構與實作。"
+    },
+    {
+      "start": 99.53999999999999,
+      "end": 107.02000000000001,
+      "en": "Now if you look through the titles of this section, you will see that there are five models that we are building.",
+      "zh": "看看這一章標題，會發現要建五個模型。"
+    },
+    {
+      "start": 107.38,
+      "end": 117.78,
+      "en": "These are all related models in the sense that each subsequent model is just taking the previous model and building it up by adding a couple of related components to it.",
+      "zh": "它們彼此相關，每個後續模型，都在前一個基礎上，加入幾個相關組件。"
+    },
+    {
+      "start": 118.78999999999999,
+      "end": 122.23,
+      "en": "So in this video our model will look like this.",
+      "zh": "這支影片的模型，像這樣。"
+    },
+    {
+      "start": 122.55,
+      "end": 130.23,
+      "en": "Now this really is the architecture of GPT, although we are missing the transformer modules in the middle.",
+      "zh": "這確實是 GPT 的基本架構，只是中間缺了 Transformer 模組。"
+    },
+    {
+      "start": 130.55,
+      "end": 135.15,
+      "en": "So we go from text to tokens to embeddings.",
+      "zh": "從文字到 token，再到嵌入，"
+    },
+    {
+      "start": 135.15,
+      "end": 137.23,
+      "en": "Then we have a non-linearity.",
+      "zh": "經過非線性，"
+    },
+    {
+      "start": 137.59,
+      "end": 141.51,
+      "en": "And then on embeddings back to tokens and then back to text.",
+      "zh": "再反嵌入回 token，最後回文字。"
+    },
+    {
+      "start": 141.87,
+      "end": 146.87,
+      "en": "Now fortunately most of this stuff you've already seen in the previous section.",
+      "zh": "幸好，大部分已在上一章看過。"
+    },
+    {
+      "start": 147.11,
+      "end": 153.07,
+      "en": "So here I will focus more on the mechanism of selecting and generating text.",
+      "zh": "這裡會更專注文字選擇與生成的機制。"
+    },
+    {
+      "start": 153.35,
+      "end": 161.67000000000002,
+      "en": "By the way, this kind of a model with no attention or MLP layers in the middle is often called a zero layer transformer.",
+      "zh": "中間沒有注意力或 MLP 層的模型，常叫零層 Transformer。"
+    },
+    {
+      "start": 162.51,
+      "end": 171.07,
+      "en": "Okay, here you see a very simple flowchart diagram of what happens to token embeddings as they pass through a model.",
+      "zh": "這張簡單流程圖，說明 token 嵌入通過模型時，發生什麼。"
+    },
+    {
+      "start": 171.39,
+      "end": 178.45,
+      "en": "So we start with the inputs to the model and we input into the model a vector of tokens.",
+      "zh": "從模型輸入開始，輸入 token 向量。"
+    },
+    {
+      "start": 178.61,
+      "end": 180.49,
+      "en": "So imagine this is a vector.",
+      "zh": "想像這是向量，"
+    },
+    {
+      "start": 180.49,
+      "end": 183.93,
+      "en": "And these are integer tokens taken from some piece of text.",
+      "zh": "裡面是某段文字取得的整數 token。"
+    },
+    {
+      "start": 184.97,
+      "end": 190.13,
+      "en": "Now there might be batches in here as well, but we will ignore batches for the moment.",
+      "zh": "可能還有批次，但暫時忽略。"
+    },
+    {
+      "start": 190.57,
+      "end": 193.93,
+      "en": "So the model process is those tokens.",
+      "zh": "模型處理 token，"
+    },
+    {
+      "start": 194.09,
+      "end": 197.01,
+      "en": "And that's the feed forward sweep of the model.",
+      "zh": "也就是前向傳遞。"
+    },
+    {
+      "start": 197.65,
+      "end": 201.57,
+      "en": "Now for now it's just the embeddings to the embeddings.",
+      "zh": "目前，只從嵌入到反嵌入，"
+    },
+    {
+      "start": 201.57,
+      "end": 211.29,
+      "en": "But in the future this step will also include transformer blocks, attention mechanisms, MLP sublayers, residual connections, and so on.",
+      "zh": "之後會加入 Transformer 區塊、注意力、MLP 子層、殘差連接等等。"
+    },
+    {
+      "start": 211.57,
+      "end": 216.57,
+      "en": "So anyway, the output of the model is tokens by vocab size.",
+      "zh": "模型輸出大小，是 token 數乘以詞彙表大小。"
+    },
+    {
+      "start": 217.13,
+      "end": 222.01,
+      "en": "In this video we are going to use the GPT four tokenizer.",
+      "zh": "這支影片，使用 GPT-4 tokenizer。"
+    },
+    {
+      "start": 222.32999999999998,
+      "end": 230.61,
+      "en": "So let's say that there are ten tokens in the text that we input and 100,000 tokens in the vocab.",
+      "zh": "假設輸入文字有十個 token，詞彙表有十萬個。"
+    },
+    {
+      "start": 230.89,
+      "end": 234.81,
+      "en": "So this is the feed forward sweep of the model.",
+      "zh": "這是前向傳遞，"
+    },
+    {
+      "start": 234.99,
+      "end": 244.63,
+      "en": "You put the tokens in feedforward process, and the result is a set of logits, which will then be converted into probabilities.",
+      "zh": "輸入 token，前向處理，得到一組 logits，再轉成機率。"
+    },
+    {
+      "start": 245.03,
+      "end": 248.11,
+      "en": "Okay, so now let's say we want a new token.",
+      "zh": "假設想要新 token，"
+    },
+    {
+      "start": 248.23,
+      "end": 252.23,
+      "en": "We want an 11th token after we put in ten tokens.",
+      "zh": "輸入十個後，再要第十一個。"
+    },
+    {
+      "start": 252.83,
+      "end": 262.15,
+      "en": "So that next token is generated by the model taking the last token from the output from the model output.",
+      "zh": "模型從輸出取出最後一個 token 的結果，產生下一個。"
+    },
+    {
+      "start": 262.47,
+      "end": 272.83,
+      "en": "And then it applies softmax to convert the raw model output numbers, which are called logits, into a probability distribution.",
+      "zh": "再用 softmax，把原始輸出，也就是 logits，轉成機率分布。"
+    },
+    {
+      "start": 273.63,
+      "end": 277.39,
+      "en": "Now that softmax is done over the entire vocab.",
+      "zh": "softmax 涵蓋整個詞彙表，"
+    },
+    {
+      "start": 277.39,
+      "end": 285.19,
+      "en": "So we get one probability value for each token in the vocab, and all of those probabilities sum to one.",
+      "zh": "每個 token 都有一個機率，全部加總為 1。"
+    },
+    {
+      "start": 285.79,
+      "end": 288.51,
+      "en": "Then we select one of those tokens.",
+      "zh": "再選其中一個 token。"
+    },
+    {
+      "start": 288.67,
+      "end": 295.72,
+      "en": "We can select just the top one or whichever tokens are more probable or some random selection.",
+      "zh": "可以選最大，或較可能的 token，或隨機抽樣，"
+    },
+    {
+      "start": 295.72,
+      "end": 297.8,
+      "en": "I'll talk more about that later.",
+      "zh": "稍後會詳細談。"
+    },
+    {
+      "start": 297.8,
+      "end": 309.28,
+      "en": "But once we select one out of the 100,000 tokens, then that token gets concatenated onto the list of tokens that we initially started with.",
+      "zh": "選出十萬個 token 中的一個後，就接到最初的 token 串列末端。"
+    },
+    {
+      "start": 309.72,
+      "end": 317.64,
+      "en": "So looking over this whole diagram, we start from a list of ten tokens and we end up with 11 tokens.",
+      "zh": "看整張圖，從十個 token 開始，最後有十一個。"
+    },
+    {
+      "start": 318.08,
+      "end": 323.88,
+      "en": "So these ten tokens up here are exactly the same as what we inputted to the model.",
+      "zh": "這上方十個，和原先輸入完全相同，"
+    },
+    {
+      "start": 324.28,
+      "end": 330.24,
+      "en": "And this final token is selected from the model to be the most relevant next token.",
+      "zh": "最後一個，則是模型選出的最相關下一 token。"
+    },
+    {
+      "start": 331.4,
+      "end": 337,
+      "en": "Now why do these models use only the last token to predict the next one?",
+      "zh": "為什麼模型只用最後一個，預測下一個？"
+    },
+    {
+      "start": 337.24,
+      "end": 340.28,
+      "en": "It might sound strange when you first hear that statement.",
+      "zh": "第一次聽，可能覺得奇怪。"
+    },
+    {
+      "start": 340.28,
+      "end": 343.6,
+      "en": "I remember being confused when I first heard it as well.",
+      "zh": "我第一次聽，也很困惑。"
+    },
+    {
+      "start": 344.52,
+      "end": 346.88,
+      "en": "It turns out that that's really not true at all.",
+      "zh": "其實，並不是如此。"
+    },
+    {
+      "start": 346.92,
+      "end": 351.04,
+      "en": "The model does not just use the last token to create the next one.",
+      "zh": "模型不只是用最後一個 token，建立下一個。"
+    },
+    {
+      "start": 351.48,
+      "end": 353.02,
+      "en": "Let me now explain why.",
+      "zh": "解釋一下。"
+    },
+    {
+      "start": 353.65999999999997,
+      "end": 356.02,
+      "en": "Let's imagine this sentence here.",
+      "zh": "想像這個句子："
+    },
+    {
+      "start": 356.02,
+      "end": 358.78,
+      "en": "So I prefer oat milk in blank.",
+      "zh": "I prefer oat milk in，後面留空。"
+    },
+    {
+      "start": 359.3,
+      "end": 367.3,
+      "en": "The goal for the model will be to take these first five words and predict what word should go in the blank here.",
+      "zh": "模型要取前五個字，預測空格該放什麼。"
+    },
+    {
+      "start": 367.94,
+      "end": 372.3,
+      "en": "Now when the model processes is the first word I.",
+      "zh": "處理第一個字 I 時，"
+    },
+    {
+      "start": 372.86,
+      "end": 381.54,
+      "en": "It doesn't have any context, so it's going to have a really hard time making an accurate prediction of what the next word will be.",
+      "zh": "沒有上下文，很難準確預測下一個字。"
+    },
+    {
+      "start": 382.06,
+      "end": 383.3,
+      "en": "It's still going to try.",
+      "zh": "仍然會試，"
+    },
+    {
+      "start": 383.34,
+      "end": 390.38,
+      "en": "Of course, it's going to use the information in the token embeddings vector to make a prediction about the next word.",
+      "zh": "會用 token 嵌入向量中的資訊預測。"
+    },
+    {
+      "start": 390.78,
+      "end": 397.06,
+      "en": "But yeah, there's like thousands of words that could conceivably come after the word I or the token I.",
+      "zh": "但 I 這個字、這個 token 後，可能接幾千種字。"
+    },
+    {
+      "start": 397.86,
+      "end": 402.74,
+      "en": "But now it's processed the first two tokens so I prefer.",
+      "zh": "接著，已處理前兩個 token：I prefer。"
+    },
+    {
+      "start": 403.26,
+      "end": 407.65999999999997,
+      "en": "So now the model is again trying to predict what the next word could be.",
+      "zh": "模型再次預測下一個字。"
+    },
+    {
+      "start": 408.7,
+      "end": 413.15999999999997,
+      "en": "Now we still have lots of Of possibilities for what the word could come after.",
+      "zh": "prefer 後仍有許多"
+    },
+    {
+      "start": 413.52,
+      "end": 419.68,
+      "en": "Uh, prefer, but I prefer is narrowing down the search space.",
+      "zh": "可能，但 I prefer 已縮小搜尋範圍。"
+    },
+    {
+      "start": 420.28,
+      "end": 424.92,
+      "en": "So there might be tens of thousands of tokens that could come after I.",
+      "zh": "I 後可能有數萬個 token，"
+    },
+    {
+      "start": 425.52,
+      "end": 431.2,
+      "en": "And maybe there's only a few thousand tokens that could conceivably come after I prefer.",
+      "zh": "I prefer 後，也許只剩幾千個。"
+    },
+    {
+      "start": 431.76,
+      "end": 438.56,
+      "en": "So the model is not just using the word prefer to predict the next word is using the word prefer, and",
+      "zh": "所以，不只是用 prefer，還用"
+    },
+    {
+      "start": 438.56,
+      "end": 445.2,
+      "en": "also what it learned from the word I and the combination of I and prefer.",
+      "zh": "從 I，以及 I 與 prefer 組合學到的資訊，預測下一個字。"
+    },
+    {
+      "start": 446.04,
+      "end": 454.8,
+      "en": "Now the model is processing the word or the token oat, and again it has to make a prediction about what word comes next.",
+      "zh": "現在處理 oat 這個字、這個 token，再預測下一個。"
+    },
+    {
+      "start": 454.92,
+      "end": 461.6,
+      "en": "And again, it's not just predicting the next word based on this token oked it is incorporating what",
+      "zh": "同樣，不只根據 oat，還納入"
+    },
+    {
+      "start": 461.6,
+      "end": 468.56,
+      "en": "it has learned about this context or these other two words here in combination with the embeddings for Oat.",
+      "zh": "上下文，或這兩個字的資訊，與 oat 嵌入結合。"
+    },
+    {
+      "start": 468.72,
+      "end": 473.81,
+      "en": "And then it will use that to try to predict the next token.",
+      "zh": "再用來預測下一 token。"
+    },
+    {
+      "start": 474.61,
+      "end": 482.65,
+      "en": "So now the total search space of tokens that can reasonably follow I prefer Oat is maybe some hundreds.",
+      "zh": "因此，I prefer oat 後，合理的 token 可能只剩幾百種。"
+    },
+    {
+      "start": 483.01,
+      "end": 483.37,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 483.41,
+      "end": 489.85,
+      "en": "So we've gotten down from tens of thousands of possibilities to maybe a couple hundred okay.",
+      "zh": "從數萬種，縮小到幾百種。"
+    },
+    {
+      "start": 489.89,
+      "end": 491.81,
+      "en": "I think you're starting to get the idea.",
+      "zh": "我想，你開始理解了。"
+    },
+    {
+      "start": 492.05,
+      "end": 499.77,
+      "en": "So it is kind of true that the model extracts the final token to predict the next token, but it is",
+      "zh": "某種意義上，模型確實擷取最後一個 token，預測下一個，"
+    },
+    {
+      "start": 499.77,
+      "end": 505.41,
+      "en": "not the case that the model is only using that token in all of these steps.",
+      "zh": "但不代表所有步驟，都只使用那一個 token。"
+    },
+    {
+      "start": 505.57,
+      "end": 512.93,
+      "en": "Every one of these token embeddings vectors has been scaled and stretched and added and subtracted to",
+      "zh": "每個 token 嵌入向量，都經過縮放、拉伸，以及與"
+    },
+    {
+      "start": 512.97,
+      "end": 524.29,
+      "en": "each of the other tokens in the sequence, so that by the time we get to this final token, the word in this is not just the embedding for the word in.",
+      "zh": "序列中其他 token 相加相減，所以，最後的 in，不再只是 in 的嵌入。"
+    },
+    {
+      "start": 524.29,
+      "end": 532.95,
+      "en": "This is the combined embeddings of all the words that preceded it in the context, so does the model.",
+      "zh": "而是前面所有上下文單字的綜合嵌入。所以，模型是否"
+    },
+    {
+      "start": 533.03,
+      "end": 536.19,
+      "en": "Only the final token to generate a new one.",
+      "zh": "只用最後一個 token 產生新的？"
+    },
+    {
+      "start": 536.23,
+      "end": 537.39,
+      "en": "The answer is no.",
+      "zh": "答案是否定，"
+    },
+    {
+      "start": 537.43,
+      "end": 539.07,
+      "en": "It absolutely does not.",
+      "zh": "絕對不是。"
+    },
+    {
+      "start": 539.11,
+      "end": 547.79,
+      "en": "In fact, it uses all of the tokens, and all of the information from all of these tokens is loaded onto the final token.",
+      "zh": "它使用全部 token，而所有 token 的資訊，都載入最後一個。"
+    },
+    {
+      "start": 548.43,
+      "end": 550.71,
+      "en": "Okay, in a moment I'm going to switch to code.",
+      "zh": "稍後切換到程式。"
+    },
+    {
+      "start": 550.71,
+      "end": 554.59,
+      "en": "So here is an overview of what we will do in the code demo.",
+      "zh": "先概覽示範內容。"
+    },
+    {
+      "start": 555.27,
+      "end": 560.39,
+      "en": "We start by importing and tokenizing the Time Machine book.",
+      "zh": "匯入《時間機器》並斷詞。"
+    },
+    {
+      "start": 560.87,
+      "end": 567.03,
+      "en": "Then we will create a set to pluck out token sequences that will look like this.",
+      "zh": "再建立資料集，擷取 token 序列，像這樣。"
+    },
+    {
+      "start": 567.23,
+      "end": 571.55,
+      "en": "And you should recognize this class from the previous section.",
+      "zh": "應該認得這個類別，上一章看過。"
+    },
+    {
+      "start": 571.95,
+      "end": 578.91,
+      "en": "Now as we get deeper into building up the models, I'm going to start making the data selection simpler.",
+      "zh": "隨著模型越建越深，會讓資料選取更簡單。"
+    },
+    {
+      "start": 579.39,
+      "end": 585.03,
+      "en": "But for now, I want to keep using this more kind of sophisticated and rigorous method.",
+      "zh": "但目前，繼續用較完整、嚴謹的方法。"
+    },
+    {
+      "start": 585.75,
+      "end": 591.77,
+      "en": "Then we will create another class that corresponds to the language model that we will build.",
+      "zh": "再建立另一個類別，對應要建的語言模型。"
+    },
+    {
+      "start": 591.89,
+      "end": 602.85,
+      "en": "You can see here that this model contains only two layers, an embedding layer and a non-linearity in between, and then a final linear layer.",
+      "zh": "它只有兩層：嵌入層、中間非線性，最後線性層。"
+    },
+    {
+      "start": 602.97,
+      "end": 605.77,
+      "en": "So this is called the feed forward sweep.",
+      "zh": "這就是前向傳遞。"
+    },
+    {
+      "start": 605.77,
+      "end": 608.81,
+      "en": "Here the forward method we get the tokens.",
+      "zh": "forward 方法裡，取得 token，"
+    },
+    {
+      "start": 608.81,
+      "end": 610.01,
+      "en": "We embed them.",
+      "zh": "嵌入，"
+    },
+    {
+      "start": 610.17,
+      "end": 617.01,
+      "en": "We pass it through a non-linear activation function which I will talk more about in a later video.",
+      "zh": "經過非線性活化，後面會詳細談，"
+    },
+    {
+      "start": 617.25,
+      "end": 620.37,
+      "en": "And then we pass that through here I'm calling this the final layer.",
+      "zh": "再通過這裡稱為 final layer 的層。"
+    },
+    {
+      "start": 620.41,
+      "end": 622.97,
+      "en": "This is also called the embeddings layer.",
+      "zh": "也叫反嵌入層，"
+    },
+    {
+      "start": 623.13,
+      "end": 626.93,
+      "en": "This gets us back into the vocab space.",
+      "zh": "把結果帶回詞彙表空間。"
+    },
+    {
+      "start": 627.53,
+      "end": 629.93,
+      "en": "Now this here what you see in this screenshot.",
+      "zh": "截圖中，"
+    },
+    {
+      "start": 629.93,
+      "end": 632.85,
+      "en": "This is not the entire class definition.",
+      "zh": "不是完整的類別定義。"
+    },
+    {
+      "start": 632.85,
+      "end": 636.77,
+      "en": "There's another method under here which is now shown here.",
+      "zh": "下方還有另一個方法，現在展示在這裡，"
+    },
+    {
+      "start": 636.77,
+      "end": 639.73,
+      "en": "So this is for token generation.",
+      "zh": "用於 token 生成。"
+    },
+    {
+      "start": 640.05,
+      "end": 646.9,
+      "en": "So you can see that what we are doing here is pushing the tokens Scans through the feed forward sweep",
+      "zh": "把 token 送進模型的前向"
+    },
+    {
+      "start": 646.9,
+      "end": 656.74,
+      "en": "of the model, extracting the logits of the final token, applying softmax to that final token, selecting",
+      "zh": "傳遞，擷取最後一個 token 的 logits，做 softmax，再依機率"
+    },
+    {
+      "start": 656.74,
+      "end": 663.94,
+      "en": "one probabilistically, and then concatenating that new token onto the existing tokens.",
+      "zh": "選一個，接到既有 token 末端。"
+    },
+    {
+      "start": 664.14,
+      "end": 672.06,
+      "en": "Then we stay inside this little for loop here for however many new tokens we would like the model to generate.",
+      "zh": "在這個 for 迴圈內重複，直到產生想要數量的新 token。"
+    },
+    {
+      "start": 672.66,
+      "end": 680.74,
+      "en": "Here you see an example of generating five texts that all start from exactly the same input.",
+      "zh": "這裡，產生五段文字，都從完全相同輸入開始。"
+    },
+    {
+      "start": 680.86,
+      "end": 687.14,
+      "en": "So in all five of these calls to the model generation, the first couple of tokens are the same.",
+      "zh": "五次呼叫生成，前幾個 token 都相同，"
+    },
+    {
+      "start": 687.46,
+      "end": 689.34,
+      "en": "And then after that it's different.",
+      "zh": "後面就不同。"
+    },
+    {
+      "start": 689.7,
+      "end": 692.02,
+      "en": "Of course these are random weights in the model.",
+      "zh": "當然，模型權重隨機，"
+    },
+    {
+      "start": 692.02,
+      "end": 693.34,
+      "en": "So it's all junk here.",
+      "zh": "所以全是無意義內容。"
+    },
+    {
+      "start": 693.54,
+      "end": 701.78,
+      "en": "But the point is to see the mechanisms of token generation and that new tokens are stochastically generated.",
+      "zh": "但重點是，看 token 生成機制，以及新 token 如何隨機產生。"
+    },
+    {
+      "start": 702.42,
+      "end": 706.52,
+      "en": "So here I import some typical libraries PyTorch stuff.",
+      "zh": "匯入常見函式庫與 PyTorch 工具。"
+    },
+    {
+      "start": 706.52,
+      "end": 713.52,
+      "en": "Here is where I'm importing the GPT four tokenizer as you've seen in the previous section.",
+      "zh": "這裡匯入 GPT-4 tokenizer，上一章看過。"
+    },
+    {
+      "start": 714.2,
+      "end": 718.04,
+      "en": "Here I'm specifying some hyper parameters of the model.",
+      "zh": "指定模型超參數。"
+    },
+    {
+      "start": 718.08,
+      "end": 725.32,
+      "en": "Now some of these you have seen before in the previous section, like the embedding dimension, we are",
+      "zh": "有些上一章看過，例如嵌入維度；"
+    },
+    {
+      "start": 725.32,
+      "end": 736.88,
+      "en": "using an embeddings dimension of 64 here, which is very small, but it's good because it just makes the model small and compact, which helps us focus on other aspects of the model.",
+      "zh": "這裡用 64，非常小，但讓模型精簡，幫助專注其他部分。"
+    },
+    {
+      "start": 737.48,
+      "end": 739.16,
+      "en": "Here is sequence length.",
+      "zh": "這是序列長度，"
+    },
+    {
+      "start": 739.16,
+      "end": 746.24,
+      "en": "This is the number of tokens that a model can take in as input within one run.",
+      "zh": "模型單次執行，可接受的輸入 token 數。"
+    },
+    {
+      "start": 746.24,
+      "end": 753.36,
+      "en": "So one feed forward sweep a sequence length of eight is also ludicrously tiny.",
+      "zh": "一次前向傳遞，長度 8，也小得離譜。"
+    },
+    {
+      "start": 753.4,
+      "end": 761.64,
+      "en": "If this were a real language model, we could not get really much of any useful information, uh, with a sequence length of eight.",
+      "zh": "若是真正語言模型，長度 8，得不到太多有用資訊。"
+    },
+    {
+      "start": 761.74,
+      "end": 768.02,
+      "en": "Nonetheless, what a sequence length of eight will do is allow us to literally print out all of the",
+      "zh": "不過，長度 8，讓我們能把所有"
+    },
+    {
+      "start": 768.02,
+      "end": 775.14,
+      "en": "tokens coming into the model, which just again helps us focus on understanding the architecture of the model.",
+      "zh": "輸入 token 印出來，幫助理解架構。"
+    },
+    {
+      "start": 775.42,
+      "end": 779.22,
+      "en": "Okay, stride, this is for, uh, organizing the data.",
+      "zh": "這是步幅，用來整理資料。"
+    },
+    {
+      "start": 779.26,
+      "end": 783.06,
+      "en": "You've learned about this in the previous section.",
+      "zh": "上一章學過。"
+    },
+    {
+      "start": 784.02,
+      "end": 784.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 784.34,
+      "end": 785.46,
+      "en": "And batch size of five.",
+      "zh": "批次大小為 5，"
+    },
+    {
+      "start": 785.5,
+      "end": 786.74,
+      "en": "I'll get back to that later.",
+      "zh": "稍後回來看。"
+    },
+    {
+      "start": 786.98,
+      "end": 789.22,
+      "en": "So here I'm tokenizing the text.",
+      "zh": "這裡對文字斷詞。"
+    },
+    {
+      "start": 789.5,
+      "end": 794.54,
+      "en": "Now previously in the past in the last section we just stopped here.",
+      "zh": "先前上一章，到這裡就停，"
+    },
+    {
+      "start": 794.54,
+      "end": 797.22,
+      "en": "So we used tokenizer dot encode.",
+      "zh": "使用 tokenizer.encode，"
+    },
+    {
+      "start": 797.34,
+      "end": 799.74,
+      "en": "And then we inputted the entire text.",
+      "zh": "輸入整段文字。"
+    },
+    {
+      "start": 799.74,
+      "end": 803.78,
+      "en": "In this case it's the Time machine book yet again.",
+      "zh": "這裡又是《時間機器》。"
+    },
+    {
+      "start": 804.34,
+      "end": 812.3,
+      "en": "Uh, what we are going to start doing from now on is actually transforming these tokens from a list",
+      "zh": "但從現在開始，要把 token 從串列"
+    },
+    {
+      "start": 812.42,
+      "end": 822.03,
+      "en": "into a PyTorch tensor, so that you see here this variable tokens is a list, and then I convert it into a PyTorch tensor.",
+      "zh": "轉成 PyTorch 張量。tokens 原本是串列，再轉成張量。"
+    },
+    {
+      "start": 822.07,
+      "end": 823.83,
+      "en": "There's 43,000 tokens.",
+      "zh": "共有約 43,000 個 token。"
+    },
+    {
+      "start": 824.31,
+      "end": 831.19,
+      "en": "Now we need these to be tensors because of just expectations of PyTorch functions.",
+      "zh": "因為 PyTorch 函式的要求，需要張量。"
+    },
+    {
+      "start": 831.51,
+      "end": 842.23,
+      "en": "It actually is possible to include an extra input in here, so that tokenizer dot encode will automatically export PyTorch tensors.",
+      "zh": "其實，可以在這裡加額外參數，讓 tokenizer.encode 自動輸出 PyTorch 張量。"
+    },
+    {
+      "start": 842.55,
+      "end": 845.27,
+      "en": "But I will start incorporating that later.",
+      "zh": "稍後會加入，"
+    },
+    {
+      "start": 845.27,
+      "end": 856.11,
+      "en": "But for now I want to leave these as separate lines, just to make sure it's super clear to you that the output here is a list, but we need to start working with tensors.",
+      "zh": "但目前分開寫，確認你很清楚：輸出原本是串列，接下來要操作張量。"
+    },
+    {
+      "start": 857.19,
+      "end": 862.11,
+      "en": "Okay, here is a Dataloader class to sequence the data.",
+      "zh": "這是把資料切成序列的 Dataset 類別。"
+    },
+    {
+      "start": 862.27,
+      "end": 863.31,
+      "en": "Now I have.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 863.35,
+      "end": 866.43,
+      "en": "This is literally copy pasted from the previous section.",
+      "zh": "完全從上一章複製，"
+    },
+    {
+      "start": 866.43,
+      "end": 869.91,
+      "en": "So I'm not going to talk about this class in a lot of detail here.",
+      "zh": "所以，不詳細談。"
+    },
+    {
+      "start": 870.07,
+      "end": 881.05,
+      "en": "Just to remind you that the idea is that when we initialize this instance of a class, we loop through all of the tokens in the text.",
+      "zh": "提醒，初始化類別實例時，走訪文字的所有 token，"
+    },
+    {
+      "start": 881.33,
+      "end": 885.89,
+      "en": "And then we create two properties inputs and targets.",
+      "zh": "建立 inputs 與 targets 兩個屬性。"
+    },
+    {
+      "start": 885.89,
+      "end": 892.05,
+      "en": "And the inputs are is a sequence of tokens, in this case a sequence of eight tokens.",
+      "zh": "輸入是 token 序列，這裡每段八個。"
+    },
+    {
+      "start": 892.41,
+      "end": 896.49,
+      "en": "And the targets are those same tokens but shifted by one.",
+      "zh": "目標相同，但平移一個 token。"
+    },
+    {
+      "start": 896.77,
+      "end": 897.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 897.13,
+      "end": 898.97,
+      "en": "So we can have a look at that.",
+      "zh": "看看結果。"
+    },
+    {
+      "start": 898.97,
+      "end": 900.57,
+      "en": "Here I create an instance token.",
+      "zh": "建立實例，token"
+    },
+    {
+      "start": 900.57,
+      "end": 902.29,
+      "en": "Data set is the variable name.",
+      "zh": "dataset 是變數名稱。"
+    },
+    {
+      "start": 902.65,
+      "end": 905.57,
+      "en": "And this is just one element from that set.",
+      "zh": "這是資料集中的一個元素，"
+    },
+    {
+      "start": 905.65,
+      "end": 907.05,
+      "en": "So it's a tuple.",
+      "zh": "是 tuple，"
+    },
+    {
+      "start": 907.05,
+      "end": 909.73,
+      "en": "We get two outputs here.",
+      "zh": "得到兩個輸出。"
+    },
+    {
+      "start": 910.45,
+      "end": 914.81,
+      "en": "These tokens are the input to the model and these are the targets.",
+      "zh": "這些是模型輸入，這些是目標。"
+    },
+    {
+      "start": 914.81,
+      "end": 924.41,
+      "en": "So when the model is processing token 4745, the model's goal is to predict that the next token will",
+      "zh": "模型處理 token 4745 時，目標是預測下一個"
+    },
+    {
+      "start": 924.41,
+      "end": 926.29,
+      "en": "be 38 which is this one.",
+      "zh": "為 38，就是這個。"
+    },
+    {
+      "start": 926.53,
+      "end": 930.89,
+      "en": "And then when it's processing 38, of course it's trying to predict for 39.",
+      "zh": "處理 38 時，則預測 439。"
+    },
+    {
+      "start": 931.37,
+      "end": 939.31,
+      "en": "Now, we're not really going to be using these target sequences until later on when we get to training.",
+      "zh": "真正訓練之前，不太會用到目標序列。"
+    },
+    {
+      "start": 939.31,
+      "end": 951.19,
+      "en": "So for just working with the model for feedforward sweeps, for generating new tokens, we don't actually need this, but it comes along for free inside this token data set.",
+      "zh": "只做前向傳遞、產生新 token，其實不需要，但 Dataset 順便提供。"
+    },
+    {
+      "start": 951.43,
+      "end": 953.67,
+      "en": "Okay, here's where I'm creating the model.",
+      "zh": "這裡建立模型。"
+    },
+    {
+      "start": 953.83,
+      "end": 957.91,
+      "en": "So you can see that I'm initializing the model to contain two layers.",
+      "zh": "初始化為兩層，"
+    },
+    {
+      "start": 958.03,
+      "end": 962.75,
+      "en": "So we have an embedding layer and an embeddings layer.",
+      "zh": "嵌入層，以及反嵌入層。"
+    },
+    {
+      "start": 962.79,
+      "end": 966.59,
+      "en": "Although here you know it's it's not that we do something like this.",
+      "zh": "不過，不是像這樣做，"
+    },
+    {
+      "start": 966.63,
+      "end": 968.31,
+      "en": "It's called nonlinear.",
+      "zh": "它叫 nn.Linear。"
+    },
+    {
+      "start": 968.59,
+      "end": 979.23,
+      "en": "Now in a couple of videos from now there's, there's a whole video that's just about the similarities and differences between KNN dot embedding and non-linear.",
+      "zh": "幾支影片後，有一整支影片，專談 nn.Embedding 與 nn.Linear 的異同。"
+    },
+    {
+      "start": 979.59,
+      "end": 983.31,
+      "en": "So if you look at those two and you're like, why do we need those two?",
+      "zh": "如果看兩者，想問為什麼都需要，"
+    },
+    {
+      "start": 983.35,
+      "end": 984.55,
+      "en": "Are they the same thing?",
+      "zh": "是否一樣？"
+    },
+    {
+      "start": 984.83,
+      "end": 991.47,
+      "en": "The short version of the answer is that under the hood, nonlinear and n dot embedding are really the",
+      "zh": "簡短答案是，底層概念上，nn.Linear 與 nn.Embedding，"
+    },
+    {
+      "start": 991.47,
+      "end": 1000.69,
+      "en": "same thing, but there's just some additional and difference in overhead and the way that you interact with these two classes.",
+      "zh": "本質相近，只是額外處理，以及和類別互動的方式不同。"
+    },
+    {
+      "start": 1000.69,
+      "end": 1002.09,
+      "en": "So they are subtly different.",
+      "zh": "所以，有細微差異，"
+    },
+    {
+      "start": 1002.09,
+      "end": 1004.25,
+      "en": "I'm going to have a whole video about that.",
+      "zh": "之後會有一整支影片談。"
+    },
+    {
+      "start": 1004.69,
+      "end": 1004.97,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1005.01,
+      "end": 1010.61,
+      "en": "And then in between the embeddings and embeddings we have a non-linear activation function.",
+      "zh": "嵌入與反嵌入之間，有非線性活化函式，"
+    },
+    {
+      "start": 1010.61,
+      "end": 1013.01,
+      "en": "This is the glue function.",
+      "zh": "就是 GELU。"
+    },
+    {
+      "start": 1013.01,
+      "end": 1019.89,
+      "en": "If you are new to language models but familiar with deep learning, you might think that I just made a typo.",
+      "zh": "如果剛接觸語言模型，但熟悉深度學習，可能以為我打錯，"
+    },
+    {
+      "start": 1019.89,
+      "end": 1021.53,
+      "en": "And this really should be ReLU.",
+      "zh": "應該是 ReLU。"
+    },
+    {
+      "start": 1022.09,
+      "end": 1030.25,
+      "en": "Uh, again, there's going to be a whole video in a couple of videos from now just about the differences between ReLU and Galew.",
+      "zh": "同樣，幾支影片後，會有一整支專談 ReLU 與 GELU 差別。"
+    },
+    {
+      "start": 1030.69,
+      "end": 1036.17,
+      "en": "So here is the forward pass with each model that we will continue building.",
+      "zh": "這是前向傳遞；隨著後續模型逐步建立，"
+    },
+    {
+      "start": 1036.17,
+      "end": 1044.33,
+      "en": "This forward pass is going to get more and more sophisticated with more and more things happening, calculations happening.",
+      "zh": "前向傳遞會越來越複雜，包含更多操作與計算。"
+    },
+    {
+      "start": 1044.37,
+      "end": 1045.77,
+      "en": "For now, it's very simple.",
+      "zh": "目前，非常簡單。"
+    },
+    {
+      "start": 1045.77,
+      "end": 1052.45,
+      "en": "We take the coding, the tokens, we embed them, and then the non-linearity and the unembedding.",
+      "zh": "取編碼後的 token、嵌入、非線性，再反嵌入。"
+    },
+    {
+      "start": 1052.45,
+      "end": 1053.13,
+      "en": "Very simple.",
+      "zh": "很簡單。"
+    },
+    {
+      "start": 1053.13,
+      "end": 1059.54,
+      "en": "So what we get back here are the raw model outputs, which are often called logits.",
+      "zh": "回傳原始模型輸出，通常叫 logits，"
+    },
+    {
+      "start": 1059.58,
+      "end": 1061.78,
+      "en": "Sometimes people pronounce it logits.",
+      "zh": "有些人發音略有不同。"
+    },
+    {
+      "start": 1062.1,
+      "end": 1064.46,
+      "en": "So logits those are the raw model outputs.",
+      "zh": "logits，就是原始輸出。"
+    },
+    {
+      "start": 1064.5,
+      "end": 1069.22,
+      "en": "Now these are not, uh, probability values.",
+      "zh": "不是機率值，"
+    },
+    {
+      "start": 1069.26,
+      "end": 1077.58,
+      "en": "They are just, you know, sort of kind of random numbers that have a relatively arbitrary scaling, although it is normalized.",
+      "zh": "而是尺度相對任意的數字，雖然有正規化。"
+    },
+    {
+      "start": 1077.58,
+      "end": 1079.86,
+      "en": "But they can be positive, they can be greater than one.",
+      "zh": "可以為正，可以大於 1，"
+    },
+    {
+      "start": 1079.86,
+      "end": 1081.18,
+      "en": "They can be negative.",
+      "zh": "也可以為負，"
+    },
+    {
+      "start": 1081.66,
+      "end": 1086.3,
+      "en": "Uh, so they need to be transformed into probabilities.",
+      "zh": "因此，需要轉成機率。"
+    },
+    {
+      "start": 1086.3,
+      "end": 1090.7,
+      "en": "And we do that with a softmax function, which I'm not applying here.",
+      "zh": "使用 softmax，但不是在這裡做，"
+    },
+    {
+      "start": 1090.7,
+      "end": 1095.02,
+      "en": "I'll show you where we get to that later when I talk about the generate method.",
+      "zh": "稍後 generate 方法會看到。"
+    },
+    {
+      "start": 1095.02,
+      "end": 1103.5,
+      "en": "But before going through the generate method I want to just create a class, uh, or an instance of",
+      "zh": "介紹 generate 之前，先建立類別，或者說"
+    },
+    {
+      "start": 1103.5,
+      "end": 1108.62,
+      "en": "this model class and examine some of these outputs in a little bit more depth.",
+      "zh": "模型類別的實例，再深入看一些輸出。"
+    },
+    {
+      "start": 1109.26,
+      "end": 1109.58,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1109.62,
+      "end": 1110.94,
+      "en": "So that's what I do here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 1110.94,
+      "end": 1114.04,
+      "en": "I create a new instance of this model here.",
+      "zh": "建立模型的新實例，"
+    },
+    {
+      "start": 1114.04,
+      "end": 1122.2,
+      "en": "I'm grabbing some data and let me first just show you, uh, just to confirm, the size of the data is eight tokens.",
+      "zh": "取一些資料，先確認大小，是八個 token，"
+    },
+    {
+      "start": 1122.2,
+      "end": 1123.44,
+      "en": "That's our sequence length.",
+      "zh": "也就是序列長度。"
+    },
+    {
+      "start": 1123.84,
+      "end": 1125.32,
+      "en": "The size of the targets.",
+      "zh": "目標大小，"
+    },
+    {
+      "start": 1125.36,
+      "end": 1130.04,
+      "en": "Again, we're not really going to be using them for a while, but that's still, uh, eight.",
+      "zh": "雖然暫時不會用，也是 8。"
+    },
+    {
+      "start": 1130.04,
+      "end": 1132.08,
+      "en": "So here we just have one batch.",
+      "zh": "這裡只有一個批次，"
+    },
+    {
+      "start": 1132.08,
+      "end": 1138.72,
+      "en": "So this is just a vector of eight tokens eight integers in a little bit.",
+      "zh": "只是一個含八個整數 token 的向量。稍後，"
+    },
+    {
+      "start": 1138.72,
+      "end": 1144,
+      "en": "By the end of this code demo we're going to start creating more batches.",
+      "zh": "這個示範結束前，會建立更多批次，"
+    },
+    {
+      "start": 1144,
+      "end": 1146.72,
+      "en": "So this will actually be two dimensional okay.",
+      "zh": "就會是二維。"
+    },
+    {
+      "start": 1146.76,
+      "end": 1151.92,
+      "en": "So push those tokens into the model and then it runs a feed forward.",
+      "zh": "把 token 送進模型，執行前向"
+    },
+    {
+      "start": 1151.92,
+      "end": 1152.92,
+      "en": "Pass this.",
+      "zh": "傳遞。"
+    },
+    {
+      "start": 1152.96,
+      "end": 1156.76,
+      "en": "It calls forward by default and we get an output.",
+      "zh": "預設呼叫 forward，取得輸出。"
+    },
+    {
+      "start": 1156.76,
+      "end": 1158.4,
+      "en": "So what is that output.",
+      "zh": "輸出是什麼？"
+    },
+    {
+      "start": 1158.6,
+      "end": 1162.44,
+      "en": "Well according to this it is tokens by vocab size okay.",
+      "zh": "依這裡，是 token 數乘以詞彙表大小。"
+    },
+    {
+      "start": 1162.48,
+      "end": 1163.52,
+      "en": "So that's this here.",
+      "zh": "就是這個。"
+    },
+    {
+      "start": 1163.52,
+      "end": 1168.04,
+      "en": "So the output of the model is eight by 100,000.",
+      "zh": "模型輸出為 8 乘以約 100,000，"
+    },
+    {
+      "start": 1168.08,
+      "end": 1175.18,
+      "en": "So tokens that we put in and then And we get 100,000 corresponding to the vocab.",
+      "zh": "8 是輸入 token 數，十萬對應詞彙表。"
+    },
+    {
+      "start": 1175.46,
+      "end": 1177.06,
+      "en": "Now, what are these numbers?",
+      "zh": "這些數字是什麼？"
+    },
+    {
+      "start": 1177.1,
+      "end": 1182.7,
+      "en": "Actually, these are literally the numerical results of this calculation here.",
+      "zh": "就是這裡計算的數值結果，"
+    },
+    {
+      "start": 1182.78,
+      "end": 1184.14,
+      "en": "So these are the logits.",
+      "zh": "也就是 logits。"
+    },
+    {
+      "start": 1184.3,
+      "end": 1186.82,
+      "en": "Let's have a look at what those look like.",
+      "zh": "看看樣子。"
+    },
+    {
+      "start": 1187.06,
+      "end": 1192.66,
+      "en": "So what I'm doing here in this code is isolating the last element.",
+      "zh": "這段程式，擷取最後一個元素，"
+    },
+    {
+      "start": 1192.66,
+      "end": 1198.3,
+      "en": "So the final token and all of the logit values.",
+      "zh": "也就是最後 token 的所有 logit 值。"
+    },
+    {
+      "start": 1198.42,
+      "end": 1208.3,
+      "en": "So this gets the logits for all of the possible next tokens for the last for after processing the final",
+      "zh": "取得處理序列最後一個 token 後，所有可能下一 token 的 logits。"
+    },
+    {
+      "start": 1208.34,
+      "end": 1218.14,
+      "en": "token in this sequence, the dot detach just extracts the numerical values from the gradient and all",
+      "zh": ".detach 把數值，從梯度與"
+    },
+    {
+      "start": 1218.14,
+      "end": 1222.14,
+      "en": "the other information that PyTorch associates with that variable.",
+      "zh": "PyTorch 附加在變數上的其他資訊分離。"
+    },
+    {
+      "start": 1222.58,
+      "end": 1226.74,
+      "en": "Okay, so then with this variable final this is a vector.",
+      "zh": "好，final 變數是向量。"
+    },
+    {
+      "start": 1226.86,
+      "end": 1230.79,
+      "en": "And now I am softmax it so e to the final.",
+      "zh": "現在做 softmax，取 final 的指數，"
+    },
+    {
+      "start": 1230.83,
+      "end": 1236.55,
+      "en": "The logits divided by the sum over all of those e to the logits.",
+      "zh": "也就是 logits 的指數，再除以所有指數的總和。"
+    },
+    {
+      "start": 1236.59,
+      "end": 1237.07,
+      "en": "Literally.",
+      "zh": "真的，"
+    },
+    {
+      "start": 1237.07,
+      "end": 1237.63,
+      "en": "Exactly.",
+      "zh": "完全，"
+    },
+    {
+      "start": 1237.63,
+      "end": 1241.07,
+      "en": "Just this straightforward vanilla softmax function.",
+      "zh": "就是普通、直接的 softmax 函式。"
+    },
+    {
+      "start": 1241.55,
+      "end": 1241.83,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1241.87,
+      "end": 1243.63,
+      "en": "And then we are plotting.",
+      "zh": "接著畫圖。"
+    },
+    {
+      "start": 1243.63,
+      "end": 1245.11,
+      "en": "So what are we looking at here.",
+      "zh": "看到什麼？"
+    },
+    {
+      "start": 1246.31,
+      "end": 1249.55,
+      "en": "There's over 300,000 dots in this plot.",
+      "zh": "圖裡有超過 30 萬個點，"
+    },
+    {
+      "start": 1249.55,
+      "end": 1251.47,
+      "en": "So it takes a little while to render.",
+      "zh": "所以，繪製需要一點時間。"
+    },
+    {
+      "start": 1251.87,
+      "end": 1254.51,
+      "en": "Okay so here we have the raw model outputs.",
+      "zh": "這是模型原始輸出。"
+    },
+    {
+      "start": 1254.51,
+      "end": 1256.15,
+      "en": "These are the token indices.",
+      "zh": "這些是 token 索引，"
+    },
+    {
+      "start": 1256.15,
+      "end": 1256.83,
+      "en": "The logits.",
+      "zh": "這些是 logits。"
+    },
+    {
+      "start": 1256.83,
+      "end": 1260.59,
+      "en": "You can see there are positive numbers and negative numbers of course.",
+      "zh": "當然，有正值、負值。"
+    },
+    {
+      "start": 1260.59,
+      "end": 1262.19,
+      "en": "Now this is pure noise.",
+      "zh": "現在全是雜訊，"
+    },
+    {
+      "start": 1262.39,
+      "end": 1263.27,
+      "en": "But that's okay.",
+      "zh": "但沒關係。"
+    },
+    {
+      "start": 1263.67,
+      "end": 1270.99,
+      "en": "Here I have softmax all of these numbers here and here you can see that there are no negative numbers.",
+      "zh": "這裡對它們做 softmax，可以看到，沒有負值，"
+    },
+    {
+      "start": 1270.99,
+      "end": 1273.79,
+      "en": "These are all positive numbers and they're very small.",
+      "zh": "全部是正，而且非常小。"
+    },
+    {
+      "start": 1273.79,
+      "end": 1276.07,
+      "en": "And we can check that these will sum to one.",
+      "zh": "也能確認，加總為 1。"
+    },
+    {
+      "start": 1276.07,
+      "end": 1278.63,
+      "en": "So what was the softmax final.",
+      "zh": "變數叫 softmax final，"
+    },
+    {
+      "start": 1278.63,
+      "end": 1282.39,
+      "en": "So we can write softmax final dot sum.",
+      "zh": "可以寫 softmax final 的 .sum，"
+    },
+    {
+      "start": 1282.75,
+      "end": 1287.55,
+      "en": "And we see that this is a result of one of course the value final.",
+      "zh": "結果為 1。當然，final 本身，"
+    },
+    {
+      "start": 1287.55,
+      "end": 1290.17,
+      "en": "That's going to be you know, the sum of all these numbers.",
+      "zh": "加總就是那些數字的總和，"
+    },
+    {
+      "start": 1290.17,
+      "end": 1291.13,
+      "en": "It's whatever it is.",
+      "zh": "會是某個值。"
+    },
+    {
+      "start": 1291.73,
+      "end": 1292.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1292.09,
+      "end": 1298.17,
+      "en": "So then softmax here you can see the logits plotted by their softmax probability.",
+      "zh": "這張，是 logits 對照 softmax 機率。"
+    },
+    {
+      "start": 1298.17,
+      "end": 1304.53,
+      "en": "And this is just another demonstration of the non-linearity of the softmax transformation.",
+      "zh": "再次展示，softmax 是非線性轉換。"
+    },
+    {
+      "start": 1304.89,
+      "end": 1307.49,
+      "en": "And what does this non-linearity mean.",
+      "zh": "非線性代表什麼？"
+    },
+    {
+      "start": 1307.49,
+      "end": 1308.49,
+      "en": "This bending.",
+      "zh": "就是這個彎曲。"
+    },
+    {
+      "start": 1308.65,
+      "end": 1318.49,
+      "en": "What this means is that the relatively small and negative, uh, logits get suppressed, whereas the",
+      "zh": "相對小或負的 logits，會被壓低，"
+    },
+    {
+      "start": 1318.49,
+      "end": 1321.21,
+      "en": "relatively large values get boosted up.",
+      "zh": "相對大的值，會被提高。"
+    },
+    {
+      "start": 1321.53,
+      "end": 1328.37,
+      "en": "So essentially what that what that means is that the high probability tokens that the model prefers",
+      "zh": "基本上，模型偏好的高機率 token，"
+    },
+    {
+      "start": 1328.61,
+      "end": 1339.81,
+      "en": "are going to get a much higher probability value, and the lower value tokens that have a relatively small logit or a negative logit value, those get suppressed.",
+      "zh": "會得到高得多的機率，而 logit 小或負的 token，則被壓低。"
+    },
+    {
+      "start": 1339.81,
+      "end": 1344.45,
+      "en": "So the model is really unlikely to select all of these tokens down here.",
+      "zh": "所以，模型非常不可能選下方這些 token。"
+    },
+    {
+      "start": 1345.49,
+      "end": 1345.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1345.93,
+      "end": 1349.87,
+      "en": "So now what we are going to do is generate some tokens.",
+      "zh": "現在，產生一些 token。"
+    },
+    {
+      "start": 1349.87,
+      "end": 1356.95,
+      "en": "So I'm calling not the model itself like this, but instead I'm calling model dot generate.",
+      "zh": "不是像這樣呼叫模型本身，而是 model.generate。"
+    },
+    {
+      "start": 1356.95,
+      "end": 1363.03,
+      "en": "So now let me walk you through that function in the class okay.",
+      "zh": "說明一下類別裡這個函式。"
+    },
+    {
+      "start": 1363.07,
+      "end": 1371.07,
+      "en": "So generate this method takes in tokens and it takes in an optional input of n new tokens.",
+      "zh": "generate 接受 tokens，以及選用的 n_new_tokens，"
+    },
+    {
+      "start": 1371.07,
+      "end": 1373.23,
+      "en": "How many new tokens do we want to generate.",
+      "zh": "也就是要產生多少新 token。"
+    },
+    {
+      "start": 1373.23,
+      "end": 1376.63,
+      "en": "And the default value I set to 30 okay.",
+      "zh": "我設預設值 30。"
+    },
+    {
+      "start": 1376.67,
+      "end": 1378.51,
+      "en": "So then we have this for loop in here.",
+      "zh": "接著，有個 for 迴圈，"
+    },
+    {
+      "start": 1378.51,
+      "end": 1380.71,
+      "en": "And what are we doing inside this for loop.",
+      "zh": "裡面做什麼？"
+    },
+    {
+      "start": 1381.51,
+      "end": 1384.71,
+      "en": "This is a reference to the model itself.",
+      "zh": "這裡參照模型本身，"
+    },
+    {
+      "start": 1384.71,
+      "end": 1390.63,
+      "en": "So we push the model through the or sorry push the tokens through the model.",
+      "zh": "把模型送過，抱歉，把 token 送進模型，"
+    },
+    {
+      "start": 1390.63,
+      "end": 1392.87,
+      "en": "So feed forward sweep of the model.",
+      "zh": "也就是前向傳遞，"
+    },
+    {
+      "start": 1392.87,
+      "end": 1395.95,
+      "en": "And we get out here I'm calling it variable x.",
+      "zh": "輸出叫 x，"
+    },
+    {
+      "start": 1395.95,
+      "end": 1400.35,
+      "en": "That's what I called out down here okay.",
+      "zh": "就是下方叫 out 的東西。"
+    },
+    {
+      "start": 1400.51,
+      "end": 1403.03,
+      "en": "So feed forward sweep of the model.",
+      "zh": "前向傳遞後，"
+    },
+    {
+      "start": 1403.03,
+      "end": 1412,
+      "en": "And then here we extract the final token from the model and all of the logits for all of the vocab words.",
+      "zh": "擷取最後一個 token，以及所有詞彙表單字的 logits。"
+    },
+    {
+      "start": 1412.28,
+      "end": 1420.52,
+      "en": "Now, this looks very slightly different from this code here, because here there was only one batch,",
+      "zh": "這和這段略有不同，因為那裡只有一個批次，"
+    },
+    {
+      "start": 1420.52,
+      "end": 1424.64,
+      "en": "so we don't actually have a full multidimensional tensor here.",
+      "zh": "沒有完整的多維張量。"
+    },
+    {
+      "start": 1424.64,
+      "end": 1426.84,
+      "en": "We're actually going to start using batches.",
+      "zh": "現在，開始使用批次。"
+    },
+    {
+      "start": 1426.84,
+      "end": 1430.12,
+      "en": "So this is just the batch dimension.",
+      "zh": "這是批次維度，"
+    },
+    {
+      "start": 1430.12,
+      "end": 1432.92,
+      "en": "This is the final token position.",
+      "zh": "這是最後 token 位置，"
+    },
+    {
+      "start": 1432.92,
+      "end": 1434.84,
+      "en": "And these are all the vocab words.",
+      "zh": "這些是所有詞彙表單字。"
+    },
+    {
+      "start": 1435.92,
+      "end": 1436.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1436.16,
+      "end": 1440.32,
+      "en": "And then from here we use softmax to convert to probabilities.",
+      "zh": "接著，用 softmax 轉成機率，"
+    },
+    {
+      "start": 1440.36,
+      "end": 1443,
+      "en": "Exactly what I showed you in the visualization.",
+      "zh": "和剛才視覺化完全相同。"
+    },
+    {
+      "start": 1443.32,
+      "end": 1448.08,
+      "en": "And here what I'm doing is using a function called torch multinomial.",
+      "zh": "這裡使用 torch.multinomial 函式，"
+    },
+    {
+      "start": 1448.44,
+      "end": 1454.64,
+      "en": "And what this will return is one value selected from this input.",
+      "zh": "從輸入中選出一個結果。"
+    },
+    {
+      "start": 1454.64,
+      "end": 1463.68,
+      "en": "So we are inputting a set of 100,000 probability values that are calculated from softmax function from",
+      "zh": "輸入的是十萬個機率值，由模型最後 token"
+    },
+    {
+      "start": 1463.68,
+      "end": 1467.74,
+      "en": "the output of the model from the final token processing.",
+      "zh": "的處理輸出，經 softmax 算出。"
+    },
+    {
+      "start": 1468.3,
+      "end": 1469.86,
+      "en": "And we want one sample.",
+      "zh": "要抽一個樣本，"
+    },
+    {
+      "start": 1469.86,
+      "end": 1475.18,
+      "en": "So it's going to return one value randomly selected from the probabilities.",
+      "zh": "所以，依機率隨機回傳一個索引，"
+    },
+    {
+      "start": 1475.42,
+      "end": 1477.66,
+      "en": "And that becomes the next token.",
+      "zh": "它就是下一個 token。"
+    },
+    {
+      "start": 1477.94,
+      "end": 1480.98,
+      "en": "Now this function here torch dot multinomial.",
+      "zh": "這個 torch.multinomial，"
+    },
+    {
+      "start": 1480.98,
+      "end": 1485.26,
+      "en": "This is not simply selecting any of these tokens at random.",
+      "zh": "不是把任何 token 都當成等機率，隨便挑一個，"
+    },
+    {
+      "start": 1485.62,
+      "end": 1493.94,
+      "en": "Instead it is picking the ones that are most likely to be selected by the model based on the actual probabilities.",
+      "zh": "而是依模型的實際機率，較常選到高機率項目。"
+    },
+    {
+      "start": 1494.14,
+      "end": 1500.94,
+      "en": "I have an entire video to explain the details and nuances of multinomial.",
+      "zh": "有一整支影片，解釋 multinomial 的細節。"
+    },
+    {
+      "start": 1501.18,
+      "end": 1509.5,
+      "en": "So for now, suffice it to say that this function just selects from our probability distribution.",
+      "zh": "目前，只要知道，它從機率分布抽樣，"
+    },
+    {
+      "start": 1509.5,
+      "end": 1511.22,
+      "en": "And you'll learn a lot more about this later.",
+      "zh": "之後會學更多。"
+    },
+    {
+      "start": 1511.62,
+      "end": 1511.86,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1511.9,
+      "end": 1513.46,
+      "en": "So this is the next token.",
+      "zh": "這是下一個 token。"
+    },
+    {
+      "start": 1513.46,
+      "end": 1514.5,
+      "en": "And then what do we do.",
+      "zh": "接著呢？"
+    },
+    {
+      "start": 1514.66,
+      "end": 1521.94,
+      "en": "We concatenate that new token that we just generated onto the existing sequence of tokens.",
+      "zh": "把新 token，接到既有序列。"
+    },
+    {
+      "start": 1522.14,
+      "end": 1525.2,
+      "en": "So now this variable torque x.",
+      "zh": "所以，這個 token 變數，"
+    },
+    {
+      "start": 1525.56,
+      "end": 1528.24,
+      "en": "This is going to be of size tokens plus one.",
+      "zh": "大小變成原 token 數加 1。"
+    },
+    {
+      "start": 1528.24,
+      "end": 1530.8,
+      "en": "It's growing in size each time.",
+      "zh": "每次進入"
+    },
+    {
+      "start": 1530.8,
+      "end": 1532.56,
+      "en": "We are inside this for loop.",
+      "zh": "for 迴圈，都持續增長。"
+    },
+    {
+      "start": 1532.72,
+      "end": 1538,
+      "en": "And we stay inside this for loop for a total of 30 times by default.",
+      "zh": "預設總共執行 30 次。"
+    },
+    {
+      "start": 1538,
+      "end": 1546.76,
+      "en": "So that means if we input eight tokens into this generate function, what we are going to get back is 38 tokens.",
+      "zh": "如果輸入八個 token，generate 會回傳 38 個。"
+    },
+    {
+      "start": 1546.76,
+      "end": 1551.08,
+      "en": "The eight tokens that we started with and then all of the new tokens.",
+      "zh": "原先八個，加上全部新 token。"
+    },
+    {
+      "start": 1551.36,
+      "end": 1551.8,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1552.24,
+      "end": 1555.44,
+      "en": "So that is how that generate function works.",
+      "zh": "這就是 generate 的運作。"
+    },
+    {
+      "start": 1555.44,
+      "end": 1557.76,
+      "en": "And now I'm going to illustrate that to you.",
+      "zh": "接著，示範。"
+    },
+    {
+      "start": 1558.16,
+      "end": 1569.96,
+      "en": "So here I am inputting the data the tokens that we started with Unsqueeze because the generate method expects the first mention to be batch.",
+      "zh": "輸入原本的 token，並 unsqueeze，因為 generate 預期第一維是批次。"
+    },
+    {
+      "start": 1570.08,
+      "end": 1577.08,
+      "en": "So we need to make sure that the first dimension really is a batch dimension, even if it's a singleton dimension.",
+      "zh": "必須確保第一維真的是批次，即使長度只有 1。"
+    },
+    {
+      "start": 1577.84,
+      "end": 1578.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1578.32,
+      "end": 1583.25,
+      "en": "And then here I input ten which means I'm going to get ten new tokens.",
+      "zh": "這裡輸入 10，代表產生十個新 token。"
+    },
+    {
+      "start": 1583.45,
+      "end": 1590.53,
+      "en": "So the one I have seen above ground in, I think this might be all the the eight tokens here.",
+      "zh": "The one I have seen above ground in，我想，這裡是最初八個 token。"
+    },
+    {
+      "start": 1591.05,
+      "end": 1596.13,
+      "en": "These are the tokens that we started with and all of this gobbledygook here.",
+      "zh": "這些是原先輸入，而這裡不知所云的內容，"
+    },
+    {
+      "start": 1596.21,
+      "end": 1602.73,
+      "en": "These are the new tokens that our model ChatGPT just generated to interact with us.",
+      "zh": "是模型生成、拿來和我們互動的新 token。"
+    },
+    {
+      "start": 1602.85,
+      "end": 1604.77,
+      "en": "Again, all random numbers.",
+      "zh": "同樣，都是隨機數。"
+    },
+    {
+      "start": 1604.77,
+      "end": 1608.81,
+      "en": "We don't expect anything sensible here, but this is basically how it works.",
+      "zh": "不預期有意義，但基本機制如此。"
+    },
+    {
+      "start": 1608.81,
+      "end": 1615.93,
+      "en": "So each one of these tokens is generated based on the previous processing of the previous token.",
+      "zh": "每個 token，根據前一個 token 的處理結果產生。"
+    },
+    {
+      "start": 1616.37,
+      "end": 1616.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1616.65,
+      "end": 1621.93,
+      "en": "What I'm going to do now is run this line of code again five times.",
+      "zh": "現在，把這行再跑五次。"
+    },
+    {
+      "start": 1622.17,
+      "end": 1629.53,
+      "en": "And what I want to illustrate to you here is that all of these runs start off exactly the same.",
+      "zh": "想展示，每次執行，開頭完全相同。"
+    },
+    {
+      "start": 1629.57,
+      "end": 1636.13,
+      "en": "The one I had seen above ground in, uh, because, yeah, we're always starting with the same actual data.",
+      "zh": "The one I had seen above ground in，因為都從相同資料開始。"
+    },
+    {
+      "start": 1636.13,
+      "end": 1642.39,
+      "en": "So this doesn't change, but because we are using the, multinomial function.",
+      "zh": "所以，這部分不變，但因為使用 multinomial，"
+    },
+    {
+      "start": 1642.39,
+      "end": 1645.51,
+      "en": "We are actually getting different results each time.",
+      "zh": "每次結果不同。"
+    },
+    {
+      "start": 1645.67,
+      "end": 1655.31,
+      "en": "So this is basically the mechanism by which every time you ask ChatGPT the same question, the answer that you will get is slightly different.",
+      "zh": "這基本上，就是每次問 ChatGPT 同樣問題，回答略有不同的機制。"
+    },
+    {
+      "start": 1655.31,
+      "end": 1661.99,
+      "en": "It should always be more or less comparable, but it's going to take a different path along the the token landscape.",
+      "zh": "大致應可比較，但在 token 的可能路徑中，會走不同方向。"
+    },
+    {
+      "start": 1663.27,
+      "end": 1666.15,
+      "en": "Okay, so all of that was for one batch.",
+      "zh": "好，以上是一個批次。"
+    },
+    {
+      "start": 1666.15,
+      "end": 1671.55,
+      "en": "And then I just want to show you very briefly what it looks like for multiple batches.",
+      "zh": "簡短展示，多個批次時的樣子。"
+    },
+    {
+      "start": 1671.75,
+      "end": 1672.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1672.07,
+      "end": 1674.75,
+      "en": "So here we have five by eight tokens.",
+      "zh": "這裡有 5 乘以 8 個 token，"
+    },
+    {
+      "start": 1675.19,
+      "end": 1676.95,
+      "en": "This is the input to the model.",
+      "zh": "作為模型輸入。"
+    },
+    {
+      "start": 1677.11,
+      "end": 1682.99,
+      "en": "So each one of these rows is a sequence like a piece of a sentence from the book.",
+      "zh": "每列是一個序列，例如書中句子的一部分，"
+    },
+    {
+      "start": 1683.43,
+      "end": 1687.27,
+      "en": "And then we're just going to input five of these simultaneously.",
+      "zh": "同時輸入五個。"
+    },
+    {
+      "start": 1687.55,
+      "end": 1691.75,
+      "en": "And why would you want to input data into the model in batches.",
+      "zh": "為什麼要用批次？"
+    },
+    {
+      "start": 1692.03,
+      "end": 1695.99,
+      "en": "Partly it's just a little bit more computationally efficient.",
+      "zh": "一部分，是計算效率較高，"
+    },
+    {
+      "start": 1695.99,
+      "end": 1697.79,
+      "en": "It makes the models run faster.",
+      "zh": "讓模型跑得更快。"
+    },
+    {
+      "start": 1698.37,
+      "end": 1706.97,
+      "en": "And also because these batches can be calculated in parallel, and also partly because it's smooths out the learning a little bit.",
+      "zh": "批次可以平行算，也有一部分，是讓學習稍微平滑。"
+    },
+    {
+      "start": 1707.01,
+      "end": 1716.09,
+      "en": "It's a form of regularization during learning, because the loss from each of these token sequences get averaged together across the batch.",
+      "zh": "這是學習中的一種正規化，因為各 token 序列的損失，會在批次內平均。"
+    },
+    {
+      "start": 1716.13,
+      "end": 1716.33,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1716.37,
+      "end": 1717.73,
+      "en": "I'll talk more about that.",
+      "zh": "這點會再談，"
+    },
+    {
+      "start": 1717.97,
+      "end": 1720.49,
+      "en": "Uh, next in the next section.",
+      "zh": "就在下一章。"
+    },
+    {
+      "start": 1721.53,
+      "end": 1724.25,
+      "en": "And this is just to show you what the model output looks like.",
+      "zh": "這裡只展示模型輸出，"
+    },
+    {
+      "start": 1724.29,
+      "end": 1725.41,
+      "en": "It's a lot of numbers here.",
+      "zh": "有很多數字。"
+    },
+    {
+      "start": 1725.41,
+      "end": 1725.81,
+      "en": "Let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 1725.85,
+      "end": 1726.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1726.13,
+      "end": 1730.29,
+      "en": "So the size is five by eight by 100,000.",
+      "zh": "大小是 5 乘以 8，乘以約 100,000。"
+    },
+    {
+      "start": 1730.29,
+      "end": 1735.97,
+      "en": "So five batches eight tokens and 100,000 vocab.",
+      "zh": "五個批次項目、八個 token，以及十萬個詞彙表項目。"
+    },
+    {
+      "start": 1736.33,
+      "end": 1736.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1736.69,
+      "end": 1738.17,
+      "en": "And I think yeah.",
+      "zh": "我想，對，"
+    },
+    {
+      "start": 1738.17,
+      "end": 1741.13,
+      "en": "So here I'm just generating some more, uh, fake data.",
+      "zh": "這裡再產生一些假資料，"
+    },
+    {
+      "start": 1741.17,
+      "end": 1743.65,
+      "en": "This is just a little bit more fun here.",
+      "zh": "只是多玩一下。"
+    },
+    {
+      "start": 1744.61,
+      "end": 1754.29,
+      "en": "I realized that even though this is just model one, you probably have several questions about the model mechanics and PyTorch functions.",
+      "zh": "我知道，即使只是模型一，你可能已有幾個關於模型機制與 PyTorch 函式的問題。"
+    },
+    {
+      "start": 1754.73,
+      "end": 1765.66,
+      "en": "In fact, we're not even going to get to model two for like a half dozen videos, because the next several videos are really just unpacking the code that I showed you.",
+      "zh": "其實，還要大約六支影片才到模型二，因為接下來幾支，要拆解剛展示的程式。"
+    },
+    {
+      "start": 1765.7,
+      "end": 1771.82,
+      "en": "Now, I really want to make sure that you understand the foundational model before we start building",
+      "zh": "希望你真正理解基礎模型，再開始"
+    },
+    {
+      "start": 1771.82,
+      "end": 1778.42,
+      "en": "it up and adding more mechanisms and tweaks and regularizations and normalizations and so on.",
+      "zh": "擴充，加入更多機制、調整、正規化與標準化等等。"
+    },
+    {
+      "start": 1778.9,
+      "end": 1786.14,
+      "en": "And so I'll just conclude here by saying that when you have a sequence of tokens passing through the",
+      "zh": "最後，當一串 token 通過"
+    },
+    {
+      "start": 1786.14,
+      "end": 1792.62,
+      "en": "model, each token embedding is not the same embedding vector as what we started with.",
+      "zh": "模型，每個 token 的嵌入，不再是最初那個向量，"
+    },
+    {
+      "start": 1792.9,
+      "end": 1800.5,
+      "en": "Instead, each embedding vector is modified to contain the information about the previous tokens.",
+      "zh": "而是經修改，包含先前 token 的資訊。"
+    },
+    {
+      "start": 1800.78,
+      "end": 1808.38,
+      "en": "So using only the final token to predict the new token actually means we are using all of the tokens.",
+      "zh": "所以，只用最後 token 預測新的，其實是使用全部 token，"
+    },
+    {
+      "start": 1808.38,
+      "end": 1815.3,
+      "en": "We're just focusing on the one that has the most amount of contextual information packed into it.",
+      "zh": "只是聚焦在包含最多上下文資訊的那個。"
+    }
+  ]
+}

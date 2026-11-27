@@ -17,7 +17,9 @@ Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 | [Master calculus 1 using Python: derivatives and applications](https://www.udemy.com/course/pycalc1_x/) | 176 | 29,478 |
 | [Master statistics & machine learning: intuition, math, code](https://www.udemy.com/course/statsml_x/) | 221 | 24,174 |
 | [Complete A.I. & Machine Learning, Data Science Bootcamp](https://www.udemy.com/course/complete-machine-learning-and-data-science-zero-to-mastery/) | 323 | 38,069 |
-| 合計 | **2176** | **236,234** |
+| [A deep understanding of AI large language model mechanisms](https://www.udemy.com/course/dullms_x/) | 320 | 63,429 |
+| [PyTorch for Deep Learning Bootcamp](https://www.udemy.com/course/pytorch-for-deep-learning/) | 351 | 45,423 |
+| 合計 | **2847** | **345,086** |
 
 譯文由 Codex 直接依英文字幕製作，不使用 Google、iAI 或其他翻譯 API。程式識別字與影片敘述的版本、日期保留原文語意。
 
@@ -56,3 +58,5 @@ node --test tests/subtitles.test.mjs
 測試依 index 與 coverage 動態核對每門課、所有影片字幕、時間軸、課程作用範圍及字幕查找。結構檢查不能代替翻譯語意校對。
 
 [校譯註記](extension/review-notes/)
+
+本批新增課程完成字幕完整性與語意抽查；外掛驗證採靜態檢查與 DOM fixture，未實測本批課程的真實瀏覽器安裝、播放、seek 與全螢幕。

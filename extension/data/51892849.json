@@ -1,0 +1,2107 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892849",
+  "title": "CodeChallenge: Attention to coffee: MI and token distances (part 1)",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "24d9266ad9d038cb6798bd9dc5166c4a6716743f85b6ce56c02548f1dcb37801",
+  "cues": [
+    {
+      "start": 2.2,
+      "end": 9.68,
+      "en": "Now that you are familiar with calculating mutual information and how it relates to covariance, I'm",
+      "zh": "現在已經熟悉互資訊的計算，以及它與共變異數的關係，接下來會安排"
+    },
+    {
+      "start": 9.72,
+      "end": 16.88,
+      "en": "going to have two code challenges to help you learn more about these methods and how to use them in practice.",
+      "zh": "兩個程式挑戰，幫助你進一步學習這些方法，以及如何實際運用。"
+    },
+    {
+      "start": 17.64,
+      "end": 29.08,
+      "en": "This code challenge here is an action packed, coffee fueled adventure where you're going to learn about the impact of extreme values on mutual information.",
+      "zh": "這次挑戰是場內容豐富、由咖啡驅動的冒險，會學到極端值對互資訊的影響，"
+    },
+    {
+      "start": 29.56,
+      "end": 39.12,
+      "en": "A different way to organize the mutual information calculation that better equalizes issues around sample size and computation time.",
+      "zh": "以及另一種整理互資訊計算的方式，更能平衡樣本數與計算時間的問題。"
+    },
+    {
+      "start": 39.6,
+      "end": 47.2,
+      "en": "You will learn how to statistically compare two different correlation coefficients and lots of other things.",
+      "zh": "也會學到如何從統計上比較兩個不同相關係數，以及許多其他內容。"
+    },
+    {
+      "start": 47.76,
+      "end": 57.04,
+      "en": "And you're also going to learn more about the differences between the attention and MLP subblocks of the transformer.",
+      "zh": "另外還會進一步了解，Transformer 中注意力與 MLP 子區塊的差異。"
+    },
+    {
+      "start": 57.56,
+      "end": 59.04,
+      "en": "It's a big code challenge.",
+      "zh": "這是個大型程式挑戰。"
+    },
+    {
+      "start": 59.16,
+      "end": 60.75,
+      "en": "So let's begin.",
+      "zh": "所以開始吧。"
+    },
+    {
+      "start": 61.39,
+      "end": 69.75,
+      "en": "The goal of exercise one is to import a model and get the activations from within the transformer blocks.",
+      "zh": "練習一的目標，是匯入模型，並取得 Transformer 區塊內部的活化。"
+    },
+    {
+      "start": 70.27,
+      "end": 73.43,
+      "en": "We're going to use GPT two x.",
+      "zh": "這裡會使用 GPT2-XL。"
+    },
+    {
+      "start": 74.31,
+      "end": 77.59,
+      "en": "And here's a reminder of what it looks like.",
+      "zh": "提醒一下，它的架構像這樣。"
+    },
+    {
+      "start": 78.11,
+      "end": 86.11,
+      "en": "It has 48 transformer blocks, which is great because that will really allow us to track how the mutual",
+      "zh": "有 48 個 Transformer 區塊，這很好，因為能讓我們追蹤互"
+    },
+    {
+      "start": 86.11,
+      "end": 95.22999999999999,
+      "en": "information and its relation to token position changes as the embeddings vectors traverse deeper into",
+      "zh": "資訊及它與 token 位置的關係，如何隨嵌入向量深入"
+    },
+    {
+      "start": 95.22999999999999,
+      "end": 96.27000000000001,
+      "en": "the model.",
+      "zh": "模型而改變。"
+    },
+    {
+      "start": 97.03,
+      "end": 103.59,
+      "en": "Next, you want to hook the outputs of the attention and MLP subblocks.",
+      "zh": "接著，要 hook 到注意力與 MLP 子區塊的輸出。"
+    },
+    {
+      "start": 103.95,
+      "end": 112.31,
+      "en": "Now this is not the query keys and values vectors that we've used previously several times, but instead",
+      "zh": "這不是之前用過好幾次的 query、key、value 向量，"
+    },
+    {
+      "start": 112.31,
+      "end": 118.91,
+      "en": "what you want here in this video is the final output of the attention calculation.",
+      "zh": "這支影片要取得的是，注意力計算的最終輸出。"
+    },
+    {
+      "start": 119.97999999999999,
+      "end": 127.14,
+      "en": "And in the OpenAI GPT two models that is referred to as the projection or C proj.",
+      "zh": "在 OpenAI 的 GPT2 模型中，它稱為投影，也就是 c_proj。"
+    },
+    {
+      "start": 127.54,
+      "end": 133.22,
+      "en": "So write functions and implant hooks into these two projections.",
+      "zh": "所以要編寫函式，在這兩個投影位置安裝 hook，"
+    },
+    {
+      "start": 133.22,
+      "end": 139.98,
+      "en": "So attention and MLP for all 48 of the transformer blocks.",
+      "zh": "也就是全部 48 個 Transformer 區塊的注意力與 MLP。"
+    },
+    {
+      "start": 140.62,
+      "end": 147.98,
+      "en": "Now if you look in the helper file or the solutions code file, you will see some text about Turkish coffee.",
+      "zh": "查看輔助檔或解答程式檔，會看到一些土耳其咖啡的文字。"
+    },
+    {
+      "start": 148.18,
+      "end": 151.66,
+      "en": "It's just a paragraph about Turkish coffee.",
+      "zh": "只是一段介紹土耳其咖啡的文章，"
+    },
+    {
+      "start": 152.46,
+      "end": 157.42000000000002,
+      "en": "This is exactly the same text that we used in the previous video.",
+      "zh": "與上一支影片使用的文字完全相同。"
+    },
+    {
+      "start": 157.82,
+      "end": 163.1,
+      "en": "And yeah, so there's 94 tokens in total, 67 of which are unique.",
+      "zh": "總共有 94 個 token，其中 67 個不重複。"
+    },
+    {
+      "start": 163.5,
+      "end": 173.54,
+      "en": "And in particular, what you want to do is identify all of the indices where the word coffee appears in this text.",
+      "zh": "尤其要做的是，找出文字中 coffee 這個字出現的所有索引。"
+    },
+    {
+      "start": 173.98,
+      "end": 179.1,
+      "en": "So it appears seven times in total in this paragraph.",
+      "zh": "它在這段文章總共出現七次。"
+    },
+    {
+      "start": 179.1,
+      "end": 181.78,
+      "en": "So here is the first appearance of the word coffee.",
+      "zh": "這裡是 coffee 第一次出現，"
+    },
+    {
+      "start": 182.06,
+      "end": 184.02,
+      "en": "That is index one.",
+      "zh": "索引為 1，"
+    },
+    {
+      "start": 184.02,
+      "end": 185.38,
+      "en": "So that we see here.",
+      "zh": "就是這裡看到的。"
+    },
+    {
+      "start": 185.58,
+      "end": 191.18,
+      "en": "And these are the indexes corresponding to the other presentations of the word coffee.",
+      "zh": "這些索引，則對應 coffee 的其他出現位置。"
+    },
+    {
+      "start": 192.34,
+      "end": 199.06,
+      "en": "Now this is a really interesting approach for examining internal model calculations.",
+      "zh": "這是研究模型內部計算，非常有意思的方法。"
+    },
+    {
+      "start": 199.22,
+      "end": 208.34,
+      "en": "Because each of these seven appearances is literally exactly identical in terms of the token itself.",
+      "zh": "因為這七次出現，就 token 本身而言，確實完全相同。"
+    },
+    {
+      "start": 209.1,
+      "end": 220.22,
+      "en": "Furthermore, the macro context is the same for all seven of these words, in the sense that it's just one short paragraph and it's all on one particular topic.",
+      "zh": "另外，七個詞的宏觀上下文也相同，因為只是一小段文章，而且全都圍繞同一個主題。"
+    },
+    {
+      "start": 220.82,
+      "end": 229.9,
+      "en": "But the local context is different for each of these words, because each of the words surrounding each",
+      "zh": "但每個詞的局部上下文不同，因為圍繞每次"
+    },
+    {
+      "start": 229.94,
+      "end": 236.78,
+      "en": "appearance of the word coffee is slightly different, and that will be the main focus of the rest of",
+      "zh": "coffee 出現位置的字，都略有不同。這就是這次"
+    },
+    {
+      "start": 236.82,
+      "end": 245.01,
+      "en": "this code challenge you are going to evaluate the mutual information across all of the output dimensions",
+      "zh": "程式挑戰接下來的主要重點：評估不同 coffee 出現位置之間，"
+    },
+    {
+      "start": 245.01,
+      "end": 249.89,
+      "en": "for attention and MLP for the different appearances of the word coffee.",
+      "zh": "注意力與 MLP 全部輸出維度的互資訊。"
+    },
+    {
+      "start": 250.29,
+      "end": 259.33,
+      "en": "And then you will see how mutual information relates to the distances between the different appearances of the word coffee.",
+      "zh": "接著研究，互資訊與不同 coffee 出現位置之間的距離，有什麼關係。"
+    },
+    {
+      "start": 260.57,
+      "end": 263.89,
+      "en": "Anyway, I will get back to the analyses later.",
+      "zh": "總之，分析稍後再談。"
+    },
+    {
+      "start": 263.93,
+      "end": 265.65,
+      "en": "That's for later exercises.",
+      "zh": "那是後面練習的事情。"
+    },
+    {
+      "start": 265.85,
+      "end": 274.01,
+      "en": "The final part of this exercise, uh, is to push the tokens through the model to get the activations.",
+      "zh": "這個練習最後一部分，是將 token 送進模型，取得活化。"
+    },
+    {
+      "start": 274.29,
+      "end": 281.65,
+      "en": "So this screenshot here just shows a confirmation of the expected activation matrix size.",
+      "zh": "這張截圖，只是確認預期的活化矩陣大小。"
+    },
+    {
+      "start": 282.09000000000003,
+      "end": 285.89,
+      "en": "There's just one sequence of text 94 tokens.",
+      "zh": "只有一個文字序列，94 個 token。"
+    },
+    {
+      "start": 286.01,
+      "end": 292.37,
+      "en": "And the embeddings dimensionality of GPT two XL is 1600.",
+      "zh": "GPT2-XL 的嵌入維度則是 1,600。"
+    },
+    {
+      "start": 292.77,
+      "end": 299.32,
+      "en": "So now you can pause the video, switch to code, and begin the adventure that is this code challenge.",
+      "zh": "現在可以暫停影片，切換到程式碼，開始這次程式挑戰的冒險。"
+    },
+    {
+      "start": 299.44,
+      "end": 302.48,
+      "en": "And now I will switch to code and discuss my solution.",
+      "zh": "接著切換到程式碼，討論我的解答。"
+    },
+    {
+      "start": 303.68,
+      "end": 307.24,
+      "en": "Most of these libraries you have seen before.",
+      "zh": "大部分函式庫，之前都看過。"
+    },
+    {
+      "start": 307.68,
+      "end": 317.84,
+      "en": "Here I'm importing the Scipy.stats library because in a later exercise in this code challenge, we are going to use the Kendall correlation.",
+      "zh": "這裡匯入 scipy.stats，因為這次挑戰後面的練習，會使用 Kendall 相關。"
+    },
+    {
+      "start": 317.84,
+      "end": 319.4,
+      "en": "I'll talk about that more later.",
+      "zh": "稍後會再說明。"
+    },
+    {
+      "start": 319.44,
+      "end": 323.64,
+      "en": "It's a different type of correlation compared to the Pearson correlation.",
+      "zh": "它與皮爾森相關是不同種類的相關。"
+    },
+    {
+      "start": 323.88,
+      "end": 328.4,
+      "en": "And then I'm also using this function here called FDR correction.",
+      "zh": "另外也會使用這個叫作 fdr_correction 的函式。"
+    },
+    {
+      "start": 328.64,
+      "end": 334.76,
+      "en": "This is a method that I will use here for correcting for multiple comparisons.",
+      "zh": "它是這裡用來校正多重比較的方法。"
+    },
+    {
+      "start": 334.8,
+      "end": 340.8,
+      "en": "Again I'll talk about that more later in the code challenge when it becomes important.",
+      "zh": "到後面練習需要時，會再多解釋。"
+    },
+    {
+      "start": 340.8,
+      "end": 347.52,
+      "en": "But basically you know, we often correct for multiple comparisons using the Bonferroni method where",
+      "zh": "基本上，我們經常使用 Bonferroni 方法校正多重比較，"
+    },
+    {
+      "start": 347.52,
+      "end": 355.88,
+      "en": "you divide the statistical threshold of p less than 0.05 by the number of comparisons that you're making.",
+      "zh": "將 P<0.05 的統計門檻，除以比較次數。"
+    },
+    {
+      "start": 356.04,
+      "end": 359.15,
+      "en": "And in this video I'm going to use for corrections.",
+      "zh": "這支影片則會使用 FDR 校正，"
+    },
+    {
+      "start": 359.15,
+      "end": 364.03,
+      "en": "Just a slightly different approach to multiple comparisons corrections.",
+      "zh": "是稍微不同的多重比較校正方式。"
+    },
+    {
+      "start": 364.47,
+      "end": 368.47,
+      "en": "Anyway, here is the code for exercise one.",
+      "zh": "總之，這裡是練習一的程式。"
+    },
+    {
+      "start": 368.55,
+      "end": 373.15,
+      "en": "So here I'm importing the model I'm getting switching it to eval mode.",
+      "zh": "匯入模型，切換到 eval 模式。"
+    },
+    {
+      "start": 373.27,
+      "end": 382.67,
+      "en": "You can see that even though it is the big version of this model, I'm still just running it on the CPU and not on the GPU.",
+      "zh": "可以看到，雖然是這個模型的大型版本，我仍然只在 CPU 上執行，沒有用 GPU。"
+    },
+    {
+      "start": 382.91,
+      "end": 386.15,
+      "en": "If you would like to run this on the GPU, totally fine.",
+      "zh": "如果想在 GPU 上執行，完全沒問題，"
+    },
+    {
+      "start": 386.15,
+      "end": 395.51,
+      "en": "That's great, but we're only actually running pushing data through this model exactly once, so we don't really need to use the GPU.",
+      "zh": "很好，但實際上只會讓資料通過模型一次，所以不太需要 GPU。"
+    },
+    {
+      "start": 395.99,
+      "end": 396.31,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 396.35,
+      "end": 396.51,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 396.55,
+      "end": 399.35,
+      "en": "And then I have this variable for n layers.",
+      "zh": "這裡有個表示層數的變數，"
+    },
+    {
+      "start": 399.35,
+      "end": 402.31,
+      "en": "That's just the number of transformer blocks.",
+      "zh": "就是 Transformer 區塊數，"
+    },
+    {
+      "start": 402.43,
+      "end": 404.95,
+      "en": "And that's just for convenience for later on.",
+      "zh": "只是為了後面方便使用。"
+    },
+    {
+      "start": 405.51,
+      "end": 405.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 405.83,
+      "end": 408.39,
+      "en": "Here's where I define the functions for the hooks.",
+      "zh": "這裡定義 hook 的函式。"
+    },
+    {
+      "start": 409.19,
+      "end": 420.1,
+      "en": "So all of this code you have seen before, there are two functions that I have created Did just to have different naming conventions in here.",
+      "zh": "這些程式以前都看過。我建立了兩個函式，只是為了使用不同的命名方式。"
+    },
+    {
+      "start": 420.14,
+      "end": 423.82,
+      "en": "It actually would be possible to set this up just using one function.",
+      "zh": "其實可以只用一個函式來完成。"
+    },
+    {
+      "start": 423.82,
+      "end": 431.34,
+      "en": "And for example, you could add something like this, a name, and then you would call this name and so on.",
+      "zh": "例如，可以加上這樣的 name，再呼叫這個 name 等等。"
+    },
+    {
+      "start": 431.34,
+      "end": 435.14,
+      "en": "So it actually is possible to do this in one function.",
+      "zh": "所以確實可以用一個函式完成，"
+    },
+    {
+      "start": 435.14,
+      "end": 437.42,
+      "en": "But I just use two functions okay.",
+      "zh": "但我只是用了兩個。"
+    },
+    {
+      "start": 437.46,
+      "end": 444.94,
+      "en": "Here I'm looping through all of the hidden layers you can see for attention C proj and then mlp c proj.",
+      "zh": "這裡逐一迭代所有隱藏層，可以看到 attention.c_proj，以及 mlp.c_proj。"
+    },
+    {
+      "start": 445.06,
+      "end": 452.62,
+      "en": "And then I'm implanting the hook into each of those two transformer subblocks so I can run this cell.",
+      "zh": "接著在這兩個 Transformer 子區塊安裝 hook，所以可以執行這個區塊。"
+    },
+    {
+      "start": 452.62,
+      "end": 459.22,
+      "en": "It's actually not going to run just yet because we are still loading in all of the tensors.",
+      "zh": "其實還不會立即執行，因為所有張量仍在載入中。"
+    },
+    {
+      "start": 459.22,
+      "end": 462.1,
+      "en": "You can see it's 6.4GB.",
+      "zh": "可以看到是 6.4 GB，"
+    },
+    {
+      "start": 462.1,
+      "end": 467.14,
+      "en": "So it does take, you know, a couple of good couple of seconds for this to load in.",
+      "zh": "所以載入需要好幾秒，"
+    },
+    {
+      "start": 467.18,
+      "end": 469.06,
+      "en": "Actually it's several minutes but that's okay.",
+      "zh": "其實是幾分鐘，不過沒關係。"
+    },
+    {
+      "start": 469.5,
+      "end": 469.78,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 469.78,
+      "end": 471.82,
+      "en": "So that code is in the queue.",
+      "zh": "這段程式已經排入佇列，"
+    },
+    {
+      "start": 471.86,
+      "end": 472.74,
+      "en": "It will run.",
+      "zh": "之後就會執行。"
+    },
+    {
+      "start": 472.98,
+      "end": 476.1,
+      "en": "Here is the paragraph on Turkish coffee.",
+      "zh": "這裡是土耳其咖啡的段落。"
+    },
+    {
+      "start": 476.21,
+      "end": 477.89,
+      "en": "This code you've seen before.",
+      "zh": "這段程式以前看過，"
+    },
+    {
+      "start": 478.45,
+      "end": 480.21,
+      "en": "This you have not seen before.",
+      "zh": "這個則沒有。"
+    },
+    {
+      "start": 480.25,
+      "end": 483.37,
+      "en": "I'm looking for the token coffee.",
+      "zh": "我要找的是 coffee 這個 token。"
+    },
+    {
+      "start": 483.73,
+      "end": 493.09,
+      "en": "And just make sure that when you are searching through a text, if you're looking for a particular word, then you're going to get a different result.",
+      "zh": "在文字中搜尋特定詞時，記得確認，得到的結果會不同，"
+    },
+    {
+      "start": 493.09,
+      "end": 496.57,
+      "en": "If you have a space in there versus do not have a space.",
+      "zh": "取決於前面有沒有空格。"
+    },
+    {
+      "start": 496.85,
+      "end": 506.01,
+      "en": "Now, if you're just processing individual words that are isolated, they're not in a in any text or a context, then you can use this.",
+      "zh": "如果只處理孤立的單字，不在任何文字或上下文中，就可以用這個，"
+    },
+    {
+      "start": 506.01,
+      "end": 506.77,
+      "en": "That's fine.",
+      "zh": "沒有問題。"
+    },
+    {
+      "start": 507.05,
+      "end": 514.85,
+      "en": "But in this case, the tokenizer is actually not going to recognize coffee as its own token.",
+      "zh": "但在這個例子，tokenizer 其實不會將 coffee 辨識為獨立的那個 token，"
+    },
+    {
+      "start": 514.85,
+      "end": 522.37,
+      "en": "Instead, it's going to prioritize space coffee because that just appears more often in text.",
+      "zh": "而會優先使用「空格加 coffee」，因為它在文字中出現得更頻繁。"
+    },
+    {
+      "start": 522.53,
+      "end": 526.93,
+      "en": "So just a little reminder that we discussed that plenty earlier in the course.",
+      "zh": "這只是小提醒，課程前面已經討論過很多。"
+    },
+    {
+      "start": 527.37,
+      "end": 527.57,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 527.61,
+      "end": 533.81,
+      "en": "And then here I'm just looking for where the tokens are equal to the target token.",
+      "zh": "這裡只是找出，哪些 token 等於目標 token。"
+    },
+    {
+      "start": 534.29,
+      "end": 540.73,
+      "en": "So that's going to give me the seven indices where the word coffee appears, and then here I push all",
+      "zh": "這會取得 coffee 出現的七個索引，接著將所有"
+    },
+    {
+      "start": 540.73,
+      "end": 548.81,
+      "en": "the models through and actually not analyzing the hidden states here in this code challenge.",
+      "zh": "模型送進去。其實這次程式挑戰不會分析隱藏狀態，"
+    },
+    {
+      "start": 548.93,
+      "end": 551.21,
+      "en": "But I set this variable to be true.",
+      "zh": "但我將這個變數設為 True。"
+    },
+    {
+      "start": 551.21,
+      "end": 558.57,
+      "en": "And I included this here because I want to encourage you to use the code that you are seeing here that",
+      "zh": "之所以放在這裡，是想鼓勵你，將這些我為你寫的程式，"
+    },
+    {
+      "start": 558.57,
+      "end": 566.85,
+      "en": "I've written for you, uh, as a way to continue exploring and running analyses about llms.",
+      "zh": "當作繼續探索與分析 LLM 的起點。"
+    },
+    {
+      "start": 567.01,
+      "end": 574.25,
+      "en": "So, for example, you could see what is the relationship between mutual activation after the attention",
+      "zh": "例如，可以比較注意力之後的相互活化，"
+    },
+    {
+      "start": 574.41,
+      "end": 582.97,
+      "en": "versus after the MLP versus after the entire transformer block, which is what you'd get from these hidden states anyway.",
+      "zh": "MLP 之後，以及整個 Transformer 區塊之後的關係，而後者就是隱藏狀態能取得的內容。"
+    },
+    {
+      "start": 583.01,
+      "end": 585.13,
+      "en": "So that's just, uh, inspiration for you.",
+      "zh": "這只是給你一些靈感，"
+    },
+    {
+      "start": 585.13,
+      "end": 586.57,
+      "en": "It's not actually what I'm doing here.",
+      "zh": "並不是我在這裡實際要做的。"
+    },
+    {
+      "start": 587.13,
+      "end": 595.84,
+      "en": "Okay, so I'll run this and it's not actually going to run yet because we're still importing these, uh, these tensors here.",
+      "zh": "好，執行它，但其實還不會開始，因為那些張量仍在匯入中。"
+    },
+    {
+      "start": 595.88,
+      "end": 605.64,
+      "en": "Actually, it's not even a third of the way through yet, but you will see that this piece of code here takes maybe a minute or so if you run this on the GPU.",
+      "zh": "甚至還不到三分之一。不過你會看到，這段程式大概要一分鐘；如果在 GPU 上執行，"
+    },
+    {
+      "start": 605.68,
+      "end": 607.76,
+      "en": "It only takes like two seconds.",
+      "zh": "只要大約兩秒。"
+    },
+    {
+      "start": 608,
+      "end": 613.84,
+      "en": "But you know, this is the only time that we actually need to push any data through the model.",
+      "zh": "但這是唯一一次需要將資料送進模型，"
+    },
+    {
+      "start": 613.84,
+      "end": 617.4,
+      "en": "So I think it's not really necessary to use the GPU here.",
+      "zh": "所以我覺得這裡不太需要 GPU。"
+    },
+    {
+      "start": 617.8,
+      "end": 618.04,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 618.08,
+      "end": 626.84,
+      "en": "And then the final thing I will do is check the shape of just any random pick of one of these matrices.",
+      "zh": "最後，會隨意挑一個矩陣，檢查它的形狀。"
+    },
+    {
+      "start": 626.88,
+      "end": 636.6,
+      "en": "Again, that's just to confirm that we get an expected result before we get to the main analyses of",
+      "zh": "同樣，只是為了在進入這次挑戰的主要分析之前，"
+    },
+    {
+      "start": 636.6,
+      "end": 638.08,
+      "en": "this code challenge.",
+      "zh": "確認得到預期結果。"
+    },
+    {
+      "start": 638.24,
+      "end": 646.72,
+      "en": "We need to have a look and a critical think about the data as you start to work with model activations.",
+      "zh": "需要查看資料，也要批判性思考。開始處理模型活化時，"
+    },
+    {
+      "start": 646.88,
+      "end": 651.32,
+      "en": "You will often find that there are extreme values.",
+      "zh": "經常會發現極端值。"
+    },
+    {
+      "start": 651.84,
+      "end": 662.11,
+      "en": "That is, there will be a small number of activation magnitudes that are really far away from the rest of the distribution of activation values.",
+      "zh": "也就是少數活化的大小，距離其餘活化值的分布非常遠。"
+    },
+    {
+      "start": 662.83,
+      "end": 671.51,
+      "en": "And actually, I've shown you several examples of this before, in particular with activations to the very first token in the sequence.",
+      "zh": "其實之前已展示過幾個例子，尤其是序列中第一個 token 的活化。"
+    },
+    {
+      "start": 672.07,
+      "end": 682.35,
+      "en": "And at that time I said that the first token is often ignored in analyses because the model has no context to process that first token.",
+      "zh": "當時說過，分析經常忽略第一個 token，因為模型沒有上下文可用來處理它。"
+    },
+    {
+      "start": 683.43,
+      "end": 693.51,
+      "en": "But you will also find that lots of other tokens have one or a small number of dimensions, or neurons that have really high activations.",
+      "zh": "但也會發現，許多其他 token 有一個或少數維度、神經元，其活化非常高。"
+    },
+    {
+      "start": 694.27,
+      "end": 705.75,
+      "en": "Now, on the one hand, that is itself pretty interesting because it means that there is a small number of dimensions that are really important for processing a given token.",
+      "zh": "一方面，這本身很有意思，因為表示少數維度，對處理特定 token 很重要。"
+    },
+    {
+      "start": 706.43,
+      "end": 714.42,
+      "en": "But on the other hand, from the perspective of statistical analyses, a very small number of A very",
+      "zh": "但另一方面，從統計分析角度看，極少數非常"
+    },
+    {
+      "start": 714.42,
+      "end": 722.7,
+      "en": "extreme values can cause estimation errors and can give biased or misleading statistical results.",
+      "zh": "極端的值，可能造成估計誤差，產生有偏誤或誤導性的統計結果。"
+    },
+    {
+      "start": 723.3,
+      "end": 732.66,
+      "en": "So from an analysis perspective, we often need to remove extreme values before calculating statistical characteristics.",
+      "zh": "所以從分析角度，經常需要先移除極端值，再計算統計特徵。"
+    },
+    {
+      "start": 733.3,
+      "end": 738.78,
+      "en": "Anyway, exploring this phenomenon is the main goal of this exercise.",
+      "zh": "總之，探索這個現象，是這個練習的主要目標。"
+    },
+    {
+      "start": 739.22,
+      "end": 743.86,
+      "en": "So to start with, make a scatter plot that looks something like this.",
+      "zh": "首先，建立大概像這樣的散佈圖。"
+    },
+    {
+      "start": 744.3,
+      "end": 752.1,
+      "en": "So each of these little green circles corresponds to the activation of the attention output from a transformer.",
+      "zh": "這裡每個綠色小圓點，都對應某個 Transformer 的注意力輸出活化，"
+    },
+    {
+      "start": 752.1,
+      "end": 758.9,
+      "en": "Block three for the first target word on the x axis and the second target word.",
+      "zh": "也就是區塊 3，x 軸是第一個目標詞，y 軸是第二個目標詞，"
+    },
+    {
+      "start": 758.9,
+      "end": 762.74,
+      "en": "So appearance of the word coffee on the y axis.",
+      "zh": "也就是 coffee 的出現位置。"
+    },
+    {
+      "start": 763.22,
+      "end": 769.18,
+      "en": "And you can see that there are a couple of really extreme data values in here.",
+      "zh": "可以看到，這裡有幾個非常極端的資料值。"
+    },
+    {
+      "start": 769.5,
+      "end": 778.17,
+      "en": "Now I have identified these extreme values by calculating the z score of each data point for each target",
+      "zh": "我透過計算每個目標詞、每個資料點的 z 分數，找出這些極端值，"
+    },
+    {
+      "start": 778.17,
+      "end": 789.45,
+      "en": "word, and plotting in red any activation values that are more than four standard deviations away from the mean in either one of the dimensions.",
+      "zh": "並將在任一維度上，距離平均數超過四個標準差的活化值，畫成紅色。"
+    },
+    {
+      "start": 790.09,
+      "end": 795.29,
+      "en": "So here, as a reminder, is the formula for the z score transformation.",
+      "zh": "提醒一下，這是 z 分數轉換的公式。"
+    },
+    {
+      "start": 795.77,
+      "end": 802.17,
+      "en": "Z is each individual data point, which in this case is each activation.",
+      "zh": "Z 是每個個別資料點，在這裡就是每個活化，"
+    },
+    {
+      "start": 802.17,
+      "end": 811.97,
+      "en": "For a given dimension, the x bar is the average of the activations, and the sigma here refers to the standard deviation.",
+      "zh": "針對某個維度，x bar 是活化的平均，而 sigma 表示標準差。"
+    },
+    {
+      "start": 812.57,
+      "end": 820.01,
+      "en": "Now, when you transform the data to a z score, you can label any activation that's more than four.",
+      "zh": "將資料轉成 z 分數後，可以把任何大於 4 的活化，"
+    },
+    {
+      "start": 820.61,
+      "end": 822.21,
+      "en": "As an outlier.",
+      "zh": "標記為離群值。"
+    },
+    {
+      "start": 822.37,
+      "end": 829.05,
+      "en": "You can do that separately for each of the target words, and any activation that is an outlier.",
+      "zh": "可以對每個目標詞分別處理，只要某個活化在"
+    },
+    {
+      "start": 829.05,
+      "end": 834.13,
+      "en": "In at least one of the target words, you can consider an outlier.",
+      "zh": "至少一個目標詞中是離群值，就將它視為離群值。"
+    },
+    {
+      "start": 834.77,
+      "end": 840.73,
+      "en": "Next, you can calculate the mutual information for this example on the full data.",
+      "zh": "接著，對這個例子的完整資料計算互資訊，"
+    },
+    {
+      "start": 840.73,
+      "end": 851.81,
+      "en": "So including the outliers and also on the trimmed data which means just the green circles excluding these red squares these extreme values.",
+      "zh": "也就是包含離群值；另外也對修剪後資料計算，只保留綠色圓點，排除這些紅色方塊、極端值。"
+    },
+    {
+      "start": 852.25,
+      "end": 855.33,
+      "en": "And then you will notice that the results differ quite a bit.",
+      "zh": "接著會發現，結果差異相當大，"
+    },
+    {
+      "start": 855.33,
+      "end": 857.09,
+      "en": "That's what you see in the title here.",
+      "zh": "就是標題顯示的結果。"
+    },
+    {
+      "start": 857.97,
+      "end": 866.05,
+      "en": "And now what I'd like you to do is modify the code for the function that implements the direct translation",
+      "zh": "現在想請你修改函式的程式，這個函式將互資訊公式、"
+    },
+    {
+      "start": 866.21,
+      "end": 873.41,
+      "en": "of the mutual information formulas, the equations into code, and in particular, what I want you to",
+      "zh": "方程式直接轉成程式；特別是，想請你"
+    },
+    {
+      "start": 873.45,
+      "end": 881.01,
+      "en": "do is incorporate code to remove outliers in the mutual information calculation.",
+      "zh": "加入在互資訊計算中移除離群值的程式。"
+    },
+    {
+      "start": 881.69,
+      "end": 889.69,
+      "en": "So this function here is almost the same that you've seen in previous videos, except that I included",
+      "zh": "這個函式與先前影片的幾乎相同，只是加入了"
+    },
+    {
+      "start": 889.69,
+      "end": 896,
+      "en": "an additional output here for outlier thresh and the default value is zero.",
+      "zh": "一個叫作 outlier thresh 的額外輸出，預設值為 0。"
+    },
+    {
+      "start": 896.24,
+      "end": 903.32,
+      "en": "And then the idea is if this value is greater, this input value, if it's greater than zero, then",
+      "zh": "概念是，如果這個值、這個輸入值大於零，"
+    },
+    {
+      "start": 903.36,
+      "end": 910.96,
+      "en": "you can z score the variables, identify outliers based on extreme values that you see with this line",
+      "zh": "就能將變數轉成 z 分數，根據這行程式中的極端值，找出離群值，"
+    },
+    {
+      "start": 911,
+      "end": 920.64,
+      "en": "of code here, and then calculate the entropy and mutual information with uh excluding these outlier values.",
+      "zh": "再排除這些離群值，計算熵與互資訊。"
+    },
+    {
+      "start": 921,
+      "end": 929.32,
+      "en": "And finally, you want to repeat this calculation using mutual information from the scikit learn library.",
+      "zh": "最後，使用 scikit-learn 函式庫的互資訊，重複這項計算。"
+    },
+    {
+      "start": 929.8,
+      "end": 935.28,
+      "en": "And when you do that you can print out all of the results in a list that looks like this.",
+      "zh": "完成後，可以將所有結果列印成這樣的清單。"
+    },
+    {
+      "start": 935.68,
+      "end": 942.88,
+      "en": "Now, this is a really nuanced and difficult issue in applied statistics because although these data",
+      "zh": "這是應用統計中非常細膩、困難的問題，因為這些資料點"
+    },
+    {
+      "start": 942.88,
+      "end": 949.28,
+      "en": "points are extreme, they're not mistakes, they're not errors, they're real data values.",
+      "zh": "雖然極端，卻不是錯誤，不是失誤，而是真實資料值。"
+    },
+    {
+      "start": 949.28,
+      "end": 956.87,
+      "en": "But they can really screw up the analyses and lead to incorrect and misleading interpretations.",
+      "zh": "但它們可能嚴重干擾分析，導致錯誤、誤導性的解讀。"
+    },
+    {
+      "start": 957.31,
+      "end": 965.23,
+      "en": "So I'll have a few more things to say about comparing the trimmed versus full analyses when I switch to code.",
+      "zh": "切換到程式碼後，會再多談幾點修剪資料與完整資料分析的比較。"
+    },
+    {
+      "start": 965.35,
+      "end": 969.35,
+      "en": "But first, you should pause the video and work through this exercise.",
+      "zh": "不過先請暫停影片，完成這個練習。"
+    },
+    {
+      "start": 969.63,
+      "end": 976.95,
+      "en": "And now I will switch to code, show my solution, and have a bit more of a discussion about practical statistics.",
+      "zh": "接著切換到程式碼，展示解答，再多討論一些實務統計。"
+    },
+    {
+      "start": 978.03,
+      "end": 981.75,
+      "en": "So here is the function to calculate mutual information.",
+      "zh": "這裡是計算互資訊的函式。"
+    },
+    {
+      "start": 981.79,
+      "end": 985.55,
+      "en": "Now if you ignore this for the moment and you just look at this.",
+      "zh": "先忽略這個，只看這裡，"
+    },
+    {
+      "start": 985.71,
+      "end": 991.11,
+      "en": "This is identical to code you have seen in the past several videos.",
+      "zh": "與過去幾支影片看過的程式完全相同。"
+    },
+    {
+      "start": 991.15,
+      "end": 997.43,
+      "en": "The only thing that's new here in this video in this exercise is this bit of code here.",
+      "zh": "這支影片、這個練習唯一新增的，是這一小段程式。"
+    },
+    {
+      "start": 997.79,
+      "end": 1005.91,
+      "en": "So if this optional input outlier thresh is greater than zero then I z score the data.",
+      "zh": "如果選用輸入 outlier thresh 大於零，就將資料轉成 z 分數，"
+    },
+    {
+      "start": 1006.03,
+      "end": 1011.11,
+      "en": "I find all of the outliers and then I remove those outliers.",
+      "zh": "找出所有離群值，再移除它們。"
+    },
+    {
+      "start": 1011.26,
+      "end": 1020.38,
+      "en": "So here what I'm doing is redefining X to be itself and the indices of anything that is not considered an outlier.",
+      "zh": "這裡重新定義 x，取它自身中，所有未被視為離群值的索引。"
+    },
+    {
+      "start": 1020.58,
+      "end": 1022.06,
+      "en": "So that's the way I chose to do it.",
+      "zh": "這就是我選擇的做法。"
+    },
+    {
+      "start": 1022.06,
+      "end": 1024.34,
+      "en": "There's multiple other ways to implement this.",
+      "zh": "也有其他多種實作方式。"
+    },
+    {
+      "start": 1024.34,
+      "end": 1032.94,
+      "en": "But the main point is that now we will continue with the analyses but using data that have outliers removed.",
+      "zh": "但重點是，現在繼續分析時，使用的是已移除離群值的資料。"
+    },
+    {
+      "start": 1033.3,
+      "end": 1043.3,
+      "en": "Now the important thing about implementing this bit of code here is that the same values are removed from both variables.",
+      "zh": "實作這段程式的重要之處，是要從兩個變數移除相同位置的值。"
+    },
+    {
+      "start": 1043.3,
+      "end": 1050.06,
+      "en": "And that's because for mutual information, you know, the analysis is based on statistical dependencies.",
+      "zh": "因為互資訊的分析，是以統計相依性為基礎，"
+    },
+    {
+      "start": 1050.06,
+      "end": 1054.18,
+      "en": "So obviously the two vectors need to be perfectly aligned.",
+      "zh": "所以兩個向量當然必須完全對齊。"
+    },
+    {
+      "start": 1054.38,
+      "end": 1062.02,
+      "en": "So if you remove data from one variable, you need to remove the same indices from the other variable,",
+      "zh": "如果從一個變數移除資料，也必須從另一個變數移除相同索引，"
+    },
+    {
+      "start": 1062.14,
+      "end": 1068.1,
+      "en": "even if the data are not necessarily an extreme outlier value in the other variable.",
+      "zh": "即使另一個變數的資料，未必是極端離群值。"
+    },
+    {
+      "start": 1068.58,
+      "end": 1068.98,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1069.02,
+      "end": 1070.85,
+      "en": "So run that code.",
+      "zh": "執行這段程式。"
+    },
+    {
+      "start": 1070.85,
+      "end": 1074.85,
+      "en": "And yeah, here I'm just extracting a little bit of data.",
+      "zh": "這裡只是擷取一點資料，"
+    },
+    {
+      "start": 1074.93,
+      "end": 1076.41,
+      "en": "Identifying outliers.",
+      "zh": "找出離群值。"
+    },
+    {
+      "start": 1076.41,
+      "end": 1079.53,
+      "en": "This is code here to generate the plot.",
+      "zh": "這裡是產生圖形的程式，"
+    },
+    {
+      "start": 1079.53,
+      "end": 1082.73,
+      "en": "So I'm not actually calling this function just yet.",
+      "zh": "所以其實還沒有呼叫這個函式。"
+    },
+    {
+      "start": 1083.73,
+      "end": 1088.93,
+      "en": "So uh z transform identify outliers based on a threshold of four.",
+      "zh": "先做 z 轉換，以 4 為門檻辨識離群值。"
+    },
+    {
+      "start": 1089.33,
+      "end": 1093.09,
+      "en": "And then uh, here I'm calculating mutual information.",
+      "zh": "接著在這裡計算互資訊。"
+    },
+    {
+      "start": 1093.37,
+      "end": 1095.81,
+      "en": "And actually this is a little bit redundant here.",
+      "zh": "其實這裡有點多餘。"
+    },
+    {
+      "start": 1095.81,
+      "end": 1101.41,
+      "en": "What I could do is remove these and say, uh, what did I call that variable?",
+      "zh": "可以拿掉這些，再寫，我把那個變數叫作什麼？"
+    },
+    {
+      "start": 1101.41,
+      "end": 1104.25,
+      "en": "I called this variable outlier thresh.",
+      "zh": "叫作 outlier thresh。"
+    },
+    {
+      "start": 1104.65,
+      "end": 1106.53,
+      "en": "So I could also do it this way.",
+      "zh": "所以也可以這樣做，"
+    },
+    {
+      "start": 1106.61,
+      "end": 1109.33,
+      "en": "Outlier thresh equals threshold.",
+      "zh": "outlier thresh 等於 threshold。"
+    },
+    {
+      "start": 1109.37,
+      "end": 1110.01,
+      "en": "That's fine.",
+      "zh": "這樣沒問題，"
+    },
+    {
+      "start": 1110.01,
+      "end": 1111.41,
+      "en": "Although it was also fine.",
+      "zh": "不過先前的"
+    },
+    {
+      "start": 1111.65,
+      "end": 1113.09,
+      "en": "Uh, the previous way I had it.",
+      "zh": "寫法也沒問題。"
+    },
+    {
+      "start": 1113.45,
+      "end": 1113.69,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1113.73,
+      "end": 1119.25,
+      "en": "And then here I'm calculating mutual information using the scikit learn method.",
+      "zh": "這裡則使用 scikit-learn 方法計算互資訊，"
+    },
+    {
+      "start": 1119.25,
+      "end": 1121.13,
+      "en": "Mutual information regression.",
+      "zh": "mutual_info_regression。"
+    },
+    {
+      "start": 1121.57,
+      "end": 1124.13,
+      "en": "This reshaping business you've seen before.",
+      "zh": "這種重新調整形狀的操作，以前看過。"
+    },
+    {
+      "start": 1124.37,
+      "end": 1126.69,
+      "en": "And then here I'm calculating it twice.",
+      "zh": "這裡計算兩次，"
+    },
+    {
+      "start": 1126.89,
+      "end": 1132.64,
+      "en": "Once using the full versions of X and once without the outliers.",
+      "zh": "一次使用完整的 x，另一次不含離群值。"
+    },
+    {
+      "start": 1133.08,
+      "end": 1133.36,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1133.44,
+      "end": 1136.28,
+      "en": "And then here is the visualization.",
+      "zh": "接著是視覺化。"
+    },
+    {
+      "start": 1136.28,
+      "end": 1139.76,
+      "en": "So reproduces exactly what I showed in the slides.",
+      "zh": "重現的，與投影片展示的完全相同。"
+    },
+    {
+      "start": 1139.92,
+      "end": 1148.32,
+      "en": "This is an interesting data point here because it's not nearly as extreme as like either one of these two values.",
+      "zh": "這個資料點很有意思，因為它並不像這兩個值那麼極端，"
+    },
+    {
+      "start": 1148.8,
+      "end": 1151.96,
+      "en": "And it's also not that extreme for target word two.",
+      "zh": "對目標詞 2 而言，也沒有那麼極端。"
+    },
+    {
+      "start": 1152.28,
+      "end": 1153.48,
+      "en": "But it is extreme.",
+      "zh": "但它仍然是極端值，"
+    },
+    {
+      "start": 1153.48,
+      "end": 1161.2,
+      "en": "It is technically suprathreshold on target word one because it's a bit outside the distribution.",
+      "zh": "嚴格來說，對目標詞 1 它超過門檻，因為稍微落在分布之外。"
+    },
+    {
+      "start": 1162.08,
+      "end": 1168.08,
+      "en": "Now, whether you really want to consider this to be an outlier and not, for example, this data point",
+      "zh": "究竟真的要把它視為離群值，而不是例如這個資料點，"
+    },
+    {
+      "start": 1168.08,
+      "end": 1175.4,
+      "en": "or this data point, this is where statistics starts getting tricky because we have to define thresholds.",
+      "zh": "或這個資料點？這就是統計開始棘手的地方，因為必須定義門檻。"
+    },
+    {
+      "start": 1175.56,
+      "end": 1180.44,
+      "en": "And thresholds are always going to work sometimes, and they're not going to work other times.",
+      "zh": "門檻有時有效，有時則沒效。"
+    },
+    {
+      "start": 1180.64,
+      "end": 1182.88,
+      "en": "So you could keep tweaking this around.",
+      "zh": "所以可以一直調整，"
+    },
+    {
+      "start": 1182.88,
+      "end": 1191.68,
+      "en": "And maybe you want to use a threshold of five standard deviations that will preserve this data point while eliminating these two data points.",
+      "zh": "也許想用五個標準差為門檻，保留這個資料點，排除這兩個資料點。"
+    },
+    {
+      "start": 1191.88,
+      "end": 1200.08,
+      "en": "But on the other hand, maybe you will see other situations where a threshold of five is inappropriate",
+      "zh": "但另一方面，也許其他情況下，5 的門檻不適當，"
+    },
+    {
+      "start": 1200.08,
+      "end": 1204.04,
+      "en": "and you would actually want to reduce the threshold back down to four.",
+      "zh": "反而需要將門檻降回 4。"
+    },
+    {
+      "start": 1204.32,
+      "end": 1211.96,
+      "en": "So at the end of the day, it's best to pick one threshold and use it consistently throughout all the",
+      "zh": "所以最後，最好挑一個門檻，在同一項研究的所有"
+    },
+    {
+      "start": 1211.96,
+      "end": 1219.2,
+      "en": "analyses within one study, so that if there are these kind of weird things that are being introduced,",
+      "zh": "分析中一致使用。這樣如果引入了這些奇怪的情況，"
+    },
+    {
+      "start": 1219.2,
+      "end": 1228.36,
+      "en": "at least it's not systematic and it's not being driven by your visual expectation of what you think the results should look like.",
+      "zh": "至少不是系統性的，也不是受到自己預期結果應該長什麼樣子的視覺期待所驅動。"
+    },
+    {
+      "start": 1228.44,
+      "end": 1232.64,
+      "en": "So but yeah, this this sort of weird thing always happens.",
+      "zh": "但這種奇怪的事情，總是會發生，"
+    },
+    {
+      "start": 1232.68,
+      "end": 1235.04,
+      "en": "It's just the nature of doing statistics.",
+      "zh": "這就是做統計的本質。"
+    },
+    {
+      "start": 1235.04,
+      "end": 1242.28,
+      "en": "And it's a good motivation to have a lot of data to work with, because the more data you have, the",
+      "zh": "這也是應該準備大量資料的一個好理由，因為資料越多，"
+    },
+    {
+      "start": 1242.28,
+      "end": 1247.84,
+      "en": "smaller the impact of removing one or a small number of data points.",
+      "zh": "移除一個或少數資料點的影響就越小。"
+    },
+    {
+      "start": 1249.03,
+      "end": 1256.35,
+      "en": "Okay, so just as a reminder here in this scatter plot, there are 1600 data points.",
+      "zh": "好，提醒一下，這張散佈圖中有 1,600 個資料點。"
+    },
+    {
+      "start": 1256.39,
+      "end": 1258.95,
+      "en": "Almost all of them are in this little cloud here.",
+      "zh": "幾乎全部都在這一小團裡，"
+    },
+    {
+      "start": 1258.95,
+      "end": 1261.63,
+      "en": "And then we have a couple of extreme values here.",
+      "zh": "接著這裡有幾個極端值。"
+    },
+    {
+      "start": 1261.95,
+      "end": 1264.51,
+      "en": "And where do those 1600 points come from?",
+      "zh": "這 1,600 個點來自哪裡？"
+    },
+    {
+      "start": 1264.75,
+      "end": 1270.11,
+      "en": "Those come from the activations of all of the attention.",
+      "zh": "來自所有注意力的活化，"
+    },
+    {
+      "start": 1270.11,
+      "end": 1271.67,
+      "en": "I think this was attention.",
+      "zh": "我記得是注意力，"
+    },
+    {
+      "start": 1271.67,
+      "end": 1271.87,
+      "en": "Yeah.",
+      "zh": "對，"
+    },
+    {
+      "start": 1271.91,
+      "end": 1276.95,
+      "en": "All of the, uh, the output of the attention mechanism from block three.",
+      "zh": "全部都是區塊 3 的注意力機制輸出，"
+    },
+    {
+      "start": 1276.99,
+      "end": 1281.03,
+      "en": "Transformer, block three, uh, for target word one.",
+      "zh": "Transformer 區塊 3，針對目標詞 1，"
+    },
+    {
+      "start": 1281.03,
+      "end": 1285.83,
+      "en": "So the first appearance of coffee and the second appearance of the word coffee.",
+      "zh": "也就是第一次出現的 coffee，以及第二次出現的 coffee。"
+    },
+    {
+      "start": 1286.19,
+      "end": 1288.95,
+      "en": "So they're strongly correlated with each other.",
+      "zh": "它們彼此高度相關，"
+    },
+    {
+      "start": 1289.35,
+      "end": 1290.39,
+      "en": "No surprise.",
+      "zh": "並不意外，"
+    },
+    {
+      "start": 1290.59,
+      "end": 1293.39,
+      "en": "They come from exactly the same text.",
+      "zh": "來自完全相同的文字。"
+    },
+    {
+      "start": 1293.43,
+      "end": 1295.43,
+      "en": "Let's go back and look at that text.",
+      "zh": "回頭看看文字。"
+    },
+    {
+      "start": 1296.15,
+      "end": 1301.55,
+      "en": "So we have the activation to this word and the activation to this word.",
+      "zh": "我們有對這個字的活化，以及對這個字的活化。"
+    },
+    {
+      "start": 1301.67,
+      "end": 1305.83,
+      "en": "And that is what you see uh, here in this plot.",
+      "zh": "這就是這張圖看到的結果。"
+    },
+    {
+      "start": 1306.19,
+      "end": 1306.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1306.51,
+      "end": 1307.15,
+      "en": "Very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1307.15,
+      "end": 1314.78,
+      "en": "So now we already see that, uh, the, uh, that trimming the data actually increases the mutual information.",
+      "zh": "現在已經看到，修剪資料其實增加了互資訊，"
+    },
+    {
+      "start": 1314.78,
+      "end": 1315.78,
+      "en": "Almost double.",
+      "zh": "幾乎變成兩倍，"
+    },
+    {
+      "start": 1315.82,
+      "end": 1317.34,
+      "en": "Slightly less than double.",
+      "zh": "略低於兩倍。"
+    },
+    {
+      "start": 1317.7,
+      "end": 1327.78,
+      "en": "So that tells us that these three data points in particular, these two really had a really large impact on the mutual information value.",
+      "zh": "這表示這三個資料點，尤其這兩個，確實對互資訊值有非常大的影響。"
+    },
+    {
+      "start": 1328.06,
+      "end": 1336.42,
+      "en": "That is, with the manual calculation or the direct implementation of the formula for mutual information in the code.",
+      "zh": "這是手動計算，或者說，在程式中直接實作互資訊公式的結果。"
+    },
+    {
+      "start": 1336.7,
+      "end": 1348.62,
+      "en": "And basically what's happening here, the reason why these two values are so different from each other is that, uh, when we discretize this to create histograms, to estimate the probability distribution,",
+      "zh": "基本上，這兩個值差那麼多的原因，是將資料離散化、建立直方圖、估計機率分布時，"
+    },
+    {
+      "start": 1348.9,
+      "end": 1353.78,
+      "en": "we get, you know, these little islands out here and all zeros out here.",
+      "zh": "外面會有這些小島，這些地方則全是零。"
+    },
+    {
+      "start": 1354.02,
+      "end": 1361.26,
+      "en": "So when we empirically try to estimate the probability distribution, we get all zeros around here.",
+      "zh": "因此根據實際資料估計機率分布時，這附近得到的全是零。"
+    },
+    {
+      "start": 1361.26,
+      "end": 1370.81,
+      "en": "So many zeros that the model is just having a hard time really accurately Assessing the full probability distribution.",
+      "zh": "零太多，模型就很難真正準確評估完整的機率分布。"
+    },
+    {
+      "start": 1371.05,
+      "end": 1382.13,
+      "en": "And now let's see what happens when we use the kernel density estimator of the probability distributions that are packaged into the scikit learn function.",
+      "zh": "現在來看，使用 scikit-learn 函式中內建的機率分布核密度估計器，會發生什麼事。"
+    },
+    {
+      "start": 1382.45,
+      "end": 1382.77,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1382.81,
+      "end": 1387.61,
+      "en": "So here we see there was a big difference with the manual implementation.",
+      "zh": "這裡看到，手動實作有很大差異，"
+    },
+    {
+      "start": 1387.61,
+      "end": 1393.01,
+      "en": "And here with the scikit learn implementation we get values that are much closer to each other.",
+      "zh": "而 scikit-learn 實作得到的數值，彼此接近得多。"
+    },
+    {
+      "start": 1393.01,
+      "end": 1400.33,
+      "en": "And so that indicates that the scikit learn implementation is actually much more robust to outliers",
+      "zh": "這表示，scikit-learn 的實作，對離群值"
+    },
+    {
+      "start": 1400.33,
+      "end": 1410.33,
+      "en": "or extreme values, because it's doing a better job at estimating the probability distribution given sparse and limited data.",
+      "zh": "或極端值更穩健，因為在資料稀疏、有限時，能更好地估計機率分布。"
+    },
+    {
+      "start": 1413.65,
+      "end": 1422.25,
+      "en": "Now we're going to start getting into some analyses here in exercise three you will calculate mutual",
+      "zh": "現在開始做一些分析。練習三要計算互"
+    },
+    {
+      "start": 1422.25,
+      "end": 1427.25,
+      "en": "information and see how it relates to inter token distances.",
+      "zh": "資訊，研究它與 token 間距離的關係。"
+    },
+    {
+      "start": 1427.64,
+      "end": 1427.92,
+      "en": "Here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 1427.92,
+      "end": 1430.52,
+      "en": "We'll do it in just one transformer block.",
+      "zh": "先只看一個 Transformer 區塊。"
+    },
+    {
+      "start": 1430.64,
+      "end": 1439,
+      "en": "And then in the next exercise, we will examine the laminar profile of the characteristics that we discover here.",
+      "zh": "下一個練習，再研究這裡發現之特性的跨層變化。"
+    },
+    {
+      "start": 1439.64,
+      "end": 1443.84,
+      "en": "So there are seven appearances of the word coffee.",
+      "zh": "coffee 這個字出現七次。"
+    },
+    {
+      "start": 1444.36,
+      "end": 1450.84,
+      "en": "And you want to calculate the mutual information of all the embeddings dimensions from the output of",
+      "zh": "要針對所有目標配對，計算區塊 3 注意力輸出中，"
+    },
+    {
+      "start": 1450.84,
+      "end": 1457.16,
+      "en": "the attention from block three for all pairs of targets.",
+      "zh": "全部嵌入維度的互資訊。"
+    },
+    {
+      "start": 1457.44,
+      "end": 1461.92,
+      "en": "In other words, in this matrix here the value of each block.",
+      "zh": "換句話說，這個矩陣中，每個區塊的值，"
+    },
+    {
+      "start": 1461.92,
+      "end": 1472,
+      "en": "For example, this block here is the mutual information over all 1600 dimensions between the the third",
+      "zh": "例如這個區塊，表示第三次"
+    },
+    {
+      "start": 1472,
+      "end": 1475.96,
+      "en": "and the second appearance of the word coffee.",
+      "zh": "與第二次 coffee 出現之間，全部 1,600 個維度的互資訊。"
+    },
+    {
+      "start": 1476.64,
+      "end": 1479.04,
+      "en": "So that is for this matrix here.",
+      "zh": "這是這個矩陣，"
+    },
+    {
+      "start": 1479.04,
+      "end": 1481,
+      "en": "This is mutual information.",
+      "zh": "也就是互資訊。"
+    },
+    {
+      "start": 1481.52,
+      "end": 1486.44,
+      "en": "The next thing you want to calculate is the inter token distances.",
+      "zh": "接著要計算 token 間距離。"
+    },
+    {
+      "start": 1486.88,
+      "end": 1490.6,
+      "en": "Now this is not the embeddings, vectors, or Euclidean distances.",
+      "zh": "這不是嵌入向量，也不是歐幾里得距離，"
+    },
+    {
+      "start": 1490.76,
+      "end": 1497.8,
+      "en": "It's literally just the number of tokens separating each pair of tokens.",
+      "zh": "真的只是每對 token 之間，相隔多少個 token。"
+    },
+    {
+      "start": 1498.28,
+      "end": 1507.72,
+      "en": "So the result of this matrix is literally just a bunch of integers, and they increase the further away the two tokens are from each other.",
+      "zh": "所以矩陣結果，就只是一串整數，兩個 token 相距越遠，數字越大。"
+    },
+    {
+      "start": 1508.2,
+      "end": 1519.68,
+      "en": "So the idea of this quantification is that the closer to target two tokens are to each other in the text, the more shared context they have.",
+      "zh": "這個量化方式的概念，是兩個目標 token 在文字中越接近，共享的上下文越多。"
+    },
+    {
+      "start": 1520.28,
+      "end": 1527.48,
+      "en": "And when tokens are farther apart from each other, then they have less locally shared context.",
+      "zh": "token 距離越遠，局部共享的上下文就越少。"
+    },
+    {
+      "start": 1528.12,
+      "end": 1540.08,
+      "en": "So now we have mutual information between all the pairs, and we have the information of how far apart each pair of tokens is from each other in the text.",
+      "zh": "現在有了所有配對的互資訊，也知道文字中每對 token 彼此相距多遠。"
+    },
+    {
+      "start": 1540.64,
+      "end": 1546.67,
+      "en": "And the third panel over here shows a scatterplot of these two sets of results.",
+      "zh": "第三個面板，則顯示這兩組結果的散佈圖。"
+    },
+    {
+      "start": 1547.03,
+      "end": 1555.35,
+      "en": "And of course you only want to show the non-zero values here, because anything above the diagonal would be perfectly redundant.",
+      "zh": "當然，只想顯示非零值，因為對角線上方的內容完全重複。"
+    },
+    {
+      "start": 1556.47,
+      "end": 1556.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1556.83,
+      "end": 1568.35,
+      "en": "So then the last step is to quantify any relationship you see between mutual information and inter token distance using a correlation.",
+      "zh": "最後一步，是用相關，量化互資訊與 token 間距離之間看到的任何關係。"
+    },
+    {
+      "start": 1569.15,
+      "end": 1575.63,
+      "en": "Now so far in this course we've only been using Pearson correlation coefficients.",
+      "zh": "到目前為止，這門課只使用皮爾森相關係數。"
+    },
+    {
+      "start": 1576.23,
+      "end": 1581.11,
+      "en": "And as you know that is almost exactly the same as cosine similarity.",
+      "zh": "你也知道，它與餘弦相似度幾乎完全相同。"
+    },
+    {
+      "start": 1581.71,
+      "end": 1589.07,
+      "en": "However, the Pearson correlation is only used for two continuous variables.",
+      "zh": "不過，皮爾森相關只用於兩個連續變數。"
+    },
+    {
+      "start": 1589.67,
+      "end": 1592.51,
+      "en": "Mutual information is a continuous variable.",
+      "zh": "互資訊是連續變數，"
+    },
+    {
+      "start": 1592.51,
+      "end": 1595.47,
+      "en": "So that's appropriate for Pearson correlation.",
+      "zh": "所以適合皮爾森相關。"
+    },
+    {
+      "start": 1595.47,
+      "end": 1599.39,
+      "en": "But inter token distances is not.",
+      "zh": "但 token 間距離不是，"
+    },
+    {
+      "start": 1599.43,
+      "end": 1600.83,
+      "en": "These are just integers.",
+      "zh": "它們只是整數。"
+    },
+    {
+      "start": 1601.39,
+      "end": 1608.66,
+      "en": "And so therefore you should really not use the Pearson correlation for this analysis, there is another",
+      "zh": "因此這項分析其實不應使用皮爾森相關，而有另一種"
+    },
+    {
+      "start": 1608.66,
+      "end": 1613.58,
+      "en": "type of correlation called a Kendall's tau correlation.",
+      "zh": "相關，叫作 Kendall 的 tau 相關。"
+    },
+    {
+      "start": 1613.98,
+      "end": 1620.94,
+      "en": "And this correlation is specifically designed for one variable, one variable being ordinal.",
+      "zh": "這種相關，是特別為其中一個變數是順序變數而設計，"
+    },
+    {
+      "start": 1621.14,
+      "end": 1624.02,
+      "en": "And that is exactly the data type that we have here.",
+      "zh": "正好就是這裡的資料型態。"
+    },
+    {
+      "start": 1625.18,
+      "end": 1631.78,
+      "en": "So if you've taken my course on statistics and machine learning then you are familiar with this correlation method.",
+      "zh": "所以如果修過我的統計與機器學習課，就會熟悉這個相關方法。"
+    },
+    {
+      "start": 1631.9,
+      "end": 1638.78,
+      "en": "If you have not come across the Kendall's tau correlation, don't worry about the formula or the implementational details.",
+      "zh": "如果沒遇過 Kendall 的 tau 相關，也別擔心公式或實作細節。"
+    },
+    {
+      "start": 1638.98,
+      "end": 1649.38,
+      "en": "The important point for here is that you interpret the correlation coefficient in exactly the same way as you interpret a Pearson correlation.",
+      "zh": "這裡重要的是，解讀這個相關係數的方式，與解讀皮爾森相關完全相同。"
+    },
+    {
+      "start": 1649.78,
+      "end": 1661.78,
+      "en": "So in particular, the correlation for Kendall's tau can range from minus one to plus one with negative correlations indicating reciprocal or opposite relationships.",
+      "zh": "尤其是，Kendall 的 tau 相關可以介於 −1 到 +1，負相關表示互為反向、相反的關係。"
+    },
+    {
+      "start": 1662.74,
+      "end": 1671.69,
+      "en": "By the way, I forgot to mention that in this exercise you want to use the manual implementation of mutual information.",
+      "zh": "順帶一提，我忘了說，這個練習要使用手動實作的互資訊。"
+    },
+    {
+      "start": 1671.69,
+      "end": 1681.57,
+      "en": "So the function that you wrote for exercise one do not use the mutual information function that comes with scikit learn.",
+      "zh": "也就是練習一寫的函式，不要使用 scikit-learn 提供的互資訊函式。"
+    },
+    {
+      "start": 1681.57,
+      "end": 1691.45,
+      "en": "We're actually going to use that in exercise five to compare qualitatively the two approaches for mutual information okay.",
+      "zh": "練習五才會用它，從質性上比較兩種互資訊做法。"
+    },
+    {
+      "start": 1691.49,
+      "end": 1693.49,
+      "en": "So that's it for exercise three.",
+      "zh": "以上是練習三。"
+    },
+    {
+      "start": 1693.73,
+      "end": 1698.33,
+      "en": "Now you should pause the video and start coding and start visualizing.",
+      "zh": "現在請暫停影片，開始寫程式、進行視覺化。"
+    },
+    {
+      "start": 1698.53,
+      "end": 1701.89,
+      "en": "And now I will switch to code and discuss my results.",
+      "zh": "接著切換到程式碼，討論我的結果。"
+    },
+    {
+      "start": 1702.69,
+      "end": 1712.85,
+      "en": "Once we have this mutual information function written then it's actually pretty straightforward to implement the rest of this analysis.",
+      "zh": "寫好互資訊函式後，剩下分析其實很容易實作。"
+    },
+    {
+      "start": 1712.97,
+      "end": 1717.37,
+      "en": "So here I have a double for loop over all of the tokens.",
+      "zh": "這裡有個遍歷所有 token 的雙重 for 迴圈，"
+    },
+    {
+      "start": 1717.49,
+      "end": 1723.25,
+      "en": "So we're looping over the token or sorry not all the tokens but the target tokens.",
+      "zh": "也就是迭代 token，抱歉，不是所有 token，而是目標 token。"
+    },
+    {
+      "start": 1723.41,
+      "end": 1734.76,
+      "en": "So we loop over all the appearances of the target tokens twice, because we want to calculate mutual information between each pair of tokens.",
+      "zh": "對目標 token 的所有出現位置迭代兩次，因為要計算每對 token 之間的互資訊。"
+    },
+    {
+      "start": 1735,
+      "end": 1740.76,
+      "en": "And again, over here I'm starting the second for loop, after the first for loop.",
+      "zh": "同樣，第二個 for 迴圈，從第一個迴圈目前位置之後開始，"
+    },
+    {
+      "start": 1740.76,
+      "end": 1744.6,
+      "en": "So I'm not starting it at zero like this.",
+      "zh": "不是像這樣從 0 開始。"
+    },
+    {
+      "start": 1744.6,
+      "end": 1746.96,
+      "en": "Because if you did this that would be fine.",
+      "zh": "如果這麼做也可以，"
+    },
+    {
+      "start": 1746.96,
+      "end": 1752.48,
+      "en": "You'd get a full matrix, but it's twice as many calculations for nothing.",
+      "zh": "會得到完整矩陣，但沒有意義地多算了一倍。"
+    },
+    {
+      "start": 1752.48,
+      "end": 1760.88,
+      "en": "There's no unique information that you get from calculating the full matrix that you don't have from just half of the matrix.",
+      "zh": "計算完整矩陣，不會得到只有半個矩陣所沒有的任何獨特資訊。"
+    },
+    {
+      "start": 1761.4,
+      "end": 1764.72,
+      "en": "Okay, anyway, here I extract the activations.",
+      "zh": "好，這裡擷取活化。"
+    },
+    {
+      "start": 1764.76,
+      "end": 1768.96,
+      "en": "Now this is different from what we did in the previous video.",
+      "zh": "這與上一支影片的做法不同。"
+    },
+    {
+      "start": 1769.16,
+      "end": 1776.48,
+      "en": "Remember in the previous video it was like dim I and then we were getting all of the tokens like this.",
+      "zh": "記住，上一支影片是 dim i，接著像這樣取得所有 token，"
+    },
+    {
+      "start": 1776.48,
+      "end": 1778.36,
+      "en": "So activations for all the tokens.",
+      "zh": "也就是所有 token 的活化。"
+    },
+    {
+      "start": 1779.12,
+      "end": 1782.64,
+      "en": "And so yeah, this is a different approach that we're doing here.",
+      "zh": "因此這次採取的是不同方式。"
+    },
+    {
+      "start": 1782.84,
+      "end": 1786.03,
+      "en": "Here it is one token in particular.",
+      "zh": "這裡固定某一個 token，"
+    },
+    {
+      "start": 1786.03,
+      "end": 1793.87,
+      "en": "And then all of the activations from this particular subblock from this particular layer.",
+      "zh": "再取得這個特定層、特定子區塊的所有活化。"
+    },
+    {
+      "start": 1794.75,
+      "end": 1795.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1795.11,
+      "end": 1798.07,
+      "en": "So token position I token position J.",
+      "zh": "也就是 token 位置 i、token 位置 j，"
+    },
+    {
+      "start": 1798.43,
+      "end": 1801.75,
+      "en": "These are two different appearances of the word coffee.",
+      "zh": "它們是 coffee 這個字的兩個不同出現位置。"
+    },
+    {
+      "start": 1802.07,
+      "end": 1810.59,
+      "en": "And then I put that into the mutual information function with the number four corresponding to the outlier",
+      "zh": "接著傳入互資訊函式，數字 4 對應離群值"
+    },
+    {
+      "start": 1810.63,
+      "end": 1814.95,
+      "en": "threshold for excluding or trimming data values.",
+      "zh": "門檻，用來排除、修剪資料值，"
+    },
+    {
+      "start": 1814.95,
+      "end": 1816.03,
+      "en": "Extreme values.",
+      "zh": "也就是極端值。"
+    },
+    {
+      "start": 1816.43,
+      "end": 1816.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1816.71,
+      "end": 1819.03,
+      "en": "And then this is just the token distance.",
+      "zh": "接著這個只是 token 距離，"
+    },
+    {
+      "start": 1819.03,
+      "end": 1823.59,
+      "en": "Literally just the number of tokens in between each target.",
+      "zh": "真的就是各個目標之間，相隔的 token 數。"
+    },
+    {
+      "start": 1823.95,
+      "end": 1824.27,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1824.31,
+      "end": 1826.07,
+      "en": "So now I can run all of this.",
+      "zh": "現在可以執行整段程式，"
+    },
+    {
+      "start": 1826.07,
+      "end": 1827.31,
+      "en": "That goes very fast.",
+      "zh": "速度非常快。"
+    },
+    {
+      "start": 1827.31,
+      "end": 1832.75,
+      "en": "Don't worry about this line here that we will get back to for exercise five.",
+      "zh": "先別管這行，練習五會再回來看。"
+    },
+    {
+      "start": 1832.95,
+      "end": 1837.55,
+      "en": "But you can already see that it's the same exact overall analyses.",
+      "zh": "但已經能看到，整體分析完全相同，"
+    },
+    {
+      "start": 1837.55,
+      "end": 1840.87,
+      "en": "We're just calculating mutual information differently.",
+      "zh": "只是用不同方式計算互資訊。"
+    },
+    {
+      "start": 1840.99,
+      "end": 1844.59,
+      "en": "And now we are ready for the visualization.",
+      "zh": "現在可以開始視覺化。"
+    },
+    {
+      "start": 1844.91,
+      "end": 1849.43,
+      "en": "So here in the first axis I'm showing mutual information.",
+      "zh": "第一個座標系中，顯示互資訊；"
+    },
+    {
+      "start": 1849.59,
+      "end": 1853.55,
+      "en": "In the second axis I'm showing the token distances.",
+      "zh": "第二個顯示 token 距離。"
+    },
+    {
+      "start": 1853.71,
+      "end": 1856.83,
+      "en": "Here is where I calculate the Kendall tau.",
+      "zh": "這裡計算 Kendall 的 tau，"
+    },
+    {
+      "start": 1856.87,
+      "end": 1862.47,
+      "en": "So the correlations between the token distances and the mutual information.",
+      "zh": "也就是 token 距離與互資訊之間的相關。"
+    },
+    {
+      "start": 1862.67,
+      "end": 1870.27,
+      "en": "And you want to make sure to extract just the non-zero elements of these two matrices.",
+      "zh": "要確保，只擷取這兩個矩陣中的非零元素。"
+    },
+    {
+      "start": 1870.43,
+      "end": 1873.83,
+      "en": "And then here I'm making the scatter plot of them.",
+      "zh": "接著在這裡，將它們畫成散佈圖。"
+    },
+    {
+      "start": 1873.83,
+      "end": 1880.43,
+      "en": "So here we see mutual information inter token distances again just like what you saw in the slides.",
+      "zh": "這裡看到互資訊與 token 間距離，和投影片一樣。"
+    },
+    {
+      "start": 1880.55,
+      "end": 1882.51,
+      "en": "And this was covered up in the slides.",
+      "zh": "投影片原本把這個遮住，"
+    },
+    {
+      "start": 1882.51,
+      "end": 1886.51,
+      "en": "But now you see this beautiful negative correlation.",
+      "zh": "現在可以看到這個漂亮的負相關。"
+    },
+    {
+      "start": 1886.67,
+      "end": 1889.11,
+      "en": "Highly statistically significant.",
+      "zh": "統計上高度顯著，"
+    },
+    {
+      "start": 1889.27,
+      "end": 1892.87,
+      "en": "The correlation coefficient is -0.5.",
+      "zh": "相關係數是 −0.5。"
+    },
+    {
+      "start": 1893.15,
+      "end": 1894.39,
+      "en": "And what does this mean.",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 1894.39,
+      "end": 1895.63,
+      "en": "What does this tell us.",
+      "zh": "它告訴我們什麼？"
+    },
+    {
+      "start": 1895.87,
+      "end": 1906.34,
+      "en": "This tells us that in general, as the two tokens get further apart from each other, The mutual information between them decreases.",
+      "zh": "告訴我們，一般而言，兩個 token 相距越遠，它們之間的互資訊就越低。"
+    },
+    {
+      "start": 1906.5,
+      "end": 1910.62,
+      "en": "It's not a perfect relationship because, yeah, language is complicated.",
+      "zh": "這不是完美關係，因為語言很複雜，"
+    },
+    {
+      "start": 1910.62,
+      "end": 1913.42,
+      "en": "There's a lot of context happening in here.",
+      "zh": "裡面有很多上下文作用。"
+    },
+    {
+      "start": 1913.54,
+      "end": 1922.06,
+      "en": "But in general, we see that the closer the two tokens are to each other, the stronger the mutual information.",
+      "zh": "但整體而言，可以看到，兩個 token 越接近，互資訊越強。"
+    },
+    {
+      "start": 1922.06,
+      "end": 1933.22,
+      "en": "And that should make sense intuitively when you use the word coffee repeatedly in, you know, just a few words apart, then the local context is the same.",
+      "zh": "這在直覺上應該很合理：反覆使用 coffee，彼此只隔幾個字，局部上下文就相同。"
+    },
+    {
+      "start": 1933.42,
+      "end": 1941.98,
+      "en": "And when you use the word coffee twice like three days apart, the chance of the context being exactly the same is much lower.",
+      "zh": "而如果相隔三天才用兩次 coffee，上下文完全相同的機率，就低得多。"
+    },
+    {
+      "start": 1944.46,
+      "end": 1947.1,
+      "en": "I hope you're enjoying this code challenge so far.",
+      "zh": "希望目前為止，你享受這次程式挑戰。"
+    },
+    {
+      "start": 1947.34,
+      "end": 1953.98,
+      "en": "I'm going to break the video here as a way to encourage you to stand up, stretch your legs, splash",
+      "zh": "影片先在這裡告一段落，鼓勵你站起來、伸展一下腿，潑點"
+    },
+    {
+      "start": 1953.98,
+      "end": 1961.5,
+      "en": "some water on your face when you feel refreshed and ready, then come back and continue to the end of this code challenge.",
+      "zh": "水在臉上。等精神恢復、準備好後，再回來繼續完成這次程式挑戰。"
+    }
+  ]
+}

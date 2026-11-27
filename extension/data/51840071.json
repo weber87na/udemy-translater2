@@ -1,0 +1,1807 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840071",
+  "title": "CodeChallenge: GELU vs. ReLU",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d5a9bfd8707b900cd58286fc006c5c0a600cd326038585814462c6376a171fae",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 9.08,
+      "en": "If you've studied deep learning before, then you are familiar with the ReLU activation function.",
+      "zh": "如果學過深度學習，應該熟悉 ReLU 活化函式。"
+    },
+    {
+      "start": 9.36,
+      "end": 15.48,
+      "en": "It's a very popular activation function because it is fast and cheap and effective.",
+      "zh": "它非常常見，因為快、便宜、有效。"
+    },
+    {
+      "start": 16.2,
+      "end": 21.84,
+      "en": "So it turns out that ReLU is not the activation function that is used in modern law.",
+      "zh": "不過，現代 LLM 使用的活化函式，並不是 ReLU。"
+    },
+    {
+      "start": 22.72,
+      "end": 31.72,
+      "en": "And in this code challenge, you will learn about the glue function and that is the non-linear foundation of LMS.",
+      "zh": "這個程式挑戰，會學到 GELU，LLM 的非線性基礎。"
+    },
+    {
+      "start": 32.4,
+      "end": 37.12,
+      "en": "Also in this code challenge you will learn about PyTorch classes and functions.",
+      "zh": "也會學 PyTorch 類別與函式，"
+    },
+    {
+      "start": 37.32,
+      "end": 44.36,
+      "en": "You'll learn about CPU and GPU and you'll learn about the challenges of clocking computation time.",
+      "zh": "學 CPU、GPU，以及量測計算時間的挑戰。"
+    },
+    {
+      "start": 44.76,
+      "end": 49.72,
+      "en": "So there's a lot to do here, not just introduce you to one specific formula.",
+      "zh": "所以，有很多內容，不只是介紹一個公式。"
+    },
+    {
+      "start": 50.64,
+      "end": 55.4,
+      "en": "Now, before getting to the exercises, let me give you a little bit of background.",
+      "zh": "練習前，先給些背景。"
+    },
+    {
+      "start": 55.84,
+      "end": 59.64,
+      "en": "A lot of the math in deep learning is linear.",
+      "zh": "深度學習裡，很多數學是線性的，"
+    },
+    {
+      "start": 60.28,
+      "end": 63.82,
+      "en": "It is multiplication and summing, and that's great.",
+      "zh": "就是乘法與加總，這很好，"
+    },
+    {
+      "start": 63.82,
+      "end": 66.7,
+      "en": "But it's also very limited at large scale.",
+      "zh": "但大規模使用，也很有限。"
+    },
+    {
+      "start": 67.18,
+      "end": 76.3,
+      "en": "Deep learning models would not be very impressive if we didn't have non-linearities in between the linear layers.",
+      "zh": "如果線性層之間沒有非線性，深度學習模型就不會太厲害。"
+    },
+    {
+      "start": 76.78,
+      "end": 84.38,
+      "en": "In fact, if all we had were linear operations, then the most amazingly complicated, deepest deep",
+      "zh": "如果全部只有線性操作，即使想像最複雜、最深的"
+    },
+    {
+      "start": 84.58,
+      "end": 90.74,
+      "en": "learning model you can imagine would still be nothing more than a linear regression.",
+      "zh": "模型，本質上也只是一個線性迴歸。"
+    },
+    {
+      "start": 91.46000000000001,
+      "end": 100.94,
+      "en": "So there are many nonlinear activation functions, maybe like half a dozen that are used in the deep learning literature and in commercial models.",
+      "zh": "非線性活化函式有很多種，文獻與商用模型大概常用六種左右。"
+    },
+    {
+      "start": 101.62,
+      "end": 108.9,
+      "en": "This is a slide from my deep learning course, where I introduced the main ReLU function and a few of its variants.",
+      "zh": "這是深度學習課的投影片，介紹主要 ReLU 與一些變體。"
+    },
+    {
+      "start": 109.14,
+      "end": 113.7,
+      "en": "Now we are only going to focus on this primary version here.",
+      "zh": "這裡只專注最基本這個版本。"
+    },
+    {
+      "start": 113.7,
+      "end": 125.33,
+      "en": "Here you see the function down here because this is the most widely used activation function in most of deep learning except for language models.",
+      "zh": "下方是函式，因為除了語言模型，它在多數深度學習領域最常見。"
+    },
+    {
+      "start": 126.13,
+      "end": 128.93,
+      "en": "Now let me tell you about the Golu function.",
+      "zh": "接著，介紹 GELU，"
+    },
+    {
+      "start": 129.33,
+      "end": 133.61,
+      "en": "This stands for Gaussian error linear unit.",
+      "zh": "代表 Gaussian Error Linear Unit，高斯誤差線性單元。"
+    },
+    {
+      "start": 134.09,
+      "end": 143.69,
+      "en": "This paper is from 2016, so it's been around for a while, but it's only really gained traction with very large language models.",
+      "zh": "論文是 2016 年，已有一段時間，但到了大型語言模型，才真正普及，"
+    },
+    {
+      "start": 143.81,
+      "end": 147.05,
+      "en": "For reasons I will discuss towards the end of this lecture.",
+      "zh": "原因在這一講最後討論。"
+    },
+    {
+      "start": 147.65,
+      "end": 150.97,
+      "en": "So here you see the equation for this function.",
+      "zh": "這裡是公式，"
+    },
+    {
+      "start": 151.21,
+      "end": 157.73,
+      "en": "So x over two times one plus e f of x over the square root of two.",
+      "zh": "x 除以 2，乘以 1 加 erf，erf 的輸入是 x 除以根號 2。"
+    },
+    {
+      "start": 158.89,
+      "end": 160.45,
+      "en": "And what is e rf.",
+      "zh": "erf 是什麼？"
+    },
+    {
+      "start": 160.93,
+      "end": 163.09,
+      "en": "This is the error function.",
+      "zh": "是誤差函數。"
+    },
+    {
+      "start": 163.09,
+      "end": 169.37,
+      "en": "And you might have encountered it if you studied statistics or calculus in the context of statistics.",
+      "zh": "如果學過統計，或與統計相關的微積分，可能看過。"
+    },
+    {
+      "start": 169.73,
+      "end": 175.77,
+      "en": "It is the CDF the cumulative distribution function of a Gaussian normal distribution.",
+      "zh": "它是高斯、常態分布的 CDF，也就是累積分布函數。"
+    },
+    {
+      "start": 176.25,
+      "end": 179.73,
+      "en": "So it's related to normal probability distributions.",
+      "zh": "所以，與常態機率分布有關。"
+    },
+    {
+      "start": 180.31,
+      "end": 190.55,
+      "en": "It has many interesting properties, but one of them is that it cannot be described using elementary functions like polynomials or Trig functions.",
+      "zh": "它有很多有趣性質，其中一個，是無法用多項式、三角函數等初等函數表示。"
+    },
+    {
+      "start": 191.03,
+      "end": 198.91,
+      "en": "So therefore, these authors also introduced a simplification, an approximation which you see here.",
+      "zh": "因此，作者也提出這裡的簡化、近似式。"
+    },
+    {
+      "start": 199.43,
+      "end": 208.31,
+      "en": "So you can find an implementation of the function in the numpy and in the math libraries.",
+      "zh": "可以在 NumPy 與 math 函式庫，找到函式實作。"
+    },
+    {
+      "start": 208.79,
+      "end": 216.91,
+      "en": "These two formulas you are going to translate from these equations that you see here into Python functions.",
+      "zh": "這兩個公式，要從這裡的式子，轉成 Python 函式。"
+    },
+    {
+      "start": 217.59,
+      "end": 221.71,
+      "en": "In fact that is the primary goal of exercise one.",
+      "zh": "這就是練習一主要目標。"
+    },
+    {
+      "start": 221.91,
+      "end": 226.15,
+      "en": "So write down three Python functions for ReLU.",
+      "zh": "寫三個 Python 函式，分別是 ReLU、"
+    },
+    {
+      "start": 226.51,
+      "end": 230.67000000000002,
+      "en": "The exact version of Golu and the approximation of Golu.",
+      "zh": "精確 GELU，以及近似 GELU。"
+    },
+    {
+      "start": 231.11,
+      "end": 235.67000000000002,
+      "en": "Now for these I do not want you to use any PyTorch functions.",
+      "zh": "這裡不要用 PyTorch，"
+    },
+    {
+      "start": 235.67000000000002,
+      "end": 238.87,
+      "en": "You just implement these using numpy functions.",
+      "zh": "只用 NumPy 函式實作。"
+    },
+    {
+      "start": 238.87,
+      "end": 241.14,
+      "en": "We're going to get back to PyTorch later.",
+      "zh": "稍後再回到 PyTorch。"
+    },
+    {
+      "start": 242.34,
+      "end": 251.98,
+      "en": "Next, evaluate these three functions for x between minus three and plus three and visualize the three functions like you see here.",
+      "zh": "在 x 為負 3 到正 3 評估三個函式，畫成這樣。"
+    },
+    {
+      "start": 252.62,
+      "end": 258.74,
+      "en": "Now I actually used 101 values of x between minus three and plus three.",
+      "zh": "我實際取 101 個 x 值。"
+    },
+    {
+      "start": 259.3,
+      "end": 266.42,
+      "en": "But the approximation and the exact formula are so incredibly similar, they match each other so closely",
+      "zh": "近似式與精確公式非常相似、吻合，"
+    },
+    {
+      "start": 266.98,
+      "end": 273.3,
+      "en": "that when you plot the two lines or when you plot all three lines, you actually only see two lines on the plot.",
+      "zh": "畫兩條，或三條全部畫時，只看得見兩條。"
+    },
+    {
+      "start": 274.02,
+      "end": 282.38,
+      "en": "So therefore, just for the plotting, I visualized only every third data point of the approximation, just so you can see the overlap.",
+      "zh": "所以，純為繪圖，近似式每隔三個點取一點，讓你看到重疊。"
+    },
+    {
+      "start": 282.98,
+      "end": 292.98,
+      "en": "And in the title, I've also shown the correlation coefficient between the approximation and the exact formula, and they correlate perfectly.",
+      "zh": "標題也顯示，近似與精確公式的相關係數，完全相關。"
+    },
+    {
+      "start": 294.34000000000003,
+      "end": 298.18,
+      "en": "Now you might be wondering why we need an approximation.",
+      "zh": "可能想問，為什麼需要近似？"
+    },
+    {
+      "start": 298.92,
+      "end": 304.44,
+      "en": "This is a good question and we will get back to it in a later exercise in this code challenge.",
+      "zh": "問得好，這個挑戰後面的練習，會再談。"
+    },
+    {
+      "start": 305.12,
+      "end": 312.12,
+      "en": "So for now, pause the video, switch to Python, implement this exercise and now I will switch to Python.",
+      "zh": "先暫停，切換到 Python 實作；現在，我也切換。"
+    },
+    {
+      "start": 312.96,
+      "end": 318,
+      "en": "So here I import lots of libraries including this function from SciPy.",
+      "zh": "匯入很多函式庫，包括 SciPy 的這個函式。"
+    },
+    {
+      "start": 318.24,
+      "end": 325.96,
+      "en": "So you can get this function erf in the numpy library and the math library here I'm getting it from the SciPy library.",
+      "zh": "可以在 NumPy 與 math 找到 erf，這裡從 SciPy 取得。"
+    },
+    {
+      "start": 326.36,
+      "end": 331.84,
+      "en": "Here you can see I've implemented these three nonlinear activation functions.",
+      "zh": "這裡實作三個非線性活化函式。"
+    },
+    {
+      "start": 331.84,
+      "end": 333.96,
+      "en": "So they all take x as input.",
+      "zh": "都輸入 x，"
+    },
+    {
+      "start": 333.96,
+      "end": 340.32,
+      "en": "They all return a vector y as output, and the only difference is the one line in between.",
+      "zh": "輸出向量 y，唯一差別在中間那行。"
+    },
+    {
+      "start": 340.44,
+      "end": 343.44,
+      "en": "So this is how you can implement the ReLU function.",
+      "zh": "ReLU 可以這樣實作，"
+    },
+    {
+      "start": 343.44,
+      "end": 344.44,
+      "en": "It's just x.",
+      "zh": "就是 x，"
+    },
+    {
+      "start": 344.44,
+      "end": 350.12,
+      "en": "So it's the identity times some boolean for x is greater than zero.",
+      "zh": "恆等值，乘以 x 大於 0 的布林值。"
+    },
+    {
+      "start": 350.36,
+      "end": 358.24,
+      "en": "So basically this is going to return trues and falses which numpy will transform into zeros and ones.",
+      "zh": "會產生 True、False，NumPy 轉成 0 與 1，"
+    },
+    {
+      "start": 358.24,
+      "end": 359.06,
+      "en": "one's, uh.",
+      "zh": "1，"
+    },
+    {
+      "start": 359.34000000000003,
+      "end": 360.94,
+      "en": "Yeah, I said that backwards, but.",
+      "zh": "對，剛才說反了，"
+    },
+    {
+      "start": 360.94,
+      "end": 363.1,
+      "en": "Yeah, it's it's one's for true.",
+      "zh": "True 是 1，"
+    },
+    {
+      "start": 363.5,
+      "end": 369.5,
+      "en": "Uh, so that would be all positive numbers and it's zeros for falses, which would be all negative numbers.",
+      "zh": "也就是所有正數；False 是 0，對應負數。"
+    },
+    {
+      "start": 369.5,
+      "end": 373.42,
+      "en": "And that is a good implementation of this thing here.",
+      "zh": "這就能實作這個函式。"
+    },
+    {
+      "start": 373.98,
+      "end": 380.7,
+      "en": "Then here is the formula for the galu exact formula using the r f function.",
+      "zh": "這是用 erf 的 GELU 精確公式，"
+    },
+    {
+      "start": 380.7,
+      "end": 384.18,
+      "en": "And here is the formula for the galu approximation.",
+      "zh": "這是 GELU 近似公式。"
+    },
+    {
+      "start": 384.5,
+      "end": 392.7,
+      "en": "Literally just taking the formula that I showed in the slides from the paper and translating that directly into numpy code.",
+      "zh": "直接把論文投影片中的式子，轉成 NumPy 程式。"
+    },
+    {
+      "start": 393.26,
+      "end": 393.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 393.58,
+      "end": 394.65999999999997,
+      "en": "So we can run that.",
+      "zh": "執行。"
+    },
+    {
+      "start": 394.65999999999997,
+      "end": 401.78,
+      "en": "And now I'm going to define a set of x axis values at which to evaluate these functions.",
+      "zh": "定義要評估函式的 x 軸數值。"
+    },
+    {
+      "start": 401.94,
+      "end": 405.65999999999997,
+      "en": "Here I run the functions and here I plot them.",
+      "zh": "這裡執行，這裡繪圖。"
+    },
+    {
+      "start": 405.82,
+      "end": 405.98,
+      "en": "Yeah.",
+      "zh": "是的。"
+    },
+    {
+      "start": 405.98,
+      "end": 408.82,
+      "en": "And then here you can see I'm just skipping every third element.",
+      "zh": "這裡只取每隔三個的元素。"
+    },
+    {
+      "start": 409.22,
+      "end": 409.65999999999997,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 409.7,
+      "end": 416.18,
+      "en": "So uh, interesting to see that ReLU is just a two piecewise function.",
+      "zh": "ReLU 很有意思，是兩段分段函數。"
+    },
+    {
+      "start": 416.46,
+      "end": 423.09,
+      "en": "So it's just a completely flat line here for all the negative input values and for the positive input values.",
+      "zh": "對所有負輸入，是完全水平的線；正輸入，"
+    },
+    {
+      "start": 423.13,
+      "end": 425.45,
+      "en": "The ReLU function is the identity.",
+      "zh": "則是恆等函數。"
+    },
+    {
+      "start": 425.97,
+      "end": 434.21,
+      "en": "Okay, but then Galew looks kind of similar, but it's like a smoothed version so it doesn't climb up quite as steeply.",
+      "zh": "GELU 看起來類似，但比較平滑，不會那麼陡地上升。"
+    },
+    {
+      "start": 434.61,
+      "end": 440.65,
+      "en": "Uh, and then here it does actually permit a little bit of negative numbers to leak through.",
+      "zh": "也允許一點負值通過。"
+    },
+    {
+      "start": 440.97,
+      "end": 442.61,
+      "en": "So it's not quite the identity.",
+      "zh": "所以，不完全是恆等函數。"
+    },
+    {
+      "start": 443.45,
+      "end": 448.13,
+      "en": "You know, this y axis value here might be let's say 0.10.2.",
+      "zh": "這裡 y 值，可能約 0.1、0.2。"
+    },
+    {
+      "start": 448.41,
+      "end": 454.40999999999997,
+      "en": "So at its lowest it's still, you know, giving like 10% of the negative input value.",
+      "zh": "最低處，仍會給出負輸入大約 10% 的值，"
+    },
+    {
+      "start": 454.69,
+      "end": 456.69,
+      "en": "And it does go up to zero.",
+      "zh": "最後趨向 0。"
+    },
+    {
+      "start": 456.69,
+      "end": 459.89,
+      "en": "So the function is non-linear.",
+      "zh": "函式是非線性的，"
+    },
+    {
+      "start": 460.17,
+      "end": 462.65,
+      "en": "It allows some negative numbers to pass through.",
+      "zh": "允許部分負值通過，"
+    },
+    {
+      "start": 462.65,
+      "end": 464.77,
+      "en": "But those negative numbers are dampened.",
+      "zh": "但負值會衰減，"
+    },
+    {
+      "start": 464.77,
+      "end": 468.97,
+      "en": "So it's still very dominated by positive values.",
+      "zh": "所以，仍以正值為主。"
+    },
+    {
+      "start": 469.61,
+      "end": 477.29,
+      "en": "In exercise two we will move from numpy implementations of the math to PyTorch functions.",
+      "zh": "練習二，從 NumPy 數學實作，轉到 PyTorch 函式。"
+    },
+    {
+      "start": 477.79,
+      "end": 485.27,
+      "en": "and you can actually access these activation functions either as classes or directly as functions.",
+      "zh": "活化函式可以透過類別，也可以直接當函式存取。"
+    },
+    {
+      "start": 485.67,
+      "end": 494.11,
+      "en": "So what I want you to do here for exercise two is just use the functions that you get in torch functional.",
+      "zh": "這題，只用 functional 裡的函式，"
+    },
+    {
+      "start": 494.35,
+      "end": 497.07,
+      "en": "Do not use any PyTorch classes here.",
+      "zh": "不要用 PyTorch 類別，"
+    },
+    {
+      "start": 497.07,
+      "end": 500.75,
+      "en": "That's going to be the goal of exercise three okay.",
+      "zh": "那是練習三的目標。"
+    },
+    {
+      "start": 500.79,
+      "end": 506.51,
+      "en": "And then you can draw the ReLU and Galew functions just like you did for exercise one.",
+      "zh": "再像練習一，畫出 ReLU 與 GELU。"
+    },
+    {
+      "start": 507.07,
+      "end": 514.55,
+      "en": "And then here you should calculate and plot the numerical derivative using the function torch.",
+      "zh": "接著，用 torch 的函式，計算並畫出數值導數。"
+    },
+    {
+      "start": 515.71,
+      "end": 519.51,
+      "en": "Now this is not the analytic derivative of these functions.",
+      "zh": "這不是解析導數，"
+    },
+    {
+      "start": 519.67,
+      "end": 524.95,
+      "en": "It is the numerical approximation of the derivative as pointwise differences.",
+      "zh": "而是用逐點差分做數值近似。"
+    },
+    {
+      "start": 525.55,
+      "end": 533.39,
+      "en": "Now when you get these differences when you plot these differences check your y axis against what you see here.",
+      "zh": "畫差分時，請比較你的 y 軸，與這張圖，"
+    },
+    {
+      "start": 533.39,
+      "end": 535.67,
+      "en": "So basically going from zero up to one.",
+      "zh": "基本上，從 0 到 1，"
+    },
+    {
+      "start": 536.07,
+      "end": 540.66,
+      "en": "And make sure that your y axis matches what you see here on the plot.",
+      "zh": "確認和這裡相符。"
+    },
+    {
+      "start": 540.98,
+      "end": 548.78,
+      "en": "When I show my code, I will discuss the importance of these derivatives and what these graphs mean for model calculations.",
+      "zh": "示範程式時，會談導數的重要性，以及這些圖對模型計算的意義。"
+    },
+    {
+      "start": 549.7,
+      "end": 554.18,
+      "en": "So before I switch to code, you should pause the video and have a go at this.",
+      "zh": "切換程式前，先暫停試做。"
+    },
+    {
+      "start": 554.82,
+      "end": 560.54,
+      "en": "So it's quite straightforward to use the PyTorch functions for ReLU and Gelu.",
+      "zh": "使用 PyTorch 的 ReLU 與 GELU 函式，很直接。"
+    },
+    {
+      "start": 560.58,
+      "end": 561.58,
+      "en": "I'm just writing.",
+      "zh": "只要寫，"
+    },
+    {
+      "start": 561.74,
+      "end": 566.9,
+      "en": "So capital F that is the abbreviation for torch dot functional.",
+      "zh": "大寫 F，是 torch.nn.functional 的縮寫，"
+    },
+    {
+      "start": 566.94,
+      "end": 569.06,
+      "en": "So I import it as capital F.",
+      "zh": "匯入時取別名 F。"
+    },
+    {
+      "start": 569.42,
+      "end": 575.1,
+      "en": "So we have f dot ReLU f dot with the numerical input that we want to evaluate.",
+      "zh": "使用 F.relu、F.gelu，輸入要評估的數值。"
+    },
+    {
+      "start": 575.1,
+      "end": 576.1,
+      "en": "Very simple.",
+      "zh": "非常簡單。"
+    },
+    {
+      "start": 576.26,
+      "end": 581.26,
+      "en": "Here I'm calculating the numerical approximation of the derivatives.",
+      "zh": "這裡，計算導數的數值近似。"
+    },
+    {
+      "start": 581.46,
+      "end": 589.1,
+      "en": "And when I said to check the y axis scaling that was really about this part scaling by dx which is just",
+      "zh": "剛才說檢查 y 軸尺度，就是指這裡除以 dx，"
+    },
+    {
+      "start": 589.1,
+      "end": 593.98,
+      "en": "the spacing between successive x axis values here.",
+      "zh": "也就是相鄰 x 值的間距。"
+    },
+    {
+      "start": 594.34,
+      "end": 594.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 594.58,
+      "end": 597.24,
+      "en": "So we can run that and then we get the plot again.",
+      "zh": "執行後，再得到這張圖。"
+    },
+    {
+      "start": 597.28,
+      "end": 606.24,
+      "en": "This is really just confirmation that the PyTorch functions are giving the same output as the numpy",
+      "zh": "只是確認，PyTorch 函式與練習一自己寫的 NumPy"
+    },
+    {
+      "start": 606.8,
+      "end": 609.52,
+      "en": "functions that we implemented in exercise one.",
+      "zh": "函式，給出相同結果。"
+    },
+    {
+      "start": 609.56,
+      "end": 611.28,
+      "en": "Here we see the derivatives.",
+      "zh": "這是導數。"
+    },
+    {
+      "start": 611.28,
+      "end": 619.72,
+      "en": "Now the striking difference between ReLU and golu is that ReLU derivative has a step function here.",
+      "zh": "明顯差異，是 ReLU 導數有階梯狀變化，"
+    },
+    {
+      "start": 619.72,
+      "end": 629.56,
+      "en": "It has a discontinuity here at exactly zero, and that is because this function, the ReLU function is continuous but not differentiable at zero.",
+      "zh": "剛好在 0 不連續，因為 ReLU 連續，但在 0 不可微。"
+    },
+    {
+      "start": 629.56,
+      "end": 632.6,
+      "en": "It does not have a derivative at zero.",
+      "zh": "在 0，沒有導數。"
+    },
+    {
+      "start": 632.96,
+      "end": 642.12,
+      "en": "That is formally a little bit awkward, because we want to calculate the derivative of the the graph in order to implement gradient descent.",
+      "zh": "形式上，有點麻煩，因為想對計算圖取導數，以執行梯度下降。"
+    },
+    {
+      "start": 642.44,
+      "end": 647.24,
+      "en": "So Golu, on the other hand, has a smooth and continuous derivative.",
+      "zh": "GELU 則有平滑、連續的導數。"
+    },
+    {
+      "start": 647.24,
+      "end": 658.54,
+      "en": "So that means that the the gradient as it's being calculated and flowed across the computational graph during gradient descent is going to be less jagged.",
+      "zh": "所以，梯度下降中，計算並沿計算圖傳遞的梯度，較不尖銳。"
+    },
+    {
+      "start": 658.54,
+      "end": 667.9,
+      "en": "There's a little bit more variability that we can extract out of the loss function as we are applying it to the model parameters.",
+      "zh": "將損失作用到模型參數時，能取得更多變化。"
+    },
+    {
+      "start": 668.78,
+      "end": 676.14,
+      "en": "I mentioned in the beginning of exercise two that many functions in PyTorch are available both as direct",
+      "zh": "練習二開頭提過，PyTorch 許多功能，既有直接"
+    },
+    {
+      "start": 676.14,
+      "end": 684.98,
+      "en": "functions, like what you saw in exercise two, and also as classes that you can create instances of and then call.",
+      "zh": "函式，也有能建立實例、再呼叫的類別。"
+    },
+    {
+      "start": 685.42,
+      "end": 694.02,
+      "en": "So what you want to do here in exercise three is find the PyTorch classes that implement ReLU and Golu.",
+      "zh": "練習三，要找出實作 ReLU 與 GELU 的 PyTorch 類別。"
+    },
+    {
+      "start": 694.42,
+      "end": 703.54,
+      "en": "Now the usage of classes versus the direct function calls is a little bit different, although in the end the result will be the same.",
+      "zh": "類別與直接函式，用法略有不同，但最終結果相同，"
+    },
+    {
+      "start": 703.9,
+      "end": 707.1,
+      "en": "And that's what you are going to confirm in this exercise.",
+      "zh": "這題就是確認。"
+    },
+    {
+      "start": 707.3,
+      "end": 714.06,
+      "en": "So these two output variables here are from the function and from the class.",
+      "zh": "這兩個輸出變數，分別來自函式與類別。"
+    },
+    {
+      "start": 714.06,
+      "end": 718.57,
+      "en": "So this is the function In f dot ReLU from exercise two.",
+      "zh": "這是練習二的 F.relu，"
+    },
+    {
+      "start": 718.81,
+      "end": 720.77,
+      "en": "And this is the ReLU class.",
+      "zh": "這是 ReLU 類別，"
+    },
+    {
+      "start": 720.93,
+      "end": 722.61,
+      "en": "Here in exercise three.",
+      "zh": "用於練習三。"
+    },
+    {
+      "start": 723.49,
+      "end": 725.09,
+      "en": "And if you give the same input.",
+      "zh": "如果給相同輸入，"
+    },
+    {
+      "start": 725.29,
+      "end": 730.89,
+      "en": "And the two calculations really are the same, then their differences should be just a bunch of zeros.",
+      "zh": "而兩者計算真的相同，差就應全為 0。"
+    },
+    {
+      "start": 730.89,
+      "end": 732.65,
+      "en": "And that is what you see here.",
+      "zh": "這就是這裡的結果。"
+    },
+    {
+      "start": 732.81,
+      "end": 741.37,
+      "en": "So this is a demonstration of the equality of the result of the PyTorch function and the PyTorch class.",
+      "zh": "示範 PyTorch 函式與類別，結果相等。"
+    },
+    {
+      "start": 741.81,
+      "end": 750.01,
+      "en": "If you are relatively new to Python classes and PyTorch classes, you might find this exercise a little bit tricky.",
+      "zh": "如果剛接觸 Python 與 PyTorch 類別，可能覺得有點棘手。"
+    },
+    {
+      "start": 750.01,
+      "end": 758.57,
+      "en": "But this distinction is important to know about because it will come up very often when we are building models anyway.",
+      "zh": "但這個差別很重要，建立模型時，會經常遇到。"
+    },
+    {
+      "start": 758.61,
+      "end": 763.41,
+      "en": "Now you can pause the video and work through this one, and now I will switch to Python.",
+      "zh": "現在暫停做題，再切換到 Python。"
+    },
+    {
+      "start": 764.01,
+      "end": 768.49,
+      "en": "So this one does not require a whole lot of code to solve.",
+      "zh": "這題不需要很多程式。"
+    },
+    {
+      "start": 768.69,
+      "end": 778.31,
+      "en": "Here I create an instance of this class KNN ReLU and notice the difference in capitalization here for",
+      "zh": "先建立 nn.ReLU 實例，注意類別名稱的大寫，"
+    },
+    {
+      "start": 778.31,
+      "end": 783.83,
+      "en": "the class definitions versus up here when we call the functions directly.",
+      "zh": "與上方直接呼叫函式不同。"
+    },
+    {
+      "start": 784.31,
+      "end": 784.59,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 784.63,
+      "end": 793.99,
+      "en": "So once we have instances of those classes then we can input the x axis values at which we want to calculate the ReLU.",
+      "zh": "有了實例，再輸入要計算 ReLU 的 x 值。"
+    },
+    {
+      "start": 794.19,
+      "end": 795.19,
+      "en": "And yeah.",
+      "zh": "是的。"
+    },
+    {
+      "start": 795.23,
+      "end": 796.31,
+      "en": "Then let's see.",
+      "zh": "看看，"
+    },
+    {
+      "start": 796.31,
+      "end": 799.59,
+      "en": "This is just showing that this is still a PyTorch tensor.",
+      "zh": "這只是展示，結果仍是 PyTorch 張量。"
+    },
+    {
+      "start": 799.79,
+      "end": 803.19,
+      "en": "And then yeah we can just see that they're all zeros.",
+      "zh": "也能看到，差值全為 0。"
+    },
+    {
+      "start": 803.43,
+      "end": 805.07,
+      "en": "I've only coded this for ReLU.",
+      "zh": "只對 ReLU 寫了程式，"
+    },
+    {
+      "start": 805.11,
+      "end": 808.27,
+      "en": "I didn't code this for for galu.",
+      "zh": "沒有對 GELU 寫，"
+    },
+    {
+      "start": 808.27,
+      "end": 809.47,
+      "en": "But it's the same code.",
+      "zh": "但程式相同，"
+    },
+    {
+      "start": 809.47,
+      "end": 811.83,
+      "en": "You just have to change the R to a G here.",
+      "zh": "這裡把 R 改成 G 即可。"
+    },
+    {
+      "start": 811.87,
+      "end": 812.99,
+      "en": "Pretty straightforward.",
+      "zh": "相當直接。"
+    },
+    {
+      "start": 814.23,
+      "end": 814.75,
+      "en": "This.",
+      "zh": "這題"
+    },
+    {
+      "start": 814.79,
+      "end": 825.67,
+      "en": "And the next exercise are all about answering the question of why there is an approximation when the exact formula is so short and easy to implement.",
+      "zh": "與下一題，要回答：精確公式這麼短、容易實作，為什麼還需要近似？"
+    },
+    {
+      "start": 826.23,
+      "end": 831.79,
+      "en": "It has to do with implementations, GPU optimizations, and computation time.",
+      "zh": "與實作、GPU 最佳化，以及計算時間有關。"
+    },
+    {
+      "start": 832.23,
+      "end": 837.54,
+      "en": "And that is what you are going to discover Cover in exercises four and five.",
+      "zh": "練習四、五，會自行發現。"
+    },
+    {
+      "start": 838.18,
+      "end": 847.66,
+      "en": "So for this exercise, I want you to use three direct implementations of the equations that you created in exercise one.",
+      "zh": "這題，使用練習一建立的三個公式直接實作。"
+    },
+    {
+      "start": 848.02,
+      "end": 858.14,
+      "en": "So going back to the code from exercise one, each of those functions you should put inside a separate for loop over 10,000 iterations.",
+      "zh": "回到練習一，各函式放進獨立的 for 迴圈，執行一萬次。"
+    },
+    {
+      "start": 858.26,
+      "end": 868.66,
+      "en": "And within each of those 10,000 iterations, evaluate each function at 10,000 x axis values between minus three and plus three.",
+      "zh": "每次迭代，對負 3 到正 3 之間，一萬個 x 值評估函式。"
+    },
+    {
+      "start": 869.26,
+      "end": 881.26,
+      "en": "So for example, for the ReLU function, set up a for loop that calls the ReLU function 10,000 times on a vector of 10,000 x axis value points.",
+      "zh": "例如，ReLU 迴圈呼叫一萬次，每次處理一萬個 x 值的向量。"
+    },
+    {
+      "start": 881.58,
+      "end": 887.9,
+      "en": "Very similar to what you did for plotting earlier in this code challenge, but 10,000 points instead of 100.",
+      "zh": "和先前繪圖很像，但不是 100 點，而是一萬點。"
+    },
+    {
+      "start": 888.5,
+      "end": 898,
+      "en": "Then you have to initialize and start a timer before the for loop, and then time again after the for loop ends.",
+      "zh": "迴圈前，初始化、啟動計時，迴圈後，再讀一次時間。"
+    },
+    {
+      "start": 898.2,
+      "end": 903.48,
+      "en": "And then the difference between those two clock times is the total calculation time.",
+      "zh": "兩次時間差，就是總計算時間。"
+    },
+    {
+      "start": 904.6,
+      "end": 910.92,
+      "en": "So then you repeat this for ReLU for exact glue and for approximate glue functions.",
+      "zh": "分別對 ReLU、精確 GELU 與近似 GELU 重複。"
+    },
+    {
+      "start": 911.52,
+      "end": 919.52,
+      "en": "Now if you are relatively new to Python and you've never done computation time clocking before, then it's totally fine.",
+      "zh": "如果剛接觸 Python，從沒量過計算時間，沒關係。"
+    },
+    {
+      "start": 919.52,
+      "end": 924.68,
+      "en": "You should see this exercise as an opportunity to learn from my code solution.",
+      "zh": "把這題當成從解答學習的機會，"
+    },
+    {
+      "start": 924.88,
+      "end": 929.52,
+      "en": "And don't worry so much about writing your own code from scratch anyway.",
+      "zh": "不必太在意，是否從零寫出。"
+    },
+    {
+      "start": 930.12,
+      "end": 934.04,
+      "en": "Now you should pause the video and work through this exercise.",
+      "zh": "現在暫停，動手做。"
+    },
+    {
+      "start": 934.04,
+      "end": 936.52,
+      "en": "And now I will discuss my solution.",
+      "zh": "接著，討論解法。"
+    },
+    {
+      "start": 937.92,
+      "end": 940.96,
+      "en": "Here I specify 10,000 repetitions.",
+      "zh": "這裡指定一萬次重複，"
+    },
+    {
+      "start": 940.96,
+      "end": 946.8,
+      "en": "Here is the x axis values that we will use to evaluate this function.",
+      "zh": "這是用來評估函式的 x 值。"
+    },
+    {
+      "start": 947.52,
+      "end": 951.52,
+      "en": "Colab has given me a warning here about the that I'm not using the GPU.",
+      "zh": "Colab 警告我，沒有使用 GPU，"
+    },
+    {
+      "start": 951.56,
+      "end": 954.63,
+      "en": "I promise colab I will use it very soon.",
+      "zh": "我保證，很快會用。"
+    },
+    {
+      "start": 955.23,
+      "end": 957.23,
+      "en": "Okay, so here I start the timer.",
+      "zh": "這裡開始計時，"
+    },
+    {
+      "start": 957.27,
+      "end": 963.83,
+      "en": "This is using the time library that I imported at the very top of the code file here.",
+      "zh": "使用程式檔最上方匯入的 time 函式庫。"
+    },
+    {
+      "start": 964.35,
+      "end": 966.71,
+      "en": "Okay, so we get the current time.",
+      "zh": "好，取得目前時間，"
+    },
+    {
+      "start": 967.19,
+      "end": 968.23,
+      "en": "Uh, where are we?",
+      "zh": "在哪裡？"
+    },
+    {
+      "start": 968.27,
+      "end": 968.63,
+      "en": "Here?",
+      "zh": "這裡？"
+    },
+    {
+      "start": 969.67,
+      "end": 970.87,
+      "en": "Uh, we get the.",
+      "zh": "取得，"
+    },
+    {
+      "start": 970.91,
+      "end": 971.55,
+      "en": "Here we are.",
+      "zh": "在這裡，"
+    },
+    {
+      "start": 971.95,
+      "end": 979.55,
+      "en": "We get the current time, and then we run through this for loop 10,000 times, and then we get the clock time again.",
+      "zh": "先取時間，for 迴圈執行一萬次，再取時間。"
+    },
+    {
+      "start": 979.83,
+      "end": 980.19,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 980.27,
+      "end": 985.11,
+      "en": "So that is how you can clock computation time using Python.",
+      "zh": "這就是用 Python 量測計算時間。"
+    },
+    {
+      "start": 985.43,
+      "end": 990.43,
+      "en": "And then, uh, these two paragraphs of code are literally exactly the same.",
+      "zh": "這兩段程式完全相同，"
+    },
+    {
+      "start": 990.55,
+      "end": 993.67,
+      "en": "Just calling a different function the galew approx.",
+      "zh": "只是呼叫不同函式，gelu approx，"
+    },
+    {
+      "start": 993.67,
+      "end": 995.03,
+      "en": "And galew exact.",
+      "zh": "以及 gelu exact。"
+    },
+    {
+      "start": 996.83,
+      "end": 998.27,
+      "en": "So what do we see here?",
+      "zh": "看到什麼？"
+    },
+    {
+      "start": 998.67,
+      "end": 1006.23,
+      "en": "10,000 iterations of ReLU for, uh, 10,000 x axis values took 0.1 seconds.",
+      "zh": "ReLU，一萬個 x 值、重複一萬次，約 0.1 秒，"
+    },
+    {
+      "start": 1006.23,
+      "end": 1016.45,
+      "en": "So 146 milliseconds versus almost two seconds for the exact galew and a whopping nine seconds for the",
+      "zh": "也就是 146 毫秒；精確 GELU 接近兩秒，而近似"
+    },
+    {
+      "start": 1016.45,
+      "end": 1017.61,
+      "en": "approximate glue.",
+      "zh": "GELU，竟然九秒。"
+    },
+    {
+      "start": 1017.85,
+      "end": 1022.21,
+      "en": "That seems crazy that it was like almost ten times as long.",
+      "zh": "差不多十倍長，太奇怪，"
+    },
+    {
+      "start": 1022.29,
+      "end": 1028.85,
+      "en": "Well, basically, you know, let's say like five times as long for approximate compared to the exact value.",
+      "zh": "好吧，應該說近似比精確，大約慢五倍。"
+    },
+    {
+      "start": 1029.01,
+      "end": 1038.05,
+      "en": "You might be wondering why anyone would want to use the approximation when the exact implementation is so much faster.",
+      "zh": "為什麼精確實作快得多，還有人要用近似？"
+    },
+    {
+      "start": 1038.77,
+      "end": 1044.53,
+      "en": "Well, it turns out that our manual implementations are just not very good.",
+      "zh": "原因是，手動實作沒有很好，"
+    },
+    {
+      "start": 1044.77,
+      "end": 1046.17,
+      "en": "Of course the math is great.",
+      "zh": "數學當然很好，"
+    },
+    {
+      "start": 1046.17,
+      "end": 1047.61,
+      "en": "There's nothing wrong with the math.",
+      "zh": "沒有數學錯誤，"
+    },
+    {
+      "start": 1047.61,
+      "end": 1049.81,
+      "en": "There's nothing wrong with the code per se.",
+      "zh": "程式本身也沒錯，"
+    },
+    {
+      "start": 1050.41,
+      "end": 1055.61,
+      "en": "The problem is with the lack of optimization in our functions.",
+      "zh": "只是函式缺乏最佳化。"
+    },
+    {
+      "start": 1056.09,
+      "end": 1063.93,
+      "en": "So therefore the goal of exercise five is basically to do this all over again, but now using the GPU.",
+      "zh": "所以，練習五基本上重做，但使用 GPU。"
+    },
+    {
+      "start": 1064.61,
+      "end": 1072.61,
+      "en": "So again, if you are new to using GPUs on Colab, then you can just watch my solution and I will walk you through this.",
+      "zh": "不熟悉 Colab GPU，可以跟著解答看，我會逐步說明。"
+    },
+    {
+      "start": 1072.77,
+      "end": 1083.27,
+      "en": "I will have an entire video just about using the GPU later in this section, so don't stress if all this GPU stuff is brand new to you.",
+      "zh": "這一章稍後，有一整支專門談 GPU，所以，全新接觸也別緊張。"
+    },
+    {
+      "start": 1083.83,
+      "end": 1092.19,
+      "en": "Now you will need to switch your colab session to a GPU, and that requires restarting your Python session,",
+      "zh": "需要切換 Colab 到 GPU，會重新啟動 Python，"
+    },
+    {
+      "start": 1092.55,
+      "end": 1100.87,
+      "en": "which also means that all of the variables and functions that you've created for the first four exercises will be deleted.",
+      "zh": "也就是前四題建立的全部變數與函式，都會刪除。"
+    },
+    {
+      "start": 1101.23,
+      "end": 1107.19,
+      "en": "So you will need to import some libraries again and redefine the activation functions.",
+      "zh": "因此，重新匯入函式庫、定義活化函式。"
+    },
+    {
+      "start": 1107.59,
+      "end": 1113.75,
+      "en": "You can copy the code from exercise one, but you do need to modify it a little bit here because here",
+      "zh": "可以複製練習一，但要稍微改，因為"
+    },
+    {
+      "start": 1113.75,
+      "end": 1121.43,
+      "en": "for exercise five, I want you to use only the PyTorch and math libraries and not use numpy at all.",
+      "zh": "練習五，只能用 PyTorch 與 math，完全不要用 NumPy。"
+    },
+    {
+      "start": 1122.27,
+      "end": 1125.35,
+      "en": "So you don't need numpy at all for exercise five.",
+      "zh": "這題不需要 NumPy。"
+    },
+    {
+      "start": 1125.99,
+      "end": 1128.63,
+      "en": "Now the testing here will be a little bit different.",
+      "zh": "測試方式稍有不同。"
+    },
+    {
+      "start": 1128.63,
+      "end": 1137.18,
+      "en": "So now I want you to generate 1 million normally distributed random numbers and test each of those million",
+      "zh": "產生一百萬個常態分布隨機數，再對這一百萬個"
+    },
+    {
+      "start": 1137.18,
+      "end": 1140.66,
+      "en": "numbers on each of the functions 100 times.",
+      "zh": "數字，評估各函式 100 次。"
+    },
+    {
+      "start": 1141.06,
+      "end": 1146.42,
+      "en": "So then you can run all of this on the CPU, and again on the GPU.",
+      "zh": "先全部用 CPU，再用 GPU。"
+    },
+    {
+      "start": 1146.94,
+      "end": 1149.82,
+      "en": "You can print out results that will look like this.",
+      "zh": "印出結果，像這樣。"
+    },
+    {
+      "start": 1150.1,
+      "end": 1156.5,
+      "en": "Of course I'm hiding the actual computation times because I want you to discover this for yourself.",
+      "zh": "當然，遮住計算時間，讓你自行發現。"
+    },
+    {
+      "start": 1156.82,
+      "end": 1163.9,
+      "en": "Okay, so here we have the ReLU function, the exact jlu, the approximate jlu and also f dot.",
+      "zh": "這裡是 ReLU、精確 GELU、近似 GELU，以及 F 的函式。"
+    },
+    {
+      "start": 1164.58,
+      "end": 1170.94,
+      "en": "So these three functions here ReLU exact and approximate glue.",
+      "zh": "這三個，ReLU、精確與近似 GELU，"
+    },
+    {
+      "start": 1171.22,
+      "end": 1177.18,
+      "en": "These are Python functions that you write just like the functions you wrote in exercise one.",
+      "zh": "是你自己寫的 Python 函式，和練習一相同，"
+    },
+    {
+      "start": 1177.46,
+      "end": 1183.38,
+      "en": "Except here you're going to use PyTorch functions and not numpy functions.",
+      "zh": "只是改用 PyTorch，而不是 NumPy。"
+    },
+    {
+      "start": 1183.86,
+      "end": 1184.14,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1184.18,
+      "end": 1189.26,
+      "en": "And then f dot obviously is what you did for exercise two.",
+      "zh": "F 的函式，則是練習二做的。"
+    },
+    {
+      "start": 1189.9,
+      "end": 1194.56,
+      "en": "Again if you are unfamiliar with working with GPUs in Colab.",
+      "zh": "不熟悉 Colab GPU，"
+    },
+    {
+      "start": 1194.92,
+      "end": 1200.12,
+      "en": "Then don't worry about this exercise and follow along with the video and my explanation.",
+      "zh": "不必擔心，跟著影片與說明即可。"
+    },
+    {
+      "start": 1200.24,
+      "end": 1208.56,
+      "en": "There's going to be more instruction about using GPUs a little bit later, so we need to switch the",
+      "zh": "稍後有更多 GPU 教學。先把"
+    },
+    {
+      "start": 1208.6,
+      "end": 1215.64,
+      "en": "session from CPU to GPU so we can go up to runtime and then change runtime type.",
+      "zh": "工作階段從 CPU 切到 GPU，到 Runtime，選 Change runtime type。"
+    },
+    {
+      "start": 1215.8,
+      "end": 1224.84,
+      "en": "And now you're probably on the CPU, but now you can switch to the GPU depending on, you know, what level of access you have.",
+      "zh": "目前可能是 CPU，依能使用的資源，切換 GPU。"
+    },
+    {
+      "start": 1224.88,
+      "end": 1236.4,
+      "en": "If you have a Pro subscription, you might have some of these or not all of these, uh, listed available, but you should have at least one GPU that you can access.",
+      "zh": "如果有 Pro，可能有其中一些，未必全部，但至少應有一個可用 GPU。"
+    },
+    {
+      "start": 1236.4,
+      "end": 1237,
+      "en": "So that's fine.",
+      "zh": "沒關係。"
+    },
+    {
+      "start": 1237,
+      "end": 1243.32,
+      "en": "You can pick any GPU that you have access to, and they're all basically the same for these purposes here.",
+      "zh": "有哪個就選哪個，對這裡的目的，大致相同。"
+    },
+    {
+      "start": 1243.76,
+      "end": 1244.08,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1244.12,
+      "end": 1250.72,
+      "en": "Now, if you were previously on the CPU and now you're switching to the GPU, when you click save,",
+      "zh": "如果原先 CPU，現在切換 GPU，按 Save，"
+    },
+    {
+      "start": 1250.72,
+      "end": 1261.35,
+      "en": "you're going to get a warning message that says Python will restart the session, and that means all of your variables that you've created are destroyed.",
+      "zh": "會看到警告：Python 重啟，全部變數消失。"
+    },
+    {
+      "start": 1261.35,
+      "end": 1265.31,
+      "en": "And that's why you need to reimport some of these libraries.",
+      "zh": "所以，必須重新匯入函式庫。"
+    },
+    {
+      "start": 1266.59,
+      "end": 1271.71,
+      "en": "Okay, here is rewriting the functions exactly the same as for exercise one.",
+      "zh": "這裡重寫和練習一相同的函式，"
+    },
+    {
+      "start": 1271.71,
+      "end": 1277.43,
+      "en": "But now I'm using math dot square root torch, torch ten, and so on.",
+      "zh": "但改用 math.sqrt、torch、torch.tanh 等等。"
+    },
+    {
+      "start": 1278.07,
+      "end": 1278.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1278.75,
+      "end": 1281.99,
+      "en": "So we're not using the GPU just yet.",
+      "zh": "還沒使用 GPU，"
+    },
+    {
+      "start": 1282.03,
+      "end": 1289.11,
+      "en": "This is still on the CPU but it is using the PyTorch functions instead of numpy functions.",
+      "zh": "仍在 CPU，只是用 PyTorch 取代 NumPy 函式。"
+    },
+    {
+      "start": 1289.67,
+      "end": 1290.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1290.07,
+      "end": 1296.67,
+      "en": "So now we have 1 million random numbers normally distributed random numbers.",
+      "zh": "現在有一百萬個常態隨機數，"
+    },
+    {
+      "start": 1296.67,
+      "end": 1299.79,
+      "en": "And we are going to do 100 repetitions.",
+      "zh": "執行 100 次。"
+    },
+    {
+      "start": 1300.23,
+      "end": 1301.95,
+      "en": "Initialize the clock time.",
+      "zh": "初始化計時，"
+    },
+    {
+      "start": 1302.51,
+      "end": 1304.07,
+      "en": "And then here is the for loop.",
+      "zh": "這是 for 迴圈。"
+    },
+    {
+      "start": 1304.07,
+      "end": 1305.63,
+      "en": "I'm actually just writing it.",
+      "zh": "我直接寫成，"
+    },
+    {
+      "start": 1305.63,
+      "end": 1307.95,
+      "en": "You know what I had previously was like this.",
+      "zh": "之前是這樣，"
+    },
+    {
+      "start": 1307.95,
+      "end": 1310.99,
+      "en": "And now I'm just putting it into one line of code.",
+      "zh": "現在壓成一行。"
+    },
+    {
+      "start": 1311.23,
+      "end": 1311.71,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1311.97,
+      "end": 1313.49,
+      "en": "Otherwise it's all the same.",
+      "zh": "其他相同。"
+    },
+    {
+      "start": 1313.73,
+      "end": 1317.81,
+      "en": "And here I'm just adding this additional f dot glue.",
+      "zh": "這裡，額外加入 F.gelu。"
+    },
+    {
+      "start": 1318.29,
+      "end": 1318.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1318.69,
+      "end": 1321.57,
+      "en": "So you can already see that this is much faster.",
+      "zh": "已經能看出快得多。"
+    },
+    {
+      "start": 1321.57,
+      "end": 1329.01,
+      "en": "In particular remember that this was nine seconds when we used numpy functions.",
+      "zh": "記得，之前 NumPy 是九秒，"
+    },
+    {
+      "start": 1329.01,
+      "end": 1333.01,
+      "en": "And now all we do is switch to PyTorch functions like this.",
+      "zh": "現在只換成 PyTorch，"
+    },
+    {
+      "start": 1333.05,
+      "end": 1339.57,
+      "en": "And so uh torch dot ten and math dot square root and math.pi instead of numpy.",
+      "zh": "例如 torch.tanh、math.sqrt、math.pi，而不是 NumPy，"
+    },
+    {
+      "start": 1339.77,
+      "end": 1342.41,
+      "en": "And that already makes a huge difference.",
+      "zh": "差異就已很大。"
+    },
+    {
+      "start": 1343.33,
+      "end": 1349.41,
+      "en": "Now although you know, the approximate glue is still actually a little bit slower than the exact function.",
+      "zh": "不過，近似 GELU，仍比精確版略慢。"
+    },
+    {
+      "start": 1349.77,
+      "end": 1352.45,
+      "en": "Now we are going to test it on the GPU.",
+      "zh": "現在，測 GPU。"
+    },
+    {
+      "start": 1352.49,
+      "end": 1358.69,
+      "en": "Now most of this code in this cell is copy pasted exactly from this code for the CPU.",
+      "zh": "這個區塊大部分，直接複製 CPU 的程式，"
+    },
+    {
+      "start": 1358.97,
+      "end": 1360.61,
+      "en": "There are two differences.",
+      "zh": "只有兩個差別。"
+    },
+    {
+      "start": 1360.85,
+      "end": 1362.81,
+      "en": "One is this device here.",
+      "zh": "一個是 device，"
+    },
+    {
+      "start": 1362.81,
+      "end": 1365.93,
+      "en": "So up here I specified the device is the CPU.",
+      "zh": "上方指定 CPU，"
+    },
+    {
+      "start": 1366.41,
+      "end": 1368.89,
+      "en": "Here I specify the device is Cuda.",
+      "zh": "這裡指定 CUDA，"
+    },
+    {
+      "start": 1368.93,
+      "end": 1370.05,
+      "en": "That is the GPU.",
+      "zh": "也就是 GPU。"
+    },
+    {
+      "start": 1370.57,
+      "end": 1372.95,
+      "en": "And a second change here.",
+      "zh": "第二個差別，"
+    },
+    {
+      "start": 1372.95,
+      "end": 1379.51,
+      "en": "A second difference is the addition of this line of code here, which says torch synchronize.",
+      "zh": "多了 torch.cuda.synchronize 這行。"
+    },
+    {
+      "start": 1379.87,
+      "end": 1385.07,
+      "en": "And this forces the clocks to synchronize between the GPU and the CPU.",
+      "zh": "它讓 GPU 與 CPU 的計時同步。"
+    },
+    {
+      "start": 1385.55,
+      "end": 1389.95,
+      "en": "This is not something you would normally do when you are running code on the GPU.",
+      "zh": "平常在 GPU 執行程式，不會特別這樣做，"
+    },
+    {
+      "start": 1390.31,
+      "end": 1392.79,
+      "en": "In fact, it has some overhead costs.",
+      "zh": "因為有額外成本，"
+    },
+    {
+      "start": 1392.79,
+      "end": 1396.07,
+      "en": "That is, uh, not very beneficial.",
+      "zh": "不太有益。"
+    },
+    {
+      "start": 1396.31,
+      "end": 1408.23,
+      "en": "But if you want to know if you want to calculate computation time, then it is good to synchronize the CPU and the GPU because this line of code is running on the CPU.",
+      "zh": "但要量計算時間，最好同步，因為這行在 CPU 上執行，"
+    },
+    {
+      "start": 1408.27,
+      "end": 1410.31,
+      "en": "Even though this is running on the GPU.",
+      "zh": "另一行卻在 GPU。"
+    },
+    {
+      "start": 1411.43,
+      "end": 1413.63,
+      "en": "Okay, so now we run this again.",
+      "zh": "好，再跑一次。"
+    },
+    {
+      "start": 1413.63,
+      "end": 1415.67,
+      "en": "And now this goes quite fast.",
+      "zh": "現在非常快。"
+    },
+    {
+      "start": 1415.95,
+      "end": 1421.55,
+      "en": "And now we see that the approximate Golu is faster than the exact Golu.",
+      "zh": "近似 GELU，比精確 GELU 快。"
+    },
+    {
+      "start": 1421.99,
+      "end": 1425.35,
+      "en": "Although fastest in this list is Golu.",
+      "zh": "但清單裡最快的，是 PyTorch 的 GELU，"
+    },
+    {
+      "start": 1425.39,
+      "end": 1426.19,
+      "en": "That is the winner.",
+      "zh": "它勝出。"
+    },
+    {
+      "start": 1426.23,
+      "end": 1435.82,
+      "en": "Pytorch's implementation of the Golu function is faster than all of these other implementations of activation",
+      "zh": "PyTorch 的 GELU 實作，比這裡其他活化"
+    },
+    {
+      "start": 1435.82,
+      "end": 1437.34,
+      "en": "functions in the.",
+      "zh": "函式實作都快，"
+    },
+    {
+      "start": 1437.86,
+      "end": 1439.66,
+      "en": "Within this set on the GPU.",
+      "zh": "至少，在這組 GPU 測試中。"
+    },
+    {
+      "start": 1440.54,
+      "end": 1441.58,
+      "en": "Here's a question.",
+      "zh": "問你一個問題，"
+    },
+    {
+      "start": 1441.94,
+      "end": 1453.62,
+      "en": "If the glue function really is better than ReLU for deep learning, why is ReLU still so commonly used almost everywhere in deep learning except for language models?",
+      "zh": "如果 GELU 真的比 ReLU 更適合深度學習，為什麼除了語言模型，其他領域仍普遍用 ReLU？"
+    },
+    {
+      "start": 1454.3,
+      "end": 1455.66,
+      "en": "Well, that's a great question.",
+      "zh": "問得好。"
+    },
+    {
+      "start": 1455.9,
+      "end": 1458.62,
+      "en": "There are multiple answers to this.",
+      "zh": "有幾種答案。"
+    },
+    {
+      "start": 1458.86,
+      "end": 1469.7,
+      "en": "For one thing, glue is still expensive, both in terms of computation time and also in terms of the number of flops, which corresponds to power requirements.",
+      "zh": "首先，GELU 仍然昂貴，不論計算時間，或 FLOPs，也就是與耗電需求相關的運算量。"
+    },
+    {
+      "start": 1469.82,
+      "end": 1477.22,
+      "en": "And that can be pretty significant to consider if you want to run a model on, let's say, a phone or some other small device.",
+      "zh": "如果想在手機等小型裝置執行模型，這點可能很重要。"
+    },
+    {
+      "start": 1478.06,
+      "end": 1484.62,
+      "en": "And also the optimizations are mostly for the GPU and not for the CPU as you saw.",
+      "zh": "而且，最佳化大多針對 GPU，不是 CPU，如剛才看到。"
+    },
+    {
+      "start": 1485.78,
+      "end": 1494.52,
+      "en": "Furthermore, it's not so easy to change the activation function of an existing model, you would actually need to retrain the entire model.",
+      "zh": "此外，既有模型不容易換活化函式，得重新訓練整個模型，"
+    },
+    {
+      "start": 1494.88,
+      "end": 1500.76,
+      "en": "And there's no guarantee that changing the model will give the same results that you had before.",
+      "zh": "也不保證換了之後，結果相同。"
+    },
+    {
+      "start": 1501.44,
+      "end": 1507.88,
+      "en": "So if you already have, let's say, a vision recognition model that works really well, changing it",
+      "zh": "如果已有表現很好的視覺辨識模型，"
+    },
+    {
+      "start": 1507.88,
+      "end": 1516.6,
+      "en": "just to use Galew instead of ReLU can be expensive, time consuming, and it's not clear if it's really going to be beneficial.",
+      "zh": "只為了 GELU 取代 ReLU 而修改，可能昂貴、費時，也不確定有益。"
+    },
+    {
+      "start": 1517.32,
+      "end": 1527.04,
+      "en": "Also, one interesting feature is that because ReLU zeros out a lot of activations, it actually promotes sparsity in the model.",
+      "zh": "另一個特性，是 ReLU 把許多活化設為 0，促進稀疏性，"
+    },
+    {
+      "start": 1527.36,
+      "end": 1533.24,
+      "en": "And that has proven useful for computer vision models that learn sparse filter kernels.",
+      "zh": "對學習稀疏濾波核心的電腦視覺模型，已證明有幫助。"
+    },
+    {
+      "start": 1533.96,
+      "end": 1540.72,
+      "en": "So that means that just because the ReLU function seems to improve performance for large language models,",
+      "zh": "所以，即使 GELU 似乎改善大型語言模型，"
+    },
+    {
+      "start": 1541.16,
+      "end": 1547.16,
+      "en": "it doesn't mean that a performance boost would necessarily be seen for any other kind of model.",
+      "zh": "也不代表其他任何模型，都必然提升。"
+    },
+    {
+      "start": 1548.36,
+      "end": 1557.87,
+      "en": "Finally, it does seem like the improvement is fairly subtle, which means it's really only going to show up for extremely large and very deep models.",
+      "zh": "最後，改善似乎相當細微，只有極大、極深模型，才看得出。"
+    },
+    {
+      "start": 1558.63,
+      "end": 1564.19,
+      "en": "Of course, all that said, what I'm writing here on this slide is just kind of this generally true",
+      "zh": "不過，這張投影片的說法，只是目前大致情況，"
+    },
+    {
+      "start": 1564.19,
+      "end": 1573.31,
+      "en": "for now, but there's no reason to assume that ReLU is, or even should be the dominant activation function going into the future.",
+      "zh": "沒有理由假設，未來 ReLU 仍然，或應該主導。"
+    },
+    {
+      "start": 1573.95,
+      "end": 1584.59,
+      "en": "There are practical engineering improvements in GPU hardware and implementations, and there are also theoretical developments in activation functions and learning.",
+      "zh": "GPU 硬體與實作有工程進步，活化函式與學習理論，也持續發展。"
+    },
+    {
+      "start": 1585.07,
+      "end": 1590.47,
+      "en": "So I think the real answer to the question in the title is just because of inertia.",
+      "zh": "所以，真正答案，我覺得只是慣性。"
+    },
+    {
+      "start": 1590.79,
+      "end": 1596.35,
+      "en": "And, you know, if something already works pretty well, most people are going to be reluctant to change it.",
+      "zh": "如果某件事已運作得不錯，多數人不太願意改。"
+    },
+    {
+      "start": 1597.39,
+      "end": 1600.83,
+      "en": "Well, that was quite an intense and in-depth code challenge.",
+      "zh": "這是很密集、深入的程式挑戰。"
+    },
+    {
+      "start": 1600.83,
+      "end": 1602.83,
+      "en": "I hope you found it elucidating.",
+      "zh": "希望能幫你釐清。"
+    },
+    {
+      "start": 1603.11,
+      "end": 1608.91,
+      "en": "Here's a couple of important take home points, but I think I've already said out loud what I've written here.",
+      "zh": "這裡有幾個重要重點，不過，文字內容剛才都已說過。"
+    }
+  ]
+}

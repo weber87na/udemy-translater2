@@ -1,0 +1,2347 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893639",
+  "title": "Non-orthogonal latent components via eigendecomposition (theory and demo)",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "87d42f397e9ede64991bb8380512afabfd56b0d1f5ea3dec146f09489f71909b",
+  "cues": [
+    {
+      "start": 2.2,
+      "end": 3.84,
+      "en": "This and the next.",
+      "zh": "這支影片，以及接下來"
+    },
+    {
+      "start": 3.84,
+      "end": 12.84,
+      "en": "Several videos are focused on a multivariate analysis technique called generalized eigen decomposition,",
+      "zh": "幾支影片，會聚焦於一種多變量分析技術，叫做廣義特徵分解，"
+    },
+    {
+      "start": 12.96,
+      "end": 19.28,
+      "en": "also called generalized eigenvalue decomposition or abbreviated to GED.",
+      "zh": "也叫廣義特徵值分解，縮寫為 GED。"
+    },
+    {
+      "start": 20.24,
+      "end": 27.36,
+      "en": "It is not the same thing as PCA, which I will also demonstrate in the code demo, although they are",
+      "zh": "它與 PCA 不同，程式示範中我也會展示這一點，不過它們"
+    },
+    {
+      "start": 27.36,
+      "end": 34.16,
+      "en": "somewhat related analyses and they work well hand in hand as you will see in the next video.",
+      "zh": "是有些關聯的分析，而且能相輔相成，下一支影片就會看到。"
+    },
+    {
+      "start": 34.96,
+      "end": 43.96,
+      "en": "So I want to give you a heads up in advance here, because there's going to be quite a bit of linear algebra in the next half dozen slides or so.",
+      "zh": "先提醒你，接下來大約六張投影片，會有不少線性代數。"
+    },
+    {
+      "start": 44.52,
+      "end": 51.32,
+      "en": "If you are not so comfortable with linear algebra, then you don't need to worry about all the math details.",
+      "zh": "如果對線性代數不太熟悉，不用擔心所有數學細節。"
+    },
+    {
+      "start": 51.44,
+      "end": 62.07,
+      "en": "I will tell you the important take home points, and you'll see how to implement this method successfully in code, even if the math doesn't quite click.",
+      "zh": "我會告訴你重要重點；即使數學還不太理解，你也會看到如何成功用程式實作這個方法。"
+    },
+    {
+      "start": 63.27,
+      "end": 64.95,
+      "en": "Let's start with the goal.",
+      "zh": "先從目標開始。"
+    },
+    {
+      "start": 65.27,
+      "end": 69.99,
+      "en": "Imagine these dots represent a data set in two dimensions.",
+      "zh": "想像這些點代表二維資料集。"
+    },
+    {
+      "start": 70.39,
+      "end": 76.27,
+      "en": "Perhaps these two axes here correspond to two MLP neurons.",
+      "zh": "這兩個軸也許對應兩個 MLP 神經元。"
+    },
+    {
+      "start": 76.39,
+      "end": 81.95,
+      "en": "And then this shows the activation values for lots of tokens for those two neurons.",
+      "zh": "圖中顯示這兩個神經元對許多 token 的活化值。"
+    },
+    {
+      "start": 82.27,
+      "end": 84.51,
+      "en": "So each dot would be a token.",
+      "zh": "所以，每個點就是一個 token。"
+    },
+    {
+      "start": 84.95,
+      "end": 89.43,
+      "en": "Now clearly there are two streams of data here.",
+      "zh": "這裡很明顯有兩股資料流。"
+    },
+    {
+      "start": 89.43,
+      "end": 92.39,
+      "en": "So there's something special about these data.",
+      "zh": "這些資料有某種特殊之處。"
+    },
+    {
+      "start": 92.59,
+      "end": 95.91,
+      "en": "And so these green data and these purple data.",
+      "zh": "也就是綠色資料與紫色資料。"
+    },
+    {
+      "start": 96.11,
+      "end": 99.78999999999999,
+      "en": "But how do we separate these two sources statistically.",
+      "zh": "但統計上，要如何分離這兩個來源？"
+    },
+    {
+      "start": 99.78999999999999,
+      "end": 101.50999999999999,
+      "en": "How do we identify them.",
+      "zh": "如何辨識它們？"
+    },
+    {
+      "start": 102.22999999999999,
+      "end": 109.27000000000001,
+      "en": "Maybe these correspond to two different networks in the model or latent constructs in the for example",
+      "zh": "它們也許對應模型中的兩個不同網路，或潛在構念。例如，"
+    },
+    {
+      "start": 109.27000000000001,
+      "end": 115.27000000000001,
+      "en": "the MLP layer of the MLP data are thousands of dimensions.",
+      "zh": "MLP 層的 MLP 資料有數千個維度。"
+    },
+    {
+      "start": 115.43,
+      "end": 120.45,
+      "en": "But starting with two dimensions is good for building visual intuition.",
+      "zh": "不過，先從二維開始，有助於建立視覺直覺。"
+    },
+    {
+      "start": 120.45,
+      "end": 124.09,
+      "en": "We cannot just draw out 4000 dimensions.",
+      "zh": "我們無法直接畫出 4,000 個維度。"
+    },
+    {
+      "start": 124.65,
+      "end": 134.17,
+      "en": "So let's assume that there are multiple latent sources that get mixed together in the observed activations data.",
+      "zh": "所以，假設多個潛在來源混合在一起，形成觀察到的活化資料。"
+    },
+    {
+      "start": 134.45,
+      "end": 135.61,
+      "en": "And that's what you see here.",
+      "zh": "這就是這裡看到的情況。"
+    },
+    {
+      "start": 135.61,
+      "end": 137.73,
+      "en": "So there are two streams of data.",
+      "zh": "有兩股資料流。"
+    },
+    {
+      "start": 137.89,
+      "end": 143.45,
+      "en": "And we want to know how we can isolate and separate these two sources.",
+      "zh": "我們想知道，如何將這兩個來源獨立取出、分離。"
+    },
+    {
+      "start": 144.05,
+      "end": 150.13,
+      "en": "Now if we apply a linear separation method then the answer is kind of simple.",
+      "zh": "如果採用線性分離方法，答案有點簡單。"
+    },
+    {
+      "start": 150.13,
+      "end": 155.53,
+      "en": "We just take two different linear weighted combinations of the data channels.",
+      "zh": "只要對資料通道取兩種不同的線性加權組合。"
+    },
+    {
+      "start": 155.69,
+      "end": 158.17000000000002,
+      "en": "And that will give us two different components.",
+      "zh": "就會得到兩個不同成分。"
+    },
+    {
+      "start": 158.57,
+      "end": 168.45,
+      "en": "Now for these data you can imagine two regression equations, one equation that describes the green dots and another equation that describes the purple dots.",
+      "zh": "對這些資料，可以想像兩個迴歸方程式，一個描述綠點，另一個描述紫點。"
+    },
+    {
+      "start": 169.57,
+      "end": 175.68,
+      "en": "And maybe these correspond to two different categories of tokens like nouns and verbs, for example.",
+      "zh": "也許，它們對應兩類不同的 token，例如名詞與動詞。"
+    },
+    {
+      "start": 176.04,
+      "end": 180.76,
+      "en": "But how do we determine the linear weighted combination of the two variables?",
+      "zh": "但要如何決定這兩個變數的線性加權組合？"
+    },
+    {
+      "start": 180.96,
+      "end": 183.04,
+      "en": "How do we define those weights?",
+      "zh": "如何定義那些權重？"
+    },
+    {
+      "start": 183.28,
+      "end": 189.84,
+      "en": "Obviously, the individual variables themselves are not sufficient because the green data and the purple",
+      "zh": "顯然，個別變數本身並不夠，因為綠色和紫色"
+    },
+    {
+      "start": 189.84,
+      "end": 195.32,
+      "en": "data all project to data variable one, and they all project to data variable two.",
+      "zh": "資料都會投影到資料變數一，也都會投影到資料變數二。"
+    },
+    {
+      "start": 195.8,
+      "end": 203.8,
+      "en": "So we want to define some axes, some linear weighted combination of the two variables that will best",
+      "zh": "所以，我們想定義某些軸，也就是兩個變數的某種線性加權組合，來盡可能"
+    },
+    {
+      "start": 203.8,
+      "end": 209.64,
+      "en": "separate this stream of blue dots from this stream of purple dots.",
+      "zh": "分離這股藍點與這股紫點。"
+    },
+    {
+      "start": 210.32,
+      "end": 215.44,
+      "en": "In fact, this question here, this problem of how to define the weights.",
+      "zh": "其實，這個問題，也就是如何定義權重，"
+    },
+    {
+      "start": 215.64,
+      "end": 220.6,
+      "en": "This is like the single biggest question in machine learning and deep learning.",
+      "zh": "幾乎就是機器學習與深度學習中最重要的問題。"
+    },
+    {
+      "start": 220.96,
+      "end": 227.72,
+      "en": "And for example, gradient descent is a nonlinear technique to answer this question of how to define",
+      "zh": "例如，梯度下降就是回答這個問題的一種非線性技術：如何定義"
+    },
+    {
+      "start": 227.72,
+      "end": 236.75,
+      "en": "the weights such that the weighted combination of different variables optimizes some function or minimizes some loss function.",
+      "zh": "權重，讓不同變數的加權組合最佳化某個函數，或最小化某個損失函數。"
+    },
+    {
+      "start": 238.03,
+      "end": 246.67,
+      "en": "So what I'm going to do now is show you a technique based on linear algebra that also optimizes the",
+      "zh": "現在，我要展示一個以線性代數為基礎的方法，同樣是針對某個目標函數"
+    },
+    {
+      "start": 246.67,
+      "end": 254.31,
+      "en": "weights for some objective function in the case of generalized eigen decomposition.",
+      "zh": "最佳化權重。對廣義特徵分解而言，"
+    },
+    {
+      "start": 254.63,
+      "end": 262.79,
+      "en": "The objective is to come up with a set of weights such that the linear weighted combination of the variables",
+      "zh": "目標是找出一組權重，讓變數的線性加權組合"
+    },
+    {
+      "start": 262.95,
+      "end": 267.67,
+      "en": "maximizes the ratio between two different categories.",
+      "zh": "最大化兩個不同類別之間的比值。"
+    },
+    {
+      "start": 268.27,
+      "end": 272.51,
+      "en": "So the w here corresponds to a vector of weights.",
+      "zh": "這裡的 w 對應權重向量。"
+    },
+    {
+      "start": 272.63,
+      "end": 276.11,
+      "en": "So one number one weight value for each.",
+      "zh": "也就是每一個，"
+    },
+    {
+      "start": 276.43,
+      "end": 285.99,
+      "en": "Let's say MLP neuron and the x and y are activations matrices from the same neurons but for different categories.",
+      "zh": "比方說 MLP 神經元，都有一個數字、一個權重值；x 和 y 則是相同神經元在不同類別下的活化矩陣。"
+    },
+    {
+      "start": 286.19,
+      "end": 292.09000000000003,
+      "en": "So for example maybe there are different sentences different tokens different categories of tokens.",
+      "zh": "例如，不同句子、不同 token、不同類別的 token。"
+    },
+    {
+      "start": 292.49,
+      "end": 302.41,
+      "en": "Let's say, for example, that x is activations for sentences about cars and y is activations for sentences about trucks.",
+      "zh": "假設 x 是關於汽車句子的活化，y 是關於卡車句子的活化。"
+    },
+    {
+      "start": 303.73,
+      "end": 311.49,
+      "en": "So now we want to find a weight vector such that the weighted combination of activations from different",
+      "zh": "現在，我們要找一個權重向量，讓不同"
+    },
+    {
+      "start": 311.49,
+      "end": 316.45,
+      "en": "neurons maximally differentiates cars from trucks.",
+      "zh": "神經元活化的加權組合，能最大程度區別汽車與卡車。"
+    },
+    {
+      "start": 317.13,
+      "end": 324.81,
+      "en": "And we could use that to try to identify a distributed component in the language model that prefers",
+      "zh": "可以藉此嘗試辨識語言模型中，偏好"
+    },
+    {
+      "start": 324.81,
+      "end": 332.49,
+      "en": "cars over trucks, while holding constant everything that is similar between cars and trucks, such as.",
+      "zh": "汽車而非卡車的分散式成分，同時保持汽車與卡車之間所有相同的部分不變，例如，"
+    },
+    {
+      "start": 332.61,
+      "end": 335.53,
+      "en": "I don't know the fact that there are both mechanical.",
+      "zh": "我不知道，兩者都是機械，"
+    },
+    {
+      "start": 335.53,
+      "end": 337.85,
+      "en": "They're both forms of transportation.",
+      "zh": "也都是交通工具。"
+    },
+    {
+      "start": 338.57,
+      "end": 346.37,
+      "en": "Now, these vertical lines here and the square term you can interpret as like power or total energy.",
+      "zh": "這些直線和平方項，可以理解為功率或總能量。"
+    },
+    {
+      "start": 346.73,
+      "end": 348.69,
+      "en": "It's the squared vector norm.",
+      "zh": "它是向量範數的平方。"
+    },
+    {
+      "start": 348.69,
+      "end": 358.24,
+      "en": "But it's basically like we are maximizing the variance in the car representation relative to the variance in the truck representation.",
+      "zh": "基本上，我們在最大化汽車表徵的變異數，相對於卡車表徵變異數的比值。"
+    },
+    {
+      "start": 358.96,
+      "end": 362.8,
+      "en": "So now the question is how do we find w.",
+      "zh": "現在的問題是，如何找出 w？"
+    },
+    {
+      "start": 362.84,
+      "end": 374.64,
+      "en": "How do we find the weights such that the weighted combination of activations from different neurons or different dimensions maximally differentiates cars from trucks?",
+      "zh": "如何找出權重，讓不同神經元、不同維度活化的加權組合，能最大程度區別汽車與卡車？"
+    },
+    {
+      "start": 375.56,
+      "end": 384.96,
+      "en": "So we begin by just writing out this quantity as the dot product of this vector matrix product with itself.",
+      "zh": "先把這個量寫成這個向量與矩陣乘積，和它本身的內積。"
+    },
+    {
+      "start": 385.28,
+      "end": 389.56,
+      "en": "That's literally just the definition of the squared norm of a vector.",
+      "zh": "這正是向量範數平方的定義。"
+    },
+    {
+      "start": 390.12,
+      "end": 396.44,
+      "en": "And now we can work through some of the multiplications and the transposes to get this expression here.",
+      "zh": "接著，展開一些乘法與轉置，就得到這個式子。"
+    },
+    {
+      "start": 396.96,
+      "end": 402.2,
+      "en": "And do you recognize this form of the data matrix times its transpose.",
+      "zh": "你認得資料矩陣乘上自身轉置的形式嗎？"
+    },
+    {
+      "start": 402.76,
+      "end": 412.59000000000003,
+      "en": "Well that turns out to be the gram matrix of the data, although we actually want it to be mean centered so that it's a covariance matrix.",
+      "zh": "那就是資料的 Gram 矩陣，不過其實我們希望先做平均中心化，讓它成為共變異數矩陣。"
+    },
+    {
+      "start": 413.55,
+      "end": 423.71,
+      "en": "So S and R here refer to covariance matrices of the activations data matrices for the two different categories of tokens.",
+      "zh": "這裡的 S 和 R，指的是兩類不同 token 活化資料矩陣的共變異數矩陣。"
+    },
+    {
+      "start": 424.19,
+      "end": 432.47,
+      "en": "I like to call these matrices S and R, because S is like a signal matrix that you want to maximize,",
+      "zh": "我喜歡把它們叫 S 和 R，因為 S 像是想要最大化的訊號矩陣，"
+    },
+    {
+      "start": 432.79,
+      "end": 437.03,
+      "en": "and R is like a reference matrix to compare against.",
+      "zh": "R 則像是用來比較的參考矩陣。"
+    },
+    {
+      "start": 437.91,
+      "end": 445.07,
+      "en": "By the way, if you are familiar with optimization, then you can also conceptualize this equation as",
+      "zh": "順帶一提，如果熟悉最佳化，也可以把這個方程式理解為"
+    },
+    {
+      "start": 445.07,
+      "end": 454.15,
+      "en": "maximizing the quadratic form on f such that the quadratic form on r is constrained to one.",
+      "zh": "最大化 f 的二次型，同時將 r 的二次型限制為 1。"
+    },
+    {
+      "start": 454.75,
+      "end": 461.19,
+      "en": "So that would be a typical way to set up the Lagrange multiplier solution for this kind of problem.",
+      "zh": "這是針對這類問題建立拉格朗日乘數解法的典型方式。"
+    },
+    {
+      "start": 462.51,
+      "end": 470.21,
+      "en": "Okay, so this is a little bit of unpacking from linear algebra, but it doesn't actually tell us how we define the w vector.",
+      "zh": "好，這是一些線性代數的展開，但其實還沒告訴我們如何定義 w 向量。"
+    },
+    {
+      "start": 470.21,
+      "end": 475.01,
+      "en": "It just rewrites the problem into a slightly different form with slightly different letters.",
+      "zh": "只是用稍微不同的形式、不同字母重寫問題。"
+    },
+    {
+      "start": 475.65,
+      "end": 481.57,
+      "en": "So to do that, I'm going to now use some more linear algebra on the next slide.",
+      "zh": "接著，下一張投影片會再使用一些線性代數。"
+    },
+    {
+      "start": 482.29,
+      "end": 485.53,
+      "en": "So here is the objective function rewritten.",
+      "zh": "這裡是重寫後的目標函數。"
+    },
+    {
+      "start": 485.65,
+      "end": 494.21,
+      "en": "We want to find the w that maximizes this ratio, which you can think of as a signal to noise ratio.",
+      "zh": "我們要找出使這個比值最大的 w；你可以把它想成訊雜比。"
+    },
+    {
+      "start": 494.81,
+      "end": 499.29,
+      "en": "The quadratic form on each of these matrices is just a number.",
+      "zh": "每個矩陣的二次型，都只是一個數字。"
+    },
+    {
+      "start": 499.61,
+      "end": 503.97,
+      "en": "So this expression actually boils down to a ratio.",
+      "zh": "所以，這個式子其實歸結為一個比值。"
+    },
+    {
+      "start": 503.97,
+      "end": 505.33,
+      "en": "And that is just one number.",
+      "zh": "而那只是一個數字。"
+    },
+    {
+      "start": 505.33,
+      "end": 507.37,
+      "en": "And we can call that lambda.",
+      "zh": "可以把它叫做 lambda。"
+    },
+    {
+      "start": 507.93,
+      "end": 514.65,
+      "en": "Now I realize this is like a slight abuse of math notation, but the idea that I'm expressing here is",
+      "zh": "我知道，這樣有點濫用數學記號，但我想表達的是，"
+    },
+    {
+      "start": 514.65,
+      "end": 522.73,
+      "en": "that once we find the w that maximizes this ratio, we can call that ratio lambda.",
+      "zh": "一旦找到能最大化比值的 w，就可以把那個比值叫做 lambda。"
+    },
+    {
+      "start": 523.25,
+      "end": 527.32,
+      "en": "So we want to find the w that maximizes lambda.",
+      "zh": "所以，要找出使 lambda 最大的 w。"
+    },
+    {
+      "start": 528.52,
+      "end": 535.84,
+      "en": "And now to find this solution you can set this up as a calculus problem with a Lagrange multiplier.",
+      "zh": "要找這個解，可以用拉格朗日乘數把它設為微積分問題。"
+    },
+    {
+      "start": 536.08,
+      "end": 545.48,
+      "en": "But what I'm going to do is consider not just a single vector of solutions, but an entire matrix of solutions.",
+      "zh": "但我要做的是，不只考慮單一解向量，而是整個解矩陣。"
+    },
+    {
+      "start": 545.48,
+      "end": 549.64,
+      "en": "So we get a matrix W instead of just vector w.",
+      "zh": "因此，得到矩陣 W，而不只是向量 w。"
+    },
+    {
+      "start": 550.24,
+      "end": 559.96,
+      "en": "And that allows us to rewrite this equation with the denominator as the matrix inverse and capital lambda",
+      "zh": "這讓我們可以把方程式改寫為分母的矩陣反矩陣，左側是大寫 Lambda，"
+    },
+    {
+      "start": 559.96,
+      "end": 567.8,
+      "en": "on the left hand side, which is a diagonal matrix of ratios, one for each of the set of weights,",
+      "zh": "它是一個比值的對角矩陣，每組權重各有一個比值，"
+    },
+    {
+      "start": 567.8,
+      "end": 575.48,
+      "en": "so one for each column in W, and after expanding and simplifying the inverse operations, we arrive",
+      "zh": "也就是 W 每一欄各有一個。展開、化簡反矩陣運算後，就會得到"
+    },
+    {
+      "start": 575.48,
+      "end": 581.24,
+      "en": "at this expression here, which is called the generalized eigenvalue equation.",
+      "zh": "這個式子，稱為廣義特徵值方程式。"
+    },
+    {
+      "start": 581.96,
+      "end": 586.82,
+      "en": "If you've taken linear algebra before, then you have certainly seen this equation.",
+      "zh": "如果學過線性代數，一定看過這個方程式。"
+    },
+    {
+      "start": 586.82,
+      "end": 595.46,
+      "en": "Without the R, that would be just the regular eigenvalue equation on matrix S on covariance matrix S.",
+      "zh": "拿掉 R，就只是矩陣 S，也就是共變異數矩陣 S 的一般特徵值方程式。"
+    },
+    {
+      "start": 596.1,
+      "end": 603.54,
+      "en": "And if you've taken my linear algebra course, then you are certainly familiar with this generalized eigenvalue equation.",
+      "zh": "如果上過我的線性代數課，你一定很熟悉這個廣義特徵值方程式。"
+    },
+    {
+      "start": 604.7,
+      "end": 607.3,
+      "en": "Anyway, what does this all mean.",
+      "zh": "總之，這一切代表什麼？"
+    },
+    {
+      "start": 607.58,
+      "end": 619.22,
+      "en": "So this means that to find the weights that optimize this expression here, which means maximally differentiating between, you know, cars versus trucks.",
+      "zh": "代表要找出能最佳化這個式子的權重，也就是最大程度區別汽車與卡車，"
+    },
+    {
+      "start": 619.66,
+      "end": 627.74,
+      "en": "In other words, finding a latent component in the data that best separates activations for cars and trucks.",
+      "zh": "換句話說，找出資料中最能分離汽車和卡車活化的潛在成分，"
+    },
+    {
+      "start": 628.3,
+      "end": 636.22,
+      "en": "All you need to do is perform a generalized eigenvalue decomposition on the covariance matrices of the",
+      "zh": "只要對這兩個資料矩陣的共變異數矩陣，進行廣義特徵值"
+    },
+    {
+      "start": 636.26,
+      "end": 641.61,
+      "en": "two data matrices, and that is a pretty neat result.",
+      "zh": "分解即可。這是相當漂亮的結果。"
+    },
+    {
+      "start": 642.13,
+      "end": 653.17,
+      "en": "By the way, I should mention that if you are very comfortable with linear algebra or the math of optimization, you've probably noticed that I've skipped several steps in here.",
+      "zh": "順帶一提，如果你非常熟悉線性代數或最佳化數學，大概已經注意到，我跳過了幾個步驟。"
+    },
+    {
+      "start": 653.21,
+      "end": 660.45,
+      "en": "My goal in this, and the last slide, was to give you a high level overview of the problem and the solution.",
+      "zh": "這張與上一張投影片的目標，是從高層次概述問題和解法。"
+    },
+    {
+      "start": 660.61,
+      "end": 665.81,
+      "en": "And yeah, this is not like a rigorous proof of this solution or its optimality.",
+      "zh": "這並不是對解法或最佳性的嚴謹證明。"
+    },
+    {
+      "start": 666.25,
+      "end": 669.69,
+      "en": "I certainly did not single handedly invent this method.",
+      "zh": "這個方法當然不是我獨力發明的。"
+    },
+    {
+      "start": 669.85,
+      "end": 675.73,
+      "en": "So if you really want to get into the weeds of generalized eigenvalue decomposition, plenty of other",
+      "zh": "如果真的想深入廣義特徵值分解的細節，網路上有很多"
+    },
+    {
+      "start": 675.73,
+      "end": 682.25,
+      "en": "math heavy sources you can find online, including other of my courses and linear algebra books.",
+      "zh": "數學較重的資源，包括我的其他課程與線性代數書籍。"
+    },
+    {
+      "start": 682.25,
+      "end": 685.21,
+      "en": "I will reference some of these in the next video.",
+      "zh": "下一支影片會提供一些參考資料。"
+    },
+    {
+      "start": 686.33,
+      "end": 696.69,
+      "en": "Anyway, when you think of an eigenvalue decomposition of a covariance matrix, then you might be thinking about principal components analysis.",
+      "zh": "總之，想到共變異數矩陣的特徵值分解，你可能會想到主成分分析。"
+    },
+    {
+      "start": 697.09,
+      "end": 699.12,
+      "en": "And if you're thinking about PCA.",
+      "zh": "如果想到 PCA，"
+    },
+    {
+      "start": 699.16,
+      "end": 707.12,
+      "en": "Then you're probably thinking about orthogonal axes and other limitations of PCA for source separation.",
+      "zh": "很可能就會想到正交軸，以及 PCA 在來源分離上的其他限制。"
+    },
+    {
+      "start": 707.76,
+      "end": 715.44,
+      "en": "In fact, what we are doing here is not a principal component analysis, and therefore the weights vectors",
+      "zh": "事實上，這裡做的不是主成分分析，因此 W 中的權重向量"
+    },
+    {
+      "start": 715.44,
+      "end": 720.12,
+      "en": "in W are not constrained to be orthogonal to each other.",
+      "zh": "不受彼此正交的限制。"
+    },
+    {
+      "start": 720.56,
+      "end": 723.72,
+      "en": "And that's what I'm going to demonstrate in the next slide.",
+      "zh": "下一張投影片就要展示這點。"
+    },
+    {
+      "start": 723.72,
+      "end": 727.4,
+      "en": "And then you'll see this illustrated in the code in a little bit.",
+      "zh": "稍後也會在程式碼中看到。"
+    },
+    {
+      "start": 728.68,
+      "end": 729.04,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 729.08,
+      "end": 738.08,
+      "en": "So here is this form of the generalized eigenvalue equation as a regular eigenvalue decomposition on",
+      "zh": "這是廣義特徵值方程式的一種形式，表示為對"
+    },
+    {
+      "start": 738.08,
+      "end": 741.56,
+      "en": "the matrix product of R inverse times s.",
+      "zh": "R 的反矩陣乘上 S 的矩陣乘積，做一般特徵值分解。"
+    },
+    {
+      "start": 742.16,
+      "end": 750.96,
+      "en": "Now the interesting thing about that is that although R inverse and S are individually symmetric matrices",
+      "zh": "有趣的是，雖然 R 的反矩陣和 S 個別都是對稱矩陣，"
+    },
+    {
+      "start": 750.96,
+      "end": 762.18,
+      "en": "because they are covariance matrices or derived from covariance matrices, the product of two symmetric matrices is itself generally not symmetric.",
+      "zh": "因為它們是共變異數矩陣，或由共變異數矩陣導出，但兩個對稱矩陣的乘積，一般而言並不對稱。"
+    },
+    {
+      "start": 762.74,
+      "end": 770.22,
+      "en": "So that means that the eigenvectors are not going to be orthogonal, because the orthogonality constraint",
+      "zh": "所以，特徵向量不會正交，因為 PCA 和一般單矩陣"
+    },
+    {
+      "start": 770.22,
+      "end": 779.1,
+      "en": "that you get from PCA and from, like regular single matrix Eigendecomposition that orthogonality constraint",
+      "zh": "特徵分解中的正交限制，"
+    },
+    {
+      "start": 779.1,
+      "end": 783.42,
+      "en": "only holds when the matrix is symmetric.",
+      "zh": "只在矩陣對稱時成立。"
+    },
+    {
+      "start": 784.18,
+      "end": 784.66,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 784.7,
+      "end": 790.94,
+      "en": "There is one more slide of math that I need to introduce you to before getting to the coding demo.",
+      "zh": "進入程式示範前，還需要介紹一張數學投影片。"
+    },
+    {
+      "start": 791.5,
+      "end": 799.1,
+      "en": "So what I've shown you in this and the past couple slides, this is all theory of generalized eigen decomposition.",
+      "zh": "這張與前幾張投影片展示的，都是廣義特徵分解的理論。"
+    },
+    {
+      "start": 799.1,
+      "end": 806.26,
+      "en": "But when it gets to practical implementations, there are some pretty significant numerical issues that",
+      "zh": "但實際實作時，有些相當嚴重的數值問題，"
+    },
+    {
+      "start": 806.26,
+      "end": 816.05,
+      "en": "can make the analysis impossible or give very poor solutions, especially for large data sets like what we have in LMS.",
+      "zh": "可能讓分析無法進行，或得到很差的解，尤其是 LLM 這類大型資料集。"
+    },
+    {
+      "start": 816.73,
+      "end": 828.17,
+      "en": "Fortunately, there is a pretty simple solution which is to regularize the covariance matrices, and it turns out that that will solve a lot of numerical issues.",
+      "zh": "幸好，有個相當簡單的解法，就是對共變異數矩陣做正規化，這能解決許多數值問題。"
+    },
+    {
+      "start": 828.97,
+      "end": 833.73,
+      "en": "Of course, you are highly familiar with the concept of regularization.",
+      "zh": "當然，你已經很熟悉正規化的概念。"
+    },
+    {
+      "start": 834.13,
+      "end": 837.77,
+      "en": "I've talked about regularization a lot in this course.",
+      "zh": "這門課已經談過很多次。"
+    },
+    {
+      "start": 837.77,
+      "end": 841.01,
+      "en": "For example, we have L1 and L2 regularizers.",
+      "zh": "例如，L1 與 L2 正規化。"
+    },
+    {
+      "start": 841.53,
+      "end": 853.37,
+      "en": "In the context of covariance matrices, there are several flavors of regularization, including L1 and L2, but also other ones like Tikhonov and shrinkage.",
+      "zh": "在共變異數矩陣的情境中，有幾種正規化方式，包括 L1、L2，以及 Tikhonov、收縮等其他方法。"
+    },
+    {
+      "start": 853.89,
+      "end": 858.05,
+      "en": "Shrinkage regularization is simple and straightforward.",
+      "zh": "收縮正規化簡單直接。"
+    },
+    {
+      "start": 858.21,
+      "end": 863.97,
+      "en": "It works really well for generalized eigenvalue problems with actual data.",
+      "zh": "對實際資料的廣義特徵值問題，效果很好。"
+    },
+    {
+      "start": 864.97,
+      "end": 872.96,
+      "en": "The idea of shrinkage regularization for GED is that instead of using the covariance matrix R, are.",
+      "zh": "GED 的收縮正規化概念是，不再直接使用共變異數矩陣 R，"
+    },
+    {
+      "start": 873.64,
+      "end": 879.36,
+      "en": "We will use a slight modification of R that is shrinkage regularized.",
+      "zh": "而是使用經過收縮正規化、稍微修改過的 R。"
+    },
+    {
+      "start": 879.36,
+      "end": 880.52,
+      "en": "And that looks like this.",
+      "zh": "它看起來是這樣。"
+    },
+    {
+      "start": 880.76,
+      "end": 887.52,
+      "en": "So the shrinkage version of r r tilde is basically a slightly knocked down.",
+      "zh": "R 的收縮版本，也就是 R 波浪號，基本上是稍微降低的，"
+    },
+    {
+      "start": 887.52,
+      "end": 894.92,
+      "en": "So reduced form of R plus some fraction of the identity matrix.",
+      "zh": "也就是縮小後的 R，加上某個比例的單位矩陣。"
+    },
+    {
+      "start": 895.28,
+      "end": 905.96,
+      "en": "And basically means this means that we are going to add tiny numbers to the diagonals of R without doing anything to the off diagonal elements.",
+      "zh": "基本上，這表示在 R 的對角線加上很小的數字，而不處理非對角元素。"
+    },
+    {
+      "start": 906.52,
+      "end": 912.24,
+      "en": "Now this alpha term here is the average of all of the eigenvalues of R.",
+      "zh": "這裡的 alpha，是 R 所有特徵值的平均。"
+    },
+    {
+      "start": 912.44,
+      "end": 915.16,
+      "en": "So this is just the regular eigenvalues of R.",
+      "zh": "也就是 R 的一般特徵值。"
+    },
+    {
+      "start": 915.2,
+      "end": 917.68,
+      "en": "This is not the generalized eigenvalue.",
+      "zh": "不是廣義特徵值。"
+    },
+    {
+      "start": 918.92,
+      "end": 925.04,
+      "en": "And gamma is a regularization parameter which varies between 0 and 1.",
+      "zh": "gamma 則是介於 0 與 1 之間的正規化參數。"
+    },
+    {
+      "start": 925.72,
+      "end": 934.22,
+      "en": "So let's think about what happens at the two extremes of this parameter When gamma is zero, then this",
+      "zh": "想想這個參數的兩個極端值。gamma 為零時，這個"
+    },
+    {
+      "start": 934.26,
+      "end": 939.54,
+      "en": "equation is just one -0 times r plus zero.",
+      "zh": "方程式就是一減零，再乘以 R，加上零。"
+    },
+    {
+      "start": 939.54,
+      "end": 941.54,
+      "en": "So that means no regularization.",
+      "zh": "這表示沒有正規化。"
+    },
+    {
+      "start": 941.54,
+      "end": 943.06,
+      "en": "We haven't done anything to r.",
+      "zh": "我們沒有對 R 做任何事。"
+    },
+    {
+      "start": 943.66,
+      "end": 949.94,
+      "en": "And when gamma equals one then we have one minus one equals zero times r.",
+      "zh": "gamma 等於一時，一減一等於零，再乘以 R。"
+    },
+    {
+      "start": 950.7,
+      "end": 953.5,
+      "en": "And then so that completely obliterates r.",
+      "zh": "這樣就把 R 完全消除了。"
+    },
+    {
+      "start": 953.5,
+      "end": 957.74,
+      "en": "And then we just have some scalar times the identity matrix.",
+      "zh": "接著，只剩某個純量乘上單位矩陣。"
+    },
+    {
+      "start": 957.78,
+      "end": 966.62,
+      "en": "And that means that we just replace R with the identity matrix with the average of the eigenvalues on the diagonals.",
+      "zh": "這表示，我們用對角線為特徵值平均的單位矩陣，替換 R。"
+    },
+    {
+      "start": 967.1,
+      "end": 974.7,
+      "en": "And the thing is that if you would set gamma to be one, then the regularized r is basically just the",
+      "zh": "重點是，如果把 gamma 設為一，正規化後的 R 基本上就是"
+    },
+    {
+      "start": 974.7,
+      "end": 982.94,
+      "en": "identity matrix, which means that the generalized eigendecomposition just becomes a principal components analysis.",
+      "zh": "單位矩陣，這代表廣義特徵分解會變成主成分分析。"
+    },
+    {
+      "start": 983.7,
+      "end": 993.09,
+      "en": "So the impact of shrinkage is that it inflates R and that guarantees a full rank matrix, which improves",
+      "zh": "所以，收縮的影響，是讓 R 膨脹，保證矩陣滿秩，從而改善"
+    },
+    {
+      "start": 993.09,
+      "end": 997.61,
+      "en": "the numerical stability of the estimation of the eigenvalues.",
+      "zh": "特徵值估計的數值穩定性。"
+    },
+    {
+      "start": 999.17,
+      "end": 1007.13,
+      "en": "By the way, I realized that I'm now using shrinking and inflating in the same slide for the same analysis.",
+      "zh": "順帶一提，我知道自己在同一張投影片、同一個分析中，同時用了收縮和膨脹。"
+    },
+    {
+      "start": 1007.73,
+      "end": 1016.41,
+      "en": "The reason why this analysis is called shrinkage is that the spread of the eigenvalues of R tilde is",
+      "zh": "這個分析叫收縮，是因為 R 波浪號特徵值的分布範圍，"
+    },
+    {
+      "start": 1016.41,
+      "end": 1022.65,
+      "en": "smaller, or it's shrunk down compared to the spread of the eigenvalues of R.",
+      "zh": "比 R 的特徵值分布範圍更小，也就是被縮小了。"
+    },
+    {
+      "start": 1023.65,
+      "end": 1028.77,
+      "en": "So this method is actually shrinking the spread of the eigenvalues.",
+      "zh": "所以，這個方法實際上是在縮小特徵值的分散範圍。"
+    },
+    {
+      "start": 1029.33,
+      "end": 1038.81,
+      "en": "On the other hand, there is a geometric interpretation of a covariance matrix as like a hyper spheroid in a high dimensional space.",
+      "zh": "另一方面，共變異數矩陣有幾何上的解讀，像是高維空間中的超橢球體。"
+    },
+    {
+      "start": 1039.17,
+      "end": 1048.2,
+      "en": "And as you increase gamma, that spheroid can change from a flattened ellipse into a full unit sphere.",
+      "zh": "增加 gamma 時，那個橢球體可以從扁平橢圓，變成完整的單位球。"
+    },
+    {
+      "start": 1048.72,
+      "end": 1051.96,
+      "en": "And I'm actually going to visualize this for you on the next slide.",
+      "zh": "下一張投影片，我會將它視覺化給你看。"
+    },
+    {
+      "start": 1051.96,
+      "end": 1054.92,
+      "en": "But let's get back to this text over here anyway.",
+      "zh": "不過，先回到這裡的文字。"
+    },
+    {
+      "start": 1054.96,
+      "end": 1064.84,
+      "en": "So the key result is that as gamma goes from 0 to 1, the generalized eigendecomposition moves towards",
+      "zh": "關鍵結果是，當 gamma 從 0 走向 1，廣義特徵分解就會朝"
+    },
+    {
+      "start": 1064.84,
+      "end": 1065.72,
+      "en": "a PCA.",
+      "zh": "PCA 靠近。"
+    },
+    {
+      "start": 1066.32,
+      "end": 1073,
+      "en": "And that means that the solution is going to be biased away from the directions that best separate the",
+      "zh": "這代表，解會偏離最能分離"
+    },
+    {
+      "start": 1073,
+      "end": 1079.52,
+      "en": "two categories, and towards pointing towards solutions that just maximize variance in the data.",
+      "zh": "兩個類別的方向，轉而朝向單純最大化資料變異數的解。"
+    },
+    {
+      "start": 1080.68,
+      "end": 1087,
+      "en": "Now that's not something that you really want to do, but doing it a little bit turns out to add a lot",
+      "zh": "這並不是你真正想要做的，但稍微這樣做，卻能增加很多"
+    },
+    {
+      "start": 1087.04,
+      "end": 1092.88,
+      "en": "of numerical stability, hopefully without really negatively impacting the solution too much.",
+      "zh": "數值穩定性，希望不會對解造成太大的負面影響。"
+    },
+    {
+      "start": 1093.52,
+      "end": 1095.2,
+      "en": "So how do you pick a gamma?",
+      "zh": "那麼，要如何挑選 gamma？"
+    },
+    {
+      "start": 1095.2,
+      "end": 1097.2,
+      "en": "How do you pick a value of gamma?",
+      "zh": "如何選擇 gamma 的值？"
+    },
+    {
+      "start": 1097.8,
+      "end": 1106.06,
+      "en": "Intuitively, you want gamma to be as close to zero as possible, but as close to one as necessary.",
+      "zh": "直覺上，希望 gamma 盡可能接近零，但在必要時又足夠接近一。"
+    },
+    {
+      "start": 1106.78,
+      "end": 1113.46,
+      "en": "And in general, there are two ways to pick gamma are just to fix it to some value like 1%.",
+      "zh": "一般有兩種選法：直接固定為某個值，例如 1%。"
+    },
+    {
+      "start": 1113.46,
+      "end": 1114.54,
+      "en": "So 0.01.",
+      "zh": "也就是 0.01。"
+    },
+    {
+      "start": 1115.18,
+      "end": 1119.02,
+      "en": "Or you can use statistical methods like cross-validation.",
+      "zh": "或使用交叉驗證等統計方法。"
+    },
+    {
+      "start": 1120.22,
+      "end": 1126.14,
+      "en": "Cross-validation to pick a parameter is something that you can do with a relatively small number of",
+      "zh": "如果分析次數相對少，可以用交叉驗證來選參數，"
+    },
+    {
+      "start": 1126.14,
+      "end": 1137.62,
+      "en": "analyses, because it takes some additional time and coding, and it also requires some care to avoid overfitting the model to the training data.",
+      "zh": "因為它需要額外時間與程式碼，也必須謹慎，避免模型對訓練資料過度擬合。"
+    },
+    {
+      "start": 1138.34,
+      "end": 1146.26,
+      "en": "So what I'm going to do here and in the next few videos is just kind of arbitrarily set gamma to be 0.01.",
+      "zh": "所以，這支與接下來幾支影片，我會有點任意地把 gamma 設為 0.01。"
+    },
+    {
+      "start": 1146.7,
+      "end": 1157.82,
+      "en": "That is generally small enough that it doesn't really negatively impact the solution, while still being large enough to give us full rank matrices and numerical stability.",
+      "zh": "一般而言，這夠小，不太會對解造成負面影響，又夠大，能讓矩陣滿秩、具有數值穩定性。"
+    },
+    {
+      "start": 1159.1,
+      "end": 1159.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1159.66,
+      "end": 1164.69,
+      "en": "Here in this slide I want to show you what the shrinkage does geometrically.",
+      "zh": "這張投影片要展示，收縮在幾何上有什麼作用。"
+    },
+    {
+      "start": 1165.53,
+      "end": 1170.77,
+      "en": "So imagine we have this three by three matrix which is like almost the identity matrix.",
+      "zh": "想像這個 3×3 矩陣，幾乎就是單位矩陣。"
+    },
+    {
+      "start": 1170.77,
+      "end": 1174.49,
+      "en": "But it has a zero on the final diagonal point here.",
+      "zh": "但最後一個對角位置是零。"
+    },
+    {
+      "start": 1175.05,
+      "end": 1177.73,
+      "en": "So this is a reduced rank matrix.",
+      "zh": "所以，這是降秩矩陣。"
+    },
+    {
+      "start": 1178.13,
+      "end": 1184.77,
+      "en": "We can represent this matrix geometrically as like a spheroid in a three dimensional space.",
+      "zh": "可以用三維空間中的橢球體，在幾何上表示這個矩陣。"
+    },
+    {
+      "start": 1185.29,
+      "end": 1188.01,
+      "en": "And natively so no regularization.",
+      "zh": "原本，也就是沒有正規化時，"
+    },
+    {
+      "start": 1188.25,
+      "end": 1189.77,
+      "en": "The matrix looks like this.",
+      "zh": "矩陣看起來像這樣。"
+    },
+    {
+      "start": 1189.81,
+      "end": 1191.61,
+      "en": "It's a flat disk.",
+      "zh": "它是一個扁平圓盤。"
+    },
+    {
+      "start": 1191.65,
+      "end": 1197.17,
+      "en": "It has extension in x and y and no extension on the z axis.",
+      "zh": "沿著 x 和 y 有延伸，但 z 軸沒有延伸。"
+    },
+    {
+      "start": 1197.33,
+      "end": 1201.69,
+      "en": "So it's a two dimensional surface in a three dimensional axis.",
+      "zh": "所以，它是三維座標系中的二維曲面。"
+    },
+    {
+      "start": 1202.49,
+      "end": 1209.41,
+      "en": "And now if I would add 10% regularization that would basically inflate the third dimension.",
+      "zh": "如果加入 10% 的正規化，基本上就會使第三個維度膨脹。"
+    },
+    {
+      "start": 1209.57,
+      "end": 1218.33,
+      "en": "Because the shrinkage regularization will add a tiny number to the diagonal, which means that we will get a full rank matrix.",
+      "zh": "因為收縮正規化會在對角線加上一個很小的數字，讓矩陣變成滿秩。"
+    },
+    {
+      "start": 1218.45,
+      "end": 1222.52,
+      "en": "And this element in the diagonal will be some non-zero number.",
+      "zh": "這個對角元素就會成為某個非零數字。"
+    },
+    {
+      "start": 1223.72,
+      "end": 1229.88,
+      "en": "And then if I would regularize a bit more and that would turn it even closer to a sphere.",
+      "zh": "如果再多做一點正規化，就會更接近球體。"
+    },
+    {
+      "start": 1230.36,
+      "end": 1231.68,
+      "en": "So that's the idea.",
+      "zh": "這就是概念。"
+    },
+    {
+      "start": 1231.68,
+      "end": 1238.76,
+      "en": "By adding some regularization, you are artificially inflating the matrix to give it more volume.",
+      "zh": "藉由加入一些正規化，人為地讓矩陣膨脹，使它有更多體積。"
+    },
+    {
+      "start": 1238.76,
+      "end": 1240,
+      "en": "It gives it more bulk.",
+      "zh": "讓它更飽滿。"
+    },
+    {
+      "start": 1240.52,
+      "end": 1247.24,
+      "en": "That increases the numerical stability, although it does mean that you are changing the actual data values.",
+      "zh": "這增加了數值穩定性，但也表示你改變了實際資料值。"
+    },
+    {
+      "start": 1247.72,
+      "end": 1256.08,
+      "en": "But again, if you use one regularization, it only affects the diagonal elements and it changes them very little.",
+      "zh": "不過，再說一次，如果使用一點正規化，它只影響對角元素，而且改變很小。"
+    },
+    {
+      "start": 1256.2,
+      "end": 1259.8,
+      "en": "So the benefits really far outweigh the risks.",
+      "zh": "因此，效益確實遠大於風險。"
+    },
+    {
+      "start": 1260.68,
+      "end": 1265.52,
+      "en": "Okay, I realized this was a lot of math to soak in so far.",
+      "zh": "好，我知道，到目前為止，有很多數學內容需要消化。"
+    },
+    {
+      "start": 1266.08,
+      "end": 1272.52,
+      "en": "I hope you were able to follow the general ideas, even if you didn't quite get all of the equations.",
+      "zh": "即使沒有完全理解每個方程式，希望你仍能掌握大致概念。"
+    },
+    {
+      "start": 1273.08,
+      "end": 1279.6,
+      "en": "Fortunately, you can get really far with this analysis approach even without fully understanding the math.",
+      "zh": "幸好，即使不完全理解數學，這個分析方法仍然能帶你走得很遠。"
+    },
+    {
+      "start": 1280.78,
+      "end": 1285.42,
+      "en": "And with that in mind, let me now tell you what I will do in the code demo.",
+      "zh": "記住這點，現在來說明程式示範要做什麼。"
+    },
+    {
+      "start": 1286.14,
+      "end": 1292.62,
+      "en": "First, I'll show you how to create this X dataset that I illustrated in the beginning of the lecture.",
+      "zh": "首先，展示如何建立這個 X 資料集，也就是課程一開始的示意圖。"
+    },
+    {
+      "start": 1293.34,
+      "end": 1298.42,
+      "en": "Then I will perform a principal components analysis on this dataset.",
+      "zh": "接著，對這個資料集做主成分分析。"
+    },
+    {
+      "start": 1298.78,
+      "end": 1301.94,
+      "en": "Here you see the data in the original data space.",
+      "zh": "這裡是原始資料空間中的資料。"
+    },
+    {
+      "start": 1302.06,
+      "end": 1306.54,
+      "en": "And here you see it projected onto the principal components axes.",
+      "zh": "這裡則是投影到主成分軸上的資料。"
+    },
+    {
+      "start": 1307.62,
+      "end": 1317.42,
+      "en": "Now PCA is doing exactly what it's designed to do which is orthogonally rotate the data to maximize variance along this top direction.",
+      "zh": "PCA 正在做它被設計要做的事，也就是正交旋轉資料，讓上方這個方向的變異數最大化。"
+    },
+    {
+      "start": 1317.86,
+      "end": 1323.74,
+      "en": "Now that's fine, but it does not help us separate these two data streams.",
+      "zh": "這沒問題，但無助於分離這兩股資料流。"
+    },
+    {
+      "start": 1324.46,
+      "end": 1330.18,
+      "en": "In other words, PCA cannot actually separate these two latent sources.",
+      "zh": "換句話說，PCA 其實無法分離這兩個潛在來源。"
+    },
+    {
+      "start": 1330.82,
+      "end": 1336.82,
+      "en": "Next, I will apply a generalized eigen decomposition on the exact same data.",
+      "zh": "接著，對完全相同的資料，套用廣義特徵分解。"
+    },
+    {
+      "start": 1337.26,
+      "end": 1345.17,
+      "en": "And now when we look at the data in the GED space, then we see this really beautiful separation of the two sources of data.",
+      "zh": "現在，在 GED 空間中查看資料，就能看到兩個資料來源非常漂亮地分離。"
+    },
+    {
+      "start": 1346.17,
+      "end": 1352.17,
+      "en": "In other words, the activation for like cars and trucks are correlated in the data space.",
+      "zh": "換句話說，汽車和卡車的活化，在資料空間中彼此相關。"
+    },
+    {
+      "start": 1352.17,
+      "end": 1359.85,
+      "en": "They remain correlated in the PC space, and they are perfectly correlated in the GED space.",
+      "zh": "它們在 PC 空間仍然相關，在 GED 空間則完全相關。"
+    },
+    {
+      "start": 1360.77,
+      "end": 1362.93,
+      "en": "And here you see the two eigenvectors.",
+      "zh": "這裡是兩個特徵向量。"
+    },
+    {
+      "start": 1363.25,
+      "end": 1365.85,
+      "en": "They are certainly correlated with each other.",
+      "zh": "它們顯然彼此相關。"
+    },
+    {
+      "start": 1366.57,
+      "end": 1370.81,
+      "en": "Next I will apply shrinkage regularization to these data.",
+      "zh": "接著，對這些資料做收縮正規化。"
+    },
+    {
+      "start": 1370.81,
+      "end": 1374.29,
+      "en": "And you'll see that we no longer get perfect source separation.",
+      "zh": "你會看到，不再能完美分離來源。"
+    },
+    {
+      "start": 1374.29,
+      "end": 1380.53,
+      "en": "But instead it's like somewhere in between a good separation and a principal components result.",
+      "zh": "而是介於良好分離與主成分結果之間。"
+    },
+    {
+      "start": 1381.13,
+      "end": 1384.37,
+      "en": "I think this was 40% regularization.",
+      "zh": "我想這是 40% 的正規化。"
+    },
+    {
+      "start": 1384.37,
+      "end": 1386.01,
+      "en": "So gamma equals 0.4.",
+      "zh": "也就是 gamma 等於 0.4。"
+    },
+    {
+      "start": 1386.33,
+      "end": 1391.37,
+      "en": "That is like way, way higher than what you would actually want to use in practice.",
+      "zh": "這比實務上真正想用的值高很多。"
+    },
+    {
+      "start": 1392.37,
+      "end": 1402.96,
+      "en": "As is often the case with toy examples, the solution works perfectly here, with or without shrinkage, because the data are so simple and so easy to separate.",
+      "zh": "玩具範例經常如此：因為資料很簡單、很容易分離，所以不論是否做收縮，解在這裡都能完美運作。"
+    },
+    {
+      "start": 1403.48,
+      "end": 1410.48,
+      "en": "But on the other hand, these very simple examples really nicely allow for this kind of visual intuition.",
+      "zh": "另一方面，這些非常簡單的範例，也很適合建立這種視覺直覺。"
+    },
+    {
+      "start": 1411.48,
+      "end": 1417.24,
+      "en": "So yeah, in this video I'm going to stick to this very simple toy example.",
+      "zh": "所以，這支影片會維持使用這個很簡單的玩具範例。"
+    },
+    {
+      "start": 1417.4,
+      "end": 1427.16,
+      "en": "In the next video I will show you some of the challenges and also some solutions that arise when trying to apply this analysis to real data.",
+      "zh": "下一支影片會展示，嘗試對真實資料套用這個分析時，會出現的一些挑戰和解法。"
+    },
+    {
+      "start": 1427.6,
+      "end": 1429.88,
+      "en": "And then in the next video.",
+      "zh": "然後，下一支影片，"
+    },
+    {
+      "start": 1430.24,
+      "end": 1436.76,
+      "en": "The video after the next one, you will get to extend these analyses in a code challenge.",
+      "zh": "也就是再下一支，你會在程式挑戰中延伸這些分析。"
+    },
+    {
+      "start": 1437.2,
+      "end": 1439.4,
+      "en": "Anyway, for now let's switch to code.",
+      "zh": "總之，現在切換到程式碼。"
+    },
+    {
+      "start": 1440.76,
+      "end": 1445.4,
+      "en": "So we need numpy for numerical processing matplotlib.",
+      "zh": "需要 NumPy 做數值處理，以及 Matplotlib。"
+    },
+    {
+      "start": 1445.4,
+      "end": 1453.76,
+      "en": "And then it turns out that numpy can perform an eigenvalue decomposition, but not a generalized eigen decomposition.",
+      "zh": "NumPy 可以做特徵值分解，但不能做廣義特徵分解。"
+    },
+    {
+      "start": 1453.98,
+      "end": 1462.34,
+      "en": "Fortunately, SciPy actually does have some routines for generalized Eigendecomposition solution, although",
+      "zh": "幸好，SciPy 確實有一些求解廣義特徵分解的常式，不過"
+    },
+    {
+      "start": 1462.78,
+      "end": 1469.34,
+      "en": "if you are a Matlab user, I will say that the SciPy uh routine is just not as good.",
+      "zh": "如果你是 MATLAB 使用者，我會說，SciPy 的常式沒有那麼好。"
+    },
+    {
+      "start": 1469.34,
+      "end": 1474.54,
+      "en": "It's not as accurate as Matlab's solution, but anyway, we're going to use it nonetheless.",
+      "zh": "它不如 MATLAB 的解法準確，不過我們還是會使用它。"
+    },
+    {
+      "start": 1474.94,
+      "end": 1476.86,
+      "en": "Okay, so here I'm generating the data.",
+      "zh": "好，這裡產生資料。"
+    },
+    {
+      "start": 1476.9,
+      "end": 1478.46,
+      "en": "Let me show you what it looks like first.",
+      "zh": "先展示它的樣子。"
+    },
+    {
+      "start": 1478.5,
+      "end": 1484.18,
+      "en": "This is the data that you saw in the slides in the beginning of the lecture.",
+      "zh": "這就是課程一開始投影片中看到的資料。"
+    },
+    {
+      "start": 1484.46,
+      "end": 1491.7,
+      "en": "So what I'm doing is just taking a bunch of random numbers, stacking them up, multiplying by 0.5.",
+      "zh": "我的做法是取一堆隨機數字，堆疊起來，乘上 0.5。"
+    },
+    {
+      "start": 1491.74,
+      "end": 1495.02,
+      "en": "That's basically going to create this disk of data.",
+      "zh": "基本上會建立這個圓盤狀的資料。"
+    },
+    {
+      "start": 1495.3,
+      "end": 1503.54,
+      "en": "And then I just repeat the data twice multiplying it by this rotation this orthogonal rotation matrix.",
+      "zh": "接著，把資料重複兩次，乘上這個正交旋轉矩陣。"
+    },
+    {
+      "start": 1503.74,
+      "end": 1513.77,
+      "en": "So I get a version of the data that is rotated by pi over six, and a version of the data that is multiplied or rotated by pi over three.",
+      "zh": "所以，得到一個旋轉 pi/6 的版本，以及一個乘上、也就是旋轉 pi/3 的版本。"
+    },
+    {
+      "start": 1514.89,
+      "end": 1516.09,
+      "en": "Stacking them together.",
+      "zh": "把它們堆疊在一起。"
+    },
+    {
+      "start": 1516.09,
+      "end": 1518.69,
+      "en": "And that's how I create this stream.",
+      "zh": "這就是建立這股資料流，"
+    },
+    {
+      "start": 1518.93,
+      "end": 1521.25,
+      "en": "Like dual stream of correlated data.",
+      "zh": "也就是兩股彼此相關資料流的方式。"
+    },
+    {
+      "start": 1521.69,
+      "end": 1521.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1521.97,
+      "end": 1529.37,
+      "en": "So again the idea is that we want to find a linear weighted combination of data variable one and data",
+      "zh": "概念仍然是，要找出資料變數一與資料"
+    },
+    {
+      "start": 1529.37,
+      "end": 1538.41,
+      "en": "variable two such that we can perfectly or at least as good as possible, separate the purple dots from the green dots.",
+      "zh": "變數二的線性加權組合，讓我們能完美，或至少盡可能好地分離紫點與綠點。"
+    },
+    {
+      "start": 1539.09,
+      "end": 1539.49,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1539.53,
+      "end": 1541.13,
+      "en": "So we're going to try a PCA.",
+      "zh": "先試 PCA。"
+    },
+    {
+      "start": 1541.61,
+      "end": 1545.77,
+      "en": "Here I'm implementing the principal components analysis manually.",
+      "zh": "這裡手動實作主成分分析。"
+    },
+    {
+      "start": 1545.81,
+      "end": 1549.41,
+      "en": "So first I mean center the data.",
+      "zh": "首先，對資料做平均中心化。"
+    },
+    {
+      "start": 1549.97,
+      "end": 1555.33,
+      "en": "So I subtract the mean and then I calculate the covariance matrix.",
+      "zh": "也就是減掉平均，再計算共變異數矩陣。"
+    },
+    {
+      "start": 1555.33,
+      "end": 1562.45,
+      "en": "So that is the data matrix times itself after mean centering divided by the number of data points.",
+      "zh": "也就是平均中心化後的資料矩陣乘上自身，再除以資料點數量。"
+    },
+    {
+      "start": 1562.85,
+      "end": 1565.89,
+      "en": "Really super duper technical statistical thing.",
+      "zh": "很細、很技術性的統計細節，"
+    },
+    {
+      "start": 1565.89,
+      "end": 1567.09,
+      "en": "It probably should be.",
+      "zh": "它其實應該，"
+    },
+    {
+      "start": 1567.13,
+      "end": 1571.16,
+      "en": "You know, it should be dividing by n minus one.",
+      "zh": "應該除以 n 減一。"
+    },
+    {
+      "start": 1571.16,
+      "end": 1573.12,
+      "en": "But when you have, you know how many data points?",
+      "zh": "但當資料點有……這裡是多少個？"
+    },
+    {
+      "start": 1573.16,
+      "end": 1573.6,
+      "en": "Do I have here?",
+      "zh": "我有多少個？"
+    },
+    {
+      "start": 1573.64,
+      "end": 1574.4,
+      "en": "1000?",
+      "zh": "1,000 個？"
+    },
+    {
+      "start": 1574.6,
+      "end": 1574.84,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1574.84,
+      "end": 1581.04,
+      "en": "There's really no practical difference between dividing by 1000 and dividing by 999.",
+      "zh": "除以 1,000 或除以 999，實務上真的沒有差別。"
+    },
+    {
+      "start": 1581.8,
+      "end": 1582.52,
+      "en": "So anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 1583,
+      "end": 1583.52,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1583.52,
+      "end": 1595.32,
+      "en": "So then I do an eigen decomposition of the covariance matrix, and then here I'm just projecting the data onto the principal components space here.",
+      "zh": "接著，對共變異數矩陣做特徵分解，再把資料投影到這裡的主成分空間。"
+    },
+    {
+      "start": 1595.32,
+      "end": 1598.84,
+      "en": "So the eigenvectors times the data.",
+      "zh": "也就是特徵向量乘上資料。"
+    },
+    {
+      "start": 1599.16,
+      "end": 1602.24,
+      "en": "And that gives me this which you've seen before.",
+      "zh": "得到這個，你已經看過。"
+    },
+    {
+      "start": 1602.28,
+      "end": 1602.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1602.56,
+      "end": 1604.76,
+      "en": "So here we are again in the data space.",
+      "zh": "這裡又是資料空間。"
+    },
+    {
+      "start": 1605,
+      "end": 1607.8,
+      "en": "This is exactly the same plot as I showed above.",
+      "zh": "與上面展示的完全是同一張圖。"
+    },
+    {
+      "start": 1608.16,
+      "end": 1611.64,
+      "en": "Here you see the first and the second principal components.",
+      "zh": "這裡看到第一與第二主成分。"
+    },
+    {
+      "start": 1611.76,
+      "end": 1618.36,
+      "en": "And then you see what the principal components analysis does is just orthogonally rotate the data.",
+      "zh": "可以看到，主成分分析只是對資料做正交旋轉。"
+    },
+    {
+      "start": 1618.36,
+      "end": 1622.12,
+      "en": "So we have not decorrelated the two data streams.",
+      "zh": "所以，我們沒有讓兩股資料流去相關。"
+    },
+    {
+      "start": 1622.24,
+      "end": 1630.18,
+      "en": "All we've done is taken the entire data set and orthogonally rotate it such that all of the or most",
+      "zh": "只是取整個資料集，將它正交旋轉，讓全部或大部分"
+    },
+    {
+      "start": 1630.18,
+      "end": 1636.06,
+      "en": "of the variance is along one dimension, and the rest of the variance is along the other dimension.",
+      "zh": "變異數沿著一個維度，其餘變異數則沿著另一個維度。"
+    },
+    {
+      "start": 1636.22,
+      "end": 1638.9,
+      "en": "And these axes actually got mislabeled here.",
+      "zh": "這裡的座標軸其實標錯了。"
+    },
+    {
+      "start": 1638.9,
+      "end": 1640.26,
+      "en": "But that's okay.",
+      "zh": "不過沒關係。"
+    },
+    {
+      "start": 1640.34,
+      "end": 1641.5,
+      "en": "Doesn't matter here.",
+      "zh": "這裡不重要。"
+    },
+    {
+      "start": 1641.5,
+      "end": 1646.1,
+      "en": "I just wanted to show that the data itself is two by 2000.",
+      "zh": "我只是想展示，資料本身是 2×2000。"
+    },
+    {
+      "start": 1646.38,
+      "end": 1648.02,
+      "en": "So we have x and y.",
+      "zh": "所以有 x 和 y。"
+    },
+    {
+      "start": 1648.06,
+      "end": 1649.38,
+      "en": "So two data channels.",
+      "zh": "兩個資料通道。"
+    },
+    {
+      "start": 1649.38,
+      "end": 1661.22,
+      "en": "You can think of this as like two different neurons from MLP or maybe two different embeddings dimensions from a Q matrix in the attention sublayer.",
+      "zh": "可以把它想成兩個不同的 MLP 神經元，或者注意力子層 Q 矩陣的兩個不同嵌入維度。"
+    },
+    {
+      "start": 1661.42,
+      "end": 1663.18,
+      "en": "And then 2000 data points.",
+      "zh": "然後，有 2,000 個資料點。"
+    },
+    {
+      "start": 1663.58,
+      "end": 1670.46,
+      "en": "And then when I project it into principal component space, I still have two components because yeah,",
+      "zh": "投影到主成分空間時，仍然有兩個成分，因為"
+    },
+    {
+      "start": 1670.5,
+      "end": 1675.66,
+      "en": "I'm not doing any compression or dimensionality reduction here okay.",
+      "zh": "這裡沒有做壓縮或降維。"
+    },
+    {
+      "start": 1675.7,
+      "end": 1683.14,
+      "en": "So basically PCA failed miserably at separating these two streams of data.",
+      "zh": "所以，PCA 在分離這兩股資料流方面，徹底失敗了。"
+    },
+    {
+      "start": 1683.62,
+      "end": 1686.14,
+      "en": "Enter the generalized Eigendecomposition.",
+      "zh": "現在輪到廣義特徵分解登場。"
+    },
+    {
+      "start": 1687.1,
+      "end": 1693.89,
+      "en": "So here what I'm doing is getting the first 1000 data points and the second 1000 data points.",
+      "zh": "這裡取出前 1,000 個資料點，以及後 1,000 個資料點。"
+    },
+    {
+      "start": 1694.13,
+      "end": 1701.01,
+      "en": "And, you know, maybe this corresponds to the tokens about cars and this corresponds to the tokens about trucks.",
+      "zh": "也許這邊對應汽車相關 token，這邊則對應卡車相關 token。"
+    },
+    {
+      "start": 1701.25,
+      "end": 1709.61,
+      "en": "So now we have a covariance of car related activations and a covariance matrix of trucks related activations.",
+      "zh": "所以，現在有汽車相關活化的共變異數矩陣，以及卡車相關活化的共變異數矩陣。"
+    },
+    {
+      "start": 1710.13,
+      "end": 1712.33,
+      "en": "And then I use SciPy linalg.",
+      "zh": "接著，使用 SciPy linalg。"
+    },
+    {
+      "start": 1714.37,
+      "end": 1717.61,
+      "en": "So the h here is for Hermitian I can write that out.",
+      "zh": "這裡的 h 代表 Hermitian，我可以把它寫出來。"
+    },
+    {
+      "start": 1717.61,
+      "end": 1719.89,
+      "en": "That's Hermitian like this.",
+      "zh": "像這樣，Hermitian。"
+    },
+    {
+      "start": 1720.05,
+      "end": 1726.41,
+      "en": "And basically this just adds the assumption that each of these matrices is individually symmetric.",
+      "zh": "基本上，這加入了一個假設：兩個矩陣各自都是對稱矩陣。"
+    },
+    {
+      "start": 1726.65,
+      "end": 1731.21,
+      "en": "And that basically allows for a little bit more numerical stability.",
+      "zh": "這能增加一點數值穩定性。"
+    },
+    {
+      "start": 1731.77,
+      "end": 1733.81,
+      "en": "We need all the help we can get here.",
+      "zh": "這裡我們需要所有能得到的幫助。"
+    },
+    {
+      "start": 1733.81,
+      "end": 1741.09,
+      "en": "So it's a good idea to use I'g H when you know that both of these matrices are individually symmetric.",
+      "zh": "所以，知道兩個矩陣各自都對稱時，使用 eigh 是個好主意。"
+    },
+    {
+      "start": 1742.09,
+      "end": 1742.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1742.49,
+      "end": 1746.07,
+      "en": "So whatever is the numerator matrix.",
+      "zh": "分子矩陣，"
+    },
+    {
+      "start": 1746.07,
+      "end": 1758.07,
+      "en": "The thing you want to optimize for that is the first input into H, and then the reference matrix, which is in the denominator of the equation that I showed in the slides.",
+      "zh": "也就是想要最佳化的東西，是 eigh 的第一個輸入；參考矩陣則位於投影片方程式的分母。"
+    },
+    {
+      "start": 1758.19,
+      "end": 1759.91,
+      "en": "That is the second input.",
+      "zh": "它是第二個輸入。"
+    },
+    {
+      "start": 1760.39,
+      "end": 1760.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1760.71,
+      "end": 1764.75,
+      "en": "So then we get the eigenvalues and the eigenvectors here.",
+      "zh": "接著，這裡得到特徵值和特徵向量。"
+    },
+    {
+      "start": 1765.11,
+      "end": 1769.63,
+      "en": "Now here I am normalizing the eigenvectors.",
+      "zh": "這裡我要對特徵向量做正規化。"
+    },
+    {
+      "start": 1769.67,
+      "end": 1776.51,
+      "en": "Now when you do a principal components analysis, when you do an eigen decomposition on just one symmetric",
+      "zh": "做主成分分析，也就是只對單一對稱"
+    },
+    {
+      "start": 1776.51,
+      "end": 1782.11,
+      "en": "matrix, the eigenvectors actually do come out being normalized.",
+      "zh": "矩陣做特徵分解時，得到的特徵向量其實已經正規化。"
+    },
+    {
+      "start": 1782.11,
+      "end": 1784.07,
+      "en": "They come out being unit normed.",
+      "zh": "它們的範數是 1。"
+    },
+    {
+      "start": 1784.47,
+      "end": 1788.27,
+      "en": "But that is not the case for generalized eigen decomposition.",
+      "zh": "但廣義特徵分解並非如此。"
+    },
+    {
+      "start": 1788.47,
+      "end": 1796.23,
+      "en": "For some details that are basically related to the fact that this constraint here w transpose times",
+      "zh": "其中一些細節，基本上與這個限制有關：w 轉置乘上"
+    },
+    {
+      "start": 1796.27,
+      "end": 1804.18,
+      "en": "r times w must equal one, and that means that w transpose w is not going to equal one.",
+      "zh": "R 再乘上 w，必須等於一；這代表 w 轉置乘上 w 不會等於一。"
+    },
+    {
+      "start": 1805.1,
+      "end": 1807.86,
+      "en": "If you have no idea what I'm talking about, then don't worry about it.",
+      "zh": "如果你完全不知道我在說什麼，不用擔心。"
+    },
+    {
+      "start": 1807.86,
+      "end": 1811.58,
+      "en": "These are just some advanced details of linear algebra.",
+      "zh": "這只是線性代數的一些進階細節。"
+    },
+    {
+      "start": 1811.98,
+      "end": 1817.38,
+      "en": "The point is that here I'm just normalizing the vectors by their norm.",
+      "zh": "重點是，我在這裡用向量本身的範數，對向量做正規化。"
+    },
+    {
+      "start": 1817.62,
+      "end": 1819.74,
+      "en": "That is not necessary for the math.",
+      "zh": "數學上並不需要這樣做。"
+    },
+    {
+      "start": 1819.78,
+      "end": 1823.86,
+      "en": "You'll see that we do not do this in real data analysis.",
+      "zh": "你會看到，實際資料分析中，我們不會這樣做。"
+    },
+    {
+      "start": 1823.86,
+      "end": 1827.06,
+      "en": "I'm only applying it here for the visualization.",
+      "zh": "這裡只是為了視覺化才套用。"
+    },
+    {
+      "start": 1827.06,
+      "end": 1828.78,
+      "en": "It just helps the visualization.",
+      "zh": "它只是幫助視覺化。"
+    },
+    {
+      "start": 1829.18,
+      "end": 1829.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1829.5,
+      "end": 1836.78,
+      "en": "And now again I'm projecting the same data onto the generalized eigendecomposition axes.",
+      "zh": "現在，再把相同資料投影到廣義特徵分解的軸上。"
+    },
+    {
+      "start": 1837.14,
+      "end": 1840.54,
+      "en": "And then this plot is the same as the plot that I showed above.",
+      "zh": "這張圖，與上面展示的圖相同。"
+    },
+    {
+      "start": 1840.94,
+      "end": 1841.26,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1841.3,
+      "end": 1846.42,
+      "en": "So again now you see that the eigenvectors are correlated with each other.",
+      "zh": "現在可以再次看到，特徵向量彼此相關。"
+    },
+    {
+      "start": 1846.42,
+      "end": 1849.46,
+      "en": "These are not orthogonal eigenvectors.",
+      "zh": "它們不是正交特徵向量。"
+    },
+    {
+      "start": 1849.46,
+      "end": 1857.3,
+      "en": "And because of that non orthogonality we can now get perfect you know plus some jitter due to noise.",
+      "zh": "正因為這種非正交性，我們現在可以得到完美的，當然還有雜訊帶來的一點抖動，"
+    },
+    {
+      "start": 1857.46,
+      "end": 1861.89,
+      "en": "Perfect separation between like the car and the truck data.",
+      "zh": "汽車與卡車資料的完美分離。"
+    },
+    {
+      "start": 1862.97,
+      "end": 1863.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1863.73,
+      "end": 1866.57,
+      "en": "So that is for the generalized eigendecomposition.",
+      "zh": "這就是廣義特徵分解。"
+    },
+    {
+      "start": 1866.57,
+      "end": 1872.25,
+      "en": "I did not apply any regularization here because yeah, it's such a beautiful problem.",
+      "zh": "這裡沒有做正規化，因為這是很漂亮的問題。"
+    },
+    {
+      "start": 1872.45,
+      "end": 1874.05,
+      "en": "You don't need the regularization.",
+      "zh": "不需要正規化。"
+    },
+    {
+      "start": 1874.05,
+      "end": 1876.49,
+      "en": "In fact the regularization is only going to hurt.",
+      "zh": "事實上，正規化只會造成損害。"
+    },
+    {
+      "start": 1877.09,
+      "end": 1877.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1877.49,
+      "end": 1879.57,
+      "en": "So and that's what I will show you now.",
+      "zh": "現在就要展示這點。"
+    },
+    {
+      "start": 1879.85,
+      "end": 1881.89,
+      "en": "So here I'm doing.",
+      "zh": "這裡我要做……"
+    },
+    {
+      "start": 1881.93,
+      "end": 1887.93,
+      "en": "So all of this code is exactly identical to the code that I just showed up here.",
+      "zh": "所有這些程式碼，都與剛才這裡展示的完全相同。"
+    },
+    {
+      "start": 1888.41,
+      "end": 1893.05,
+      "en": "But I am replacing the R with r ragu.",
+      "zh": "但我把 R 替換成正規化後的 R。"
+    },
+    {
+      "start": 1893.05,
+      "end": 1894.81,
+      "en": "So r regularized.",
+      "zh": "也就是 R regularized。"
+    },
+    {
+      "start": 1894.81,
+      "end": 1896.29,
+      "en": "And that is formed here.",
+      "zh": "它在這裡建立。"
+    },
+    {
+      "start": 1896.29,
+      "end": 1904.49,
+      "en": "This is an exact implementation of or translation of the formula for regularization into code.",
+      "zh": "這是把正規化公式精確地實作、轉成程式碼。"
+    },
+    {
+      "start": 1904.77,
+      "end": 1915.77,
+      "en": "So one minus gamma times R plus gamma times the average of the eigenvalues of R times the identity matrix.",
+      "zh": "一減 gamma，乘上 R，加上 gamma 乘以 R 的特徵值平均，再乘上單位矩陣。"
+    },
+    {
+      "start": 1916.57,
+      "end": 1918.77,
+      "en": "So let me let me run this.",
+      "zh": "讓我執行。"
+    },
+    {
+      "start": 1918.77,
+      "end": 1922.63,
+      "en": "And then I will show you what this looks like, just so you can see.",
+      "zh": "接著展示它的樣子，讓你看看。"
+    },
+    {
+      "start": 1922.99,
+      "end": 1923.63,
+      "en": "Let me show you.",
+      "zh": "讓我展示。"
+    },
+    {
+      "start": 1923.67,
+      "end": 1924.91,
+      "en": "Ah, so this is.",
+      "zh": "這就是……"
+    },
+    {
+      "start": 1924.95,
+      "end": 1925.19,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1925.19,
+      "end": 1927.35,
+      "en": "It's a full two by two matrix.",
+      "zh": "它是完整的 2×2 矩陣。"
+    },
+    {
+      "start": 1927.47,
+      "end": 1928.27,
+      "en": "It's symmetric.",
+      "zh": "是對稱的。"
+    },
+    {
+      "start": 1928.27,
+      "end": 1929.71,
+      "en": "It's a covariance matrix.",
+      "zh": "是共變異數矩陣。"
+    },
+    {
+      "start": 1930.11,
+      "end": 1936.51,
+      "en": "But this term that I am adding on to R that is a diagonal matrix.",
+      "zh": "不過，加到 R 上的這一項，是對角矩陣。"
+    },
+    {
+      "start": 1936.63,
+      "end": 1938.95,
+      "en": "And it's zeros on the off diagonals.",
+      "zh": "非對角元素都是零。"
+    },
+    {
+      "start": 1938.95,
+      "end": 1941.51,
+      "en": "And the diagonals themselves are really tiny values.",
+      "zh": "對角元素本身，則是非常小的值。"
+    },
+    {
+      "start": 1941.51,
+      "end": 1949.63,
+      "en": "So notice you know this is 0.005 versus these values here which is okay.",
+      "zh": "注意，這是 0.005，相較於這裡的這些值。"
+    },
+    {
+      "start": 1949.67,
+      "end": 1956.87,
+      "en": "So it's you know like 1 or 2 orders of magnitude smaller, uh, that I'm adding onto this matrix.",
+      "zh": "所以，加到這個矩陣上的值，大約小一到兩個數量級。"
+    },
+    {
+      "start": 1957.31,
+      "end": 1957.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1957.55,
+      "end": 1959.27,
+      "en": "And then actually I can show you this as well.",
+      "zh": "其實，也可以展示這個。"
+    },
+    {
+      "start": 1959.27,
+      "end": 1965.95,
+      "en": "So R and R Raghu, you can see that these, uh, all of these matrices.",
+      "zh": "R 與正規化後的 R，可以看到這些矩陣。"
+    },
+    {
+      "start": 1965.95,
+      "end": 1970.03,
+      "en": "So first of all, the off diagonal elements are nearly the same.",
+      "zh": "首先，非對角元素幾乎相同。"
+    },
+    {
+      "start": 1970.03,
+      "end": 1979.42,
+      "en": "They get shrunk down a tiny bit by one minus gamma, and the diagonal elements are a little bit more different from each other, but they're very close.",
+      "zh": "它們會被一減 gamma 稍微縮小；對角元素的差異稍大一些，但仍然非常接近。"
+    },
+    {
+      "start": 1979.46,
+      "end": 1979.94,
+      "en": "Like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 1979.94,
+      "end": 1984.9,
+      "en": "Regularization changes the data very, very little, which is good.",
+      "zh": "正規化對資料的改變非常小，這很好。"
+    },
+    {
+      "start": 1984.9,
+      "end": 1987.38,
+      "en": "We don't want to change the data too much.",
+      "zh": "我們不想過度改變資料。"
+    },
+    {
+      "start": 1987.98,
+      "end": 1988.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1988.34,
+      "end": 1991.38,
+      "en": "So that is shrinkage regularization.",
+      "zh": "這就是收縮正規化。"
+    },
+    {
+      "start": 1991.62,
+      "end": 2001.54,
+      "en": "Now with 1% regularization, especially with such a simple beautiful problem, you don't visually notice any difference.",
+      "zh": "使用 1% 正規化，尤其對這麼簡單、漂亮的問題，視覺上看不出任何差別。"
+    },
+    {
+      "start": 2001.66,
+      "end": 2006.42,
+      "en": "Technically these two vectors are a little bit more.",
+      "zh": "技術上，這兩個向量會稍微……"
+    },
+    {
+      "start": 2006.46,
+      "end": 2015.34,
+      "en": "They get pushed a little bit towards orthogonal, and that's not really visible until you use a really intense amount of regularization.",
+      "zh": "會被往正交的方向推一點，但除非使用非常強的正規化，否則真的看不出來。"
+    },
+    {
+      "start": 2015.78,
+      "end": 2016.94,
+      "en": "So it's 0.6.",
+      "zh": "設為 0.6。"
+    },
+    {
+      "start": 2016.94,
+      "end": 2024.18,
+      "en": "Now you see you know, if you think about this angle here and now this angle here is a little bit wider.",
+      "zh": "現在可以看到，想想這裡的角度，現在這個角度稍微更寬。"
+    },
+    {
+      "start": 2024.18,
+      "end": 2026.74,
+      "en": "So it's not quite an orthogonal rotation.",
+      "zh": "所以，還不完全是正交旋轉。"
+    },
+    {
+      "start": 2026.94,
+      "end": 2031.34,
+      "en": "But yeah, as we get closer and closer to one let's make this 0.9.",
+      "zh": "但越來越接近一時，設成 0.9。"
+    },
+    {
+      "start": 2031.38,
+      "end": 2034.7,
+      "en": "I mean now this basically is principal components analysis.",
+      "zh": "現在基本上就是主成分分析。"
+    },
+    {
+      "start": 2034.9,
+      "end": 2036.81,
+      "en": "And you can see that.",
+      "zh": "可以看到。"
+    },
+    {
+      "start": 2036.81,
+      "end": 2039.49,
+      "en": "Now we can look at R and R again.",
+      "zh": "現在再看看 R 和正規化後的 R。"
+    },
+    {
+      "start": 2039.77,
+      "end": 2042.25,
+      "en": "So here is the regularized version.",
+      "zh": "這裡是正規化版本。"
+    },
+    {
+      "start": 2043.09,
+      "end": 2047.33,
+      "en": "And what you see is that the diagonal elements are larger.",
+      "zh": "可以看到，對角元素比較大。"
+    },
+    {
+      "start": 2047.45,
+      "end": 2053.17,
+      "en": "And the off diagonal elements are not quite zero but they are close to zero okay.",
+      "zh": "非對角元素還不完全是零，但已經接近零。"
+    },
+    {
+      "start": 2053.21,
+      "end": 2060.53,
+      "en": "And then yeah as I mentioned in the slides typically you want to use something very small 1% 2%.",
+      "zh": "如同投影片提過的，一般會希望使用很小的值，1%、2%。"
+    },
+    {
+      "start": 2060.57,
+      "end": 2064.45,
+      "en": "You don't need a lot of regularization for numerical stability.",
+      "zh": "數值穩定性不需要很多正規化。"
+    },
+    {
+      "start": 2064.85,
+      "end": 2067.77,
+      "en": "I'll also demo that in the next video.",
+      "zh": "下一支影片也會示範。"
+    },
+    {
+      "start": 2069.25,
+      "end": 2075.17,
+      "en": "Generalized eigen decomposition is a powerful and versatile method.",
+      "zh": "廣義特徵分解，是強大而多用途的方法。"
+    },
+    {
+      "start": 2075.41,
+      "end": 2085.93,
+      "en": "It is used to identify and isolate patterns that are embedded in multivariate data sets that are otherwise difficult to identify.",
+      "zh": "它用來辨識、分離多變量資料集中，原本難以辨識的內嵌模式。"
+    },
+    {
+      "start": 2086.65,
+      "end": 2093.77,
+      "en": "It was initially developed by, like the grandfather of statistics, who was Fisher Ronald Fisher,",
+      "zh": "它最初由可說是統計學之祖的 Fisher，也就是 Ronald Fisher 發展，"
+    },
+    {
+      "start": 2094.63,
+      "end": 2099.03,
+      "en": "and it's been used in, like lots of other applications for over a century.",
+      "zh": "而且在許多其他應用中，已經使用超過一個世紀。"
+    },
+    {
+      "start": 2099.19,
+      "end": 2109.11,
+      "en": "You've probably, in fact, come across applications that are based on generalized eigendecomposition, even though they don't call it generalized eigendecomposition.",
+      "zh": "你很可能遇過以廣義特徵分解為基礎的應用，只是它們不叫廣義特徵分解。"
+    },
+    {
+      "start": 2110.03,
+      "end": 2117.43,
+      "en": "For example, if you are familiar with the Fisher discriminant analysis, sometimes also called linear discriminant analysis.",
+      "zh": "例如，如果你熟悉 Fisher 判別分析，有時也叫線性判別分析，"
+    },
+    {
+      "start": 2117.63,
+      "end": 2125.39,
+      "en": "That is literally just an application of GED, basically exactly the same as I showed earlier in the slides.",
+      "zh": "那真的就是 GED 的一種應用，基本上與前面投影片展示的完全相同。"
+    },
+    {
+      "start": 2126.03,
+      "end": 2133.51,
+      "en": "I have personally a ton of experience applying and further developing this kind of method in neuroscience",
+      "zh": "我個人在神經科學"
+    },
+    {
+      "start": 2133.51,
+      "end": 2138.87,
+      "en": "data, and it works really well for multivariate large neuroscience data sets.",
+      "zh": "資料中，應用並進一步發展這類方法，有非常多經驗；它很適合大型多變量神經科學資料集。"
+    },
+    {
+      "start": 2139.51,
+      "end": 2145.51,
+      "en": "Anyway, that said, there are some particular considerations that need to be applied when working with",
+      "zh": "話雖如此，處理 LLM 這類"
+    },
+    {
+      "start": 2145.51,
+      "end": 2151.71,
+      "en": "large data sets like LMS, and I will get into some of those details in the next video.",
+      "zh": "大型資料集時，有一些特別需要考慮的事情，下一支影片會說明其中部分細節。"
+    }
+  ]
+}

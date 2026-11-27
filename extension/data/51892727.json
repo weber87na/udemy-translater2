@@ -1,0 +1,1507 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892727",
+  "title": "Classification via logistic regression: theory and code",
+  "section": 18,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "fef886ad4f028fc90ca2f44782676351a561c2ba11f9cef3946b54a9442ab4f8",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 10.72,
+      "en": "Logistic regression is a statistical analysis used for predicting categorical outcomes in a data set.",
+      "zh": "邏輯斯迴歸是一種統計分析，用來預測資料集中的類別結果。"
+    },
+    {
+      "start": 11.16,
+      "end": 16.76,
+      "en": "It's used quite often in machine learning and also in mechanistic interpretability.",
+      "zh": "它在機器學習與機制可解釋性中都經常使用。"
+    },
+    {
+      "start": 17.4,
+      "end": 25.24,
+      "en": "In this lecture, I will introduce you to the idea and interpretation of logistic regression, and I'll",
+      "zh": "這堂課會介紹邏輯斯迴歸的概念與解讀方式，"
+    },
+    {
+      "start": 25.24,
+      "end": 30.96,
+      "en": "also show you the Python code to visualize and implement the analysis.",
+      "zh": "也會示範如何以 Python 程式碼將這項分析視覺化並實作。"
+    },
+    {
+      "start": 31.92,
+      "end": 43.48,
+      "en": "So yeah, you use a logistic regression when the dependent variable, also called the DV, can only take on one of two values like true or false.",
+      "zh": "當依變數，也就是 DV，只能取兩種值，例如真或假時，就可以使用邏輯斯迴歸。"
+    },
+    {
+      "start": 43.76,
+      "end": 46.96,
+      "en": "Alive or dead, win or lose, and so on.",
+      "zh": "例如生或死、贏或輸等等。"
+    },
+    {
+      "start": 47.52,
+      "end": 58.16,
+      "en": "Now these have to be mutually exclusive categories, meaning that both categories cannot be simultaneously true in the same data measurement.",
+      "zh": "這些類別必須互斥，也就是在同一次資料測量中，兩個類別不能同時成立。"
+    },
+    {
+      "start": 59.16,
+      "end": 70.57,
+      "en": "The logistic regression framework can be extended to any number of categorical outcomes, in which case it's generally called a multinomial logistic regression.",
+      "zh": "邏輯斯迴歸架構也能擴充到任意數目的類別結果，這時通常稱為多項邏輯斯迴歸。"
+    },
+    {
+      "start": 71.17,
+      "end": 76.28999999999999,
+      "en": "Now this is actually the basis of the loss function when training LMS.",
+      "zh": "這其實就是訓練 LLM 時損失函數的基礎。"
+    },
+    {
+      "start": 76.89,
+      "end": 82.89,
+      "en": "But here in this and the next videos we're just going to be working with binary outcomes.",
+      "zh": "不過這支影片與接下來幾支影片只會處理二元結果。"
+    },
+    {
+      "start": 83.05,
+      "end": 86.13,
+      "en": "So that also simplifies the analysis quite a bit.",
+      "zh": "這也能讓分析簡單很多。"
+    },
+    {
+      "start": 87.73,
+      "end": 97.77000000000001,
+      "en": "Now one thing to keep in mind which I will demonstrate in the code, is that logistic regression on its own does not actually classify any data.",
+      "zh": "有一點要記住，我會在程式中示範：邏輯斯迴歸本身其實不會將資料分類。"
+    },
+    {
+      "start": 98.25,
+      "end": 107.65,
+      "en": "What the logistic regression does is calculate the probability that a data point belongs to a particular category.",
+      "zh": "它計算的是一個資料點屬於特定類別的機率。"
+    },
+    {
+      "start": 108.28999999999999,
+      "end": 117.05,
+      "en": "You would then take those numerical probability scores and apply some threshold to actually make a category prediction.",
+      "zh": "接著再將這些機率分數套用某個門檻，才會真正得到類別預測。"
+    },
+    {
+      "start": 117.69,
+      "end": 127.09,
+      "en": "So the probability values range from 0 to 1, and you would typically use a value of 0.5 as a threshold",
+      "zh": "機率值介於 0 和 1 之間，通常會以 0.5 作為門檻，"
+    },
+    {
+      "start": 127.09,
+      "end": 128.17,
+      "en": "for prediction.",
+      "zh": "用來進行預測。"
+    },
+    {
+      "start": 128.93,
+      "end": 132.53,
+      "en": "Again, I'll show that in the code in a few moments.",
+      "zh": "稍後我會在程式中示範。"
+    },
+    {
+      "start": 132.53,
+      "end": 138.65,
+      "en": "But first, I want to describe a little bit about the math of a logistic regression.",
+      "zh": "不過，我想先稍微說明邏輯斯迴歸的數學。"
+    },
+    {
+      "start": 139.89,
+      "end": 151.01,
+      "en": "The logistic regression initially looks a little bit like a regular regression, in that we have predictor variables that are the x's in this equation.",
+      "zh": "邏輯斯迴歸一開始有點像一般迴歸，方程式中的 x 就是預測變數。"
+    },
+    {
+      "start": 151.29,
+      "end": 153.13,
+      "en": "And then we have the coefficients.",
+      "zh": "然後還有係數。"
+    },
+    {
+      "start": 153.13,
+      "end": 160.13,
+      "en": "Those are the beta values including a beta zero term which is called the constant or the intercept.",
+      "zh": "也就是這些 beta 值，包括稱為常數項或截距的 beta 零。"
+    },
+    {
+      "start": 160.69,
+      "end": 164.45,
+      "en": "So this is the model of the data on the right hand side.",
+      "zh": "右側就是資料的模型。"
+    },
+    {
+      "start": 164.93,
+      "end": 173.05,
+      "en": "Now in a regular standard regression the left hand side would be the predicted data value, like a test",
+      "zh": "在一般的標準迴歸中，左側會是預測的資料值，例如考試"
+    },
+    {
+      "start": 173.05,
+      "end": 178.85,
+      "en": "score or height, or the price of a house with a logistic regression.",
+      "zh": "成績、身高或房價。若使用邏輯斯迴歸，"
+    },
+    {
+      "start": 178.97,
+      "end": 186.78,
+      "en": "What you actually want to predict is the log of the probability that a data value is in one of the categories.",
+      "zh": "真正要預測的則是資料值屬於某個類別的機率之對數。"
+    },
+    {
+      "start": 187.9,
+      "end": 197.7,
+      "en": "Now, if you're wondering why we use the log of the probabilities and not just the actual probability, then that's a great question and I will answer it soon.",
+      "zh": "如果你想問，為什麼要用機率的對數，而不直接用機率，這是個好問題，我很快就會回答。"
+    },
+    {
+      "start": 197.7,
+      "end": 204.78,
+      "en": "But first I want to show you how this equation gets transformed so that we can actually use the model",
+      "zh": "但我想先示範如何轉換這個方程式，讓我們真正能用模型"
+    },
+    {
+      "start": 204.82,
+      "end": 210.34,
+      "en": "to generate a probability of being in one of the two categories.",
+      "zh": "產生屬於兩個類別之一的機率。"
+    },
+    {
+      "start": 210.9,
+      "end": 217.7,
+      "en": "Essentially, this just involves solving for p the probability of being in one of the categories.",
+      "zh": "基本上，就是解出 p，也就是屬於其中一個類別的機率。"
+    },
+    {
+      "start": 218.38,
+      "end": 227.02,
+      "en": "The first step is to get rid of the natural log, and we do that by taking the natural exponent of both sides of the equation.",
+      "zh": "第一步是消掉自然對數，做法是對等號兩邊取自然指數。"
+    },
+    {
+      "start": 227.34,
+      "end": 231.14,
+      "en": "So then you get e to the all of this stuff up here.",
+      "zh": "於是得到 e 的這整串表達式次方。"
+    },
+    {
+      "start": 231.7,
+      "end": 237.22,
+      "en": "The next step involves isolating p and solving for p.",
+      "zh": "接著要將 p 獨立出來，解出 p。"
+    },
+    {
+      "start": 237.78,
+      "end": 243.9,
+      "en": "Now there is a little bit of algebra that I'm skipping over here, but essentially you end up with one",
+      "zh": "這裡省略了一點代數運算，但基本上最後會得到 1"
+    },
+    {
+      "start": 243.9,
+      "end": 250.78,
+      "en": "over one plus E to the minus all of the regression expression in here.",
+      "zh": "除以 1 加上 e 的負的這整串迴歸表達式次方。"
+    },
+    {
+      "start": 251.34,
+      "end": 254.78,
+      "en": "So this is the form of the logistic equation.",
+      "zh": "這就是邏輯斯方程式的形式。"
+    },
+    {
+      "start": 255.14,
+      "end": 265.7,
+      "en": "And now we need to solve for the betas so that we can apply this equation to each individual data sample and get a probability value.",
+      "zh": "現在必須求出 beta，才能將這個方程式套用到每筆資料樣本，取得機率值。"
+    },
+    {
+      "start": 267.14,
+      "end": 268.82,
+      "en": "And so how do we actually do that.",
+      "zh": "那麼，究竟該怎麼做？"
+    },
+    {
+      "start": 268.86,
+      "end": 277.65999999999997,
+      "en": "How do we find the values of the betas that give us the best probabilities that most closely match the predicted categories?",
+      "zh": "如何找出一組 beta，讓算出的機率最符合預測的類別？"
+    },
+    {
+      "start": 278.3,
+      "end": 285.9,
+      "en": "Well, typically a regression analysis is optimally solved using the left inverse algorithm.",
+      "zh": "一般來說，迴歸分析可利用左反矩陣演算法求得最佳解。"
+    },
+    {
+      "start": 286.62,
+      "end": 290.7,
+      "en": "However, that algorithm only works for linear models.",
+      "zh": "但是那個演算法只適用於線性模型。"
+    },
+    {
+      "start": 290.7,
+      "end": 294.34000000000003,
+      "en": "And here we have nonlinearities in the coefficients.",
+      "zh": "這裡的係數則涉及非線性。"
+    },
+    {
+      "start": 294.58,
+      "end": 298.5,
+      "en": "So the left inverse method doesn't work, or at least not directly.",
+      "zh": "因此左反矩陣的方法行不通，至少不能直接套用。"
+    },
+    {
+      "start": 299.22,
+      "end": 306.23,
+      "en": "So instead a A solution is to use iterative approximations until you get a good solution.",
+      "zh": "所以，一個解法是使用反覆近似，直到得到好的解。"
+    },
+    {
+      "start": 306.83,
+      "end": 310.15,
+      "en": "There are several ways to do iterative solutions.",
+      "zh": "反覆求解有好幾種方式。"
+    },
+    {
+      "start": 310.27,
+      "end": 316.99,
+      "en": "You can use a local linearization and then apply linear least squares approximations.",
+      "zh": "可以進行局部線性化，再套用線性最小平方法近似。"
+    },
+    {
+      "start": 317.31,
+      "end": 323.19,
+      "en": "You can use gradient descent to find a solution in PyTorch, for example.",
+      "zh": "也可以用梯度下降求解，例如透過 PyTorch。"
+    },
+    {
+      "start": 323.51,
+      "end": 330.43,
+      "en": "However, it is quite common to use the iterative linear approximation method using a library called",
+      "zh": "不過，相當常見的做法是使用 Statsmodels 這個函式庫，"
+    },
+    {
+      "start": 330.47,
+      "end": 341.47,
+      "en": "Statsmodels, and when you use Statsmodels for logistic regression, it also provides a lot of useful statistical and diagnostic information.",
+      "zh": "進行反覆線性近似。而用 Statsmodels 執行邏輯斯迴歸時，也會提供許多實用的統計與診斷資訊。"
+    },
+    {
+      "start": 342.47,
+      "end": 351.19,
+      "en": "Now, I still haven't told you yet why the logistic regression is based on log probabilities and not the probabilities themselves.",
+      "zh": "我還沒回答，為什麼邏輯斯迴歸是以對數機率，而不是機率本身為基礎。"
+    },
+    {
+      "start": 351.87,
+      "end": 360.35,
+      "en": "The reason is actually the same reason why we use log probabilities when training models, which I explained earlier in the course.",
+      "zh": "這其實與訓練模型時使用對數機率的理由相同，我在課程前面解釋過。"
+    },
+    {
+      "start": 360.83,
+      "end": 363.12,
+      "en": "And the answer is quite simple, actually.",
+      "zh": "答案其實很簡單。"
+    },
+    {
+      "start": 363.16,
+      "end": 372.28,
+      "en": "Probabilities themselves are bound between 0 and 1, whereas log probabilities have a much larger range.",
+      "zh": "機率本身受限於 0 到 1 之間，對數機率則有大得多的範圍。"
+    },
+    {
+      "start": 373,
+      "end": 380.64,
+      "en": "Furthermore, small probabilities that are close to zero can be numerically unstable and difficult to",
+      "zh": "另外，接近零的小機率可能造成數值不穩定，也不容易"
+    },
+    {
+      "start": 380.68,
+      "end": 385.04,
+      "en": "work with, whereas log probabilities are just much easier.",
+      "zh": "處理，而對數機率就容易處理多了。"
+    },
+    {
+      "start": 385.04,
+      "end": 389.76,
+      "en": "You end up with larger numbers, so they're easier to represent and calculate.",
+      "zh": "數值會變大，因此更容易表示與計算。"
+    },
+    {
+      "start": 390.12,
+      "end": 392.88,
+      "en": "And that's basically what this text says over here.",
+      "zh": "這基本上就是這裡這段文字的意思。"
+    },
+    {
+      "start": 393.68,
+      "end": 402.04,
+      "en": "There actually is a third reason as well, which is that to measure the conjunction of probabilities you need to multiply probabilities.",
+      "zh": "其實還有第三個理由：要計算多個事件同時發生的機率，需要將機率相乘。"
+    },
+    {
+      "start": 402.24,
+      "end": 406,
+      "en": "But you can also equivalently add their logs.",
+      "zh": "而這也等同於將它們的對數相加。"
+    },
+    {
+      "start": 406.15999999999997,
+      "end": 410.92,
+      "en": "I explained that in the section about quantitative evaluations.",
+      "zh": "我在量化評估那一章說明過。"
+    },
+    {
+      "start": 411.4,
+      "end": 423.32,
+      "en": "Actually that third point is not directly relevant for us here with logistic regression, but it is just another general motivation for using log probabilities in machine learning.",
+      "zh": "其實這第三點與這裡的邏輯斯迴歸沒有直接關係，但它是機器學習使用對數機率的另一個一般性理由。"
+    },
+    {
+      "start": 423.88,
+      "end": 424.2,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 424.24,
+      "end": 429.64,
+      "en": "So that is all of the background that I'm going to provide about logistic regression.",
+      "zh": "以上就是我準備介紹的邏輯斯迴歸背景。"
+    },
+    {
+      "start": 430.12,
+      "end": 435.12,
+      "en": "Let me now paint the broad strokes of what I'll show in the Python demo.",
+      "zh": "接下來先概略介紹 Python 示範會做些什麼，"
+    },
+    {
+      "start": 435.4,
+      "end": 437.52,
+      "en": "And then we'll actually switch to code.",
+      "zh": "然後再切換到程式碼。"
+    },
+    {
+      "start": 438.08,
+      "end": 442,
+      "en": "I'm going to create fake data for two different categories.",
+      "zh": "我會為兩個不同類別建立模擬資料。"
+    },
+    {
+      "start": 442.36,
+      "end": 450.08,
+      "en": "You can pretend that these are activation magnitudes for neurons in an MLP layer for nouns and verbs.",
+      "zh": "你可以把它們想成 MLP 層中的神經元，對名詞和動詞產生的活化大小。"
+    },
+    {
+      "start": 450.56,
+      "end": 459.56,
+      "en": "In the next video, we will use real data to see if we can identify MLP neurons that are tuned to proper nouns.",
+      "zh": "下一支影片會使用真實資料，看看能不能找出對專有名詞有偏好的 MLP 神經元。"
+    },
+    {
+      "start": 460.12,
+      "end": 471.48,
+      "en": "But here in this video, to keep things simple and also to allow you to manipulate the data and the effect sizes, we're just going to work with some simulated data.",
+      "zh": "不過為了保持簡單，也讓你能調整資料與效果量，這支影片只會使用模擬資料。"
+    },
+    {
+      "start": 472,
+      "end": 480,
+      "en": "So anyway, you do see that there is some nice separation such that the verbs get higher activation than the nouns.",
+      "zh": "總之，可以看到兩組有不錯的區隔，動詞的活化比名詞高。"
+    },
+    {
+      "start": 480.2,
+      "end": 491.29,
+      "en": "It's not a perfect separation because there's some noise in here, but it certainly does seem like this neuron has generally stronger activation to verbs compared to nouns.",
+      "zh": "由於有雜訊，兩組並未完全分開，但這個神經元對動詞的活化，整體上確實似乎比名詞強。"
+    },
+    {
+      "start": 491.69,
+      "end": 497.49,
+      "en": "Of course, in this case it's a trivial effect because I literally coded this effect size.",
+      "zh": "當然，這裡的效果很平凡，因為效果量就是我直接寫進程式的。"
+    },
+    {
+      "start": 497.73,
+      "end": 501.49,
+      "en": "But this is the kind of plot that you can make with real data.",
+      "zh": "但真實資料也可以畫成這種圖。"
+    },
+    {
+      "start": 502.93,
+      "end": 511.37,
+      "en": "So then I will create a design matrix of independent variables and a dependent variable where the independent",
+      "zh": "接著會建立包含自變數的設計矩陣，以及一個依變數；其中自變數"
+    },
+    {
+      "start": 511.37,
+      "end": 518.93,
+      "en": "variables are the data values and the dependent variable is the category label.",
+      "zh": "是資料值，依變數則是類別標籤。"
+    },
+    {
+      "start": 519.33,
+      "end": 523.13,
+      "en": "You can visualize all the data in a plot that looks like this.",
+      "zh": "所有資料可以用這樣的圖來呈現。"
+    },
+    {
+      "start": 523.49,
+      "end": 527.37,
+      "en": "So this plot shows the data sample on the x axis.",
+      "zh": "這張圖的 x 軸表示資料樣本。"
+    },
+    {
+      "start": 527.65,
+      "end": 536.37,
+      "en": "I generated 30 samples in each of the two categories, and the y axis for the blue circles shows the",
+      "zh": "兩個類別各產生了 30 個樣本，而藍色圓點的 y 軸表示"
+    },
+    {
+      "start": 536.37,
+      "end": 542.81,
+      "en": "activation value from one neuron for the 60 different tokens that it was processing.",
+      "zh": "某個神經元在處理這 60 個不同 token 時的活化值。"
+    },
+    {
+      "start": 543.45,
+      "end": 551.09,
+      "en": "And then the X's correspond to the category label, which is always dummy coded to be zero for one label,",
+      "zh": "叉號則對應類別標籤；一個類別會用虛擬編碼表示為 0，"
+    },
+    {
+      "start": 551.09,
+      "end": 555.61,
+      "en": "like the nouns and one for the other label like the verbs in this case.",
+      "zh": "例如名詞，另一個類別則編為 1，在這裡就是動詞。"
+    },
+    {
+      "start": 556.25,
+      "end": 561.05,
+      "en": "So the idea is that all of these blue dots should predict zero.",
+      "zh": "所以概念是，這些藍點都應該預測為 0，"
+    },
+    {
+      "start": 561.45,
+      "end": 565.01,
+      "en": "And all of these blue dots should predict one.",
+      "zh": "而這些藍點都應該預測為 1。"
+    },
+    {
+      "start": 565.81,
+      "end": 574.77,
+      "en": "So then I will take all of these data, put them into a statsmodel logistic regression, where the goal",
+      "zh": "接著將所有資料放進 Statsmodels 的邏輯斯迴歸，目標是"
+    },
+    {
+      "start": 574.77,
+      "end": 585.49,
+      "en": "will be to find a set of beta parameters for the logistic regression equation that pushes these values as close to zero as possible.",
+      "zh": "找出邏輯斯迴歸方程式的一組 beta 參數，讓這些值盡量接近 0，"
+    },
+    {
+      "start": 585.61,
+      "end": 592.33,
+      "en": "And these data values, these activation values in the blue circles as close to one as possible.",
+      "zh": "而這些藍色圓點所代表的資料值、活化值，則盡量接近 1。"
+    },
+    {
+      "start": 593.25,
+      "end": 599.17,
+      "en": "Here you see a summary table that the Statsmodel library produces.",
+      "zh": "這裡是 Statsmodels 函式庫產生的摘要表。"
+    },
+    {
+      "start": 599.69,
+      "end": 604.46,
+      "en": "Now there's a lot of detailed statistical information in this table.",
+      "zh": "表中包含許多詳細的統計資訊。"
+    },
+    {
+      "start": 605.06,
+      "end": 611.14,
+      "en": "If you've taken a statistics course before, then you should recognize a lot of these parameters.",
+      "zh": "如果你以前修過統計課，應該會認得許多參數。"
+    },
+    {
+      "start": 611.14,
+      "end": 615.98,
+      "en": "But for our purposes here in this course, you don't need to worry about most of these.",
+      "zh": "但就這門課的目的而言，大部分都不需要擔心。"
+    },
+    {
+      "start": 616.26,
+      "end": 621.18,
+      "en": "Mainly you want to look for the coefficient and the p value.",
+      "zh": "主要要看係數和 P 值。"
+    },
+    {
+      "start": 621.34,
+      "end": 628.58,
+      "en": "And really just for the, uh, the term other than the constant term, the constant is the intercept.",
+      "zh": "而且主要只看常數項以外的那一項；常數項就是截距，"
+    },
+    {
+      "start": 628.58,
+      "end": 630.38,
+      "en": "And we really don't care about this.",
+      "zh": "我們並不在意它。"
+    },
+    {
+      "start": 630.38,
+      "end": 635.7,
+      "en": "This just tells us where the whether the activation values are different from zero.",
+      "zh": "它只是告訴我們，活化值是否與零不同。"
+    },
+    {
+      "start": 636.14,
+      "end": 639.66,
+      "en": "What we do care about is this X1 term here.",
+      "zh": "我們真正關心的是這個 x1 項。"
+    },
+    {
+      "start": 639.94,
+      "end": 642.74,
+      "en": "And you want to see the sign of the coefficient.",
+      "zh": "要看的是係數的正負號，"
+    },
+    {
+      "start": 642.74,
+      "end": 650.14,
+      "en": "So whether it's positive or negative and the p value whether it is close to zero indicating statistical",
+      "zh": "也就是正值或負值，以及 P 值是否接近零，表示具有統計"
+    },
+    {
+      "start": 650.14,
+      "end": 659.18,
+      "en": "significance or whether it's greater than 0.05, indicating that there is no statistically significant prediction.",
+      "zh": "顯著性；或大於 0.05，表示預測未達統計顯著。"
+    },
+    {
+      "start": 660.54,
+      "end": 665.39,
+      "en": "Now we can visualize the results using a plot that looks like this.",
+      "zh": "現在可以用這樣的圖呈現結果。"
+    },
+    {
+      "start": 665.79,
+      "end": 674.11,
+      "en": "This initially looks like the plot of the data that I previously showed, but I'm not actually showing the activation values here.",
+      "zh": "它乍看很像先前那張資料圖，但這裡畫的其實不是活化值。"
+    },
+    {
+      "start": 674.55,
+      "end": 682.99,
+      "en": "Instead, I'm showing the probabilities that the output of the logistic regression provides.",
+      "zh": "這裡顯示的是邏輯斯迴歸輸出的機率。"
+    },
+    {
+      "start": 683.43,
+      "end": 687.51,
+      "en": "So you can see that the y axis now goes from 0 to 1.",
+      "zh": "可以看到 y 軸現在介於 0 和 1 之間。"
+    },
+    {
+      "start": 687.95,
+      "end": 697.23,
+      "en": "And the value for each of the data samples is the probability that that data sample belongs to category",
+      "zh": "每個資料樣本的值，代表該樣本屬於類別"
+    },
+    {
+      "start": 697.23,
+      "end": 697.79,
+      "en": "one.",
+      "zh": "1 的機率。"
+    },
+    {
+      "start": 698.55,
+      "end": 706.99,
+      "en": "So what you want to see in this kind of a plot is that, for example, here the first 30 samples, the",
+      "zh": "在這種圖上，我們希望看到，例如前 30 個樣本，"
+    },
+    {
+      "start": 706.99,
+      "end": 718.11,
+      "en": "first blue 30 blue circles should all have a probability value less than 0.5, indicating that they are predicted to be in category zero.",
+      "zh": "也就是最前面的 30 個藍色圓點，機率都低於 0.5，表示預測它們屬於類別 0。"
+    },
+    {
+      "start": 718.43,
+      "end": 729.47,
+      "en": "And all of these data values above 30 should have a prediction or a probability value close to one, indicating that they belong to a condition one.",
+      "zh": "而 30 之後的資料值，預測值或機率值應該接近 1，表示屬於條件 1。"
+    },
+    {
+      "start": 730.11,
+      "end": 736.31,
+      "en": "You can see visually that the accuracy is overall fairly good, though certainly not perfect.",
+      "zh": "從圖上可以看出，整體準確率相當不錯，但當然並不完美。"
+    },
+    {
+      "start": 736.51,
+      "end": 747.87,
+      "en": "There are some data values that were actually nouns, but the model predicts that they are verbs, and there are some data values that were verbs, but the model predicts that they are nouns.",
+      "zh": "有些資料實際是名詞，模型卻預測成動詞；也有些實際是動詞，模型卻預測成名詞。"
+    },
+    {
+      "start": 748.55,
+      "end": 759.39,
+      "en": "So then the last thing that we will do in the code demo is quantify this verbal description that I just gave to come up with a percent accuracy of prediction.",
+      "zh": "所以程式示範最後會將剛才的口頭描述量化，算出預測準確率的百分比。"
+    },
+    {
+      "start": 760.11,
+      "end": 762.79,
+      "en": "Okay, let's switch to code and have a look.",
+      "zh": "好，切換到程式碼來看看。"
+    },
+    {
+      "start": 763.87,
+      "end": 773.43,
+      "en": "I will use three libraries here numpy for working with the numbers, matplotlib for the plots, and here we have the statsmodels library.",
+      "zh": "這裡會用三個函式庫：NumPy 處理數值、Matplotlib 畫圖，還有 Statsmodels。"
+    },
+    {
+      "start": 773.47,
+      "end": 777.59,
+      "en": "It's often abbreviated as s for statsmodels.",
+      "zh": "Statsmodels 經常縮寫成 s。"
+    },
+    {
+      "start": 778.07,
+      "end": 779.59,
+      "en": "Here's where I generate the data.",
+      "zh": "這裡是產生資料的地方。"
+    },
+    {
+      "start": 779.59,
+      "end": 782.4,
+      "en": "So 30 samples per category.",
+      "zh": "每個類別有 30 個樣本，"
+    },
+    {
+      "start": 782.4,
+      "end": 783.88,
+      "en": "And there's two categories.",
+      "zh": "總共有兩個類別。"
+    },
+    {
+      "start": 783.92,
+      "end": 786.76,
+      "en": "Again, these are all fake generated data.",
+      "zh": "再次強調，這些全部都是產生出來的模擬資料。"
+    },
+    {
+      "start": 786.76,
+      "end": 793.8,
+      "en": "But we are imagining that they correspond to the activations of some neurons in a language model.",
+      "zh": "但我們把它們想成語言模型中某些神經元的活化。"
+    },
+    {
+      "start": 794.16,
+      "end": 794.36,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 794.4,
+      "end": 798.36,
+      "en": "And I'm initializing them to be numpy.random normal.",
+      "zh": "這裡使用 numpy.random.normal 初始化資料。"
+    },
+    {
+      "start": 798.36,
+      "end": 806.72,
+      "en": "So normally distributed numbers with a mean of zero for the nouns and a mean of two for the verbs.",
+      "zh": "也就是常態分布數值；名詞的平均數為 0，動詞的平均數為 2。"
+    },
+    {
+      "start": 806.84,
+      "end": 808.76,
+      "en": "And here you see is the plot.",
+      "zh": "這裡就是畫出的圖。"
+    },
+    {
+      "start": 808.8,
+      "end": 813.88,
+      "en": "Now all of the jitter on the x axis is purely for visualization.",
+      "zh": "x 軸上的這些隨機抖動，純粹是為了視覺呈現。"
+    },
+    {
+      "start": 813.88,
+      "end": 816.24,
+      "en": "That just makes it look a little bit nicer.",
+      "zh": "它只是讓圖看起來更好看一點。"
+    },
+    {
+      "start": 816.36,
+      "end": 825.2,
+      "en": "For example, if I would get rid of that, or maybe I'll just divide this by some ludicrously large number just to make it a little easier to code.",
+      "zh": "例如，如果拿掉它，或許我可以將它除以一個大得離譜的數字，這樣比較方便修改程式。"
+    },
+    {
+      "start": 825.64,
+      "end": 829.72,
+      "en": "Uh, in my opinion, this kind of a plot looks a little bit uglier.",
+      "zh": "在我看來，這種圖比較不好看。"
+    },
+    {
+      "start": 829.72,
+      "end": 838.2,
+      "en": "I think it's a little bit less aesthetic, but also a lot of dots are drawn on top of each other, so you don't really see the density of the plots.",
+      "zh": "我覺得它較不美觀，而且許多點疊在一起，看不出資料點的密度。"
+    },
+    {
+      "start": 838.44,
+      "end": 843.21,
+      "en": "And that is why I like to add a little bit of noise jitter.",
+      "zh": "所以我喜歡加上一點隨機抖動雜訊。"
+    },
+    {
+      "start": 843.25,
+      "end": 854.25,
+      "en": "Anyway, one thing that I like about using simulated data to explore statistical analysis methods is that you can control the effect sizes.",
+      "zh": "總之，使用模擬資料探索統計分析方法，有個我很喜歡的優點，就是能控制效果量。"
+    },
+    {
+      "start": 854.33,
+      "end": 861.45,
+      "en": "So for example, if you would change the average for the verbs to be one, then you can see that there's more overlap.",
+      "zh": "例如，如果把動詞的平均數改為 1，就會看到兩組重疊更多。"
+    },
+    {
+      "start": 861.45,
+      "end": 866.73,
+      "en": "There's still clearly some distributional shift in the data, but there's more overlap.",
+      "zh": "資料分布仍然明顯有所偏移，但重疊變多了。"
+    },
+    {
+      "start": 866.89,
+      "end": 874.61,
+      "en": "And so there's going to be less of a really clear ability of the model to, uh, to classify the data.",
+      "zh": "因此模型將資料清楚分類的能力就會比較弱。"
+    },
+    {
+      "start": 874.81,
+      "end": 876.89,
+      "en": "So I will let you play around with that later.",
+      "zh": "這部分留給你稍後自己玩玩。"
+    },
+    {
+      "start": 876.89,
+      "end": 880.17,
+      "en": "I'm going to leave it as two just for the demonstration here.",
+      "zh": "這裡為了示範，我把它維持在 2。"
+    },
+    {
+      "start": 880.17,
+      "end": 880.89,
+      "en": "We have an outlier.",
+      "zh": "有個離群值。"
+    },
+    {
+      "start": 880.89,
+      "end": 882.25,
+      "en": "I think I'll just run this again.",
+      "zh": "我想再執行一次。"
+    },
+    {
+      "start": 882.69,
+      "end": 883.01,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 883.05,
+      "end": 883.65,
+      "en": "So there we go.",
+      "zh": "這樣好了。"
+    },
+    {
+      "start": 883.69,
+      "end": 884.49,
+      "en": "Another outlier.",
+      "zh": "又有一個離群值。"
+    },
+    {
+      "start": 884.53,
+      "end": 885.21,
+      "en": "Well, whatever.",
+      "zh": "算了，沒關係。"
+    },
+    {
+      "start": 885.21,
+      "end": 886.29,
+      "en": "I'll just leave it in there.",
+      "zh": "我就把它留著。"
+    },
+    {
+      "start": 886.65,
+      "end": 887.01,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 887.05,
+      "end": 890.25,
+      "en": "Here is where I'm building the logistic regression.",
+      "zh": "這裡開始建立邏輯斯迴歸。"
+    },
+    {
+      "start": 890.25,
+      "end": 895.29,
+      "en": "So what we need to do is combine all of the data into one vector.",
+      "zh": "我們要將所有資料合併成一個向量。"
+    },
+    {
+      "start": 895.53,
+      "end": 899.29,
+      "en": "So here the data are 30 numbers and 30 numbers.",
+      "zh": "這裡的資料分別有 30 個數值、30 個數值。"
+    },
+    {
+      "start": 899.29,
+      "end": 904.05,
+      "en": "But I'm stacking them together to create one vector of 60 numbers.",
+      "zh": "我將它們堆疊成一個包含 60 個數值的向量。"
+    },
+    {
+      "start": 904.37,
+      "end": 906.41,
+      "en": "Here I'm adding the constant.",
+      "zh": "這裡加入常數項，"
+    },
+    {
+      "start": 906.45,
+      "end": 907.89,
+      "en": "This is the intercept term.",
+      "zh": "也就是截距項。"
+    },
+    {
+      "start": 908.01,
+      "end": 910.93,
+      "en": "This is actually just a vector of all ones.",
+      "zh": "它其實就是一個全為 1 的向量。"
+    },
+    {
+      "start": 911.49,
+      "end": 921.97,
+      "en": "As I mentioned briefly, the intercept term really just accounts for the fact that the distribution of all of the data can be non centered.",
+      "zh": "剛才簡短提過，截距項只是用來處理整體資料分布可能不以零為中心的情況。"
+    },
+    {
+      "start": 921.97,
+      "end": 925.85,
+      "en": "So it can have an average activation value other than zero.",
+      "zh": "也就是平均活化值可以不為零。"
+    },
+    {
+      "start": 926.01,
+      "end": 928.69,
+      "en": "And that's what the constant uh captures.",
+      "zh": "這就是常數項所捕捉的資訊。"
+    },
+    {
+      "start": 929.09,
+      "end": 935.21,
+      "en": "In general in most analyses and most statistics you do not care about the constant.",
+      "zh": "一般來說，在大多數分析與統計中，我們並不在意常數項。"
+    },
+    {
+      "start": 935.21,
+      "end": 937.33,
+      "en": "You need to include the constant term.",
+      "zh": "常數項必須加入，"
+    },
+    {
+      "start": 937.49,
+      "end": 940.05,
+      "en": "But you generally don't worry about interpreting it.",
+      "zh": "但通常不必特別解讀它。"
+    },
+    {
+      "start": 940.05,
+      "end": 942.73,
+      "en": "And we are certainly not going to interpret it here.",
+      "zh": "這裡也確實不會解讀它。"
+    },
+    {
+      "start": 943.89,
+      "end": 944.97,
+      "en": "So that's the model.",
+      "zh": "這就是模型。"
+    },
+    {
+      "start": 945.01,
+      "end": 946.37,
+      "en": "Here are the labels.",
+      "zh": "這裡則是標籤，"
+    },
+    {
+      "start": 946.37,
+      "end": 948.85,
+      "en": "This is what we are trying to predict.",
+      "zh": "也就是我們想要預測的東西。"
+    },
+    {
+      "start": 948.85,
+      "end": 954.97,
+      "en": "We want to predict zeros or ones corresponding to nouns and verbs.",
+      "zh": "我們要預測對應名詞和動詞的 0 或 1。"
+    },
+    {
+      "start": 955.25,
+      "end": 955.53,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 955.57,
+      "end": 957.17,
+      "en": "And then here is uh yeah.",
+      "zh": "接著這裡，對，"
+    },
+    {
+      "start": 957.25,
+      "end": 960.65,
+      "en": "Just showing the sizes of these two matrices.",
+      "zh": "只是顯示這兩個矩陣的大小。"
+    },
+    {
+      "start": 961.1,
+      "end": 964.54,
+      "en": "And here is the code to generate the plot that I showed.",
+      "zh": "這裡是產生剛才那張圖的程式碼。"
+    },
+    {
+      "start": 964.58,
+      "end": 969.02,
+      "en": "Again the idea is that the category corresponds to the red x's.",
+      "zh": "同樣地，類別對應的是紅色叉號，"
+    },
+    {
+      "start": 969.06,
+      "end": 970.86,
+      "en": "It's all zeros or ones.",
+      "zh": "全部都是 0 或 1。"
+    },
+    {
+      "start": 971.14,
+      "end": 974.38,
+      "en": "And these are the actual data in the blue circles.",
+      "zh": "藍色圓點則是實際資料。"
+    },
+    {
+      "start": 974.54,
+      "end": 982.7,
+      "en": "So what you want is to find a model that will take all of these data values and push that into zero.",
+      "zh": "我們要找到一個模型，將這些資料值全部推向 0，"
+    },
+    {
+      "start": 982.98,
+      "end": 986.86,
+      "en": "And all of these data values and push those to one.",
+      "zh": "並將那些資料值推向 1。"
+    },
+    {
+      "start": 987.14,
+      "end": 991.66,
+      "en": "And this one here I'm sure is going to be a incorrect prediction.",
+      "zh": "這個點肯定會預測錯誤。"
+    },
+    {
+      "start": 992.9,
+      "end": 993.22,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 993.26,
+      "end": 1001.66,
+      "en": "So once we have the data, once we have our design matrix, it's really easy to run a logistic regression.",
+      "zh": "所以，只要有資料與設計矩陣，在 Statsmodels 執行邏輯斯迴歸就很簡單。"
+    },
+    {
+      "start": 1001.66,
+      "end": 1009.86,
+      "en": "In Statsmodels you use small logit logit with a capital L, and this creates an object which you can then fit.",
+      "zh": "使用 sm.Logit，Logit 的 L 要大寫；這會建立一個物件，接著就能進行擬合。"
+    },
+    {
+      "start": 1010.02,
+      "end": 1012.98,
+      "en": "And in fact you often don't even need.",
+      "zh": "其實通常甚至不需要這麼做。"
+    },
+    {
+      "start": 1013.02,
+      "end": 1021.02,
+      "en": "You know, most of the time you can actually do something simpler like this and say result equals like this.",
+      "zh": "大部分時候可以寫得更簡單，像這樣直接設定 result。"
+    },
+    {
+      "start": 1021.1,
+      "end": 1022.22,
+      "en": "That's even simpler.",
+      "zh": "這樣更簡單。"
+    },
+    {
+      "start": 1022.3,
+      "end": 1023.38,
+      "en": "So there you go.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 1023.54,
+      "end": 1025.66,
+      "en": "We have the model and we can fit it.",
+      "zh": "有了模型，就能進行擬合。"
+    },
+    {
+      "start": 1025.7,
+      "end": 1027.42,
+      "en": "Here we see the results.",
+      "zh": "這裡可以看到結果。"
+    },
+    {
+      "start": 1027.46,
+      "end": 1032.02,
+      "en": "Again, you generally don't want to worry about interpreting the constant.",
+      "zh": "再次強調，通常不需要特別解讀常數項。"
+    },
+    {
+      "start": 1032.06,
+      "end": 1036.82,
+      "en": "The only thing this tells us is that the data have a average other than zero.",
+      "zh": "它只告訴我們，資料平均數不為零。"
+    },
+    {
+      "start": 1037.26,
+      "end": 1039.34,
+      "en": "Instead, you want to interpret this.",
+      "zh": "我們要解讀的是這裡，"
+    },
+    {
+      "start": 1039.98,
+      "end": 1045.06,
+      "en": "The sign of the coefficient and the p value of the coefficient.",
+      "zh": "也就是係數的正負號，以及係數的 P 值。"
+    },
+    {
+      "start": 1045.18,
+      "end": 1046.9,
+      "en": "So we see that this is positive.",
+      "zh": "可以看到它是正值。"
+    },
+    {
+      "start": 1046.94,
+      "end": 1053.98,
+      "en": "That means that the values are going to be larger for category one and smaller for category zero.",
+      "zh": "這表示類別 1 的數值較大，類別 0 的數值較小。"
+    },
+    {
+      "start": 1054.58,
+      "end": 1064.62,
+      "en": "Now if you're just running one logistic regression from one neuron in the LM, then you can literally just show this table and read it off.",
+      "zh": "如果只是對語言模型中的單一神經元執行一次邏輯斯迴歸，直接展示這張表、讀出數值就可以了。"
+    },
+    {
+      "start": 1064.7,
+      "end": 1067.82,
+      "en": "You know, read off these numbers and write them down somewhere.",
+      "zh": "把這些數字讀出來，記在某個地方。"
+    },
+    {
+      "start": 1068.26,
+      "end": 1073.06,
+      "en": "But, you know, Llms have a lot more than one neuron.",
+      "zh": "但 LLM 遠遠不只一個神經元。"
+    },
+    {
+      "start": 1073.22,
+      "end": 1075.26,
+      "en": "They have billions of neurons.",
+      "zh": "它們有數十億個神經元。"
+    },
+    {
+      "start": 1075.42,
+      "end": 1079.62,
+      "en": "And so we want a way to extract this information manually.",
+      "zh": "因此需要一種方式，手動擷取這些資訊。"
+    },
+    {
+      "start": 1079.62,
+      "end": 1087.07,
+      "en": "And that's what we do here with the we can extract result dot p values and result dot params for parameters.",
+      "zh": "這裡就可以擷取 result.pvalues，以及代表參數的 result.params。"
+    },
+    {
+      "start": 1087.27,
+      "end": 1091.27,
+      "en": "And that gives us the p values and the coefficients.",
+      "zh": "這樣就能取得 P 值與係數。"
+    },
+    {
+      "start": 1091.27,
+      "end": 1093.31,
+      "en": "So these are the p values or.",
+      "zh": "這些就是 P 值，或者說，"
+    },
+    {
+      "start": 1093.35,
+      "end": 1095.51,
+      "en": "This one is for the constant.",
+      "zh": "這個是常數項的 P 值。"
+    },
+    {
+      "start": 1095.55,
+      "end": 1096.71,
+      "en": "We don't care about that one.",
+      "zh": "我們不關心它。"
+    },
+    {
+      "start": 1096.71,
+      "end": 1103.27,
+      "en": "We're interested in this one and we're interested in this beta value over here okay.",
+      "zh": "我們要看的是這個值，以及這邊這個 beta 值。好。"
+    },
+    {
+      "start": 1103.31,
+      "end": 1106.07,
+      "en": "So now we can do the classification.",
+      "zh": "現在可以進行分類了。"
+    },
+    {
+      "start": 1106.07,
+      "end": 1107.39,
+      "en": "That's what I showed here.",
+      "zh": "也就是這裡顯示的結果。"
+    },
+    {
+      "start": 1107.55,
+      "end": 1114.19,
+      "en": "Again the ideal result here is that all of these values here go down to zero.",
+      "zh": "理想情況是，這裡所有數值都降到 0，"
+    },
+    {
+      "start": 1114.19,
+      "end": 1118.31,
+      "en": "And all of these values over here go up to one.",
+      "zh": "而這邊所有數值都升到 1。"
+    },
+    {
+      "start": 1118.71,
+      "end": 1125.35,
+      "en": "So the y axis here is the probability that each data sample is in category one.",
+      "zh": "所以這裡的 y 軸，是每個資料樣本屬於類別 1 的機率。"
+    },
+    {
+      "start": 1125.63,
+      "end": 1137.31,
+      "en": "So for this data point over here the model calculates that the probability that this data sample belongs to category one is like zero something very close to zero.",
+      "zh": "例如這個資料點，模型算出它屬於類別 1 的機率大約為零，是個非常接近零的值。"
+    },
+    {
+      "start": 1137.47,
+      "end": 1140.99,
+      "en": "So therefore it must be in category zero okay.",
+      "zh": "所以它應該屬於類別 0。好。"
+    },
+    {
+      "start": 1141.12,
+      "end": 1145.2,
+      "en": "And then these are in category one because the probabilities are very high.",
+      "zh": "而這些點屬於類別 1，因為機率非常高。"
+    },
+    {
+      "start": 1145.92,
+      "end": 1153,
+      "en": "So calculating accuracy is actually really straightforward once you've gotten to this step over here.",
+      "zh": "到了這一步，計算準確率其實非常直接。"
+    },
+    {
+      "start": 1153.2,
+      "end": 1156.92,
+      "en": "Oh I forgot to show you this is yet result dot predict.",
+      "zh": "我忘了示範，這裡就是 result.predict。"
+    },
+    {
+      "start": 1157.04,
+      "end": 1160.84,
+      "en": "So remember result is the output of the fitting.",
+      "zh": "記住，result 是擬合的輸出，"
+    },
+    {
+      "start": 1160.84,
+      "end": 1162.96,
+      "en": "That's the variable that we get from fitting.",
+      "zh": "也就是進行擬合後取得的變數。"
+    },
+    {
+      "start": 1163.36,
+      "end": 1172.6,
+      "en": "And dot predict is what applies the logistic regression equation to the data values and returns the",
+      "zh": "而 .predict 會將邏輯斯迴歸方程式套用到資料值，傳回"
+    },
+    {
+      "start": 1172.6,
+      "end": 1174.12,
+      "en": "probability values.",
+      "zh": "機率值。"
+    },
+    {
+      "start": 1174.16,
+      "end": 1174.44,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1174.48,
+      "end": 1175.96,
+      "en": "So result dot predict.",
+      "zh": "所以使用 result.predict，"
+    },
+    {
+      "start": 1176.88,
+      "end": 1179.4,
+      "en": "That's how we get these blue circles over here.",
+      "zh": "就能取得這裡這些藍色圓點。"
+    },
+    {
+      "start": 1179.68,
+      "end": 1182.68,
+      "en": "Anyway we have a threshold of 0.5.",
+      "zh": "總之，門檻設定為 0.5。"
+    },
+    {
+      "start": 1182.84,
+      "end": 1187.24,
+      "en": "And we just say are these values greater than or less than 0.5.",
+      "zh": "只要問這些值大於還是小於 0.5，"
+    },
+    {
+      "start": 1187.44,
+      "end": 1188.56,
+      "en": "It is that simple.",
+      "zh": "就是這麼簡單。"
+    },
+    {
+      "start": 1188.88,
+      "end": 1193.24,
+      "en": "So here we have let me walk you through this piece by piece.",
+      "zh": "我來逐步說明這段程式。"
+    },
+    {
+      "start": 1193.28,
+      "end": 1199.52,
+      "en": "I will say result dot predict.",
+      "zh": "先使用 result.predict，"
+    },
+    {
+      "start": 1200.52,
+      "end": 1202.68,
+      "en": "And that gives us the predictions.",
+      "zh": "取得預測結果。"
+    },
+    {
+      "start": 1202.68,
+      "end": 1206.28,
+      "en": "These are values that range between 0 and 1.",
+      "zh": "這些數值介於 0 和 1 之間。"
+    },
+    {
+      "start": 1206.8,
+      "end": 1215.92,
+      "en": "We can say if it's greater than 0.5 here we can say or here the result is lots of falses in the beginning and lots of trues in the end.",
+      "zh": "接著判斷是否大於 0.5；這裡的結果，前面有很多 False，後面有很多 True。"
+    },
+    {
+      "start": 1215.92,
+      "end": 1223.56,
+      "en": "And this is just telling us that these data values are not greater than 0.5, so they're less than 0.5.",
+      "zh": "它表示這些資料值並未大於 0.5，也就是小於 0.5。"
+    },
+    {
+      "start": 1223.56,
+      "end": 1224.96,
+      "en": "And some of these values are.",
+      "zh": "而其中有些值則是大於 0.5。"
+    },
+    {
+      "start": 1225.4,
+      "end": 1232.96,
+      "en": "And then we want to set this equal to y to see which ones actually match the category label.",
+      "zh": "接著要將結果與 y 比較是否相等，看看哪些結果符合真正的類別標籤。"
+    },
+    {
+      "start": 1233.24,
+      "end": 1242.92,
+      "en": "And you want to do this because yeah, I set up this analysis so that the first 30 samples are in category zero and the next are in category one.",
+      "zh": "之所以要這樣做，是因為這次我刻意安排前 30 個樣本屬於類別 0，後面屬於類別 1。"
+    },
+    {
+      "start": 1242.92,
+      "end": 1245.36,
+      "en": "But in practice this might be mixed.",
+      "zh": "但實際情況可能是混在一起的，"
+    },
+    {
+      "start": 1245.36,
+      "end": 1249.36,
+      "en": "You might have category zero and one mixed all over the place.",
+      "zh": "類別 0 和 1 可能穿插在各個位置。"
+    },
+    {
+      "start": 1249.36,
+      "end": 1253.56,
+      "en": "So that's why you want to set this equal to the labels.",
+      "zh": "所以才需要與標籤比較是否相等。"
+    },
+    {
+      "start": 1254.64,
+      "end": 1257.44,
+      "en": "So basically everywhere you see this is true.",
+      "zh": "基本上，只要這裡是 True，"
+    },
+    {
+      "start": 1257.72,
+      "end": 1260.04,
+      "en": "That is a correct prediction.",
+      "zh": "就表示預測正確。"
+    },
+    {
+      "start": 1260.04,
+      "end": 1261.49,
+      "en": "Everywhere it's false.",
+      "zh": "只要是 False，"
+    },
+    {
+      "start": 1261.49,
+      "end": 1266.13,
+      "en": "It's an incorrect prediction, including this last outlier here at the very end.",
+      "zh": "就表示預測錯誤，包括最後這個離群值。"
+    },
+    {
+      "start": 1266.17,
+      "end": 1267.97,
+      "en": "That is an incorrect prediction.",
+      "zh": "這個就是錯誤的預測。"
+    },
+    {
+      "start": 1268.21,
+      "end": 1276.57,
+      "en": "So now if we want to know the overall accuracy, then we can just average all of these together, which I do here.",
+      "zh": "若要知道整體準確率，只需要將這些值取平均，就像這裡所做的。"
+    },
+    {
+      "start": 1276.57,
+      "end": 1283.05,
+      "en": "So you can see that the average accuracy was 87% 86%.",
+      "zh": "可以看到平均準確率是 87%，86%。"
+    },
+    {
+      "start": 1283.37,
+      "end": 1293.37,
+      "en": "Now once you have all of these data, you can actually use them to go into an incredible amount of detailed investigations with a lot of granularity.",
+      "zh": "取得所有這些資料後，其實可以進行非常深入、非常細緻的研究。"
+    },
+    {
+      "start": 1293.61,
+      "end": 1297.89,
+      "en": "For example, as I've mentioned multiple times, these are fake data.",
+      "zh": "例如，我已經多次提到，這些都是模擬資料。"
+    },
+    {
+      "start": 1297.89,
+      "end": 1303.69,
+      "en": "So the fact that this is an incorrect prediction is not interpretable.",
+      "zh": "所以這個點預測錯誤，本身無法加以解讀。"
+    },
+    {
+      "start": 1303.69,
+      "end": 1306.53,
+      "en": "But let's imagine that these were real data.",
+      "zh": "但假設它們是真實資料，"
+    },
+    {
+      "start": 1306.53,
+      "end": 1309.53,
+      "en": "And these data really came from a model.",
+      "zh": "確實來自某個模型，"
+    },
+    {
+      "start": 1309.53,
+      "end": 1311.61,
+      "en": "And these were different tokens.",
+      "zh": "而且對應不同的 token。"
+    },
+    {
+      "start": 1311.61,
+      "end": 1319.13,
+      "en": "Let's say these were 60 tokens that the model was processing and these were the nouns and these were the verbs.",
+      "zh": "假設它們是模型處理的 60 個 token，這些是名詞，那些是動詞。"
+    },
+    {
+      "start": 1319.41,
+      "end": 1323.41,
+      "en": "So if these were real data, the model really got this one wrong.",
+      "zh": "如果是真實資料，模型就確實把這個點弄錯了。"
+    },
+    {
+      "start": 1323.61,
+      "end": 1331.09,
+      "en": "So then it could be interesting to find which of the tokens were incorrectly classified, and then you",
+      "zh": "這時找出哪些 token 被錯誤分類，可能就很有意思，然後"
+    },
+    {
+      "start": 1331.09,
+      "end": 1341.17,
+      "en": "could go back to the text and look and try to characterize or try to understand why this verb was actually categorized as a noun.",
+      "zh": "可以回頭查看文字，試著描述或理解，為什麼這個動詞實際上被歸類為名詞。"
+    },
+    {
+      "start": 1341.29,
+      "end": 1345.29,
+      "en": "And maybe that will be insightful for model functioning.",
+      "zh": "也許能藉此更了解模型的運作。"
+    },
+    {
+      "start": 1346.57,
+      "end": 1352.69,
+      "en": "Logistic regression is a great analysis to be familiar with and to know how to code.",
+      "zh": "邏輯斯迴歸是一種很值得熟悉、也值得學會實作的分析方法。"
+    },
+    {
+      "start": 1353.13,
+      "end": 1360.17,
+      "en": "We will use it quite a bit in the next video, and the video after that, and the next several sections.",
+      "zh": "下一支、下下支影片，以及後面幾章，我們都會大量使用它。"
+    },
+    {
+      "start": 1360.77,
+      "end": 1371.13,
+      "en": "As I mentioned before, there are multiple Python libraries that can implement logistic regression using slightly different algorithms and so on.",
+      "zh": "剛才說過，許多 Python 函式庫都能透過略有不同的演算法等方式，實作邏輯斯迴歸。"
+    },
+    {
+      "start": 1371.29,
+      "end": 1380.17,
+      "en": "Statsmodels is great because it's easy to set up, it's fast, it gives a lot of detailed information, and it's convenient to work with.",
+      "zh": "Statsmodels 很好用，因為設定簡單、速度快、提供許多詳細資訊，使用也方便。"
+    }
+  ]
+}

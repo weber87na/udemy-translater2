@@ -1,0 +1,1705 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51835313",
+  "title": "Position embeddings",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "47ae339bfeb953b573ca91fe8a4221bc5687770d85185060824d37df14911dbe",
+  "cues": [
+    {
+      "start": 0,
+      "end": 8.399,
+      "en": "The embeddings, matrices, and vectors that we've been working with so far are tied to",
+      "zh": "目前使用的嵌入矩陣與向量，都對應"
+    },
+    {
+      "start": 8.399,
+      "end": 12.279,
+      "en": "specific subwords, so tokens.",
+      "zh": "特定子詞，也就是 token。"
+    },
+    {
+      "start": 12.279,
+      "end": 20.68,
+      "en": "But there is another matrix of embeddings in language models, and this is called the position embeddings.",
+      "zh": "但語言模型裡，還有另一個嵌入矩陣，稱為位置嵌入。"
+    },
+    {
+      "start": 20.68,
+      "end": 24.799,
+      "en": "These have a different function compared to the token embeddings.",
+      "zh": "它的功能，與 token 嵌入不同。"
+    },
+    {
+      "start": 24.799,
+      "end": 27.36,
+      "en": "They're also easier to visualize.",
+      "zh": "也比較容易視覺化。"
+    },
+    {
+      "start": 27.36,
+      "end": 29.28,
+      "en": "Are they kind of easier to understand?",
+      "zh": "那是否比較容易理解？"
+    },
+    {
+      "start": 29.28,
+      "end": 34.279,
+      "en": "Superficially, they seem easier to understand, but the devil's in the details.",
+      "zh": "表面上似乎如此，但細節才是真正難的地方。"
+    },
+    {
+      "start": 34.279,
+      "end": 45.159,
+      "en": "Anyway, in this video, I'm going to motivate why we need position embeddings and then discuss what they look like and where they come from.",
+      "zh": "這支影片，會說明為什麼需要位置嵌入，再談它的樣貌與來源。"
+    },
+    {
+      "start": 45.159,
+      "end": 51.439,
+      "en": "And the upshot is that position embeddings are kind of like temporal weighting functions",
+      "zh": "重點是，位置嵌入有點像時間加權函式，"
+    },
+    {
+      "start": 51.439,
+      "end": 63.439,
+      "en": "that allow the model to stay focused on a token that was presented a few words ago, or a few sentences ago, or maybe even a few paragraphs ago.",
+      "zh": "讓模型能持續關注幾個字、幾句，甚至幾段之前出現的 token。"
+    },
+    {
+      "start": 63.439,
+      "end": 71.419,
+      "en": "Here is an example of the type of problem that position embeddings allow language models to solve.",
+      "zh": "這裡示範，位置嵌入能幫語言模型解決哪種問題。"
+    },
+    {
+      "start": 71.419,
+      "end": 78.599,
+      "en": "This is a couple of sentences that I got from the Wikipedia page on hazelnuts.",
+      "zh": "這是 Wikipedia 榛果頁面上的幾個句子。"
+    },
+    {
+      "start": 78.599,
+      "end": 88.199,
+      "en": "So hazelnuts are used as a snack food in baking and desserts, and in breakfast cereals such as muesli, in confectionary they.",
+      "zh": "榛果可作為零食，用於烘焙與甜點，以及什錦穀片等早餐穀物。在糖果製作中，它們……"
+    },
+    {
+      "start": 88.199,
+      "end": 92.87899999999999,
+      "en": "Okay, what does this word they refer to?",
+      "zh": "這裡的「它們」指什麼？"
+    },
+    {
+      "start": 92.87899999999999,
+      "end": 99.319,
+      "en": "Now in theory, this word they could refer to any plural noun that is present in this",
+      "zh": "理論上，可以指這個"
+    },
+    {
+      "start": 99.319,
+      "end": 105.72,
+      "en": "sentence like hazelnuts, food, desserts, cereals, or muesli, but that's not all.",
+      "zh": "句子中的任何複數名詞，例如榛果、食物、甜點、穀物或什錦穀片，還不只如此。"
+    },
+    {
+      "start": 105.72,
+      "end": 111.959,
+      "en": "They could also refer to some other plural noun that appeared before this sentence.",
+      "zh": "也可能指這個句子之前，出現的某個複數名詞。"
+    },
+    {
+      "start": 111.959,
+      "end": 116.94,
+      "en": "For example, people who work in a hazelnut factory or in a bakery.",
+      "zh": "例如，在榛果工廠或麵包店工作的人。"
+    },
+    {
+      "start": 116.94,
+      "end": 125.199,
+      "en": "Now you know from context that the word they almost certainly refers to hazelnuts, but",
+      "zh": "你從上下文知道，「它們」幾乎確定是指榛果，"
+    },
+    {
+      "start": 125.199,
+      "end": 129.44,
+      "en": "a language model doesn't know that sort of thing a priori.",
+      "zh": "但語言模型事先並不知道這類事情。"
+    },
+    {
+      "start": 129.44,
+      "end": 135.6,
+      "en": "So we need a way to allow the language model to hold on to the activations.",
+      "zh": "所以，需要方法，讓語言模型保留活化。"
+    },
+    {
+      "start": 136.47899999999998,
+      "end": 143.52,
+      "en": "It's like keeping a trace of the token embeddings active for important tokens that happen before",
+      "zh": "就像為這個字之前的重要 token，保留"
+    },
+    {
+      "start": 143.52,
+      "end": 150.399,
+      "en": "this word here, and you don't want to just hold on to all of the tokens because most",
+      "zh": "token 嵌入的活躍痕跡。但不想保留全部 token，因為大多數"
+    },
+    {
+      "start": 150.399,
+      "end": 158.199,
+      "en": "of these tokens are not relevant for understanding what they refers to, and we also don't necessarily",
+      "zh": "與理解「它們」的指涉無關；也不一定"
+    },
+    {
+      "start": 158.199,
+      "end": 169.839,
+      "en": "want some kind of like linear decay just going back in time because it's not the case that confectionary is the most important word for interpreting the word they.",
+      "zh": "想要單純隨時間往前線性衰減，因為 confectionary 並不是理解「它們」最重要的字。"
+    },
+    {
+      "start": 169.839,
+      "end": 176.679,
+      "en": "In fact, the model should be able to key in on words like hazelnuts and cereals while",
+      "zh": "模型應該能抓住榛果、穀物之類的字，"
+    },
+    {
+      "start": 176.679,
+      "end": 184.72,
+      "en": "also realizing that certain words in the past like in or as or commas are not going to be",
+      "zh": "也知道先前某些字，例如 in、as 或逗號，"
+    },
+    {
+      "start": 184.72,
+      "end": 193,
+      "en": "relevant for figuring out what they refers to and therefore what the next token should be.",
+      "zh": "對理解「它們」指什麼，以及下一個 token 該是什麼，並不重要。"
+    },
+    {
+      "start": 193.039,
+      "end": 200.24,
+      "en": "So this is the problem that position embeddings help LLMs solve.",
+      "zh": "這就是位置嵌入，協助 LLM 解決的問題。"
+    },
+    {
+      "start": 200.24,
+      "end": 202.399,
+      "en": "So here's a little bit more detail.",
+      "zh": "再詳細一點。"
+    },
+    {
+      "start": 202.399,
+      "end": 210.399,
+      "en": "LLMs have no built-in way to represent time or positions between tokens.",
+      "zh": "LLM 沒有內建方式，表示 token 之間的時間或位置。"
+    },
+    {
+      "start": 210.399,
+      "end": 216.91899999999998,
+      "en": "And by ordinal distances here, I mean that any pair of tokens could be separated by somewhere",
+      "zh": "這裡的順序距離，是指任意兩個 token，中間可能隔著"
+    },
+    {
+      "start": 216.91899999999998,
+      "end": 222.559,
+      "en": "between zero other tokens and a thousand other tokens.",
+      "zh": "0 到 1,000 個其他 token。"
+    },
+    {
+      "start": 222.639,
+      "end": 228.96,
+      "en": "Unfortunately, modern LLMs have context windows of many tens of thousands of tokens.",
+      "zh": "不過，現代 LLM 的上下文視窗，可達數萬個 token。"
+    },
+    {
+      "start": 228.96,
+      "end": 234.839,
+      "en": "GPT-2 can only take a thousand twenty four tokens at a time.",
+      "zh": "GPT-2 一次只能接受 1,024 個。"
+    },
+    {
+      "start": 234.839,
+      "end": 244.559,
+      "en": "But anyway, the LLMs don't have a way of representing something like, for example, two tokens that are separated by 13 other tokens.",
+      "zh": "總之，LLM 本身沒有方法表示，例如，中間隔著 13 個 token 的兩個 token，"
+    },
+    {
+      "start": 244.559,
+      "end": 248.779,
+      "en": "And yet these two tokens are still related to each other.",
+      "zh": "卻仍然彼此相關。"
+    },
+    {
+      "start": 248.779,
+      "end": 260.14,
+      "en": "So the positions vectors allow the models to increase or decrease the embeddings for tokens depending on their ordinal position.",
+      "zh": "位置向量，讓模型能依 token 的順序位置，提高或降低嵌入值。"
+    },
+    {
+      "start": 260.14,
+      "end": 265.26,
+      "en": "OK, so where do these position embeddings come from and what do they look like?",
+      "zh": "這些位置嵌入，從哪裡來？又長什麼樣？"
+    },
+    {
+      "start": 265.26,
+      "end": 269.579,
+      "en": "Well, let me answer that first question first.",
+      "zh": "先回答第一個問題。"
+    },
+    {
+      "start": 269.579,
+      "end": 275.14,
+      "en": "Just like with token embeddings, position embeddings can be trained through gradient",
+      "zh": "和 token 嵌入一樣，位置嵌入可以根據資料，透過梯度"
+    },
+    {
+      "start": 275.14,
+      "end": 282.1,
+      "en": "descent based on data or they can be predefined based on some mathematical properties.",
+      "zh": "下降訓練，也可以依某些數學性質預先定義。"
+    },
+    {
+      "start": 282.1,
+      "end": 285.26,
+      "en": "This is also sometimes called fixed.",
+      "zh": "後者有時也叫固定式。"
+    },
+    {
+      "start": 285.26,
+      "end": 295.98,
+      "en": "So trained position embeddings are initialized as random numbers and then optimized with training data and the gradient descent algorithm.",
+      "zh": "可訓練的位置嵌入，先初始化成隨機數，再用訓練資料與梯度下降最佳化。"
+    },
+    {
+      "start": 295.98,
+      "end": 304.299,
+      "en": "This is good because then the position embeddings are optimized for performance on the data that the model is trained on.",
+      "zh": "好處是，位置嵌入能針對模型訓練資料上的表現，進行最佳化。"
+    },
+    {
+      "start": 304.459,
+      "end": 308.66,
+      "en": "But it does mean that we have some additional parameters to train.",
+      "zh": "但也代表，多一些參數要訓練。"
+    },
+    {
+      "start": 308.66,
+      "end": 318.98,
+      "en": "But you know, language models have so many parameters to train that an extra few thousand here there is not really a big deal in the grand scheme of things.",
+      "zh": "不過，語言模型本來就有那麼多參數，整體而言，多幾千個其實不算什麼。"
+    },
+    {
+      "start": 318.98,
+      "end": 328.54,
+      "en": "Alternatively, position embeddings can be defined from mathematical formulas that have certain desired characteristics.",
+      "zh": "另一種方式，是用具有所需特性的數學公式，定義位置嵌入。"
+    },
+    {
+      "start": 328.54,
+      "end": 336.14,
+      "en": "They often come from sine and cosine to capture temporal sequences, kind of like the Fourier transform.",
+      "zh": "常使用正弦與餘弦捕捉時間序列，有點像傅立葉轉換。"
+    },
+    {
+      "start": 336.14,
+      "end": 340.899,
+      "en": "I'll show you the formulas and the code for this in a few moments.",
+      "zh": "稍後展示公式與程式。"
+    },
+    {
+      "start": 340.899,
+      "end": 351.019,
+      "en": "But an advantage here is that you don't need any additional training to get these position vectors to work.",
+      "zh": "優點是，不需要額外訓練，就能使用這些位置向量。"
+    },
+    {
+      "start": 351.019,
+      "end": 361.899,
+      "en": "But on the other hand, the combinations of sinusoidal position embeddings can become really complicated for real world language data.",
+      "zh": "但另一方面，對真實語言資料，正弦式位置嵌入的組合，可能變得非常複雜。"
+    },
+    {
+      "start": 361.899,
+      "end": 367.7,
+      "en": "If you are familiar with signal processing or Fourier analysis, you might think about",
+      "zh": "如果熟悉訊號處理或傅立葉分析，可以類比"
+    },
+    {
+      "start": 367.7,
+      "end": 378.22,
+      "en": "an analogy with using the Fourier transform to represent a square or an edge or some other non sinusoidal feature.",
+      "zh": "用傅立葉轉換表示方波、邊緣，或其他非正弦特徵。"
+    },
+    {
+      "start": 378.22,
+      "end": 382.059,
+      "en": "If you're not familiar with the Fourier transform, then don't worry about the analogy.",
+      "zh": "如果不熟傅立葉轉換，不必擔心這個比喻，"
+    },
+    {
+      "start": 382.059,
+      "end": 383.94,
+      "en": "It's not that important.",
+      "zh": "並不重要。"
+    },
+    {
+      "start": 383.94,
+      "end": 388.059,
+      "en": "Here again is this attention is all you need paper.",
+      "zh": "又是這篇 Attention Is All You Need。"
+    },
+    {
+      "start": 388.059,
+      "end": 392.459,
+      "en": "This paper was quite influential in the history of LLMs.",
+      "zh": "它在 LLM 歷史上影響很大，"
+    },
+    {
+      "start": 392.459,
+      "end": 397.1,
+      "en": "So you'll see it pretty often when learning about language models.",
+      "zh": "學語言模型時，會經常看到。"
+    },
+    {
+      "start": 397.1,
+      "end": 403.579,
+      "en": "Now a few videos ago, I showed you a screenshot of their section on embeddings and unembeddings.",
+      "zh": "幾支影片前，展示過其中嵌入與反嵌入章節的截圖。"
+    },
+    {
+      "start": 403.579,
+      "end": 409.579,
+      "en": "Here is some text from a different part of the paper about position embeddings.",
+      "zh": "這是論文另一部分，談位置嵌入。"
+    },
+    {
+      "start": 409.579,
+      "end": 416.179,
+      "en": "The key point is that they used predefined embeddings and those are based on sine and",
+      "zh": "關鍵是，他們使用預先定義的嵌入，以 token"
+    },
+    {
+      "start": 416.179,
+      "end": 422.14,
+      "en": "cosine of the ordinal position of the tokens.",
+      "zh": "順序位置的正弦與餘弦為基礎。"
+    },
+    {
+      "start": 422.14,
+      "end": 433.16,
+      "en": "Here are some other texts that's a little bit later where they say that they also tried learned or trained position embeddings and they produced very similar results.",
+      "zh": "後面另一段說，也試過學習、訓練出的位置嵌入，結果非常相似。"
+    },
+    {
+      "start": 433.16,
+      "end": 444.2,
+      "en": "So they chose the predefined or mathematically defined position embeddings because whatever reasons they say here, honestly, this sounds a bit speculative to me.",
+      "zh": "所以，選擇預先、以數學定義的位置嵌入，原因寫在這裡；老實說，我覺得有點推測性。"
+    },
+    {
+      "start": 444.2,
+      "end": 451.04,
+      "en": "Anyway, in modern commercially available larger models, it's more common to train the position",
+      "zh": "總之，現代商用大型模型，比較常從資料訓練位置"
+    },
+    {
+      "start": 451.04,
+      "end": 458.15999999999997,
+      "en": "embeddings from data than to predefine them for basically these reasons that I outlined here.",
+      "zh": "嵌入，而不是預先定義，大致基於這裡列出的理由。"
+    },
+    {
+      "start": 458.15999999999997,
+      "end": 466.619,
+      "en": "In a moment, I'm going to switch to Python, but first I want to give you a heads up of what we're going to do and what to look for.",
+      "zh": "稍後切換到 Python，先提醒會做什麼、該看什麼。"
+    },
+    {
+      "start": 466.619,
+      "end": 473.839,
+      "en": "So we will import the GPT-2 model and extract the position embeddings matrix.",
+      "zh": "匯入 GPT-2 模型，擷取位置嵌入矩陣。"
+    },
+    {
+      "start": 473.839,
+      "end": 479.2,
+      "en": "We will visualize some random vectors that might look something like this.",
+      "zh": "隨機畫出一些向量，可能像這樣。"
+    },
+    {
+      "start": 479.2,
+      "end": 481.679,
+      "en": "Now these are pretty interesting to look at.",
+      "zh": "很有意思。"
+    },
+    {
+      "start": 481.679,
+      "end": 489.72,
+      "en": "So the x-axis here is the ordinal position of the tokens with zero on the left side corresponding",
+      "zh": "x 軸是 token 的順序位置，左側 0 對應"
+    },
+    {
+      "start": 489.72,
+      "end": 494.959,
+      "en": "to the start of the text that you input into the GPT model.",
+      "zh": "輸入 GPT 模型文字的開頭。"
+    },
+    {
+      "start": 494.959,
+      "end": 505.119,
+      "en": "And as we go to the right, that corresponds to the end of the context window, which is how many tokens a model can process in a sequence.",
+      "zh": "往右，對應上下文視窗的結尾，也就是模型一次能處理的序列長度。"
+    },
+    {
+      "start": 505.119,
+      "end": 511.2,
+      "en": "Then in GPT-2, the context window is 1024 tokens.",
+      "zh": "GPT-2 的上下文視窗，是 1,024 個 token。"
+    },
+    {
+      "start": 511.2,
+      "end": 522.08,
+      "en": "GPT-4 models have varying context window sizes depending on the model architecture, but it's in the range of 10,000 to 100,000.",
+      "zh": "GPT-4 視窗大小依模型架構不同，大約在一萬到十萬個 token。"
+    },
+    {
+      "start": 522.08,
+      "end": 525.039,
+      "en": "So what do these wiggly lines actually mean?",
+      "zh": "這些彎曲的線，究竟代表什麼？"
+    },
+    {
+      "start": 525.039,
+      "end": 532.2,
+      "en": "So these correspond to the weightings on the token embeddings relative to each other.",
+      "zh": "它們對應 token 嵌入彼此相對的加權。"
+    },
+    {
+      "start": 532.2,
+      "end": 535.919,
+      "en": "So how do we interpret these wobbly things?",
+      "zh": "怎麼解讀這些起伏？"
+    },
+    {
+      "start": 535.919,
+      "end": 541.919,
+      "en": "Let's imagine that we entered a text that is 1024 tokens long.",
+      "zh": "假設輸入一段長 1,024 個 token 的文字，"
+    },
+    {
+      "start": 541.919,
+      "end": 545.919,
+      "en": "Maybe that text corresponds to a few paragraphs.",
+      "zh": "也許是幾個段落。"
+    },
+    {
+      "start": 545.919,
+      "end": 553.28,
+      "en": "Here towards the left is the very beginning of the text and here to the right is the very end of the text.",
+      "zh": "左側是文字開頭，右側是文字結尾。"
+    },
+    {
+      "start": 553.28,
+      "end": 561.64,
+      "en": "So if we focus for a moment on this one here, which happens to be vector 402, we see that",
+      "zh": "先看這個，剛好是第 402 個向量，可以看到，"
+    },
+    {
+      "start": 561.64,
+      "end": 572.08,
+      "en": "this model is going to have a strong positive weight on recent tokens and a negative weight on the tokens towards the beginning of the text.",
+      "zh": "模型對近期 token 有很強的正權重，對文字前段的 token 則有負權重。"
+    },
+    {
+      "start": 572.08,
+      "end": 579.96,
+      "en": "So this dimension, this vector, will contribute to basically like a linear decrease of importance",
+      "zh": "所以，這個維度、這個向量，會讓越早出現的文字，"
+    },
+    {
+      "start": 579.96,
+      "end": 585.64,
+      "en": "or focus going further back in the text as we go along.",
+      "zh": "重要程度或關注程度，大致線性降低。"
+    },
+    {
+      "start": 585.64,
+      "end": 588.059,
+      "en": "Although there's also a strong peak at the beginning.",
+      "zh": "但最開頭，也有個很強的峰值。"
+    },
+    {
+      "start": 588.059,
+      "end": 599.299,
+      "en": "So this positions vector would facilitate the model linking something that was mentioned at the very beginning of the text to, for example, a summary that happened at the end",
+      "zh": "因此，這個位置向量，有助於模型把文字最開頭提到的內容，連到"
+    },
+    {
+      "start": 599.299,
+      "end": 603.14,
+      "en": "of the token sequence.",
+      "zh": "token 序列末尾的摘要。"
+    },
+    {
+      "start": 603.14,
+      "end": 606.26,
+      "en": "And this one down here is also pretty interesting.",
+      "zh": "下方這個也很有意思，"
+    },
+    {
+      "start": 606.26,
+      "end": 608.419,
+      "en": "This has a big peak at the center.",
+      "zh": "中間有個大峰值。"
+    },
+    {
+      "start": 608.419,
+      "end": 619.179,
+      "en": "So this would facilitate the model highlighting tokens that appear in the middle of the text, but not so much in the beginning or the end of the text.",
+      "zh": "有助於強調文字中間出現的 token，而不是開頭或結尾。"
+    },
+    {
+      "start": 619.179,
+      "end": 630.059,
+      "en": "I'm tempted to use the word attention here that these vectors are helping the model attend to tokens happening at various ordinal positions throughout the text.",
+      "zh": "很想用「注意」這個詞，說這些向量幫模型關注文字各順序位置的 token。"
+    },
+    {
+      "start": 630.059,
+      "end": 638.26,
+      "en": "The problem is that the word attention means a very specific thing in the context of large language models and transformers.",
+      "zh": "但問題是，attention 在 LLM 與 Transformer 情境中，有非常特定的意義。"
+    },
+    {
+      "start": 638.26,
+      "end": 643.46,
+      "en": "So I'm reluctant to use the word attention here, but I think you know what I mean.",
+      "zh": "所以，不太想在這裡用它，不過你應該懂意思。"
+    },
+    {
+      "start": 643.46,
+      "end": 646.5,
+      "en": "And what do these numerical values actually mean?",
+      "zh": "這些數值，究竟代表什麼？"
+    },
+    {
+      "start": 646.5,
+      "end": 656.9,
+      "en": "Well, zero is inherently interpretable because it means that the vector is not providing any particular weight for that token position.",
+      "zh": "0 本身容易解讀，表示向量沒有對該 token 位置提供特定權重。"
+    },
+    {
+      "start": 656.9,
+      "end": 659.219,
+      "en": "So that you see here, for example.",
+      "zh": "例如，這裡。"
+    },
+    {
+      "start": 659.219,
+      "end": 664.739,
+      "en": "However, the positive and negative values are not so easily interpreted.",
+      "zh": "但正值與負值，就沒那麼容易解讀。"
+    },
+    {
+      "start": 664.739,
+      "end": 672.099,
+      "en": "They do not necessarily correspond to increasing versus decreasing the activation in the model,",
+      "zh": "不一定對應模型活化的增加或降低，"
+    },
+    {
+      "start": 672.099,
+      "end": 682.099,
+      "en": "nor do they necessarily trivially correspond to increasing or decreasing the probability of selecting a particular token.",
+      "zh": "也不一定直接對應選取某個 token 的機率增減。"
+    },
+    {
+      "start": 682.099,
+      "end": 689.46,
+      "en": "The thing is that the impact of the signs on these position vectors depends on the correspondence",
+      "zh": "位置向量正負號的影響，取決於 token 嵌入處理時，"
+    },
+    {
+      "start": 689.46,
+      "end": 695.539,
+      "en": "with the signs of the model weights as the token embeddings are processed.",
+      "zh": "與模型權重正負號的對應關係。"
+    },
+    {
+      "start": 695.539,
+      "end": 702.059,
+      "en": "So it's all quite complicated and it defies a really simple, straightforward explanation.",
+      "zh": "所以，很複雜，無法用非常簡單、直接的方式解釋。"
+    },
+    {
+      "start": 702.059,
+      "end": 708.02,
+      "en": "But it certainly is the case that these position vectors translate into the model being able",
+      "zh": "但確實，這些位置向量，讓模型處理不同 token 時，"
+    },
+    {
+      "start": 708.02,
+      "end": 716.299,
+      "en": "to incorporate token position, ordinal position, as it is processing the different tokens.",
+      "zh": "能納入 token 的順序位置。"
+    },
+    {
+      "start": 716.299,
+      "end": 724.299,
+      "en": "Now you will learn more about these position embedding vectors in the next video and also in a later section.",
+      "zh": "下一支影片，以及後面章節，會更深入學習位置嵌入向量。"
+    },
+    {
+      "start": 724.299,
+      "end": 726.26,
+      "en": "But anyway, moving along.",
+      "zh": "總之，繼續。"
+    },
+    {
+      "start": 726.5,
+      "end": 733.219,
+      "en": "The next plot we're going to look at will be matrices of cosine similarities within",
+      "zh": "接著看餘弦相似度矩陣，分別比較"
+    },
+    {
+      "start": 733.219,
+      "end": 741.02,
+      "en": "each embedding vector over time and across the different position embedding vectors.",
+      "zh": "各嵌入向量跨時間的關係，以及不同位置嵌入向量彼此的關係。"
+    },
+    {
+      "start": 741.02,
+      "end": 746.02,
+      "en": "Let me first focus your attention on this right side panel.",
+      "zh": "先看右側圖。"
+    },
+    {
+      "start": 746.02,
+      "end": 752.059,
+      "en": "This is a 768 by 768 matrix.",
+      "zh": "這是 768 乘以 768 矩陣。"
+    },
+    {
+      "start": 752.059,
+      "end": 763.5,
+      "en": "The value of each element in this matrix is the cosine similarity between every possible pair of position embeddings vectors.",
+      "zh": "每個元素，是每一對位置嵌入維度向量之間的餘弦相似度。"
+    },
+    {
+      "start": 763.5,
+      "end": 767.26,
+      "en": "Now you don't really see a lot happening in this image.",
+      "zh": "圖裡看不出太多變化。"
+    },
+    {
+      "start": 767.26,
+      "end": 772.26,
+      "en": "In fact, almost all of the cosine similarities are close to zero.",
+      "zh": "其實，幾乎所有餘弦相似度都接近 0。"
+    },
+    {
+      "start": 772.26,
+      "end": 774.859,
+      "en": "Not exactly zero, but fairly close to zero.",
+      "zh": "不完全是 0，但相當接近。"
+    },
+    {
+      "start": 774.859,
+      "end": 778.9,
+      "en": "You don't see a lot of structure happening in here.",
+      "zh": "看不到很多結構。"
+    },
+    {
+      "start": 778.9,
+      "end": 786.82,
+      "en": "And what that means is that all of the position embedding vectors are fairly uncorrelated with each other.",
+      "zh": "這表示，這些位置嵌入向量彼此相當不相關。"
+    },
+    {
+      "start": 786.82,
+      "end": 797.659,
+      "en": "In other words, each position embeddings vector makes an independent and unique contribution to decomposing the temporal sequence of tokens.",
+      "zh": "換句話說，各向量對拆解 token 的時間序列，提供獨立、獨特的貢獻。"
+    },
+    {
+      "start": 797.659,
+      "end": 806.94,
+      "en": "And that is what allows for basically any possible combination of sequence weightings to be learned by the model.",
+      "zh": "因此，模型基本上能學習任何序列加權組合。"
+    },
+    {
+      "start": 806.979,
+      "end": 810.5,
+      "en": "Now all of these vectors are not exactly orthogonal.",
+      "zh": "這些向量並不是完全正交。"
+    },
+    {
+      "start": 810.5,
+      "end": 817.14,
+      "en": "In fact, there is some meaningful structure in here that we will explore in the next video.",
+      "zh": "其實，有些有意義的結構，下一支影片會探索。"
+    },
+    {
+      "start": 817.14,
+      "end": 823.659,
+      "en": "Alright, so that's for the cosine similarity across the different embeddings vectors.",
+      "zh": "這是不同嵌入向量之間的餘弦相似度，"
+    },
+    {
+      "start": 823.659,
+      "end": 828.02,
+      "en": "So this one and this one, this one and this one, and so on.",
+      "zh": "例如這個與這個，這個與這個，等等。"
+    },
+    {
+      "start": 828.02,
+      "end": 834.119,
+      "en": "On the other hand, this one over here is much more colorful and interesting to look at.",
+      "zh": "另一張，則色彩豐富得多，也更有趣。"
+    },
+    {
+      "start": 834.119,
+      "end": 839.28,
+      "en": "So here we have the cosine similarities over the token indices.",
+      "zh": "這裡，是 token 位置索引之間的餘弦相似度。"
+    },
+    {
+      "start": 839.28,
+      "end": 842.88,
+      "en": "And this I find easier to think about as time.",
+      "zh": "我比較容易把它想成時間。"
+    },
+    {
+      "start": 842.88,
+      "end": 850.219,
+      "en": "So if you think about the 1000 token positions as like time, because you're reading the text",
+      "zh": "若把約 1,000 個 token 位置視為時間，因為閱讀文字"
+    },
+    {
+      "start": 850.219,
+      "end": 858.059,
+      "en": "over time, then these bands across the diagonal indicate the tendencies of the embeddings",
+      "zh": "隨時間進行，那麼對角線旁的帶狀結構，就表示嵌入"
+    },
+    {
+      "start": 858.059,
+      "end": 866.559,
+      "en": "vectors to be correlated with their neighboring tokens and anti-correlated with tokens that are further away.",
+      "zh": "在鄰近 token 位置傾向相關，而和較遠的位置反相關。"
+    },
+    {
+      "start": 866.559,
+      "end": 871.5,
+      "en": "You can see that as well when you look back at these specific examples.",
+      "zh": "回頭看特定例子，也能看出。"
+    },
+    {
+      "start": 871.5,
+      "end": 879.94,
+      "en": "So each time point or token index position is strongly correlated with its neighbor.",
+      "zh": "每個時間點，也就是 token 位置，與相鄰位置高度相關。"
+    },
+    {
+      "start": 879.94,
+      "end": 883.46,
+      "en": "And you see a lot of like almost rhythmic patterns.",
+      "zh": "也有很多近似節奏的模式。"
+    },
+    {
+      "start": 883.46,
+      "end": 889.82,
+      "en": "So these position vectors tend to go up and down over the context window.",
+      "zh": "這些位置向量，傾向在上下文視窗中上下起伏。"
+    },
+    {
+      "start": 889.82,
+      "end": 897.46,
+      "en": "And that's basically what this alternating pattern of yellow and blue indicates across the off diagonal.",
+      "zh": "這就是非對角區域，黃藍交替模式的意思。"
+    },
+    {
+      "start": 897.46,
+      "end": 904.859,
+      "en": "Okay, the final thing we will look at in this code is the formula for predefining position",
+      "zh": "最後，這段程式要看預先定義位置"
+    },
+    {
+      "start": 904.859,
+      "end": 913.7,
+      "en": "embeddings vectors as it was used in the attention paper that I showed the screenshot of in the previous slide.",
+      "zh": "嵌入向量的公式，也就是前一張截圖的注意力論文使用的方法。"
+    },
+    {
+      "start": 913.7,
+      "end": 921.9,
+      "en": "So here the x-axis is token order also here, which again I like to think about as time.",
+      "zh": "這裡與這裡的 x 軸，都是 token 順序；我同樣喜歡想成時間。"
+    },
+    {
+      "start": 921.9,
+      "end": 926.059,
+      "en": "And here the y-axis is the sorted embedding dimension.",
+      "zh": "y 軸是排序後的嵌入維度，"
+    },
+    {
+      "start": 926.059,
+      "end": 933.179,
+      "en": "And it's sorted by the frequency of the sine wave that's used to generate these vectors.",
+      "zh": "依照產生向量的正弦波頻率排序。"
+    },
+    {
+      "start": 933.179,
+      "end": 942.84,
+      "en": "And these horizontal colored lines here correspond to the individual vectors that I have picked out for plotting over here.",
+      "zh": "水平色線，對應右邊挑出來畫的個別向量。"
+    },
+    {
+      "start": 942.84,
+      "end": 948.34,
+      "en": "Now these lines here actually correspond to these lines over here.",
+      "zh": "這些線，則對應這裡的線。"
+    },
+    {
+      "start": 948.34,
+      "end": 959.679,
+      "en": "So these are just, you know, nine randomly selected vectors from the real embedding, the learned embeddings matrix in GPT-2.",
+      "zh": "這九個向量，是從 GPT-2 真正學到的嵌入矩陣，隨機挑出的。"
+    },
+    {
+      "start": 959.679,
+      "end": 968.46,
+      "en": "And these are four selected embeddings vectors from the mathematically defined position embeddings vectors.",
+      "zh": "這四個，則是從數學定義的位置嵌入中選出。"
+    },
+    {
+      "start": 968.46,
+      "end": 972.82,
+      "en": "So these ones are learned by the model based on data.",
+      "zh": "這些由模型根據資料學得，"
+    },
+    {
+      "start": 972.82,
+      "end": 977.5,
+      "en": "And these ones are not learned, but they are determined by formulas.",
+      "zh": "那些不是學得，而由公式決定。"
+    },
+    {
+      "start": 977.5,
+      "end": 982.059,
+      "en": "Okay, let's start exploring in the code.",
+      "zh": "開始看程式。"
+    },
+    {
+      "start": 982.059,
+      "end": 984.58,
+      "en": "Import some libraries up here, yada, yada, yada.",
+      "zh": "上方匯入一些函式庫，等等。"
+    },
+    {
+      "start": 984.58,
+      "end": 989.979,
+      "en": "And then here I'm importing the GPT-2 model.",
+      "zh": "接著匯入 GPT-2 模型。"
+    },
+    {
+      "start": 989.979,
+      "end": 997.34,
+      "en": "Previously we have been working with this matrix in the model WTE, or word token embeddings.",
+      "zh": "先前使用模型中的 wte，也就是 word token embeddings。"
+    },
+    {
+      "start": 997.34,
+      "end": 1005.179,
+      "en": "And now we are going to start exploring this matrix WPE, which is word position embeddings.",
+      "zh": "現在開始探索 wpe，也就是 word position embeddings。"
+    },
+    {
+      "start": 1005.179,
+      "end": 1007.94,
+      "en": "You can also see the sizes are different.",
+      "zh": "也能看到，大小不同。"
+    },
+    {
+      "start": 1007.94,
+      "end": 1017.34,
+      "en": "So here we have, let me zoom in here, the token embeddings is 5,000 by 768.",
+      "zh": "放大一下，token 嵌入是 5,000 乘以 768（原口述數值疑誤），"
+    },
+    {
+      "start": 1017.34,
+      "end": 1022.38,
+      "en": "And the position embeddings is 1,024 by 768.",
+      "zh": "位置嵌入則是 1,024 乘以 768。"
+    },
+    {
+      "start": 1022.739,
+      "end": 1027.819,
+      "en": "Again, this corresponds to the number of tokens in the vocab.",
+      "zh": "同樣，這個對應詞彙表的 token 數，"
+    },
+    {
+      "start": 1027.819,
+      "end": 1034.5,
+      "en": "And this corresponds to the maximum context window that GPT-2 can take.",
+      "zh": "這個對應 GPT-2 最大上下文視窗。"
+    },
+    {
+      "start": 1034.5,
+      "end": 1038.5,
+      "en": "Okay, so here I'm just extracting this.",
+      "zh": "這裡只是擷取矩陣。"
+    },
+    {
+      "start": 1038.5,
+      "end": 1041.939,
+      "en": "This syntax will look very familiar to you now.",
+      "zh": "這種語法，現在應該很熟悉。"
+    },
+    {
+      "start": 1041.939,
+      "end": 1046.459,
+      "en": "We've previously used it in this way to get the token indices.",
+      "zh": "先前用這種方式，取得 token 索引，"
+    },
+    {
+      "start": 1046.459,
+      "end": 1052.219,
+      "en": "And now we're getting the position indices, or sorry, the weights vectors.",
+      "zh": "現在取得位置索引，抱歉，是權重向量。"
+    },
+    {
+      "start": 1052.739,
+      "end": 1060.38,
+      "en": "And again, this is just to decouple the numbers from the gradient information that's stored in PyTorch.",
+      "zh": "同樣，把數值與 PyTorch 儲存的梯度資訊分離。"
+    },
+    {
+      "start": 1060.38,
+      "end": 1067.18,
+      "en": "And then we're not working with PyTorch in this video, so we transform it into a NumPy array.",
+      "zh": "這支影片不操作 PyTorch，所以轉成 NumPy 陣列。"
+    },
+    {
+      "start": 1067.18,
+      "end": 1069.9,
+      "en": "Okay, here you also see the size here.",
+      "zh": "這裡也能看到大小。"
+    },
+    {
+      "start": 1069.9,
+      "end": 1073.9,
+      "en": "Okay, and here I'm showing the entire matrix.",
+      "zh": "這裡展示整個矩陣。"
+    },
+    {
+      "start": 1073.9,
+      "end": 1085.619,
+      "en": "And basically, the vectors that I'm going to draw here, which you already saw in the slides, are just some randomly selected rows from this matrix over here.",
+      "zh": "即將畫出的向量，也就是投影片看過的，是從這個矩陣隨機選出的部分向量。"
+    },
+    {
+      "start": 1085.619,
+      "end": 1090.02,
+      "en": "And you can see that there is already some structure in here.",
+      "zh": "已經可以看到一些結構。"
+    },
+    {
+      "start": 1090.02,
+      "end": 1095.78,
+      "en": "Okay, so what I'm doing here is creating a 3 by 4 subplot geometry.",
+      "zh": "這裡建立 3 乘 4 的子圖配置，"
+    },
+    {
+      "start": 1095.78,
+      "end": 1098.06,
+      "en": "So it's going to be 12 subplots.",
+      "zh": "總共 12 張子圖。"
+    },
+    {
+      "start": 1098.06,
+      "end": 1104.02,
+      "en": "I cropped it to show 9 in the slides just to make it fit into the slide a little bit better.",
+      "zh": "投影片只截九張，方便放進版面。"
+    },
+    {
+      "start": 1104.02,
+      "end": 1108.06,
+      "en": "Here, so now I'm looping through all of those 12 subplots.",
+      "zh": "現在，走訪 12 張子圖。"
+    },
+    {
+      "start": 1108.06,
+      "end": 1111.26,
+      "en": "Here, I'm just generating a random integer.",
+      "zh": "隨機產生一個整數，"
+    },
+    {
+      "start": 1111.26,
+      "end": 1116.3,
+      "en": "And then I'm plotting the corresponding positions embedding vector.",
+      "zh": "再畫出對應的位置嵌入維度向量。"
+    },
+    {
+      "start": 1116.3,
+      "end": 1118.3,
+      "en": "Okay, so then we see that here.",
+      "zh": "結果就在這裡。"
+    },
+    {
+      "start": 1118.3,
+      "end": 1124.459,
+      "en": "It's quite interesting to see it's kind of like two categories of position embedding vectors.",
+      "zh": "有趣的是，位置嵌入向量大致分兩類。"
+    },
+    {
+      "start": 1124.459,
+      "end": 1129.979,
+      "en": "Either they are kind of smooth and show large fluctuations, large deflections.",
+      "zh": "一類比較平滑，有大幅起伏與偏移；"
+    },
+    {
+      "start": 1129.979,
+      "end": 1134.699,
+      "en": "Or they're a little bit noisier, a little bit more high frequency, so a little bit more refined.",
+      "zh": "另一類雜訊稍多、頻率較高，變化較細緻，"
+    },
+    {
+      "start": 1134.699,
+      "end": 1136.859,
+      "en": "And they tend not to deviate as much.",
+      "zh": "而且偏移幅度通常較小。"
+    },
+    {
+      "start": 1136.859,
+      "end": 1142.14,
+      "en": "So we can call this high temporal frequency and low temporal frequency.",
+      "zh": "可以稱為高時間頻率與低時間頻率。"
+    },
+    {
+      "start": 1142.14,
+      "end": 1153.739,
+      "en": "Okay, and yeah, it's interesting to rerun this analysis multiple times and just get a sense of the differences, the varieties of temporal sequence patterns",
+      "zh": "多次重新執行，感受嵌入向量呈現的各種不同時間序列模式，"
+    },
+    {
+      "start": 1153.739,
+      "end": 1158.06,
+      "en": "that you see from these embeddings vectors.",
+      "zh": "很有意思。"
+    },
+    {
+      "start": 1158.06,
+      "end": 1168.14,
+      "en": "Okay, so now here I'm going to calculate the cosine similarities across all of the features in this matrix,",
+      "zh": "接著，計算矩陣中所有特徵之間的餘弦相似度，"
+    },
+    {
+      "start": 1168.14,
+      "end": 1175.9,
+      "en": "except I'm going to consider the features to be either the token positions, which is like the time dimension,",
+      "zh": "但特徵可以視為 token 位置，也就是時間維度，"
+    },
+    {
+      "start": 1175.9,
+      "end": 1181.18,
+      "en": "or I will consider the features to be the embeddings vectors themselves.",
+      "zh": "或視為嵌入維度向量本身。"
+    },
+    {
+      "start": 1182.459,
+      "end": 1189.979,
+      "en": "So the code to calculate the all-to-all or all-pairwise cosine similarity matrix is basically the same.",
+      "zh": "計算所有兩兩配對的餘弦相似度矩陣，程式基本相同。"
+    },
+    {
+      "start": 1190.619,
+      "end": 1199.099,
+      "en": "We just take the matrix and scale each individual vector by its norm, and then multiply the matrix by its transpose.",
+      "zh": "把矩陣各向量除以範數，再乘上矩陣的轉置。"
+    },
+    {
+      "start": 1199.739,
+      "end": 1209.819,
+      "en": "The tricky part is knowing which axis or which dimension that you want to normalize and calculate cosine similarity along.",
+      "zh": "困難的是，知道沿哪條軸、哪個維度正規化，以及計算相似度。"
+    },
+    {
+      "start": 1209.819,
+      "end": 1219.979,
+      "en": "So you can see here I'm normalizing across axis 1, here across axis 0, and that also impacts which matrix gets transposed.",
+      "zh": "這裡沿 axis 1 正規化，這裡沿 axis 0，也影響哪個矩陣要轉置。"
+    },
+    {
+      "start": 1220.619,
+      "end": 1229.739,
+      "en": "It's quite confusing the way that I try to keep it in mind is by looking at the size of the results, keeping in mind that these matrices,",
+      "zh": "相當容易混淆。我的方法，是看結果大小，記得這些"
+    },
+    {
+      "start": 1229.739,
+      "end": 1234.14,
+      "en": "these cosine similarity matrices are always features by features.",
+      "zh": "餘弦相似度矩陣，永遠是特徵數乘以特徵數。"
+    },
+    {
+      "start": 1234.699,
+      "end": 1242.78,
+      "en": "So if you are considering the ordinal position or time, as I and many other people like to think of it,",
+      "zh": "若把順序位置視為時間，就像我與許多人喜歡做的，"
+    },
+    {
+      "start": 1243.66,
+      "end": 1247.66,
+      "en": "then the features are the time points or the token positions.",
+      "zh": "特徵就是時間點，也就是 token 位置。"
+    },
+    {
+      "start": 1247.66,
+      "end": 1253.099,
+      "en": "So that matrix is going to be 1000 by 1000, 1024 by 1024.",
+      "zh": "矩陣大小會是約 1,000 乘以 1,000，精確地說，是 1,024 乘以 1,024。"
+    },
+    {
+      "start": 1254.14,
+      "end": 1258.699,
+      "en": "But if you are considering the features to be the embeddings vectors themselves,",
+      "zh": "但如果特徵是嵌入維度向量本身，"
+    },
+    {
+      "start": 1259.42,
+      "end": 1267.9,
+      "en": "then the cosine similarity matrix will be 768 by 768.",
+      "zh": "矩陣就是 768 乘以 768。"
+    },
+    {
+      "start": 1267.9,
+      "end": 1277.579,
+      "en": "So I've already mentioned in the slides how to interpret it, but I'm going to restate that just because it does take a little bit of exposure",
+      "zh": "投影片已經談過解讀方式，但再說一次，因為確實需要多接觸，"
+    },
+    {
+      "start": 1277.579,
+      "end": 1280.699,
+      "en": "to really wrap your head around what these things mean.",
+      "zh": "才容易真正理解。"
+    },
+    {
+      "start": 1280.699,
+      "end": 1283.9,
+      "en": "Okay, so let's start actually, let's start with this one over here.",
+      "zh": "先從這張開始。"
+    },
+    {
+      "start": 1283.9,
+      "end": 1288.06,
+      "en": "So what do the values in this cosine similarity matrix mean?",
+      "zh": "餘弦相似度矩陣裡的值，代表什麼？"
+    },
+    {
+      "start": 1288.06,
+      "end": 1289.9,
+      "en": "Well, notice that we have a value.",
+      "zh": "注意，這裡有個值，"
+    },
+    {
+      "start": 1289.9,
+      "end": 1292.939,
+      "en": "Actually, let me go up to this one here.",
+      "zh": "其實，先往上看這張。"
+    },
+    {
+      "start": 1292.939,
+      "end": 1296.38,
+      "en": "Okay, so let's consider these two right here.",
+      "zh": "考慮這兩個，"
+    },
+    {
+      "start": 1296.38,
+      "end": 1299.02,
+      "en": "These two position encoding vectors.",
+      "zh": "這兩個位置編碼向量。"
+    },
+    {
+      "start": 1299.02,
+      "end": 1300.619,
+      "en": "These are two separate vectors.",
+      "zh": "它們是兩個獨立向量，"
+    },
+    {
+      "start": 1301.26,
+      "end": 1306.939,
+      "en": "Each of which is 1024 time points long or elements long.",
+      "zh": "各自長 1,024 個時間點，或 1,024 個元素。"
+    },
+    {
+      "start": 1306.939,
+      "end": 1310.3,
+      "en": "So this is 415 and this is 369.",
+      "zh": "分別是 415 與 369。"
+    },
+    {
+      "start": 1310.3,
+      "end": 1316.3,
+      "en": "So we can calculate the cosine similarity between this vector and this vector.",
+      "zh": "可以計算它們的餘弦相似度，"
+    },
+    {
+      "start": 1316.3,
+      "end": 1318.14,
+      "en": "That's going to give us some number.",
+      "zh": "會得到某個數字。"
+    },
+    {
+      "start": 1318.14,
+      "end": 1325.099,
+      "en": "You can visually see these don't really go up and down together, maybe a little bit in the beginning and at the end.",
+      "zh": "視覺上，它們不太一起上下變化，也許開頭與結尾有一點。"
+    },
+    {
+      "start": 1325.099,
+      "end": 1329.979,
+      "en": "So let's say the cosine similarity between these two vectors is 0.1.",
+      "zh": "假設相似度是 0.1。"
+    },
+    {
+      "start": 1330.699,
+      "end": 1335.9,
+      "en": "Okay, so now we go down to this matrix and we find the corresponding coordinate.",
+      "zh": "接著，回到矩陣，找對應座標。"
+    },
+    {
+      "start": 1335.9,
+      "end": 1340.06,
+      "en": "So that was 419 and 3, I already forgot, 300 something.",
+      "zh": "剛才是 419，和三，我已忘記了，三百多。"
+    },
+    {
+      "start": 1340.06,
+      "end": 1344.38,
+      "en": "So let's say that that matrix element is here.",
+      "zh": "假設對應元素在這裡。"
+    },
+    {
+      "start": 1344.38,
+      "end": 1353.819,
+      "en": "So that location would have a value of 0.1 indicating a cosine similarity of 0.1 between those two embeddings vectors.",
+      "zh": "這個位置就會有 0.1，代表兩個嵌入向量的餘弦相似度是 0.1。"
+    },
+    {
+      "start": 1354.699,
+      "end": 1358.06,
+      "en": "Okay, so that is, I hope that's clear.",
+      "zh": "希望這樣清楚。"
+    },
+    {
+      "start": 1359.02,
+      "end": 1368.459,
+      "en": "Here we're doing a very similar analysis, except now we are not looking at the cosine similarity between the different vectors,",
+      "zh": "這裡做類似分析，但不是比較不同維度向量，"
+    },
+    {
+      "start": 1368.459,
+      "end": 1374.14,
+      "en": "but between two successive time points across all of the position vectors.",
+      "zh": "而是跨所有位置嵌入維度，比較兩個相鄰時間點。"
+    },
+    {
+      "start": 1374.14,
+      "end": 1381.02,
+      "en": "So that's not really what's plotted here, because here what I'm plotting is all of the token indices.",
+      "zh": "這裡的圖其實沒有直接畫出那種比較，因為畫的是所有 token 位置，"
+    },
+    {
+      "start": 1381.02,
+      "end": 1386.38,
+      "en": "So all of the time points for 12 randomly selected position embedding vectors.",
+      "zh": "也就是 12 個隨機位置嵌入維度向量的全部時間點。"
+    },
+    {
+      "start": 1387.099,
+      "end": 1389.66,
+      "en": "But, you know, let's go, we can just stay here.",
+      "zh": "不過，可以留在這裡說明。"
+    },
+    {
+      "start": 1389.66,
+      "end": 1392.459,
+      "en": "So imagine two neighboring time points here.",
+      "zh": "想像這裡兩個相鄰時間點，"
+    },
+    {
+      "start": 1392.459,
+      "end": 1397.739,
+      "en": "So time point 500 and time point 501, that will be around here.",
+      "zh": "第 500 與 501 個時間點，大約在這裡。"
+    },
+    {
+      "start": 1398.459,
+      "end": 1406.619,
+      "en": "How are those two neighboring indices correlated over all the different embedding vectors?",
+      "zh": "它們跨不同嵌入維度的相關如何？"
+    },
+    {
+      "start": 1406.619,
+      "end": 1409.099,
+      "en": "Now, these are two neighboring token time points.",
+      "zh": "這是相鄰的 token 時間點，"
+    },
+    {
+      "start": 1409.099,
+      "end": 1412.699,
+      "en": "So they're going to be very strongly correlated with each other.",
+      "zh": "所以，會高度相關。"
+    },
+    {
+      "start": 1412.699,
+      "end": 1417.02,
+      "en": "Whatever one happens to be the other one is probably going to be a pretty similar value.",
+      "zh": "一個值是什麼，另一個大概很接近。"
+    },
+    {
+      "start": 1417.66,
+      "end": 1425.26,
+      "en": "That's obvious from looking at these plots, you don't see like really huge fluctuations happening in a very short time span.",
+      "zh": "圖上很明顯，短時間內，沒有非常巨大的波動。"
+    },
+    {
+      "start": 1425.819,
+      "end": 1434.14,
+      "en": "So you can predict the value of any one token position based on its neighbor.",
+      "zh": "因此，可以依相鄰位置，預測某個 token 位置的值，"
+    },
+    {
+      "start": 1434.14,
+      "end": 1437.66,
+      "en": "So strong temporal autocorrelation.",
+      "zh": "也就是很強的時間自相關。"
+    },
+    {
+      "start": 1438.619,
+      "end": 1448.3,
+      "en": "The fact that you can do that, that neighboring positions have similar values, that is what the yellow color here indicates.",
+      "zh": "相鄰位置有相似值，這就是黃色所代表的。"
+    },
+    {
+      "start": 1448.3,
+      "end": 1450.14,
+      "en": "And when it's blue, it's negative.",
+      "zh": "藍色則是負的，"
+    },
+    {
+      "start": 1450.14,
+      "end": 1459.739,
+      "en": "That means that as you go further away, so a couple of hundred time points or token positions away, the correlations are likely to be negative.",
+      "zh": "表示相距更遠，例如幾百個時間點或 token 位置時，相關可能為負。"
+    },
+    {
+      "start": 1460.38,
+      "end": 1462.54,
+      "en": "Okay, so how do we interpret that?",
+      "zh": "如何解讀？"
+    },
+    {
+      "start": 1462.54,
+      "end": 1464.939,
+      "en": "Let's look at this plot over here.",
+      "zh": "看這張圖。"
+    },
+    {
+      "start": 1464.939,
+      "end": 1466.939,
+      "en": "So here we are at this time point.",
+      "zh": "假設在這個時間點，"
+    },
+    {
+      "start": 1467.02,
+      "end": 1477.26,
+      "en": "Now, if I told you what this time point was, and I want you to tell me what's going to be the value, let's say 300 token indices later,",
+      "zh": "如果告訴你目前值，想請你預測約 300 個 token 位置後的值，"
+    },
+    {
+      "start": 1477.819,
+      "end": 1481.66,
+      "en": "you can say, well, I'm just going to take this value and flip it.",
+      "zh": "你可以說，就把現在的值反過來，"
+    },
+    {
+      "start": 1481.66,
+      "end": 1483.9,
+      "en": "I'm just going to attach a minus sign.",
+      "zh": "加個負號。"
+    },
+    {
+      "start": 1483.9,
+      "end": 1490.619,
+      "en": "Because when it's high over here, a couple hundred token indices later, it's going to be low on average.",
+      "zh": "因為這裡高，幾百個 token 後，平均會較低。"
+    },
+    {
+      "start": 1492.619,
+      "end": 1496.54,
+      "en": "And versus over here, it's negative over here.",
+      "zh": "反過來，這裡為負，"
+    },
+    {
+      "start": 1496.54,
+      "end": 1500.219,
+      "en": "A couple hundred positions later is likely to be positive.",
+      "zh": "幾百個位置後，可能為正。"
+    },
+    {
+      "start": 1500.219,
+      "end": 1505.5,
+      "en": "So that observation, I'm making that just based on this one particular vector.",
+      "zh": "這個觀察，是根據單一特定向量，"
+    },
+    {
+      "start": 1505.5,
+      "end": 1514.939,
+      "en": "But that turns out to be a pretty consistent interpretation at the aggregate across the 768 vectors.",
+      "zh": "但在 768 個向量的整體上，也是相當一致的解讀。"
+    },
+    {
+      "start": 1514.939,
+      "end": 1520.78,
+      "en": "And that is why you see this alternating bands of positive, negative, positive, negative.",
+      "zh": "所以，會看到正、負、正、負交替的帶狀結構。"
+    },
+    {
+      "start": 1522.14,
+      "end": 1527.579,
+      "en": "Okay, so this observation, this is purely coming from trained weights.",
+      "zh": "這個觀察，純粹來自訓練權重，"
+    },
+    {
+      "start": 1527.579,
+      "end": 1533.18,
+      "en": "This is not a temporal pattern that we impose on the weights.",
+      "zh": "不是我們強加的時間模式。"
+    },
+    {
+      "start": 1533.18,
+      "end": 1539.579,
+      "en": "They just come out this way, because that is just the nature of how human language is structured.",
+      "zh": "它們自然變成這樣，因為人類語言就是這樣的結構。"
+    },
+    {
+      "start": 1540.38,
+      "end": 1548.459,
+      "en": "Okay, so that leads us to other people looking at this and saying, well, rather than learning these weights from data,",
+      "zh": "這就讓其他人想，與其從資料學習權重，"
+    },
+    {
+      "start": 1549.42,
+      "end": 1560.14,
+      "en": "why don't we just create a bunch of sine waves and cosine waves and have the model use those cosine waves instead of having to train them from the text?",
+      "zh": "為什麼不直接建立一組正弦波與餘弦波，讓模型使用，而不必從文字訓練？"
+    },
+    {
+      "start": 1560.14,
+      "end": 1567.66,
+      "en": "Okay, and that is where the formula comes from that I showed you from the attention is all you need paper.",
+      "zh": "這就是 Attention Is All You Need 論文裡，那個公式的由來。"
+    },
+    {
+      "start": 1568.3,
+      "end": 1575.9,
+      "en": "Okay, so here I am, let me see, creating a matrix called positions formula.",
+      "zh": "這裡，看看，建立叫作 positions formula 的矩陣，"
+    },
+    {
+      "start": 1576.619,
+      "end": 1581.9,
+      "en": "It's the same size as the position embeddings matrix that we were just looking at.",
+      "zh": "大小和剛才的位置嵌入矩陣相同。"
+    },
+    {
+      "start": 1582.859,
+      "end": 1588.619,
+      "en": "Here, I'm just getting an ordinal number corresponding to the token position.",
+      "zh": "這裡取得 token 位置對應的順序數字。"
+    },
+    {
+      "start": 1588.619,
+      "end": 1597.42,
+      "en": "Again, it's helpful to think about this as time as you're reading a text, you are at the current position and things that happened in the past",
+      "zh": "同樣，想成時間會有幫助：閱讀文字時，你在目前位置，先前的事，"
+    },
+    {
+      "start": 1597.42,
+      "end": 1600.699,
+      "en": "were, you know, several tokens ago.",
+      "zh": "是幾個 token 之前。"
+    },
+    {
+      "start": 1601.579,
+      "end": 1603.339,
+      "en": "Okay, so then we loop through all of that.",
+      "zh": "接著，逐一走訪。"
+    },
+    {
+      "start": 1604.38,
+      "end": 1606.459,
+      "en": "Here, I'm defining the denominator.",
+      "zh": "這裡定義分母。"
+    },
+    {
+      "start": 1606.459,
+      "end": 1607.9,
+      "en": "It's a funny looking formula.",
+      "zh": "公式看起來很奇特，"
+    },
+    {
+      "start": 1608.699,
+      "end": 1610.619,
+      "en": "I don't know how they derive this.",
+      "zh": "不知道他們如何推導。"
+    },
+    {
+      "start": 1611.18,
+      "end": 1618.06,
+      "en": "My suspicion is they just played around until they found something that looked good and worked reasonably well.",
+      "zh": "我猜，他們就是反覆嘗試，直到找到看起來好、效果也還不錯的東西。"
+    },
+    {
+      "start": 1618.06,
+      "end": 1622.699,
+      "en": "The important thing is that the embeddings are sine and cosine pairs.",
+      "zh": "重要的是，嵌入以正弦、餘弦配對。"
+    },
+    {
+      "start": 1623.5,
+      "end": 1630.14,
+      "en": "Again, if you have studied signal processing or Fourier analysis, you will recognize this.",
+      "zh": "如果學過訊號處理或傅立葉分析，應該認得。"
+    },
+    {
+      "start": 1630.14,
+      "end": 1633.819,
+      "en": "This is basically the same, basically the same.",
+      "zh": "基本上，這和，基本上相同，"
+    },
+    {
+      "start": 1633.819,
+      "end": 1638.14,
+      "en": "It's analogously very similar to the Fourier transform.",
+      "zh": "類比上，非常接近傅立葉轉換。"
+    },
+    {
+      "start": 1638.3,
+      "end": 1645.819,
+      "en": "Essentially, we are taking a Fourier decomposition of the token position embeddings",
+      "zh": "本質上，把 token 位置做傅立葉式分解，"
+    },
+    {
+      "start": 1645.819,
+      "end": 1651.579,
+      "en": "and are the token positions and using that as the embeddings matrices.",
+      "zh": "再作為嵌入矩陣。"
+    },
+    {
+      "start": 1653.02,
+      "end": 1656.38,
+      "en": "Okay, and that is how we get this plot over here.",
+      "zh": "這就是這張圖的來源。"
+    },
+    {
+      "start": 1656.38,
+      "end": 1667.339,
+      "en": "Okay, and now what I'm doing here is regenerating the plot from above, but using this matrix over here, so coming from formulas.",
+      "zh": "現在，用公式產生的這個矩陣，重畫上方的圖。"
+    },
+    {
+      "start": 1667.42,
+      "end": 1671.579,
+      "en": "Just to make sure this is clear, these are coming from the real data.",
+      "zh": "確認一下，這些來自真實資料，"
+    },
+    {
+      "start": 1671.579,
+      "end": 1677.979,
+      "en": "These are the actual position embeddings that GPT-2 really uses.",
+      "zh": "是 GPT-2 真正使用的位置嵌入。"
+    },
+    {
+      "start": 1678.54,
+      "end": 1685.18,
+      "en": "Okay, and this is coming from a math formula, but it's the same concept.",
+      "zh": "這些則來自數學公式，但概念相同。"
+    },
+    {
+      "start": 1685.18,
+      "end": 1693.9,
+      "en": "So you can see, obviously, these are much smoother because they are defined by math, not by data and gradient descent.",
+      "zh": "顯然，公式的結果更平滑，因為由數學定義，而不是資料與梯度下降學得。"
+    },
+    {
+      "start": 1693.9,
+      "end": 1698.219,
+      "en": "But you do see some qualitatively similar patterns re-emerging.",
+      "zh": "但仍會看到質性上相似的模式，"
+    },
+    {
+      "start": 1698.219,
+      "end": 1702.3,
+      "en": "So there are very fast high-frequency reverberations.",
+      "zh": "有很快的高頻震盪，"
+    },
+    {
+      "start": 1702.3,
+      "end": 1706.859,
+      "en": "There are slow fluctuations similar to the learned embeddings.",
+      "zh": "也有類似學習式嵌入的緩慢起伏。"
+    },
+    {
+      "start": 1708.619,
+      "end": 1711.5,
+      "en": "A couple of points of summary and conclusion.",
+      "zh": "幾個總結與結論。"
+    },
+    {
+      "start": 1712.3,
+      "end": 1721.819,
+      "en": "The position embeddings vectors can decompose the token sequence into a set of independent temporal basis functions,",
+      "zh": "位置嵌入向量，可以把 token 序列拆成一組獨立的時間基底函式，"
+    },
+    {
+      "start": 1721.819,
+      "end": 1726.859,
+      "en": "and that allows the model to learn relationships across tokens",
+      "zh": "讓模型學習 token 間的關係，"
+    },
+    {
+      "start": 1726.859,
+      "end": 1734.219,
+      "en": "in the way that we use relationships across words to indicate meaning and collapse ambiguity.",
+      "zh": "就像人類用單字關係表達意義、消除歧義。"
+    },
+    {
+      "start": 1735.339,
+      "end": 1746.54,
+      "en": "Nowadays, it is common to train model-specific position embeddings vectors that reflect the sequence characteristics of the texts that the model is trained on.",
+      "zh": "現在，常見做法是訓練模型專屬的位置嵌入，反映訓練文字的序列特性。"
+    },
+    {
+      "start": 1747.26,
+      "end": 1755.579,
+      "en": "And also a more general point, cosine similarity matrices pack a ton of information into a small amount of space.",
+      "zh": "更一般地說，餘弦相似度矩陣，能在很小空間裡，容納大量資訊。"
+    },
+    {
+      "start": 1756.14,
+      "end": 1764.459,
+      "en": "They're tricky to interpret, especially when you're first encountering them, but we will continue using these kinds of matrices throughout the course.",
+      "zh": "一開始很難解讀，但課程會持續使用這種矩陣。"
+    },
+    {
+      "start": 1764.459,
+      "end": 1772.219,
+      "en": "So you'll gain a lot more familiarity with this way of representing network structure and network activity.",
+      "zh": "你會越來越熟悉，這種表示網路結構與網路活動的方式。"
+    }
+  ]
+}

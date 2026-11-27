@@ -1,0 +1,1381 @@
+{
+  "courseId": "4734870",
+  "lectureId": "32708226",
+  "title": "PyTorch Training Loop Steps and Intuition",
+  "section": 3,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "9c1bec9c526611ad9781fc1e454d1b99eddc0e06bdf960f4ebfc47845943fb73",
+  "cues": [
+    {
+      "start": 0.24,
+      "end": 1.32,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 1.35,
+      "end": 8.43,
+      "en": "In the last video, we set up a lost function and we set up an optimizer and we discussed the roles of each.",
+      "zh": "上支影片設定了損失函數、最佳化器，也討論各自角色，"
+    },
+    {
+      "start": 8.43,
+      "end": 11.12,
+      "en": "So the lost function measures how wrong our model is.",
+      "zh": "損失函數衡量模型有多錯，"
+    },
+    {
+      "start": 11.13,
+      "end": 20.31,
+      "en": "The optimizer talks to the loss function and goes, Well, if I change these parameters a certain way, does that reduce the loss function at all?",
+      "zh": "最佳化器和損失函數溝通，說，如果以某種方式改參數，損失有降低嗎？"
+    },
+    {
+      "start": 20.31,
+      "end": 23.79,
+      "en": "And if it does, yes, let's keep adjusting them in that direction.",
+      "zh": "有的話，就繼續往那方向調整，"
+    },
+    {
+      "start": 23.79,
+      "end": 27.15,
+      "en": "If it doesn't, let's adjust them in the opposite direction.",
+      "zh": "沒有，就往相反方向。"
+    },
+    {
+      "start": 27.72,
+      "end": 35.73,
+      "en": "And I just want to show you, I added a little bit of text here just to concretely put down what we were discussing inside the optimizer.",
+      "zh": "我加了一點文字，想把剛才最佳化器的討論具體寫下來，"
+    },
+    {
+      "start": 35.76,
+      "end": 42.93,
+      "en": "You'll often have to set two parameters params and LR, where params is the model parameters you'd like to optimize.",
+      "zh": "經常需要設定兩個參數，params 與 lr，params 是想最佳化的模型參數，"
+    },
+    {
+      "start": 42.93,
+      "end": 48.78,
+      "en": "For an example, in our case, params equals our model zero parameters which were of course a weight",
+      "zh": "例如 params 等於 model_0.parameters，當然就是 weight"
+    },
+    {
+      "start": 48.78,
+      "end": 57.51,
+      "en": "and a bias, and the learning rate which is LR and optimizer LR stands for learning rate and the learning rate is a hyper parameter.",
+      "zh": "與 bias；再來學習率，也就是 lr，最佳化器的 lr 代表 learning rate，學習率是超參數。"
+    },
+    {
+      "start": 57.51,
+      "end": 62.94,
+      "en": "Remember, a hyper parameter is a value that we, the data scientist or machine learning engineer sets,",
+      "zh": "記住，超參數是資料科學家或機器學習工程師設定的值，"
+    },
+    {
+      "start": 62.94,
+      "end": 71.85,
+      "en": "whereas a parameter is what the model sets itself, defines how big or small or optimizer changes the model parameters.",
+      "zh": "參數是模型自己設定的值。學習率定義最佳化器改變模型參數的幅度，"
+    },
+    {
+      "start": 71.85,
+      "end": 73.86,
+      "en": "So a small learning rate.",
+      "zh": "小學習率，"
+    },
+    {
+      "start": 73.86,
+      "end": 80.73,
+      "en": "So the smaller this value results in small changes are large learning rate results in large changes.",
+      "zh": "這個值越小，變動越小；大學習率，變動較大。"
+    },
+    {
+      "start": 80.82,
+      "end": 84.63,
+      "en": "So another question might be well, very valid question.",
+      "zh": "另一個很合理的問題，"
+    },
+    {
+      "start": 84.63,
+      "end": 89.7,
+      "en": "Hey, I've put this here already is which loss function and which optimizers should I use?",
+      "zh": "嘿，我已放這裡，該用哪種損失函數與最佳化器？"
+    },
+    {
+      "start": 89.7,
+      "end": 95.03999999999999,
+      "en": "So this is another tough one because it's problem specific, but with experience of machine learning.",
+      "zh": "這很難回答，因為依問題而定，但隨機器學習經驗增加，"
+    },
+    {
+      "start": 95.03999999999999,
+      "end": 96.75,
+      "en": "I'm showing you one example here.",
+      "zh": "這裡示範一個例子，"
+    },
+    {
+      "start": 96.75,
+      "end": 99.45,
+      "en": "You'll get an idea of what works for your particular problem.",
+      "zh": "會逐漸知道什麼適合自己的問題。"
+    },
+    {
+      "start": 99.45,
+      "end": 111,
+      "en": "For a regression problem like ours, a loss function of L1 loss, which is may imply too much and an optimizer like torched at Optima slash SGD like sarcastic gradient descent will suffice.",
+      "zh": "像這裡的迴歸問題，L1Loss，也就是 PyTorch 裡的 MAE，以及 torch.optim.SGD，隨機梯度下降，這類最佳化器就足夠。"
+    },
+    {
+      "start": 111.09,
+      "end": 114.03,
+      "en": "But for a classification problem, we're going to see this later on.",
+      "zh": "但分類問題，後面會看到，"
+    },
+    {
+      "start": 114.03,
+      "end": 119.91,
+      "en": "Not this one specifically whether a photo is a cat of a dog, that's just an example of a binary classification problem.",
+      "zh": "不一定是這個，照片是貓還是狗，只是二元分類的一個例子，"
+    },
+    {
+      "start": 119.91,
+      "end": 130.98,
+      "en": "You might want to use a binary classification loss, but with that being said, we now are moving on to well, here's our whole goal is to reduce the RMA of our model.",
+      "zh": "可能要用二元分類損失。現在繼續，我們整個目標，就是降低模型的 MAE。"
+    },
+    {
+      "start": 131.1,
+      "end": 132.51,
+      "en": "Let's get the workflow.",
+      "zh": "看工作流程，"
+    },
+    {
+      "start": 132.6,
+      "end": 137.57999999999998,
+      "en": "We've done these two steps now we want to build a training loop, so let's get back into here.",
+      "zh": "這兩步完成，現在要建立訓練迴圈，回到這裡。"
+    },
+    {
+      "start": 137.61,
+      "end": 139.56,
+      "en": "There's going to be a fair few steps going on.",
+      "zh": "會有不少步驟，"
+    },
+    {
+      "start": 139.56,
+      "end": 143.31,
+      "en": "We've already covered a few, but hey, nothing we can't handle together.",
+      "zh": "已涵蓋幾個，但一起做，沒有什麼難不倒。"
+    },
+    {
+      "start": 143.31,
+      "end": 144.39,
+      "en": "So building.",
+      "zh": "在 PyTorch，"
+    },
+    {
+      "start": 145.34,
+      "end": 147.77,
+      "en": "A training loop and.",
+      "zh": "建立訓練迴圈，"
+    },
+    {
+      "start": 149.31,
+      "end": 150.21,
+      "en": "PyTorch.",
+      "zh": "PyTorch。"
+    },
+    {
+      "start": 151.39,
+      "end": 159.31,
+      "en": "So I thought about just talking about what's going on in the training loop, but we can talk about the steps after we've coded them.",
+      "zh": "本來想只解釋訓練迴圈在做什麼，但寫完程式後，再談步驟，"
+    },
+    {
+      "start": 159.57999999999998,
+      "end": 160.53,
+      "en": "How about we do that?",
+      "zh": "這樣如何？"
+    },
+    {
+      "start": 160.54,
+      "end": 164.26,
+      "en": "So we want to build a training loop and a testing loop.",
+      "zh": "要建立訓練迴圈與測試迴圈，"
+    },
+    {
+      "start": 164.29,
+      "end": 165.16,
+      "en": "How about we do that?",
+      "zh": "這樣如何？"
+    },
+    {
+      "start": 166.12,
+      "end": 167.02,
+      "en": "So.",
+      "zh": "所以，"
+    },
+    {
+      "start": 167.85,
+      "end": 171.9,
+      "en": "A couple of things we made in a training loop.",
+      "zh": "訓練迴圈需要幾樣東西，"
+    },
+    {
+      "start": 172.32,
+      "end": 175.8,
+      "en": "So there's going to be a fair few steps here if you've never written a training loop before.",
+      "zh": "如果沒寫過，這裡會有不少步驟，"
+    },
+    {
+      "start": 175.8,
+      "end": 182.82,
+      "en": "But that is completely fine because you'll find that the first couple of times that you write this, you'll be like, Oh my gosh, there's too much going on here.",
+      "zh": "完全沒關係，最初幾次寫時，可能想，我的天，內容太多，"
+    },
+    {
+      "start": 182.82,
+      "end": 189.65,
+      "en": "But then when you have practice, you'll go, okay, I see what's going on here, and then eventually you'll write them with your eyes closed.",
+      "zh": "但練習後就會知道怎麼回事，最後閉眼都能寫。"
+    },
+    {
+      "start": 189.66,
+      "end": 193.05,
+      "en": "I've got a fun song for you to help you out, remembering things.",
+      "zh": "有首好玩的歌，幫助記憶，"
+    },
+    {
+      "start": 193.06,
+      "end": 196.65,
+      "en": "It's called the unofficial PyTorch Optimization Loop song.",
+      "zh": "叫「非官方 PyTorch 最佳化迴圈之歌」，"
+    },
+    {
+      "start": 196.65,
+      "end": 197.97,
+      "en": "We'll see that later on.",
+      "zh": "後面會看到，"
+    },
+    {
+      "start": 197.97,
+      "end": 207.69,
+      "en": "Or actually I'll probably leave that as an extension, but you'll see that you can also function as these things, which we will do later in the course so that you can just write them once and then forget",
+      "zh": "或者可能當延伸，但也會看到，可以把這些做成函式，課程後面會做，寫一次就能不用"
+    },
+    {
+      "start": 207.69,
+      "end": 208.2,
+      "en": "about them.",
+      "zh": "再煩惱。"
+    },
+    {
+      "start": 208.2,
+      "end": 211.8,
+      "en": "But we're going to write it all from scratch to begin with so we know what's happening.",
+      "zh": "不過一開始全部從頭寫，才知道發生什麼。"
+    },
+    {
+      "start": 211.8,
+      "end": 216.93,
+      "en": "So we want to we're actually step zero is loop through.",
+      "zh": "想要，其實第 0 步，是走訪，"
+    },
+    {
+      "start": 217.99,
+      "end": 218.77,
+      "en": "The data.",
+      "zh": "資料，"
+    },
+    {
+      "start": 219.49,
+      "end": 227.23,
+      "en": "So we want to look at the data multiple times because our model is going to at first start with random predictions on the data, make some predictions.",
+      "zh": "想多看資料幾次，因為模型一開始會對資料做隨機預測，做一些預測，"
+    },
+    {
+      "start": 227.23,
+      "end": 228.46,
+      "en": "We're trying to improve those.",
+      "zh": "我們想改善，"
+    },
+    {
+      "start": 228.46,
+      "end": 231.31,
+      "en": "We're trying to minimize the loss to make those predictions.",
+      "zh": "想最小化損失。要做預測，"
+    },
+    {
+      "start": 231.31,
+      "end": 232.6,
+      "en": "We do a forward pass.",
+      "zh": "做前向傳遞，"
+    },
+    {
+      "start": 233.26,
+      "end": 236.86,
+      "en": "So Fordpass Why is it called a forward pass?",
+      "zh": "forward pass，為什麼這樣叫？"
+    },
+    {
+      "start": 236.86,
+      "end": 243.88,
+      "en": "So this involves data moving through our models.",
+      "zh": "因為資料流過模型的，"
+    },
+    {
+      "start": 243.88,
+      "end": 244.78,
+      "en": "Ford.",
+      "zh": "forward，"
+    },
+    {
+      "start": 247.07,
+      "end": 247.82,
+      "en": "Functions.",
+      "zh": "函式，"
+    },
+    {
+      "start": 248.3,
+      "end": 252.05,
+      "en": "Now I say functions because there might be plural, there might be more than one.",
+      "zh": "我說函式複數，是因為可能不只一個。"
+    },
+    {
+      "start": 252.05,
+      "end": 255.38,
+      "en": "And the Ford method recall we wrote in our model up here.",
+      "zh": "記得 forward 方法，是上面模型寫的這個，"
+    },
+    {
+      "start": 256.83,
+      "end": 257.58,
+      "en": "Ford.",
+      "zh": "forward，"
+    },
+    {
+      "start": 258.12,
+      "end": 261.6,
+      "en": "A Ford Pass is our data going through this function here.",
+      "zh": "前向傳遞，就是資料通過這個函式。"
+    },
+    {
+      "start": 261.6,
+      "end": 265.44,
+      "en": "And if you want to look at it visually, let's look up a neural network graphic.",
+      "zh": "想視覺化，找張神經網路圖，"
+    },
+    {
+      "start": 266.39,
+      "end": 267.2,
+      "en": "Images.",
+      "zh": "圖片，"
+    },
+    {
+      "start": 267.23,
+      "end": 273.83,
+      "en": "A fordpass is just data moving from the input to the output layer.",
+      "zh": "前向傳遞，就是資料從輸入層走到輸出層，"
+    },
+    {
+      "start": 274.01,
+      "end": 277.7,
+      "en": "So starting here, input layer, moving through the model.",
+      "zh": "從這裡輸入層開始，走過模型，"
+    },
+    {
+      "start": 277.90999999999997,
+      "end": 281.6,
+      "en": "So that's a forward pass also called forward propagation.",
+      "zh": "所以叫 forward pass，也叫前向傳播，"
+    },
+    {
+      "start": 281.6,
+      "end": 285.32,
+      "en": "Another time where more than one name is used with the same thing.",
+      "zh": "又是同件事有多個名稱。"
+    },
+    {
+      "start": 285.65,
+      "end": 295.55,
+      "en": "So we'll go back down here, Ford Pass, and I'll just write here also called Forward Propagation Propagation",
+      "zh": "回來這裡，前向傳遞，也寫又稱 Forward Propagation，Propagation，"
+    },
+    {
+      "start": 295.94,
+      "end": 296.65999999999997,
+      "en": "Wonderful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 296.75,
+      "end": 300.59,
+      "en": "And then we need to calculate the loss.",
+      "zh": "接著計算損失，"
+    },
+    {
+      "start": 300.98,
+      "end": 304.46,
+      "en": "So Ford Pass, let me write this.",
+      "zh": "前向傳遞，我寫，"
+    },
+    {
+      "start": 306.48,
+      "end": 309.3,
+      "en": "To calculate or to make predictions.",
+      "zh": "用來計算，或做預測，"
+    },
+    {
+      "start": 309.51,
+      "end": 311.58,
+      "en": "Make predictions on data.",
+      "zh": "對資料做預測。"
+    },
+    {
+      "start": 313.23,
+      "end": 314.7,
+      "en": "So calculate the loss.",
+      "zh": "計算損失，"
+    },
+    {
+      "start": 314.79,
+      "end": 315.78,
+      "en": "Compare.",
+      "zh": "比較，"
+    },
+    {
+      "start": 317.06,
+      "end": 317.9,
+      "en": "Fordpass.",
+      "zh": "前向傳遞的，"
+    },
+    {
+      "start": 320.33,
+      "end": 321.16,
+      "en": "Predictions.",
+      "zh": "預測，"
+    },
+    {
+      "start": 321.17,
+      "end": 324.13,
+      "en": "Oh, there's some thunder going in the background here of my place.",
+      "zh": "喔，我家背景傳來雷聲，"
+    },
+    {
+      "start": 324.14,
+      "end": 325.37,
+      "en": "We might be in for a storm.",
+      "zh": "可能有暴風雨，"
+    },
+    {
+      "start": 325.37,
+      "end": 329.99,
+      "en": "Perfect time to write code, Compare Ford past predictions to ground truth labels.",
+      "zh": "正是寫程式的好時機。比較前向預測與真實標籤。"
+    },
+    {
+      "start": 330.32,
+      "end": 332.87,
+      "en": "We're going to see all this in code in a second.",
+      "zh": "馬上會用程式碼看。"
+    },
+    {
+      "start": 332.96,
+      "end": 336.29,
+      "en": "Calculate the loss, and then we're going to go optimize a zero grand.",
+      "zh": "計算損失，再做 optimizer.zero_grad，"
+    },
+    {
+      "start": 336.29,
+      "end": 338.51,
+      "en": "We haven't spoken about what this is, but that's okay.",
+      "zh": "還沒談這是什麼，但沒關係，"
+    },
+    {
+      "start": 338.51,
+      "end": 339.86,
+      "en": "We're going to see that in a second.",
+      "zh": "等一下會看到，"
+    },
+    {
+      "start": 339.86,
+      "end": 340.79,
+      "en": "I'm not going to put too much.",
+      "zh": "這裡不放太多，"
+    },
+    {
+      "start": 340.79,
+      "end": 342.5,
+      "en": "They're lost backward.",
+      "zh": "loss.backward，"
+    },
+    {
+      "start": 342.5,
+      "end": 342.83,
+      "en": "Mhm.",
+      "zh": "嗯，"
+    },
+    {
+      "start": 342.89,
+      "end": 344.27,
+      "en": "We haven't discussed this one either.",
+      "zh": "這個也沒討論過，"
+    },
+    {
+      "start": 344.27,
+      "end": 351.2,
+      "en": "There's probably three steps that we haven't really discussed, We've discussed the idea behind them but not too much in depth.",
+      "zh": "大概有三步還沒真正討論，概念談過，但沒深入，"
+    },
+    {
+      "start": 351.26,
+      "end": 352.97,
+      "en": "Optimize our step.",
+      "zh": "optimizer.step，"
+    },
+    {
+      "start": 352.97,
+      "end": 355.82,
+      "en": "So this one is lost.",
+      "zh": "所以這個 loss，"
+    },
+    {
+      "start": 355.82,
+      "end": 358.46,
+      "en": "Backwards is move backwards.",
+      "zh": "backward，是往後走，"
+    },
+    {
+      "start": 358.46,
+      "end": 368.75,
+      "en": "If the forward passes forwards like through the network, the Ford Pass is data goes into out, the backward pass, data goes, our calculations happen backwards.",
+      "zh": "如果前向傳遞，是資料從輸入到輸出，反向傳遞則反過來，計算反方向進行，"
+    },
+    {
+      "start": 368.75,
+      "end": 370.64,
+      "en": "So we'll see what that is in a second.",
+      "zh": "等一下看是什麼。"
+    },
+    {
+      "start": 371,
+      "end": 372.11,
+      "en": "Where were we over here?",
+      "zh": "剛才在哪裡？這裡，"
+    },
+    {
+      "start": 372.11,
+      "end": 373.16,
+      "en": "We've got too much going on.",
+      "zh": "分頁太多，"
+    },
+    {
+      "start": 373.16,
+      "end": 381.5,
+      "en": "I'm getting rid of these moves backwards through the network to calculate the gradients.",
+      "zh": "關掉這些。沿網路反向移動，計算梯度，"
+    },
+    {
+      "start": 381.54,
+      "end": 387.8,
+      "en": "Oh oh, the gradients of each of the parameters.",
+      "zh": "喔，模型每個參數的梯度，"
+    },
+    {
+      "start": 388.74,
+      "end": 392.14,
+      "en": "Of our model with respect to the loss.",
+      "zh": "相對於損失，"
+    },
+    {
+      "start": 392.15999999999997,
+      "end": 395.46,
+      "en": "Oh, my gosh, that is an absolute mouthful, but that'll do for now.",
+      "zh": "我的天，很拗口，但先這樣。"
+    },
+    {
+      "start": 395.49,
+      "end": 396.74,
+      "en": "Optimize a step.",
+      "zh": "optimizer.step，"
+    },
+    {
+      "start": 396.75,
+      "end": 407.46,
+      "en": "This is going to use the optimizer to adjust our models parameters to try and improve the loss.",
+      "zh": "會用最佳化器調整模型參數，試著改善損失。"
+    },
+    {
+      "start": 407.46,
+      "end": 418.38,
+      "en": "So remember how I said in a previous video that I'd love you to watch the two videos I linked above one on gradient descent and one on back propagation.",
+      "zh": "記得之前影片，我很希望你看上面連結的兩支，梯度下降與反向傳播，"
+    },
+    {
+      "start": 418.38,
+      "end": 421.89,
+      "en": "If you did, you might have seen like there's a fair bit of math going on in there.",
+      "zh": "看過的話，可能發現裡面有很多數學，"
+    },
+    {
+      "start": 421.89,
+      "end": 429.42,
+      "en": "Well, that's essentially how our model goes from random parameters to better parameters using math.",
+      "zh": "基本上就是模型靠數學，從隨機參數變成更好參數的方法。"
+    },
+    {
+      "start": 429.45,
+      "end": 430.23,
+      "en": "Many people.",
+      "zh": "許多人，"
+    },
+    {
+      "start": 430.23,
+      "end": 435.18,
+      "en": "One of the main things I get asked from machine learning is how do I learn machine learning if I didn't do math?",
+      "zh": "我最常被問的機器學習問題之一，是如果沒學過數學，怎麼學機器學習？"
+    },
+    {
+      "start": 435.18,
+      "end": 441.09,
+      "en": "Well, the beautiful thing about PyTorch is that it implements a lot of the math of back propagation.",
+      "zh": "PyTorch 很棒，它實作了很多反向傳播的數學，"
+    },
+    {
+      "start": 441.09,
+      "end": 442.62,
+      "en": "So this is back propagation.",
+      "zh": "所以這是反向傳播，"
+    },
+    {
+      "start": 442.92,
+      "end": 444,
+      "en": "I'm going to write this down here.",
+      "zh": "寫下來，"
+    },
+    {
+      "start": 444,
+      "end": 448.53,
+      "en": "This is an algorithm called back back propagation, hence the loss backward.",
+      "zh": "這叫反向傳播演算法，所以是 loss.backward，"
+    },
+    {
+      "start": 448.53,
+      "end": 450.69,
+      "en": "We're going to see this in code in a second, don't you agree?",
+      "zh": "馬上用程式看，好嗎？"
+    },
+    {
+      "start": 450.69,
+      "end": 452.61,
+      "en": "And this is gradient descent.",
+      "zh": "這是梯度下降，"
+    },
+    {
+      "start": 454.32,
+      "end": 459.48,
+      "en": "So these two algorithms drive the majority of our learning.",
+      "zh": "兩個演算法，驅動大部分學習，"
+    },
+    {
+      "start": 459.49,
+      "end": 466.77,
+      "en": "So back propagation, calculate the gradients of the parameters of our model with respect to the loss function and optimize our step.",
+      "zh": "反向傳播，計算模型參數相對於損失函數的梯度；optimizer.step，"
+    },
+    {
+      "start": 466.77,
+      "end": 472.71,
+      "en": "We'll trigger code to run gradient descent, which is to minimize the gradients because what is a gradient?",
+      "zh": "會觸發梯度下降，也就是最小化梯度。什麼是梯度？"
+    },
+    {
+      "start": 473.47,
+      "end": 474.2,
+      "en": "Let's look this up.",
+      "zh": "查一下，"
+    },
+    {
+      "start": 474.22,
+      "end": 476.02,
+      "en": "What is a gradient?",
+      "zh": "什麼是梯度？"
+    },
+    {
+      "start": 478.44,
+      "end": 480.54,
+      "en": "I know we haven't written a code yet, but we're going to do that.",
+      "zh": "我知道還沒寫程式，但會寫，"
+    },
+    {
+      "start": 481.31,
+      "end": 482.18,
+      "en": "Images.",
+      "zh": "圖片，"
+    },
+    {
+      "start": 483.57,
+      "end": 484.02,
+      "en": "Gradient.",
+      "zh": "梯度，"
+    },
+    {
+      "start": 484.02,
+      "end": 484.92,
+      "en": "There we go.",
+      "zh": "有了，"
+    },
+    {
+      "start": 485.01,
+      "end": 485.76,
+      "en": "Change in Y.",
+      "zh": "y 的變化，"
+    },
+    {
+      "start": 485.76,
+      "end": 488.46,
+      "en": "Change in x gradient is from high school math.",
+      "zh": "x 的變化，高中數學裡，"
+    },
+    {
+      "start": 488.49,
+      "end": 489.93,
+      "en": "Gradient is a slope.",
+      "zh": "gradient 是斜率。"
+    },
+    {
+      "start": 490.74,
+      "end": 494.04,
+      "en": "So if you were on a hill, let's find a picture of a hill.",
+      "zh": "如果在山上，找張山的圖片，"
+    },
+    {
+      "start": 495,
+      "end": 495.78,
+      "en": "Picture.",
+      "zh": "圖片，"
+    },
+    {
+      "start": 496.94,
+      "end": 497.78,
+      "en": "Oliver Hill.",
+      "zh": "山的圖片，"
+    },
+    {
+      "start": 500.26,
+      "end": 500.87,
+      "en": "There we go.",
+      "zh": "有了，"
+    },
+    {
+      "start": 500.89,
+      "end": 502.24,
+      "en": "This is a great big hill.",
+      "zh": "一座很大的山，"
+    },
+    {
+      "start": 502.72,
+      "end": 503.5,
+      "en": "So.",
+      "zh": "所以，"
+    },
+    {
+      "start": 504.61,
+      "end": 507.91,
+      "en": "If you're on the top of this hill and you wanted to get to the bottom.",
+      "zh": "如果在山頂，想到底下，"
+    },
+    {
+      "start": 508.76,
+      "end": 510.08,
+      "en": "How would you get to the bottom?",
+      "zh": "怎麼到底下？"
+    },
+    {
+      "start": 510.83,
+      "end": 512.69,
+      "en": "Well, of course, you just walk down the hill.",
+      "zh": "當然往山下走。"
+    },
+    {
+      "start": 512.69,
+      "end": 515.27,
+      "en": "But if you're a machine learning model, what are you trying to do?",
+      "zh": "如果是機器學習模型，要做什麼？"
+    },
+    {
+      "start": 516.12,
+      "end": 524.15,
+      "en": "Let's imagine your loss is the height of this hill and you start off with your losses really high and you want to take your loss down to zero, which is the bottom right?",
+      "zh": "想像損失是山的高度，一開始損失很高，想把它降到 0，也就是底下，對吧？"
+    },
+    {
+      "start": 524.16,
+      "end": 526.41,
+      "en": "Well, if you measure the gradient of the hill.",
+      "zh": "如果測量山的梯度，"
+    },
+    {
+      "start": 528.48,
+      "end": 533.49,
+      "en": "The bottom of the hill is in the opposite direction to where the gradient is steep.",
+      "zh": "山底在梯度陡升的相反方向，"
+    },
+    {
+      "start": 533.82,
+      "end": 535.28,
+      "en": "Does that make sense of the gradient?",
+      "zh": "合理嗎？這裡梯度，"
+    },
+    {
+      "start": 535.29,
+      "end": 536.73,
+      "en": "Here is an incline.",
+      "zh": "是上坡，"
+    },
+    {
+      "start": 536.82,
+      "end": 541.53,
+      "en": "We want our model to move towards the gradient being nothing, which is down here.",
+      "zh": "希望模型往梯度沒有的地方移動，就是這裡。"
+    },
+    {
+      "start": 541.53,
+      "end": 544.17,
+      "en": "And you could argue, yeah, the gradient is probably nothing at the top here.",
+      "zh": "可以說，對，山頂梯度也可能沒有，"
+    },
+    {
+      "start": 544.17,
+      "end": 547.35,
+      "en": "But let's just for argument's sake, say that we want to get to the bottom of the hill.",
+      "zh": "但先假設，我們想下到山底，"
+    },
+    {
+      "start": 547.35,
+      "end": 548.88,
+      "en": "So we're measuring the gradient.",
+      "zh": "所以測量梯度，"
+    },
+    {
+      "start": 548.88,
+      "end": 556.77,
+      "en": "And one of the ways that optimization algorithm works is it moves our model parameters so that the gradient equals zero.",
+      "zh": "最佳化演算法的一種運作方式，是移動模型參數，直到梯度等於 0，"
+    },
+    {
+      "start": 556.98,
+      "end": 561.68,
+      "en": "And then if the gradient of the loss equals zero, while the loss equals zero to.",
+      "zh": "損失梯度等於 0，損失也就等於 0。"
+    },
+    {
+      "start": 561.69,
+      "end": 563.34,
+      "en": "So now let's write some code.",
+      "zh": "現在寫程式，"
+    },
+    {
+      "start": 563.34,
+      "end": 569.07,
+      "en": "So we're going to set up a parameter called or a variable called epochs, and we're going to start with one.",
+      "zh": "設定一個參數，或者變數，叫 epochs，先從 1 開始，"
+    },
+    {
+      "start": 569.13,
+      "end": 571.41,
+      "en": "Even though this could be any value.",
+      "zh": "雖然可以設成任何值，"
+    },
+    {
+      "start": 571.44,
+      "end": 573.3,
+      "en": "Let me define these as we go.",
+      "zh": "邊做邊定義，"
+    },
+    {
+      "start": 573.3,
+      "end": 575.88,
+      "en": "So we're going to write code to do all of this.",
+      "zh": "要寫程式做這些事。"
+    },
+    {
+      "start": 576.36,
+      "end": 582.48,
+      "en": "So epochs and epoch is one loop through the data.",
+      "zh": "epochs，一個訓練週期，就是完整走過資料一次，"
+    },
+    {
+      "start": 584.06,
+      "end": 587.04,
+      "en": "Dr. TOM So epochs we're going to start with one.",
+      "zh": "所以 epochs 先設成 1，"
+    },
+    {
+      "start": 587.06,
+      "end": 590.18,
+      "en": "So one time, through all of the data, we don't have much data.",
+      "zh": "所有資料走一次，資料量不多，"
+    },
+    {
+      "start": 590.27,
+      "end": 592.61,
+      "en": "And so for Epoch.",
+      "zh": "所以 for epoch，"
+    },
+    {
+      "start": 593.99,
+      "end": 594.62,
+      "en": "So let's go this.",
+      "zh": "寫這個，"
+    },
+    {
+      "start": 594.62,
+      "end": 596.78,
+      "en": "This is step zero zero.",
+      "zh": "這是第 0 步，"
+    },
+    {
+      "start": 596.81,
+      "end": 598.94,
+      "en": "Loop through the data.",
+      "zh": "走訪資料，"
+    },
+    {
+      "start": 599.85,
+      "end": 605.34,
+      "en": "By the way, when I say loop through the data, I want you to do all of these steps within the loop.",
+      "zh": "順帶一提，我說走訪資料，是希望迴圈裡做完全部步驟，"
+    },
+    {
+      "start": 606.21,
+      "end": 607.41,
+      "en": "And do.",
+      "zh": "並且做，"
+    },
+    {
+      "start": 607.41,
+      "end": 608.19,
+      "en": "Dot, dot, dot.",
+      "zh": "等等，"
+    },
+    {
+      "start": 608.98,
+      "end": 610.49,
+      "en": "Length through the data so far.",
+      "zh": "走訪資料，所以 for，"
+    },
+    {
+      "start": 610.51,
+      "end": 612.94,
+      "en": "Epoch end range epochs.",
+      "zh": "epoch in range(epochs)，"
+    },
+    {
+      "start": 613.3,
+      "end": 618.85,
+      "en": "Even though it's only going to be one, we can adjust this later and because epochs we've set this ourselves.",
+      "zh": "雖然只有 1，但後面能調整，epochs 由我們自己設定，"
+    },
+    {
+      "start": 618.85,
+      "end": 619.9,
+      "en": "It is a.",
+      "zh": "所以它是，"
+    },
+    {
+      "start": 621.29,
+      "end": 622.37,
+      "en": "This is.",
+      "zh": "這是，"
+    },
+    {
+      "start": 623.23,
+      "end": 624.64,
+      "en": "A hyper parameter.",
+      "zh": "超參數，"
+    },
+    {
+      "start": 625.75,
+      "end": 628.57,
+      "en": "Because we've set it ourselves.",
+      "zh": "因為自己設定。"
+    },
+    {
+      "start": 629.08,
+      "end": 639.46,
+      "en": "And I know you could argue that, hey, our machine learning parameters of Model Zero or our model parameters Model zero aren't actually parameters because we've set them.",
+      "zh": "我知道你可以說，嘿，model_0 的機器學習參數，或模型參數，不算參數，因為也是我們設定，"
+    },
+    {
+      "start": 639.46,
+      "end": 649.56,
+      "en": "But in the models that you build in the future, they will likely be set automatically rather than you setting them explicitly like we've done when we created Model Zero.",
+      "zh": "但未來建立的模型，大概會自動設定，而不是像建立 model_0 時這樣明確設定。"
+    },
+    {
+      "start": 649.57,
+      "end": 651.85,
+      "en": "And oh my gosh, this has taken quite a while to run.",
+      "zh": "喔，我的天，這跑了好久，"
+    },
+    {
+      "start": 651.85,
+      "end": 652.44,
+      "en": "That's the right.",
+      "zh": "沒關係，"
+    },
+    {
+      "start": 652.45,
+      "end": 653.92,
+      "en": "We don't need it to run fast.",
+      "zh": "不需要跑很快，"
+    },
+    {
+      "start": 653.92,
+      "end": 655.57,
+      "en": "We just we need to write some more code.",
+      "zh": "只需要再寫點程式，"
+    },
+    {
+      "start": 655.57,
+      "end": 656.37,
+      "en": "Then you'll come on.",
+      "zh": "Daniel，拜託。"
+    },
+    {
+      "start": 656.38,
+      "end": 658.57,
+      "en": "There's a step here I haven't discussed either.",
+      "zh": "還有一步沒討論，"
+    },
+    {
+      "start": 658.6,
+      "end": 660.85,
+      "en": "Set the model to training mode.",
+      "zh": "把模型設成訓練模式，"
+    },
+    {
+      "start": 661.27,
+      "end": 664.33,
+      "en": "So PyTorch models have a couple of different modes.",
+      "zh": "PyTorch 模型有幾種模式，"
+    },
+    {
+      "start": 664.33,
+      "end": 669.4,
+      "en": "The default is training mode, so we can set it to training mode by going like this.",
+      "zh": "預設是訓練模式，可以像這樣設定，"
+    },
+    {
+      "start": 670.16,
+      "end": 670.85,
+      "en": "Train.",
+      "zh": "train。"
+    },
+    {
+      "start": 671.39,
+      "end": 674.33,
+      "en": "So what is train mode do in a PyTorch model?",
+      "zh": "PyTorch 模型的 train 模式做什麼？"
+    },
+    {
+      "start": 674.66,
+      "end": 675.62,
+      "en": "My goodness.",
+      "zh": "我的天，"
+    },
+    {
+      "start": 675.65,
+      "end": 677.87,
+      "en": "Is there a reason my internet is going this slow?",
+      "zh": "為什麼網路這麼慢？"
+    },
+    {
+      "start": 679.02,
+      "end": 679.56,
+      "en": "Well, that's right.",
+      "zh": "沒關係，"
+    },
+    {
+      "start": 679.58,
+      "end": 682.88,
+      "en": "I'm just going to discuss this with talking again.",
+      "zh": "再用口頭解釋，"
+    },
+    {
+      "start": 683.61,
+      "end": 684.12,
+      "en": "List.",
+      "zh": "列出，"
+    },
+    {
+      "start": 686.4,
+      "end": 687.33,
+      "en": "Train mode.",
+      "zh": "訓練模式，"
+    },
+    {
+      "start": 687.69,
+      "end": 689.58,
+      "en": "Train mode in PyTorch.",
+      "zh": "PyTorch 的訓練模式，"
+    },
+    {
+      "start": 691.21,
+      "end": 691.8,
+      "en": "Sets.",
+      "zh": "設定，"
+    },
+    {
+      "start": 691.81,
+      "end": 692.68,
+      "en": "Oh, there we go.",
+      "zh": "喔，有了，"
+    },
+    {
+      "start": 692.98,
+      "end": 695.24,
+      "en": "Requires grad equals True.",
+      "zh": "requires_grad=True。"
+    },
+    {
+      "start": 695.26,
+      "end": 699.46,
+      "en": "Now, I wonder if we do with torch.",
+      "zh": "不知道如果用 with torch，"
+    },
+    {
+      "start": 699.7,
+      "end": 701.26,
+      "en": "No grad remember?",
+      "zh": "no_grad，記得，"
+    },
+    {
+      "start": 701.26,
+      "end": 703.45,
+      "en": "No grad is similar to inference mode.",
+      "zh": "no_grad 類似 inference_mode，"
+    },
+    {
+      "start": 705.19,
+      "end": 707.14,
+      "en": "Will this adjust?",
+      "zh": "這會調整嗎？"
+    },
+    {
+      "start": 707.33,
+      "end": 710.21,
+      "en": "See, I just wanted to take note of requires grad equals true.",
+      "zh": "我只是想讓你留意 requires_grad=True，"
+    },
+    {
+      "start": 710.23,
+      "end": 713.14,
+      "en": "Actually, what I might do is we do this in a different cell.",
+      "zh": "其實可以在不同儲存格做，"
+    },
+    {
+      "start": 713.41,
+      "end": 714.19,
+      "en": "Watch this.",
+      "zh": "看這個，"
+    },
+    {
+      "start": 714.19,
+      "end": 718.04,
+      "en": "This is just going to be rather than me just spit words at you.",
+      "zh": "不只對你一股腦說，"
+    },
+    {
+      "start": 718.06,
+      "end": 720.58,
+      "en": "I reckon we might be able to get it work in doing this.",
+      "zh": "我想也許能實際讓它運作，"
+    },
+    {
+      "start": 721.48,
+      "end": 723.19,
+      "en": "Oh, that didn't list the model parameters.",
+      "zh": "喔，沒有列出模型參數，"
+    },
+    {
+      "start": 723.19,
+      "end": 724.39,
+      "en": "Why did that not come out?",
+      "zh": "為什麼沒出來？"
+    },
+    {
+      "start": 725.2,
+      "end": 727.24,
+      "en": "Model zero Cheval.",
+      "zh": "model_0.eval，"
+    },
+    {
+      "start": 728.7,
+      "end": 731.91,
+      "en": "So there's two modes of our mode and train mode.",
+      "zh": "所以有兩種模式，eval 與 train，"
+    },
+    {
+      "start": 731.94,
+      "end": 734.34,
+      "en": "Model vowel parameters.",
+      "zh": "model_0.eval，parameters，"
+    },
+    {
+      "start": 734.6,
+      "end": 734.8,
+      "en": "Okay.",
+      "zh": "好，"
+    },
+    {
+      "start": 734.82,
+      "end": 736.68,
+      "en": "We're experimenting together on the fly here.",
+      "zh": "我們正在一起當場實驗，"
+    },
+    {
+      "start": 736.68,
+      "end": 741.12,
+      "en": "And actually, this is what I want you to do because I want you to experiment with different things.",
+      "zh": "這正是我希望你做的，試不同東西，"
+    },
+    {
+      "start": 741.51,
+      "end": 743.91,
+      "en": "It's not going to say requires grand equals false.",
+      "zh": "它不會顯示 requires_grad=False，"
+    },
+    {
+      "start": 743.94,
+      "end": 744.48,
+      "en": "Hmm.",
+      "zh": "嗯，"
+    },
+    {
+      "start": 745.83,
+      "end": 747.9,
+      "en": "With torch.",
+      "zh": "with torch，"
+    },
+    {
+      "start": 748.2,
+      "end": 749.01,
+      "en": "No grad.",
+      "zh": "no_grad，"
+    },
+    {
+      "start": 750.87,
+      "end": 753.48,
+      "en": "Model zero dot parameters.",
+      "zh": "model_0.parameters，"
+    },
+    {
+      "start": 756.08,
+      "end": 759.05,
+      "en": "I don't know if this will work, but it definitely works behind the scenes.",
+      "zh": "不知道這能不能成功，但背後確實會作用，"
+    },
+    {
+      "start": 759.05,
+      "end": 767.12,
+      "en": "And what I mean by works behind the scenes and not here, it works behind the scenes when calculations have been made, but not if we're trying to explicitly print things out.",
+      "zh": "意思是，在進行計算時，背後會作用，但只是想直接印出時，不會如此，"
+    },
+    {
+      "start": 768.1,
+      "end": 771.76,
+      "en": "Well, that's an experiment that I thought was going to work, and it didn't work.",
+      "zh": "這是原以為能成功，卻沒成功的實驗。"
+    },
+    {
+      "start": 771.76,
+      "end": 775.33,
+      "en": "So train mode in PyTorch sets all parameters.",
+      "zh": "所以 PyTorch 的 train 模式，把所有，"
+    },
+    {
+      "start": 776.83,
+      "end": 781.93,
+      "en": "That require gradients to require gradients.",
+      "zh": "需要梯度的參數，設為需要梯度。"
+    },
+    {
+      "start": 782.65,
+      "end": 788.44,
+      "en": "So do you remember with the picture of the Hill, I spoke about how we trying to minimise the gradient.",
+      "zh": "記得山的圖片，我說要最小化梯度，"
+    },
+    {
+      "start": 788.65,
+      "end": 791.02,
+      "en": "So the gradient is the steepness of the hill.",
+      "zh": "梯度是山的陡峭程度，"
+    },
+    {
+      "start": 791.35,
+      "end": 796.84,
+      "en": "If the height of the hill is a loss function and we want to take that down to zero, we want to take the gradient down to zero.",
+      "zh": "如果山高是損失函數，要降到 0，就要把梯度降到 0，"
+    },
+    {
+      "start": 796.93,
+      "end": 805.29,
+      "en": "So same thing with the gradients of our model parameters which are here with respect to the loss function.",
+      "zh": "模型參數相對於損失函數的梯度也一樣，"
+    },
+    {
+      "start": 805.3,
+      "end": 807.25,
+      "en": "We want to try and minimize that gradient.",
+      "zh": "想最小化這個梯度，"
+    },
+    {
+      "start": 807.25,
+      "end": 810.91,
+      "en": "So that's gradient descent is take that gradient down to zero.",
+      "zh": "所以梯度下降，就是把梯度降到 0。"
+    },
+    {
+      "start": 811.66,
+      "end": 817.36,
+      "en": "So model train and then there's also model zero dot val so.",
+      "zh": "model.train，另外有 model_0.eval，"
+    },
+    {
+      "start": 818.54,
+      "end": 821.18,
+      "en": "Turns off gradient tracking.",
+      "zh": "關閉梯度追蹤，"
+    },
+    {
+      "start": 822.39,
+      "end": 823.89,
+      "en": "So we're going to see that later on.",
+      "zh": "後面會看到。"
+    },
+    {
+      "start": 824.52,
+      "end": 828.78,
+      "en": "But for now, I feel like this video is getting far too long.",
+      "zh": "現在覺得影片太長，"
+    },
+    {
+      "start": 828.78,
+      "end": 831.57,
+      "en": "Let's finish the training loop in the next video.",
+      "zh": "下支完成訓練迴圈，"
+    },
+    {
+      "start": 832.29,
+      "end": 833.22,
+      "en": "I'll see you there.",
+      "zh": "到時見。"
+    }
+  ]
+}

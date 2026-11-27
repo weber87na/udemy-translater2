@@ -1,0 +1,1675 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893877",
+  "title": "Successive median-replacement of MLP neurons",
+  "section": 26,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "900eaf998c3c99476b4e85438fec68038538e3b6d927a901b764c9a963c52540",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 7.92,
+      "en": "Welcome to this section of the course on modifying the MLP activations.",
+      "zh": "歡迎來到修改 MLP 活化的課程章節。"
+    },
+    {
+      "start": 8.64,
+      "end": 15.96,
+      "en": "In some sense, this section is not any different from the previous few sections, in that we are going",
+      "zh": "某種意義上，這個章節與前幾個章節沒有不同，因為我們會"
+    },
+    {
+      "start": 15.96,
+      "end": 22.2,
+      "en": "to write hook functions to modify the MLP activations, sometimes just in one layer.",
+      "zh": "撰寫 hook 函數，修改 MLP 活化，有時只在一層。"
+    },
+    {
+      "start": 22.32,
+      "end": 33.44,
+      "en": "Sometimes we will loop over all the layers and we will measure the impact of those modifications on embeddings, vectors and on model output logits.",
+      "zh": "有時遍歷全部層，測量這些修改對嵌入向量，以及模型輸出 logit 的影響。"
+    },
+    {
+      "start": 34.16,
+      "end": 41.24,
+      "en": "But on the other hand, we do have some unique challenges when working with MLP layers.",
+      "zh": "但另一方面，處理 MLP 層時，有些獨特挑戰。"
+    },
+    {
+      "start": 41.36,
+      "end": 43.56,
+      "en": "In particular, the expansion layers.",
+      "zh": "特別是擴張層。"
+    },
+    {
+      "start": 44.04,
+      "end": 50.92,
+      "en": "And these are challenges that we didn't really have to worry about in the previous sections, at least not as much.",
+      "zh": "這些挑戰，在前幾個章節中，其實不太需要擔心，至少沒有那麼多。"
+    },
+    {
+      "start": 51.56,
+      "end": 59.52,
+      "en": "For example, when we are zeroing out attention heads, there's only one or a few dozen attention heads,",
+      "zh": "例如，將注意力頭歸零時，只有十幾或幾十個注意力頭，"
+    },
+    {
+      "start": 59.52,
+      "end": 67.05,
+      "en": "depending on the model size, so we can actually just go through and cut out each one in turn and see what happens.",
+      "zh": "視模型大小而定，所以，可以逐一切除，看看發生什麼。"
+    },
+    {
+      "start": 67.61,
+      "end": 74.81,
+      "en": "But that kind of strategy just doesn't really work for the MLP layer, especially not the expansion layer.",
+      "zh": "但這種策略，對 MLP 層，尤其擴張層，就不太管用。"
+    },
+    {
+      "start": 75.25,
+      "end": 82.81,
+      "en": "There are thousands of neurons in that layer, and so each one is going to have a relatively small impact.",
+      "zh": "那一層有數千個神經元，所以每個影響相對小。"
+    },
+    {
+      "start": 83.05,
+      "end": 90.57,
+      "en": "And it also just becomes completely computationally infeasible to loop through every single one of those neurons.",
+      "zh": "而且，遍歷每個神經元，在計算上也完全不可行。"
+    },
+    {
+      "start": 91.25,
+      "end": 101.81,
+      "en": "So basically the goals and the unique features of this section are to think of some ways that we can deal with that huge dimensionality expansion.",
+      "zh": "所以，這個章節的目標與獨特之處，基本上是想出處理巨大維度擴張的方法。"
+    },
+    {
+      "start": 102.77000000000001,
+      "end": 109.09,
+      "en": "The different approaches that I will introduce you to in this section are all focused on using some",
+      "zh": "這個章節會介紹的各種方式，全都聚焦於使用某種"
+    },
+    {
+      "start": 109.09,
+      "end": 116.89,
+      "en": "kind of statistical criterion, perhaps a descriptive statistic, or an inferential statistical test",
+      "zh": "統計準則，也許是描述統計量，或推論統計檢定，"
+    },
+    {
+      "start": 117.17,
+      "end": 124.58,
+      "en": "to determine how we can slice up the MLP Space so that we are doing causal experiments without just",
+      "zh": "決定如何切分 MLP 空間，讓我們可以做因果實驗，"
+    },
+    {
+      "start": 124.58,
+      "end": 129.9,
+      "en": "completely losing our minds over the sheer number of neurons in those layers.",
+      "zh": "而不至於被那些層龐大的神經元數量逼瘋。"
+    },
+    {
+      "start": 131.18,
+      "end": 131.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 131.54,
+      "end": 137.46,
+      "en": "And with that, as an introduction to this section, let me now tell you about this video.",
+      "zh": "以上作為章節介紹，現在說明這支影片。"
+    },
+    {
+      "start": 138.02,
+      "end": 146.38,
+      "en": "This is a code demo where I will show you how to replace percentages of neurons with the median value.",
+      "zh": "這是程式示範，會展示如何將某個百分比的神經元，替換成中位數值。"
+    },
+    {
+      "start": 147.02,
+      "end": 155.62,
+      "en": "So for example, we can find the top 10% of the MLP neurons in some layer that are most active, maybe",
+      "zh": "例如，找出某層 MLP 神經元中最活躍的前 10%，也許"
+    },
+    {
+      "start": 155.66,
+      "end": 160.38,
+      "en": "for one token or maybe for all of the tokens in the sequence.",
+      "zh": "針對一個 token，或序列全部 token。"
+    },
+    {
+      "start": 160.82,
+      "end": 168.66,
+      "en": "And then we just replace those activations from those neurons with the median value from the population.",
+      "zh": "再把那些神經元的活化，替換成整體的中位數。"
+    },
+    {
+      "start": 169.3,
+      "end": 179.74,
+      "en": "And that means that all of the other neurons have their activation values preserved so unaffected in the little experiment that I will set up here.",
+      "zh": "其他所有神經元的活化值則保留，在這裡設定的小實驗中不受影響。"
+    },
+    {
+      "start": 179.86,
+      "end": 188.96,
+      "en": "I will successively increase the rate of replacement from 10% to 90%, and you'll see a pretty remarkable",
+      "zh": "我會逐步把替換比例從 10% 增加到 90%，你會看到相當驚人的"
+    },
+    {
+      "start": 188.96,
+      "end": 198.52,
+      "en": "observation that there isn't much difference between 10% and 90% of the replacements on the final model",
+      "zh": "觀察：替換 10% 或 90%，對最終模型"
+    },
+    {
+      "start": 198.52,
+      "end": 199.32,
+      "en": "logits.",
+      "zh": "logit 的差異不大。"
+    },
+    {
+      "start": 199.76,
+      "end": 203.28,
+      "en": "And of course, we will discuss how to interpret that finding.",
+      "zh": "當然，會討論如何解讀這個發現。"
+    },
+    {
+      "start": 204.52,
+      "end": 204.84,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 204.88,
+      "end": 207.56,
+      "en": "So here's how it's going to go down in the demo.",
+      "zh": "示範會這樣進行。"
+    },
+    {
+      "start": 207.72,
+      "end": 210.56,
+      "en": "We're going to work with GPT two large.",
+      "zh": "使用 GPT2 large。"
+    },
+    {
+      "start": 210.84,
+      "end": 219.56,
+      "en": "This is a nice model to work with here because it has over 5000 neurons in the expansion layer of MLP.",
+      "zh": "這裡很適合用這個模型，因為 MLP 擴張層有超過 5,000 個神經元。"
+    },
+    {
+      "start": 220.24,
+      "end": 227.12,
+      "en": "So there is definitely no way that we are going to have a for loop over all 5000 of those individual",
+      "zh": "所以，絕對不可能用 for 迴圈，遍歷全部 5,000 個個別"
+    },
+    {
+      "start": 227.12,
+      "end": 232.56,
+      "en": "neurons to explore the impact of manipulating that layer.",
+      "zh": "神經元，探索操作這一層的影響。"
+    },
+    {
+      "start": 232.56,
+      "end": 236.6,
+      "en": "I'm going to use this famous, really cliche text.",
+      "zh": "我會用這段很有名、非常老套的文字。"
+    },
+    {
+      "start": 236.6,
+      "end": 239.76,
+      "en": "It was a dark and stormy night.",
+      "zh": "那是個漆黑、暴風雨的夜晚。"
+    },
+    {
+      "start": 240.28,
+      "end": 243.69,
+      "en": "You can see the word night is missing here from the text.",
+      "zh": "可以看到，文字中少了 night 這個詞。"
+    },
+    {
+      "start": 243.69,
+      "end": 254.61,
+      "en": "And then we are going to manipulate and then look at the output logits for the word stormy to see whether GPT predicts the word night.",
+      "zh": "接著，操作模型，再查看 stormy 這個詞的輸出 logit，看看 GPT 是否預測 night。"
+    },
+    {
+      "start": 255.37,
+      "end": 255.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 255.97,
+      "end": 263.13,
+      "en": "And I also have this other text here as a suggestion for you to continue exploring and see whether the",
+      "zh": "這裡還有另一段文字，建議你繼續探索，看看"
+    },
+    {
+      "start": 263.13,
+      "end": 271.41,
+      "en": "findings that we observe, whether those are unique to this cheesy prose, or whether it seems to be",
+      "zh": "我們觀察到的發現，是否只限於這段俗套文字，還是似乎"
+    },
+    {
+      "start": 271.41,
+      "end": 275.97,
+      "en": "a more general phenomenon that replicates in other text sequences.",
+      "zh": "能在其他文字序列重現，是更一般的現象。"
+    },
+    {
+      "start": 276.73,
+      "end": 287.53,
+      "en": "Now, when I run the forward pass on this text, I'm going to implant a hook function that simply extracts all of the MLP activations from one layer.",
+      "zh": "讓這段文字做前向傳播時，我會植入 hook 函數，只從一層擷取所有 MLP 活化。"
+    },
+    {
+      "start": 288.53,
+      "end": 292.05,
+      "en": "And then we can make a histogram of those activations.",
+      "zh": "再製作活化直方圖。"
+    },
+    {
+      "start": 292.29,
+      "end": 293.89,
+      "en": "This is from layer nine.",
+      "zh": "這來自第九號層。"
+    },
+    {
+      "start": 294.57,
+      "end": 301.26,
+      "en": "Now the point here is just to explore the algorithm for replacing data with the median value.",
+      "zh": "重點只是探索，用中位數替換資料的演算法。"
+    },
+    {
+      "start": 301.9,
+      "end": 305.1,
+      "en": "I'm not actually going to manipulate the data just yet.",
+      "zh": "目前還不會真的操作資料。"
+    },
+    {
+      "start": 305.66,
+      "end": 316.62,
+      "en": "And yet, as you've seen earlier in the course, this distribution is shifted towards negative and kind of looks like there's two distributions superimposed.",
+      "zh": "如同課程前面看過，這個分布偏向負值，有點像兩個分布疊在一起。"
+    },
+    {
+      "start": 316.82,
+      "end": 323.9,
+      "en": "One is this Gaussian here and the other is maybe also Gaussian or maybe like a uniform distribution.",
+      "zh": "一個是這裡的高斯，另一個也許是高斯，或均勻分布。"
+    },
+    {
+      "start": 324.3,
+      "end": 329.58,
+      "en": "Anyway, I'm not really going to investigate that possibility of multiple distributions here.",
+      "zh": "總之，這裡不會真的研究多重分布的可能性。"
+    },
+    {
+      "start": 329.82,
+      "end": 338.98,
+      "en": "But what I am going to do in this video is take 10% of the top most active neurons here, and replace",
+      "zh": "這支影片要做的，是取這裡最活躍的前 10% 神經元，"
+    },
+    {
+      "start": 338.98,
+      "end": 343.74,
+      "en": "their activation value with the median of the entire distribution.",
+      "zh": "把活化值替換成整個分布的中位數。"
+    },
+    {
+      "start": 344.34000000000003,
+      "end": 345.86,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是結果。"
+    },
+    {
+      "start": 345.86,
+      "end": 355.26,
+      "en": "So the black squares show the histogram of the MLP activations from one token before replacing with",
+      "zh": "黑色方塊，顯示某個 token 的 MLP 活化，在以中位數"
+    },
+    {
+      "start": 355.26,
+      "end": 356.02,
+      "en": "the median.",
+      "zh": "替換之前的直方圖。"
+    },
+    {
+      "start": 356.14,
+      "end": 363.95,
+      "en": "And then the blue distribution shows the histogram after I replaced the top 10% of the values with the median.",
+      "zh": "藍色分布，則是將前 10% 數值替換成中位數之後的直方圖。"
+    },
+    {
+      "start": 364.59,
+      "end": 370.79,
+      "en": "So there's this sharp peak here, and that is the median of the original distribution.",
+      "zh": "所以，這裡有個尖峰，那就是原始分布的中位數。"
+    },
+    {
+      "start": 371.15,
+      "end": 375.67,
+      "en": "And then you can see this like deflation of the distribution over here.",
+      "zh": "這裡可以看到，分布有點塌下去。"
+    },
+    {
+      "start": 376.15,
+      "end": 380.71,
+      "en": "That corresponds to where the top 10% of the values were sitting.",
+      "zh": "那對應原先最高 10% 數值所在的位置。"
+    },
+    {
+      "start": 380.99,
+      "end": 390.07,
+      "en": "And now of course there's no more data here because all of these neurons had their activation values replaced with the median value up here.",
+      "zh": "現在這裡當然沒有資料，因為那些神經元的活化值，都已經換成上面的中位數。"
+    },
+    {
+      "start": 390.71,
+      "end": 390.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 391.03,
+      "end": 393.75,
+      "en": "I still haven't done any manipulations yet.",
+      "zh": "目前仍然沒有做操作。"
+    },
+    {
+      "start": 393.79,
+      "end": 400.63,
+      "en": "This is just exploration and demonstration of what this method is doing and how it works.",
+      "zh": "只是探索、示範這個方法在做什麼、如何運作。"
+    },
+    {
+      "start": 401.31,
+      "end": 410.43,
+      "en": "Next, I want to see whether the clean model really does think that the token after the sequence ends should be the word night.",
+      "zh": "接著，想看乾淨模型，是否真的認為序列結束後的 token，應該是 night。"
+    },
+    {
+      "start": 411.07,
+      "end": 413.55,
+      "en": "And that is indeed what we see here.",
+      "zh": "這裡確實如此。"
+    },
+    {
+      "start": 413.55,
+      "end": 417.27,
+      "en": "These are the final output logits from the clean model.",
+      "zh": "這些是乾淨模型的最終輸出 logit。"
+    },
+    {
+      "start": 417.51,
+      "end": 420.73,
+      "en": "And the largest token is for the word night.",
+      "zh": "最大的 token，是 night 這個詞。"
+    },
+    {
+      "start": 421.09,
+      "end": 430.65,
+      "en": "And you can also see that the log softmax value is very close to zero, which means the softmax probability will be very close to one.",
+      "zh": "也可以看到，log_softmax 值非常接近零，代表 softmax 機率非常接近一。"
+    },
+    {
+      "start": 431.89,
+      "end": 434.33,
+      "en": "Okay, so now we are ready for the experiment.",
+      "zh": "好，現在準備做實驗。"
+    },
+    {
+      "start": 434.33,
+      "end": 437.45,
+      "en": "Here you see the code that runs the experiment.",
+      "zh": "這裡是執行實驗的程式碼。"
+    },
+    {
+      "start": 437.85,
+      "end": 441.57,
+      "en": "So I have this for loop here over all of the layers.",
+      "zh": "有個遍歷全部層的 for 迴圈。"
+    },
+    {
+      "start": 442.01,
+      "end": 450.57,
+      "en": "And then within each layer I define this hook function that I will implant and then immediately remove.",
+      "zh": "每層內，定義 hook 函數，植入後立刻移除。"
+    },
+    {
+      "start": 450.89,
+      "end": 457.85,
+      "en": "And inside this hook I grab all of the activations from the MLP expansion layer.",
+      "zh": "hook 內，取得 MLP 擴張層全部活化。"
+    },
+    {
+      "start": 457.85,
+      "end": 461.17,
+      "en": "You can see I'm implanting this hook into CFC.",
+      "zh": "可以看到，hook 植入 c_fc。"
+    },
+    {
+      "start": 461.21,
+      "end": 466.17,
+      "en": "So the fully connected layer just from the final token.",
+      "zh": "也就是全連接層，只取最後 token。"
+    },
+    {
+      "start": 466.17,
+      "end": 472.29,
+      "en": "So here I'm only modifying the final token that would correspond to the word stormy.",
+      "zh": "這裡只修改最後 token，對應 stormy 這個詞。"
+    },
+    {
+      "start": 472.93,
+      "end": 476.69,
+      "en": "It could also be interesting to try manipulating the other tokens.",
+      "zh": "也可以試著操作其他 token。"
+    },
+    {
+      "start": 476.81,
+      "end": 483.18,
+      "en": "Maybe the token for the word dark, but I'm going to stick with just the final token for this code demo.",
+      "zh": "也許 dark 這個詞，但這個程式示範只處理最後 token。"
+    },
+    {
+      "start": 483.78,
+      "end": 487.74,
+      "en": "So then I calculate the median of all of those values.",
+      "zh": "接著，計算全部這些值的中位數。"
+    },
+    {
+      "start": 487.94,
+      "end": 490.18,
+      "en": "Find the top p percent.",
+      "zh": "找出最高的 p%。"
+    },
+    {
+      "start": 490.42,
+      "end": 492.98,
+      "en": "So that's this index variable here.",
+      "zh": "也就是這個索引變數。"
+    },
+    {
+      "start": 493.14,
+      "end": 494.02,
+      "en": "Ripple rates.",
+      "zh": "repl rates。"
+    },
+    {
+      "start": 494.02,
+      "end": 498.18,
+      "en": "You can see that's this for loop indexing variable here.",
+      "zh": "就是這裡 for 迴圈的索引變數。"
+    },
+    {
+      "start": 498.7,
+      "end": 505.78,
+      "en": "So this variable ripple rate or replacement rate varies between 1 and 9 inclusive.",
+      "zh": "repl rate，也就是 replacement rate，替換比例，介於 1 與 9，包含兩端。"
+    },
+    {
+      "start": 506.22,
+      "end": 516.58,
+      "en": "And then this little expression down here basically says that I am dividing the ripple rate by ten and multiplying it by the number of MLP neurons.",
+      "zh": "下面這個小式子，基本上是將 repl rate 除以十，再乘上 MLP 神經元數量。"
+    },
+    {
+      "start": 517.06,
+      "end": 524.02,
+      "en": "And that gives me the percentage of the neurons corresponding to a given value of ripple rate.",
+      "zh": "得到對應某個 repl rate 的神經元百分比。"
+    },
+    {
+      "start": 524.34,
+      "end": 533.78,
+      "en": "So all this means is that at different iterations of this inner for loop here I will find the indices",
+      "zh": "這只是表示，內層 for 迴圈的不同迭代，會找出"
+    },
+    {
+      "start": 534.1,
+      "end": 543.67,
+      "en": "for the top 10%, 20%, 30%, and so on up to 90% of the neurons, and then I replace them with the",
+      "zh": "最高 10%、20%、30%，一直到 90% 神經元的索引，再用"
+    },
+    {
+      "start": 543.67,
+      "end": 550.31,
+      "en": "median value from the whole population of neurons, again only for the final token.",
+      "zh": "整體神經元的中位數替換，仍然只針對最後 token。"
+    },
+    {
+      "start": 550.83,
+      "end": 558.27,
+      "en": "And then I return that manipulated output so that it continues to be processed in the rest of the forward pass in the model.",
+      "zh": "接著，傳回修改後的輸出，讓它繼續被模型前向傳播其餘部分處理。"
+    },
+    {
+      "start": 558.95,
+      "end": 561.95,
+      "en": "So here I do the actual forward pass.",
+      "zh": "這裡實際執行前向傳播。"
+    },
+    {
+      "start": 562.23,
+      "end": 571.15,
+      "en": "And then yeah, here I've removed the hook so that we can use a fresh instance of the hook in the next iteration in this for loop.",
+      "zh": "再移除 hook，讓下一次 for 迴圈迭代使用全新 hook 實例。"
+    },
+    {
+      "start": 571.31,
+      "end": 577.87,
+      "en": "And then down here I calculate the log softmax of the output logits for the final token.",
+      "zh": "下面，計算最後 token 輸出 logit 的 log_softmax。"
+    },
+    {
+      "start": 578.19,
+      "end": 582.79,
+      "en": "And then I grab the one index that corresponds to the target index.",
+      "zh": "再取出對應目標索引的那一個。"
+    },
+    {
+      "start": 582.79,
+      "end": 585.75,
+      "en": "This was the word night okay.",
+      "zh": "也就是 night。"
+    },
+    {
+      "start": 585.79,
+      "end": 587.95,
+      "en": "So that is the experiment code.",
+      "zh": "這就是實驗程式碼。"
+    },
+    {
+      "start": 588.07,
+      "end": 594.23,
+      "en": "Now these results are two dimensional because I've manipulated every layer.",
+      "zh": "結果是二維，因為操作了每一層。"
+    },
+    {
+      "start": 595.23,
+      "end": 602.4,
+      "en": "And within every layer I have nine different values corresponding to varying amounts of replacement.",
+      "zh": "每層內，有九個不同值，對應不同替換量。"
+    },
+    {
+      "start": 603,
+      "end": 605.08,
+      "en": "So here you see the results.",
+      "zh": "這裡是結果。"
+    },
+    {
+      "start": 605.08,
+      "end": 608.28,
+      "en": "The x axis is the transformer block.",
+      "zh": "x 軸是 Transformer 區塊。"
+    },
+    {
+      "start": 608.4,
+      "end": 613.32,
+      "en": "Remember there are 36 transformers in GPT two large.",
+      "zh": "記得，GPT2 large 有 36 個 Transformer。"
+    },
+    {
+      "start": 613.96,
+      "end": 621.36,
+      "en": "And the y axis here is the final output logit difference from the clean version of the model, where",
+      "zh": "y 軸，是乾淨、沒有操作的模型版本，"
+    },
+    {
+      "start": 621.36,
+      "end": 628.36,
+      "en": "there was no manipulations versus the manipulated version of the model that you get from this for loop here.",
+      "zh": "與這個 for 迴圈得到的操作模型版本，最終輸出 logit 的差。"
+    },
+    {
+      "start": 628.8,
+      "end": 633.84,
+      "en": "So a value of zero would mean absolutely no effect whatsoever.",
+      "zh": "零，代表完全沒有任何效果。"
+    },
+    {
+      "start": 634.24,
+      "end": 644.92,
+      "en": "Negative values would mean that when I replaced the MLP neurons with their median value, then the final model prediction for the word night actually increased.",
+      "zh": "負值，代表用中位數替換 MLP 神經元後，模型對 night 這個詞的最終預測反而增加。"
+    },
+    {
+      "start": 644.92,
+      "end": 652.44,
+      "en": "So the model was more likely to say the word night and positive values here means that disrupting the",
+      "zh": "所以，模型更可能說 night；這裡的正值，則代表干擾"
+    },
+    {
+      "start": 652.44,
+      "end": 657.8,
+      "en": "MLP layer had a negative impact on the model's prediction for the word night.",
+      "zh": "MLP 層，對模型的 night 預測有負面影響。"
+    },
+    {
+      "start": 658.76,
+      "end": 665.66,
+      "en": "In other words, the words, the word the logit for the word night is higher in the clean version than in the manipulated version.",
+      "zh": "換句話說，乾淨版本對 night 的 logit，比操作版本更高。"
+    },
+    {
+      "start": 666.26,
+      "end": 670.02,
+      "en": "Okay, now that is certainly an expected pattern of results.",
+      "zh": "好，這當然是預期的結果模式。"
+    },
+    {
+      "start": 670.38,
+      "end": 676.98,
+      "en": "And then, yeah, I did nine different manipulations replacing between 10 and 90% of the neurons.",
+      "zh": "我做了九種不同操作，替換 10% 到 90% 神經元。"
+    },
+    {
+      "start": 677.1,
+      "end": 681.74,
+      "en": "And so therefore there are nine different circles within each layer.",
+      "zh": "所以，每層有九個不同圓圈。"
+    },
+    {
+      "start": 682.62,
+      "end": 682.98,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 683.02,
+      "end": 686.86,
+      "en": "So there are several interesting observations here in this graph.",
+      "zh": "這張圖有幾個有趣觀察。"
+    },
+    {
+      "start": 687.1,
+      "end": 691.02,
+      "en": "And I'll have more to say about this when I produce the graph in code.",
+      "zh": "用程式產生圖時，會再多談。"
+    },
+    {
+      "start": 691.1,
+      "end": 698.22,
+      "en": "But one of the striking findings that I want to draw your attention to before looking at the code is",
+      "zh": "但看程式碼前，想先請你注意一個醒目發現，"
+    },
+    {
+      "start": 698.22,
+      "end": 703.5,
+      "en": "that there's very little variability with the different manipulations within each layer.",
+      "zh": "就是每層內，不同操作之間的變化很小。"
+    },
+    {
+      "start": 704.1,
+      "end": 708.82,
+      "en": "In other words, each layer has some impact on the final logits.",
+      "zh": "換句話說，每層對最終 logit 都有些影響。"
+    },
+    {
+      "start": 708.82,
+      "end": 715.78,
+      "en": "So some layers have a stronger manipulation impact, some less, some even going in the opposite direction.",
+      "zh": "有些層的操作影響比較強，有些比較弱，有些甚至往相反方向。"
+    },
+    {
+      "start": 715.98,
+      "end": 725.87,
+      "en": "But within a layer, it doesn't seem to matter that much if I replace 10% or 90% of the neurons in that",
+      "zh": "但同一層內，替換 10% 或 90% 神經元，似乎"
+    },
+    {
+      "start": 725.87,
+      "end": 726.31,
+      "en": "layer.",
+      "zh": "差異不大。"
+    },
+    {
+      "start": 726.83,
+      "end": 728.07,
+      "en": "That's quite surprising.",
+      "zh": "相當令人驚訝。"
+    },
+    {
+      "start": 728.99,
+      "end": 737.03,
+      "en": "I would like you to think about what that might mean and how you would interpret that finding as I work through the code file.",
+      "zh": "逐步介紹程式碼檔時，請思考這可能代表什麼，以及如何解讀。"
+    },
+    {
+      "start": 737.43,
+      "end": 745.59,
+      "en": "Of course, I will have a discussion about this towards the end of the video, but I want you to come up with your own interpretation before you hear mine.",
+      "zh": "影片接近結尾時，當然會討論，但想讓你先提出自己的解讀，再聽我的。"
+    },
+    {
+      "start": 746.27,
+      "end": 747.47,
+      "en": "Anyway, very nice.",
+      "zh": "總之，很好。"
+    },
+    {
+      "start": 747.47,
+      "end": 751.75,
+      "en": "Let's now switch to code some libraries to import.",
+      "zh": "現在切換到程式碼，匯入一些函式庫。"
+    },
+    {
+      "start": 751.75,
+      "end": 757.15,
+      "en": "Here I'm importing GPT two large and I'm putting it on the GPU.",
+      "zh": "這裡匯入 GPT2 large，放到 GPU。"
+    },
+    {
+      "start": 757.83,
+      "end": 759.47,
+      "en": "Okay, so let's see.",
+      "zh": "好，看看。"
+    },
+    {
+      "start": 759.47,
+      "end": 764.51,
+      "en": "Here are some convenience variables the number of layers and the number of neurons.",
+      "zh": "這裡有幾個方便的變數，層數與神經元數量。"
+    },
+    {
+      "start": 764.51,
+      "end": 770.27,
+      "en": "This is like pretty arbitrary that I'm just picking uh transformer block uh three.",
+      "zh": "我有點任意地選 Transformer 第三號區塊。"
+    },
+    {
+      "start": 770.31,
+      "end": 771.23,
+      "en": "Index three.",
+      "zh": "索引 3。"
+    },
+    {
+      "start": 771.27,
+      "end": 772.99,
+      "en": "Of course they're all exactly the same.",
+      "zh": "當然，它們全都完全相同。"
+    },
+    {
+      "start": 773.59,
+      "end": 773.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 773.99,
+      "end": 778.91,
+      "en": "So here I'm creating a hook that I will implant into the model.",
+      "zh": "這裡建立要植入模型的 hook。"
+    },
+    {
+      "start": 778.91,
+      "end": 784.2,
+      "en": "It goes into the fully connected layer of layer nine.",
+      "zh": "它進入第九號層的全連接層。"
+    },
+    {
+      "start": 784.44,
+      "end": 786.6,
+      "en": "And this is just arbitrary by the way.",
+      "zh": "順帶一提，這只是任意選的。"
+    },
+    {
+      "start": 786.6,
+      "end": 788.8,
+      "en": "You can play around with this if you want later.",
+      "zh": "之後可以自己試著調整。"
+    },
+    {
+      "start": 789.16,
+      "end": 796.52,
+      "en": "And all I'm doing in this hook is grabbing the output from the first piece of text in this sequence,",
+      "zh": "這個 hook 只取得這個序列的第一段文字輸出，"
+    },
+    {
+      "start": 796.52,
+      "end": 803.64,
+      "en": "or the first sequence in this batch, and then detaching it and bringing it back from the GPU to the CPU.",
+      "zh": "或者說，批次中的第一個序列，再分離，從 GPU 移回 CPU。"
+    },
+    {
+      "start": 804.08,
+      "end": 810.92,
+      "en": "This is just for convenience here, because we're only working with one sentence here with one text sequence.",
+      "zh": "只是為了方便，因為這裡只處理一個句子、一個文字序列。"
+    },
+    {
+      "start": 810.92,
+      "end": 815.36,
+      "en": "So therefore yeah, this just makes the indexing a little bit easier later on.",
+      "zh": "所以，之後索引稍微容易些。"
+    },
+    {
+      "start": 815.84,
+      "end": 816.16,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 816.2,
+      "end": 817.56,
+      "en": "So I'll run this code.",
+      "zh": "執行這段程式碼。"
+    },
+    {
+      "start": 817.8,
+      "end": 820.72,
+      "en": "It was a dark and stormy night.",
+      "zh": "那是個漆黑、暴風雨的夜晚。"
+    },
+    {
+      "start": 821,
+      "end": 821.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 821.84,
+      "end": 824.6,
+      "en": "Kind of cheesy but that's the famous thing.",
+      "zh": "有點俗套，但很有名。"
+    },
+    {
+      "start": 825,
+      "end": 825.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 825.32,
+      "end": 830.24,
+      "en": "So now I'm running the tokens through the model and getting all the output data.",
+      "zh": "現在，讓 token 通過模型，取得全部輸出資料。"
+    },
+    {
+      "start": 830.4,
+      "end": 831.52,
+      "en": "Here I am.",
+      "zh": "這裡。"
+    },
+    {
+      "start": 831.56,
+      "end": 837.04,
+      "en": "Actually, I'm not even using the hidden states here, so if we can leave that in or out, doesn't matter.",
+      "zh": "其實，這裡根本沒用到隱藏狀態，所以留著或拿掉，都沒關係。"
+    },
+    {
+      "start": 837.92,
+      "end": 842.25,
+      "en": "Here I'm calculating the log softmax for the final token.",
+      "zh": "計算最後 token 的 log_softmax。"
+    },
+    {
+      "start": 842.45,
+      "end": 852.49,
+      "en": "And again the idea is that I'm going to analyze these log softmax values to see what the model thinks the next token should be.",
+      "zh": "同樣，概念是分析這些 log_softmax 值，看看模型認為下一個 token 是什麼。"
+    },
+    {
+      "start": 852.77,
+      "end": 856.05,
+      "en": "And hopefully it thinks that the next token should be night.",
+      "zh": "希望，它認為是 night。"
+    },
+    {
+      "start": 856.61,
+      "end": 856.97,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 857.01,
+      "end": 858.81,
+      "en": "Seven tokens in total.",
+      "zh": "總共有七個 token。"
+    },
+    {
+      "start": 858.93,
+      "end": 866.97,
+      "en": "And there's 5120 neurons in the expansion part of the MLP layer okay.",
+      "zh": "MLP 層擴張部分，有 5120 個神經元。"
+    },
+    {
+      "start": 867.01,
+      "end": 869.21,
+      "en": "And then here is that distribution.",
+      "zh": "這裡就是那個分布。"
+    },
+    {
+      "start": 869.33,
+      "end": 875.13,
+      "en": "And I said in the slides that I wasn't going to investigate this quirky thing that much.",
+      "zh": "投影片說過，不會太深入研究這個奇怪現象。"
+    },
+    {
+      "start": 875.17,
+      "end": 877.13,
+      "en": "But you see there's like two peaks here.",
+      "zh": "但可以看到，這裡有兩個峰。"
+    },
+    {
+      "start": 877.25,
+      "end": 886.73,
+      "en": "And so while I was discussing that, I had a suspicion that this is due to the first token in this sequence.",
+      "zh": "討論時，我懷疑這是因為序列的第一個 token。"
+    },
+    {
+      "start": 886.73,
+      "end": 889.29,
+      "en": "As you know, the first token always behaves weird.",
+      "zh": "你知道，第一個 token 總是很奇怪。"
+    },
+    {
+      "start": 889.45,
+      "end": 893.97,
+      "en": "So let's recreate this histogram excluding the first token.",
+      "zh": "排除第一個 token，再做一次直方圖。"
+    },
+    {
+      "start": 894.13,
+      "end": 896.37,
+      "en": "And we get an error message.",
+      "zh": "得到錯誤訊息。"
+    },
+    {
+      "start": 896.41,
+      "end": 899.71,
+      "en": "Of course the indexing isn't with flatten, it's with MLP.",
+      "zh": "當然，索引不是對 flatten，而是對 MLP。"
+    },
+    {
+      "start": 900.35,
+      "end": 905.31,
+      "en": "And then, lo and behold, you see that this second piece disappears.",
+      "zh": "結果，你看，第二個部分消失了。"
+    },
+    {
+      "start": 905.31,
+      "end": 910.51,
+      "en": "So this weird thing over here is actually just due to the very first token.",
+      "zh": "所以，這裡的奇怪現象，其實只是最前面的 token 造成。"
+    },
+    {
+      "start": 911.75,
+      "end": 912.11,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 912.15,
+      "end": 915.67,
+      "en": "So let's explore median based replacement.",
+      "zh": "探索中位數替換。"
+    },
+    {
+      "start": 916.15,
+      "end": 919.55,
+      "en": "So here what I'm doing is just grabbing the final token.",
+      "zh": "這裡只取出最後 token。"
+    },
+    {
+      "start": 919.71,
+      "end": 921.31,
+      "en": "All of the neurons.",
+      "zh": "所有神經元。"
+    },
+    {
+      "start": 921.43,
+      "end": 927.83,
+      "en": "So all the activations just from the final token calling this variable T for token or temp or something I don't know.",
+      "zh": "也就是最後 token 的全部活化，把變數叫 T，代表 token、temp 或其他什麼，我不知道。"
+    },
+    {
+      "start": 928.31,
+      "end": 931.51,
+      "en": "Uh, finding the median of those values.",
+      "zh": "找出那些值的中位數。"
+    },
+    {
+      "start": 931.71,
+      "end": 935.43,
+      "en": "And then here I'm getting 0.1 times the number of neurons.",
+      "zh": "這裡取 0.1 乘上神經元數量。"
+    },
+    {
+      "start": 935.43,
+      "end": 938.19,
+      "en": "So this is 10% of the neurons.",
+      "zh": "也就是 10% 神經元。"
+    },
+    {
+      "start": 938.19,
+      "end": 945.47,
+      "en": "And then I'm just converting it to an integer just to make sure that this is really a whole number and not a floating point number.",
+      "zh": "再轉成整數，確保它真的是整數，不是浮點數。"
+    },
+    {
+      "start": 946.07,
+      "end": 949.11,
+      "en": "Uh, torch top-k from these neurons.",
+      "zh": "對這些神經元，使用 torch.topk。"
+    },
+    {
+      "start": 949.11,
+      "end": 953.63,
+      "en": "And then I get these indices and then I just replace them.",
+      "zh": "取得索引，再直接替換。"
+    },
+    {
+      "start": 953.67,
+      "end": 964.04,
+      "en": "So that means that the 10% of the most active neurons will have their activation values replaced with the median of the whole distribution.",
+      "zh": "代表最活躍的前 10% 神經元，會把活化值換成整個分布的中位數。"
+    },
+    {
+      "start": 964.4,
+      "end": 973.08,
+      "en": "And then I'm just making histograms on that shows exactly what you saw in the slides with the little x axis shift here.",
+      "zh": "接著，畫直方圖，顯示與投影片完全相同的結果，x 軸稍微平移。"
+    },
+    {
+      "start": 973.08,
+      "end": 980.12,
+      "en": "So the values the x axis values are actually exactly the same for these two distributions I just add",
+      "zh": "兩個分布的 x 軸值，其實完全相同，我只是加上"
+    },
+    {
+      "start": 980.12,
+      "end": 985.84,
+      "en": "and subtract a tiny tiny x axis offset just to make it a little bit more visible.",
+      "zh": "或減去非常小的 x 軸偏移，讓它稍微更清楚。"
+    },
+    {
+      "start": 986.76,
+      "end": 987.04,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 987.08,
+      "end": 997,
+      "en": "So again the idea is that I am taking the large activation values and manipulating them to replace them with the median of the distribution.",
+      "zh": "概念仍然是，取出大的活化值，將它們操作、替換成分布中位數。"
+    },
+    {
+      "start": 997.6,
+      "end": 998.12,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 998.16,
+      "end": 1003.8,
+      "en": "So this code here just generates the output logits that I also showed.",
+      "zh": "這段程式碼，只是產生之前也展示過的輸出 logit。"
+    },
+    {
+      "start": 1003.8,
+      "end": 1007.24,
+      "en": "This probably should go earlier in the code but it doesn't matter okay.",
+      "zh": "它大概應該放在程式碼更前面，但沒關係。"
+    },
+    {
+      "start": 1007.28,
+      "end": 1011.76,
+      "en": "So this is for the token corresponding to the target which is night.",
+      "zh": "這是對應目標，也就是 night 的 token。"
+    },
+    {
+      "start": 1011.76,
+      "end": 1013.56,
+      "en": "You can see it's really high up there.",
+      "zh": "可以看到，它很高。"
+    },
+    {
+      "start": 1013.68,
+      "end": 1023.65,
+      "en": "It has a log softmax value close to zero which means when we exponentiate this, then uh, e to the zero is one.",
+      "zh": "log_softmax 值接近零，代表取指數後，e 的零次方是一。"
+    },
+    {
+      "start": 1023.65,
+      "end": 1028.97,
+      "en": "So the probability of the model picking this token is almost 100%.",
+      "zh": "所以，模型選這個 token 的機率，幾乎 100%。"
+    },
+    {
+      "start": 1029.01,
+      "end": 1032.21,
+      "en": "It's going to be extremely close to 100% okay.",
+      "zh": "會非常接近 100%。"
+    },
+    {
+      "start": 1032.25,
+      "end": 1035.77,
+      "en": "And that is indeed what the model thinks the next token should be.",
+      "zh": "這確實是模型認為的下一個 token。"
+    },
+    {
+      "start": 1036.25,
+      "end": 1036.57,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1036.61,
+      "end": 1038.97,
+      "en": "So now we are ready for the experiment.",
+      "zh": "現在準備做實驗。"
+    },
+    {
+      "start": 1039.33,
+      "end": 1041.37,
+      "en": "A little bit of hard coding in here.",
+      "zh": "這裡有一點寫死的設定。"
+    },
+    {
+      "start": 1041.37,
+      "end": 1044.29,
+      "en": "I suppose this could be better uh soft coded.",
+      "zh": "應該可以改成更彈性的設定。"
+    },
+    {
+      "start": 1044.29,
+      "end": 1046.29,
+      "en": "But anyway, this is how I coded it up.",
+      "zh": "但總之，當時就是這樣寫。"
+    },
+    {
+      "start": 1047.25,
+      "end": 1052.25,
+      "en": "Loop over all the layers, and then I'm looping over the, uh, ripple rate.",
+      "zh": "遍歷所有層，再遍歷 repl rate。"
+    },
+    {
+      "start": 1052.25,
+      "end": 1060.53,
+      "en": "So the replacement rate and the idea is that I am going to take this integer, divide it by ten, and",
+      "zh": "也就是替換比例，概念是取這個整數，除以十，"
+    },
+    {
+      "start": 1060.53,
+      "end": 1065.65,
+      "en": "then use that same multiplication and division that I showed earlier.",
+      "zh": "再使用前面展示的同樣乘法與除法。"
+    },
+    {
+      "start": 1065.89,
+      "end": 1068.69,
+      "en": "So this code is what you saw above.",
+      "zh": "這段程式碼，上面看過。"
+    },
+    {
+      "start": 1068.69,
+      "end": 1075.25,
+      "en": "And I'm just putting it into this hook function which I then implant into MLP.",
+      "zh": "只是把它放進 hook 函數，再植入 MLP。"
+    },
+    {
+      "start": 1075.53,
+      "end": 1080.3,
+      "en": "Fully connected this particular layer Run a forward pass.",
+      "zh": "這個特定層的全連接層。做前向傳播。"
+    },
+    {
+      "start": 1080.34,
+      "end": 1089.46,
+      "en": "Delete that hook function from the model and then softmax the output logits again, only working with the final token here as well.",
+      "zh": "從模型刪除 hook，再對輸出 logit 做 softmax，這裡同樣只處理最後 token。"
+    },
+    {
+      "start": 1089.5,
+      "end": 1091.38,
+      "en": "I'm only working with the final token.",
+      "zh": "只處理最後 token。"
+    },
+    {
+      "start": 1091.74,
+      "end": 1100.14,
+      "en": "And then all the way out here I get the log softmax value for the target index for the word night.",
+      "zh": "最後，取出目標索引，也就是 night 的 log_softmax 值。"
+    },
+    {
+      "start": 1100.5,
+      "end": 1100.82,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1100.86,
+      "end": 1102.38,
+      "en": "So we can run through that.",
+      "zh": "可以執行。"
+    },
+    {
+      "start": 1102.42,
+      "end": 1106.94,
+      "en": "This is pretty fast to run in GPT or on the GPU.",
+      "zh": "GPT，或者說 GPU 上，執行相當快。"
+    },
+    {
+      "start": 1107.66,
+      "end": 1108.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1108.1,
+      "end": 1110.54,
+      "en": "So well I guess it still takes several seconds.",
+      "zh": "不過，我想仍然要幾秒。"
+    },
+    {
+      "start": 1110.54,
+      "end": 1112.58,
+      "en": "And here's the code where I'm generating the figure.",
+      "zh": "這裡是產生圖形的程式碼。"
+    },
+    {
+      "start": 1112.58,
+      "end": 1115.26,
+      "en": "So I loop over all of the different layers.",
+      "zh": "遍歷所有不同層。"
+    },
+    {
+      "start": 1115.42,
+      "end": 1124.7,
+      "en": "And for each layer I just make a plot of all of those log softmax values here for this layer, all nine",
+      "zh": "每層，都把該層所有 log_softmax 值畫出來，也就是九種"
+    },
+    {
+      "start": 1124.74,
+      "end": 1126.46,
+      "en": "of the manipulations.",
+      "zh": "操作。"
+    },
+    {
+      "start": 1126.7,
+      "end": 1133.06,
+      "en": "And then I'm subtracting that from the clean version of the logit for the same target.",
+      "zh": "再從相同目標的乾淨版本 logit，減掉這些值。"
+    },
+    {
+      "start": 1133.06,
+      "end": 1140.08,
+      "en": "And this is basically our baseline comparison value so that we can interpret the data more meaningfully.",
+      "zh": "這基本上就是比較基準，讓資料更有意義、更容易解讀。"
+    },
+    {
+      "start": 1140.48,
+      "end": 1144,
+      "en": "Okay, now it looks like on layer zero you only see one dot.",
+      "zh": "好，現在看起來，零號層只有一個點。"
+    },
+    {
+      "start": 1144,
+      "end": 1146.92,
+      "en": "So something interesting is happening there.",
+      "zh": "那裡有有趣事情發生。"
+    },
+    {
+      "start": 1147.24,
+      "end": 1149.84,
+      "en": "The full plot actually looks like this.",
+      "zh": "完整圖，其實像這樣。"
+    },
+    {
+      "start": 1150.04,
+      "end": 1161,
+      "en": "So this manipulation has a gigantic effect when it is implanted into the very, very, very first layer, the very first transformer block.",
+      "zh": "如果把操作放在非常、非常最前面的層，也就是第一個 Transformer 區塊，效果巨大。"
+    },
+    {
+      "start": 1161.04,
+      "end": 1162.44,
+      "en": "It's really catastrophic.",
+      "zh": "真的具有災難性。"
+    },
+    {
+      "start": 1163.24,
+      "end": 1165.44,
+      "en": "So here there's something happening.",
+      "zh": "所以，這裡有某種事情發生。"
+    },
+    {
+      "start": 1165.48,
+      "end": 1177.12,
+      "en": "And right in the very beginning, when the transformer sequence first takes the embeddings from the embeddings layer, and there's just something really important and the model just gets really confused",
+      "zh": "就在一開始，Transformer 序列剛接收嵌入層的嵌入時，有某種非常重要的東西，模型在這裡非常混亂。"
+    },
+    {
+      "start": 1177.12,
+      "end": 1177.44,
+      "en": "here.",
+      "zh": "就在這裡。"
+    },
+    {
+      "start": 1177.44,
+      "end": 1189.24,
+      "en": "So would be interesting to look into this in a little more detail and see, for example, what is the actual token that the model wants to get for this run here.",
+      "zh": "值得更詳細研究，例如，模型在這次執行中，實際想取得哪個 token。"
+    },
+    {
+      "start": 1189.8,
+      "end": 1191.56,
+      "en": "But just for uh, yeah.",
+      "zh": "不過，只是，"
+    },
+    {
+      "start": 1191.6,
+      "end": 1203.17,
+      "en": "Just in the interest of focusing the analyses on the broader patterns, I'm going to fix the y axis limit, so that we're actually just ignoring a lot of those data up there.",
+      "zh": "為了將分析聚焦於較廣泛模式，我要固定 y 軸範圍，實際上忽略上面很多資料。"
+    },
+    {
+      "start": 1203.77,
+      "end": 1204.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1204.21,
+      "end": 1205.93,
+      "en": "So a couple of things you notice.",
+      "zh": "可以注意到幾件事。"
+    },
+    {
+      "start": 1205.93,
+      "end": 1213.69,
+      "en": "One is that, uh, across all of the layers, more often than not the values are positive, which means",
+      "zh": "第一，所有層中，大部分時候的值為正，代表"
+    },
+    {
+      "start": 1213.69,
+      "end": 1221.93,
+      "en": "that, uh, replacing the MLP neuron activation values with the median has a negative impact.",
+      "zh": "以中位數替換 MLP 神經元活化值，有負面影響。"
+    },
+    {
+      "start": 1221.93,
+      "end": 1231.77,
+      "en": "So it's lowering the log, uh, softmax value for the token that we are looking for the word night, but not every time.",
+      "zh": "降低了我們要找的 night token 的 log_softmax 值，但不是每次。"
+    },
+    {
+      "start": 1231.77,
+      "end": 1240.85,
+      "en": "It also happens that there are layers where interfering with the MLP actually boosts the, uh, target token logit.",
+      "zh": "也有些層，干預 MLP 反而增強目標 token 的 logit。"
+    },
+    {
+      "start": 1241.13,
+      "end": 1245.41,
+      "en": "Now, this sort of effect, I would be reluctant to overinterpret it.",
+      "zh": "對這類效果，我會不太願意過度解讀。"
+    },
+    {
+      "start": 1245.41,
+      "end": 1249.77,
+      "en": "I would want to see that reproduced in more, uh, text.",
+      "zh": "希望看到更多文字也重現。"
+    },
+    {
+      "start": 1249.77,
+      "end": 1259.98,
+      "en": "So, for example, is there something special about, uh, layer 32 that it's always producing a negative value, or do you see that across different texts.",
+      "zh": "例如，第三十二號層是否有特別之處，總是產生負值，還是不同文字中，"
+    },
+    {
+      "start": 1259.98,
+      "end": 1262.82,
+      "en": "Sometimes it's negative and sometimes it's positive and so on.",
+      "zh": "有時負，有時正，等等。"
+    },
+    {
+      "start": 1263.26,
+      "end": 1271.98,
+      "en": "But I find it really striking that there's very little difference between knocking out 10% and knocking",
+      "zh": "但我覺得很醒目的是，移除 10% 與移除"
+    },
+    {
+      "start": 1271.98,
+      "end": 1275.9,
+      "en": "out 90% of the transformer blocks.",
+      "zh": "90% Transformer 區塊之間，差異非常小。"
+    },
+    {
+      "start": 1275.94,
+      "end": 1281.34,
+      "en": "There's very little variability across these different manipulations within a given layer.",
+      "zh": "同一層內，不同操作之間的變化很少。"
+    },
+    {
+      "start": 1281.7,
+      "end": 1286.14,
+      "en": "And so to investigate that a little bit more I'm going to do is add another zero here.",
+      "zh": "為了進一步研究，我要在這裡多加一個零。"
+    },
+    {
+      "start": 1286.5,
+      "end": 1297.98,
+      "en": "So that means that now instead of varying how much how many neurons we uh, we replace with the median value between 10% and 90% of the population.",
+      "zh": "代表，現在以中位數替換的神經元數量，不再介於整體的 10% 到 90%，"
+    },
+    {
+      "start": 1298.18,
+      "end": 1303.18,
+      "en": "Instead, I'm going to replace between 1% and 9%.",
+      "zh": "而是 1% 到 9%。"
+    },
+    {
+      "start": 1303.42,
+      "end": 1312.34,
+      "en": "So now when I rerun this experiment, every single manipulation is smaller than the smallest manipulation that we see here.",
+      "zh": "重新執行實驗，每個操作都會比這裡最小的操作還小。"
+    },
+    {
+      "start": 1312.46,
+      "end": 1317.38,
+      "en": "So only manipulating between 1% and 9%.",
+      "zh": "只操作 1% 到 9%。"
+    },
+    {
+      "start": 1317.78,
+      "end": 1321.19,
+      "en": "And now we actually do start to see more variability.",
+      "zh": "現在，確實開始看到更多變化。"
+    },
+    {
+      "start": 1321.19,
+      "end": 1323.07,
+      "en": "And you could, you know, keep running this.",
+      "zh": "你可以繼續執行。"
+    },
+    {
+      "start": 1323.11,
+      "end": 1325.99,
+      "en": "You could make this be like 500%.",
+      "zh": "可以把這裡改成像是 500%。"
+    },
+    {
+      "start": 1326.11,
+      "end": 1327.07,
+      "en": "Let's just try that.",
+      "zh": "試試看。"
+    },
+    {
+      "start": 1327.71,
+      "end": 1329.03,
+      "en": "Sorry not 500%.",
+      "zh": "抱歉，不是 500%。"
+    },
+    {
+      "start": 1329.07,
+      "end": 1330.83,
+      "en": "Dividing by five hundredths.",
+      "zh": "除以五百分之一。"
+    },
+    {
+      "start": 1330.83,
+      "end": 1333.95,
+      "en": "So now it's varying between 0.2%.",
+      "zh": "所以，現在從 0.2% 變化，"
+    },
+    {
+      "start": 1333.95,
+      "end": 1339.39,
+      "en": "And whatever nine divided by 500 is 4.5% I guess.",
+      "zh": "到九除以 500，我猜是 4.5%。"
+    },
+    {
+      "start": 1339.43,
+      "end": 1342.31,
+      "en": "And now again we are seeing more variability.",
+      "zh": "現在，也再次看到更多變化。"
+    },
+    {
+      "start": 1342.31,
+      "end": 1343.51,
+      "en": "And what does this tell us?",
+      "zh": "這告訴我們什麼？"
+    },
+    {
+      "start": 1343.51,
+      "end": 1354.59,
+      "en": "This tells us that the more we focus in on a very, very, very small number of neurons, the more we find that we can get more variability in these results.",
+      "zh": "代表越聚焦於非常、非常少的神經元，就越能發現結果有更多變化。"
+    },
+    {
+      "start": 1355.43,
+      "end": 1356.51,
+      "en": "And what does that mean?",
+      "zh": "那代表什麼？"
+    },
+    {
+      "start": 1356.59,
+      "end": 1365.35,
+      "en": "That means that that most of the information that is projected by the MLP layer going forwards to adjust",
+      "zh": "代表 MLP 層向前投射、調整"
+    },
+    {
+      "start": 1365.35,
+      "end": 1371.99,
+      "en": "the embeddings vector is carried by a really tiny number, just a handful of neurons, maybe somewhere",
+      "zh": "嵌入向量的大部分資訊，是由非常少數、僅一小撮神經元攜帶，"
+    },
+    {
+      "start": 1371.99,
+      "end": 1378.15,
+      "en": "around 1% or 2 or 3% of the neurons are really carrying most of the information.",
+      "zh": "也許大約 1%、2% 或 3% 神經元，就真的攜帶了大部分資訊。"
+    },
+    {
+      "start": 1378.53,
+      "end": 1382.05,
+      "en": "All the rest of the neurons are just not doing a whole lot.",
+      "zh": "其他全部神經元，沒有做太多事情。"
+    },
+    {
+      "start": 1382.09,
+      "end": 1390.29,
+      "en": "They're not making a really major contribution that we can actually measure at the final end of the model.",
+      "zh": "沒有對模型最終末端，可測得的結果做出真正重大貢獻。"
+    },
+    {
+      "start": 1390.73,
+      "end": 1396.77,
+      "en": "Of course, that conclusion is just based on this one sample text that I used.",
+      "zh": "當然，這個結論只是根據我用的這一個範例文字。"
+    },
+    {
+      "start": 1396.93,
+      "end": 1402.97,
+      "en": "So you could certainly try reproducing this pattern of results with more text.",
+      "zh": "所以，當然可以試著用更多文字，重現這個結果模式。"
+    },
+    {
+      "start": 1402.97,
+      "end": 1410.25,
+      "en": "But in general, this is a fairly typical finding that for a given, uh, token of relatively small",
+      "zh": "但一般而言，這是相當典型的發現：對某個 token，相對少量的"
+    },
+    {
+      "start": 1410.25,
+      "end": 1420.25,
+      "en": "number of MLP neurons carry a lot of information, the dimensionality explosion problem is present basically",
+      "zh": "MLP 神經元，攜帶大量資訊。維度爆炸問題，基本上存在於"
+    },
+    {
+      "start": 1420.25,
+      "end": 1424.77,
+      "en": "everywhere in mechanistic interpretability of large language models.",
+      "zh": "大型語言模型機制可解釋性的各個地方。"
+    },
+    {
+      "start": 1425.17,
+      "end": 1432.33,
+      "en": "But it's really the worst in the MLP expansion layer because there's just so many neurons in there.",
+      "zh": "但 MLP 擴張層最嚴重，因為裡面神經元實在太多。"
+    },
+    {
+      "start": 1432.69,
+      "end": 1437.53,
+      "en": "So you really need some way to select neurons for manipulation.",
+      "zh": "所以，真的需要某種方式，挑選神經元來操作。"
+    },
+    {
+      "start": 1438.05,
+      "end": 1445.7,
+      "en": "What I showed you in this video is a descriptive, characteristic based approach, and in the next video",
+      "zh": "這支影片展示的是基於描述特徵的方法；下一支影片，"
+    },
+    {
+      "start": 1445.7,
+      "end": 1450.54,
+      "en": "for contrast, I will show you an inferential statistical approach.",
+      "zh": "會對照展示推論統計方法。"
+    },
+    {
+      "start": 1451.46,
+      "end": 1460.18,
+      "en": "Also quite striking that we get basically the same effect for 10% versus 90% of neuron ablations.",
+      "zh": "也很醒目的是，消融 10% 或 90% 神經元，效果基本相同。"
+    },
+    {
+      "start": 1460.42,
+      "end": 1467.1,
+      "en": "And we really have to get down to the single digit percents before we start seeing some variability.",
+      "zh": "真的必須降到個位數百分比，才開始看到變化。"
+    },
+    {
+      "start": 1467.66,
+      "end": 1477.26,
+      "en": "So that is consistent with the idea that a very small number of MLP neurons are carrying most of the information for a given token.",
+      "zh": "所以，這與某個 token 的大部分資訊，由非常少數 MLP 神經元攜帶的想法一致。"
+    },
+    {
+      "start": 1477.54,
+      "end": 1484.02,
+      "en": "Of course, you have to keep in mind that these neurons are not processing the actual embeddings vectors themselves.",
+      "zh": "當然，必須記得，這些神經元處理的不是實際嵌入向量本身。"
+    },
+    {
+      "start": 1484.5,
+      "end": 1491.46,
+      "en": "They are processing the adjustments to the embeddings vectors that will be added back onto the embeddings",
+      "zh": "而是對嵌入向量的調整，這一層收縮之後，"
+    },
+    {
+      "start": 1491.62,
+      "end": 1497.58,
+      "en": "after this layer gets contracted, and then summed back onto the residual stream.",
+      "zh": "會加回嵌入，再加回殘差流。"
+    }
+  ]
+}

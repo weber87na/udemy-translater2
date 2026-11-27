@@ -1,0 +1,955 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893873",
+  "title": "CodeChallenge: Head and token patching in IOI",
+  "section": 25,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "9e038e9ef83b83db77a0d1b45c60b388d1d90022f25a2a401b6fe444c107c8bc",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 5.68,
+      "en": "Now for the follow up from the previous video.",
+      "zh": "現在，延續上一支影片。"
+    },
+    {
+      "start": 6.16,
+      "end": 16.68,
+      "en": "You are going to dig more deeply into patching attention heads and the IOI experiments, but patching individual heads within each layer.",
+      "zh": "你會更深入探索注意力頭修補與 IOI 實驗，但這次修補每一層內的個別頭。"
+    },
+    {
+      "start": 17.16,
+      "end": 19.88,
+      "en": "Let's begin with exercise one.",
+      "zh": "先從練習一開始。"
+    },
+    {
+      "start": 20.28,
+      "end": 23.44,
+      "en": "The goal here is to set up for the experiment.",
+      "zh": "目標是為實驗做好設定。"
+    },
+    {
+      "start": 23.48,
+      "end": 28.44,
+      "en": "Now, most of the code you can copy from the code file for the previous video.",
+      "zh": "大部分程式碼，都可以從上一支影片的程式碼檔複製。"
+    },
+    {
+      "start": 28.88,
+      "end": 39.24,
+      "en": "But don't just copy and paste blindly because you know, the entire reason why you're watching this video is because you want to understand and not just copy.",
+      "zh": "但不要盲目複製貼上，因為看影片的整個原因，是想理解，不只是複製。"
+    },
+    {
+      "start": 40.08,
+      "end": 49.72,
+      "en": "Anyway, for starters, import the large version of GPT two, then tokenize the same two sentences that",
+      "zh": "總之，首先匯入 GPT2 的 large 版本，再對上一支影片使用的相同兩個"
+    },
+    {
+      "start": 49.72,
+      "end": 52.36,
+      "en": "we used in the previous video.",
+      "zh": "句子做 token 化。"
+    },
+    {
+      "start": 53.16,
+      "end": 56.88,
+      "en": "Create hooks that you implant to get all of the attention.",
+      "zh": "建立並植入 hook，取得全部注意力"
+    },
+    {
+      "start": 56.88,
+      "end": 66.32,
+      "en": "Head activations from text version A, you should also check the sizes of the activation matrices and",
+      "zh": "頭在文字版本 A 的活化。也應該檢查活化矩陣的大小，"
+    },
+    {
+      "start": 66.32,
+      "end": 72.24,
+      "en": "make sure you understand what all these numbers mean, where they come from, what they correspond to, etc..",
+      "zh": "確認理解所有數字的意義、來源、對應什麼等等。"
+    },
+    {
+      "start": 72.84,
+      "end": 77.24,
+      "en": "Finally, calculate the IOI score from the clean data.",
+      "zh": "最後，從乾淨資料計算 IOI 分數。"
+    },
+    {
+      "start": 77.76,
+      "end": 86.52,
+      "en": "As you know, these values will be the baseline comparison values for when we run the experiment in the next exercise.",
+      "zh": "你知道，這些值會是下一個練習執行實驗時，用來比較的基準。"
+    },
+    {
+      "start": 88,
+      "end": 94.08,
+      "en": "I don't think this exercise will take you very long after having gone through the previous video.",
+      "zh": "看過上一支影片後，我想這份練習不會花太久。"
+    },
+    {
+      "start": 94.75999999999999,
+      "end": 104.2,
+      "en": "I will now switch to code, but only briefly to make sure we're all on the same page before proceeding to the main experiment in the next exercise.",
+      "zh": "現在切換到程式碼，但只簡短說明，確認大家理解一致，再進入下一個練習的主要實驗。"
+    },
+    {
+      "start": 106.12,
+      "end": 107.44,
+      "en": "So here we are.",
+      "zh": "這裡。"
+    },
+    {
+      "start": 107.47999999999999,
+      "end": 112.75999999999999,
+      "en": "I'm importing GPT two large and pushing it to the GPU.",
+      "zh": "匯入 GPT2 large，移到 GPU。"
+    },
+    {
+      "start": 113.4,
+      "end": 118.4,
+      "en": "Here is the text exactly the same as in the previous video.",
+      "zh": "文字與上一支影片完全相同。"
+    },
+    {
+      "start": 118.56,
+      "end": 125.64,
+      "en": "Here I'm defining some convenience variables as I've done before, including this one for the number of tokens.",
+      "zh": "這裡像之前一樣，定義一些方便的變數，包括 token 數量。"
+    },
+    {
+      "start": 126.12,
+      "end": 126.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 126.44,
+      "end": 129.2,
+      "en": "And then this code you've seen exactly before.",
+      "zh": "這段程式碼以前完整看過。"
+    },
+    {
+      "start": 129.24,
+      "end": 136.8,
+      "en": "This is getting the activations from all of the heads reshaped, so that we can easily index each individual",
+      "zh": "取得全部注意力頭的活化，再重塑，方便索引每個個別"
+    },
+    {
+      "start": 136.8,
+      "end": 145.24,
+      "en": "head from, uh, from text sequence A, and remember that this reshaping wasn't necessary in the previous",
+      "zh": "頭，來自文字序列 A。記得，上一支影片其實不需要重塑，"
+    },
+    {
+      "start": 145.24,
+      "end": 153.2,
+      "en": "video because there I replaced all the heads and all the tokens, and that's not what I'm going to do here.",
+      "zh": "因為當時替換全部頭、全部 token，這裡不會那樣做。"
+    },
+    {
+      "start": 153.6,
+      "end": 153.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 154,
+      "end": 154.64,
+      "en": "So here.",
+      "zh": "這裡。"
+    },
+    {
+      "start": 154.68,
+      "end": 154.88,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 154.92000000000002,
+      "end": 160.12,
+      "en": "You've also seen this exactly in the previous video and also this stuff.",
+      "zh": "這些也都在上一支影片完整看過，還有這些。"
+    },
+    {
+      "start": 160.12,
+      "end": 165.8,
+      "en": "So really not too much new here compared to what you have already done in the previous video.",
+      "zh": "所以，相較於上一支影片做過的，真的沒有太多新東西。"
+    },
+    {
+      "start": 167.56,
+      "end": 171.04,
+      "en": "This exercise is the main experiment.",
+      "zh": "這份練習是主要實驗。"
+    },
+    {
+      "start": 171.4,
+      "end": 183.28,
+      "en": "You can start by copying the experiment code from the previous video, but remember that in the previous video I patched all of the heads and all of the tokens.",
+      "zh": "可以先複製上一支影片的實驗程式碼，但記得，當時修補全部頭、全部 token。"
+    },
+    {
+      "start": 183.84,
+      "end": 190.8,
+      "en": "So now in this experiment here, you are going to do a much more targeted manipulation.",
+      "zh": "現在的實驗，要做更有目標的操作。"
+    },
+    {
+      "start": 191.48,
+      "end": 196.52,
+      "en": "You can see that I have an embedded for loop over all of the heads.",
+      "zh": "可以看到，有個遍歷所有頭的內嵌 for 迴圈。"
+    },
+    {
+      "start": 196.52,
+      "end": 202.44,
+      "en": "So we're looping over all of the layers and then looping over all of the heads within each layer.",
+      "zh": "先遍歷所有層，再遍歷每層中的所有頭。"
+    },
+    {
+      "start": 203.04,
+      "end": 210.84,
+      "en": "So now inside this hook function you replace the head activation vectors from the donor model, but",
+      "zh": "現在，hook 函數內，用供體模型的注意力頭活化向量替換，"
+    },
+    {
+      "start": 210.84,
+      "end": 215.88,
+      "en": "only for one head at a time and only for the final token.",
+      "zh": "但每次只針對一個頭，而且只針對最後一個 token。"
+    },
+    {
+      "start": 216.76,
+      "end": 223.24,
+      "en": "Otherwise, the concept of this for loop and the experiment is the same as the previous video.",
+      "zh": "除此之外，for 迴圈與實驗概念，與上一支影片相同。"
+    },
+    {
+      "start": 223.84,
+      "end": 233.2,
+      "en": "Again, the difference is that here you are patching one head at a time and only the final token next for the visualization.",
+      "zh": "差別仍然是，每次只修補一個頭，而且只修補最後 token。接著，是視覺化。"
+    },
+    {
+      "start": 233.32,
+      "end": 239.84,
+      "en": "Now, what you're looking at right now is not the visualization that you will create in this exercise.",
+      "zh": "現在看到的，不是這份練習要製作的視覺化。"
+    },
+    {
+      "start": 240.16,
+      "end": 248.79,
+      "en": "This is a screenshot from the previous video where we had only one data point per layer per transformer",
+      "zh": "這是上一支影片的截圖，當時每一層、每個 Transformer"
+    },
+    {
+      "start": 248.79,
+      "end": 253.19,
+      "en": "block, but now we have one data point per block per head.",
+      "zh": "區塊只有一個資料點，但現在，每個區塊的每個頭都有一個資料點。"
+    },
+    {
+      "start": 253.71,
+      "end": 262.83,
+      "en": "So I'm not going to tell you exactly how to visualize the results, because I want to give you the freedom to make your own decisions.",
+      "zh": "我不會告訴你確切該如何視覺化結果，因為想讓你自由決定。"
+    },
+    {
+      "start": 263.31,
+      "end": 268.15,
+      "en": "Of course, when I switch to code, I will show you what I did to visualize these results.",
+      "zh": "當然，切換到程式碼後，會展示我的做法。"
+    },
+    {
+      "start": 268.35,
+      "end": 276.63,
+      "en": "But suffice it to say that somehow you want to visualize all the results over all the layers and all of the heads.",
+      "zh": "只要知道，要用某種方式，將所有層、所有頭的全部結果視覺化。"
+    },
+    {
+      "start": 277.83,
+      "end": 284.51,
+      "en": "If you have multiple ideas for how to visualize the results, then you can make multiple visualizations.",
+      "zh": "如果有多種想法，也可以做多種視覺化。"
+    },
+    {
+      "start": 284.51,
+      "end": 285.47,
+      "en": "That is great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 286.03,
+      "end": 290.87,
+      "en": "Okay, and now you should pause the video and run the experiment and see how the results look.",
+      "zh": "好，現在請暫停影片，執行實驗，看看結果。"
+    },
+    {
+      "start": 291.27,
+      "end": 292.90999999999997,
+      "en": "And now I will switch to code.",
+      "zh": "現在切換到程式碼。"
+    },
+    {
+      "start": 293.99,
+      "end": 298.83,
+      "en": "I hope you didn't have too much trouble getting this exercise together.",
+      "zh": "希望你完成這份練習時，沒有太多困難。"
+    },
+    {
+      "start": 299.11,
+      "end": 304.15,
+      "en": "So looping over all the layers, looping over all the heads within each layer.",
+      "zh": "遍歷全部層，再遍歷各層全部頭。"
+    },
+    {
+      "start": 304.35,
+      "end": 306.39,
+      "en": "And then here is the hook function.",
+      "zh": "這裡是 hook 函數。"
+    },
+    {
+      "start": 306.55,
+      "end": 313.23,
+      "en": "Now remember in the previous video this line of code looked something like this.",
+      "zh": "記得，上一支影片，這行程式碼像這樣。"
+    },
+    {
+      "start": 313.55,
+      "end": 316.23,
+      "en": "Or wait it looked like this.",
+      "zh": "等等，是像這樣。"
+    },
+    {
+      "start": 316.23,
+      "end": 317.27,
+      "en": "That's what it looked like.",
+      "zh": "原本是這樣。"
+    },
+    {
+      "start": 317.39,
+      "end": 323.83,
+      "en": "So in the previous video, we copied all the heads for this one layer and all of the tokens.",
+      "zh": "上一支影片，複製這一層的全部頭，以及全部 token。"
+    },
+    {
+      "start": 323.95,
+      "end": 326.99,
+      "en": "And what we're doing now is much more targeted.",
+      "zh": "現在做的更有目標。"
+    },
+    {
+      "start": 326.99,
+      "end": 336.15,
+      "en": "So we're only copying over the final token and only copying over one head corresponding to this iteration.",
+      "zh": "只複製最後一個 token，以及對應這次迭代的一個頭，"
+    },
+    {
+      "start": 336.15,
+      "end": 339.47,
+      "en": "In this for loop over all of the heads.",
+      "zh": "也就是這個遍歷所有頭的 for 迴圈。"
+    },
+    {
+      "start": 340.23,
+      "end": 347.67,
+      "en": "And now you see why it's convenient to reshape this input so we can easily access each head dimension.",
+      "zh": "現在可以看到，為何重塑輸入很方便，因為容易存取每個頭維度。"
+    },
+    {
+      "start": 348.15,
+      "end": 351.59000000000003,
+      "en": "That said, this reshaping is not necessary at all.",
+      "zh": "話雖如此，完全不一定要重塑。"
+    },
+    {
+      "start": 351.59000000000003,
+      "end": 356.79,
+      "en": "You could also come up with an indexing to index right into this tensor.",
+      "zh": "也可以想出索引方式，直接索引這個張量。"
+    },
+    {
+      "start": 356.99,
+      "end": 363.31,
+      "en": "And you know, that would be something like head I times head dim.",
+      "zh": "例如，head i 乘上 head dim。"
+    },
+    {
+      "start": 363.31,
+      "end": 364.99,
+      "en": "This would be the start location.",
+      "zh": "這是起點。"
+    },
+    {
+      "start": 364.99,
+      "end": 366.79,
+      "en": "And then you would have to add another head.",
+      "zh": "接著，要再加一個 head。"
+    },
+    {
+      "start": 367.03,
+      "end": 368.15,
+      "en": "It would be something like this.",
+      "zh": "大概像這樣。"
+    },
+    {
+      "start": 368.19,
+      "end": 369.59,
+      "en": "You could figure it out if you want.",
+      "zh": "如果願意，可以自己想出來。"
+    },
+    {
+      "start": 369.95,
+      "end": 370.99,
+      "en": "But anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 371.23,
+      "end": 371.59,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 371.63,
+      "end": 373.11,
+      "en": "So that is that.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 373.11,
+      "end": 375.79,
+      "en": "And why are we manipulating the final token.",
+      "zh": "為什麼操作最後一個 token？"
+    },
+    {
+      "start": 375.95,
+      "end": 387.15,
+      "en": "Well that is the token that the model is then using to generate the prediction for the next token, which is what we will explicitly measure here.",
+      "zh": "因為模型接著會用那個 token，產生下一個 token 的預測，而這正是這裡要明確測量的。"
+    },
+    {
+      "start": 387.55,
+      "end": 392.27,
+      "en": "That said, if you are curious, you could also try doing other manipulations.",
+      "zh": "話雖如此，如果好奇，也能試試其他操作。"
+    },
+    {
+      "start": 392.27,
+      "end": 399.83,
+      "en": "So for example, you could try instead of overwriting this the attention vectors here, you could try",
+      "zh": "例如，不覆寫這裡的注意力向量，而是"
+    },
+    {
+      "start": 399.87,
+      "end": 405.63,
+      "en": "overwriting the attention vectors for this word here this token either Sam or Sally.",
+      "zh": "覆寫這個詞、這個 token 的注意力向量，也就是 Sam 或 Sally。"
+    },
+    {
+      "start": 405.63,
+      "end": 412.75,
+      "en": "So basically you're going to patch the attention vectors for Sam onto the attention vectors for Sally.",
+      "zh": "基本上，是把 Sam 的注意力向量，修補到 Sally 的注意力向量。"
+    },
+    {
+      "start": 413.63,
+      "end": 414.47,
+      "en": "Just an idea.",
+      "zh": "只是個想法。"
+    },
+    {
+      "start": 414.51,
+      "end": 418.39,
+      "en": "Just if you want to continue exploring this experiment.",
+      "zh": "如果想繼續探索這個實驗，可以試試。"
+    },
+    {
+      "start": 418.75,
+      "end": 419.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 419.07,
+      "end": 428.55,
+      "en": "So after that, the rest of this code is really exactly the same as in the previous video, but now",
+      "zh": "之後，其餘程式碼真的與上一支影片完全相同，但現在"
+    },
+    {
+      "start": 428.55,
+      "end": 430.47,
+      "en": "this variable logit diffs.",
+      "zh": "logit diffs 這個變數，"
+    },
+    {
+      "start": 430.51,
+      "end": 433.47,
+      "en": "Previously, we only had one value per layer.",
+      "zh": "之前每層只有一個值。"
+    },
+    {
+      "start": 433.51,
+      "end": 436.27,
+      "en": "Now we have one value per head per layer.",
+      "zh": "現在每層、每個頭都有一個值。"
+    },
+    {
+      "start": 436.95,
+      "end": 440.59,
+      "en": "Okay, on the GPU this doesn't take too long to run through.",
+      "zh": "好，在 GPU 上執行，不會太久。"
+    },
+    {
+      "start": 441.11,
+      "end": 442.91,
+      "en": "I haven't timed this on the CPU.",
+      "zh": "CPU 我沒有計時。"
+    },
+    {
+      "start": 442.95,
+      "end": 446.47,
+      "en": "Maybe it's several minutes or something, but it still is.",
+      "zh": "也許幾分鐘之類的，但這仍然，"
+    },
+    {
+      "start": 446.51,
+      "end": 449.55,
+      "en": "You know, it's a pretty respectable experiment we're running here.",
+      "zh": "是個相當像樣的實驗。"
+    },
+    {
+      "start": 449.79,
+      "end": 456.03,
+      "en": "It's all of the layers and all of the heads in the large version of GPT two.",
+      "zh": "遍歷 GPT2 large 的全部層、全部頭。"
+    },
+    {
+      "start": 456.07,
+      "end": 457.31,
+      "en": "So, you know, it takes.",
+      "zh": "所以，花費……"
+    },
+    {
+      "start": 457.35,
+      "end": 459.23,
+      "en": "Okay, 20s not so bad.",
+      "zh": "好，20 秒，不太糟。"
+    },
+    {
+      "start": 459.99,
+      "end": 460.63,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 460.83,
+      "end": 461.47,
+      "en": "Uh, let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 461.47,
+      "end": 465.51,
+      "en": "So here is the visualization that I made here.",
+      "zh": "這是我做的視覺化。"
+    },
+    {
+      "start": 465.83,
+      "end": 472.27,
+      "en": "And what you see is it looks like there's only one dot per transformer block, but in fact there are.",
+      "zh": "可以看到，每個 Transformer 區塊好像只有一個點，但其實有，"
+    },
+    {
+      "start": 472.31,
+      "end": 473.03,
+      "en": "Let me see.",
+      "zh": "讓我看看。"
+    },
+    {
+      "start": 473.07,
+      "end": 475.35,
+      "en": "I don't know how many heads there are off the top of my head.",
+      "zh": "我一下想不起來有多少個頭。"
+    },
+    {
+      "start": 475.39,
+      "end": 479.63,
+      "en": "Okay, there's 20 heads in this version of GPT two.",
+      "zh": "好，這個 GPT2 版本有 20 個頭。"
+    },
+    {
+      "start": 479.90999999999997,
+      "end": 488.07,
+      "en": "So each of these circles is actually 20 circles, but they all have nearly identical values.",
+      "zh": "所以，每個圓圈其實是 20 個圓圈，但數值幾乎相同。"
+    },
+    {
+      "start": 488.07,
+      "end": 492.07,
+      "en": "And so therefore they're all basically lying all on top of each other.",
+      "zh": "因此，基本上全部疊在一起。"
+    },
+    {
+      "start": 492.87,
+      "end": 494.91,
+      "en": "Here you see a little bit more diversity.",
+      "zh": "這裡可以看到稍微更多變化。"
+    },
+    {
+      "start": 495.15,
+      "end": 505.83,
+      "en": "Basically what's happening is that early in the model patching one head for one token did I'm reluctant to say the word absolutely nothing.",
+      "zh": "基本上，模型早期，對一個 token 修補一個頭，做了……我不太想說「完全沒作用」。"
+    },
+    {
+      "start": 506.03,
+      "end": 512.07,
+      "en": "But it did so little that on this scale it is not visually detectable.",
+      "zh": "但作用小到，在這個尺度上，視覺上無法察覺。"
+    },
+    {
+      "start": 512.43,
+      "end": 516.19,
+      "en": "And then we see later in the model we do get some modulations.",
+      "zh": "接著，模型後面確實有一些調變。"
+    },
+    {
+      "start": 516.19,
+      "end": 525.99,
+      "en": "It looks like most of the time it goes down a little bit, although sometimes it actually goes up which is in the opposite direction as we might expect.",
+      "zh": "看起來大部分時候稍微下降，但有時反而上升，與預期方向相反。"
+    },
+    {
+      "start": 526.11,
+      "end": 529.11,
+      "en": "But yeah, it's certainly not an overwhelming effect.",
+      "zh": "但效果當然不是壓倒性的。"
+    },
+    {
+      "start": 529.11,
+      "end": 532.03,
+      "en": "It's a really subtle, really mild effect.",
+      "zh": "是非常細微、非常輕微的效果。"
+    },
+    {
+      "start": 532.03,
+      "end": 543.03,
+      "en": "It's way, way, way smaller compared to what we saw when we patched over all of the, uh, the embeddings vectors at the output of the transformer block.",
+      "zh": "比起修補 Transformer 區塊輸出的全部嵌入向量時，看到的效果小非常多。"
+    },
+    {
+      "start": 543.31,
+      "end": 550.91,
+      "en": "It's also considerably smaller than even the relatively subtle effects that we saw in the previous video,",
+      "zh": "也比上一支影片中，修補全部頭、全部 token"
+    },
+    {
+      "start": 550.91,
+      "end": 555.63,
+      "en": "where we were patching over all of the heads and all of the tokens.",
+      "zh": "時，那些已經相對細微的效果，還小得多。"
+    },
+    {
+      "start": 556.11,
+      "end": 557.83,
+      "en": "So a very subtle effect.",
+      "zh": "所以，非常細微。"
+    },
+    {
+      "start": 557.87,
+      "end": 564.43,
+      "en": "One more thing I want to say before switching to exercise three that I forgot to mention is in the previous",
+      "zh": "切換到練習三前，還有一件之前忘了提的事：上一支"
+    },
+    {
+      "start": 564.43,
+      "end": 573.51,
+      "en": "video, I also incorporated more code into this hook function and into this loop to compare the activations",
+      "zh": "影片，我在 hook 函數與這個迴圈中，也加入更多程式碼，比較"
+    },
+    {
+      "start": 573.51,
+      "end": 580.99,
+      "en": "from the two different token sequences as a code check, as a manipulation check, just to make sure that the code was working.",
+      "zh": "兩個不同 token 序列的活化，作為程式、操作檢查，確認程式碼正常。"
+    },
+    {
+      "start": 581.31,
+      "end": 591.55,
+      "en": "And basically I decided to exclude that check here that sanity check from this code, just because I felt like I've already confirmed that it works from the previous video.",
+      "zh": "這裡決定省略那個合理性檢查，因為覺得上一支影片已經確認能運作。"
+    },
+    {
+      "start": 591.55,
+      "end": 593.75,
+      "en": "And now this is basically the same code.",
+      "zh": "現在，基本上是相同程式碼。"
+    },
+    {
+      "start": 593.75,
+      "end": 598.11,
+      "en": "So I decided not to include that sanity check in here.",
+      "zh": "所以，決定不在這裡加入那個檢查。"
+    },
+    {
+      "start": 599.79,
+      "end": 602.91,
+      "en": "So that manipulation was quite subtle.",
+      "zh": "這個操作的效果相當細微。"
+    },
+    {
+      "start": 603.55,
+      "end": 613.47,
+      "en": "On the one hand, that's probably not surprising given how subtle the effect was from the previous video where we manipulated all the heads and all the tokens.",
+      "zh": "一方面，這大概不意外，因為上一支影片操作所有頭、全部 token 時，效果就很細微。"
+    },
+    {
+      "start": 613.91,
+      "end": 622.83,
+      "en": "And so it's just going to be the case that the more precise and targeted the manipulation, the less of a global impact it will have.",
+      "zh": "所以，操作越精確、越有目標，全域影響就越小。"
+    },
+    {
+      "start": 623.47,
+      "end": 633.95,
+      "en": "But the question that we want to explore here in this exercise is why the effect was so big when we manipulated the hidden states.",
+      "zh": "但這份練習想探索的問題，是為什麼操作隱藏狀態時，效果那麼大。"
+    },
+    {
+      "start": 633.99,
+      "end": 645.19,
+      "en": "So the output of the transformer block, and why it was so small here when we manipulated just the attention heads which are inside of the transformer blocks.",
+      "zh": "也就是 Transformer 區塊輸出；而這裡只操作區塊內的注意力頭時，效果那麼小。"
+    },
+    {
+      "start": 645.95,
+      "end": 654.23,
+      "en": "To gain some insight into this, I want you to write down an equation for the output of a transformer block.",
+      "zh": "為了理解，請寫下 Transformer 區塊輸出的方程式。"
+    },
+    {
+      "start": 654.95,
+      "end": 663.15,
+      "en": "Your equation should incorporate the attention, the MLP, and the layernorm components of the transformer.",
+      "zh": "方程式應納入注意力、MLP，以及 LayerNorm 元件。"
+    },
+    {
+      "start": 663.75,
+      "end": 674.11,
+      "en": "And then when you write out those equations, I want you to pinpoint the terms in those equations that you actually just manipulated in exercise two.",
+      "zh": "寫出方程式後，請指出其中哪些項，是剛才練習二實際操作的。"
+    },
+    {
+      "start": 675.19,
+      "end": 679.47,
+      "en": "And I think that will help you understand why the effect size was small.",
+      "zh": "我想，這有助於理解，為什麼效果量很小。"
+    },
+    {
+      "start": 680.39,
+      "end": 687.03,
+      "en": "Now there are multiple correct ways of mathematically describing the output of a transformer block.",
+      "zh": "數學上描述 Transformer 區塊輸出，有多種正確方式。"
+    },
+    {
+      "start": 687.55,
+      "end": 696.95,
+      "en": "You can write a sequence of like really, really detailed equations, or you can write some more general equations that abstract away some of the details.",
+      "zh": "可以寫一連串非常詳細的方程式，也可以寫更一般、抽象掉某些細節的式子。"
+    },
+    {
+      "start": 697.51,
+      "end": 703.11,
+      "en": "I'm going to show you the equations that I wrote down in a moment, but I also want to make it clear",
+      "zh": "稍後會展示我寫的方程式，但也想說清楚，"
+    },
+    {
+      "start": 703.11,
+      "end": 710.59,
+      "en": "that there are multiple correct ways of describing a transformer block at different levels of granularity.",
+      "zh": "描述 Transformer 區塊，可以在不同粒度下，有多種正確方式。"
+    },
+    {
+      "start": 711.47,
+      "end": 720.55,
+      "en": "The point is to refresh your understanding of what happens inside a transformer block, and how the attention calculations fit into that.",
+      "zh": "重點是複習，區塊內發生什麼，以及注意力計算如何納入其中。"
+    },
+    {
+      "start": 721.15,
+      "end": 722.55,
+      "en": "So pause the video now.",
+      "zh": "現在暫停影片。"
+    },
+    {
+      "start": 722.55,
+      "end": 723.79,
+      "en": "But there's no coding here.",
+      "zh": "但這裡不用寫程式。"
+    },
+    {
+      "start": 723.79,
+      "end": 727.51,
+      "en": "You just write down some equations on a piece of paper with a pencil.",
+      "zh": "只要拿鉛筆，在紙上寫一些方程式。"
+    },
+    {
+      "start": 727.95,
+      "end": 732.46,
+      "en": "And now I will go to the next slide and show the equations that I wrote down.",
+      "zh": "現在，切換到下一張投影片，展示我的方程式。"
+    },
+    {
+      "start": 733.66,
+      "end": 738.62,
+      "en": "This final line here is the output of a transformer block.",
+      "zh": "最後這一行，是 Transformer 區塊輸出。"
+    },
+    {
+      "start": 738.98,
+      "end": 749.62,
+      "en": "It is equal to the input into the transformer block, plus the adjustment from the attention sub block, plus the adjustment from the MLP sub block.",
+      "zh": "等於區塊輸入，加上注意力子區塊的調整，再加上 MLP 子區塊的調整。"
+    },
+    {
+      "start": 750.26,
+      "end": 758.94,
+      "en": "The delta attention term is defined as the attention function applied to the input to the transformer block.",
+      "zh": "delta attention 項，定義為注意力函數套用到 Transformer 區塊輸入，"
+    },
+    {
+      "start": 758.98,
+      "end": 767.7,
+      "en": "After applying the Layernorm, and some of those attention adjustments also get absorbed into the MLP.",
+      "zh": "先經過 LayerNorm；其中部分注意力調整，也會納入 MLP。"
+    },
+    {
+      "start": 768.38,
+      "end": 775.34,
+      "en": "And I think you see what I mean with my comment that there are multiple correct ways to write down this equation here.",
+      "zh": "我想，你懂我所說，這個方程式有多種正確寫法的意思。"
+    },
+    {
+      "start": 775.7,
+      "end": 781.98,
+      "en": "For example, I'm abstracting away all the math of the attention and the MLP sub blocks.",
+      "zh": "例如，我抽象掉注意力和 MLP 子區塊的全部數學。"
+    },
+    {
+      "start": 782.26,
+      "end": 786.58,
+      "en": "Because what I really want to do here is focus on this delta a term.",
+      "zh": "因為真正想聚焦的，是這個 delta A 項。"
+    },
+    {
+      "start": 787.02,
+      "end": 790.98,
+      "en": "This is the actual term that we manipulated in this experiment.",
+      "zh": "這是實驗中實際操作的項。"
+    },
+    {
+      "start": 791.38,
+      "end": 794.9,
+      "en": "and we didn't even manipulate the entire delta.",
+      "zh": "而且，甚至沒有操作整個 delta"
+    },
+    {
+      "start": 794.94,
+      "end": 802.86,
+      "en": "A we just manipulated one little piece of Delta A because we only replaced one head and one token,",
+      "zh": "A，只操作 delta A 的一小部分，因為只替換一個頭、一個 token，"
+    },
+    {
+      "start": 803.3,
+      "end": 812.78,
+      "en": "and then all of that information got mixed together by the W0 mixing matrix in this attention function here.",
+      "zh": "接著，這個注意力函數中的 W0 混合矩陣，會把所有資訊混合。"
+    },
+    {
+      "start": 813.9,
+      "end": 819.9,
+      "en": "What I hope you appreciate from this slide is that the thing that we actually changed in this experiment",
+      "zh": "希望你從這張投影片理解，這個實驗實際改變的東西，"
+    },
+    {
+      "start": 819.9,
+      "end": 828.06,
+      "en": "is really tiny, relative to the entirety of the computations taking place inside a transformer block.",
+      "zh": "相對於 Transformer 區塊內全部計算，真的非常小。"
+    },
+    {
+      "start": 828.74,
+      "end": 834.94,
+      "en": "So given that it's not really that surprising that the impact was subtle.",
+      "zh": "因此，影響很細微，並不太意外。"
+    },
+    {
+      "start": 835.54,
+      "end": 842.38,
+      "en": "In fact, you could turn it around and say, it's actually pretty remarkable that such a tiny, precise",
+      "zh": "其實，可以反過來說，這麼微小、精確的"
+    },
+    {
+      "start": 842.38,
+      "end": 849.7,
+      "en": "manipulation that we did even had any numerical impact on the final model output logits.",
+      "zh": "操作，竟然對最終模型輸出 logit 有任何數值影響，已經相當驚人。"
+    },
+    {
+      "start": 850.58,
+      "end": 853.7,
+      "en": "Now, to be clear, this is not necessarily a bad thing.",
+      "zh": "說清楚，這不一定是壞事。"
+    },
+    {
+      "start": 854.1,
+      "end": 864.62,
+      "en": "In scientific research, when you are trying to understand a complex system, taking a sledgehammer to the entire network is certainly a good place to start.",
+      "zh": "科學研究中，想理解複雜系統時，拿大錘敲整個網路，當然是好的起點。"
+    },
+    {
+      "start": 865.06,
+      "end": 876.34,
+      "en": "But the more you learn, and the more theories and findings develop, the more precise and subtle you will need to be to discover more nuanced mechanisms.",
+      "zh": "但學得越多、理論與發現越發展，就越需要精確、細微，才能發現更細緻的機制。"
+    },
+    {
+      "start": 877.22,
+      "end": 880.06,
+      "en": "And that's where I'd like to close this video.",
+      "zh": "這支影片，就在這裡結束。"
+    },
+    {
+      "start": 880.46,
+      "end": 889.5,
+      "en": "It is a general phenomenon in science that as a field progresses and as knowledge increases, the experiments",
+      "zh": "科學有個普遍現象：領域越進步、知識越增加，實驗"
+    },
+    {
+      "start": 889.5,
+      "end": 893.46,
+      "en": "and manipulations become more precise and more nuanced.",
+      "zh": "與操作就越精確、越細緻。"
+    },
+    {
+      "start": 893.94,
+      "end": 900.38,
+      "en": "And that means that the effect sizes will get smaller, which means that it's important to have a good",
+      "zh": "這代表效果量會越小，因此，具備好的"
+    },
+    {
+      "start": 900.42,
+      "end": 912.42,
+      "en": "hypothesis and theoretical framework for interpreting the results and a sufficient amount of data, so that you can be confident about the robustness of even small effects.",
+      "zh": "假設、解讀結果的理論架構，以及足夠資料，非常重要，才能對小效果的穩健性也有信心。"
+    }
+  ]
+}

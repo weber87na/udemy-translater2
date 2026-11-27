@@ -1,0 +1,1903 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51835303",
+  "title": "CodeChallenge: Math with tokens and embeddings",
+  "section": 4,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "3341735fbee06614c926c765b13cc138a0fcd5b1aa6cbf09585ba09e1a60d09c",
+  "cues": [
+    {
+      "start": 1.96,
+      "end": 8.8,
+      "en": "I had a lot of fun creating this code challenge, and I hope you enjoy working through it as well.",
+      "zh": "設計這個程式挑戰時，我玩得很開心，希望你做的時候也一樣。"
+    },
+    {
+      "start": 9.32,
+      "end": 17.6,
+      "en": "We are going to explore whether and how basic arithmetic can be done with tokens and embedding vectors.",
+      "zh": "要探索，能否以及如何用 token 與嵌入向量，進行基本算術。"
+    },
+    {
+      "start": 18.12,
+      "end": 25.4,
+      "en": "Spoiler alert you cannot do real world arithmetic directly with tokens, but along the way to making",
+      "zh": "先破梗：不能直接用 token 做現實世界的算術，但在發現"
+    },
+    {
+      "start": 25.4,
+      "end": 34.72,
+      "en": "that discovery, we're going to have some interesting explorations of how numbers are represented with tokens and embedding vectors.",
+      "zh": "這點的過程中，會有一些有趣探索，看看數字如何以 token 與嵌入向量表示。"
+    },
+    {
+      "start": 35.08,
+      "end": 40.48,
+      "en": "And then at the end, I will have some discussion about tokens versus embedding vectors.",
+      "zh": "最後，也會討論 token 與嵌入向量的差別，"
+    },
+    {
+      "start": 40.56,
+      "end": 51.04,
+      "en": "And I will say a few things about the implications of what you will discover in this code challenge for actually trying to get Llms to do math correctly.",
+      "zh": "並談這個挑戰的發現，對讓 LLM 正確做數學，有什麼意涵。"
+    },
+    {
+      "start": 51.44,
+      "end": 60.36,
+      "en": "The goal of exercise one is to find the tokens associated with all of these numbers that you see listed here.",
+      "zh": "練習一，要找出這裡列出各數字所對應的 token。"
+    },
+    {
+      "start": 60.48,
+      "end": 70.38,
+      "en": "So you start from zero through nine, then ten through 100, in steps of ten, and then up to 1000 in steps of 100.",
+      "zh": "先從 0 到 9，再從 10 到 100、每次加 10，接著到 1,000、每次加 100。"
+    },
+    {
+      "start": 70.74,
+      "end": 76.86,
+      "en": "So you want to identify and then print out the tokens for each of these numbers.",
+      "zh": "找出並印出每個數字的 token。"
+    },
+    {
+      "start": 77.3,
+      "end": 83.66,
+      "en": "It's pretty interesting to see that all of these whole numbers are represented by single tokens.",
+      "zh": "有趣的是，這些整數都用單一 token 表示。"
+    },
+    {
+      "start": 84.06,
+      "end": 89.86,
+      "en": "Now once you have this code to produce this output, you can try other numbers.",
+      "zh": "有了產生這份輸出的程式，就能試其他數字。"
+    },
+    {
+      "start": 89.86,
+      "end": 95.9,
+      "en": "You can try dividing these numbers by two to see how that changes the tokenization and so on.",
+      "zh": "例如，把數字除以 2，看看斷詞如何改變。"
+    },
+    {
+      "start": 96.1,
+      "end": 106.94,
+      "en": "But before you do any additional explorations, you can also make a plot of the numbers by their tokens and that will look like this.",
+      "zh": "但在做其他探索之前，也可以先將數字對照 token 繪圖，像這樣。"
+    },
+    {
+      "start": 107.38,
+      "end": 111.38,
+      "en": "So you do see that in general higher numbers.",
+      "zh": "可以看到，整體而言，數字越大，"
+    },
+    {
+      "start": 111.38,
+      "end": 119.66,
+      "en": "So larger numbers do have larger token values, but it's certainly not a linear or even a monotonic function.",
+      "zh": "token 值也越大，但絕不是線性，甚至不是單調函數。"
+    },
+    {
+      "start": 120.72,
+      "end": 129.08,
+      "en": "By the way, as an additional little coding challenge, you can also try making the x axis here be logarithmically scaled.",
+      "zh": "順帶一提，額外的小挑戰，是試著把 x 軸改成對數尺度。"
+    },
+    {
+      "start": 129.88,
+      "end": 131.64,
+      "en": "Okay, so that's exercise one.",
+      "zh": "這就是練習一。"
+    },
+    {
+      "start": 131.64,
+      "end": 133.68,
+      "en": "Pause the video, have a go at this.",
+      "zh": "暫停影片，試試看。"
+    },
+    {
+      "start": 133.8,
+      "end": 137.64,
+      "en": "And now I will switch to Python and show you my solution.",
+      "zh": "接著，切換到 Python 示範解法。"
+    },
+    {
+      "start": 138.4,
+      "end": 142.04,
+      "en": "So here's where I import some standard libraries.",
+      "zh": "先匯入一些標準函式庫。"
+    },
+    {
+      "start": 142.4,
+      "end": 142.76,
+      "en": "Here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 142.76,
+      "end": 150.04,
+      "en": "In this code I'm importing the GPT two model so I can extract its embeddings uh matrix.",
+      "zh": "匯入 GPT-2 模型，以擷取嵌入矩陣，"
+    },
+    {
+      "start": 150.2,
+      "end": 153.88,
+      "en": "And also getting the tokenizer from GPT two.",
+      "zh": "也取得 GPT-2 tokenizer。"
+    },
+    {
+      "start": 154.56,
+      "end": 154.84,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 154.88,
+      "end": 160.52,
+      "en": "And then here is the code to show how I got the numbers zero through nine.",
+      "zh": "這段程式，產生 0 到 9，"
+    },
+    {
+      "start": 160.52,
+      "end": 164.96,
+      "en": "And then 10 to 100 or 10 to 90 and then 100 to 1000.",
+      "zh": "以及 10 到 100，或者說 10 到 90，再接 100 到 1,000。"
+    },
+    {
+      "start": 165.28,
+      "end": 171,
+      "en": "So I generate these numbers here which go from 0 to 10.",
+      "zh": "先產生從 0 到 10 的這些數字，"
+    },
+    {
+      "start": 171.28,
+      "end": 179.76,
+      "en": "And then I concatenate the numbers and ten times the numbers and 100 times the numbers with just ignoring the first couple of numbers.",
+      "zh": "再把原數字、十倍數字與百倍數字接起來，略過前幾個數字。"
+    },
+    {
+      "start": 180.2,
+      "end": 181.46,
+      "en": "This is one solution.",
+      "zh": "這是一種解法。"
+    },
+    {
+      "start": 181.46,
+      "end": 186.38,
+      "en": "If you came up with a different way of getting the this vector of numbers, that's also fantastic.",
+      "zh": "如果你用其他方式建立這個數值向量，也非常好。"
+    },
+    {
+      "start": 186.94,
+      "end": 197.1,
+      "en": "Okay, so once we have the numbers, we can loop through all of the numbers and then simply encode them and store the the tokens.",
+      "zh": "有了數字，逐一走訪，編碼，再儲存 token。"
+    },
+    {
+      "start": 197.9,
+      "end": 203.22,
+      "en": "Now when you tokenize these numbers they need to be converted into strings.",
+      "zh": "數字斷詞前，必須先轉成字串。"
+    },
+    {
+      "start": 203.22,
+      "end": 204.7,
+      "en": "So that's what I do here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 205.06,
+      "end": 210.7,
+      "en": "Now in this particular case I'm only actually getting out the first token so that you can see here.",
+      "zh": "這個例子，實際只取第一個 token，可以看這裡。"
+    },
+    {
+      "start": 210.7,
+      "end": 213.86,
+      "en": "Here I'm tokenizing the string for the number.",
+      "zh": "先對數字的字串斷詞，"
+    },
+    {
+      "start": 213.98,
+      "end": 217.1,
+      "en": "And then I'm only storing the first token.",
+      "zh": "只儲存第一個 token。"
+    },
+    {
+      "start": 217.1,
+      "end": 220.14,
+      "en": "But here I actually am printing all of the tokens.",
+      "zh": "但這裡，會印出所有 token。"
+    },
+    {
+      "start": 220.14,
+      "end": 228.82,
+      "en": "So in case this number is represented by more than one token, then this vector is just going to store the first token.",
+      "zh": "如果數字以不只一個 token 表示，向量只會儲存第一個，"
+    },
+    {
+      "start": 228.98,
+      "end": 234.9,
+      "en": "But the little text message that prints out is actually going to show all of the tokens.",
+      "zh": "但印出的文字訊息，會列出所有 token。"
+    },
+    {
+      "start": 235.5,
+      "end": 235.78,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 235.82,
+      "end": 242.16,
+      "en": "Here I generate the plot of the numbers by the value of their tokens.",
+      "zh": "這裡把數字對照 token 值繪圖。"
+    },
+    {
+      "start": 242.16,
+      "end": 249.6,
+      "en": "In fact, you can already see looking here that the token indices generally increase with increasing number.",
+      "zh": "只看這裡，也能看到，token 索引大致隨數字增加而增加。"
+    },
+    {
+      "start": 250.04,
+      "end": 252.56,
+      "en": "So there's actually two plot lines here.",
+      "zh": "實際上，這裡有兩次繪圖。"
+    },
+    {
+      "start": 252.6,
+      "end": 257.56,
+      "en": "This first one is just generating the line that goes behind.",
+      "zh": "第一個先畫後面的線，"
+    },
+    {
+      "start": 257.84,
+      "end": 263.72,
+      "en": "And then I also have a scatter plot to just show these boxes on top.",
+      "zh": "再用散布圖，在上面畫這些方塊。"
+    },
+    {
+      "start": 264.08,
+      "end": 273.56,
+      "en": "Now formally technically you shouldn't really have lines between these boxes because lines imply continuity between data values.",
+      "zh": "嚴格說，不應在方塊間連線，因為線暗示數據值之間具有連續性。"
+    },
+    {
+      "start": 273.56,
+      "end": 282.64,
+      "en": "But we don't know for sure that the, you know, like 872.3, that that would have a token value of",
+      "zh": "但不知道，例如 872.3 是否真的有一個 token 值，等於"
+    },
+    {
+      "start": 282.64,
+      "end": 283.52,
+      "en": "10,000.",
+      "zh": "10,000，"
+    },
+    {
+      "start": 283.56,
+      "end": 285,
+      "en": "And, you know, whatever this is.",
+      "zh": "或這裡的其他數值。"
+    },
+    {
+      "start": 285.4,
+      "end": 292.64,
+      "en": "Nonetheless, sometimes it is useful to draw lines in scatter plots anyway to help with the visualization.",
+      "zh": "不過，有時仍可在散布圖連線，幫助視覺理解。"
+    },
+    {
+      "start": 293.12,
+      "end": 298.6,
+      "en": "Okay, so I also suggested that you can optionally scale the x axis logarithmically.",
+      "zh": "也提過，可以選擇把 x 軸設為對數尺度。"
+    },
+    {
+      "start": 298.92,
+      "end": 307.1,
+      "en": "Now if I just run this code the way I have it written with just uncommenting this, then we don't really see anything very interpretable.",
+      "zh": "如果只取消這裡註解，照目前程式執行，結果不容易解讀。"
+    },
+    {
+      "start": 307.5,
+      "end": 317.5,
+      "en": "The issue here is just that I have hard coded this x axis limit to be based on linear numbers, not based on logarithmic numbers.",
+      "zh": "問題只是，我把 x 軸範圍寫死成線性數值，而不是對數數值。"
+    },
+    {
+      "start": 317.66,
+      "end": 320.38,
+      "en": "So you just have to comment this out.",
+      "zh": "所以，只要註解掉這裡。"
+    },
+    {
+      "start": 321.3,
+      "end": 321.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 322.02,
+      "end": 327.38,
+      "en": "And this just shows another depiction of how the tokens are pretty small over here.",
+      "zh": "這只是另一種呈現，顯示這裡的 token 值很小。"
+    },
+    {
+      "start": 327.42,
+      "end": 332.38,
+      "en": "Actually, maybe it would also be good to have this be in a log log plot.",
+      "zh": "其實，也許雙對數圖會更好。"
+    },
+    {
+      "start": 332.7,
+      "end": 333.65999999999997,
+      "en": "Let's try this.",
+      "zh": "試試看。"
+    },
+    {
+      "start": 334.78,
+      "end": 335.34000000000003,
+      "en": "Uh, sorry.",
+      "zh": "抱歉，"
+    },
+    {
+      "start": 335.38,
+      "end": 337.78,
+      "en": "They both need to be in log.",
+      "zh": "兩者都要是對數。"
+    },
+    {
+      "start": 337.78,
+      "end": 338.22,
+      "en": "Log?",
+      "zh": "對數。"
+    },
+    {
+      "start": 339.54,
+      "end": 348.5,
+      "en": "Actually, I suppose it would have been easier to set the Y scale to be log in this line instead of actually taking the logarithm of these numbers, but it doesn't matter.",
+      "zh": "其實，在這行把 y 軸設為 log，應該比直接取數值的對數更簡單，但沒關係。"
+    },
+    {
+      "start": 348.86,
+      "end": 352.22,
+      "en": "Okay, the point is here we have a log log scale.",
+      "zh": "重點是，現在是雙對數尺度。"
+    },
+    {
+      "start": 352.34000000000003,
+      "end": 355.74,
+      "en": "And yeah I mean it's still going up but it's not a linear function.",
+      "zh": "它仍然往上，但不是線性函數，"
+    },
+    {
+      "start": 355.74,
+      "end": 357.14,
+      "en": "It's not a log function.",
+      "zh": "不是對數函數，"
+    },
+    {
+      "start": 357.42,
+      "end": 359.86,
+      "en": "Uh, it's not even a monotonic function.",
+      "zh": "甚至不是單調函數。"
+    },
+    {
+      "start": 360.18,
+      "end": 367.44,
+      "en": "And so one of the things I want to express with this exercise is that there is an arbitrary mapping",
+      "zh": "這個練習想表達的一點是，這裡的索引，與它所"
+    },
+    {
+      "start": 367.44,
+      "end": 374.6,
+      "en": "between the index here and the actual thing that, you know, the word that that number is indexing.",
+      "zh": "指向的事物、那個單字之間，對應關係是任意的。"
+    },
+    {
+      "start": 374.6,
+      "end": 383.36,
+      "en": "So there's no real intrinsic meaning between the number 2154 and this number 70.",
+      "zh": "數字 2154 與這個 70 之間，沒有真正的內在意義。"
+    },
+    {
+      "start": 384.36,
+      "end": 386.56,
+      "en": "That's very different from this.",
+      "zh": "這和這裡很不同。"
+    },
+    {
+      "start": 386.56,
+      "end": 390.36,
+      "en": "So the relationship between 60 and 70 is very clear.",
+      "zh": "60 與 70 的關係很清楚，"
+    },
+    {
+      "start": 390.56,
+      "end": 392.4,
+      "en": "70 is ten more than 60.",
+      "zh": "70 比 60 多 10。"
+    },
+    {
+      "start": 392.44,
+      "end": 401.24,
+      "en": "You know we can think of that in terms of euros, in terms of how many cats your crazy neighbor has and so on.",
+      "zh": "可以想成歐元，或古怪鄰居養了幾隻貓等等。"
+    },
+    {
+      "start": 401.68,
+      "end": 409.4,
+      "en": "But the difference between 2154 and 2164 in token indices is completely arbitrary.",
+      "zh": "但 token 索引 2154 與 2164 的差異，完全任意，"
+    },
+    {
+      "start": 409.4,
+      "end": 410.8,
+      "en": "It's completely meaningless.",
+      "zh": "沒有任何意義。"
+    },
+    {
+      "start": 411.24,
+      "end": 411.56,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 411.6,
+      "end": 419.64,
+      "en": "And then yeah, here I'm also just going to try dividing these numbers by two, just to show you that",
+      "zh": "接著，把數字除以 2，示範"
+    },
+    {
+      "start": 420.12,
+      "end": 425.46,
+      "en": "it is not always the case that numbers are represented by individual tokens.",
+      "zh": "數字並不是永遠以單一 token 表示。"
+    },
+    {
+      "start": 425.7,
+      "end": 430.94,
+      "en": "That's only happening for very specific numbers, just a small subset of numbers.",
+      "zh": "只有特定數字，也就是很小的一部分數字，才如此。"
+    },
+    {
+      "start": 431.1,
+      "end": 436.42,
+      "en": "So here all of these numbers are actually encoded by three tokens.",
+      "zh": "這裡，所有數字其實都用三個 token 編碼。"
+    },
+    {
+      "start": 436.42,
+      "end": 438.1,
+      "en": "And the middle one is always 13.",
+      "zh": "中間那個永遠是 13，"
+    },
+    {
+      "start": 438.1,
+      "end": 441.34,
+      "en": "So that clearly corresponds to the decimal point.",
+      "zh": "顯然對應小數點。"
+    },
+    {
+      "start": 441.34,
+      "end": 444.1,
+      "en": "And then this is going to be 15 or 20.",
+      "zh": "這裡則是 15 或 20。"
+    },
+    {
+      "start": 444.14,
+      "end": 452.58,
+      "en": "We can also see that here that 15 corresponds to zero and 20 actually corresponds to five.",
+      "zh": "這裡也看得到，15 對應 0，20 對應 5。"
+    },
+    {
+      "start": 452.62,
+      "end": 455.14,
+      "en": "Yeah there's 20 for the number five.",
+      "zh": "對，數字 5 的 token 是 20。"
+    },
+    {
+      "start": 456.46,
+      "end": 464.54,
+      "en": "So you saw in the previous exercise that lots of numbers, even pretty big numbers can be represented by single tokens.",
+      "zh": "上一題看到，許多數字，即使很大，也能用單一 token 表示。"
+    },
+    {
+      "start": 464.94,
+      "end": 469.3,
+      "en": "But there are other numbers that are represented by multiple tokens.",
+      "zh": "但還有一些數字，需要多個 token。"
+    },
+    {
+      "start": 469.86,
+      "end": 476.78,
+      "en": "So the question you are going to explore here is whether there's any relationship between the number",
+      "zh": "這裡要探索，數字本身，"
+    },
+    {
+      "start": 476.78,
+      "end": 481.96,
+      "en": "itself and the number of tokens it takes to represent that number.",
+      "zh": "與表示它所需的 token 數量，是否有關。"
+    },
+    {
+      "start": 482.4,
+      "end": 484.32,
+      "en": "I'd like you to do this twice.",
+      "zh": "希望做兩次。"
+    },
+    {
+      "start": 484.32,
+      "end": 487.68,
+      "en": "So here on the left we have integers.",
+      "zh": "左邊是整數，"
+    },
+    {
+      "start": 487.68,
+      "end": 490.6,
+      "en": "So whole numbers, no decimal points and no fractions.",
+      "zh": "也就是沒有小數點，也沒有分數。"
+    },
+    {
+      "start": 491,
+      "end": 497.36,
+      "en": "So you tokenize the numbers zero through 100,000 and then tokenize them.",
+      "zh": "對 0 到 100,000 的數字斷詞。"
+    },
+    {
+      "start": 497.36,
+      "end": 501.76,
+      "en": "And for this exercise we don't actually care what the tokens are.",
+      "zh": "這題，不在意 token 是什麼，"
+    },
+    {
+      "start": 502.32,
+      "end": 508.96,
+      "en": "What we care about is the number of tokens it takes to represent each of these integers.",
+      "zh": "而是在意每個整數需要多少 token 表示。"
+    },
+    {
+      "start": 509.36,
+      "end": 509.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 509.68,
+      "end": 516.6,
+      "en": "And then over here on the right, this is exactly the same analysis, exactly the same kind of plot.",
+      "zh": "右邊是完全相同的分析與圖表，"
+    },
+    {
+      "start": 516.84,
+      "end": 520.48,
+      "en": "Except now these numbers are floating point numbers.",
+      "zh": "只是數字改成浮點數。"
+    },
+    {
+      "start": 520.88,
+      "end": 530.96,
+      "en": "I generated these as random numbers drawn from a Gaussian distribution with a mean of zero and a standard deviation of five.",
+      "zh": "我從平均值 0、標準差 5 的高斯分布，隨機抽樣產生。"
+    },
+    {
+      "start": 531.44,
+      "end": 534.24,
+      "en": "Now, there's nothing magical about a standard deviation of five.",
+      "zh": "標準差 5 沒什麼神奇，"
+    },
+    {
+      "start": 534.24,
+      "end": 543.42,
+      "en": "I just wanted to have a slightly broader range of numbers compared to the standard Gaussian distribution, which has a variance of one.",
+      "zh": "只是希望範圍比變異數 1 的標準高斯分布，更寬一些。"
+    },
+    {
+      "start": 544.02,
+      "end": 550.7,
+      "en": "So even without seeing the results, you can already see from the y axis tick labels that we're going",
+      "zh": "即使還沒看到結果，也能從 y 軸刻度看出，"
+    },
+    {
+      "start": 550.7,
+      "end": 557.1,
+      "en": "to need a lot more tokens to encode floating point numbers compared to integers.",
+      "zh": "浮點數編碼需要的 token，比整數多很多。"
+    },
+    {
+      "start": 557.7,
+      "end": 564.82,
+      "en": "That's pretty interesting to think about in the context of asking ChatGPT to do arithmetic with integers,",
+      "zh": "想到請 ChatGPT 做算術時，整數需要較少 token，"
+    },
+    {
+      "start": 564.82,
+      "end": 571.58,
+      "en": "which have relatively few tokens, versus floating point numbers which require more tokens.",
+      "zh": "浮點數則需要更多，就很值得思考。"
+    },
+    {
+      "start": 572.34,
+      "end": 583.38,
+      "en": "Okay, so pause the video and switch to Python, and when you're ready, you can come back and watch me show my solution and also discuss some of the results in a little bit more detail.",
+      "zh": "暫停影片，切換到 Python；準備好後，再回來看解法，以及更詳細的結果討論。"
+    },
+    {
+      "start": 584.34,
+      "end": 589.18,
+      "en": "Okay, so I actually only go up to 99,999.",
+      "zh": "其實，我只做到 99,999。"
+    },
+    {
+      "start": 589.5,
+      "end": 593.5,
+      "en": "Here is a little tip about Python coding with large numbers.",
+      "zh": "這裡有個 Python 大數字的小技巧。"
+    },
+    {
+      "start": 593.7,
+      "end": 598.02,
+      "en": "Python actually ignores underscores inside numbers.",
+      "zh": "Python 會忽略數字中的底線。"
+    },
+    {
+      "start": 598.18,
+      "end": 603,
+      "en": "So rather than making a comma, this actually means two numbers.",
+      "zh": "如果用逗號，這其實會代表兩個數字，"
+    },
+    {
+      "start": 603,
+      "end": 606.76,
+      "en": "So this is 99 and then separately 999.",
+      "zh": "也就是 99，以及另一個 999。"
+    },
+    {
+      "start": 606.8,
+      "end": 610.48,
+      "en": "You know Python would interpret this as a two element tuple for example.",
+      "zh": "例如，Python 會把它當成兩元素 tuple。"
+    },
+    {
+      "start": 610.92,
+      "end": 612.16,
+      "en": "So this you cannot do.",
+      "zh": "所以，不能這樣寫。"
+    },
+    {
+      "start": 612.16,
+      "end": 618.32,
+      "en": "But you can include an underscore that helps us humans interpret this number.",
+      "zh": "但可以加底線，幫助人類閱讀數字。"
+    },
+    {
+      "start": 618.32,
+      "end": 624.44,
+      "en": "And Python is not going to make any difference between this and this.",
+      "zh": "Python 不會區分這兩種寫法。"
+    },
+    {
+      "start": 624.68,
+      "end": 624.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 625,
+      "end": 626.92,
+      "en": "Just a little aside there okay.",
+      "zh": "只是補充一下。"
+    },
+    {
+      "start": 626.96,
+      "end": 629.56,
+      "en": "So here I have this variable num nums.",
+      "zh": "這裡有個 num nums 變數。"
+    },
+    {
+      "start": 629.56,
+      "end": 638.6,
+      "en": "And I'm going to loop over all of those num nums as well as use that to generate these normally distributed",
+      "zh": "接著，走訪這些數字，也用這個數量，產生常態分布、"
+    },
+    {
+      "start": 638.6,
+      "end": 642.12,
+      "en": "numbers with a standard deviation of five.",
+      "zh": "標準差為 5 的隨機數。"
+    },
+    {
+      "start": 642.12,
+      "end": 648,
+      "en": "So that's in variable RA for random numbers I forget what the A was supposed to stand for.",
+      "zh": "存在 ra 變數中，r 代表 random numbers；a 原本代表什麼，我忘了。"
+    },
+    {
+      "start": 649.16,
+      "end": 654.96,
+      "en": "Okay, so loop over all of these numbers and then we encode each number.",
+      "zh": "走訪所有數字，逐一編碼。"
+    },
+    {
+      "start": 654.96,
+      "end": 656.88,
+      "en": "So this is encoding the integer.",
+      "zh": "這是編碼整數，"
+    },
+    {
+      "start": 657.08,
+      "end": 659.52,
+      "en": "And then get the length of this.",
+      "zh": "再取長度，"
+    },
+    {
+      "start": 659.52,
+      "end": 667.3,
+      "en": "So the number of tokens and store that, and then the number of tokens for each individual random number.",
+      "zh": "也就是 token 數，存起來；每個隨機數，也計算 token 數。"
+    },
+    {
+      "start": 667.62,
+      "end": 672.54,
+      "en": "So this takes I think it's around 10s or so to get through 100,000 numbers.",
+      "zh": "處理 10 萬個數字，我想大約需要十秒。"
+    },
+    {
+      "start": 673.42,
+      "end": 673.66,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 673.7,
+      "end": 676.62,
+      "en": "Actually it was around 30s to get through this loop.",
+      "zh": "其實，這個迴圈花了大約 30 秒。"
+    },
+    {
+      "start": 676.74,
+      "end": 679.54,
+      "en": "But anyway, so here we have the results.",
+      "zh": "不過，這就是結果。"
+    },
+    {
+      "start": 679.54,
+      "end": 688.94,
+      "en": "I am plotting the integers and the floating point numbers, and I'm adding a little random number offset.",
+      "zh": "畫出整數與浮點數，並加上一點隨機偏移，"
+    },
+    {
+      "start": 688.94,
+      "end": 693.5,
+      "en": "That's just to make it a little bit more, uh, a little easier to visually interpret.",
+      "zh": "只是讓視覺上更容易解讀。"
+    },
+    {
+      "start": 694.02,
+      "end": 696.22,
+      "en": "So here you see those two plots?",
+      "zh": "這裡看到兩張圖，"
+    },
+    {
+      "start": 696.34,
+      "end": 696.86,
+      "en": "Uh, yeah.",
+      "zh": "是的。"
+    },
+    {
+      "start": 696.9,
+      "end": 698.94,
+      "en": "You can see the random added jitter here.",
+      "zh": "可以看到加入的隨機抖動，"
+    },
+    {
+      "start": 698.94,
+      "end": 706.42,
+      "en": "This just helps us understand a little bit better about the density of the numbers that are clustered around these particular places.",
+      "zh": "幫助我們理解，聚在這些位置的數字密度。"
+    },
+    {
+      "start": 706.82,
+      "end": 707.18,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 707.22,
+      "end": 714.02,
+      "en": "So the integers take either one, 2 or 3 uh, tokens at least going up to 100,000.",
+      "zh": "整數需要一、二或三個 token，至少到 10 萬的範圍是如此。"
+    },
+    {
+      "start": 714.06,
+      "end": 720.32,
+      "en": "It's possible that uh higher numbers will require more tokens, but in this range it's just up to three.",
+      "zh": "更大的數字，可能需要更多，但這個範圍最多三個。"
+    },
+    {
+      "start": 720.76,
+      "end": 730.24,
+      "en": "Also interesting to see that all of these single token integers are small, with a few noteworthy exceptions.",
+      "zh": "有趣的是，單一 token 的整數大多很小，只有少數值得注意的例外。"
+    },
+    {
+      "start": 731,
+      "end": 734.16,
+      "en": "This might be exactly 20,000.",
+      "zh": "這個可能剛好是 20,000。"
+    },
+    {
+      "start": 734.56,
+      "end": 736.56,
+      "en": "You can look up what these numbers are.",
+      "zh": "你可以查查這些數字是什麼。"
+    },
+    {
+      "start": 736.84,
+      "end": 740.08,
+      "en": "I don't know offhand, but I also don't.",
+      "zh": "我不知道，也沒有，"
+    },
+    {
+      "start": 740.12,
+      "end": 749,
+      "en": "It's a little bit strange that you have no single token numbers, except for these two all the way out here, which are pretty large numbers.",
+      "zh": "很奇怪，其他地方沒有單一 token 數字，卻在很遠處有這兩個大數字。"
+    },
+    {
+      "start": 749.2,
+      "end": 757.96,
+      "en": "They must be somehow meaningful or frequently occurring on, on the web that they ended up getting encoded as a single token.",
+      "zh": "它們一定有某種意義，或在網路上很常見，才被編成單一 token。"
+    },
+    {
+      "start": 758.64,
+      "end": 765.88,
+      "en": "Also interesting to see that the larger the number, the more three token encodings we have.",
+      "zh": "也能看到，數字越大，三 token 編碼越多。"
+    },
+    {
+      "start": 765.92,
+      "end": 769.92,
+      "en": "So this line is getting a little bit thicker as we get higher here.",
+      "zh": "所以，往右時，這條帶逐漸變厚。"
+    },
+    {
+      "start": 769.96,
+      "end": 771.4,
+      "en": "Okay, so that's pretty interesting.",
+      "zh": "好，很有意思。"
+    },
+    {
+      "start": 771.72,
+      "end": 775.08,
+      "en": "Here we see the token lengths of floating point numbers.",
+      "zh": "這裡是浮點數的 token 長度，"
+    },
+    {
+      "start": 775.2,
+      "end": 777.28,
+      "en": "Also quite interesting to see.",
+      "zh": "同樣很有趣。"
+    },
+    {
+      "start": 777.72,
+      "end": 787.62,
+      "en": "First of all they're generally requires always more tokens than any of these integers, and it looks like there's one which I don't think that's exactly zero.",
+      "zh": "首先，它們通常都比這些整數需要更多 token；這裡有一個，我想不剛好是 0。"
+    },
+    {
+      "start": 787.74,
+      "end": 794.3,
+      "en": "You could also look up to see what is the one token or the one number that is represented by six tokens.",
+      "zh": "也可以查查，那個用六個 token 表示的數字是什麼。"
+    },
+    {
+      "start": 794.9,
+      "end": 802.9,
+      "en": "This you would have to happen to catch this in your simulation, because you can't reproduce this because it's random numbers each time.",
+      "zh": "這得剛好在模擬中遇到，因為每次都是隨機數，無法直接重現。"
+    },
+    {
+      "start": 803.3,
+      "end": 812.02,
+      "en": "But it's interesting to see that the positive numbers, positive floating point numbers generally take fewer tokens.",
+      "zh": "不過，有趣的是，正浮點數通常需要較少 token，"
+    },
+    {
+      "start": 812.02,
+      "end": 822.86,
+      "en": "So around seven tokens also sometimes, but you don't see a lot of negative numbers being represented by a relatively small number of tokens.",
+      "zh": "例如有時約七個；但很少看到負數用相對少量 token 表示。"
+    },
+    {
+      "start": 823.38,
+      "end": 828.02,
+      "en": "Instead, the negative numbers seem to be requiring more tokens.",
+      "zh": "負數似乎需要更多 token。"
+    },
+    {
+      "start": 828.06,
+      "end": 829.7,
+      "en": "Now, I don't really know why that is.",
+      "zh": "我不太知道為什麼。"
+    },
+    {
+      "start": 830.06,
+      "end": 838.66,
+      "en": "My guess is that positive numbers just appear more often online, so these tokenizers just have more familiarity.",
+      "zh": "猜想是網路上的正數比較常見，tokenizer 比較熟悉，"
+    },
+    {
+      "start": 838.66,
+      "end": 843.92,
+      "en": "They have more exposure, more training data for positive numbers to negative numbers.",
+      "zh": "比起負數，有更多正數的接觸與訓練資料。"
+    },
+    {
+      "start": 843.92,
+      "end": 844.92,
+      "en": "That is my guess.",
+      "zh": "這只是猜測，"
+    },
+    {
+      "start": 845.2,
+      "end": 846.76,
+      "en": "I don't know if that's really true.",
+      "zh": "不知道是否真的如此。"
+    },
+    {
+      "start": 847.96,
+      "end": 852.52,
+      "en": "Okay, now exercise is one and two were not very ridiculous.",
+      "zh": "練習一、二，還不太荒謬。"
+    },
+    {
+      "start": 852.68,
+      "end": 857,
+      "en": "I promised there would be some ridiculousness in this code challenge.",
+      "zh": "我答應過，這個挑戰會有荒謬的部分，"
+    },
+    {
+      "start": 857.12,
+      "end": 858.04,
+      "en": "And here we are.",
+      "zh": "現在來了。"
+    },
+    {
+      "start": 858.48,
+      "end": 862.4,
+      "en": "In fact, there is no real code for you to write for this exercise.",
+      "zh": "這題，其實沒有什麼程式需要你寫。"
+    },
+    {
+      "start": 862.52,
+      "end": 867.72,
+      "en": "The exercise is literally what's printed in the partial and full solutions files.",
+      "zh": "練習內容，就已印在部分與完整解答檔裡。"
+    },
+    {
+      "start": 868.24,
+      "end": 876.64,
+      "en": "The idea is just to write out this very simple arithmetic problem as a string, and then tokenize it",
+      "zh": "只是把這個非常簡單的算術問題寫成字串，再斷詞，"
+    },
+    {
+      "start": 876.64,
+      "end": 885.72,
+      "en": "and see if we can get the correct answer to three times five times three, which is 15, as the product",
+      "zh": "看看將這個字串的 token 相乘，能不能得到 5 乘以 3 的正確答案，"
+    },
+    {
+      "start": 885.72,
+      "end": 888.08,
+      "en": "of the tokens of this string.",
+      "zh": "也就是 15。"
+    },
+    {
+      "start": 888.68,
+      "end": 898.12,
+      "en": "Okay, so it is a little ridiculous, but before running this code, I want you to take a moment and think about what you expect to happen here.",
+      "zh": "有點荒謬，但執行之前，先想想預期會發生什麼。"
+    },
+    {
+      "start": 898.44,
+      "end": 906.18,
+      "en": "Why it is ridiculous to try to do math this way, and what this approach actually tells us about the",
+      "zh": "為什麼這樣做數學很荒謬？而這種做法，又透露了"
+    },
+    {
+      "start": 906.18,
+      "end": 910.94,
+      "en": "ability of language models to do mathematics in the first place.",
+      "zh": "語言模型做數學的能力，有什麼特性？"
+    },
+    {
+      "start": 911.62,
+      "end": 914.58,
+      "en": "Okay, so this is the first part of this exercise.",
+      "zh": "這是練習第一部分。"
+    },
+    {
+      "start": 914.82,
+      "end": 920.42,
+      "en": "The second part of this exercise is to make this a little bit simpler, but have the same idea.",
+      "zh": "第二部分，稍微簡化，但概念相同。"
+    },
+    {
+      "start": 921.54,
+      "end": 931.1,
+      "en": "So now instead of tokenizing and taking the product of all of these tokens, we're just going to try it just with the tokens for five and three.",
+      "zh": "不是把整個式子的所有 token 相乘，而是只試 5 與 3 的 token。"
+    },
+    {
+      "start": 931.26,
+      "end": 934.58,
+      "en": "So here we tokenize five as a string.",
+      "zh": "先對字串 5 斷詞，"
+    },
+    {
+      "start": 934.74,
+      "end": 936.26,
+      "en": "We tokenize three.",
+      "zh": "再對 3 斷詞。"
+    },
+    {
+      "start": 936.66,
+      "end": 942.42,
+      "en": "And then here I'm multiplying their tokens together to see what is the output.",
+      "zh": "接著，把 token 相乘，看看輸出。"
+    },
+    {
+      "start": 942.42,
+      "end": 950.14,
+      "en": "And the question is whether the token for three and the token for five multiply them together and then decode that.",
+      "zh": "問題是，3 的 token 與 5 的 token，相乘後再解碼，"
+    },
+    {
+      "start": 950.38,
+      "end": 952.94,
+      "en": "Is that going to give us 15.",
+      "zh": "會得到 15 嗎？"
+    },
+    {
+      "start": 953.94,
+      "end": 963.64,
+      "en": "Again I can already tell you in advance that this is not going to work, but I would like you to think about why it won't work before you actually run the code.",
+      "zh": "同樣，可以先告訴你，不會成功；但希望執行前，先想想原因。"
+    },
+    {
+      "start": 964.48,
+      "end": 967.52,
+      "en": "So I hope you get a little giggle out of this exercise.",
+      "zh": "希望這題能讓你笑一下。"
+    },
+    {
+      "start": 967.52,
+      "end": 973.8,
+      "en": "And now I will switch to Python and try to say something meaningful out of all this ridiculousness.",
+      "zh": "現在切換到 Python，試著從這些荒謬操作中，說出有意義的東西。"
+    },
+    {
+      "start": 975.4,
+      "end": 978.36,
+      "en": "Okay, so let's see what happens when I run this code.",
+      "zh": "看看執行會怎樣。"
+    },
+    {
+      "start": 978.36,
+      "end": 980,
+      "en": "We get an error message.",
+      "zh": "得到錯誤訊息。"
+    },
+    {
+      "start": 980.24,
+      "end": 982.08,
+      "en": "And why do we get an error message?",
+      "zh": "為什麼出錯？"
+    },
+    {
+      "start": 982.12,
+      "end": 993.24,
+      "en": "Well, unfortunately this is error message is not very informative, but we can get some insight by looking up here at the actual tokens.",
+      "zh": "可惜，錯誤訊息不太清楚，但看看實際 token，就能理解一些。"
+    },
+    {
+      "start": 993.32,
+      "end": 1002.48,
+      "en": "So these are the tokens corresponding to this string which is five space x space three space equals",
+      "zh": "這些 token 對應的字串是 5、空白、x、空白、3、空白、等號，"
+    },
+    {
+      "start": 1002.52,
+      "end": 1003,
+      "en": "sign.",
+      "zh": "就是這個算式。"
+    },
+    {
+      "start": 1003.32,
+      "end": 1003.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1003.64,
+      "end": 1006,
+      "en": "So that is represented by these four tokens.",
+      "zh": "它以這四個 token 表示。"
+    },
+    {
+      "start": 1006.24,
+      "end": 1012.08,
+      "en": "And then I take the product of these four tokens which is this ludicrously large number here.",
+      "zh": "把四個 token 相乘，就得到這個大得離譜的數字。"
+    },
+    {
+      "start": 1012.08,
+      "end": 1013.96,
+      "en": "This is a really really big number.",
+      "zh": "真的非常大。"
+    },
+    {
+      "start": 1014.36,
+      "end": 1020.06,
+      "en": "And the issue is that we are then trying to decode This number.",
+      "zh": "問題是，我們還試著解碼這個數字。"
+    },
+    {
+      "start": 1020.1,
+      "end": 1022.62,
+      "en": "The vocab is not nearly this big.",
+      "zh": "詞彙表根本沒有那麼大，"
+    },
+    {
+      "start": 1022.62,
+      "end": 1030.14,
+      "en": "This is like multiple orders of magnitude larger than the GPT uh, tokenizer.",
+      "zh": "比 GPT tokenizer 的大小，多出好幾個數量級。"
+    },
+    {
+      "start": 1030.14,
+      "end": 1035.26,
+      "en": "So that means that the that this token just does not exist in the vocab.",
+      "zh": "因此，這個 token 根本不在詞彙表裡，"
+    },
+    {
+      "start": 1035.26,
+      "end": 1037.06,
+      "en": "It's way out in the stratosphere.",
+      "zh": "遠到天邊去了。"
+    },
+    {
+      "start": 1038.02,
+      "end": 1041.26,
+      "en": "And that is why we got this error over here.",
+      "zh": "所以，這裡才出錯。"
+    },
+    {
+      "start": 1041.66,
+      "end": 1041.98,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1042.02,
+      "end": 1045.46,
+      "en": "So now let's see what happens if we just try it with the numbers.",
+      "zh": "現在，只用數字看看。"
+    },
+    {
+      "start": 1045.82,
+      "end": 1052.58,
+      "en": "So yeah I already explained what this is showing in the slide and the numbers or the strings corresponding",
+      "zh": "投影片已解釋過，數字 5 與 3 對應的字串，"
+    },
+    {
+      "start": 1052.62,
+      "end": 1061.34,
+      "en": "to the numbers five and three have the tokens 20 and 18 and their product is 360.",
+      "zh": "token 是 20 與 18，乘積為 360。"
+    },
+    {
+      "start": 1061.38,
+      "end": 1069.34,
+      "en": "Now this is a valid token ID in the sense that, you know, the vocab is is larger than 360 elements,",
+      "zh": "這是有效的 token ID，因為詞彙表大小超過 360，"
+    },
+    {
+      "start": 1069.7,
+      "end": 1077.54,
+      "en": "but that is space capital D that is not even close to being the product of three and five.",
+      "zh": "但它對應空白加大寫 D，完全不是 3 與 5 的乘積。"
+    },
+    {
+      "start": 1078.96,
+      "end": 1087.4,
+      "en": "Exercise 4th May seem initially like it's the same as exercise three, but using embeddings instead of tokens.",
+      "zh": "練習四，乍看像練習三，只是改用嵌入，而不是 token。"
+    },
+    {
+      "start": 1087.68,
+      "end": 1095.76,
+      "en": "But you are going to see that this exercise is actually not as ridiculous as the previous exercise.",
+      "zh": "但你會發現，這題沒有上一題那麼荒謬。"
+    },
+    {
+      "start": 1096.28,
+      "end": 1097.48,
+      "en": "Now here's the thing.",
+      "zh": "重點在於，"
+    },
+    {
+      "start": 1097.8,
+      "end": 1106.88,
+      "en": "There is no intrinsic, meaningful relationship between token indices and the words or the numbers that they represent.",
+      "zh": "token 索引與它表示的單字或數字，沒有內在、有意義的關係。"
+    },
+    {
+      "start": 1107.04,
+      "end": 1108.84,
+      "en": "That's an arbitrary mapping.",
+      "zh": "對應是任意的。"
+    },
+    {
+      "start": 1109.2,
+      "end": 1112.28,
+      "en": "On the other hand, the embeddings are meaningful.",
+      "zh": "嵌入則有意義，"
+    },
+    {
+      "start": 1112.28,
+      "end": 1116.8,
+      "en": "They are trained based on an enormous amount of text data.",
+      "zh": "根據大量文字資料訓練。"
+    },
+    {
+      "start": 1117.04,
+      "end": 1126.28,
+      "en": "And you've already seen in previous videos that embeddings of semantically similar words are strongly correlated with each other.",
+      "zh": "先前影片也看過，語意相近的字，其嵌入高度相關。"
+    },
+    {
+      "start": 1126.8,
+      "end": 1131.56,
+      "en": "So you actually can do arithmetic with these embeddings vectors.",
+      "zh": "所以，確實可以對嵌入向量做算術，"
+    },
+    {
+      "start": 1131.92,
+      "end": 1143.18,
+      "en": "You can add them and subtract them and scale them, and you can get meaningful, interpretable and An insightful results from doing math with embedding vectors.",
+      "zh": "可以相加、相減、縮放，而且可能得到有意義、可解讀、有啟發的結果。"
+    },
+    {
+      "start": 1144.06,
+      "end": 1156.02,
+      "en": "In fact, the entire mechanism of attention in the transformer is literally just doing something like what we're going to do here, which is adding embeddings onto each other.",
+      "zh": "事實上，Transformer 的整個注意力機制，就是做類似這裡的事：把嵌入加在一起。"
+    },
+    {
+      "start": 1156.7,
+      "end": 1164.06,
+      "en": "Okay, so all of that aside, the goal of exercise four is to extract and visualize the embeddings vectors",
+      "zh": "總之，練習四要擷取並畫出"
+    },
+    {
+      "start": 1164.22,
+      "end": 1174.7,
+      "en": "for three and five, and then also the sum of those two embeddings vectors and the product of those two embeddings vectors.",
+      "zh": "3 與 5 的嵌入向量，以及兩者的和與乘積。"
+    },
+    {
+      "start": 1174.82,
+      "end": 1177.22,
+      "en": "So just to be clear there's a blue line.",
+      "zh": "說清楚一點，這裡有條藍線，"
+    },
+    {
+      "start": 1177.22,
+      "end": 1180.3,
+      "en": "I don't really see it, but it's somewhere in here you can kind of see it.",
+      "zh": "我不太看得到，但就在這裡，可以稍微看到。"
+    },
+    {
+      "start": 1180.5,
+      "end": 1185.66,
+      "en": "There's a blue line which is the embedding vector for the string of the integer three.",
+      "zh": "藍線是整數 3 的字串所對應的嵌入向量。"
+    },
+    {
+      "start": 1186.26,
+      "end": 1189.74,
+      "en": "And then the orange line is the embedding vector for five.",
+      "zh": "橘線是 5 的嵌入向量。"
+    },
+    {
+      "start": 1190.14,
+      "end": 1192.3,
+      "en": "And then here the green line.",
+      "zh": "這條綠線，"
+    },
+    {
+      "start": 1192.3,
+      "end": 1195.22,
+      "en": "This is adding the two embedding vectors together.",
+      "zh": "是兩個嵌入向量相加。"
+    },
+    {
+      "start": 1195.22,
+      "end": 1204.24,
+      "en": "So we're not getting the embedding vector from the number eight, we are summing the embedding vectors from the blue line and the green line.",
+      "zh": "不是直接取得數字 8 的嵌入，而是把藍線與綠線的向量相加（原口述；前文為橘線）。"
+    },
+    {
+      "start": 1205.28,
+      "end": 1205.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1205.56,
+      "end": 1210.44,
+      "en": "And then in red is the same thing except it is the blue line times the orange line.",
+      "zh": "紅線則類似，但改成藍線乘以橘線，"
+    },
+    {
+      "start": 1210.56,
+      "end": 1216.72,
+      "en": "So the embedding vector for three times the embedding vector for five okay.",
+      "zh": "也就是 3 的嵌入向量，乘以 5 的嵌入向量。"
+    },
+    {
+      "start": 1216.76,
+      "end": 1225.6,
+      "en": "Once you have calculated these embedding vectors and visualize this, what you want to do is transform",
+      "zh": "算出並畫出這些嵌入向量後，要把"
+    },
+    {
+      "start": 1225.88,
+      "end": 1231.44,
+      "en": "the embeddings vector back into tokens to print out like what you see here.",
+      "zh": "嵌入向量轉回 token，印出像這裡的結果。"
+    },
+    {
+      "start": 1231.84,
+      "end": 1239,
+      "en": "Now this is actually the first time in the course that you are learning about the procedure of Unembedding.",
+      "zh": "這其實是課程第一次介紹反嵌入，unembedding 的程序。"
+    },
+    {
+      "start": 1239.4,
+      "end": 1240.52,
+      "en": "So how does that work?",
+      "zh": "如何運作？"
+    },
+    {
+      "start": 1240.52,
+      "end": 1244.24,
+      "en": "How do you get from an embedding back to a token?",
+      "zh": "怎麼從嵌入，轉回 token？"
+    },
+    {
+      "start": 1244.96,
+      "end": 1256.8,
+      "en": "The simple answer, which I will justify and explain in more detail later on in this section, is to multiply this vector by the embeddings matrix.",
+      "zh": "簡單答案，是把這個向量乘上反嵌入矩陣；稍後會更詳細說明與解釋。"
+    },
+    {
+      "start": 1257.12,
+      "end": 1264.06,
+      "en": "An embeddings matrix is a matrix that goes from the embedding space back to the token space.",
+      "zh": "反嵌入矩陣，會從嵌入空間映射回 token 空間。"
+    },
+    {
+      "start": 1264.78,
+      "end": 1275.42,
+      "en": "Now, in this particular example, we don't have a separate embeddings matrix, so therefore we will use the transpose of the embeddings matrix.",
+      "zh": "這個例子沒有獨立的反嵌入矩陣，所以使用嵌入矩陣的轉置。"
+    },
+    {
+      "start": 1276.58,
+      "end": 1279.3,
+      "en": "So mathematically it looks like this.",
+      "zh": "數學上，像這樣。"
+    },
+    {
+      "start": 1279.66,
+      "end": 1288.9,
+      "en": "You take the vector v and this is going to be for example the sum of the embedding vector for three and the embedding vector for five.",
+      "zh": "取向量 v，例如 3 與 5 的嵌入向量之和。"
+    },
+    {
+      "start": 1288.9,
+      "end": 1298.1,
+      "en": "So this green vector here let's call that vector v and then you multiply it by the transpose of the embeddings matrix.",
+      "zh": "也就是這條綠色向量，叫它 v，再乘以嵌入矩陣的轉置。"
+    },
+    {
+      "start": 1298.5,
+      "end": 1302.18,
+      "en": "So yeah v here is some vector in the embedding space.",
+      "zh": "因此，v 是嵌入空間中的某個向量，"
+    },
+    {
+      "start": 1302.54,
+      "end": 1306.02,
+      "en": "And E is the embeddings matrix.",
+      "zh": "E 是嵌入矩陣。"
+    },
+    {
+      "start": 1306.94,
+      "end": 1311.98,
+      "en": "So here I am printing out the sizes of the matrix and the vector.",
+      "zh": "這裡印出矩陣與向量的大小，"
+    },
+    {
+      "start": 1312.22,
+      "end": 1319.44,
+      "en": "So you see what the individual matrices look like and the size of the embedding vector.",
+      "zh": "讓你看各個矩陣，以及嵌入向量的大小。"
+    },
+    {
+      "start": 1319.8,
+      "end": 1331.44,
+      "en": "So this vector times the transpose of this vector is going to give us another vector with the same size as the vocab as the tokenizers vocab.",
+      "zh": "這個向量，乘以嵌入矩陣的轉置，會得到一個與 tokenizer 詞彙表大小相同的向量。"
+    },
+    {
+      "start": 1331.84,
+      "end": 1339.6,
+      "en": "So now the idea is to multiply the vector by the embeddings matrix, and then you want to find the dimension",
+      "zh": "概念是，把向量乘上嵌入矩陣，再找出"
+    },
+    {
+      "start": 1339.84,
+      "end": 1349.28,
+      "en": "in which this embeddings vector has its largest value, and whatever dimension has the largest value,",
+      "zh": "結果中，數值最大的維度；那個維度"
+    },
+    {
+      "start": 1349.68,
+      "end": 1357.48,
+      "en": "that is the token index, and that you put back into the decoder of the tokenizer.",
+      "zh": "就是 token 索引，再把它輸入 tokenizer 的解碼器。"
+    },
+    {
+      "start": 1357.84,
+      "end": 1360.4,
+      "en": "And that is what you print out here.",
+      "zh": "這就是這裡印出的結果。"
+    },
+    {
+      "start": 1360.84,
+      "end": 1364.04,
+      "en": "So I hope that all makes sense, at least mechanistically.",
+      "zh": "希望至少在操作機制上，你能理解。"
+    },
+    {
+      "start": 1364.04,
+      "end": 1368,
+      "en": "If you're struggling to understand it conceptually, then don't worry.",
+      "zh": "如果概念上還不太清楚，不用擔心。"
+    },
+    {
+      "start": 1368,
+      "end": 1377.44,
+      "en": "This is a topic that I'm going to introduce and discuss in more detail in a few lectures from now, but I want you to get a taste of how it works here.",
+      "zh": "幾講之後，會更詳細介紹與討論；這裡先讓你體驗運作方式。"
+    },
+    {
+      "start": 1378.62,
+      "end": 1380.82,
+      "en": "Okay, so that's it for exercise four.",
+      "zh": "好，這就是練習四。"
+    },
+    {
+      "start": 1380.86,
+      "end": 1384.54,
+      "en": "You should now pause the video, work through this problem on your own.",
+      "zh": "現在暫停影片，自己解這題。"
+    },
+    {
+      "start": 1384.54,
+      "end": 1387.9,
+      "en": "And now I will switch to Python to discuss my solution.",
+      "zh": "接著，切換到 Python，討論解法。"
+    },
+    {
+      "start": 1388.46,
+      "end": 1395.66,
+      "en": "Here I am isolating the two embeddings vectors for the number three five and the number three.",
+      "zh": "這裡，取出數字 5 與 3 的兩個嵌入向量。"
+    },
+    {
+      "start": 1395.94,
+      "end": 1398.18,
+      "en": "And I'm calling them e for embedding.",
+      "zh": "用 e 代表 embedding，嵌入，"
+    },
+    {
+      "start": 1398.18,
+      "end": 1399.82,
+      "en": "So e5 and e3.",
+      "zh": "所以叫 e5 與 e3。"
+    },
+    {
+      "start": 1400.22,
+      "end": 1401.82,
+      "en": "Okay here I'm summing them.",
+      "zh": "這裡相加，"
+    },
+    {
+      "start": 1401.82,
+      "end": 1404.7,
+      "en": "Here I am element wise multiplying them.",
+      "zh": "這裡逐元素相乘。"
+    },
+    {
+      "start": 1404.82,
+      "end": 1408.62,
+      "en": "And here I am making a figure that I showed in the slides.",
+      "zh": "再建立投影片展示的圖。"
+    },
+    {
+      "start": 1408.94,
+      "end": 1419.22,
+      "en": "Now it's already pretty interesting that the blue and orange and green lines are so similar to each other that they're almost entirely overlapping.",
+      "zh": "有趣的是，藍、橘、綠線非常相似，幾乎完全重疊。"
+    },
+    {
+      "start": 1419.7,
+      "end": 1425.22,
+      "en": "In fact, if you just look at this plot quickly, you might think that there is something wrong.",
+      "zh": "快速看圖，可能會以為哪裡有問題，"
+    },
+    {
+      "start": 1425.5,
+      "end": 1428.66,
+      "en": "Uh, and there's only two lines, a green line and a red line.",
+      "zh": "只有兩條線，一綠一紅。"
+    },
+    {
+      "start": 1428.66,
+      "end": 1432.7,
+      "en": "But there are, you know, there really is four lines here.",
+      "zh": "但實際上，真的有四條線。"
+    },
+    {
+      "start": 1432.74,
+      "end": 1435.98,
+      "en": "If you zoom in, then you can see it pretty clearly.",
+      "zh": "放大就能看得很清楚。"
+    },
+    {
+      "start": 1436.26,
+      "end": 1436.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1437.5,
+      "end": 1442.4,
+      "en": "So, uh, now here is where I do the, uh, un embeddings.",
+      "zh": "現在，這裡進行反嵌入。"
+    },
+    {
+      "start": 1442.4,
+      "end": 1452.32,
+      "en": "So the UN embeddings matrix, we are taking just as the transpose of the embeddings matrix and then calculating the matrix multiplication.",
+      "zh": "把嵌入矩陣的轉置，當成反嵌入矩陣，再計算矩陣乘法。"
+    },
+    {
+      "start": 1452.32,
+      "end": 1455.32,
+      "en": "So this is not the same thing as this here.",
+      "zh": "這和這裡不同。"
+    },
+    {
+      "start": 1455.32,
+      "end": 1462.96,
+      "en": "The asterisk is element wise multiplication, also called Hadamard multiplication if you're familiar with linear algebra.",
+      "zh": "星號是逐元素乘法，線性代數中也叫 Hadamard 乘積。"
+    },
+    {
+      "start": 1463.32,
+      "end": 1466.16,
+      "en": "And here this is matrix multiplication.",
+      "zh": "這裡則是矩陣乘法，"
+    },
+    {
+      "start": 1466.16,
+      "end": 1471.12,
+      "en": "So we are multiplying the vector by the embeddings matrix.",
+      "zh": "把向量乘上嵌入矩陣。"
+    },
+    {
+      "start": 1471.4,
+      "end": 1477.24,
+      "en": "And that gives us the I call this the sum unembedding and the product unembedding.",
+      "zh": "結果，我分別叫它 sum unembedding 與 product unembedding。"
+    },
+    {
+      "start": 1477.88,
+      "end": 1478.28,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1478.64,
+      "end": 1480.76,
+      "en": "And then uh yeah.",
+      "zh": "接著，"
+    },
+    {
+      "start": 1480.8,
+      "end": 1482.16,
+      "en": "Here I'm just printing out the sizes.",
+      "zh": "這裡只是印出大小。"
+    },
+    {
+      "start": 1482.16,
+      "end": 1483.88,
+      "en": "And here is the results.",
+      "zh": "這是結果。"
+    },
+    {
+      "start": 1483.88,
+      "end": 1488.72,
+      "en": "So we see that the unembedding for five plus three is five.",
+      "zh": "可以看到，5 加 3 的反嵌入結果，是 5。"
+    },
+    {
+      "start": 1489,
+      "end": 1490.12,
+      "en": "That's pretty interesting.",
+      "zh": "很有意思。"
+    },
+    {
+      "start": 1490.12,
+      "end": 1492.84,
+      "en": "That is very easily interpretable.",
+      "zh": "這非常容易解讀，"
+    },
+    {
+      "start": 1492.84,
+      "end": 1494.32,
+      "en": "I'll talk about that more in a minute.",
+      "zh": "稍後再談。"
+    },
+    {
+      "start": 1495.76,
+      "end": 1505.02,
+      "en": "The max I guess I should have called this unembedding, but the max, uh, vector for five times three is space Weinstein.",
+      "zh": "這個 max，也許該命名為 unembedding，但 5 乘 3 向量的最大值結果，是空白加 Weinstein。"
+    },
+    {
+      "start": 1505.18,
+      "end": 1506.9,
+      "en": "So make of that what you will.",
+      "zh": "你可以自行解讀。"
+    },
+    {
+      "start": 1506.94,
+      "end": 1513.06,
+      "en": "This one is not easily interpretable in the context of arithmetic, but this one really is.",
+      "zh": "這個結果在算術情境下，不容易解讀；但另一個很容易。"
+    },
+    {
+      "start": 1513.06,
+      "end": 1514.34,
+      "en": "So what is going on here?",
+      "zh": "這是怎麼回事？"
+    },
+    {
+      "start": 1514.34,
+      "end": 1525.42,
+      "en": "Why does it happen that when we add the embedding vector for five with the embedding vector for three, that we still get out the same embedding vector for five?",
+      "zh": "為什麼把 5 的嵌入向量，與 3 的嵌入向量相加，還是得到 5 的結果？"
+    },
+    {
+      "start": 1525.94,
+      "end": 1533.7,
+      "en": "Well, to gain some insight into this phenomenon, we can visualize my favorite thing to do to gain insight into things.",
+      "zh": "為了理解，可以畫圖；這是我最喜歡的理解方法。"
+    },
+    {
+      "start": 1534.1,
+      "end": 1534.34,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1534.38,
+      "end": 1544.62,
+      "en": "And here we see I didn't make this plot look really nice, but basically, uh, the x axis is the embedding for five, the y axis is for the embedding for three.",
+      "zh": "這張圖沒特別美化，但基本上，x 軸是 5 的嵌入，y 軸是 3 的嵌入。"
+    },
+    {
+      "start": 1544.86,
+      "end": 1547.38,
+      "en": "And you can see they're super tightly correlated.",
+      "zh": "可以看到，兩者高度相關，"
+    },
+    {
+      "start": 1547.38,
+      "end": 1554.02,
+      "en": "Really really strong correlation or cosine similarity between these two embedding vectors.",
+      "zh": "有非常強的相關，或餘弦相似度。"
+    },
+    {
+      "start": 1554.94,
+      "end": 1556.18,
+      "en": "And what does that mean.",
+      "zh": "代表什麼？"
+    },
+    {
+      "start": 1556.54,
+      "end": 1565.8,
+      "en": "That means that the embeddings for three and five are so similar to each other that when we add them together, we don't really do a whole lot.",
+      "zh": "3 與 5 的嵌入太相似，相加時，沒有造成太大改變。"
+    },
+    {
+      "start": 1565.84,
+      "end": 1571.16,
+      "en": "So three doesn't really change the direction of the vector for five.",
+      "zh": "所以，3 沒有真的改變 5 向量的方向。"
+    },
+    {
+      "start": 1571.4,
+      "end": 1579.72,
+      "en": "So therefore, when you add them together, the most prominent token dimension from the embedding is still five.",
+      "zh": "兩者相加，反嵌入後最突出的 token 維度，仍然是 5。"
+    },
+    {
+      "start": 1579.72,
+      "end": 1582.48,
+      "en": "And that's why this result was five.",
+      "zh": "因此，結果才是 5。"
+    },
+    {
+      "start": 1583.2,
+      "end": 1588.08,
+      "en": "I hope you found this code challenge to be a nice balance of fun and learning.",
+      "zh": "希望這個程式挑戰，在有趣與學習之間取得不錯的平衡。"
+    },
+    {
+      "start": 1588.68,
+      "end": 1598.12,
+      "en": "The main point is that you cannot do math with tokens because tokens are completely arbitrarily mapped to words and numbers.",
+      "zh": "主要重點是，不能直接用 token 做數學，因為 token 與單字、數字的映射完全任意。"
+    },
+    {
+      "start": 1598.72,
+      "end": 1608.36,
+      "en": "That is to say, we could completely randomly scramble all of the mappings between token integers and the subwords that they correspond to.",
+      "zh": "也就是說，可以把 token 整數與對應子詞的所有映射，完全隨機打亂。"
+    },
+    {
+      "start": 1608.96,
+      "end": 1617.36,
+      "en": "Of course, if we did that, we would need to retrain the whole model, but the point is that the mapping cannot be used for mathematical operations.",
+      "zh": "當然，這樣就得重新訓練整個模型；但重點是，不能直接用映射編號進行數學運算。"
+    },
+    {
+      "start": 1617.8,
+      "end": 1625.26,
+      "en": "On the other hand, the embeddings vectors actually are meaningful, certainly within each embeddings matrix.",
+      "zh": "另一方面，嵌入向量確實有意義，至少在同一嵌入矩陣內如此。"
+    },
+    {
+      "start": 1625.82,
+      "end": 1634.7,
+      "en": "Now, as you learn from the previous couple of videos, it is tricky to directly compare vectors across different embeddings matrices.",
+      "zh": "如前幾支影片所學，直接跨矩陣比較向量，很棘手。"
+    },
+    {
+      "start": 1635.34,
+      "end": 1645.06,
+      "en": "But if you're working within the same embeddings matrix, then you really can do math with these vectors, and in some cases you will get meaningful results.",
+      "zh": "但如果在同一個矩陣內，確實能對向量做數學，有時會得到有意義的結果。"
+    },
+    {
+      "start": 1645.1,
+      "end": 1645.86,
+      "en": "Not all the time.",
+      "zh": "並不是每次都會。"
+    },
+    {
+      "start": 1645.86,
+      "end": 1652.38,
+      "en": "We will explore this more in the next section of the course, but it does work to some extent.",
+      "zh": "下一章會進一步探索，但確實有一定效果。"
+    },
+    {
+      "start": 1653.3,
+      "end": 1659.38,
+      "en": "Anyway, given all of this, why is it the case that we can do math at all?",
+      "zh": "綜合這些，為什麼 LLM 還能做數學？"
+    },
+    {
+      "start": 1659.98,
+      "end": 1667.34,
+      "en": "Well, partly the answer is that the Llms have been trained on a lot of books and websites that include",
+      "zh": "一部分，是因為 LLM 訓練過許多書籍與網站，其中包含"
+    },
+    {
+      "start": 1667.34,
+      "end": 1672.38,
+      "en": "discussions about math and math demos and tutorials and so on.",
+      "zh": "數學討論、示範與教學等等。"
+    },
+    {
+      "start": 1672.42,
+      "end": 1676.1,
+      "en": "So it's just digested a lot of arithmetic.",
+      "zh": "所以，吸收了大量算術內容。"
+    },
+    {
+      "start": 1676.74,
+      "end": 1686.76,
+      "en": "And it's also partly based on advanced llms being able to build world models that include some understanding of numbers and quantities.",
+      "zh": "另一部分，則是先進 LLM 能建立世界模型，其中包含對數字與數量的某種理解。"
+    },
+    {
+      "start": 1687.96,
+      "end": 1691.64,
+      "en": "Anyway, I want to close this video with one practical tip.",
+      "zh": "最後，以一個實用技巧結束。"
+    },
+    {
+      "start": 1692.12,
+      "end": 1701.04,
+      "en": "If you want an LLM like ChatGPT to actually solve math problems, especially if the math involves arithmetic",
+      "zh": "如果想讓 ChatGPT 這類 LLM 真正解數學題，尤其涉及算術"
+    },
+    {
+      "start": 1701.04,
+      "end": 1711.2,
+      "en": "or algebra, it's much better to ask the model to write code to solve the problem, rather than asking the model to solve the problem directly.",
+      "zh": "或代數，最好請模型寫程式解題，而不是直接要求它解題。"
+    },
+    {
+      "start": 1711.68,
+      "end": 1722.56,
+      "en": "And that is because GPT understands what it means to multiply two large numbers, but it doesn't necessarily have the ability to multiply those numbers by itself.",
+      "zh": "GPT 理解兩個大數相乘的意義，但不一定有能力，自己完成乘法。"
+    },
+    {
+      "start": 1723,
+      "end": 1731.72,
+      "en": "So ChatGPT can write code to use as a tool to solve math problems, even if it cannot solve those problems itself.",
+      "zh": "所以，即使自己無法解題，ChatGPT 仍能寫程式，把它當成工具來解數學題。"
+    },
+    {
+      "start": 1732.12,
+      "end": 1737.48,
+      "en": "And honestly, that's very similar to the level of math abilities of a lot of humans, including me.",
+      "zh": "老實說，這和許多人，包括我在內的數學能力，很相似。"
+    }
+  ]
+}

@@ -1,0 +1,2425 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51862051",
+  "title": "Fine-tuning BERT for classification",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "eb3b3f09318e741f13c1577bdea8d5e5eb9b05bebd330e85a8876e7d57bb8689",
+  "cues": [
+    {
+      "start": 1.76,
+      "end": 6.08,
+      "en": "This video is different from the last several videos.",
+      "zh": "這支影片和前面幾支不同。"
+    },
+    {
+      "start": 6.52,
+      "end": 14.72,
+      "en": "Previously, we were using a language model to generate new text, and now in this video I'm going to",
+      "zh": "之前用語言模型生成新文字，現在這支影片要"
+    },
+    {
+      "start": 14.76,
+      "end": 20.08,
+      "en": "show you how to fine tune a language model for classification.",
+      "zh": "示範如何微調語言模型來做分類。"
+    },
+    {
+      "start": 20.84,
+      "end": 29.72,
+      "en": "In particular, we are going to construct a new deep learning model where most of that model is a pre-trained",
+      "zh": "具體而言，我們要建立一個新的深度學習模型，其中大部分是預訓練的"
+    },
+    {
+      "start": 29.72,
+      "end": 34.04,
+      "en": "Bert model that is not designed for text generation.",
+      "zh": "BERT 模型，它不是為文字生成設計的。"
+    },
+    {
+      "start": 34.52,
+      "end": 43.04,
+      "en": "And then we will attach a new layer at the end of the model that has only two outputs corresponding to two categories.",
+      "zh": "接著在模型末端接上一個新層，只有兩個輸出，對應兩種類別。"
+    },
+    {
+      "start": 43.6,
+      "end": 51.88,
+      "en": "And those two categories will correspond to people's ratings of various movies as being positive or negative.",
+      "zh": "這兩種類別，對應人們對各種電影的正面或負面評價。"
+    },
+    {
+      "start": 52.52,
+      "end": 64.15,
+      "en": "And then the goal of the training will be to get this language model to analyze short written texts and predict whether that person liked or didn't like the movie.",
+      "zh": "訓練目標，是讓語言模型分析短篇文字，預測寫評論的人喜不喜歡這部電影。"
+    },
+    {
+      "start": 65.03,
+      "end": 68.47,
+      "en": "And actually, we're not going to do the training in this video.",
+      "zh": "不過，這支影片其實不會進行訓練。"
+    },
+    {
+      "start": 68.51,
+      "end": 77.63,
+      "en": "I'm going to show you in this video how to set up everything, and then you are going to do the actual training in the next video.",
+      "zh": "我會示範如何把一切準備好，下一支影片再由你實際訓練。"
+    },
+    {
+      "start": 78.95,
+      "end": 88.63,
+      "en": "So there's a lot to do in this code demo and a lot of new code and new concepts, but it's all related to processing data and building models.",
+      "zh": "所以這次程式示範內容很多，有許多新程式和新概念，但都與資料處理、建立模型有關。"
+    },
+    {
+      "start": 89.07,
+      "end": 96.59,
+      "en": "For starters, we are going to import a pre-trained Bert model and inspect that model.",
+      "zh": "首先，匯入預訓練 BERT 模型並檢視。"
+    },
+    {
+      "start": 97.19,
+      "end": 107.78999999999999,
+      "en": "I have several remarks about this model architecture, including differences in naming conventions compared to the OpenAI GPT models.",
+      "zh": "關於這個架構，我有幾點說明，包括它與 OpenAI GPT 模型的命名慣例差異。"
+    },
+    {
+      "start": 107.91,
+      "end": 114.11,
+      "en": "I'll talk about more of those details when I switch to code, but for now, I want to direct your attention",
+      "zh": "切換到程式時會詳細談，現在先請注意"
+    },
+    {
+      "start": 114.31,
+      "end": 125.47,
+      "en": "to the bottom here, where you see that this model ends in a polar layer which is 768 by 768.",
+      "zh": "最下方：模型最後是一個 768 乘 768 的 pooler 層。"
+    },
+    {
+      "start": 125.71,
+      "end": 131.71,
+      "en": "So that actually corresponds to the embeddings dimension and not the number of tokens.",
+      "zh": "這對應的是嵌入維度，而不是詞元數。"
+    },
+    {
+      "start": 132.03,
+      "end": 136.51,
+      "en": "So this model is not designed for generating new text.",
+      "zh": "所以，這個模型不是為生成新文字設計的。"
+    },
+    {
+      "start": 137.15,
+      "end": 144.39,
+      "en": "Now we can make this model generate new text by training it to do so and adding another layer at the end.",
+      "zh": "當然，可以在最後加上一層，再透過訓練，讓它生成新文字。"
+    },
+    {
+      "start": 144.39,
+      "end": 149.27,
+      "en": "But that's not what this model does natively and it's not what it's really designed for.",
+      "zh": "但這不是它原本的功能，也不是主要設計目的。"
+    },
+    {
+      "start": 150.19,
+      "end": 150.55,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 150.59,
+      "end": 160.43,
+      "en": "Then I'm going to tell you more about importing tokens into the model in a way that allows for batches with different sequence lengths.",
+      "zh": "接著說明如何把詞元送入模型，處理包含不同序列長度的批次。"
+    },
+    {
+      "start": 160.79,
+      "end": 163.27,
+      "en": "This is actually not specific to the Bert model.",
+      "zh": "這其實不是 BERT 特有的。"
+    },
+    {
+      "start": 163.27,
+      "end": 170.07,
+      "en": "It's a level of control and detail that we haven't really needed before in the course.",
+      "zh": "只是這種控制程度與細節，在前面的課程還沒有必要用到。"
+    },
+    {
+      "start": 170.91,
+      "end": 175.67000000000002,
+      "en": "Then I will build a new model that will look something like this.",
+      "zh": "然後，我會建立類似這樣的新模型。"
+    },
+    {
+      "start": 175.75,
+      "end": 178.94,
+      "en": "So here you see that I'm actually setting the model.",
+      "zh": "可以看到，這裡其實把模型設為，"
+    },
+    {
+      "start": 178.94,
+      "end": 184.42,
+      "en": "I'm defining this model to contain the entire Bert model.",
+      "zh": "定義成包含整個 BERT 模型。"
+    },
+    {
+      "start": 184.94,
+      "end": 194.42,
+      "en": "And then on top of that, I'm adding a classifier layer that goes from 768 dimensions down to two dimensions.",
+      "zh": "再接上一個分類層，從 768 維降到 2 維。"
+    },
+    {
+      "start": 195.5,
+      "end": 198.1,
+      "en": "Again, this is not for generating text.",
+      "zh": "再次提醒，這不是為了生成文字。"
+    },
+    {
+      "start": 198.1,
+      "end": 201.66,
+      "en": "If it were, we would only have two possible tokens to generate.",
+      "zh": "否則，就只會有兩個可能生成的詞元。"
+    },
+    {
+      "start": 202.14,
+      "end": 207.06,
+      "en": "Instead, the goal here is to predict a binary outcome.",
+      "zh": "這裡的目標，是預測二元結果。"
+    },
+    {
+      "start": 207.57999999999998,
+      "end": 216.62,
+      "en": "And here you see in the forward method that I push the tokens through the Bert model and get the logit outputs.",
+      "zh": "forward 方法中，把詞元送過 BERT，取得輸出的 logits。"
+    },
+    {
+      "start": 216.66,
+      "end": 221.1,
+      "en": "And then I run those through the classifier down here.",
+      "zh": "再把它們送進下面的分類器。"
+    },
+    {
+      "start": 222.18,
+      "end": 227.98,
+      "en": "Next we will import the IMDb data set from hugging face.",
+      "zh": "接著從 Hugging Face 匯入 IMDb 資料集。"
+    },
+    {
+      "start": 228.46,
+      "end": 234.82,
+      "en": "If you're not already familiar with IMDb, it is the Internet Movie Database.",
+      "zh": "如果不熟悉 IMDb，它是 Internet Movie Database，網際網路電影資料庫。"
+    },
+    {
+      "start": 235.06,
+      "end": 243.22,
+      "en": "It's a website that's all about movies and ratings, and they have a fantastic data set that we can download now.",
+      "zh": "這是一個提供電影資訊與評分的網站，有很棒的資料集可供下載。"
+    },
+    {
+      "start": 243.38,
+      "end": 249.34,
+      "en": "It's a little bit tricky to download this data set because of some minor library version conflicts.",
+      "zh": "不過，由於函式庫版本之間有些小衝突，下載稍微麻煩。"
+    },
+    {
+      "start": 249.34,
+      "end": 252.5,
+      "en": "So we will have to navigate that in the code.",
+      "zh": "程式裡得處理這些問題。"
+    },
+    {
+      "start": 252.74,
+      "end": 255.7,
+      "en": "But that's just a realistic part of coding.",
+      "zh": "但這就是寫程式的現實，"
+    },
+    {
+      "start": 255.9,
+      "end": 262.9,
+      "en": "In a language like Python that is developed independently and continuously by lots of different people.",
+      "zh": "尤其 Python 是由許多不同的人獨立、持續開發的語言。"
+    },
+    {
+      "start": 263.5,
+      "end": 273.02,
+      "en": "Well, here I say that we're going to train the language model to predict the review category, that is, whether the review is positive or negative.",
+      "zh": "這裡寫要訓練語言模型預測評論類別，也就是評論為正面或負面。"
+    },
+    {
+      "start": 273.18,
+      "end": 274.54,
+      "en": "But that's actually not true.",
+      "zh": "不過，這樣說其實不對。"
+    },
+    {
+      "start": 274.54,
+      "end": 284.02,
+      "en": "I'm not going to or am going to introduce you to the training code, but I am not going to actually train the model in this video.",
+      "zh": "我會介紹訓練程式，但這支影片不會實際訓練模型。"
+    },
+    {
+      "start": 284.06,
+      "end": 286.82,
+      "en": "That will be your goal in the next video.",
+      "zh": "那是下一支影片你的目標。"
+    },
+    {
+      "start": 287.42,
+      "end": 290.82,
+      "en": "Anyway, let's switch to code and have a more detailed look.",
+      "zh": "總之，切到程式，仔細看看。"
+    },
+    {
+      "start": 291.7,
+      "end": 300.93,
+      "en": "So let's begin by importing this function load dataset from the datasets library, which is provided",
+      "zh": "先從 Hugging Face 提供的 datasets 函式庫"
+    },
+    {
+      "start": 300.93,
+      "end": 302.37,
+      "en": "by hugging Face.",
+      "zh": "匯入 load_dataset 函數。"
+    },
+    {
+      "start": 302.73,
+      "end": 307.89,
+      "en": "Now, uh, only a few months ago, this code actually worked just like this.",
+      "zh": "幾個月前，這段程式其實直接這樣就能跑。"
+    },
+    {
+      "start": 308.29,
+      "end": 310.01,
+      "en": "But, uh, since then.",
+      "zh": "但在那之後，"
+    },
+    {
+      "start": 310.01,
+      "end": 317.13,
+      "en": "So in the time between I first wrote this code file and when I'm recording it now, there apparently",
+      "zh": "也就是從我最初寫這個程式檔，到現在錄影這段期間，似乎"
+    },
+    {
+      "start": 317.13,
+      "end": 323.53,
+      "en": "was some minor updates that caused some conflicts amongst different libraries.",
+      "zh": "有一些小更新，造成不同函式庫間的衝突。"
+    },
+    {
+      "start": 323.53,
+      "end": 329.93,
+      "en": "So at the moment this may change for you, but at the moment you need to run this line basically to",
+      "zh": "所以目前，也許你那時情況又不同，但目前必須執行這行，"
+    },
+    {
+      "start": 329.97,
+      "end": 337.81,
+      "en": "reinstall this library as well as a couple of other libraries to resolve this conflict.",
+      "zh": "重新安裝這個及另外幾個函式庫，解決衝突。"
+    },
+    {
+      "start": 337.85,
+      "end": 344.93,
+      "en": "Now, when you run this line of code, it's going to force you to restart the session.",
+      "zh": "執行這行程式後，會要求重新啟動工作階段。"
+    },
+    {
+      "start": 344.93,
+      "end": 345.57,
+      "en": "So that's fine.",
+      "zh": "這沒問題。"
+    },
+    {
+      "start": 345.57,
+      "end": 346.73,
+      "en": "You restart the session.",
+      "zh": "重新啟動就好。"
+    },
+    {
+      "start": 346.73,
+      "end": 351.49,
+      "en": "You can also restart the session here through runtime and restart session.",
+      "zh": "也可以在這裡，透過 Runtime 選單的 Restart session 重新啟動。"
+    },
+    {
+      "start": 351.89,
+      "end": 357.69,
+      "en": "And then you can comment out that line and then run these two lines of code.",
+      "zh": "然後把那行註解掉，再執行這兩行。"
+    },
+    {
+      "start": 357.69,
+      "end": 361.13,
+      "en": "So I apologize on behalf of humanity.",
+      "zh": "我代表全人類向你道歉。"
+    },
+    {
+      "start": 361.13,
+      "end": 364.49,
+      "en": "I know that's weird and annoying and confusing.",
+      "zh": "我知道，這很奇怪、惱人，也讓人困惑。"
+    },
+    {
+      "start": 364.85,
+      "end": 370.69,
+      "en": "It is possible that when you are watching this video, you do not need to do what I just did.",
+      "zh": "你觀看影片時，也可能不需要剛才那個步驟。"
+    },
+    {
+      "start": 370.73,
+      "end": 372.69,
+      "en": "Hopefully it won't be the case.",
+      "zh": "希望不需要。"
+    },
+    {
+      "start": 372.73,
+      "end": 377.65,
+      "en": "That would mean that these minor library conflicts have been resolved on Colab.",
+      "zh": "那就代表 Colab 上這些小型函式庫衝突已解決。"
+    },
+    {
+      "start": 378.01,
+      "end": 385.53,
+      "en": "Nonetheless, this is the reality of coding in Python and using libraries from third parties.",
+      "zh": "不過，這就是使用 Python 和第三方函式庫的現實。"
+    },
+    {
+      "start": 386.69,
+      "end": 387.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 387.13,
+      "end": 391.09,
+      "en": "Anyway, now we have imported this library okay.",
+      "zh": "總之，現在已匯入這個函式庫。"
+    },
+    {
+      "start": 391.53,
+      "end": 393.05,
+      "en": "Or this data set.",
+      "zh": "或者說，這個資料集。"
+    },
+    {
+      "start": 393.29,
+      "end": 396.81,
+      "en": "So let's load in some other libraries that we will use here.",
+      "zh": "再載入這裡會用到的其他函式庫。"
+    },
+    {
+      "start": 397.09000000000003,
+      "end": 403.45,
+      "en": "And now here I'm loading in the Bert model pre-trained Bert base Uncased.",
+      "zh": "現在載入預訓練的 bert-base-uncased 模型。"
+    },
+    {
+      "start": 403.49,
+      "end": 405.29,
+      "en": "You have seen this model before.",
+      "zh": "這個模型之前看過。"
+    },
+    {
+      "start": 405.29,
+      "end": 407.65,
+      "en": "We've used it several times earlier.",
+      "zh": "前面用過幾次。"
+    },
+    {
+      "start": 407.65,
+      "end": 409.13,
+      "en": "In particular the tokenizer.",
+      "zh": "尤其是 tokenizer。"
+    },
+    {
+      "start": 409.13,
+      "end": 412.32,
+      "en": "We used the tokenizer earlier in this course.",
+      "zh": "這門課前面用過它的 tokenizer。"
+    },
+    {
+      "start": 412.76,
+      "end": 416.56,
+      "en": "So this imports the tokenizer imports the model.",
+      "zh": "這裡匯入 tokenizer，再匯入模型。"
+    },
+    {
+      "start": 416.56,
+      "end": 419,
+      "en": "And here I'm sending it to the GPU.",
+      "zh": "然後送到 GPU。"
+    },
+    {
+      "start": 419.6,
+      "end": 422.16,
+      "en": "So we can have a look at this model.",
+      "zh": "可以看看模型。"
+    },
+    {
+      "start": 422.48,
+      "end": 428.68,
+      "en": "And now some of the features of this model are very similar easily recognizable.",
+      "zh": "有些特徵非常相似，很容易認出。"
+    },
+    {
+      "start": 428.68,
+      "end": 432.32,
+      "en": "We have the word embeddings and position embeddings.",
+      "zh": "有詞元嵌入和位置嵌入。"
+    },
+    {
+      "start": 432.52,
+      "end": 439.24,
+      "en": "This is the equivalent to what the OpenAI models refer to as w.",
+      "zh": "這相當於 OpenAI 模型稱為 W 的東西，"
+    },
+    {
+      "start": 439.96,
+      "end": 441.6,
+      "en": "So word token embeddings.",
+      "zh": "也就是詞元嵌入。"
+    },
+    {
+      "start": 441.72,
+      "end": 443.56,
+      "en": "This is just called word embeddings.",
+      "zh": "這裡直接叫 word_embeddings。"
+    },
+    {
+      "start": 443.56,
+      "end": 446.28,
+      "en": "And obviously these are the position embeddings.",
+      "zh": "這些顯然是位置嵌入。"
+    },
+    {
+      "start": 446.72,
+      "end": 449.32,
+      "en": "Then we have another embeddings matrix.",
+      "zh": "接著還有另一個嵌入矩陣。"
+    },
+    {
+      "start": 449.32,
+      "end": 457.76,
+      "en": "It's a very small matrix called token type embeddings that is two by 600 and 768.",
+      "zh": "它很小，叫 token_type_embeddings，大小是 2 乘 768。"
+    },
+    {
+      "start": 457.76,
+      "end": 459.52,
+      "en": "So same embeddings dimension.",
+      "zh": "嵌入維度相同。"
+    },
+    {
+      "start": 459.52,
+      "end": 463.12,
+      "en": "But now there are only two options available.",
+      "zh": "但只有兩個選項。"
+    },
+    {
+      "start": 463.12,
+      "end": 465.68,
+      "en": "And that is for different token types.",
+      "zh": "對應不同詞元類型。"
+    },
+    {
+      "start": 465.68,
+      "end": 473.52,
+      "en": "You can train this for example for like a question answer kind of situation or different types of categorization.",
+      "zh": "例如，可以用於問題與答案這種情境，或不同類型的分類。"
+    },
+    {
+      "start": 473.56,
+      "end": 478.76,
+      "en": "I'm actually not going to use or discuss this embeddings matrix here.",
+      "zh": "這裡不會使用或討論這個嵌入矩陣。"
+    },
+    {
+      "start": 479.24,
+      "end": 479.48,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 479.52,
+      "end": 487.24,
+      "en": "Then we get to the what Bertier calls the encoder, which is the transformer, uh, set of blocks.",
+      "zh": "接著是 BERT 所稱的 encoder，也就是 Transformer 區塊的集合。"
+    },
+    {
+      "start": 487.36,
+      "end": 490.04,
+      "en": "So here we have the 12 transformer blocks.",
+      "zh": "這裡有 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 490.16,
+      "end": 491.68,
+      "en": "You'll recognize attention.",
+      "zh": "你會認出注意力。"
+    },
+    {
+      "start": 492.16,
+      "end": 498.28,
+      "en": "Uh, the, uh, Q, K and V matrices are separated out.",
+      "zh": "Q、K、V 矩陣分開列出。"
+    },
+    {
+      "start": 498.28,
+      "end": 503.56,
+      "en": "That's similar to the Eleuther model, but also different from the GPT two model.",
+      "zh": "這和 EleutherAI 模型類似，但與 GPT-2 不同。"
+    },
+    {
+      "start": 503.96,
+      "end": 504.6,
+      "en": "And here.",
+      "zh": "然後這裡，"
+    },
+    {
+      "start": 504.64,
+      "end": 504.92,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 504.92,
+      "end": 508.48,
+      "en": "So some of the the naming conventions are a little bit different.",
+      "zh": "有些命名慣例不太一樣。"
+    },
+    {
+      "start": 509.12,
+      "end": 516.12,
+      "en": "This output dense matrix is what I have called the w zero or linear mixing matrix.",
+      "zh": "這個 output.dense 矩陣，就是我所說的 W_O，或線性混合矩陣。"
+    },
+    {
+      "start": 516.56,
+      "end": 518.64,
+      "en": "Here we have the MLP layer.",
+      "zh": "這裡是 MLP 層。"
+    },
+    {
+      "start": 518.64,
+      "end": 521.32,
+      "en": "So this is the intermediate.",
+      "zh": "也就是 intermediate。"
+    },
+    {
+      "start": 521.32,
+      "end": 523.32,
+      "en": "That's what the Bert model calls it.",
+      "zh": "BERT 模型這樣稱呼它。"
+    },
+    {
+      "start": 523.76,
+      "end": 529.31,
+      "en": "Uh linear layer from 768 to 3072.",
+      "zh": "線性層從 768 維到 3072 維。"
+    },
+    {
+      "start": 529.35,
+      "end": 533.59,
+      "en": "So that's also A4X expansion with a ReLU activation.",
+      "zh": "同樣是四倍擴張，搭配 ReLU 啟用函數。"
+    },
+    {
+      "start": 533.59,
+      "end": 538.43,
+      "en": "And here we have the contraction that is called the output dense layer.",
+      "zh": "接著縮回去，稱為 output.dense 層。"
+    },
+    {
+      "start": 538.71,
+      "end": 546.67,
+      "en": "So again it's really important for you to understand the ideas of the architectures and the algorithms",
+      "zh": "所以，理解語言模型架構與演算法的概念非常重要，"
+    },
+    {
+      "start": 546.91,
+      "end": 556.15,
+      "en": "of language models and not memorize individual names because different models, different organizations use different naming conventions.",
+      "zh": "不要死背個別名稱，因為不同模型、不同組織使用不同命名慣例。"
+    },
+    {
+      "start": 557.35,
+      "end": 559.67,
+      "en": "This I mentioned in the slides.",
+      "zh": "這點在投影片提過。"
+    },
+    {
+      "start": 559.79,
+      "end": 570.27,
+      "en": "So here at the end of the model, we do not have any matrices that expand out to the 30,000 dimensions of the token vocabulary.",
+      "zh": "模型末端沒有任何矩陣，將維度擴張到詞彙表的三萬維。"
+    },
+    {
+      "start": 570.59,
+      "end": 574.23,
+      "en": "So this is just a linear pooling layer at the end.",
+      "zh": "最後只是一個線性池化層。"
+    },
+    {
+      "start": 574.79,
+      "end": 575.11,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 575.15,
+      "end": 576.83,
+      "en": "So we can look at some other things.",
+      "zh": "再看看其他內容。"
+    },
+    {
+      "start": 576.83,
+      "end": 581.15,
+      "en": "For example the dropout probability is 0.1.",
+      "zh": "例如，dropout 機率是 0.1。"
+    },
+    {
+      "start": 581.63,
+      "end": 584.39,
+      "en": "We will use this parameter in a moment.",
+      "zh": "等一下會用到這個參數。"
+    },
+    {
+      "start": 584.71,
+      "end": 586.79,
+      "en": "And here we see the tokenizer size.",
+      "zh": "這裡是 tokenizer 的大小。"
+    },
+    {
+      "start": 586.79,
+      "end": 590.15,
+      "en": "So we've actually already explored this earlier in the course.",
+      "zh": "課程前面其實已經探討過。"
+    },
+    {
+      "start": 590.15,
+      "end": 591.11,
+      "en": "It's 30,000.",
+      "zh": "約三萬。"
+    },
+    {
+      "start": 591.19,
+      "end": 595.95,
+      "en": "It's a bit smaller than the GPT two tokenizer okay.",
+      "zh": "比 GPT-2 tokenizer 稍小。"
+    },
+    {
+      "start": 595.99,
+      "end": 601.39,
+      "en": "And now a little bit more about model inputs and working with the tokenizer.",
+      "zh": "現在多談一點模型輸入，以及 tokenizer 的使用。"
+    },
+    {
+      "start": 601.55,
+      "end": 608.95,
+      "en": "Now some of this is a bit of a repeat of what I showed in a video towards the beginning of this section",
+      "zh": "其中有些是重複本章前段影片介紹的內容，"
+    },
+    {
+      "start": 609.31,
+      "end": 620.67,
+      "en": "in particular that if you use tokenizer encode like this, all you get back is a list of numbers or a, you know, PyTorch tensor of integers.",
+      "zh": "尤其是像這樣用 tokenizer.encode，得到的只會是數字串列，或 PyTorch 的整數張量。"
+    },
+    {
+      "start": 620.79,
+      "end": 627.31,
+      "en": "And if you do not include any method, you just input the text directly into the tokenizer.",
+      "zh": "如果不指定方法，直接把文字輸入 tokenizer，"
+    },
+    {
+      "start": 627.47,
+      "end": 633.71,
+      "en": "Then what you get out is a set of outputs, including input IDs.",
+      "zh": "得到的就是一組輸出，包括 input_ids。"
+    },
+    {
+      "start": 633.71,
+      "end": 635.95,
+      "en": "And that obviously has all of the IDs.",
+      "zh": "這當然包含所有詞元 ID。"
+    },
+    {
+      "start": 636.75,
+      "end": 638.47,
+      "en": "You get this attention mask here.",
+      "zh": "還會得到這個 attention_mask。"
+    },
+    {
+      "start": 638.47,
+      "end": 639.51,
+      "en": "It's all ones.",
+      "zh": "它全都是 1。"
+    },
+    {
+      "start": 639.71,
+      "end": 646.38,
+      "en": "It's always going to be all ones when you just have one, uh, one piece of text.",
+      "zh": "只有一段文字時，它總是全為 1。"
+    },
+    {
+      "start": 646.38,
+      "end": 649.78,
+      "en": "So one batch and the token type IDs.",
+      "zh": "也就是一個批次；還有 token_type_ids。"
+    },
+    {
+      "start": 649.78,
+      "end": 651.5,
+      "en": "You don't need to worry about that for now.",
+      "zh": "這個暫時不用擔心。"
+    },
+    {
+      "start": 651.5,
+      "end": 653.94,
+      "en": "These are all the same okay.",
+      "zh": "它們全都相同。"
+    },
+    {
+      "start": 654.22,
+      "end": 662.94,
+      "en": "And so now what we can do is, uh, input these data into the model to get some output, some logit outputs.",
+      "zh": "現在就能把這些資料送進模型，取得一些輸出、一些 logits。"
+    },
+    {
+      "start": 663.38,
+      "end": 670.02,
+      "en": "And what you see here is I am inputting the input IDs and the attention mask separately.",
+      "zh": "這裡把 input_ids 和 attention_mask 分別傳入。"
+    },
+    {
+      "start": 670.06,
+      "end": 678.46,
+      "en": "Now, this code you've seen before, what I'm showing you here that's new is just a way of condensing all of this.",
+      "zh": "這段程式看過了。新的部分，是把它濃縮的寫法。"
+    },
+    {
+      "start": 678.62,
+      "end": 680.86,
+      "en": "So it's a little bit easier to write.",
+      "zh": "寫起來更簡單。"
+    },
+    {
+      "start": 680.98,
+      "end": 682.5,
+      "en": "So asterisk.",
+      "zh": "星號，"
+    },
+    {
+      "start": 682.54,
+      "end": 683.02,
+      "en": "Asterisk.",
+      "zh": "星號。"
+    },
+    {
+      "start": 683.06,
+      "end": 685.62,
+      "en": "Actually let me show you what happens if we don't include that.",
+      "zh": "先看看，如果不加會怎樣。"
+    },
+    {
+      "start": 685.98,
+      "end": 687.42,
+      "en": "Then you get an error message.",
+      "zh": "會得到錯誤訊息。"
+    },
+    {
+      "start": 687.42,
+      "end": 690.82,
+      "en": "It says only three types of keys are available.",
+      "zh": "它說只接受三種類型的鍵。"
+    },
+    {
+      "start": 690.86,
+      "end": 693.58,
+      "en": "Basically, it doesn't know what to do with this dictionary.",
+      "zh": "基本上，模型不知道怎麼處理這個字典。"
+    },
+    {
+      "start": 693.74,
+      "end": 696.82,
+      "en": "However, if you type asterisk asterisk.",
+      "zh": "但如果輸入兩個星號，"
+    },
+    {
+      "start": 696.86,
+      "end": 707.74,
+      "en": "This is a special method in Python that essentially unpacks everything in this input dictionary and provides it as separate inputs.",
+      "zh": "這是 Python 的特殊用法，會解開輸入字典，把所有內容當成分開的引數傳入。"
+    },
+    {
+      "start": 707.74,
+      "end": 716.98,
+      "en": "So therefore this is equivalent to this almost equivalent because here I'm not specifying the token type IDs.",
+      "zh": "所以這和上面相同，幾乎相同，因為這裡沒指定 token_type_ids。"
+    },
+    {
+      "start": 716.98,
+      "end": 720.58,
+      "en": "But you know aside from that that is equivalent.",
+      "zh": "除此之外就一樣。"
+    },
+    {
+      "start": 721.06,
+      "end": 721.42,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 721.46,
+      "end": 724.02,
+      "en": "And now we can have a look at this output.",
+      "zh": "現在來看輸出。"
+    },
+    {
+      "start": 724.34,
+      "end": 731.86,
+      "en": "You can see that there are several methods and properties associated with the output of this Bert model.",
+      "zh": "可以看到，BERT 模型的輸出有多種方法與屬性。"
+    },
+    {
+      "start": 732.38,
+      "end": 733.58,
+      "en": "You can explore them a bit.",
+      "zh": "你可以探索一下。"
+    },
+    {
+      "start": 733.58,
+      "end": 734.7,
+      "en": "Some of these like this.",
+      "zh": "其中有些，例如這個，"
+    },
+    {
+      "start": 734.7,
+      "end": 739.9,
+      "en": "We will start using in the section on mechanistic interpretability.",
+      "zh": "機制可解釋性章節會開始使用。"
+    },
+    {
+      "start": 740.42,
+      "end": 747.78,
+      "en": "This corresponds to the final logit for each token of each of the batches.",
+      "zh": "這對應每個批次中，每個詞元的最終 logits。"
+    },
+    {
+      "start": 747.78,
+      "end": 749.38,
+      "en": "In this case there's only one batch.",
+      "zh": "這裡只有一個批次。"
+    },
+    {
+      "start": 749.66,
+      "end": 754.02,
+      "en": "But mostly in this lecture we are going to be using the pooler output.",
+      "zh": "但這堂課主要會用 pooler_output。"
+    },
+    {
+      "start": 754.02,
+      "end": 759.94,
+      "en": "This is the output of the final linear layer of the Bert model okay.",
+      "zh": "這是 BERT 最後一個線性層的輸出。"
+    },
+    {
+      "start": 759.98,
+      "end": 760.86,
+      "en": "And here yeah.",
+      "zh": "這裡，對。"
+    },
+    {
+      "start": 760.9,
+      "end": 762.46,
+      "en": "Can we generate text tokens.",
+      "zh": "能生成文字詞元嗎？"
+    },
+    {
+      "start": 762.46,
+      "end": 763.61,
+      "en": "The answer is no.",
+      "zh": "答案是不行。"
+    },
+    {
+      "start": 764.37,
+      "end": 766.81,
+      "en": "This particular model has no attribute.",
+      "zh": "這個模型沒有這個屬性，"
+    },
+    {
+      "start": 766.81,
+      "end": 769.57,
+      "en": "It has no method called generate.",
+      "zh": "沒有名為 generate 的方法。"
+    },
+    {
+      "start": 769.57,
+      "end": 772.53,
+      "en": "That is something that needs to be built into the model.",
+      "zh": "必須在模型中建立這個功能。"
+    },
+    {
+      "start": 772.69,
+      "end": 774.65,
+      "en": "It does not come with this model.",
+      "zh": "這個模型本身沒有附上。"
+    },
+    {
+      "start": 775.01,
+      "end": 785.17,
+      "en": "In theory, it would be possible for us to modify this model in to make it generate tokens, but that's not how the model is set up.",
+      "zh": "理論上可以修改模型，讓它生成詞元，但它目前不是這樣設定的。"
+    },
+    {
+      "start": 785.29,
+      "end": 791.01,
+      "en": "In fact, the easiest way to do that, although this is not what the model is really trained for, but",
+      "zh": "雖然這不是模型真正訓練的用途，但最簡單的方法，"
+    },
+    {
+      "start": 791.01,
+      "end": 798.93,
+      "en": "the easiest way to do that would be to define a new method that basically takes these word embeddings,",
+      "zh": "可能是定義一個新方法，取出這些詞嵌入，"
+    },
+    {
+      "start": 798.93,
+      "end": 808.29,
+      "en": "the token embeddings, and just transposes that matrix and sticks it at the end of this Pooler method, probably without this tanh h.",
+      "zh": "把詞元嵌入矩陣轉置，接在 pooler 後面，可能不要這個 Tanh。"
+    },
+    {
+      "start": 808.85,
+      "end": 812.17,
+      "en": "But that is not what we are going to be using Bert for.",
+      "zh": "但我們不打算這樣使用 BERT。"
+    },
+    {
+      "start": 812.17,
+      "end": 815.97,
+      "en": "We are not going to be generating text with Bert.",
+      "zh": "不會用 BERT 生成文字。"
+    },
+    {
+      "start": 816.25,
+      "end": 826.13,
+      "en": "Instead, we are going to create a model that uses the pre-trained Bert that we just imported, and",
+      "zh": "我們要建立的模型，會使用剛才匯入的預訓練 BERT，"
+    },
+    {
+      "start": 826.13,
+      "end": 830.37,
+      "en": "also sticks a new head on the top that does the classification.",
+      "zh": "再接上一個新的分類頭。"
+    },
+    {
+      "start": 830.57,
+      "end": 839.49,
+      "en": "So here I'm defining a new model class, inheriting lots of nice things from Nn.module from PyTorch.",
+      "zh": "這裡定義新的模型類別，繼承 PyTorch 的 nn.Module 提供的許多好用功能。"
+    },
+    {
+      "start": 839.81,
+      "end": 843.69,
+      "en": "And you can see most of this model is the Bert model.",
+      "zh": "可以看到，模型大部分就是 BERT。"
+    },
+    {
+      "start": 843.81,
+      "end": 848.81,
+      "en": "I'm importing it again from uh, from the hugging face server here.",
+      "zh": "這裡再次從 Hugging Face 伺服器匯入。"
+    },
+    {
+      "start": 849.25,
+      "end": 856.17,
+      "en": "And then here I have a classifier that goes from 768 down to two.",
+      "zh": "再加上從 768 維到 2 維的分類器。"
+    },
+    {
+      "start": 856.41,
+      "end": 864.97,
+      "en": "And the idea is that we are going to train this model to, uh, analyze text, written text on IMDb",
+      "zh": "概念是訓練模型，分析 IMDb 上人們撰寫的"
+    },
+    {
+      "start": 865.05,
+      "end": 874.61,
+      "en": "about people's ratings of movies and see if we can predict whether they liked or didn't like the movie based on their text review.",
+      "zh": "電影評論，根據文字預測他們喜不喜歡這部電影。"
+    },
+    {
+      "start": 875.05,
+      "end": 875.33,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 875.37,
+      "end": 877.13,
+      "en": "And then there's a dropout layer here.",
+      "zh": "這裡還有一個 dropout 層。"
+    },
+    {
+      "start": 877.13,
+      "end": 879.65,
+      "en": "I'm just doing some weight initializations.",
+      "zh": "再做一些權重初始化。"
+    },
+    {
+      "start": 880.09,
+      "end": 883.56,
+      "en": "So here we have the forward pass of the model.",
+      "zh": "這是模型的前向傳播。"
+    },
+    {
+      "start": 883.56,
+      "end": 887.16,
+      "en": "And most of that is yeah just going through the Bert model.",
+      "zh": "大部分就是通過 BERT 模型。"
+    },
+    {
+      "start": 887.4,
+      "end": 890.24,
+      "en": "And then we have a bit of dropout here.",
+      "zh": "然後做一點 dropout。"
+    },
+    {
+      "start": 890.24,
+      "end": 894.16,
+      "en": "And then we run through the classifier and output the classifier.",
+      "zh": "再經過分類器，輸出分類器結果。"
+    },
+    {
+      "start": 894.44,
+      "end": 904.88,
+      "en": "So here I just run the code in that cell creating an instance of this model, sending it to the GPU and then just testing what the outputs look like.",
+      "zh": "這裡執行儲存格，建立模型實例，送到 GPU，再測試輸出長什麼樣。"
+    },
+    {
+      "start": 905.12,
+      "end": 911.2,
+      "en": "So the inputs were the text that I wrote above, which is replace me with any text you like.",
+      "zh": "輸入是上面寫的那句：「把我換成任何你喜歡的文字」。"
+    },
+    {
+      "start": 911.6,
+      "end": 915.04,
+      "en": "And the output of the model is only two elements.",
+      "zh": "模型輸出只有兩個元素。"
+    },
+    {
+      "start": 915.08,
+      "end": 918.8,
+      "en": "Now remember this model is not generating new text.",
+      "zh": "記住，這個模型不生成新文字。"
+    },
+    {
+      "start": 918.8,
+      "end": 925.32,
+      "en": "It's not trying to predict the next token based on the context of tokens it has processed.",
+      "zh": "它不會根據已處理的詞元語境，預測下一個詞元。"
+    },
+    {
+      "start": 926.4,
+      "end": 932.96,
+      "en": "Instead, it is just trying to give two outputs, and we are going to train those two outputs to correspond",
+      "zh": "它只想產生兩個輸出，而我們要把這兩個輸出訓練成分別對應"
+    },
+    {
+      "start": 932.96,
+      "end": 938.48,
+      "en": "to positive reviews and negative reviews of lots of different movies.",
+      "zh": "各種電影的正面評論與負面評論。"
+    },
+    {
+      "start": 939.23,
+      "end": 942.47,
+      "en": "So with that said, let's have a look at the data set.",
+      "zh": "說完這些，來看看資料集。"
+    },
+    {
+      "start": 952.79,
+      "end": 953.07,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 953.11,
+      "end": 955.35,
+      "en": "Actually already imported this data set.",
+      "zh": "其實已經匯入資料集了。"
+    },
+    {
+      "start": 955.71,
+      "end": 959.39,
+      "en": "So we can see it is something called a data set dict.",
+      "zh": "可以看到，這叫 DatasetDict。"
+    },
+    {
+      "start": 959.59,
+      "end": 964.39,
+      "en": "This is a dictionary but it is not the same as a Python dictionary.",
+      "zh": "它是字典，但和一般 Python 字典不一樣。"
+    },
+    {
+      "start": 964.43,
+      "end": 973.55,
+      "en": "It's a unique dictionary data type that has other methods that the base Python dictionary type does",
+      "zh": "這是特殊的字典資料型別，有基本 Python 字典"
+    },
+    {
+      "start": 973.55,
+      "end": 974.15,
+      "en": "not have.",
+      "zh": "沒有的方法。"
+    },
+    {
+      "start": 974.15,
+      "end": 976.83,
+      "en": "I will show you an example of that in a moment.",
+      "zh": "等一下會示範。"
+    },
+    {
+      "start": 977.27,
+      "end": 981.91,
+      "en": "So you can see it has three items in it.",
+      "zh": "可以看到，裡面有三個項目。"
+    },
+    {
+      "start": 981.91,
+      "end": 985.31,
+      "en": "So train test and unsupervised.",
+      "zh": "train、test，以及 unsupervised。"
+    },
+    {
+      "start": 985.51,
+      "end": 991.31,
+      "en": "And each of those is another data set that contains features and rows.",
+      "zh": "每個項目又是一個資料集，包含特徵與資料列。"
+    },
+    {
+      "start": 991.55,
+      "end": 994.31,
+      "en": "So 25,000 rows.",
+      "zh": "這裡有 25,000 列。"
+    },
+    {
+      "start": 994.51,
+      "end": 996.55,
+      "en": "Each of these corresponds to a review.",
+      "zh": "每列對應一則評論。"
+    },
+    {
+      "start": 996.75,
+      "end": 1007.67,
+      "en": "So there's text reviews and then the labels are just 0 or 1, depending on whether the individual review out of these 25,000 was positive or negative.",
+      "zh": "有評論文字，以及 0 或 1 的標籤，表示這 25,000 則評論中的每一則，是正面或負面。"
+    },
+    {
+      "start": 1007.79,
+      "end": 1008.95,
+      "en": "So let's have a look at one.",
+      "zh": "來看一個。"
+    },
+    {
+      "start": 1008.95,
+      "end": 1011.35,
+      "en": "So I'm going to look at dataset Train.",
+      "zh": "我查看 dataset 的 train。"
+    },
+    {
+      "start": 1011.35,
+      "end": 1012.35,
+      "en": "So that's this one.",
+      "zh": "就是這個。"
+    },
+    {
+      "start": 1012.67,
+      "end": 1016.43,
+      "en": "And I'm just going to you know just pick one review arbitrarily.",
+      "zh": "再隨意挑一則評論。"
+    },
+    {
+      "start": 1016.59,
+      "end": 1022.83,
+      "en": "So the text is SS must have been a shrewd businessman in dealing with blah blah blah blah blah.",
+      "zh": "文字是：「SS 在處理……時，一定是精明的商人」，後面還有很多。"
+    },
+    {
+      "start": 1022.95,
+      "end": 1031.55,
+      "en": "Not really interested in reading all of this, but it's a movie review that someone actually wrote on IMDb and the label is one.",
+      "zh": "不打算讀完，但這是有人真的寫在 IMDb 上的影評，標籤是 1。"
+    },
+    {
+      "start": 1031.59,
+      "end": 1033.47,
+      "en": "Okay, we can look at a different one.",
+      "zh": "可以換一個。"
+    },
+    {
+      "start": 1033.47,
+      "end": 1035.71,
+      "en": "Let's just look at number 200.",
+      "zh": "看看第 200 個。"
+    },
+    {
+      "start": 1035.71,
+      "end": 1036.71,
+      "en": "Uh, 2000.",
+      "zh": "應該是 2000。"
+    },
+    {
+      "start": 1037.11,
+      "end": 1038.87,
+      "en": "So here is that text.",
+      "zh": "這就是它的文字。"
+    },
+    {
+      "start": 1038.99,
+      "end": 1041.23,
+      "en": "Uh, this is someone describing the movie.",
+      "zh": "有人在描述這部電影。"
+    },
+    {
+      "start": 1041.23,
+      "end": 1044.35,
+      "en": "I have no idea which movie this corresponds to, but it doesn't matter.",
+      "zh": "不知道是哪部電影，但不重要。"
+    },
+    {
+      "start": 1044.51,
+      "end": 1047.03,
+      "en": "And this one has a label of zero.",
+      "zh": "這筆標籤是 0。"
+    },
+    {
+      "start": 1047.51,
+      "end": 1048.39,
+      "en": "Very nice.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1048.39,
+      "end": 1055.39,
+      "en": "So now what I am doing is making a figure to show all of the labels.",
+      "zh": "現在畫圖，顯示所有標籤。"
+    },
+    {
+      "start": 1055.39,
+      "end": 1058.02,
+      "en": "So I want to see what are these labels?",
+      "zh": "我想看看標籤是什麼。"
+    },
+    {
+      "start": 1058.02,
+      "end": 1059.18,
+      "en": "How many are zeros?",
+      "zh": "有多少個 0？"
+    },
+    {
+      "start": 1059.18,
+      "end": 1060.3,
+      "en": "How many are ones?",
+      "zh": "多少個 1？"
+    },
+    {
+      "start": 1060.7,
+      "end": 1061.94,
+      "en": "Are there other values.",
+      "zh": "有沒有其他值？"
+    },
+    {
+      "start": 1062.38,
+      "end": 1066.94,
+      "en": "And here we see that basically the data set is perfectly split.",
+      "zh": "可以看到，資料集剛好分成兩半。"
+    },
+    {
+      "start": 1067.18,
+      "end": 1073.98,
+      "en": "The first half are all negative reviews and the second half are all positive reviews.",
+      "zh": "前半全是負面評論，後半全是正面評論。"
+    },
+    {
+      "start": 1074.54,
+      "end": 1080.94,
+      "en": "This is very important to know because you want to make sure that you are training the model randomly.",
+      "zh": "這非常重要，因為必須確保隨機訓練模型，"
+    },
+    {
+      "start": 1080.94,
+      "end": 1083.46,
+      "en": "You're randomly picking from this data set.",
+      "zh": "從資料集裡隨機選資料。"
+    },
+    {
+      "start": 1083.5,
+      "end": 1089.54,
+      "en": "You don't want to train all the negative reviews first and then start training all the positive reviews.",
+      "zh": "不要先訓練全部負面評論，再開始訓練全部正面評論。"
+    },
+    {
+      "start": 1090.38,
+      "end": 1091.22,
+      "en": "And why not?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 1091.58,
+      "end": 1093.02,
+      "en": "Why wouldn't you want to do that?",
+      "zh": "為什麼不想這樣？"
+    },
+    {
+      "start": 1093.26,
+      "end": 1102.66,
+      "en": "Because you are just training the model to recognize negativity in the model is going to think that this is the normal state of the world, that everyone is critical.",
+      "zh": "因為如果只訓練模型辨識負面，模型就會以為這是世界的常態，每個人都在批評。"
+    },
+    {
+      "start": 1102.66,
+      "end": 1105.94,
+      "en": "Every movie is terrible, nobody likes movies.",
+      "zh": "每部電影都很爛，沒人喜歡電影。"
+    },
+    {
+      "start": 1106.54,
+      "end": 1117.06,
+      "en": "And then once the model has already settled on that and learned to categorize that, all of a sudden you're going to switch to positive reviews and it's just not going to work as well.",
+      "zh": "模型已經適應、學會那樣分類後，突然改成正面評論，效果就不會那麼好。"
+    },
+    {
+      "start": 1117.06,
+      "end": 1118.66,
+      "en": "You're going to get a strong bias.",
+      "zh": "會產生很強的偏差。"
+    },
+    {
+      "start": 1119.7,
+      "end": 1127.54,
+      "en": "This visualization is also important for us to know because we are going to subsample from this data set.",
+      "zh": "這個視覺化也很重要，因為我們會從資料集中抽取子集。"
+    },
+    {
+      "start": 1127.58,
+      "end": 1129.9,
+      "en": "Basically, this is a really big data set.",
+      "zh": "基本上，這個資料集很大。"
+    },
+    {
+      "start": 1130.06,
+      "end": 1133.42,
+      "en": "And I don't want to spend, you know, days training this model.",
+      "zh": "我不想花好幾天訓練模型。"
+    },
+    {
+      "start": 1133.42,
+      "end": 1136.54,
+      "en": "I want to spend a few minutes training this model.",
+      "zh": "只想花幾分鐘。"
+    },
+    {
+      "start": 1136.54,
+      "end": 1142.58,
+      "en": "So we are going to just select a small number of of reviews.",
+      "zh": "所以只挑少量評論。"
+    },
+    {
+      "start": 1143.58,
+      "end": 1150.9,
+      "en": "But we don't want to just select, let's say the first 500 because that would only be negative reviews okay.",
+      "zh": "但不能直接取前 500 筆，因為那樣就只有負面評論。"
+    },
+    {
+      "start": 1150.94,
+      "end": 1156.1,
+      "en": "So there is a method on this dictionary called select.",
+      "zh": "這個字典有個叫 select 的方法。"
+    },
+    {
+      "start": 1156.18,
+      "end": 1161.5,
+      "en": "Now this is not a method that is uh viable for any Python dictionary.",
+      "zh": "一般 Python 字典沒有這個方法。"
+    },
+    {
+      "start": 1161.5,
+      "end": 1165.82,
+      "en": "There are special methods built into this dictionary type.",
+      "zh": "這個特殊字典型別內建了一些特殊方法。"
+    },
+    {
+      "start": 1166.5,
+      "end": 1166.82,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1166.86,
+      "end": 1169.26,
+      "en": "So I did a data set train.",
+      "zh": "所以我取 dataset 的 train，"
+    },
+    {
+      "start": 1169.26,
+      "end": 1172.5,
+      "en": "So we're looking at just the training data dot select.",
+      "zh": "也就是只看訓練資料，呼叫 .select。"
+    },
+    {
+      "start": 1172.5,
+      "end": 1178.45,
+      "en": "And then I did range 100, which means the numbers zero through 99 inclusive.",
+      "zh": "再傳入 range(100)，也就是含頭含尾的 0 到 99。"
+    },
+    {
+      "start": 1178.77,
+      "end": 1184.29,
+      "en": "And the output of that was a new data set that contains only 100 rows.",
+      "zh": "輸出是只包含 100 列的新資料集。"
+    },
+    {
+      "start": 1184.33,
+      "end": 1188.29,
+      "en": "Compare that to 2000 25,000 rows.",
+      "zh": "對照原本的兩千，應該說 25,000 列。"
+    },
+    {
+      "start": 1189.41,
+      "end": 1189.73,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1189.77,
+      "end": 1199.53,
+      "en": "So what we want to do here is reduce the data set size while including both categories and preserving only the train and test.",
+      "zh": "所以要縮小資料集，同時包含兩種類別，而且只保留 train 與 test。"
+    },
+    {
+      "start": 1199.53,
+      "end": 1206.73,
+      "en": "And by that I mean that we are not going to use this unsupervised method here.",
+      "zh": "也就是不使用這裡的 unsupervised。"
+    },
+    {
+      "start": 1206.73,
+      "end": 1210.21,
+      "en": "This is a much larger data set.",
+      "zh": "那個資料集大得多。"
+    },
+    {
+      "start": 1210.21,
+      "end": 1212.49,
+      "en": "It's used for different pretraining purposes.",
+      "zh": "是用於其他預訓練用途的。"
+    },
+    {
+      "start": 1212.49,
+      "end": 1216.69,
+      "en": "We do not need it here for training classification okay.",
+      "zh": "這裡訓練分類不需要它。"
+    },
+    {
+      "start": 1216.73,
+      "end": 1220.61,
+      "en": "So we want we want to kick out that because it's a lot of data.",
+      "zh": "所以把它移除，因為資料量很大。"
+    },
+    {
+      "start": 1221.01,
+      "end": 1229.89,
+      "en": "And we still want to use a data set dict to preserve all of the methods that we have access to, including dot select.",
+      "zh": "我們仍然想用 DatasetDict，保留可用的方法，包括 .select。"
+    },
+    {
+      "start": 1230.41,
+      "end": 1230.69,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1230.73,
+      "end": 1236.97,
+      "en": "So what I do is I create a new variable called small data and this is a data.",
+      "zh": "因此，建立一個叫 small_data 的新變數，這是"
+    },
+    {
+      "start": 1237.45,
+      "end": 1247.97,
+      "en": "A new dictionary that I define as a split is the name of the key and the data set split select range is the item in that key.",
+      "zh": "新字典：以 split 為鍵，dataset[split].select(range(...)) 為該鍵的值。"
+    },
+    {
+      "start": 1248.01,
+      "end": 1254.53,
+      "en": "So that's all the values in that key for split in just these two strings.",
+      "zh": "也就是該鍵對應的資料，再讓 split 依序取這兩個字串。"
+    },
+    {
+      "start": 1254.53,
+      "end": 1260.85,
+      "en": "So this is going to create a new dictionary that has train and then the data for the train.",
+      "zh": "如此就會建立新字典，包含 train 及對應的訓練資料，"
+    },
+    {
+      "start": 1260.85,
+      "end": 1264.33,
+      "en": "And then it's going to be test and the data for the test.",
+      "zh": "以及 test 與對應的測試資料。"
+    },
+    {
+      "start": 1264.33,
+      "end": 1271.33,
+      "en": "And I'm selecting numbers or data set entries 10,000 to 15,000.",
+      "zh": "我選取資料集裡 10,000 到 15,000 的項目。"
+    },
+    {
+      "start": 1272.29,
+      "end": 1278.45,
+      "en": "The reason why I select those numbers is if you look here that is cutting in the middle of this data set.",
+      "zh": "選這個範圍，是因為剛好跨過資料集的中間。"
+    },
+    {
+      "start": 1278.45,
+      "end": 1284.85,
+      "en": "So we're going to have a negative reviews and positive reviews in our small data set.",
+      "zh": "所以小資料集中會有負面與正面評論。"
+    },
+    {
+      "start": 1285.17,
+      "end": 1286.89,
+      "en": "Okay I hope that all makes sense.",
+      "zh": "希望這樣說明清楚了。"
+    },
+    {
+      "start": 1287.37,
+      "end": 1291.92,
+      "en": "And this here if I would just do this now.",
+      "zh": "如果現在只這樣寫，"
+    },
+    {
+      "start": 1291.96,
+      "end": 1293.68,
+      "en": "Technically, this code works.",
+      "zh": "技術上程式可以執行。"
+    },
+    {
+      "start": 1293.68,
+      "end": 1296.76,
+      "en": "This is a dictionary comprehension.",
+      "zh": "這是字典生成式。"
+    },
+    {
+      "start": 1297,
+      "end": 1301.24,
+      "en": "However, this would give me a regular Python dictionary.",
+      "zh": "但它只會給我一般 Python 字典。"
+    },
+    {
+      "start": 1301.24,
+      "end": 1302.76,
+      "en": "This is not what I want.",
+      "zh": "這不是我想要的。"
+    },
+    {
+      "start": 1303.28,
+      "end": 1314.16,
+      "en": "In some applications that might be fine, but I want to continue using this special data set type or variable type called data set dict.",
+      "zh": "有些應用可能沒關係，但我想繼續使用 DatasetDict 這種特殊資料集型別。"
+    },
+    {
+      "start": 1315.44,
+      "end": 1316.96,
+      "en": "Okay, so now I run the plot again.",
+      "zh": "好，重新畫圖。"
+    },
+    {
+      "start": 1316.96,
+      "end": 1323.84,
+      "en": "This is just to confirm that we still get both categories of data in this small data set.",
+      "zh": "只是確認小資料集仍包含兩種類別。"
+    },
+    {
+      "start": 1324.84,
+      "end": 1331.92,
+      "en": "So what we want to do now is prepare these data for training in the Bert classifier.",
+      "zh": "現在要準備這些資料，供 BERT 分類器訓練。"
+    },
+    {
+      "start": 1332.36,
+      "end": 1337.16,
+      "en": "And what do we need to do to get text to be trained by a language model.",
+      "zh": "要讓語言模型用文字訓練，需要做什麼？"
+    },
+    {
+      "start": 1337.44,
+      "end": 1341.52,
+      "en": "Well we need to tokenize the text and that part is fine.",
+      "zh": "需要對文字斷詞，這部分沒問題。"
+    },
+    {
+      "start": 1341.88,
+      "end": 1347.48,
+      "en": "However, in this particular data set we have variable sequences.",
+      "zh": "但這個資料集裡，序列長度不一。"
+    },
+    {
+      "start": 1347.48,
+      "end": 1353.6,
+      "en": "So one A review is going to have a different number of tokens as another review.",
+      "zh": "一則評論的詞元數，會和另一則不同。"
+    },
+    {
+      "start": 1354,
+      "end": 1363.32,
+      "en": "So we need to deal with that somehow, because language models are not designed to handle batches with different sequence lengths.",
+      "zh": "所以必須處理，因為語言模型並不是設計來處理同一批次中不同序列長度的。"
+    },
+    {
+      "start": 1363.32,
+      "end": 1370,
+      "en": "So every row in a batch needs to have exactly the same number of sequences.",
+      "zh": "批次中的每一列，都需要完全相同的序列數。"
+    },
+    {
+      "start": 1370.2,
+      "end": 1381.76,
+      "en": "And you learned about how this is solved by the tokenizer in the video towards the beginning of this section about Tokenizers with different sequence lengths.",
+      "zh": "本章前面介紹 tokenizer 處理不同序列長度的影片，已經學過如何解決。"
+    },
+    {
+      "start": 1382.2,
+      "end": 1387.16,
+      "en": "Okay, so let me just show you the output first, and then I will come back and explain this.",
+      "zh": "先看輸出，再回頭解釋。"
+    },
+    {
+      "start": 1387.48,
+      "end": 1391.6,
+      "en": "So what I have done is tokenize this text twice.",
+      "zh": "我對這段文字做了兩次斷詞。"
+    },
+    {
+      "start": 1391.6,
+      "end": 1394.72,
+      "en": "So just one one piece of text just from one review.",
+      "zh": "也就是單一評論的一段文字。"
+    },
+    {
+      "start": 1395.04,
+      "end": 1398.2,
+      "en": "So I just did kind of like a naive tokenizer.",
+      "zh": "第一次用很直接的方式，"
+    },
+    {
+      "start": 1398.2,
+      "end": 1400.48,
+      "en": "I just put it right into the tokenizer.",
+      "zh": "把文字直接丟進 tokenizer。"
+    },
+    {
+      "start": 1400.8,
+      "end": 1404.4,
+      "en": "And here I added some extra input options.",
+      "zh": "第二次加上一些額外的輸入選項。"
+    },
+    {
+      "start": 1404.52,
+      "end": 1413.67,
+      "en": "And so here the first time we get that there are 363 tokens in this little review, and what I call",
+      "zh": "第一次，這則小評論有 363 個詞元；我稱為"
+    },
+    {
+      "start": 1413.67,
+      "end": 1417.87,
+      "en": "the better tokenizer has 512.",
+      "zh": "較好版本的 tokenizer，則得到 512 個。"
+    },
+    {
+      "start": 1417.91,
+      "end": 1421.27,
+      "en": "Now, if we look in the beginning, all of these tokens are identical.",
+      "zh": "如果看前面，這些詞元完全相同。"
+    },
+    {
+      "start": 1421.55,
+      "end": 1423.83,
+      "en": "So why is this one longer?",
+      "zh": "那為什麼這個比較長？"
+    },
+    {
+      "start": 1424.23,
+      "end": 1432.07,
+      "en": "I'm sure you've guessed it has to do something with the padding, where I specify that the max length is 512.",
+      "zh": "你應該猜到了，與填補有關。我指定最大長度為 512。"
+    },
+    {
+      "start": 1432.43,
+      "end": 1436.19,
+      "en": "We pad up to the max length and we also truncate.",
+      "zh": "填補到最大長度，同時也截斷。"
+    },
+    {
+      "start": 1436.19,
+      "end": 1445.19,
+      "en": "So if a review is more than 512 tokens, it literally just chops it off right at 512.",
+      "zh": "如果一則評論超過 512 個詞元，就直接在 512 截掉。"
+    },
+    {
+      "start": 1446.27,
+      "end": 1453.27,
+      "en": "That guarantees that all of the sequences will be exactly 512 tokens long.",
+      "zh": "這保證所有序列都剛好有 512 個詞元。"
+    },
+    {
+      "start": 1453.51,
+      "end": 1456.95,
+      "en": "So here you see this is padded with all zeros.",
+      "zh": "這裡可以看到，用零填補。"
+    },
+    {
+      "start": 1456.95,
+      "end": 1458.47,
+      "en": "It's zeros all the way out.",
+      "zh": "後面一路都是零。"
+    },
+    {
+      "start": 1458.71,
+      "end": 1459.63,
+      "en": "Okay great.",
+      "zh": "好，很好。"
+    },
+    {
+      "start": 1459.79,
+      "end": 1465.87,
+      "en": "So if we are only processing one sequence at a time, it doesn't matter.",
+      "zh": "如果一次只處理一個序列，就沒關係。"
+    },
+    {
+      "start": 1465.87,
+      "end": 1474.23,
+      "en": "But if we want to process in a batch, which we definitely want to do for multiple reasons, then we need to have code like this.",
+      "zh": "但如果想用批次處理，基於多種原因我們確實想這麼做，就需要這樣的程式。"
+    },
+    {
+      "start": 1474.83,
+      "end": 1475.19,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1475.23,
+      "end": 1478.87,
+      "en": "So now I'm going to apply that to the data set.",
+      "zh": "現在把它套用到資料集。"
+    },
+    {
+      "start": 1478.95,
+      "end": 1488.67,
+      "en": "So I define a function that just tokenizes the text according to uh, the tokenization input options that I showed above.",
+      "zh": "先定義一個函數，依照剛才顯示的 tokenizer 輸入選項，對文字斷詞。"
+    },
+    {
+      "start": 1489.71,
+      "end": 1499.19,
+      "en": "Once I have this as a function, I can map that function onto all of the entries in this small data set.",
+      "zh": "有了函數，就能把它映射到這個小資料集的所有項目。"
+    },
+    {
+      "start": 1499.87,
+      "end": 1505.27,
+      "en": "This is another method that comes with this special dictionary type.",
+      "zh": "這是這種特殊字典型別的另一個方法。"
+    },
+    {
+      "start": 1505.27,
+      "end": 1512.55,
+      "en": "That would give you an error if you try to run this particular line of code on a regular Python dictionary.",
+      "zh": "如果對一般 Python 字典執行這行，會得到錯誤。"
+    },
+    {
+      "start": 1513.03,
+      "end": 1515.31,
+      "en": "Okay, so this is taking a little bit of time.",
+      "zh": "好，這需要一點時間。"
+    },
+    {
+      "start": 1515.31,
+      "end": 1521.83,
+      "en": "And what it's doing is tokenizing every individual review in our data set.",
+      "zh": "它正在對資料集中的每一則評論斷詞。"
+    },
+    {
+      "start": 1522.31,
+      "end": 1524.07,
+      "en": "So it doesn't take too long.",
+      "zh": "不會花太久，"
+    },
+    {
+      "start": 1524.07,
+      "end": 1527.82,
+      "en": "But it's, you know, many seconds for just 5000.",
+      "zh": "但光五千筆就需要好幾秒。"
+    },
+    {
+      "start": 1527.86,
+      "end": 1530.78,
+      "en": "And this is only a small piece of the data set.",
+      "zh": "而這還只是資料集的一小部分。"
+    },
+    {
+      "start": 1530.82,
+      "end": 1535.34,
+      "en": "So this is part of the reason why I extracted just a small bit of data.",
+      "zh": "這也是我只取少量資料的部分原因。"
+    },
+    {
+      "start": 1536.58,
+      "end": 1536.9,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1536.94,
+      "end": 1542.1,
+      "en": "So once we have the tokens you will see what this tokenized dataset looks like.",
+      "zh": "取得詞元後，來看斷詞後的資料集長怎樣。"
+    },
+    {
+      "start": 1542.5,
+      "end": 1545.78,
+      "en": "So now we have the dataset dict.",
+      "zh": "現在有 DatasetDict，"
+    },
+    {
+      "start": 1545.78,
+      "end": 1547.7,
+      "en": "And then we have train and test.",
+      "zh": "裡面有 train 與 test。"
+    },
+    {
+      "start": 1547.7,
+      "end": 1552.78,
+      "en": "We no longer have the unsupervised thing I took that out earlier train and text.",
+      "zh": "不再有 unsupervised，之前已移除；剩 train 和 test。"
+    },
+    {
+      "start": 1552.78,
+      "end": 1554.3,
+      "en": "And now we have more features.",
+      "zh": "現在有更多特徵。"
+    },
+    {
+      "start": 1554.3,
+      "end": 1557.06,
+      "en": "Before it was just text and label.",
+      "zh": "原本只有 text 與 label。"
+    },
+    {
+      "start": 1557.46,
+      "end": 1560.34,
+      "en": "And now we also have input IDs.",
+      "zh": "現在還有 input_ids。"
+    },
+    {
+      "start": 1560.34,
+      "end": 1563.14,
+      "en": "These are the tokens and the attention mask.",
+      "zh": "也就是詞元，以及 attention_mask。"
+    },
+    {
+      "start": 1563.26,
+      "end": 1564.66,
+      "en": "This comes along for free.",
+      "zh": "這是自動附上的。"
+    },
+    {
+      "start": 1564.66,
+      "end": 1565.7,
+      "en": "We don't need it here.",
+      "zh": "這裡不需要它。"
+    },
+    {
+      "start": 1566.14,
+      "end": 1571.18,
+      "en": "Now the text takes up a lot of space and we do not need the text anymore.",
+      "zh": "原始文字占很多空間，而且現在不需要文字了。"
+    },
+    {
+      "start": 1571.34,
+      "end": 1575.14,
+      "en": "Once we have the tokens we do not need the text.",
+      "zh": "有了詞元，就不需要文字。"
+    },
+    {
+      "start": 1575.14,
+      "end": 1578.9,
+      "en": "So therefore I'm going to remove that text column.",
+      "zh": "因此，移除 text 這一欄。"
+    },
+    {
+      "start": 1579.26,
+      "end": 1583.98,
+      "en": "And then I also need to convert this to PyTorch tensors okay.",
+      "zh": "還要轉成 PyTorch 張量。"
+    },
+    {
+      "start": 1584.1,
+      "end": 1587.94,
+      "en": "And from there, I can finally create a data loader.",
+      "zh": "到這裡，終於可以建立 DataLoader。"
+    },
+    {
+      "start": 1588.18,
+      "end": 1588.5,
+      "en": "Oof!",
+      "zh": "呼！"
+    },
+    {
+      "start": 1588.54,
+      "end": 1590.02,
+      "en": "That was an awful lot of work.",
+      "zh": "真是做了好多事。"
+    },
+    {
+      "start": 1590.02,
+      "end": 1593.94,
+      "en": "But this is the reality of working with real data sets.",
+      "zh": "但這就是處理真實資料集的情況。"
+    },
+    {
+      "start": 1593.94,
+      "end": 1599.7,
+      "en": "They often require a lot of processing and careful checking and development.",
+      "zh": "往往需要很多處理、仔細檢查，以及程式開發。"
+    },
+    {
+      "start": 1600.86,
+      "end": 1607.58,
+      "en": "Okay, so this is our final data set here we see we have a data set for train and for test.",
+      "zh": "好，這是最後的資料集，有 train 與 test。"
+    },
+    {
+      "start": 1607.62,
+      "end": 1611.34,
+      "en": "There are 5000 entries or 5000 reviews.",
+      "zh": "有五千筆資料，也就是五千則評論。"
+    },
+    {
+      "start": 1611.34,
+      "end": 1613.5,
+      "en": "And for each of them we have the label.",
+      "zh": "每筆都有標籤。"
+    },
+    {
+      "start": 1613.5,
+      "end": 1617.58,
+      "en": "That's zero for negative review, one for a positive review.",
+      "zh": "0 是負面評論，1 是正面評論。"
+    },
+    {
+      "start": 1617.86,
+      "end": 1625.18,
+      "en": "And we have the input IDs which are the integer tokens, and we have the attention mask which is all",
+      "zh": "還有 input_ids，也就是整數詞元，以及 attention_mask；有效詞元的位置"
+    },
+    {
+      "start": 1625.18,
+      "end": 1630.54,
+      "en": "ones where we have valid tokens, and all zeros where we have padding tokens.",
+      "zh": "全是 1，填補詞元的位置全是 0。"
+    },
+    {
+      "start": 1631.3,
+      "end": 1631.78,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1631.94,
+      "end": 1635.7,
+      "en": "Here I'm just going to check out one iteration of this.",
+      "zh": "這裡檢查一次迭代。"
+    },
+    {
+      "start": 1635.74,
+      "end": 1637.5,
+      "en": "You can see the labels.",
+      "zh": "可以看到標籤。"
+    },
+    {
+      "start": 1637.5,
+      "end": 1639.5,
+      "en": "So the batch size is 32.",
+      "zh": "批次大小是 32。"
+    },
+    {
+      "start": 1639.54,
+      "end": 1643.61,
+      "en": "Here you can see the labels are mixed ones and zeros.",
+      "zh": "這裡標籤混合了 1 和 0。"
+    },
+    {
+      "start": 1643.65,
+      "end": 1650.65,
+      "en": "That's because the data loader will randomly pull from data randomly placed around the data set.",
+      "zh": "因為 DataLoader 會從資料集各處隨機抽取資料。"
+    },
+    {
+      "start": 1651.65,
+      "end": 1655.13,
+      "en": "Here we have the input IDs for all of the tokens.",
+      "zh": "這裡是所有詞元的 input_ids。"
+    },
+    {
+      "start": 1655.13,
+      "end": 1657.93,
+      "en": "You can see a lot of a lot of all the reviews.",
+      "zh": "可以看到很多，所有評論……"
+    },
+    {
+      "start": 1657.97,
+      "end": 1658.37,
+      "en": "Sorry.",
+      "zh": "抱歉。"
+    },
+    {
+      "start": 1658.61,
+      "end": 1661.01,
+      "en": "You can see a lot of zeros here at the end.",
+      "zh": "可以看到，結尾有很多零。"
+    },
+    {
+      "start": 1661.05,
+      "end": 1667.93,
+      "en": "That's because all of these reviews were actually shorter than 512 tokens.",
+      "zh": "因為這些評論實際都短於 512 個詞元。"
+    },
+    {
+      "start": 1668.09,
+      "end": 1672.97,
+      "en": "And this one, just by chance was longer than 512 tokens.",
+      "zh": "這一則剛好長於 512 個詞元，"
+    },
+    {
+      "start": 1672.97,
+      "end": 1674.41,
+      "en": "So it got truncated.",
+      "zh": "所以被截斷。"
+    },
+    {
+      "start": 1674.57,
+      "end": 1677.37,
+      "en": "And that is also reflected in the attention mask.",
+      "zh": "attention_mask 也反映了這點。"
+    },
+    {
+      "start": 1677.41,
+      "end": 1679.37,
+      "en": "This one is ones until the end.",
+      "zh": "這個一路到最後都是 1。"
+    },
+    {
+      "start": 1679.53,
+      "end": 1681.25,
+      "en": "And here we have zeros.",
+      "zh": "而這裡有零。"
+    },
+    {
+      "start": 1681.93,
+      "end": 1682.33,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1682.37,
+      "end": 1686.21,
+      "en": "So now we want to fine tune the model.",
+      "zh": "現在要微調模型。"
+    },
+    {
+      "start": 1686.21,
+      "end": 1688.29,
+      "en": "So here we have the optimizer.",
+      "zh": "這裡是最佳化器。"
+    },
+    {
+      "start": 1688.29,
+      "end": 1689.89,
+      "en": "We're still using Adam W.",
+      "zh": "仍然使用 AdamW。"
+    },
+    {
+      "start": 1689.89,
+      "end": 1696.65,
+      "en": "Basically anytime you are working with language models you're going to use the Adam optimizer.",
+      "zh": "基本上，只要處理語言模型，就會用 Adam 最佳化器。"
+    },
+    {
+      "start": 1697.05,
+      "end": 1701.85,
+      "en": "However in this case we only need the regular cross-entropy entropy loss.",
+      "zh": "不過，這次只需要一般交叉熵損失。"
+    },
+    {
+      "start": 1702.01,
+      "end": 1708.17,
+      "en": "We do not need the negative log likelihood loss because we only have two conditions.",
+      "zh": "不需要負對數概似損失，因為只有兩種條件。"
+    },
+    {
+      "start": 1708.17,
+      "end": 1710.33,
+      "en": "This is binary cross entropy here.",
+      "zh": "這裡是二元交叉熵。"
+    },
+    {
+      "start": 1710.81,
+      "end": 1711.09,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1711.13,
+      "end": 1720.77,
+      "en": "So that's the loss function here I get a batch of data here I'm just separating out the different parts of the data and moving them all to the GPU.",
+      "zh": "這就是損失函數。取得一批資料，分離不同部分，再全部移到 GPU。"
+    },
+    {
+      "start": 1721.17,
+      "end": 1722.41,
+      "en": "Clear the gradients.",
+      "zh": "清除梯度。"
+    },
+    {
+      "start": 1722.61,
+      "end": 1724.85,
+      "en": "Uh, run the model.",
+      "zh": "執行模型。"
+    },
+    {
+      "start": 1724.85,
+      "end": 1730.41,
+      "en": "So I'm inputting the tokens and the specifying the attention mask here.",
+      "zh": "輸入詞元，並在這裡指定 attention_mask。"
+    },
+    {
+      "start": 1730.41,
+      "end": 1734.77,
+      "en": "I'm extracting the raw outputs from the model here and now.",
+      "zh": "取出模型的原始輸出。"
+    },
+    {
+      "start": 1734.77,
+      "end": 1741.89,
+      "en": "In this case, I don't actually care about the output values, the numbers that the model is outputting.",
+      "zh": "這次其實不在乎輸出數值本身。"
+    },
+    {
+      "start": 1742.17,
+      "end": 1743.69,
+      "en": "Remember it's just two values.",
+      "zh": "記得，只有兩個值。"
+    },
+    {
+      "start": 1743.69,
+      "end": 1746.05,
+      "en": "And what we want is for the model to learn.",
+      "zh": "我們希望模型學到，"
+    },
+    {
+      "start": 1746.05,
+      "end": 1748.61,
+      "en": "One of those corresponds to a negative review.",
+      "zh": "其中一個對應負面評論，"
+    },
+    {
+      "start": 1748.81,
+      "end": 1751.65,
+      "en": "One of those corresponds to a positive review.",
+      "zh": "另一個對應正面評論。"
+    },
+    {
+      "start": 1752.41,
+      "end": 1756.69,
+      "en": "So what we just want is whichever one of those two is bigger.",
+      "zh": "所以只要看兩個之中，哪個比較大。"
+    },
+    {
+      "start": 1756.85,
+      "end": 1760.4,
+      "en": "That is the predicted category from the model.",
+      "zh": "那就是模型預測的類別。"
+    },
+    {
+      "start": 1760.4,
+      "end": 1762.28,
+      "en": "Whichever one of those two is bigger.",
+      "zh": "也就是兩個值之中較大的那個。"
+    },
+    {
+      "start": 1762.68,
+      "end": 1762.96,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1763,
+      "end": 1766.04,
+      "en": "And then we input that into the loss function.",
+      "zh": "接著把它輸入損失函數。"
+    },
+    {
+      "start": 1766.04,
+      "end": 1770.84,
+      "en": "And we can compare the predicted labels against the actual labels.",
+      "zh": "再比較預測標籤與真實標籤。"
+    },
+    {
+      "start": 1770.92,
+      "end": 1772.2,
+      "en": "And yeah here.",
+      "zh": "然後這裡，"
+    },
+    {
+      "start": 1772.4,
+      "end": 1775.88,
+      "en": "So here I'm summing all of that to see if they are equal.",
+      "zh": "判斷它們是否相同，並加總。"
+    },
+    {
+      "start": 1776.28,
+      "end": 1779.44,
+      "en": "Summing all of those and dividing by the batch size.",
+      "zh": "把結果加總，再除以批次大小。"
+    },
+    {
+      "start": 1779.68,
+      "end": 1783.16,
+      "en": "This is the average accuracy for this batch.",
+      "zh": "這就是這批的平均準確率。"
+    },
+    {
+      "start": 1783.28,
+      "end": 1786.44,
+      "en": "And then we do a backprop here and here.",
+      "zh": "接著在這裡做反向傳播，還有這裡。"
+    },
+    {
+      "start": 1787,
+      "end": 1787.44,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1787.48,
+      "end": 1790.12,
+      "en": "So that is just one step of training.",
+      "zh": "這只是訓練的一步。"
+    },
+    {
+      "start": 1790.12,
+      "end": 1793.44,
+      "en": "The model is not going to be very good after one step.",
+      "zh": "只訓練一步，模型不會很好。"
+    },
+    {
+      "start": 1793.88,
+      "end": 1798.32,
+      "en": "Uh here we see the logits are of size 32 by two.",
+      "zh": "這裡 logits 的形狀是 32 乘 2。"
+    },
+    {
+      "start": 1798.36,
+      "end": 1807,
+      "en": "So these are the raw output values of the model 32 reviews going in and two outputs coming out.",
+      "zh": "這些是模型原始輸出值：輸入 32 則評論，每則有兩個輸出。"
+    },
+    {
+      "start": 1808.28,
+      "end": 1808.6,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 1808.64,
+      "end": 1811.88,
+      "en": "And then here is what the model predicted.",
+      "zh": "這是模型的預測。"
+    },
+    {
+      "start": 1811.88,
+      "end": 1813.84,
+      "en": "And here were the true labels.",
+      "zh": "這是真實標籤。"
+    },
+    {
+      "start": 1813.84,
+      "end": 1816.16,
+      "en": "And then we can calculate the accuracy.",
+      "zh": "然後就能計算準確率。"
+    },
+    {
+      "start": 1816.4,
+      "end": 1824.2,
+      "en": "Now this actually worked out brilliantly because this model is not yet trained, so we expect the accuracy to be 50%.",
+      "zh": "這次其實剛剛好，因為模型還沒訓練，我們預期準確率是 50%。"
+    },
+    {
+      "start": 1824.64,
+      "end": 1829.92,
+      "en": "In practice, the model is going to be slightly better or slightly worse than chance.",
+      "zh": "實際上，由於隨機抽樣與猜測，模型可能"
+    },
+    {
+      "start": 1830.04,
+      "end": 1833.36,
+      "en": "Uh, just by random sampling and guessing.",
+      "zh": "稍微高於或低於機率水準。"
+    },
+    {
+      "start": 1833.56,
+      "end": 1837.08,
+      "en": "But in this case, it worked out to be exactly 50%.",
+      "zh": "但這次剛好是 50%。"
+    },
+    {
+      "start": 1838,
+      "end": 1840.32,
+      "en": "Lots of new things in this video.",
+      "zh": "這支影片有很多新內容。"
+    },
+    {
+      "start": 1840.48,
+      "end": 1848.6,
+      "en": "You've seen another way of using base models to get a customized output for a specific application.",
+      "zh": "你看到了另一種使用基礎模型、針對特定應用客製輸出的方式。"
+    },
+    {
+      "start": 1849.16,
+      "end": 1859.96,
+      "en": "As I mentioned in the code, it is an annoying reality of using Python that there are frequent library updates, changes, conflicts with other libraries.",
+      "zh": "如程式中提到，使用 Python 一個惱人的現實，是函式庫經常更新、改動，並與其他函式庫衝突。"
+    },
+    {
+      "start": 1860.56,
+      "end": 1865.32,
+      "en": "And yeah, I don't know what to tell you, but it's kind of annoying and you just have to deal with it.",
+      "zh": "我也不知道還能說什麼，就是很煩，但得面對。"
+    },
+    {
+      "start": 1865.52,
+      "end": 1876.48,
+      "en": "It also means that any time you are working with libraries from third party developers, you should never assume that your code will continue to work perpetually.",
+      "zh": "這也表示，使用第三方開發者的函式庫時，永遠不要假設程式能永久正常運作。"
+    }
+  ]
+}

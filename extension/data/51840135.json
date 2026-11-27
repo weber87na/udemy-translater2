@@ -1,0 +1,1633 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840135",
+  "title": "CodeChallenge: Do we really need Q?",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "c1d3e300a16cdd72d36cfb56446369f46ad3c676a34fd8626931609cac40da72",
+  "cues": [
+    {
+      "start": 2.56,
+      "end": 11.16,
+      "en": "The previous video was a gentle introduction to non-causal or observational mechanistic interpretability.",
+      "zh": "上一支影片，溫和地介紹了非因果、觀察式的機制可解釋性。"
+    },
+    {
+      "start": 11.8,
+      "end": 20.56,
+      "en": "And now in this video, I want to give you a gentle introduction to causal or interventional mechanistic interpretability.",
+      "zh": "這支則想簡單介紹因果、介入式的機制可解釋性。"
+    },
+    {
+      "start": 21.32,
+      "end": 29.12,
+      "en": "So the idea of this video is to replace some of the trained parameters with random noise that has the",
+      "zh": "概念是，把某些訓練好的參數，換成統計特性"
+    },
+    {
+      "start": 29.12,
+      "end": 33.84,
+      "en": "same statistical characteristics, but is obviously not optimized.",
+      "zh": "相同，但顯然沒有最佳化過的隨機雜訊。"
+    },
+    {
+      "start": 34.32,
+      "end": 40.36,
+      "en": "You will see that it's actually pretty simple to manipulate these language models from the inside.",
+      "zh": "你會發現，從內部操作這些語言模型，其實很簡單。"
+    },
+    {
+      "start": 41.2,
+      "end": 43.84,
+      "en": "Let's get started with exercise one.",
+      "zh": "開始練習一。"
+    },
+    {
+      "start": 43.96,
+      "end": 53.16,
+      "en": "First of all, make sure that you are connected to a GPU so we can run through several text generation calls without having to wait too long.",
+      "zh": "首先確保已連上 GPU，這樣多次呼叫文字生成時，不必等太久。"
+    },
+    {
+      "start": 53.92,
+      "end": 58.24,
+      "en": "On the other hand, we're not going to be doing really intensive computations here.",
+      "zh": "不過這裡不會做非常密集的計算。"
+    },
+    {
+      "start": 58.24,
+      "end": 62.4,
+      "en": "So if you do not have access to a GPU for this exercise.",
+      "zh": "所以如果這個練習無法使用 GPU，"
+    },
+    {
+      "start": 62.4,
+      "end": 63.24,
+      "en": "Don't worry about it.",
+      "zh": "不用擔心。"
+    },
+    {
+      "start": 63.28,
+      "end": 64.24,
+      "en": "It's totally fine.",
+      "zh": "完全沒關係。"
+    },
+    {
+      "start": 64.6,
+      "end": 66.76,
+      "en": "You might just have to wait a little bit longer.",
+      "zh": "只是可能等久一點。"
+    },
+    {
+      "start": 66.8,
+      "end": 67.68,
+      "en": "No problem.",
+      "zh": "不是問題。"
+    },
+    {
+      "start": 68.32,
+      "end": 78.44,
+      "en": "Anyway, you want to import the GPT two small model and import it twice using different variable names.",
+      "zh": "請匯入 GPT-2 small 兩次，使用不同變數名稱。"
+    },
+    {
+      "start": 79.03999999999999,
+      "end": 85.8,
+      "en": "The reason for importing the model twice is that one version of the model we are going to manipulate,",
+      "zh": "匯入兩次，是因為其中一個版本要修改，"
+    },
+    {
+      "start": 86.24,
+      "end": 95.36,
+      "en": "and then if you want to undo any of those manipulations, you can just copy the weights back from the non manipulated version.",
+      "zh": "想撤銷修改時，就能從沒改過的版本，把權重複製回來。"
+    },
+    {
+      "start": 96.47999999999999,
+      "end": 96.75999999999999,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 96.8,
+      "end": 102.4,
+      "en": "And then the version that you are going to manipulate that model can go onto the GPU.",
+      "zh": "要修改的那個模型，可以放到 GPU。"
+    },
+    {
+      "start": 102.72,
+      "end": 109.84,
+      "en": "That's what we're going to be generating text from manipulating and so on later on in this code challenge.",
+      "zh": "之後這個挑戰，會從它產生文字、對它做修改等等。"
+    },
+    {
+      "start": 110.28,
+      "end": 116.2,
+      "en": "The other model, which you can think of as like a backup model that one can stay on the CPU.",
+      "zh": "另一個可以視為備份模型，留在 CPU。"
+    },
+    {
+      "start": 116.24000000000001,
+      "end": 124.77,
+      "en": "We're not really going to be using it except for copying the trained parameters from the GPU back to the CPU model.",
+      "zh": "除了把訓練好的參數，從 GPU 複製回 CPU 模型之外，不會真的使用它。"
+    },
+    {
+      "start": 125.41,
+      "end": 132.37,
+      "en": "Okay, so once you have that set up, then you want to just generate a little bit of text from these two models.",
+      "zh": "設定好後，先從兩個模型產生一點文字。"
+    },
+    {
+      "start": 132.69,
+      "end": 135.33,
+      "en": "So you can start with the text that I use here.",
+      "zh": "可以從這裡的文字開始。"
+    },
+    {
+      "start": 135.45,
+      "end": 136.81,
+      "en": "Hello how are you today.",
+      "zh": "「Hello, how are you today?」，你好，今天好嗎？"
+    },
+    {
+      "start": 137.21,
+      "end": 138.73,
+      "en": "You can also use your own text.",
+      "zh": "也可以用自己的文字。"
+    },
+    {
+      "start": 138.73,
+      "end": 139.45,
+      "en": "That's fine.",
+      "zh": "都可以。"
+    },
+    {
+      "start": 139.85,
+      "end": 149.37,
+      "en": "Now notice also that I'm setting the random seed generator to be the same for the CPU model and the GPU model.",
+      "zh": "也注意，我把 CPU 與 GPU 模型的隨機種子設為相同。"
+    },
+    {
+      "start": 149.85,
+      "end": 159.17000000000002,
+      "en": "And you can already see that the results are actually different between the CPU model and the GPU version of the model.",
+      "zh": "但已經可以看到，兩者的結果其實不同。"
+    },
+    {
+      "start": 160.41,
+      "end": 164.25,
+      "en": "I will talk about why that is the case when I switch to code.",
+      "zh": "切到程式碼後，會談為什麼。"
+    },
+    {
+      "start": 164.61,
+      "end": 176.61,
+      "en": "I've also blanked out the key line of code here that you need to generate the text, but you've already seen code like this several times before in previous videos.",
+      "zh": "我也把產生文字的關鍵程式遮住，但前幾支影片已經看過好幾次類似寫法。"
+    },
+    {
+      "start": 177.77,
+      "end": 184.29,
+      "en": "Okay, so now you should pause the video, work through this exercise and now I will discuss my solution.",
+      "zh": "請暫停影片，完成練習，接著說明我的解法。"
+    },
+    {
+      "start": 185.81,
+      "end": 190.29,
+      "en": "So we don't need so many libraries here, but we do need a couple.",
+      "zh": "這裡不需要太多函式庫，但還是要幾個。"
+    },
+    {
+      "start": 190.57,
+      "end": 198.49,
+      "en": "So let's see here I'm importing the GPT two model the tokenizer we need only once of course.",
+      "zh": "匯入 GPT-2 模型，tokenizer 當然只需要匯入一次。"
+    },
+    {
+      "start": 198.49,
+      "end": 202.05,
+      "en": "Here you can see these two lines of code are identical.",
+      "zh": "這兩行程式完全相同。"
+    },
+    {
+      "start": 202.05,
+      "end": 206.21,
+      "en": "So exactly the same model I'm just importing it twice here.",
+      "zh": "是相同模型，只是匯入兩次。"
+    },
+    {
+      "start": 206.21,
+      "end": 208.57,
+      "en": "I call it GPT two Ridge.",
+      "zh": "這個我叫 GPT2orig。"
+    },
+    {
+      "start": 208.93,
+      "end": 211.41,
+      "en": "And this is just a GPT two.",
+      "zh": "這個則叫 GPT2。"
+    },
+    {
+      "start": 211.45,
+      "end": 221.61,
+      "en": "So the idea is that in exercises two and three we will be selectively manipulating little components of this variable.",
+      "zh": "練習二、三會選擇性修改這個變數內的小部分。"
+    },
+    {
+      "start": 221.89,
+      "end": 225.41,
+      "en": "And this model here is going to stay on the CPU.",
+      "zh": "這個模型則留在 CPU。"
+    },
+    {
+      "start": 225.65,
+      "end": 228.49,
+      "en": "And we're just going to use it as a backup copy.",
+      "zh": "只當備份。"
+    },
+    {
+      "start": 228.49,
+      "end": 234.65,
+      "en": "When we want to reset the parameters we can just copy them back from here okay.",
+      "zh": "要重設參數時，從這裡複製回來。"
+    },
+    {
+      "start": 234.69,
+      "end": 239.73,
+      "en": "So here yeah I'm creating a variable for the Cuda for the GPU.",
+      "zh": "這裡為 CUDA，也就是 GPU，建立裝置變數。"
+    },
+    {
+      "start": 239.93,
+      "end": 244.57,
+      "en": "And now I'm pushing the GPU model to the G.",
+      "zh": "現在把 GPU 模型送到，"
+    },
+    {
+      "start": 244.61,
+      "end": 248.61,
+      "en": "So the GPU version of this model to the actual GPU.",
+      "zh": "也就是把這個版本真正送到 GPU。"
+    },
+    {
+      "start": 249.21,
+      "end": 251.13,
+      "en": "Okay, here I'm generating some text.",
+      "zh": "這裡產生一些文字。"
+    },
+    {
+      "start": 251.13,
+      "end": 252.05,
+      "en": "That's all fine.",
+      "zh": "都沒問題。"
+    },
+    {
+      "start": 252.37,
+      "end": 254.85,
+      "en": "Here is running the.",
+      "zh": "這裡執行，"
+    },
+    {
+      "start": 254.89,
+      "end": 262.61,
+      "en": "So generating some text from the model that's sitting on the CPU with manual seed set to 42.",
+      "zh": "從 CPU 上的模型產生文字，manual_seed 設為 42。"
+    },
+    {
+      "start": 262.97,
+      "end": 263.37,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 263.41,
+      "end": 264.49,
+      "en": "Hello, how are you today?",
+      "zh": "「你好，今天好嗎？」"
+    },
+    {
+      "start": 264.53,
+      "end": 266.49,
+      "en": "Are you enjoying some tea or something?",
+      "zh": "「你正在喝茶，或做什麼嗎？」"
+    },
+    {
+      "start": 266.61,
+      "end": 268.21,
+      "en": "I love everything about you.",
+      "zh": "「我愛你的一切。」"
+    },
+    {
+      "start": 268.21,
+      "end": 270.25,
+      "en": "There are no words, just an understanding.",
+      "zh": "「不需言語，只有理解。」"
+    },
+    {
+      "start": 270.25,
+      "end": 272.45,
+      "en": "GPT two can get very romantic.",
+      "zh": "GPT-2 可以非常浪漫。"
+    },
+    {
+      "start": 273.01,
+      "end": 274.33,
+      "en": "Anyway, um.",
+      "zh": "總之。"
+    },
+    {
+      "start": 274.57,
+      "end": 275.29,
+      "en": "Each time.",
+      "zh": "每次，"
+    },
+    {
+      "start": 275.33,
+      "end": 275.89,
+      "en": "So let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 275.89,
+      "end": 277.77,
+      "en": "I have this, uh, parameter here.",
+      "zh": "這裡有個參數。"
+    },
+    {
+      "start": 277.81,
+      "end": 279.65,
+      "en": "Do sample equals true.",
+      "zh": "do_sample=True。"
+    },
+    {
+      "start": 280.13,
+      "end": 287.85,
+      "en": "What this means is that the model is going to randomly sample from the next token generation, and the",
+      "zh": "代表模型會在產生下一個詞元時隨機抽樣，而"
+    },
+    {
+      "start": 287.85,
+      "end": 296.57,
+      "en": "probability of each token being sampled depends on the output of the model of this generate function.",
+      "zh": "每個詞元被抽到的機率，取決於模型，也就是 generate 函數的輸出。"
+    },
+    {
+      "start": 297.40999999999997,
+      "end": 301.09,
+      "en": "Exactly as you've seen before when we were building our own models.",
+      "zh": "和之前自己建立模型時看到的完全一樣。"
+    },
+    {
+      "start": 301.29,
+      "end": 303.98,
+      "en": "You can also set this to false if you want.",
+      "zh": "也可以把它設成 False。"
+    },
+    {
+      "start": 303.98,
+      "end": 304.42,
+      "en": "That's fine.",
+      "zh": "都可以。"
+    },
+    {
+      "start": 304.42,
+      "end": 307.06,
+      "en": "You can try changing them and you'll see that's fine.",
+      "zh": "可以改改看。"
+    },
+    {
+      "start": 307.38,
+      "end": 308.94,
+      "en": "Now this is interesting here.",
+      "zh": "這裡很有意思。"
+    },
+    {
+      "start": 309.5,
+      "end": 314.58,
+      "en": "Here I have exactly the same code, exactly the same random seed.",
+      "zh": "程式碼完全相同，隨機種子也完全相同。"
+    },
+    {
+      "start": 314.62,
+      "end": 322.3,
+      "en": "The only difference between this code cell and this code cell is that here I'm using the original version.",
+      "zh": "兩個儲存格唯一差別，是這裡用原始版本。"
+    },
+    {
+      "start": 322.3,
+      "end": 326.42,
+      "en": "And here I'm using the version that I sent to the GPU.",
+      "zh": "這裡用送到 GPU 的版本。"
+    },
+    {
+      "start": 326.78,
+      "end": 330.22,
+      "en": "But otherwise I haven't changed anything in these models.",
+      "zh": "除此之外，模型沒有任何改動。"
+    },
+    {
+      "start": 330.22,
+      "end": 332.98,
+      "en": "So they should be exactly identical.",
+      "zh": "所以理應完全相同。"
+    },
+    {
+      "start": 333.62,
+      "end": 336.54,
+      "en": "But they are not exactly identical.",
+      "zh": "但並不完全相同。"
+    },
+    {
+      "start": 336.58,
+      "end": 339.06,
+      "en": "Not even close to being identical.",
+      "zh": "甚至差得很遠。"
+    },
+    {
+      "start": 339.1,
+      "end": 340.74,
+      "en": "The text here and here.",
+      "zh": "就是這裡與這裡的文字。"
+    },
+    {
+      "start": 341.1,
+      "end": 342.58,
+      "en": "And why is that the case?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 342.58,
+      "end": 345.74,
+      "en": "Even though the random seed number is the same?",
+      "zh": "明明隨機種子相同？"
+    },
+    {
+      "start": 346.86,
+      "end": 355.54,
+      "en": "The reason is that in general, CPUs and GPUs handle precision and rounding slightly differently, so",
+      "zh": "原因是，一般而言，CPU 與 GPU 處理精度、四捨五入的方式稍有不同，"
+    },
+    {
+      "start": 355.54,
+      "end": 360.14,
+      "en": "you can always expect some differences between the CPU and the GPU.",
+      "zh": "因此總是可能出現一些差異。"
+    },
+    {
+      "start": 360.54,
+      "end": 361.94,
+      "en": "That's just due to.",
+      "zh": "這只是因為，"
+    },
+    {
+      "start": 362.26,
+      "end": 367.9,
+      "en": "Yeah, just precision errors and rounding and truncation of floating point numbers and so on.",
+      "zh": "精度誤差，以及浮點數的四捨五入、截斷等等。"
+    },
+    {
+      "start": 368.22,
+      "end": 376.5,
+      "en": "But more importantly and much more relevant here is that the the random seed generator is actually handled",
+      "zh": "但這裡更重要、更相關的，是隨機種子產生器在"
+    },
+    {
+      "start": 376.66,
+      "end": 380.3,
+      "en": "and interpreted differently on the CPU and on the GPU.",
+      "zh": "CPU 與 GPU 上，實際處理、解讀的方式不同。"
+    },
+    {
+      "start": 380.9,
+      "end": 387.82,
+      "en": "That is generally important to know, because it means that if someone gives you a random seed number",
+      "zh": "這點值得了解，因為如果有人給你隨機種子，"
+    },
+    {
+      "start": 388.02,
+      "end": 395.94,
+      "en": "and you want to reproduce exactly their results, you will also need to know whether they ran their",
+      "zh": "你想精確重現結果，還需要知道他是在"
+    },
+    {
+      "start": 396.06,
+      "end": 400.06,
+      "en": "model on the CPU or on a GPU.",
+      "zh": "CPU 還是 GPU 執行。"
+    },
+    {
+      "start": 400.18,
+      "end": 407.65999999999997,
+      "en": "So you might not be able to reproduce their results exactly if you are using different processor hardware.",
+      "zh": "使用不同處理器硬體時，可能無法完全重現結果。"
+    },
+    {
+      "start": 408.86,
+      "end": 409.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 409.1,
+      "end": 416.65999999999997,
+      "en": "Nonetheless, this is text that we will compare to what happens after we start manipulating the model.",
+      "zh": "不過，開始修改模型後，就會拿文字與這裡比較。"
+    },
+    {
+      "start": 416.9,
+      "end": 423.23,
+      "en": "The last thing I want to show you here, this is not something that I specified Because I just want to tell you this.",
+      "zh": "最後想展示這個，沒有列成要求，因為只是要直接告訴你。"
+    },
+    {
+      "start": 423.23,
+      "end": 425.35,
+      "en": "I don't want you to have to figure it out on your own.",
+      "zh": "不希望你必須自己摸索。"
+    },
+    {
+      "start": 425.91,
+      "end": 428.23,
+      "en": "Is this line of code here?",
+      "zh": "就是這行程式。"
+    },
+    {
+      "start": 428.23,
+      "end": 433.55,
+      "en": "So this says load state dict for dictionary and uh, yeah.",
+      "zh": "這是 load_state_dict，dict 代表 dictionary。"
+    },
+    {
+      "start": 433.59,
+      "end": 437.95,
+      "en": "And then here I have the state dictionary from the original model.",
+      "zh": "這裡取得原始模型的 state_dict。"
+    },
+    {
+      "start": 437.95,
+      "end": 446.23,
+      "en": "So what this line of code does is take all of the parameters, all the numbers everywhere inside this",
+      "zh": "這行程式會取出原始模型裡的所有參數、所有數字，"
+    },
+    {
+      "start": 446.23,
+      "end": 455.39,
+      "en": "model here the original model, and copy it back to the corresponding named parameters in this version here.",
+      "zh": "再複製到這個版本中，名稱對應的參數。"
+    },
+    {
+      "start": 455.39,
+      "end": 457.75,
+      "en": "So we don't need this code right now.",
+      "zh": "所以現在還不需要。"
+    },
+    {
+      "start": 457.75,
+      "end": 460.71,
+      "en": "And exercise one, but you will use it later.",
+      "zh": "練習一用不到，但之後會用。"
+    },
+    {
+      "start": 460.71,
+      "end": 465.43,
+      "en": "So this is the way to uh, manipulate something in GPT two.",
+      "zh": "這就是修改 GPT-2 後，"
+    },
+    {
+      "start": 465.90999999999997,
+      "end": 468.95,
+      "en": "And then you want to undo those manipulations.",
+      "zh": "想撤銷那些修改時的方法。"
+    },
+    {
+      "start": 469.23,
+      "end": 475.75,
+      "en": "Uh, you can just copy them back from this, uh, non manipulated version that's sitting on the CPU.",
+      "zh": "可以直接從 CPU 上未修改的版本，複製回來。"
+    },
+    {
+      "start": 476.23,
+      "end": 482.91,
+      "en": "Of course, you can also just reimport the model from scratch like this for the GPT two.",
+      "zh": "當然，也可以像這樣，從頭重新匯入 GPT-2，"
+    },
+    {
+      "start": 482.95,
+      "end": 483.55,
+      "en": "Small.",
+      "zh": "也就是 small。"
+    },
+    {
+      "start": 483.75,
+      "end": 484.43,
+      "en": "That's fine.",
+      "zh": "也可以。"
+    },
+    {
+      "start": 484.43,
+      "end": 487.35,
+      "en": "You can just keep downloading the model over and over again.",
+      "zh": "不斷重新下載模型。"
+    },
+    {
+      "start": 487.63,
+      "end": 492.27,
+      "en": "But that's going to be really time consuming for larger models.",
+      "zh": "但大模型會很耗時。"
+    },
+    {
+      "start": 492.43,
+      "end": 498.75,
+      "en": "So in general, it's much better to just copy back from an unadulterated version.",
+      "zh": "所以一般而言，從未修改的版本複製回來，好得多。"
+    },
+    {
+      "start": 499.91,
+      "end": 503.27,
+      "en": "Now we are ready to start manipulating the model.",
+      "zh": "現在可以開始修改模型。"
+    },
+    {
+      "start": 503.71,
+      "end": 512.03,
+      "en": "The goal here in exercise two is to replace the w q matrix with random numbers.",
+      "zh": "練習二，要用隨機數取代 W_Q 矩陣。"
+    },
+    {
+      "start": 512.59,
+      "end": 519.31,
+      "en": "So you should only manipulate the w q matrix from the first transformer block, not the other block.",
+      "zh": "只修改第一個 Transformer 區塊的 W_Q，不改其他區塊。"
+    },
+    {
+      "start": 519.31,
+      "end": 526.43,
+      "en": "So in all the other 11 transformer blocks, the q matrix stays exactly how it is, and you want to make",
+      "zh": "其他 11 個區塊的 Q 矩陣，全都維持原樣，而且用來替換的數字，"
+    },
+    {
+      "start": 526.47,
+      "end": 533.87,
+      "en": "sure that the numbers you replace it with have the same mean and standard deviation as the trained matrix.",
+      "zh": "必須和訓練後矩陣有相同平均數與標準差。"
+    },
+    {
+      "start": 534.03,
+      "end": 539.07,
+      "en": "So it's not just replacing q or w q with any random numbers.",
+      "zh": "不只是用任意隨機數取代 Q 或 W_Q。"
+    },
+    {
+      "start": 539.47,
+      "end": 545.47,
+      "en": "You want to make sure that the random numbers are have the same mean and the same standard deviation.",
+      "zh": "要確保隨機數有相同平均數、相同標準差。"
+    },
+    {
+      "start": 546.43,
+      "end": 546.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 546.71,
+      "end": 555.19,
+      "en": "What you see in this screenshot here is just a sanity check that the weights really are different between the two versions of the model.",
+      "zh": "截圖只是合理性檢查，確認兩個模型版本的權重真的不同。"
+    },
+    {
+      "start": 555.55,
+      "end": 560.67,
+      "en": "So here I'm just printing out the first ten numbers of the Q matrix.",
+      "zh": "這裡印出 Q 矩陣前十個數字。"
+    },
+    {
+      "start": 560.79,
+      "end": 572.35,
+      "en": "And you can see that they are indeed different numbers between the original non manipulated version of the model and the one that I just replaced Q with random numbers for.",
+      "zh": "可以看到，原本未修改的模型，與剛用隨機數取代 Q 的版本，數字確實不同。"
+    },
+    {
+      "start": 573.35,
+      "end": 582.43,
+      "en": "Now once you have replaced that q matrix, you can then rerun the model using the same initial text and the same random seed.",
+      "zh": "替換完 Q 矩陣後，就能用相同起始文字、相同隨機種子重新執行。"
+    },
+    {
+      "start": 582.95,
+      "end": 586.19,
+      "en": "And by the way, rerunning the model to generate new text.",
+      "zh": "順帶一提，重新執行模型來產生新文字，"
+    },
+    {
+      "start": 586.19,
+      "end": 590.55,
+      "en": "This is just something for the model on the GPU that you're changing.",
+      "zh": "只針對 GPU 上正在修改的模型。"
+    },
+    {
+      "start": 590.79,
+      "end": 595.43,
+      "en": "You do not need to use the model sitting on the CPU to generate text.",
+      "zh": "不用再從 CPU 模型產生文字。"
+    },
+    {
+      "start": 595.47,
+      "end": 600.43,
+      "en": "We just want to keep that around so we can copy the original parameters back from it.",
+      "zh": "只是保留它，方便把原始參數複製回來。"
+    },
+    {
+      "start": 601.68,
+      "end": 605.64,
+      "en": "So these two screenshots here show exactly the same code.",
+      "zh": "這兩張截圖的程式碼完全相同。"
+    },
+    {
+      "start": 605.8,
+      "end": 609.28,
+      "en": "This first screenshot is from exercise one.",
+      "zh": "第一張來自練習一。"
+    },
+    {
+      "start": 609.8,
+      "end": 614.56,
+      "en": "And now the second screenshot over here is for exercise two.",
+      "zh": "第二張則是練習二。"
+    },
+    {
+      "start": 614.88,
+      "end": 618.44,
+      "en": "After replacing Q with noise.",
+      "zh": "也就是用雜訊取代 Q 之後。"
+    },
+    {
+      "start": 618.68,
+      "end": 626.72,
+      "en": "So it will be interesting to see what, if anything, happens with the generated text after you've done this manipulation.",
+      "zh": "有趣的是，修改後產生的文字，到底會不會改變、如何改變。"
+    },
+    {
+      "start": 627.2,
+      "end": 629.92,
+      "en": "I hope you find this exercise interesting.",
+      "zh": "希望你覺得這個練習有趣。"
+    },
+    {
+      "start": 630.08,
+      "end": 633.6,
+      "en": "And now I will switch to code and show my solution.",
+      "zh": "現在切到程式碼，展示我的解法。"
+    },
+    {
+      "start": 634.72,
+      "end": 645.28,
+      "en": "This exercise is actually a little bit tricky, because you have to make sure that you are only changing Q and not all of the three attention matrices.",
+      "zh": "其實有點棘手，因為要確保只改 Q，而不是三個注意力矩陣全改。"
+    },
+    {
+      "start": 645.76,
+      "end": 650.24,
+      "en": "So what I do here is just illustrate isolating Q.",
+      "zh": "這裡先示範如何單獨取出 Q。"
+    },
+    {
+      "start": 650.28,
+      "end": 655.72,
+      "en": "So we have the this is a variable for the number of embeddings dimensions.",
+      "zh": "這是表示嵌入維度數量的變數。"
+    },
+    {
+      "start": 655.72,
+      "end": 661.12,
+      "en": "And then here I'm accessing the first transformer block the attention sublayer.",
+      "zh": "這裡存取第一個 Transformer 區塊的注意力子層。"
+    },
+    {
+      "start": 661.36,
+      "end": 668.12,
+      "en": "Just the attention weights and then just the first 768 elements.",
+      "zh": "只看注意力權重，再取前 768 個元素。"
+    },
+    {
+      "start": 668.12,
+      "end": 671.44,
+      "en": "So this here is the Q matrix okay.",
+      "zh": "這就是 Q 矩陣。"
+    },
+    {
+      "start": 671.48,
+      "end": 674.08,
+      "en": "And then I'm just confirming that size over here.",
+      "zh": "這裡確認大小。"
+    },
+    {
+      "start": 674.52,
+      "end": 674.84,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 674.84,
+      "end": 680.2,
+      "en": "So here is what I do here I extract the Q matrix using the code I showed above.",
+      "zh": "我先用剛才的程式取出 Q 矩陣。"
+    },
+    {
+      "start": 680.76,
+      "end": 686.52,
+      "en": "Here I'm getting the actual mean and standard deviation values from this Q matrix.",
+      "zh": "這裡取得 Q 矩陣實際的平均數與標準差。"
+    },
+    {
+      "start": 686.8,
+      "end": 690.68,
+      "en": "And then I am generating normally distributed numbers.",
+      "zh": "然後產生常態分布的數字。"
+    },
+    {
+      "start": 690.68,
+      "end": 698.8,
+      "en": "So this code here if I were to get rid of this, this code here will generate a matrix that is the right size.",
+      "zh": "如果移除這些部分，這段程式會產生大小正確的矩陣，"
+    },
+    {
+      "start": 698.96,
+      "end": 701.4,
+      "en": "But it's not going to have the right statistics.",
+      "zh": "但統計特性不正確。"
+    },
+    {
+      "start": 701.4,
+      "end": 706.28,
+      "en": "This is going to have a mean of zero and a standard deviation of one.",
+      "zh": "平均數為零、標準差為一。"
+    },
+    {
+      "start": 706.56,
+      "end": 714.68,
+      "en": "So then what I do is multiply by the standard deviation of the observed q the actual q matrix, and",
+      "zh": "所以再乘上觀察到的 Q，也就是實際 Q 矩陣的標準差，"
+    },
+    {
+      "start": 714.68,
+      "end": 719.6,
+      "en": "then add on the mean to shift the distribution okay.",
+      "zh": "再加上平均數，平移分布。"
+    },
+    {
+      "start": 719.64,
+      "end": 723.6,
+      "en": "And then here is where I've actually replace the values in the model.",
+      "zh": "這裡才是真正替換模型內的值。"
+    },
+    {
+      "start": 723.6,
+      "end": 725.4,
+      "en": "So in this model.",
+      "zh": "在這個模型中，"
+    },
+    {
+      "start": 725.44,
+      "end": 733.28,
+      "en": "Remember this is the one sitting on the GPU I say so this transformer block this attention block this weight.",
+      "zh": "記得是 GPU 上那個，我指定這個 Transformer 區塊、注意力區塊、權重，"
+    },
+    {
+      "start": 733.84,
+      "end": 742.12,
+      "en": "And then just the first 768 columns, this becomes this gets replaced with noise.",
+      "zh": "只取前 768 欄，用雜訊取代。"
+    },
+    {
+      "start": 743.2,
+      "end": 745.64,
+      "en": "This is showing some other code that also works.",
+      "zh": "這是另一種也可以的寫法。"
+    },
+    {
+      "start": 745.64,
+      "end": 748.08,
+      "en": "You can use this one or you can use this one.",
+      "zh": "這種、那種，都可以。"
+    },
+    {
+      "start": 748.12,
+      "end": 749.2,
+      "en": "It's it's fine.",
+      "zh": "都沒問題。"
+    },
+    {
+      "start": 749.48,
+      "end": 754.56,
+      "en": "Uh, to me, uh, you know, personally I find this a little bit more, uh, sensible.",
+      "zh": "對我來說，個人覺得這種比較直觀。"
+    },
+    {
+      "start": 754.56,
+      "end": 758.32,
+      "en": "I find this to be a little bit easier to understand in terms of the code.",
+      "zh": "程式比較容易理解。"
+    },
+    {
+      "start": 758.32,
+      "end": 760.32,
+      "en": "I just want to present some varieties.",
+      "zh": "只是想提供不同寫法。"
+    },
+    {
+      "start": 760.88,
+      "end": 762.24,
+      "en": "Why does this work, by the way?",
+      "zh": "順帶一提，為什麼這樣能成功？"
+    },
+    {
+      "start": 762.24,
+      "end": 769.36,
+      "en": "This works because when I extracted Q, I did not actually make a copy of these numbers.",
+      "zh": "因為取出 Q 時，其實沒有複製這些數字。"
+    },
+    {
+      "start": 769.36,
+      "end": 774.52,
+      "en": "All I did was make a new variable reference to exactly the same data.",
+      "zh": "只是建立一個新變數，參照完全相同的資料。"
+    },
+    {
+      "start": 774.52,
+      "end": 784.57,
+      "en": "So all of this text and this one letter here, they point to the same, you know, A collection of numbers on the GPU.",
+      "zh": "這整段文字，和這個字母，都指向 GPU 上同一組數字。"
+    },
+    {
+      "start": 784.57,
+      "end": 788.57,
+      "en": "So that's why we can actually just still just copy over these numbers here.",
+      "zh": "所以仍然能直接把數字複製覆寫過去。"
+    },
+    {
+      "start": 789.01,
+      "end": 789.33,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 789.37,
+      "end": 796.81,
+      "en": "Anyway, and then out of curiosity, let's see what are the mean and standard deviation here of Q.",
+      "zh": "出於好奇，看看 Q 的平均數、標準差是多少。"
+    },
+    {
+      "start": 797.09,
+      "end": 797.69,
+      "en": "So they are.",
+      "zh": "它們是，"
+    },
+    {
+      "start": 797.73,
+      "end": 801.77,
+      "en": "So the mean is close to zero but not exactly zero.",
+      "zh": "平均數接近零，但不完全是零。"
+    },
+    {
+      "start": 802.01,
+      "end": 805.13,
+      "en": "And the standard deviation is definitely not close to one.",
+      "zh": "標準差則肯定不接近 1。"
+    },
+    {
+      "start": 805.13,
+      "end": 811.37,
+      "en": "So this is 0.2 which means that these are not normally distributed which is fine.",
+      "zh": "這裡是 0.2，所以這些不是常態分布，不過沒關係。"
+    },
+    {
+      "start": 811.81,
+      "end": 823.69,
+      "en": "It also means that you know, replacing Q with just random Gaussian numbers is not really a fair comparison because we are also imposing a much different distribution.",
+      "zh": "也代表如果只用標準高斯隨機數取代 Q，比較不公平，因為也強加了很不一樣的分布。"
+    },
+    {
+      "start": 824.17,
+      "end": 824.61,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 825.21,
+      "end": 827.09,
+      "en": "So uh, so now we have that.",
+      "zh": "現在準備好了。"
+    },
+    {
+      "start": 827.09,
+      "end": 830.97,
+      "en": "And now here is the sanity check confirmation.",
+      "zh": "這裡是合理性確認。"
+    },
+    {
+      "start": 831.21,
+      "end": 837.13,
+      "en": "So uh, we can compare that with for example, the 10th uh layer.",
+      "zh": "例如可以比較第十層。"
+    },
+    {
+      "start": 837.13,
+      "end": 843.25,
+      "en": "And now we see that these numbers here are exactly equal to these numbers here.",
+      "zh": "現在可以看到，這裡的數字與這裡完全相同。"
+    },
+    {
+      "start": 843.25,
+      "end": 844.97,
+      "en": "And why are those numbers equal?",
+      "zh": "為什麼相同？"
+    },
+    {
+      "start": 845.17,
+      "end": 846.85,
+      "en": "There are different models, right.",
+      "zh": "明明是不同模型，對吧？"
+    },
+    {
+      "start": 846.89,
+      "end": 850.49,
+      "en": "This is the GPT two version on the CPU.",
+      "zh": "這是 CPU 上的 GPT-2 版本。"
+    },
+    {
+      "start": 850.53,
+      "end": 852.01,
+      "en": "This is the one sorry.",
+      "zh": "這是，抱歉，"
+    },
+    {
+      "start": 852.05,
+      "end": 856.29,
+      "en": "This is the original version on the CPU which we have not changed.",
+      "zh": "這是 CPU 上完全沒修改的原始版本。"
+    },
+    {
+      "start": 856.33,
+      "end": 863.25,
+      "en": "This is the one on the GPU that we have changed, but we've not changed all of the Q matrices.",
+      "zh": "這是 GPU 上改過的版本，但沒有改所有 Q 矩陣。"
+    },
+    {
+      "start": 863.25,
+      "end": 868.01,
+      "en": "We've only changed the Q matrix in the first transformer block.",
+      "zh": "只改第一個 Transformer 區塊的 Q。"
+    },
+    {
+      "start": 868.01,
+      "end": 875.21,
+      "en": "And so now when we look at the 10th or the 11th transformer block, we should see that all of these values are not changed.",
+      "zh": "所以查看第十或第十一個區塊，應該看到所有值都沒改。"
+    },
+    {
+      "start": 875.21,
+      "end": 880.29,
+      "en": "So also, you know, just a bit of sanity checking that this code really works.",
+      "zh": "也算是確認程式真的有效。"
+    },
+    {
+      "start": 881.21,
+      "end": 881.57,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 881.61,
+      "end": 889.33,
+      "en": "So now we can do something interesting and just copy paste the code from exercise one and see what we get here.",
+      "zh": "現在可以做有趣的事，複製練習一的程式，看看結果。"
+    },
+    {
+      "start": 889.61,
+      "end": 892.17,
+      "en": "So let me actually go back up here.",
+      "zh": "先回上面。"
+    },
+    {
+      "start": 892.37,
+      "end": 899.29,
+      "en": "And I'm just going to copy this generated text and paste it down here.",
+      "zh": "把這段生成文字複製、貼到下面。"
+    },
+    {
+      "start": 899.65,
+      "end": 899.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 899.97,
+      "end": 901.89,
+      "en": "So this is from exercise one.",
+      "zh": "這來自練習一。"
+    },
+    {
+      "start": 902.25,
+      "end": 902.61,
+      "en": "Hello.",
+      "zh": "「Hello.」"
+    },
+    {
+      "start": 902.61,
+      "end": 903.41,
+      "en": "How are you today?",
+      "zh": "「How are you today?」"
+    },
+    {
+      "start": 903.45,
+      "end": 910.77,
+      "en": "Obviously this matches perfectly because that's the text that I inputted and it just spits back out.",
+      "zh": "顯然完全相同，因為這就是輸入，它只是一併輸出。"
+    },
+    {
+      "start": 911.85,
+      "end": 916.17,
+      "en": "So the interesting thing is to see what happens after that text.",
+      "zh": "有趣的是，這段文字之後發生什麼。"
+    },
+    {
+      "start": 916.49,
+      "end": 919.57,
+      "en": "So quite different, you know, not even close.",
+      "zh": "差很多，完全不像。"
+    },
+    {
+      "start": 919.57,
+      "end": 924.29,
+      "en": "But also interesting to see that this is still fairly sensible.",
+      "zh": "但也有趣，文字仍然相當合理。"
+    },
+    {
+      "start": 924.49,
+      "end": 929.09,
+      "en": "I'm in the process of making a new movie in a big room, and I have to start the video on the wall.",
+      "zh": "「我正在一個大房間裡拍一部新電影，必須在牆上開始播放影片。」"
+    },
+    {
+      "start": 929.21,
+      "end": 932.29,
+      "en": "Okay, but this is sensible text, so we haven't really.",
+      "zh": "好，但這仍然算合理的文字，所以還沒有真的，"
+    },
+    {
+      "start": 932.61,
+      "end": 940.05,
+      "en": "This is a little weird, I am, I like making a bit of okay, um, but the point is, overall, despite",
+      "zh": "這裡有點怪，「我是，我喜歡做一點……」好，但重點是，整體而言，儘管"
+    },
+    {
+      "start": 940.05,
+      "end": 951.49,
+      "en": "the fact that we have replaced an entire Q matrix with literally random noise, just random numbers, this model is still able to produce pretty sensible results.",
+      "zh": "用真正的隨機雜訊、隨機數取代了整個 Q 矩陣，模型仍能產生相當合理的結果。"
+    },
+    {
+      "start": 952.69,
+      "end": 956.69,
+      "en": "Exercise three builds off of exercise two.",
+      "zh": "練習三延續練習二。"
+    },
+    {
+      "start": 957.17,
+      "end": 966.98,
+      "en": "But before making any further manipulations to the model, use the code that I showed you from exercise one to reset the model parameters.",
+      "zh": "但進一步修改前，先用練習一展示的程式，重設模型參數。"
+    },
+    {
+      "start": 966.98,
+      "end": 978.82,
+      "en": "So basically copy all of the parameters from the original model that's on the CPU, back onto the GPU model that we have altered in exercise three.",
+      "zh": "也就是把 CPU 原始模型的參數，複製回練習三裡改過的 GPU 模型。"
+    },
+    {
+      "start": 979.62,
+      "end": 980.06,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 980.1,
+      "end": 988.22,
+      "en": "Then you can take the code and concepts from exercise two and put that in a for loop where you loop",
+      "zh": "接著把練習二的程式與概念放進 for 迴圈，逐一"
+    },
+    {
+      "start": 988.22,
+      "end": 995.22,
+      "en": "over and successively replace each transformer block Q matrix with noise.",
+      "zh": "用雜訊取代每個 Transformer 區塊的 Q 矩陣。"
+    },
+    {
+      "start": 995.66,
+      "end": 1001.66,
+      "en": "And then you can generate new text each iteration in that for loop.",
+      "zh": "每次迭代後，都能產生新文字。"
+    },
+    {
+      "start": 1001.86,
+      "end": 1008.66,
+      "en": "So you want to now you can start from the text I went to the market to buy and see what happens.",
+      "zh": "可以從「I went to the market to buy」，也就是我去市場買，這段文字開始，看看結果。"
+    },
+    {
+      "start": 1009.02,
+      "end": 1012.94,
+      "en": "Now this list is going to start getting longer and longer.",
+      "zh": "清單會越來越長。"
+    },
+    {
+      "start": 1013.14,
+      "end": 1016.86,
+      "en": "So I reduced the maximum number of tokens.",
+      "zh": "所以我降低最大詞元數量。"
+    },
+    {
+      "start": 1016.86,
+      "end": 1025.18,
+      "en": "So the max token length parameter in the generation method from 100 down to 50 just makes it a little bit shorter.",
+      "zh": "把生成方法的最大長度參數，從 100 降到 50，讓文字短一點。"
+    },
+    {
+      "start": 1025.7,
+      "end": 1033.46,
+      "en": "And I also actually removed the random seed here because the qualitative evaluation of the model is so striking.",
+      "zh": "這裡也移除了隨機種子，因為對模型的質性評估差異非常明顯。"
+    },
+    {
+      "start": 1033.86,
+      "end": 1042.3,
+      "en": "But of course if you want, you can keep reseeding or resetting the random seed at each iteration inside this loop.",
+      "zh": "當然，有興趣仍可以在每次迭代裡，重設相同隨機種子。"
+    },
+    {
+      "start": 1043.66,
+      "end": 1052.54,
+      "en": "You know, I do not know if I will ever be able to develop consciousness or emotions or any kind of subjective experience.",
+      "zh": "我不知道 AI 是否有一天能發展出意識、情緒，或任何主觀經驗。"
+    },
+    {
+      "start": 1052.74,
+      "end": 1064.26,
+      "en": "But even if that might be possible in the future, I am quite sure that GPT two has no experiences or even the most rudimentary state of consciousness.",
+      "zh": "但即使未來可能，我也相當確定 GPT-2 沒有經驗，甚至沒有最初步的意識狀態。"
+    },
+    {
+      "start": 1064.46,
+      "end": 1068.1,
+      "en": "So you don't have to feel bad about these manipulations.",
+      "zh": "所以不必因為這些修改而過意不去。"
+    },
+    {
+      "start": 1068.5,
+      "end": 1073.34,
+      "en": "And that's also good because it means you can really enjoy working through this exercise.",
+      "zh": "這也很好，因為可以盡情享受練習。"
+    },
+    {
+      "start": 1073.86,
+      "end": 1077.54,
+      "en": "Anyway, now you should pause the video and now I will switch to code.",
+      "zh": "現在請暫停影片，接著切到程式碼。"
+    },
+    {
+      "start": 1078.7,
+      "end": 1085.43,
+      "en": "Despite me being convinced that there is no even, you know, tiny shred of consciousness or awareness.",
+      "zh": "雖然我確信它連一點點意識、覺察都沒有，"
+    },
+    {
+      "start": 1085.59,
+      "end": 1088.87,
+      "en": "I still feel a little bit bad lobotomizing the model.",
+      "zh": "對模型做這種腦葉切除，還是有點過意不去。"
+    },
+    {
+      "start": 1088.87,
+      "end": 1092.55,
+      "en": "So GPT two, please accept my apologies.",
+      "zh": "所以 GPT-2，請接受我的歉意。"
+    },
+    {
+      "start": 1092.55,
+      "end": 1094.59,
+      "en": "This is for educational purposes.",
+      "zh": "這是為了教學。"
+    },
+    {
+      "start": 1095.11,
+      "end": 1106.35,
+      "en": "Anyway, uh, here I am, resetting the version on the GPT two to have the original parameters that we, uh, from before any modifications.",
+      "zh": "總之，這裡重設 GPT-2 版本，恢復修改之前的原始參數。"
+    },
+    {
+      "start": 1106.59,
+      "end": 1108.83,
+      "en": "Okay, all the keys were matched successfully.",
+      "zh": "所有鍵都成功對應。"
+    },
+    {
+      "start": 1108.83,
+      "end": 1109.55,
+      "en": "That's great.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1110.11,
+      "end": 1113.39,
+      "en": "Okay, so here I am printing out.",
+      "zh": "現在印出，"
+    },
+    {
+      "start": 1113.39,
+      "end": 1123.71,
+      "en": "So I'm redefining variable X to be, uh, I went to the market to buy, and then we will see what this GPT two model generates.",
+      "zh": "把變數 X 重新設為「I went to the market to buy」，看看 GPT-2 會產生什麼。"
+    },
+    {
+      "start": 1123.75,
+      "end": 1124.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1124.11,
+      "end": 1129.63,
+      "en": "So this first uh, text that I print out is before any manipulations are done.",
+      "zh": "首先印出的文字，是還沒做任何修改之前的結果。"
+    },
+    {
+      "start": 1130.79,
+      "end": 1132.47,
+      "en": "And then here I have a for loop.",
+      "zh": "接著有 for 迴圈。"
+    },
+    {
+      "start": 1132.47,
+      "end": 1136.59,
+      "en": "I'm looping over all of the transformer hidden layers.",
+      "zh": "遍歷所有 Transformer 隱藏層。"
+    },
+    {
+      "start": 1136.59,
+      "end": 1137.47,
+      "en": "That's the H.",
+      "zh": "也就是 h。"
+    },
+    {
+      "start": 1137.51,
+      "end": 1139.03,
+      "en": "Remember I mentioned that before.",
+      "zh": "記得之前說過。"
+    },
+    {
+      "start": 1139.07,
+      "end": 1139.91,
+      "en": "It's for hidden.",
+      "zh": "代表 hidden。"
+    },
+    {
+      "start": 1140.35,
+      "end": 1143.43,
+      "en": "Uh, so we're looping over all the transformer blocks.",
+      "zh": "所以就是遍歷全部 Transformer 區塊。"
+    },
+    {
+      "start": 1143.79,
+      "end": 1146.51,
+      "en": "Just printing out which layer we're working on.",
+      "zh": "只印出目前處理哪一層。"
+    },
+    {
+      "start": 1146.91,
+      "end": 1150.99,
+      "en": "And then this is all code that's literally copied from exercise two.",
+      "zh": "這些程式完全從練習二複製而來。"
+    },
+    {
+      "start": 1151.03,
+      "end": 1154.39,
+      "en": "And yeah, this is also copied from exercise two.",
+      "zh": "這裡也是從練習二複製。"
+    },
+    {
+      "start": 1154.59,
+      "end": 1157.83,
+      "en": "The only change here was to reduce the max length.",
+      "zh": "唯一改變是降低 max_length。"
+    },
+    {
+      "start": 1158.47,
+      "end": 1158.79,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1158.83,
+      "end": 1160.55,
+      "en": "So let's see what this looks like.",
+      "zh": "來看看結果。"
+    },
+    {
+      "start": 1161.03,
+      "end": 1165.19,
+      "en": "Uh, I went to the market to buy my first two pairs of underwear that I.",
+      "zh": "「我去市場買我的前兩件內褲，而我……」"
+    },
+    {
+      "start": 1165.63,
+      "end": 1171.11,
+      "en": "Anyway, uh, that's the fun thing about working with these language models is you never know what you're going to get.",
+      "zh": "操作語言模型好玩的地方，就是永遠不知道會得到什麼。"
+    },
+    {
+      "start": 1171.51,
+      "end": 1171.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1172.19,
+      "end": 1173.03,
+      "en": "Uh, here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 1173.07,
+      "end": 1173.27,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1173.31,
+      "end": 1176.43,
+      "en": "Went to the market to buy a car for $400.",
+      "zh": "「去市場花 400 美元買一輛車。」"
+    },
+    {
+      "start": 1176.43,
+      "end": 1178.15,
+      "en": "That is a cheap car.",
+      "zh": "真便宜。"
+    },
+    {
+      "start": 1178.71,
+      "end": 1178.95,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1178.99,
+      "end": 1179.47,
+      "en": "Let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 1179.51,
+      "end": 1185.75,
+      "en": "Now, you see, as you start scrolling through, we're replacing more and more of these, uh, model",
+      "zh": "往下看，隨著越來越多模型"
+    },
+    {
+      "start": 1185.75,
+      "end": 1191.63,
+      "en": "parameters with noise, and you just start to get stuff that really doesn't make any sense.",
+      "zh": "參數被雜訊取代，內容就開始完全不合理。"
+    },
+    {
+      "start": 1192.63,
+      "end": 1204.47,
+      "en": "There is this interesting transition where the model will still be producing text that seems grammatically syntactically correct, but doesn't really make sense semantically.",
+      "zh": "有個有趣的轉變：模型還能產生看似文法、句法正確的文字，但語意不通。"
+    },
+    {
+      "start": 1205.43,
+      "end": 1213.51,
+      "en": "Uh, and then eventually, once you start replacing a lot of stuff, it really gets to just total noise where it's not even grammatically correct.",
+      "zh": "最後，替換很多東西後，就真的變成完全的雜訊，連文法都不正確。"
+    },
+    {
+      "start": 1213.83,
+      "end": 1217.11,
+      "en": "I went to the market to buy to make over after the two.",
+      "zh": "「我去市場買，去做，在那兩個之後，"
+    },
+    {
+      "start": 1217.15,
+      "end": 1218.43,
+      "en": "To make after the night.",
+      "zh": "去做，在夜晚之後，"
+    },
+    {
+      "start": 1218.47,
+      "end": 1218.79,
+      "en": "Tutu.",
+      "zh": "tutu，"
+    },
+    {
+      "start": 1218.83,
+      "end": 1219.59,
+      "en": "Tutu Tutu Tutu.",
+      "zh": "tutu tutu tutu。」"
+    },
+    {
+      "start": 1219.63,
+      "end": 1223.03,
+      "en": "Okay, so it really just doesn't make any sense here.",
+      "zh": "好，這裡真的完全沒有意義。"
+    },
+    {
+      "start": 1223.07,
+      "end": 1224.55,
+      "en": "Here's an interesting case.",
+      "zh": "這是個有趣例子。"
+    },
+    {
+      "start": 1224.59,
+      "end": 1227.75,
+      "en": "I got my a great end of text.",
+      "zh": "「我得到我的一個很棒的……endoftext。」"
+    },
+    {
+      "start": 1227.75,
+      "end": 1233.99,
+      "en": "So this is a special token in GPT models or in language models.",
+      "zh": "這是 GPT 或語言模型的特殊詞元。"
+    },
+    {
+      "start": 1234.39,
+      "end": 1243.43,
+      "en": "When it sees this text this token then it just stops immediately, even if it hasn't gotten up to all 50 tokens.",
+      "zh": "看到這段文字、這個詞元，就會立刻停止，即使還沒產生完整 50 個詞元。"
+    },
+    {
+      "start": 1243.95,
+      "end": 1250.71,
+      "en": "By the way, if you get any particularly humorous results here, feel free to take a screenshot and",
+      "zh": "另外，如果得到特別好笑的結果，歡迎截圖，"
+    },
+    {
+      "start": 1250.71,
+      "end": 1255.99,
+      "en": "post it to the Q&A so I and other students can enjoy what you have discovered.",
+      "zh": "貼到問答區，讓我和其他同學也欣賞你的發現。"
+    },
+    {
+      "start": 1256.71,
+      "end": 1264.68,
+      "en": "It is actually quite easy to go into a model with the little virtual scalpel and change some numbers here and there.",
+      "zh": "拿著虛擬小手術刀，進入模型、改改這裡那裡的數字，其實很容易。"
+    },
+    {
+      "start": 1265.24,
+      "end": 1275.8,
+      "en": "The real challenge of mechanistic interpretability is trying to make clear hypotheses about what to manipulate and what to replace the numbers with.",
+      "zh": "機制可解釋性的真正挑戰，是對要修改什麼、用什麼替換數字，提出清楚假設。"
+    },
+    {
+      "start": 1276.4,
+      "end": 1284.56,
+      "en": "For example, here in this code challenge, we replaced the entire Q matrix, but we could have been",
+      "zh": "例如這個挑戰替換了整個 Q 矩陣，但可以"
+    },
+    {
+      "start": 1284.56,
+      "end": 1293.08,
+      "en": "more precise by just replacing one attention head, and maybe even just one embedding dimension inside one attention head.",
+      "zh": "更精確，只替換一個注意力頭，甚至其中的一個嵌入維度。"
+    },
+    {
+      "start": 1293.72,
+      "end": 1301.24,
+      "en": "And to make matters even more complicated, it's possible that the real impact of a selective manipulation",
+      "zh": "更複雜的是，選擇性修改的真正影響，可能只有"
+    },
+    {
+      "start": 1301.48,
+      "end": 1308.28,
+      "en": "is only apparent when the model is processing certain categories or contexts of language.",
+      "zh": "模型處理某些類別、某種語言上下文時才明顯。"
+    },
+    {
+      "start": 1308.8,
+      "end": 1316.56,
+      "en": "In other words, the experiments in causal mechanistic interpretability are easy to run, but knowing",
+      "zh": "換句話說，因果機制可解釋性的實驗很容易執行，但知道"
+    },
+    {
+      "start": 1316.6,
+      "end": 1322.08,
+      "en": "what experiments to do and how to interpret the results is actually really difficult.",
+      "zh": "該做什麼實驗、如何解讀結果，其實非常困難。"
+    }
+  ]
+}

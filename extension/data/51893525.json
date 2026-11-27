@@ -1,0 +1,871 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893525",
+  "title": "CodeChallenge: Residual stream path length decomposition (part 1)",
+  "section": 20,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "47d0ef2fafcda0c73679f2db602bc8142fb5e86cfd988fef44bde0ac7051e638",
+  "cues": [
+    {
+      "start": 2.4,
+      "end": 8.92,
+      "en": "Welcome to this code challenge on path lengths and transformer adjustments.",
+      "zh": "歡迎來到這次關於路徑長度與 Transformer 調整的程式挑戰。"
+    },
+    {
+      "start": 9.44,
+      "end": 16.4,
+      "en": "I think that this code challenge is a really nice integration of several concepts from earlier in the",
+      "zh": "我覺得，這次挑戰很好地整合了課程前面幾個"
+    },
+    {
+      "start": 16.4,
+      "end": 23.2,
+      "en": "course, including calculating path length from the previous video, and also concepts about how the",
+      "zh": "概念，包括上一支影片的路徑長度計算，以及"
+    },
+    {
+      "start": 23.2,
+      "end": 33.52,
+      "en": "attention and MLP subblocks contribute to the output of each transformer block, which we measure through the hidden states.",
+      "zh": "注意力與 MLP 子區塊，如何共同貢獻每個 Transformer 區塊輸出，而我們透過隱藏狀態測量輸出。"
+    },
+    {
+      "start": 34.52,
+      "end": 39.76,
+      "en": "Exercise one involves just setting things up for the rest of the code challenge.",
+      "zh": "練習一，只是為挑戰剩餘部分做好準備。"
+    },
+    {
+      "start": 40.32,
+      "end": 43.24,
+      "en": "So import GPT two large.",
+      "zh": "先匯入 GPT2-large。"
+    },
+    {
+      "start": 43.52,
+      "end": 45.52,
+      "en": "Remember that this one.",
+      "zh": "記住這個版本，"
+    },
+    {
+      "start": 45.52,
+      "end": 55.84,
+      "en": "This model version has 36 transformer blocks, and it also has an embedding dimension of 1280.",
+      "zh": "有 36 個 Transformer 區塊，嵌入維度為 1,280。"
+    },
+    {
+      "start": 56.48,
+      "end": 63.85,
+      "en": "Now, unlike in the previous video, We are not going to worry about replicating the findings here in",
+      "zh": "與上一支影片不同，這裡不會特別研究結果能否在"
+    },
+    {
+      "start": 63.85,
+      "end": 70.93,
+      "en": "other models, although of course that would be a fantastic extension if you want to do that on your own.",
+      "zh": "其他模型重現，但如果想自行延伸，那當然很棒。"
+    },
+    {
+      "start": 71.53,
+      "end": 80.97,
+      "en": "What I want you to do here is implant hooks into the outputs of the attention and MLP subblocks in the",
+      "zh": "這裡要請你在注意力與 MLP 子區塊的輸出安裝 hook，"
+    },
+    {
+      "start": 80.97,
+      "end": 87.21000000000001,
+      "en": "OpenAI model terminology that corresponds to these C proj layers here.",
+      "zh": "在 OpenAI 模型術語中，對應這些 c_proj 層。"
+    },
+    {
+      "start": 87.28999999999999,
+      "end": 92.05,
+      "en": "So there's a C proj for attention and a C proj for MLP.",
+      "zh": "所以注意力有一個 c_proj，MLP 也有一個 c_proj。"
+    },
+    {
+      "start": 93.25,
+      "end": 99.49000000000001,
+      "en": "And remember that these are the outputs of the attention and MLP transformations.",
+      "zh": "記住，這些是注意力與 MLP 轉換的輸出，"
+    },
+    {
+      "start": 99.69,
+      "end": 104.72999999999999,
+      "en": "After all of the internal calculations for the adjustments have been made.",
+      "zh": "位於內部所有調整計算完成之後，"
+    },
+    {
+      "start": 104.97,
+      "end": 110.05,
+      "en": "But before they actually get added back onto the residual stream.",
+      "zh": "但還沒真正加回殘差流之前。"
+    },
+    {
+      "start": 110.65,
+      "end": 118.86,
+      "en": "And that means that these vectors that you get from C proj are not the token embeddings vectors themselves,",
+      "zh": "因此，從 c_proj 取得的向量，不是 token 嵌入向量本身，"
+    },
+    {
+      "start": 119.14,
+      "end": 126.66,
+      "en": "but instead are the adjustments to the token embeddings vectors that are passing along the residual stream.",
+      "zh": "而是對沿殘差流傳遞之 token 嵌入向量的調整。"
+    },
+    {
+      "start": 127.42,
+      "end": 138.54,
+      "en": "Anyway, once you create an implant those hooks, then you can paste in and tokenize the Nietzsche text that I used in the previous video.",
+      "zh": "總之，建立並安裝這些 hook 後，就能貼上、token 化上一支影片的尼采文字。"
+    },
+    {
+      "start": 139.18,
+      "end": 144.94,
+      "en": "And then you can do a forward pass through the model to get the activations from the hooks.",
+      "zh": "接著讓模型執行一次前向傳播，透過 hook 取得活化。"
+    },
+    {
+      "start": 144.98,
+      "end": 148.14,
+      "en": "And you also want to get the hidden states outputs.",
+      "zh": "也要取得隱藏狀態輸出。"
+    },
+    {
+      "start": 148.62,
+      "end": 160.14,
+      "en": "Finally, you can have a look through the activations in terms of the names of the activations from the hooks and also the sizes of the activation matrices.",
+      "zh": "最後，可以查看 hook 活化的名稱，以及活化矩陣的大小。"
+    },
+    {
+      "start": 160.34,
+      "end": 165.34,
+      "en": "This is just to make sure that these sizes are consistent with what you expect.",
+      "zh": "只是確保大小符合預期。"
+    },
+    {
+      "start": 165.74,
+      "end": 171.26,
+      "en": "And also, yeah, this will just help you make sure you don't have any coding bugs or anything that",
+      "zh": "另外也有助於確認，沒有程式錯誤，或任何"
+    },
+    {
+      "start": 171.26,
+      "end": 178.03,
+      "en": "would prevent you from accessing and analyzing the Using the data in later exercises.",
+      "zh": "讓你無法在後面練習存取、分析、使用資料的問題。"
+    },
+    {
+      "start": 178.82999999999998,
+      "end": 186.63,
+      "en": "So now is your opportunity to pause the video, copy, paste, modify code, and solve exercise one.",
+      "zh": "現在可以暫停影片，複製、貼上、修改程式，完成練習一。"
+    },
+    {
+      "start": 187.15,
+      "end": 192.27,
+      "en": "I will now switch to code, but only fairly briefly just to show the updated code.",
+      "zh": "接著短暫切換到程式碼，展示更新後的程式。"
+    },
+    {
+      "start": 193.11,
+      "end": 202.75,
+      "en": "In a later exercise in exercise four, we will use the Pearson R correlation function from the Scipy.stats",
+      "zh": "後面的練習四，會使用 scipy.stats"
+    },
+    {
+      "start": 202.79,
+      "end": 209.19,
+      "en": "library, and we will also use the FDR correction function from Statsmodels.",
+      "zh": "函式庫中的 Pearson r 相關函式，也會使用 Statsmodels 的 FDR 校正函式。"
+    },
+    {
+      "start": 209.63,
+      "end": 213.59,
+      "en": "This will be used to correct for multiple comparisons.",
+      "zh": "它會用來校正多重比較。"
+    },
+    {
+      "start": 213.75,
+      "end": 216.99,
+      "en": "Anyway, I will get back to these two functions later.",
+      "zh": "總之，稍後再回來看這兩個函式。"
+    },
+    {
+      "start": 217.39,
+      "end": 220.07,
+      "en": "So otherwise these libraries you've seen before.",
+      "zh": "其他函式庫以前都看過。"
+    },
+    {
+      "start": 220.39,
+      "end": 223.47,
+      "en": "Here I'm importing GPT two large.",
+      "zh": "這裡匯入 GPT2-large。"
+    },
+    {
+      "start": 223.99,
+      "end": 229.19,
+      "en": "Here I'm defining and then implanting the hooks for attention.",
+      "zh": "這裡定義並安裝注意力"
+    },
+    {
+      "start": 229.23,
+      "end": 231.27,
+      "en": "Proj and MLP proj.",
+      "zh": "proj，以及 MLP proj 的 hook。"
+    },
+    {
+      "start": 231.27,
+      "end": 235.44,
+      "en": "You can see I'm attaching those to the C proj layers.",
+      "zh": "可以看到，將它們接到 c_proj 層。"
+    },
+    {
+      "start": 235.44,
+      "end": 241.56,
+      "en": "So again this is not the qkv matrices and the softmax and so on.",
+      "zh": "所以同樣，不是 QKV 矩陣與 softmax 等等，"
+    },
+    {
+      "start": 241.6,
+      "end": 245.44,
+      "en": "This is the final output of the attention subblock.",
+      "zh": "而是注意力子區塊的最終輸出，"
+    },
+    {
+      "start": 245.64,
+      "end": 250.6,
+      "en": "But before it gets added back onto the residual stream.",
+      "zh": "但在加回殘差流之前。"
+    },
+    {
+      "start": 250.72,
+      "end": 253.12,
+      "en": "And same thing for the MLP layer.",
+      "zh": "MLP 層也一樣，"
+    },
+    {
+      "start": 253.16,
+      "end": 256.2,
+      "en": "This is not the expansion and then contraction.",
+      "zh": "不是擴張再收縮的過程，"
+    },
+    {
+      "start": 256.2,
+      "end": 260.84,
+      "en": "This is what happens after the MLP calculations are finished.",
+      "zh": "而是 MLP 計算完成之後的結果。"
+    },
+    {
+      "start": 260.84,
+      "end": 266.92,
+      "en": "And we are yeah this is the adjustment to the embeddings vectors.",
+      "zh": "對，這是嵌入向量的調整。"
+    },
+    {
+      "start": 267.44,
+      "end": 267.84,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 267.88,
+      "end": 270.12,
+      "en": "So uh run that code.",
+      "zh": "執行這段程式。"
+    },
+    {
+      "start": 270.32,
+      "end": 274.68,
+      "en": "Here is the text literally copy pasted from the previous video.",
+      "zh": "這裡的文字，真的從上一支影片直接複製貼上。"
+    },
+    {
+      "start": 274.76,
+      "end": 278.12,
+      "en": "And we're getting the output uh, hidden states here.",
+      "zh": "這裡取得輸出的 hidden states。"
+    },
+    {
+      "start": 278.6,
+      "end": 278.92,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 278.96,
+      "end": 282.96,
+      "en": "And then yeah, this is just, uh, confirming some of the sizes.",
+      "zh": "接著只是確認一些大小。"
+    },
+    {
+      "start": 283.15999999999997,
+      "end": 286.08,
+      "en": "So there's 342 tokens, I think.",
+      "zh": "我想有 342 個 token，"
+    },
+    {
+      "start": 286.12,
+      "end": 286.48,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 286.76,
+      "end": 288.92,
+      "en": "Uh, one stream of text.",
+      "zh": "一段文字串。"
+    },
+    {
+      "start": 288.92,
+      "end": 294.73,
+      "en": "So batch size of one and 180 embeddings dimensions in this model.",
+      "zh": "所以批次大小為 1，這個模型有 180 個嵌入維度。"
+    },
+    {
+      "start": 295.97,
+      "end": 306.05,
+      "en": "Now for some analyses, the goal of exercise two is to calculate and visualize the cosine similarities",
+      "zh": "現在開始分析。練習二的目標，是計算並視覺化"
+    },
+    {
+      "start": 306.05,
+      "end": 309.73,
+      "en": "between the attention and MLP adjustments.",
+      "zh": "注意力與 MLP 調整之間的餘弦相似度。"
+    },
+    {
+      "start": 310.01,
+      "end": 314.61,
+      "en": "Now we're not doing any path lengths or angles or anything like that just yet.",
+      "zh": "現在還不做路徑長度、角度之類的分析。"
+    },
+    {
+      "start": 314.93,
+      "end": 326.37,
+      "en": "Here in this exercise, we just want to make a basic assessment of how the attention and the MLP adjustments are related to each other per token.",
+      "zh": "這個練習，只想初步評估，每個 token 的注意力與 MLP 調整，彼此有什麼關係。"
+    },
+    {
+      "start": 326.97,
+      "end": 335.81,
+      "en": "So loop over all of the tokens in the text and over all of the layers the transformer blocks.",
+      "zh": "逐一迭代文字中的所有 token，以及所有層、所有 Transformer 區塊。"
+    },
+    {
+      "start": 336.21,
+      "end": 342.97,
+      "en": "And then for each token get the attention and MLP token vector adjustments.",
+      "zh": "接著對每個 token，取得注意力與 MLP 的 token 向量調整。"
+    },
+    {
+      "start": 343.25,
+      "end": 349.25,
+      "en": "So that means that for each token and each layer, that's going to give you one vector for each of the",
+      "zh": "也就是對每個 token、每一層，會取得 Transformer"
+    },
+    {
+      "start": 349.25,
+      "end": 356.3,
+      "en": "transformer block subparts, and each of those vectors is 1280 elements long.",
+      "zh": "區塊各個子部分的一個向量，每個向量長度都是 1,280 個元素。"
+    },
+    {
+      "start": 356.34000000000003,
+      "end": 360.3,
+      "en": "Of course, that corresponds to the embeddings dimensionality.",
+      "zh": "當然，這對應嵌入維度。"
+    },
+    {
+      "start": 361.18,
+      "end": 369.58,
+      "en": "Then you can calculate the cosine similarity between the attention and MLP adjustments vectors.",
+      "zh": "接著計算注意力與 MLP 調整向量之間的餘弦相似度。"
+    },
+    {
+      "start": 370.1,
+      "end": 373.9,
+      "en": "You can plot those results in two ways as I'm showing here.",
+      "zh": "可以像這裡一樣，用兩種方式畫出結果。"
+    },
+    {
+      "start": 374.18,
+      "end": 377.06,
+      "en": "So let me first describe this plot on the left.",
+      "zh": "先說明左邊這張圖。"
+    },
+    {
+      "start": 377.46,
+      "end": 380.7,
+      "en": "The x axis here is the transformer layer.",
+      "zh": "x 軸是 Transformer 層，"
+    },
+    {
+      "start": 381.06,
+      "end": 387.38,
+      "en": "The y axis is cosine similarity between the attention and MLP adjustments vectors.",
+      "zh": "y 軸是注意力與 MLP 調整向量之間的餘弦相似度。"
+    },
+    {
+      "start": 388.38,
+      "end": 398.42,
+      "en": "And this little gray box over here is the average of the cosine similarities over all of the 342 tokens.",
+      "zh": "這個小灰色方塊，是全部 342 個 token 的餘弦相似度平均。"
+    },
+    {
+      "start": 398.62,
+      "end": 402.26,
+      "en": "Because we have so many tokens to average over.",
+      "zh": "因為有這麼多 token 可以取平均，"
+    },
+    {
+      "start": 402.5,
+      "end": 409.96,
+      "en": "You can also calculate the standard deviation of the cosine similarities over that set over all the tokens.",
+      "zh": "也能對整組、全部 token 的餘弦相似度，計算標準差。"
+    },
+    {
+      "start": 410.15999999999997,
+      "end": 413.4,
+      "en": "And that's what these vertical lines here correspond to.",
+      "zh": "這些垂直線就對應標準差。"
+    },
+    {
+      "start": 413.84000000000003,
+      "end": 415.15999999999997,
+      "en": "So this is an error bar.",
+      "zh": "這是誤差棒，"
+    },
+    {
+      "start": 415.15999999999997,
+      "end": 417.36,
+      "en": "That's the function that you use in Python.",
+      "zh": "也是在 Python 使用的函式。"
+    },
+    {
+      "start": 417.52,
+      "end": 418.88,
+      "en": "This is for one layer.",
+      "zh": "這是一層，"
+    },
+    {
+      "start": 419,
+      "end": 423.52,
+      "en": "And then you just show these error bar plots for all of the layers.",
+      "zh": "接著對所有層顯示這種誤差棒圖。"
+    },
+    {
+      "start": 424.04,
+      "end": 432.52,
+      "en": "You can already see from the y axis ticks that there's going to be more positive than negative cosine similarities.",
+      "zh": "從 y 軸刻度，已經能看到，正的餘弦相似度會比負的多。"
+    },
+    {
+      "start": 432.72,
+      "end": 437.72,
+      "en": "But it will be interesting to see whether they are consistently large and positive.",
+      "zh": "但看看它們是否一直很大、一直為正，會很有意思。"
+    },
+    {
+      "start": 437.76,
+      "end": 441.92,
+      "en": "Maybe they go down to zero or you know, some other pattern could happen.",
+      "zh": "也許會降到零，或者出現其他模式。"
+    },
+    {
+      "start": 442.48,
+      "end": 449.96,
+      "en": "Now, the way to interpret this cosine similarity here is that if the cosine similarity is really high,",
+      "zh": "這裡餘弦相似度的解讀方式是，如果很高，"
+    },
+    {
+      "start": 450.6,
+      "end": 457.24,
+      "en": "then the attention and the MLP adjustment vectors are really similar across the tokens.",
+      "zh": "表示注意力與 MLP 調整向量，在各個 token 上非常相似。"
+    },
+    {
+      "start": 457.44,
+      "end": 466,
+      "en": "In fact, if the cosine similarity were exactly one, then that would mean that the two subcomponents",
+      "zh": "其實，如果餘弦相似度恰好為 1，表示 Transformer"
+    },
+    {
+      "start": 466,
+      "end": 473.69,
+      "en": "of the transformer block are entirely redundant because the attention and MLP layers will be adding",
+      "zh": "區塊的兩個子元件完全冗餘，因為注意力與 MLP 層，會將"
+    },
+    {
+      "start": 473.89,
+      "end": 479.45,
+      "en": "exactly the same information back onto the original token embeddings vector.",
+      "zh": "完全相同的資訊，加回原始 token 嵌入向量。"
+    },
+    {
+      "start": 479.93,
+      "end": 486.85,
+      "en": "So we certainly don't expect the correlation to be one, and you don't even, you know, it's obvious from this plot here as well.",
+      "zh": "所以當然不預期相關為 1，從這張圖也看得很清楚。"
+    },
+    {
+      "start": 487.09,
+      "end": 494.41,
+      "en": "But the question is what do what does the range of these cosine similarities look like empirically in this text?",
+      "zh": "但問題是，這段文字中，實際觀察到的餘弦相似度範圍如何？"
+    },
+    {
+      "start": 494.85,
+      "end": 496.33,
+      "en": "Okay, so that's for the left plot.",
+      "zh": "好，以上是左圖。"
+    },
+    {
+      "start": 496.33,
+      "end": 505.81,
+      "en": "Over here on the right, I have the histogram of all of the cosine similarity values over all the tokens and all the layers.",
+      "zh": "右邊則是全部 token、全部層，所有餘弦相似度值的直方圖。"
+    },
+    {
+      "start": 505.97,
+      "end": 510.73,
+      "en": "So that's going to be 342 times 36 numbers.",
+      "zh": "所以有 342 乘以 36 個數字。"
+    },
+    {
+      "start": 510.89,
+      "end": 514.85,
+      "en": "And here is the histogram of all of those numbers.",
+      "zh": "這裡就是所有數字的直方圖。"
+    },
+    {
+      "start": 515.53,
+      "end": 517.81,
+      "en": "So that's for exercise two.",
+      "zh": "以上是練習二。"
+    },
+    {
+      "start": 517.85,
+      "end": 520.57,
+      "en": "I hope you enjoy working through this exercise.",
+      "zh": "希望你享受完成練習的過程。"
+    },
+    {
+      "start": 520.85,
+      "end": 523.69,
+      "en": "You should now pause the video and get to work.",
+      "zh": "現在請暫停影片，開始動手。"
+    },
+    {
+      "start": 523.85,
+      "end": 528.9,
+      "en": "And now I will switch to code, show my solution, and interpret the findings.",
+      "zh": "接著切換到程式碼，展示解答，解讀結果。"
+    },
+    {
+      "start": 529.78,
+      "end": 532.9,
+      "en": "Here I'm looping over all of the layers.",
+      "zh": "這裡逐一迭代所有層，"
+    },
+    {
+      "start": 532.9,
+      "end": 537.54,
+      "en": "Here I'm looping over all of the tokens in the text.",
+      "zh": "再逐一迭代文字中的所有 token。"
+    },
+    {
+      "start": 537.58,
+      "end": 547.1,
+      "en": "Now, I suppose what I probably could be doing is ignoring the first token based on just claims I've made several times in this course.",
+      "zh": "其實，也許應該根據課程中多次提出的說法，忽略第一個 token。"
+    },
+    {
+      "start": 547.14,
+      "end": 554.98,
+      "en": "And what you will see in a couple of exercises from now that the first token is weird and not typical of all the other tokens.",
+      "zh": "再過幾個練習，會看到第一個 token 很奇怪，並不代表其他 token 的典型情況。"
+    },
+    {
+      "start": 554.98,
+      "end": 556.22,
+      "en": "But anyway, this is.",
+      "zh": "但總之，這就是，"
+    },
+    {
+      "start": 556.26,
+      "end": 557.82,
+      "en": "Yeah, this is just how I wrote the code.",
+      "zh": "我寫程式的方式。"
+    },
+    {
+      "start": 558.26,
+      "end": 560.62,
+      "en": "Okay, so loop over all the tokens.",
+      "zh": "好，迭代所有 token。"
+    },
+    {
+      "start": 560.62,
+      "end": 568.46,
+      "en": "Here I am extracting the activations for attention and MLP from this layer and this token.",
+      "zh": "這裡從這一層、這個 token，擷取注意力與 MLP 活化，"
+    },
+    {
+      "start": 568.74,
+      "end": 573.14,
+      "en": "And then I am calculating the cosine similarity between them.",
+      "zh": "再計算兩者之間的餘弦相似度。"
+    },
+    {
+      "start": 573.46,
+      "end": 581.66,
+      "en": "Now at various points in this course, I've calculated cosine similarity manually by directly implementing the formula.",
+      "zh": "課程不同地方，我曾直接實作公式，手動計算餘弦相似度，"
+    },
+    {
+      "start": 582.02,
+      "end": 585.75,
+      "en": "Sometimes I use the scikit learn implementation.",
+      "zh": "有時使用 scikit-learn 的實作。"
+    },
+    {
+      "start": 585.75,
+      "end": 588.47,
+      "en": "Here I'm using the PyTorch implementation.",
+      "zh": "這裡則使用 PyTorch 實作。"
+    },
+    {
+      "start": 588.99,
+      "end": 595.19,
+      "en": "If you do not have multi-dimensional tensors then this is going to crash.",
+      "zh": "如果沒有多維張量，這就會出錯。"
+    },
+    {
+      "start": 595.31,
+      "end": 601.91,
+      "en": "So if you try to do something like this, then these variables here, I can even run this code here.",
+      "zh": "所以如果試著這樣做，這些變數，我甚至可以直接執行給你看，"
+    },
+    {
+      "start": 602.27,
+      "end": 604.39,
+      "en": "This is going to crash over here.",
+      "zh": "這裡會出錯。"
+    },
+    {
+      "start": 604.59,
+      "end": 611.87,
+      "en": "And the problem is that PyTorch is expecting these to be multi-dimensional tensors.",
+      "zh": "問題是，PyTorch 預期它們是多維張量，"
+    },
+    {
+      "start": 611.87,
+      "end": 615.23,
+      "en": "But they're actually just single vectors here.",
+      "zh": "但它們其實只是單一向量。"
+    },
+    {
+      "start": 615.59,
+      "end": 617.63,
+      "en": "So that's really easy to solve.",
+      "zh": "很容易解決，"
+    },
+    {
+      "start": 617.67,
+      "end": 626.35,
+      "en": "You can just unsqueeze it or basically add more dimensions to these vectors and then it's going to work okay.",
+      "zh": "只要 unsqueeze，基本上替向量增加維度，就能運作。"
+    },
+    {
+      "start": 626.39,
+      "end": 631.03,
+      "en": "If you solve this by writing out the cosine similarity formula manually.",
+      "zh": "如果你是手動寫出餘弦相似度公式解決，"
+    },
+    {
+      "start": 631.23,
+      "end": 632.19,
+      "en": "Fantastic.",
+      "zh": "很好，"
+    },
+    {
+      "start": 632.23,
+      "end": 633.23,
+      "en": "That's really great.",
+      "zh": "那非常棒。"
+    },
+    {
+      "start": 633.63,
+      "end": 635.79,
+      "en": "Okay here I'm showing the error bars.",
+      "zh": "好，這裡顯示誤差棒。"
+    },
+    {
+      "start": 635.95,
+      "end": 640.71,
+      "en": "So these are the x values just indices going up to the number of layers.",
+      "zh": "這些是 x 值，只是一直到層數的索引。"
+    },
+    {
+      "start": 641.16,
+      "end": 648.16,
+      "en": "Here are the cosine similarities I'm averaging over x is one, which is the token.",
+      "zh": "這裡是餘弦相似度，沿 axis=1，也就是 token 軸取平均，"
+    },
+    {
+      "start": 648.16,
+      "end": 653.04,
+      "en": "So it's going to be the average over all of the tokens for each layer.",
+      "zh": "所以是對每一層的所有 token 取平均。"
+    },
+    {
+      "start": 653.4,
+      "end": 655.56,
+      "en": "And then the standard deviation.",
+      "zh": "接著是標準差。"
+    },
+    {
+      "start": 655.68,
+      "end": 656.16,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 656.36,
+      "end": 661.36,
+      "en": "And then uh let's see over here in the right plot I'm just showing the histogram.",
+      "zh": "右邊這張圖，只顯示直方圖。"
+    },
+    {
+      "start": 661.36,
+      "end": 667.08,
+      "en": "I'm basically just flattening out all of this matrix just to get all of those values in here.",
+      "zh": "基本上，將整個矩陣攤平，取得全部數值。"
+    },
+    {
+      "start": 667.48,
+      "end": 668.76,
+      "en": "And here's what it looks like.",
+      "zh": "這就是結果。"
+    },
+    {
+      "start": 668.76,
+      "end": 679.96,
+      "en": "So we see that the cosine similarity between the attention and the MLP sublayers is basically zero for most of the transformer block.",
+      "zh": "可以看到，在大部分 Transformer 區塊中，注意力與 MLP 子層的餘弦相似度，基本上是零。"
+    },
+    {
+      "start": 680.12,
+      "end": 683.96,
+      "en": "Now I haven't done any statistical analyses here.",
+      "zh": "這裡沒有做任何統計分析。"
+    },
+    {
+      "start": 683.96,
+      "end": 687.4,
+      "en": "If you would like to, uh, do that, that's great.",
+      "zh": "如果想做，當然很好，"
+    },
+    {
+      "start": 687.56,
+      "end": 689.04,
+      "en": "But I haven't done that here.",
+      "zh": "但我這裡沒做，"
+    },
+    {
+      "start": 689.04,
+      "end": 692.8,
+      "en": "So I can only make qualitative interpretations.",
+      "zh": "所以只能做質性解讀。"
+    },
+    {
+      "start": 692.8,
+      "end": 700.61,
+      "en": "But it certainly is the case that, uh, except for the very beginning and the very end, Most of the",
+      "zh": "不過，確實可以看到，除了最一開始與最末端之外，大部分由注意力"
+    },
+    {
+      "start": 700.93,
+      "end": 707.53,
+      "en": "adjustments that are calculated by the attention and the MLP subblocks are uncorrelated.",
+      "zh": "與 MLP 子區塊算出的調整，都是不相關的。"
+    },
+    {
+      "start": 707.53,
+      "end": 711.85,
+      "en": "They are orthogonal to each other, and that is actually pretty sensible.",
+      "zh": "它們彼此正交，這其實相當合理。"
+    },
+    {
+      "start": 711.85,
+      "end": 721.97,
+      "en": "It means that the calculations engaged by the attention mechanism and the calculations engaged by the MLP sublayer are different from each other.",
+      "zh": "表示注意力機制與 MLP 子層所進行的計算，彼此不同。"
+    },
+    {
+      "start": 722.37,
+      "end": 724.97,
+      "en": "And we also see that in the histogram over here.",
+      "zh": "這裡的直方圖也能看出，"
+    },
+    {
+      "start": 724.97,
+      "end": 730.05,
+      "en": "So most of the values are clustered around zero cosine similarity.",
+      "zh": "大部分數值集中在餘弦相似度零附近。"
+    },
+    {
+      "start": 730.17,
+      "end": 732.29,
+      "en": "And then we have this little shoulder up here.",
+      "zh": "這裡則有一個小肩峰，"
+    },
+    {
+      "start": 732.29,
+      "end": 735.77,
+      "en": "And that corresponds to the beginning and the end.",
+      "zh": "對應開頭與末端。"
+    },
+    {
+      "start": 736.77,
+      "end": 740.21,
+      "en": "I hope you are enjoying this code challenge so far.",
+      "zh": "希望目前為止，你喜歡這次程式挑戰。"
+    },
+    {
+      "start": 740.65,
+      "end": 743.25,
+      "en": "We're about halfway through the code challenge.",
+      "zh": "大概完成一半了。"
+    },
+    {
+      "start": 743.25,
+      "end": 748.69,
+      "en": "There's another several exercises to go, so I recommend getting up from your chair.",
+      "zh": "還有幾個練習，所以建議離開椅子站起來，"
+    },
+    {
+      "start": 748.89,
+      "end": 750.29,
+      "en": "Splash some water in your face.",
+      "zh": "往臉上潑點水，"
+    },
+    {
+      "start": 750.29,
+      "end": 753.21,
+      "en": "Same thing that I'd say every time I cut these videos.",
+      "zh": "就是每次影片分段，我都會說的那些事情。"
+    },
+    {
+      "start": 753.33,
+      "end": 756.05,
+      "en": "Anyway, let's continue in the next video.",
+      "zh": "總之，下一支影片繼續。"
+    }
+  ]
+}

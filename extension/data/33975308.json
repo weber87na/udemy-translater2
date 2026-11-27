@@ -1,0 +1,751 @@
+{
+  "courseId": "4734870",
+  "lectureId": "33975308",
+  "title": "Replicating a Vision Transformer - High Level Overview",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "0d8474f7275d1e69b9acfb1a4e8f866537064b7e687582aa33d6611eb730ecad",
+  "cues": [
+    {
+      "start": 0.36,
+      "end": 1.47,
+      "en": "Welcome back.",
+      "zh": "歡迎回來。"
+    },
+    {
+      "start": 1.86,
+      "end": 6.81,
+      "en": "In the last video, we visualized one of our samples of data, a lovely image of pizza.",
+      "zh": "上一段影片畫出一筆資料樣本，是一張可愛的披薩影像。"
+    },
+    {
+      "start": 6.84,
+      "end": 8.52,
+      "en": "This might change because of randomness.",
+      "zh": "這可能因為隨機性而改變。"
+    },
+    {
+      "start": 8.52,
+      "end": 12.95,
+      "en": "So don't worry if you don't get the same one, because our data is going to be loaded randomly.",
+      "zh": "所以沒取得同一張也別擔心，資料會隨機載入。"
+    },
+    {
+      "start": 12.96,
+      "end": 15.24,
+      "en": "We just needed an example to look at.",
+      "zh": "我們只是需要一個可觀察的例子。"
+    },
+    {
+      "start": 15.78,
+      "end": 21,
+      "en": "But now let's start to move towards recreating the vision, transform architecture.",
+      "zh": "現在開始往重建 Vision Transformer 架構前進。"
+    },
+    {
+      "start": 21.06,
+      "end": 23.64,
+      "en": "So we're going to spend the next couple of videos.",
+      "zh": "接下來幾段影片，"
+    },
+    {
+      "start": 23.64,
+      "end": 27.24,
+      "en": "I'm not sure how many are kind of breaking this down to give an overview.",
+      "zh": "不確定會有幾段，會先拆解它，介紹概觀。"
+    },
+    {
+      "start": 27.24,
+      "end": 30.81,
+      "en": "And then we're going to start writing code to sort of match that overview.",
+      "zh": "然後開始寫出對應這個概觀的程式碼。"
+    },
+    {
+      "start": 31.08,
+      "end": 35.1,
+      "en": "But we've got a few pieces of the puzzle here and we're going to be jumping back and forth.",
+      "zh": "這裡有幾塊拼圖，我們會來回查看。"
+    },
+    {
+      "start": 35.13,
+      "end": 42.02,
+      "en": "Of course, the whole paper is pieces of the puzzle together, but the main ones we're going to be concerned with is figure one.",
+      "zh": "當然，整篇論文包含所有拼圖，但最主要會關注圖 1。"
+    },
+    {
+      "start": 42.03,
+      "end": 46.03,
+      "en": "So this is the visual overview of the architecture.",
+      "zh": "這是架構的視覺化概觀。"
+    },
+    {
+      "start": 46.05,
+      "end": 48.44,
+      "en": "And then we have a method here.",
+      "zh": "這裡還有方法說明。"
+    },
+    {
+      "start": 48.45,
+      "end": 54.36,
+      "en": "So section 3.1, if you want to read anything in the paper twice, I'd recommend reading section 3.1.",
+      "zh": "就是第 3.1 節。如果要把論文某段讀兩次，我推薦第 3.1 節。"
+    },
+    {
+      "start": 54.36,
+      "end": 55.53,
+      "en": "So this is text.",
+      "zh": "這是文字。"
+    },
+    {
+      "start": 55.86,
+      "end": 58.86,
+      "en": "Then we have four equations.",
+      "zh": "接著有四個方程式。"
+    },
+    {
+      "start": 58.86,
+      "end": 62.64,
+      "en": "So these four equations make up each of the layers in.",
+      "zh": "這四個方程式構成各個層，"
+    },
+    {
+      "start": 63.51,
+      "end": 68.76,
+      "en": "Mostly the transformer encoder player over here, but they make up the vision transformer.",
+      "zh": "主要是這裡的 Transformer 編碼器層，也構成了 Vision Transformer。"
+    },
+    {
+      "start": 69.5,
+      "end": 70.76,
+      "en": "We're talking everything together.",
+      "zh": "我們是在把全部串起來。"
+    },
+    {
+      "start": 70.76,
+      "end": 73.52,
+      "en": "It's kind of a little bit higgledy piggledy, but that's all right.",
+      "zh": "有點東跳西跳，不過沒關係。"
+    },
+    {
+      "start": 73.52,
+      "end": 75.95,
+      "en": "We'll bring it together for equations.",
+      "zh": "會把這四個方程式整合起來。"
+    },
+    {
+      "start": 75.95,
+      "end": 79.31,
+      "en": "And then finally, we also have table one.",
+      "zh": "最後還有表 1。"
+    },
+    {
+      "start": 79.37,
+      "end": 82.97,
+      "en": "So there's I love how they're all on different pages as well.",
+      "zh": "我很喜歡它們竟然全在不同頁面。"
+    },
+    {
+      "start": 83.3,
+      "end": 88.64,
+      "en": "Now we're going to be focusing on building VIT base, which is the smallest version of the Vision transformer.",
+      "zh": "我們會建立 ViT-Base，也就是 Vision Transformer 中最小的版本。"
+    },
+    {
+      "start": 88.64,
+      "end": 95.75,
+      "en": "But we're going to build it in a way that if we wanted to increase the hyper parameters, these values here are hyper parameters.",
+      "zh": "不過建立方式會讓我們能增加超參數，這些數值就是超參數。"
+    },
+    {
+      "start": 95.75,
+      "end": 97.37,
+      "en": "Why are they hyper parameters?",
+      "zh": "為什麼叫超參數？"
+    },
+    {
+      "start": 97.37,
+      "end": 103.97,
+      "en": "Because we can set them ourselves If we wanted to increase from that base to these larger versions, we could do that.",
+      "zh": "因為可以自己設定。如果想從 ViT-Base 增加到更大的版本，就可以做到。"
+    },
+    {
+      "start": 104.15,
+      "end": 107.63,
+      "en": "So let's jump back into the keynote.",
+      "zh": "回到簡報。"
+    },
+    {
+      "start": 107.63,
+      "end": 108.89,
+      "en": "Yeah, that's where we want to go.",
+      "zh": "對，就是這裡。"
+    },
+    {
+      "start": 110.03,
+      "end": 110.84,
+      "en": "What's the next slide?",
+      "zh": "下一張是什麼？"
+    },
+    {
+      "start": 110.84,
+      "end": 117.47,
+      "en": "Oh, I should have shown you this before, but this is table three just extracted from the whitepaper and a little treasure here.",
+      "zh": "喔，這應該早點給你看，這是從 ViT 論文取出的表 3，裡面有個小寶藏。"
+    },
+    {
+      "start": 117.47,
+      "end": 120.05,
+      "en": "We've got batch size 4096.",
+      "zh": "批次大小是 4096。"
+    },
+    {
+      "start": 120.14,
+      "end": 121.55,
+      "en": "This is a machine learning paper.",
+      "zh": "這就是重現機器學習論文的"
+    },
+    {
+      "start": 121.55,
+      "end": 123.59,
+      "en": "Replicating is all about it's treasure hunting.",
+      "zh": "精神，是尋寶。"
+    },
+    {
+      "start": 123.59,
+      "end": 128.45,
+      "en": "We need a treasure hunt for the right steps and ingredients to build our vision transformer.",
+      "zh": "要找到正確的步驟與材料，建立 Vision Transformer。"
+    },
+    {
+      "start": 128.6,
+      "end": 130.88,
+      "en": "And then there's an image size 224, two, two, four.",
+      "zh": "影像大小是 224、224。"
+    },
+    {
+      "start": 130.88,
+      "end": 133.49,
+      "en": "So height is 2 to 4 and width is 2 to 4.",
+      "zh": "所以高度 224，寬度 224。"
+    },
+    {
+      "start": 133.49,
+      "end": 135.29,
+      "en": "And there's a whole bunch of different details.",
+      "zh": "還有很多其他細節。"
+    },
+    {
+      "start": 135.29,
+      "end": 140.18,
+      "en": "We're focused on this one that should be a be there a patch size of 16.",
+      "zh": "我們關注這一列，這裡應該是 B，影像區塊大小為 16。"
+    },
+    {
+      "start": 140.18,
+      "end": 141.29,
+      "en": "We'll get to all of this.",
+      "zh": "這些都會介紹。"
+    },
+    {
+      "start": 141.29,
+      "end": 147.89,
+      "en": "We're not training on image net because we don't well, we haven't downloaded Image Net and we're going to do a smaller version of these parameters.",
+      "zh": "我們不會在 ImageNet 上訓練，因為沒有下載 ImageNet，而且會使用這些參數的較小規模版本。"
+    },
+    {
+      "start": 147.89,
+      "end": 152.75,
+      "en": "But if you'd like to do more research, you're more than welcome to figure out what these are.",
+      "zh": "不過如果想多研究，歡迎弄清楚這些代表什麼。"
+    },
+    {
+      "start": 153.02,
+      "end": 160.01,
+      "en": "But here's how I break things down with almost all kinds of neural networks, machine learning models,",
+      "zh": "對幾乎所有神經網路、機器學習模型，"
+    },
+    {
+      "start": 160.01,
+      "end": 167.57,
+      "en": "whatever you name it, deep learning architectures, I break it into inputs, outputs, layers and blocks.",
+      "zh": "或各種深度學習架構，我都會把它拆成輸入、輸出、層與區塊。"
+    },
+    {
+      "start": 168.5,
+      "end": 173.3,
+      "en": "So what are the inputs to your layer to generate some outputs?",
+      "zh": "哪些輸入進入你的層，產生哪些輸出？"
+    },
+    {
+      "start": 173.3,
+      "end": 180.2,
+      "en": "And now often, or very usually a layer contains some kind of function to manipulate an input.",
+      "zh": "通常一個層會包含某種函式，來處理輸入。"
+    },
+    {
+      "start": 180.2,
+      "end": 186.62,
+      "en": "So an input here could be an image, it could be some text, but not in image or text form.",
+      "zh": "輸入可能是影像或文字，但不是以影像或文字的形式。"
+    },
+    {
+      "start": 186.62,
+      "end": 194.06,
+      "en": "It's in numerical form and it goes into a layer and it gets manipulated by some internal functions such as attention.",
+      "zh": "而是數值形式，進入一個層，由注意力之類的內部函式處理。"
+    },
+    {
+      "start": 194.09,
+      "end": 200.42000000000002,
+      "en": "Now this is the self attention formula, which is what the vision transformer and all transformers usually",
+      "zh": "這是自注意力公式，Vision Transformer 和一般 Transformer"
+    },
+    {
+      "start": 200.42000000000002,
+      "end": 209.15,
+      "en": "use is it takes three inputs a query key and value performs a soft max on the query times or matrix.",
+      "zh": "通常都會用到。它接收 query、key、value 三個輸入，先將 query 與"
+    },
+    {
+      "start": 209.15,
+      "end": 215,
+      "en": "Multiply the key transposed over the embedding dimension.",
+      "zh": "key 的轉置做矩陣乘法，再除以嵌入維度，"
+    },
+    {
+      "start": 215,
+      "end": 215.99,
+      "en": "We're going to see all these later.",
+      "zh": "後面會看到。"
+    },
+    {
+      "start": 215.99,
+      "end": 227.81,
+      "en": "The square root of the embedding dimension times V, which is the value and a little bit confusing is that sometimes query key and value can be all the same, hence the term self attention.",
+      "zh": "是嵌入維度的平方根，經 softmax 後乘上 V，也就是 value。有點令人困惑的是，query、key、value 有時可以一樣，所以叫自注意力。"
+    },
+    {
+      "start": 227.96,
+      "end": 235.55,
+      "en": "Now if we look up self attention formula, we might find it images.",
+      "zh": "搜尋 self attention formula，也許在圖片裡能找到。"
+    },
+    {
+      "start": 236.85,
+      "end": 237.5,
+      "en": "There we go.",
+      "zh": "有了。"
+    },
+    {
+      "start": 237.51,
+      "end": 238.23,
+      "en": "Something like that.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 238.23,
+      "end": 239.25,
+      "en": "Basically the same.",
+      "zh": "基本上一樣。"
+    },
+    {
+      "start": 239.25,
+      "end": 246.51,
+      "en": "Yeah, there's the same formula as we've got the same formula here as here.",
+      "zh": "對，這個公式和我們這裡的公式相同。"
+    },
+    {
+      "start": 246.81,
+      "end": 250.1,
+      "en": "And if you want to research, you can go explained.",
+      "zh": "想研究的話，可以再加 explained 搜尋。"
+    },
+    {
+      "start": 250.11,
+      "end": 253.68,
+      "en": "We're going to focus on writing PyTorch to build this.",
+      "zh": "我們會著重寫 PyTorch，建立它。"
+    },
+    {
+      "start": 254.31,
+      "end": 255.54,
+      "en": "So let's jump back.",
+      "zh": "回來吧。"
+    },
+    {
+      "start": 255.91,
+      "end": 256.95,
+      "en": "We're breaking this down.",
+      "zh": "我們正在拆解。"
+    },
+    {
+      "start": 256.95,
+      "end": 258.27,
+      "en": "So that's a single layer.",
+      "zh": "這是一個層。"
+    },
+    {
+      "start": 258.27,
+      "end": 265.51,
+      "en": "A single layer has some inputs and some outputs, and the inputs get manipulated by some sort of function.",
+      "zh": "一個層具有輸入與輸出，輸入會經過某種函式處理。"
+    },
+    {
+      "start": 265.53,
+      "end": 268.23,
+      "en": "An example function could be a tension.",
+      "zh": "函式的例子可以是注意力。"
+    },
+    {
+      "start": 268.23,
+      "end": 272.46,
+      "en": "And in the case of the vision transformer, this is actually used in the architecture.",
+      "zh": "Vision Transformer 的架構裡，確實用到了它。"
+    },
+    {
+      "start": 274.13,
+      "end": 275.84000000000003,
+      "en": "Then we build it up from a layer.",
+      "zh": "接著把層組合起來，"
+    },
+    {
+      "start": 277.92,
+      "end": 280.40999999999997,
+      "en": "To a group of lions into a block.",
+      "zh": "一組層形成一個區塊。"
+    },
+    {
+      "start": 280.56,
+      "end": 291.51,
+      "en": "So a block is a stack of layers, but if a single layer takes inputs and outputs, then a block also takes inputs and outputs, because a block is just a stack of layers.",
+      "zh": "區塊就是堆疊的層。單一層接收輸入、產生輸出，區塊也一樣，因為它只是一組堆疊的層。"
+    },
+    {
+      "start": 291.69,
+      "end": 294.22,
+      "en": "Now, the number of layers in here is arbitrary.",
+      "zh": "這裡的層數是任意的。"
+    },
+    {
+      "start": 294.24,
+      "end": 299.81,
+      "en": "I've just put three because it looks pretty, but you could have five, you could have ten, you could have two.",
+      "zh": "我畫三層只是因為好看，也可以是五層、十層或兩層。"
+    },
+    {
+      "start": 299.82,
+      "end": 306.54,
+      "en": "And if we jump back into the vision transformer, we're going to be doing a fair bit of jumping around, but we can handle it.",
+      "zh": "回到 Vision Transformer。我們會來回切換不少次，不過應付得來。"
+    },
+    {
+      "start": 307.83,
+      "end": 311.04,
+      "en": "A transformer encoder block might have won.",
+      "zh": "一個 Transformer 編碼器區塊可能有一層，"
+    },
+    {
+      "start": 311.04,
+      "end": 315.24,
+      "en": "Norm Multi had attention to three four layers.",
+      "zh": "Norm、多頭注意力，二、三、四層。"
+    },
+    {
+      "start": 315.39,
+      "end": 319.08,
+      "en": "So this is a block of four different layers.",
+      "zh": "所以這是由四個不同層組成的區塊。"
+    },
+    {
+      "start": 319.08,
+      "end": 325.29,
+      "en": "But if we go back here again, the number of layers in a block can generally be arbitrary.",
+      "zh": "再回到這裡，一個區塊的層數通常可以自行決定。"
+    },
+    {
+      "start": 325.56,
+      "end": 332.7,
+      "en": "And then if we go again, we have inputs, we want to stack multiple blocks on top of each other.",
+      "zh": "再往上，把多個區塊堆疊起來，接收輸入，"
+    },
+    {
+      "start": 332.76,
+      "end": 334.53,
+      "en": "We get a model.",
+      "zh": "就得到模型。"
+    },
+    {
+      "start": 335.19,
+      "end": 344.88,
+      "en": "So a model is a stack of blocks, but the same principle remains and we've seen this we've seen this by building neural networks throughout the entire course, is that we have some sort of inputs.",
+      "zh": "模型是一組堆疊的區塊，但原則一樣。整門課建立神經網路時都看過：我們有某種輸入。"
+    },
+    {
+      "start": 344.88,
+      "end": 353.43,
+      "en": "In our case, it's going to be images and we want our outputs to be labels or classification labels such as pizza, steak and sushi.",
+      "zh": "在這裡是影像，想要的輸出是標籤，也就是 pizza、steak、sushi 等分類標籤。"
+    },
+    {
+      "start": 354.03,
+      "end": 360.99,
+      "en": "But these inputs could be almost anything you could imagine in machine learning, as long as you can define your outputs.",
+      "zh": "不過在機器學習中，只要能定義輸出，輸入幾乎可以是你想得到的任何東西。"
+    },
+    {
+      "start": 360.99,
+      "end": 368.22,
+      "en": "Now, the whole goal is to build up layers, blocks and a model to map from the inputs to the outputs.",
+      "zh": "目標就是建立層、區塊與模型，把輸入映射到輸出。"
+    },
+    {
+      "start": 368.46,
+      "end": 374.64,
+      "en": "And the important thing behind the scenes, the model learns the mapping from the inputs to the outputs.",
+      "zh": "關鍵是，模型會在背後學習輸入到輸出的映射。"
+    },
+    {
+      "start": 375.15,
+      "end": 383.88,
+      "en": "So even though we've got quite a task in front of us as 22 pages of research code, the same premise",
+      "zh": "所以即使眼前任務很大，有 22 頁研究內容，基本原則"
+    },
+    {
+      "start": 383.88,
+      "end": 391.68,
+      "en": "remains we have some sort of input, we have some sort of layers and block combination, and then we have some sort of output here.",
+      "zh": "還是不變：某種輸入、層與區塊的組合，以及某種輸出。"
+    },
+    {
+      "start": 393.13,
+      "end": 394.02,
+      "en": "This is a block.",
+      "zh": "這是一個區塊。"
+    },
+    {
+      "start": 394.03,
+      "end": 395.56,
+      "en": "We've got el times X.",
+      "zh": "這裡寫 L×。"
+    },
+    {
+      "start": 395.6,
+      "end": 401.68,
+      "en": "Then we stack a number of blocks on top of each other into this section here, and we have an overall model.",
+      "zh": "把多個區塊堆疊成這個部分，就有完整模型。"
+    },
+    {
+      "start": 401.83,
+      "end": 406.13,
+      "en": "So this is kind of what we're going to be using as our high level overview.",
+      "zh": "這大概就是我們會採用的高層次概觀。"
+    },
+    {
+      "start": 406.15,
+      "end": 416.26,
+      "en": "We have inputs, some data, some outputs, some manipulated data, layers, a function to manipulate an input and a block, which is a group of layers.",
+      "zh": "有輸入，也就是資料；輸出，也就是處理後的資料；層，也就是處理輸入的函式；還有區塊，也就是一組層。"
+    },
+    {
+      "start": 416.26,
+      "end": 420.25,
+      "en": "And then a group of blocks makes up our model architecture.",
+      "zh": "一組區塊就構成模型架構。"
+    },
+    {
+      "start": 420.49,
+      "end": 422.71,
+      "en": "So let's go and write this down.",
+      "zh": "把它寫下來吧。"
+    },
+    {
+      "start": 424.02,
+      "end": 430.5,
+      "en": "This is three which is replicating the overview.",
+      "zh": "這是第 3 節，重現的概觀。"
+    },
+    {
+      "start": 432.91,
+      "end": 433.87,
+      "en": "So I'm going to write.",
+      "zh": "我要寫。"
+    },
+    {
+      "start": 434.32,
+      "end": 438.37,
+      "en": "Looking at a whole machine learning research paper",
+      "zh": "看一整篇機器學習研究論文，"
+    },
+    {
+      "start": 441.01,
+      "end": 445.39,
+      "en": "can be m timi dating.",
+      "zh": "可能令人望而生畏。"
+    },
+    {
+      "start": 446.41,
+      "end": 447.94,
+      "en": "Thank God this is not a spelling bee.",
+      "zh": "幸好這不是拼字比賽。"
+    },
+    {
+      "start": 448.69,
+      "end": 459.31,
+      "en": "I'm focused on writing code here, so in order to make it more understandable, we can break it down",
+      "zh": "我專注寫程式碼。為了更容易理解，可以把它拆成"
+    },
+    {
+      "start": 460.03,
+      "end": 462.22,
+      "en": "into smaller pieces.",
+      "zh": "較小的部分。"
+    },
+    {
+      "start": 462.67,
+      "end": 464.02,
+      "en": "That is the key there.",
+      "zh": "這是重點。"
+    },
+    {
+      "start": 464.02,
+      "end": 466.93,
+      "en": "We break it down, we break the paper down into smaller pieces.",
+      "zh": "把論文拆成小部分。"
+    },
+    {
+      "start": 466.93,
+      "end": 468.13,
+      "en": "We go treasure hunting.",
+      "zh": "去尋寶。"
+    },
+    {
+      "start": 468.13,
+      "end": 469.63,
+      "en": "We find the treasures in here.",
+      "zh": "找出裡面的寶藏。"
+    },
+    {
+      "start": 469.63,
+      "end": 472.03,
+      "en": "We find the different layers, we find the different blocks.",
+      "zh": "找出不同的層和區塊。"
+    },
+    {
+      "start": 472.03,
+      "end": 477.46,
+      "en": "We stack them together like Legos to build a vision transformer or whatever architecture you're working with.",
+      "zh": "像樂高一樣組合，建立 Vision Transformer，或你正在研究的任何架構。"
+    },
+    {
+      "start": 477.76,
+      "end": 479.89,
+      "en": "So we have inputs.",
+      "zh": "有輸入。"
+    },
+    {
+      "start": 482.8,
+      "end": 485.35,
+      "en": "What goes into the model.",
+      "zh": "進入模型的東西。"
+    },
+    {
+      "start": 486.37,
+      "end": 494.29,
+      "en": "So in our case, we have image tenses or batches of image tenses, and then we have output.",
+      "zh": "在這裡，是影像張量或一批影像張量。接著有輸出。"
+    },
+    {
+      "start": 495.19,
+      "end": 503.02,
+      "en": "So what comes out of the model slash layer, slash block?",
+      "zh": "從模型／層／區塊出來的是什麼？"
+    },
+    {
+      "start": 504.1,
+      "end": 511.12,
+      "en": "In our case, we want the model to output image classification labels.",
+      "zh": "在這裡，希望模型輸出影像分類標籤。"
+    },
+    {
+      "start": 512.41,
+      "end": 517.15,
+      "en": "Now, that may vary per problem, but we're focused on food vision many at the moment.",
+      "zh": "每個問題可能不同，不過目前專注在 Food Vision Mini。"
+    },
+    {
+      "start": 517.33,
+      "end": 525.43,
+      "en": "And then we have layers, which is a very deep learning neural network is comprised of a number of different",
+      "zh": "接著是層。深度學習神經網路由許多不同的"
+    },
+    {
+      "start": 525.43,
+      "end": 533.92,
+      "en": "layers, and so takes an input, manipulates it with a function.",
+      "zh": "層組成，層接收輸入，以某個函式處理。"
+    },
+    {
+      "start": 536.14,
+      "end": 544.78,
+      "en": "And the function, for example, could be self attention, which is what's inside the vision transformer.",
+      "zh": "例如自注意力，就是 Vision Transformer 裡的功能。"
+    },
+    {
+      "start": 545.29,
+      "end": 551.56,
+      "en": "And then we're going to have blocks, which is a collection of layers.",
+      "zh": "然後是區塊，也就是一組層。"
+    },
+    {
+      "start": 553.14,
+      "end": 559.53,
+      "en": "And then we have a total model, which is a collection of blocks.",
+      "zh": "最後是完整模型，也就是一組區塊。"
+    },
+    {
+      "start": 560.58,
+      "end": 561.55,
+      "en": "Beautiful.",
+      "zh": "很好。"
+    },
+    {
+      "start": 561.57,
+      "end": 566.44,
+      "en": "So I spent a little time revising that and just have a look.",
+      "zh": "花點時間複習一下，仔細看。"
+    },
+    {
+      "start": 566.49,
+      "end": 574.14,
+      "en": "The homework for this video is to just have a look at this for 2 minutes and read through it and then just step through it and follow the arrows through.",
+      "zh": "這段影片的作業，是花兩分鐘看看這張圖，讀一讀，逐步沿著箭頭走過一遍。"
+    },
+    {
+      "start": 574.17,
+      "end": 583.35,
+      "en": "So do that 2 minutes and then we're going to go through this a little bit more over subsequent videos or in fact, the whole entire section is about reproducing this with PyTorch code.",
+      "zh": "花兩分鐘做這件事，後面影片還會多介紹。其實整章就是在用 PyTorch 程式碼重現它。"
+    },
+    {
+      "start": 583.62,
+      "end": 589.5,
+      "en": "So we've got inputs, outputs, layers, blocks, model.",
+      "zh": "所以有輸入、輸出、層、區塊、模型。"
+    },
+    {
+      "start": 590.09,
+      "end": 591.15,
+      "en": "Let's make this colorful.",
+      "zh": "幫它加點顏色吧。"
+    },
+    {
+      "start": 591.18,
+      "end": 593.12,
+      "en": "Hey, I'll see you in the next video.",
+      "zh": "下段影片見。"
+    }
+  ]
+}

@@ -1,0 +1,1525 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893871",
+  "title": "Attention head patching in IOI",
+  "section": 25,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "34890dbc0904be9c9ef8001d42b097224000515e90ffff19ad4ffc91302a6fde",
+  "cues": [
+    {
+      "start": 2.32,
+      "end": 10.84,
+      "en": "This, and the next videos are a follow up to the Indirect Object Identification task and video from",
+      "zh": "這支與接下來的影片，延續上一個編輯隱藏狀態章節中，"
+    },
+    {
+      "start": 10.84,
+      "end": 14.52,
+      "en": "the previous section on editing Hidden States.",
+      "zh": "間接受詞辨識任務的影片。"
+    },
+    {
+      "start": 14.96,
+      "end": 22.44,
+      "en": "In this video, I will give a brief reminder of activation patching and then explain what we need to",
+      "zh": "這裡會簡短複習活化修補，再解釋要怎麼"
+    },
+    {
+      "start": 22.44,
+      "end": 30.16,
+      "en": "do to patch one specific attention head instead of patching the entire transformer output.",
+      "zh": "修補一個特定注意力頭，而不是整個 Transformer 輸出。"
+    },
+    {
+      "start": 30.76,
+      "end": 38.68,
+      "en": "And you'll also get a reminder about creating, implanting, and removing hook functions on the fly",
+      "zh": "也會複習，如何在實驗需要時，動態建立、植入、移除"
+    },
+    {
+      "start": 38.72,
+      "end": 45.12,
+      "en": "as they are needed in the experiment instead of what I more frequently do, which is to implant all",
+      "zh": "hook 函數，而不是我更常用的方式：模型一匯入，就植入全部"
+    },
+    {
+      "start": 45.12,
+      "end": 52.36,
+      "en": "of the hooks as soon as I import the model, and then have a toggle so that the hooks are active only when needed.",
+      "zh": "hook，再用切換設定，讓它們只在需要時啟動。"
+    },
+    {
+      "start": 53.24,
+      "end": 58.16,
+      "en": "Let me begin by just reminding you of activation patching.",
+      "zh": "先複習活化修補。"
+    },
+    {
+      "start": 58.72,
+      "end": 66.3,
+      "en": "This is a screenshot of a slide from the previous section where I introduced patching and the I o task.",
+      "zh": "這是上一個章節，介紹修補與 IO 任務時，一張投影片的截圖。"
+    },
+    {
+      "start": 66.5,
+      "end": 73.42,
+      "en": "If you have not watched that video, then I strongly recommend going through that video and the code",
+      "zh": "如果還沒看那支影片，強烈建議先看過影片與程式"
+    },
+    {
+      "start": 73.42,
+      "end": 81.26,
+      "en": "demo before continuing this video and also the code challenge in the next video, I'm going to be using",
+      "zh": "示範，再繼續這支，以及下一支影片的程式挑戰。我會使用"
+    },
+    {
+      "start": 81.26,
+      "end": 88.14,
+      "en": "code and terms and concepts that I introduced in this patching and IO video.",
+      "zh": "那支修補與 IO 影片介紹的程式碼、術語與概念。"
+    },
+    {
+      "start": 88.78,
+      "end": 99.82,
+      "en": "So the idea was that we have two versions of the model that process two text sequences that are nearly identical but differ on one key token.",
+      "zh": "概念是，有兩個模型版本，處理幾乎相同、但差一個關鍵 token 的兩個文字序列。"
+    },
+    {
+      "start": 100.82,
+      "end": 106.94,
+      "en": "And then during the forward pass, we take the activation from somewhere in the model when it processes",
+      "zh": "前向傳播期間，取出模型處理"
+    },
+    {
+      "start": 106.94,
+      "end": 115.7,
+      "en": "sequence A and transplant that activation into the model when it's processing token sequence B, and",
+      "zh": "序列 A 時某處的活化，移植到模型處理 token 序列 B 時的活化。"
+    },
+    {
+      "start": 115.7,
+      "end": 123.87,
+      "en": "the main goal is to see if we can corrupt model B so that it actually gets grammatical context information",
+      "zh": "主要目標，是看看能否干擾模型 B，讓它實際取得 A 的文法上下文"
+    },
+    {
+      "start": 123.87,
+      "end": 130.07,
+      "en": "from A, and therefore makes the wrong prediction about the indirect object token.",
+      "zh": "資訊，因此對間接受詞 token 做出錯誤預測。"
+    },
+    {
+      "start": 131.11,
+      "end": 141.75,
+      "en": "This was the key result from that lecture that when we took the hidden states embeddings vector from the model, processing the subject from the model to the MC model.",
+      "zh": "那堂課的關鍵結果，是把模型處理主詞時的隱藏狀態嵌入向量，從供體模型移到受體模型。"
+    },
+    {
+      "start": 141.99,
+      "end": 153.51,
+      "en": "Then somewhere around halfway through the transformer block sequence, we confuse the model so that it actually thought that the correct indirect object was Emma.",
+      "zh": "接著，Transformer 區塊序列大約一半的位置，就會讓模型混亂，認為正確間接受詞是 Emma。"
+    },
+    {
+      "start": 154.19,
+      "end": 162.39,
+      "en": "And you'll remember that in the context of this sentence, that would mean that the model thought that the correct text is.",
+      "zh": "記得，在這個句子的上下文中，那代表模型認為正確文字是，"
+    },
+    {
+      "start": 162.55,
+      "end": 164.47,
+      "en": "Emma gives the coffee to Emma.",
+      "zh": "Emma 把咖啡給 Emma。"
+    },
+    {
+      "start": 165.03,
+      "end": 165.39,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 165.43,
+      "end": 170.43,
+      "en": "So this is just a quick reminder to, like, reactivate those happy memories.",
+      "zh": "只是快速複習，重新喚起那些愉快記憶。"
+    },
+    {
+      "start": 171.11,
+      "end": 181.05,
+      "en": "What we are going to do in this video is the same concept, but at a finer level of granularity in particular.",
+      "zh": "這支影片做相同概念，但粒度更細。"
+    },
+    {
+      "start": 181.25,
+      "end": 188.81,
+      "en": "Instead of patching the hidden states, we will patch individual heads within a transformer block.",
+      "zh": "不修補隱藏狀態，而是修補 Transformer 區塊內的個別注意力頭。"
+    },
+    {
+      "start": 189.49,
+      "end": 192.21,
+      "en": "So here you see 12 little squircles.",
+      "zh": "這裡看到 12 個小圓角方形。"
+    },
+    {
+      "start": 192.73,
+      "end": 197.13,
+      "en": "By the way, a squircle is a square with rounded edges.",
+      "zh": "順帶一提，squircle 是邊緣圓弧的正方形。"
+    },
+    {
+      "start": 197.29,
+      "end": 198.21,
+      "en": "Good word to know.",
+      "zh": "值得認識的字。"
+    },
+    {
+      "start": 199.21,
+      "end": 207.73,
+      "en": "So imagine each of these squircles represents one head from one transformer block in GPT two small.",
+      "zh": "想像每個圓角方形，代表 GPT2 small 中，某個 Transformer 區塊的一個頭。"
+    },
+    {
+      "start": 208.45,
+      "end": 218.93,
+      "en": "So then the idea is that we take the activation from one head from the donor sequence in green, and patch that onto exactly the same head.",
+      "zh": "概念是，從綠色供體序列的一個頭取出活化，再修補到完全相同的頭，"
+    },
+    {
+      "start": 219.29,
+      "end": 228.21,
+      "en": "But while the model is processing sequence B now in a coding mechanistic sense, this is only very,",
+      "zh": "但模型此時正在處理序列 B。從程式機制來看，這與"
+    },
+    {
+      "start": 228.21,
+      "end": 233.69,
+      "en": "very slightly different from transplanting an entire embeddings vector.",
+      "zh": "移植整個嵌入向量，只有非常小的差異。"
+    },
+    {
+      "start": 234.25,
+      "end": 236.51,
+      "en": "It's still the same mechanism.",
+      "zh": "仍然是相同機制。"
+    },
+    {
+      "start": 236.51,
+      "end": 240.23,
+      "en": "It's just copying a different vector from somewhere else in the model.",
+      "zh": "只是從模型別處複製不同向量。"
+    },
+    {
+      "start": 241.07,
+      "end": 248.71,
+      "en": "But in a conceptual sense, it is actually extremely different in terms of the information carried by",
+      "zh": "但概念上，Transformer 區塊輸出的整個嵌入向量，"
+    },
+    {
+      "start": 248.71,
+      "end": 254.99,
+      "en": "the entire embeddings vector at the output of the transformer block, like what we did in the previous",
+      "zh": "就像上一個章節做的，"
+    },
+    {
+      "start": 254.99,
+      "end": 260.99,
+      "en": "section, versus a specific head inside of a transformer block.",
+      "zh": "與區塊內某個特定頭，所攜帶的資訊其實非常不同。"
+    },
+    {
+      "start": 262.27,
+      "end": 269.23,
+      "en": "The hidden states that the transformer block outputs are the actual embeddings vectors of each token",
+      "zh": "Transformer 區塊輸出的隱藏狀態，是各個 token 的實際嵌入向量，"
+    },
+    {
+      "start": 269.67,
+      "end": 275.75,
+      "en": "that directly leads to the token that is selected during training and during text generation.",
+      "zh": "會直接導向訓練與文字生成時，選出的 token。"
+    },
+    {
+      "start": 276.63,
+      "end": 283.83,
+      "en": "On the other hand, the attention heads do not actually work with or output the embeddings vectors themselves.",
+      "zh": "另一方面，注意力頭其實不是操作或輸出嵌入向量本身。"
+    },
+    {
+      "start": 284.43,
+      "end": 293.03,
+      "en": "Instead, they calculate small adjustments to those vectors based on the surrounding context from previous tokens.",
+      "zh": "而是根據前面 token 的周圍上下文，計算對那些向量的小調整。"
+    },
+    {
+      "start": 293.63,
+      "end": 304.53,
+      "en": "So that's just something to keep in mind when considering the results we will get here, and I'll have more to say about that distinction in the code challenge in the next video.",
+      "zh": "考慮這裡結果時，要記住這點；下一支影片的程式挑戰，會再談這項區別。"
+    },
+    {
+      "start": 305.29,
+      "end": 311.13,
+      "en": "Anyway, now I will give you an overview of what I'll show you in the code demo in this video.",
+      "zh": "總之，現在概述這支影片的程式示範。"
+    },
+    {
+      "start": 312.57,
+      "end": 321.01,
+      "en": "Before doing any patching, we actually need to get all of the clean attention head activations in the previous section.",
+      "zh": "做任何修補前，需要先取得所有乾淨的注意力頭活化。上一個章節，"
+    },
+    {
+      "start": 321.01,
+      "end": 327.53,
+      "en": "We did this by exporting the hidden states, but to get access to the activation of the attention heads",
+      "zh": "是透過輸出隱藏狀態完成，但要存取注意力頭活化，"
+    },
+    {
+      "start": 327.53,
+      "end": 335.61,
+      "en": "before they get mixed together and before they get mixed in with the MLP adjustments, we need to hook those activations.",
+      "zh": "在彼此混合，以及與 MLP 調整混合之前，就需要 hook。"
+    },
+    {
+      "start": 336.17,
+      "end": 337.57,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是。"
+    },
+    {
+      "start": 337.57,
+      "end": 341.33,
+      "en": "So I will start the code just by implanting this hook.",
+      "zh": "程式碼先植入這個 hook。"
+    },
+    {
+      "start": 341.53,
+      "end": 346.73,
+      "en": "Exactly like what you've seen earlier in the course on observational interpretability.",
+      "zh": "與課程前面觀察式可解釋性中看到的完全相同。"
+    },
+    {
+      "start": 346.73,
+      "end": 348.85,
+      "en": "So there's no manipulations here.",
+      "zh": "沒有操作。"
+    },
+    {
+      "start": 348.85,
+      "end": 351.33,
+      "en": "There's no patching, there's no zeroing out.",
+      "zh": "沒有修補、沒有歸零。"
+    },
+    {
+      "start": 351.65,
+      "end": 359.82,
+      "en": "All I'm doing here is hooking into the activations and storing them in a dictionary so I can access them later.",
+      "zh": "只是掛接活化，儲存到字典，方便稍後存取。"
+    },
+    {
+      "start": 360.42,
+      "end": 364.86,
+      "en": "You can also see that this hook function has no output.",
+      "zh": "也可以看到，這個 hook 函數沒有輸出。"
+    },
+    {
+      "start": 364.86,
+      "end": 366.74,
+      "en": "There's no return statement here.",
+      "zh": "這裡沒有 return。"
+    },
+    {
+      "start": 367.02,
+      "end": 374.5,
+      "en": "Of course there is this return statement here, but this corresponds to the outer function that incorporates the layer number.",
+      "zh": "這裡當然有 return，但它對應納入層編號的外層函數。"
+    },
+    {
+      "start": 375.22,
+      "end": 382.5,
+      "en": "So after running through the models to get the attention activations, we are then ready for the experiment.",
+      "zh": "讓模型執行、取得注意力活化之後，就準備好做實驗。"
+    },
+    {
+      "start": 382.86,
+      "end": 384.7,
+      "en": "And you can see that code here.",
+      "zh": "這裡可以看到程式碼。"
+    },
+    {
+      "start": 385.54,
+      "end": 396.9,
+      "en": "This is pretty similar to the code from the previous section, where I looped over all of the layers and then created, implanted and destroyed the hooks inside the layer loop.",
+      "zh": "與上一個章節的程式碼很像，遍歷所有層，再在層迴圈內建立、植入、移除 hook。"
+    },
+    {
+      "start": 397.54,
+      "end": 398.86,
+      "en": "But here's a question.",
+      "zh": "但這裡有個問題。"
+    },
+    {
+      "start": 399.06,
+      "end": 403.65999999999997,
+      "en": "Don't we also need a for loop over all the different heads within a layer?",
+      "zh": "不也需要用 for 迴圈，遍歷一層內所有不同的頭嗎？"
+    },
+    {
+      "start": 404.62,
+      "end": 406.1,
+      "en": "Actually, the answer is yes.",
+      "zh": "其實答案是需要。"
+    },
+    {
+      "start": 406.1,
+      "end": 413.28,
+      "en": "Technically, we should have an embedded for loop in here over all of the heads within each layer.",
+      "zh": "技術上，這裡應該內嵌一個遍歷每層所有頭的 for 迴圈。"
+    },
+    {
+      "start": 413.4,
+      "end": 415,
+      "en": "I am not doing that here.",
+      "zh": "這裡沒有這樣做。"
+    },
+    {
+      "start": 415,
+      "end": 426.52,
+      "en": "In fact, what I am doing in this video, in this code demo, is replacing all of the activations from all of the heads and also from all of the tokens.",
+      "zh": "事實上，這支影片、這個示範，會替換所有頭、所有 token 的全部活化。"
+    },
+    {
+      "start": 427.04,
+      "end": 429.44,
+      "en": "So that is not very selective.",
+      "zh": "所以，選擇性不高。"
+    },
+    {
+      "start": 430.24,
+      "end": 437.12,
+      "en": "If you think that what I should be doing here is patching one head at a time, then that is great.",
+      "zh": "如果你認為，應該一次修補一個頭，那很好。"
+    },
+    {
+      "start": 437.12,
+      "end": 438.32,
+      "en": "I agree with you.",
+      "zh": "我也同意。"
+    },
+    {
+      "start": 438.32,
+      "end": 443.4,
+      "en": "And now you have something to look forward to for the code challenge in the next video.",
+      "zh": "下一支影片的程式挑戰，就有值得期待的內容了。"
+    },
+    {
+      "start": 444.2,
+      "end": 451.32,
+      "en": "But to keep things simple for this video, I decided to replace all of the tension heads and all of",
+      "zh": "但為了讓這支影片簡單，我決定用模型活化版本 A 中，對應的頭與 token，"
+    },
+    {
+      "start": 451.32,
+      "end": 461.52,
+      "en": "the tokens with the corresponding heads and tokens from the version A of the model activations, and that's what's happening inside this hook function.",
+      "zh": "替換所有注意力頭、所有 token。這就是 hook 函數裡做的事。"
+    },
+    {
+      "start": 462.2,
+      "end": 472.3,
+      "en": "So I get the input into the C proj layer, reshape it so that we can easily access all of the individual",
+      "zh": "取得 c_proj 層輸入，重塑，方便存取全部個別"
+    },
+    {
+      "start": 472.3,
+      "end": 479.1,
+      "en": "heads, or index each of the individual heads, and then replace those activations with the ones that",
+      "zh": "注意力頭，或索引每個頭，再把那些活化替換成"
+    },
+    {
+      "start": 479.1,
+      "end": 487.86,
+      "en": "I got from the clean version of model A, and then I'm also storing the activations here for model B,",
+      "zh": "乾淨模型 A 取得的活化；這裡也儲存模型 B 的活化，"
+    },
+    {
+      "start": 487.86,
+      "end": 494.02,
+      "en": "so that we can compare them to make sure that this code really works the way we expect, and then reshaping",
+      "zh": "方便比較、確認程式碼確實按照預期運作，再重塑"
+    },
+    {
+      "start": 494.02,
+      "end": 502.9,
+      "en": "back to the embeddings dimensionality, and then returning that as the input so that it can be processed by the rest of the model.",
+      "zh": "回嵌入維度，作為輸入傳回，交給模型其餘部分處理。"
+    },
+    {
+      "start": 503.66,
+      "end": 513.98,
+      "en": "Then I do a forward pass over here and calculate the IOI measure, just like in the previous section where I first introduced this experiment.",
+      "zh": "接著，在這裡做前向傳播，計算 IOI 指標，就像上一個章節首次介紹實驗時一樣。"
+    },
+    {
+      "start": 514.7,
+      "end": 526.1,
+      "en": "By the way, given that I'm changing all of the heads and not just one of them, you might think that it's really unnecessary to deal with all of this reshaping business.",
+      "zh": "順帶一提，既然修改的是全部頭，不只一個，你可能覺得這些重塑操作完全沒有必要。"
+    },
+    {
+      "start": 526.38,
+      "end": 530.08,
+      "en": "Again, I agree with you 100% in this video.",
+      "zh": "這支影片，我也百分之百同意。"
+    },
+    {
+      "start": 530.28,
+      "end": 534.56,
+      "en": "It's a little bit unnecessary to reshape the vectors here.",
+      "zh": "這裡把向量重塑，"
+    },
+    {
+      "start": 534.56,
+      "end": 541.16,
+      "en": "This tensor here from embeddings to heads by head dimension, only to reshape it back.",
+      "zh": "也就是把張量從嵌入，變成頭乘上頭維度，再重塑回去，有點多餘。"
+    },
+    {
+      "start": 541.16,
+      "end": 550.84,
+      "en": "But I am including this reshaping code here, because I want you to be able to use this code for the exercises in the next video.",
+      "zh": "但我放入這些重塑程式碼，是希望你能在下一支影片的練習中使用。"
+    },
+    {
+      "start": 551.72,
+      "end": 561,
+      "en": "Anyway, once we are done this experiment, we can make a visualization just like in the previous section, which I also showed in the previous slide.",
+      "zh": "總之，實驗完成後，可以像上一個章節、上一張投影片展示的那樣視覺化。"
+    },
+    {
+      "start": 561.4,
+      "end": 563.92,
+      "en": "So here that result looks like this.",
+      "zh": "這裡的結果，長這樣。"
+    },
+    {
+      "start": 564.48,
+      "end": 570.96,
+      "en": "Quite a bit different from how remarkably well this worked out when we patched the entire hidden state.",
+      "zh": "與修補整個隱藏狀態時，效果驚人地好，非常不同。"
+    },
+    {
+      "start": 571.56,
+      "end": 578.52,
+      "en": "In fact, even when manipulating all of the attention heads over all of the tokens, the effect is quite",
+      "zh": "事實上，即使操作所有 token 的全部注意力頭，效果仍相當"
+    },
+    {
+      "start": 578.52,
+      "end": 585.2,
+      "en": "subtle and the model never even has a numerical preference for the indirect object.",
+      "zh": "細微，而且模型在數值上，甚至從未偏好那個間接受詞。"
+    },
+    {
+      "start": 585.8,
+      "end": 594.49,
+      "en": "Now, that has nothing to do with using the small version of the model here, compared to the Excel version that I used in the previous section.",
+      "zh": "這與這裡使用 small，而上一個章節用 XL 版本無關。"
+    },
+    {
+      "start": 595.01,
+      "end": 601.37,
+      "en": "So this is a thought provoking discrepancy, and I'm going to leave it as an open question for now.",
+      "zh": "這是值得思考的差異，目前先留作開放問題。"
+    },
+    {
+      "start": 601.69,
+      "end": 610.25,
+      "en": "But the final exercise in the next video is actually a mathematical description of why we get this discrepancy",
+      "zh": "但下一支影片最後一個練習，會用數學描述，為何"
+    },
+    {
+      "start": 610.25,
+      "end": 617.65,
+      "en": "between the very subtle effects here and the very overwhelmingly convincing effects from the previous section.",
+      "zh": "這裡效果非常細微，而上一個章節效果極有說服力，兩者存在這種差異。"
+    },
+    {
+      "start": 618.45,
+      "end": 622.05,
+      "en": "Anyway, let's now switch to code and have a closer look.",
+      "zh": "總之，現在切換到程式碼，仔細看看。"
+    },
+    {
+      "start": 623.77,
+      "end": 625.13,
+      "en": "Importing some libraries.",
+      "zh": "匯入一些函式庫。"
+    },
+    {
+      "start": 625.13,
+      "end": 630.73,
+      "en": "Let's see here I'm importing GPT two and that will take a second to load in.",
+      "zh": "這裡匯入 GPT2，載入需要一點時間。"
+    },
+    {
+      "start": 630.81,
+      "end": 635.73,
+      "en": "And I also change the sentences slightly from the previous section.",
+      "zh": "我也稍微修改了上一個章節的句子。"
+    },
+    {
+      "start": 635.93,
+      "end": 638.61,
+      "en": "So here the text we will be working with are.",
+      "zh": "這裡要處理的文字是，"
+    },
+    {
+      "start": 639.05,
+      "end": 642.73,
+      "en": "When Sam and Sally went to the park, Sam gave a gift to.",
+      "zh": "Sam 和 Sally 去公園時，Sam 把一份禮物給……"
+    },
+    {
+      "start": 643.81,
+      "end": 648.55,
+      "en": "Of course, you know the next word should be Sally, or her could be either one of those.",
+      "zh": "當然，你知道下一個詞應該是 Sally，或 her，兩者都可以。"
+    },
+    {
+      "start": 648.75,
+      "end": 652.07,
+      "en": "I am going to use Sam and Sally here.",
+      "zh": "這裡會使用 Sam 和 Sally。"
+    },
+    {
+      "start": 652.07,
+      "end": 657.75,
+      "en": "I'm finding the token indices for the target words Sam and Sally.",
+      "zh": "找出目標詞 Sam 和 Sally 的 token 索引。"
+    },
+    {
+      "start": 657.83,
+      "end": 659.15,
+      "en": "And what does this mean here?",
+      "zh": "這裡是什麼意思？"
+    },
+    {
+      "start": 659.19,
+      "end": 660.91,
+      "en": "Eh, so when, uh.",
+      "zh": "嗯，"
+    },
+    {
+      "start": 660.91,
+      "end": 664.35,
+      "en": "So we expect the correct result here to be Sally.",
+      "zh": "預期這裡的正確結果是 Sally。"
+    },
+    {
+      "start": 664.71,
+      "end": 670.63,
+      "en": "So that means that text A should have target B and text B should have target A.",
+      "zh": "所以，文字 A 應該有目標 B，文字 B 應該有目標 A。"
+    },
+    {
+      "start": 670.99,
+      "end": 675.59,
+      "en": "Maybe that's a little confusing, but somehow when I was coding this I thought that was a good idea.",
+      "zh": "也許有點令人困惑，但寫程式時，不知為何覺得這是好主意。"
+    },
+    {
+      "start": 675.87,
+      "end": 676.15,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 676.19,
+      "end": 677.07,
+      "en": "And then uh, yeah.",
+      "zh": "接著，"
+    },
+    {
+      "start": 677.11,
+      "end": 679.83,
+      "en": "Getting the tokens and pushing them to the GPU.",
+      "zh": "取得 token，移到 GPU。"
+    },
+    {
+      "start": 680.39,
+      "end": 680.67,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 680.71,
+      "end": 691.35,
+      "en": "So now we want the clean activation vectors from A so that we have them available to patch onto the model when it's processing sequence B.",
+      "zh": "現在要從 A 取得乾淨活化向量，才能在模型處理序列 B 時，用它們修補。"
+    },
+    {
+      "start": 691.83,
+      "end": 694.19,
+      "en": "So a couple of convenience variables here.",
+      "zh": "這裡有幾個方便使用的變數。"
+    },
+    {
+      "start": 694.47,
+      "end": 699.55,
+      "en": "And uh, here is the uh hook which does not do any manipulations.",
+      "zh": "這裡是 hook，不做任何操作。"
+    },
+    {
+      "start": 699.55,
+      "end": 704.03,
+      "en": "So there's no output of this hook function here.",
+      "zh": "這個 hook 函數沒有輸出。"
+    },
+    {
+      "start": 704.03,
+      "end": 708.41,
+      "en": "All I'm doing is getting these tensors, reshaping them.",
+      "zh": "只是取得這些張量、重塑。"
+    },
+    {
+      "start": 708.41,
+      "end": 711.05,
+      "en": "Remember that these come in naturally.",
+      "zh": "記得，它們原本，"
+    },
+    {
+      "start": 711.25,
+      "end": 714.73,
+      "en": "Uh, as, uh, embeddings dimension at the end.",
+      "zh": "最後一個維度是嵌入維度。"
+    },
+    {
+      "start": 715.21,
+      "end": 716.97,
+      "en": "So 768.",
+      "zh": "也就是 768。"
+    },
+    {
+      "start": 716.97,
+      "end": 721.25,
+      "en": "But that 768 is not the embeddings dimensionality.",
+      "zh": "但這個 768 不是嵌入維度。"
+    },
+    {
+      "start": 721.29,
+      "end": 725.29,
+      "en": "It is actually the number of heads times the head dimensionality.",
+      "zh": "其實是頭數乘上頭維度。"
+    },
+    {
+      "start": 725.29,
+      "end": 731.89,
+      "en": "So that's why I'm reshaping them over here and then just storing them in this dictionary so I can access",
+      "zh": "所以，這裡重塑，再儲存到字典，方便取得"
+    },
+    {
+      "start": 732.05,
+      "end": 742.13,
+      "en": "the entire head for all the sequences, although it's just one per run, all the tokens, all the heads and the head dimensionality and then yeah, access that later.",
+      "zh": "所有序列的完整注意力頭，雖然每次只有一個序列，包括全部 token、全部頭與頭維度，之後再存取。"
+    },
+    {
+      "start": 742.65,
+      "end": 745.17,
+      "en": "I'm implanting this into C proj.",
+      "zh": "把它植入 c_proj。"
+    },
+    {
+      "start": 745.17,
+      "end": 747.49,
+      "en": "This is the A forward Pre-hook.",
+      "zh": "這是 forward pre-hook。"
+    },
+    {
+      "start": 747.81,
+      "end": 752.97,
+      "en": "Remember this discussion from previous videos in this section?",
+      "zh": "記得這個章節前面影片中的討論？"
+    },
+    {
+      "start": 752.97,
+      "end": 758.97,
+      "en": "The reason why we want the pre-hook is for this, uh, layer over here C proj.",
+      "zh": "需要 pre-hook 的原因，是這個 c_proj 層。"
+    },
+    {
+      "start": 758.97,
+      "end": 761.61,
+      "en": "Let me go back to this model description here.",
+      "zh": "回去看看模型說明。"
+    },
+    {
+      "start": 762.69,
+      "end": 771.63,
+      "en": "So what C proj does the purpose of this layer is to take the concatenated attention heads and multiply",
+      "zh": "c_proj 的目的，是取出串接的注意力頭，乘上"
+    },
+    {
+      "start": 771.63,
+      "end": 776.91,
+      "en": "them by the w0 mixing matrix, so all the heads get mixed together.",
+      "zh": "W0 混合矩陣，將所有頭混合。"
+    },
+    {
+      "start": 777.23,
+      "end": 783.47,
+      "en": "That's a fantastic thing to do for the operations of the model, but it's completely wrong for what",
+      "zh": "對模型運作來說，這非常棒，但對這裡"
+    },
+    {
+      "start": 783.47,
+      "end": 790.55,
+      "en": "we want here, because when we get the output of C proj, you can no longer access individual heads.",
+      "zh": "的目的完全不對，因為取得 c_proj 輸出時，已經無法存取個別頭。"
+    },
+    {
+      "start": 790.83,
+      "end": 795.87,
+      "en": "The data have gone back into the embeddings dimensionality space.",
+      "zh": "資料已經回到嵌入維度空間。"
+    },
+    {
+      "start": 796.43,
+      "end": 796.75,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 796.79,
+      "end": 799.59,
+      "en": "So we want the input into C proj.",
+      "zh": "所以，要 c_proj 的輸入。"
+    },
+    {
+      "start": 799.91,
+      "end": 802.99,
+      "en": "And yeah that you see here.",
+      "zh": "這裡可以看到。"
+    },
+    {
+      "start": 802.99,
+      "end": 804.27,
+      "en": "So here's the input.",
+      "zh": "這是輸入。"
+    },
+    {
+      "start": 804.27,
+      "end": 806.43,
+      "en": "And this is what we reshape and store.",
+      "zh": "這就是要重塑、儲存的。"
+    },
+    {
+      "start": 806.87,
+      "end": 807.23,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 807.27,
+      "end": 809.63,
+      "en": "So let me run that code here.",
+      "zh": "執行這段程式碼。"
+    },
+    {
+      "start": 809.95,
+      "end": 812.19,
+      "en": "And now here's a question for you.",
+      "zh": "現在有個問題。"
+    },
+    {
+      "start": 812.23,
+      "end": 814.59,
+      "en": "Why do I do all of this.",
+      "zh": "為什麼要做這些？"
+    },
+    {
+      "start": 814.63,
+      "end": 819.51,
+      "en": "Wouldn't it take up less code if I would just do something like this?",
+      "zh": "如果只像這樣做，不是程式碼更少？"
+    },
+    {
+      "start": 820.07,
+      "end": 827.16,
+      "en": "If you would like to pause the video and think about why this code is problematic, then feel free to.",
+      "zh": "如果願意，可以暫停影片，思考這段程式碼有什麼問題。"
+    },
+    {
+      "start": 827.6,
+      "end": 834.92,
+      "en": "Okay, so the answer is that if I run these two models and then remove the hook, that would mean that",
+      "zh": "好，答案是，如果先執行這兩個模型，再移除 hook，就代表"
+    },
+    {
+      "start": 834.92,
+      "end": 843.24,
+      "en": "all of the head information that we store in the hook gets overridden by tokens be, which is not what we want.",
+      "zh": "hook 儲存的全部注意力頭資訊，都會被 token B 覆寫，這不是我們要的。"
+    },
+    {
+      "start": 843.24,
+      "end": 845.12,
+      "en": "That's what we actually want to replace.",
+      "zh": "那其實是我們想替換的東西。"
+    },
+    {
+      "start": 845.4,
+      "end": 850.6,
+      "en": "So what we need to do is run through tokens A and then remove the hook.",
+      "zh": "需要先執行 token A，再移除 hook。"
+    },
+    {
+      "start": 850.84,
+      "end": 852.88,
+      "en": "And then we can process tokens B.",
+      "zh": "接著，才能處理 token B。"
+    },
+    {
+      "start": 852.92,
+      "end": 856.64,
+      "en": "And now that I see that I have the answer exactly in here.",
+      "zh": "現在才發現，答案其實已經寫在這裡。"
+    },
+    {
+      "start": 856.96,
+      "end": 857.64,
+      "en": "Uh, okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 857.68,
+      "end": 860.8,
+      "en": "So uh, anyway, uh, that is the reason.",
+      "zh": "總之，這就是原因。"
+    },
+    {
+      "start": 861.28,
+      "end": 861.64,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 861.64,
+      "end": 862,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 862,
+      "end": 863.44,
+      "en": "Let me run through this.",
+      "zh": "讓我執行。"
+    },
+    {
+      "start": 863.44,
+      "end": 865.52,
+      "en": "That is very fast to run.",
+      "zh": "執行非常快。"
+    },
+    {
+      "start": 865.92,
+      "end": 868.6,
+      "en": "And here I'm calculating the score.",
+      "zh": "這裡計算分數。"
+    },
+    {
+      "start": 868.64,
+      "end": 872.64,
+      "en": "If you are confused as to what this means, then, uh, yeah.",
+      "zh": "如果不懂這是什麼意思，"
+    },
+    {
+      "start": 872.68,
+      "end": 878.96,
+      "en": "You should go back and rewatch the video in the previous section.",
+      "zh": "應該回去重看上一個章節的影片。"
+    },
+    {
+      "start": 878.96,
+      "end": 881.68,
+      "en": "But basically when we run this.",
+      "zh": "基本上，執行這個時，"
+    },
+    {
+      "start": 881.68,
+      "end": 890.74,
+      "en": "So sequence a out a what we expect is that the correct output is B that corresponds to the token for",
+      "zh": "也就是序列 A、out A，預期正確輸出是 B，對應"
+    },
+    {
+      "start": 890.78,
+      "end": 891.3,
+      "en": "Sally.",
+      "zh": "Sally token。"
+    },
+    {
+      "start": 891.3,
+      "end": 893.78,
+      "en": "So Sam gave the gift to Sally.",
+      "zh": "也就是 Sam 把禮物給 Sally。"
+    },
+    {
+      "start": 894.26,
+      "end": 901.22,
+      "en": "So therefore uh this value should be negative and this value should be positive okay.",
+      "zh": "因此，這個值應該負，這個值應該正。"
+    },
+    {
+      "start": 901.26,
+      "end": 903.18,
+      "en": "And then we see that indeed they are.",
+      "zh": "這裡確實如此。"
+    },
+    {
+      "start": 903.22,
+      "end": 905.22,
+      "en": "So these are the baseline values.",
+      "zh": "這些是基準值。"
+    },
+    {
+      "start": 905.22,
+      "end": 912.62,
+      "en": "We can use that as reference points to see how much we are really manipulating the model by doing the patching.",
+      "zh": "可以用作參考，觀察修補究竟對模型造成多少操作影響。"
+    },
+    {
+      "start": 913.82,
+      "end": 914.22,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 914.26,
+      "end": 918.22,
+      "en": "This is just uh yeah checking the size of this matrix.",
+      "zh": "這裡只是檢查矩陣大小。"
+    },
+    {
+      "start": 918.22,
+      "end": 926.02,
+      "en": "So one sequence in the batch, 14 tokens, 12 heads and 64 dimensions per head.",
+      "zh": "批次一個序列、14 個 token、12 個頭，每頭 64 個維度。"
+    },
+    {
+      "start": 926.02,
+      "end": 929.42,
+      "en": "And of course 12 times six is 768.",
+      "zh": "當然，12 乘以 6 是 768。"
+    },
+    {
+      "start": 929.58,
+      "end": 935.94,
+      "en": "I know that not because I'm like a math genius and I can do that in my head, but we know that there",
+      "zh": "我知道這個，不是因為是數學天才、能心算，而是知道，"
+    },
+    {
+      "start": 935.94,
+      "end": 942.72,
+      "en": "is a very strict relationship between the number of heads, the head dimensionality and the embeddings.",
+      "zh": "頭數、頭維度與嵌入"
+    },
+    {
+      "start": 942.72,
+      "end": 948.28,
+      "en": "Dimensionality and the product of these two must equal the embeddings dimensionality.",
+      "zh": "維度之間，有非常嚴格的關係，前兩者乘積必須等於嵌入維度。"
+    },
+    {
+      "start": 948.52,
+      "end": 952.36,
+      "en": "So therefore yeah that's going to be 768.",
+      "zh": "所以，這會是 768。"
+    },
+    {
+      "start": 952.92,
+      "end": 953.2,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 953.24,
+      "end": 953.8,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 953.84,
+      "end": 957.52,
+      "en": "So now we are ready for the main experiment.",
+      "zh": "現在，準備做主要實驗。"
+    },
+    {
+      "start": 957.52,
+      "end": 961.44,
+      "en": "Here is the loop over all of the layers in the model.",
+      "zh": "這裡是遍歷模型所有層的迴圈。"
+    },
+    {
+      "start": 961.56,
+      "end": 964,
+      "en": "Here I define the hook function.",
+      "zh": "這裡定義 hook 函數。"
+    },
+    {
+      "start": 964,
+      "end": 966.16,
+      "en": "I'll go through each of these lines in a moment.",
+      "zh": "稍後逐行介紹。"
+    },
+    {
+      "start": 966.32,
+      "end": 971.16,
+      "en": "Here I am implanting the hook again into C proj and it's a pre hook.",
+      "zh": "這裡再次把 hook 植入 c_proj，而且是 pre-hook。"
+    },
+    {
+      "start": 971.16,
+      "end": 977.56,
+      "en": "So we're going to access and now also manipulate the inputs into C proj layer.",
+      "zh": "所以，要存取，也操作送進 c_proj 層的輸入。"
+    },
+    {
+      "start": 977.88,
+      "end": 984.64,
+      "en": "And then I run the forward pass remove the hook so that it's cleared out for the next iteration of this for loop.",
+      "zh": "接著，前向傳播、移除 hook，為 for 迴圈下一次迭代清乾淨。"
+    },
+    {
+      "start": 984.76,
+      "end": 988.84,
+      "en": "And then calculate the IOI metric as before.",
+      "zh": "再像之前一樣計算 IOI 指標。"
+    },
+    {
+      "start": 989.32,
+      "end": 989.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 989.64,
+      "end": 991.32,
+      "en": "So that's the big picture overview.",
+      "zh": "這是大方向概覽。"
+    },
+    {
+      "start": 991.36,
+      "end": 993.96,
+      "en": "What are we doing inside this hook function.",
+      "zh": "hook 函數內做什麼？"
+    },
+    {
+      "start": 994.4,
+      "end": 1001.42,
+      "en": "So I'm getting the head and reshaping it from embeddings into heads by dimensions.",
+      "zh": "取得注意力頭，從嵌入重塑成頭乘上維度。"
+    },
+    {
+      "start": 1001.58,
+      "end": 1002.58,
+      "en": "Here I'm making a clone.",
+      "zh": "這裡建立 clone。"
+    },
+    {
+      "start": 1002.58,
+      "end": 1008.86,
+      "en": "This is not strictly necessary here because I'm replacing the full thing, but not a bad practice to do anyway.",
+      "zh": "這裡因為替換整個內容，並非絕對必要，但這樣做也不是壞習慣。"
+    },
+    {
+      "start": 1009.22,
+      "end": 1013.74,
+      "en": "Just so you basically decouple this thing from the computational graph.",
+      "zh": "基本上，就是讓這個東西與計算圖解耦。"
+    },
+    {
+      "start": 1014.3,
+      "end": 1014.74,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1014.78,
+      "end": 1021.9,
+      "en": "And then I'm replacing this head by the corresponding head from the same layer from the activations",
+      "zh": "接著，用同一層、token 序列 A 的活化中，對應的"
+    },
+    {
+      "start": 1021.9,
+      "end": 1030.34,
+      "en": "for token sequence A, remember that we are pushing sequence B through this model, but we are replacing with A.",
+      "zh": "頭替換；記得，送進這個模型的是序列 B，但用 A 替換。"
+    },
+    {
+      "start": 1031.46,
+      "end": 1039.78,
+      "en": "And then what I'm doing is storing those activations in this dictionary here so we can check them later.",
+      "zh": "再把那些活化儲存在這個字典，稍後檢查。"
+    },
+    {
+      "start": 1039.94,
+      "end": 1043.94,
+      "en": "Again, this is just for methodological confirmation.",
+      "zh": "同樣，只是為了方法上的確認。"
+    },
+    {
+      "start": 1043.94,
+      "end": 1045.94,
+      "en": "It's really just to make sure that the code works.",
+      "zh": "真的只是確認程式碼正常。"
+    },
+    {
+      "start": 1045.94,
+      "end": 1054.14,
+      "en": "We should certainly expect that after I run all of this code that head x b equals head x a.",
+      "zh": "執行全部程式碼後，當然應該預期 head x B 等於 head x A。"
+    },
+    {
+      "start": 1054.46,
+      "end": 1061.79,
+      "en": "If they are not equal, then there's some mistake somewhere easy to make, you know, like indexing errors if you're thinking about.",
+      "zh": "如果不相等，就有錯誤，很容易發生，例如索引錯誤。如果心裡想著"
+    },
+    {
+      "start": 1062.07,
+      "end": 1066.27,
+      "en": "Uh, the, uh, hidden states, you might accidentally put a plus one in here.",
+      "zh": "隱藏狀態，也許不小心在這裡加一。"
+    },
+    {
+      "start": 1066.31,
+      "end": 1073.87,
+      "en": "Anyway, good to incorporate these kinds of code sanity checks, especially when you are developing your code in the beginning.",
+      "zh": "總之，加入這類程式合理性檢查很好，尤其開發初期。"
+    },
+    {
+      "start": 1074.99,
+      "end": 1082.35,
+      "en": "Okay, so, uh, then I reshape back to, uh, embeddings dimensions and then put that back into the input.",
+      "zh": "好，接著重塑回嵌入維度，再放回輸入。"
+    },
+    {
+      "start": 1082.35,
+      "end": 1090.07,
+      "en": "So it replaces the initial input and gets mixed together, uh, according to the W0 matrix.",
+      "zh": "取代原始輸入，再依照 W0 矩陣混合。"
+    },
+    {
+      "start": 1090.67,
+      "end": 1098.79,
+      "en": "And again, as I mentioned in the uh, slides, it is really not necessary in this code file to, uh,",
+      "zh": "如同投影片提過，這個程式碼檔中，其實不必"
+    },
+    {
+      "start": 1098.79,
+      "end": 1103.11,
+      "en": "reshape here only to undo the reshaping over here.",
+      "zh": "在這裡重塑，接著又在這裡復原重塑。"
+    },
+    {
+      "start": 1103.51,
+      "end": 1106.95,
+      "en": "But this code is in here because I.",
+      "zh": "但放進來，是因為我，"
+    },
+    {
+      "start": 1106.95,
+      "end": 1117.81,
+      "en": "I hope that this will help you solve the code challenge in the next video, where you will be replacing one head at a time instead of all of the heads within each layer.",
+      "zh": "希望能幫助你完成下一支影片的程式挑戰，屆時會一次替換一個頭，而非每層全部頭。"
+    },
+    {
+      "start": 1118.45,
+      "end": 1118.73,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1118.77,
+      "end": 1119.21,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1119.25,
+      "end": 1121.53,
+      "en": "So I hope all of this code makes sense.",
+      "zh": "希望這些程式碼都清楚。"
+    },
+    {
+      "start": 1121.53,
+      "end": 1126.61,
+      "en": "Also super fast to run through on the GPU with GPT two.",
+      "zh": "GPT2 在 GPU 上，也執行得非常快。"
+    },
+    {
+      "start": 1127.25,
+      "end": 1129.93,
+      "en": "And here is just some confirmation.",
+      "zh": "這裡只是做些確認。"
+    },
+    {
+      "start": 1129.93,
+      "end": 1131.93,
+      "en": "This is yeah, what we've seen before.",
+      "zh": "這是之前看過的。"
+    },
+    {
+      "start": 1132.41,
+      "end": 1138.01,
+      "en": "And here what I am plotting is the activations from layer seven.",
+      "zh": "這裡畫出第七號層的活化。"
+    },
+    {
+      "start": 1138.01,
+      "end": 1146.41,
+      "en": "So transformer block seven, the 10th token, the 11th or the 12th head and all of the head dimensions.",
+      "zh": "也就是第七號 Transformer 區塊，第十個 token，第十一或第十二個頭，以及全部頭維度。"
+    },
+    {
+      "start": 1146.41,
+      "end": 1148.09,
+      "en": "And why am I doing this?",
+      "zh": "為什麼這樣做？"
+    },
+    {
+      "start": 1148.53,
+      "end": 1152.49,
+      "en": "I don't know, these are just kind of arbitrarily chosen numbers.",
+      "zh": "不知道，只是任意挑的數字。"
+    },
+    {
+      "start": 1152.61,
+      "end": 1157.13,
+      "en": "It doesn't matter what layer you pick, what token and what head you pick.",
+      "zh": "挑哪層、哪個 token、哪個頭，都不重要。"
+    },
+    {
+      "start": 1157.29,
+      "end": 1162.89,
+      "en": "As long as these are the same from A and B, what you expect is that these are the same here.",
+      "zh": "只要 A 與 B 選相同位置，預期這些值就相同。"
+    },
+    {
+      "start": 1162.89,
+      "end": 1164.53,
+      "en": "They overlap perfectly here.",
+      "zh": "這裡完全重疊。"
+    },
+    {
+      "start": 1164.93,
+      "end": 1166.81,
+      "en": "Again, this is not surprising.",
+      "zh": "同樣，不意外。"
+    },
+    {
+      "start": 1166.81,
+      "end": 1168.05,
+      "en": "This is trivial.",
+      "zh": "這是理所當然的。"
+    },
+    {
+      "start": 1168.05,
+      "end": 1174.57,
+      "en": "But if this were different, if these did not overlap, then there would be something wrong with your code.",
+      "zh": "但如果不一樣、不重疊，就表示程式碼有問題。"
+    },
+    {
+      "start": 1174.57,
+      "end": 1177.99,
+      "en": "And then yeah, you would know to look into the code a little bit.",
+      "zh": "接著，就知道要稍微檢查程式碼。"
+    },
+    {
+      "start": 1178.47,
+      "end": 1178.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1178.95,
+      "end": 1181.83,
+      "en": "So now we can visualize the results.",
+      "zh": "現在可以視覺化結果。"
+    },
+    {
+      "start": 1181.95,
+      "end": 1189.87,
+      "en": "And this code is the same code that I used in that previous video, uh, in the previous section.",
+      "zh": "程式碼與前一個章節，那支影片使用的相同。"
+    },
+    {
+      "start": 1190.31,
+      "end": 1191.43,
+      "en": "And what do we see here.",
+      "zh": "這裡看到什麼？"
+    },
+    {
+      "start": 1191.43,
+      "end": 1200.59,
+      "en": "So remember in the previous video this really somewhere around halfway through the transformer sequence, it plummeted all the way down to the blue line over here.",
+      "zh": "記得，之前的影片，大約 Transformer 序列一半的位置，結果就一路掉到這裡的藍線。"
+    },
+    {
+      "start": 1200.99,
+      "end": 1209.11,
+      "en": "And what we see here, with the exception of something weird happening at the final transformer block, uh, we see it did have an impact.",
+      "zh": "現在，除了最後一個 Transformer 區塊有奇怪現象之外，可以看到，確實有影響。"
+    },
+    {
+      "start": 1209.11,
+      "end": 1216.67,
+      "en": "So patching over the attention heads did push the model a little bit in the direction of preferring,",
+      "zh": "修補注意力頭，確實把模型稍微推向偏好"
+    },
+    {
+      "start": 1216.75,
+      "end": 1226.27,
+      "en": "uh, a over B, so in the direction of the wrong answer, which was the correct answer for sequence A, but it's not a really huge effect.",
+      "zh": "A 而非 B 的方向，也就是錯誤答案的方向；那是序列 A 的正確答案，但效果沒有很大。"
+    },
+    {
+      "start": 1226.27,
+      "end": 1231.55,
+      "en": "So something that we can see visually, but it's not like it even crossed zero.",
+      "zh": "視覺上能看到，但甚至沒有跨過零。"
+    },
+    {
+      "start": 1232.03,
+      "end": 1240.09,
+      "en": "The last thing I want to do in this demo is just rerun all of this code for GPT two medium.",
+      "zh": "這個示範最後，想用 GPT2 medium 重跑全部程式碼。"
+    },
+    {
+      "start": 1240.57,
+      "end": 1247.45,
+      "en": "And basically it's just to show you that this pattern is not unique to the small version of the model.",
+      "zh": "基本上，只是展示這個模式，不是小版本模型獨有。"
+    },
+    {
+      "start": 1247.69,
+      "end": 1248.29,
+      "en": "Uh, let's see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 1248.29,
+      "end": 1257.93,
+      "en": "Yeah, we see a similar pattern here when we use the medium version of the model, if you like, you can also test the large and the xlarge versions of the model.",
+      "zh": "對，medium 版本有類似模式。如果願意，也可以測試 large、xlarge。"
+    },
+    {
+      "start": 1258.13,
+      "end": 1258.89,
+      "en": "Totally fine.",
+      "zh": "完全沒問題。"
+    },
+    {
+      "start": 1258.89,
+      "end": 1262.01,
+      "en": "But you will see basically a similar kind of pattern.",
+      "zh": "但基本上，也會看到類似模式。"
+    },
+    {
+      "start": 1263.01,
+      "end": 1269.97,
+      "en": "I'd like to reiterate a running theme in this part of the course about mechanistic interpretability.",
+      "zh": "想再次強調，這一部分機制可解釋性課程中，反覆出現的主題。"
+    },
+    {
+      "start": 1270.57,
+      "end": 1278.89,
+      "en": "Writing code to read and write from the model internals during a forward pass is not that hard to do can be tricky.",
+      "zh": "撰寫程式，在前向傳播中讀取、寫入模型內部，不是那麼難，但可能有點棘手。"
+    },
+    {
+      "start": 1278.93,
+      "end": 1281.29,
+      "en": "It can be confusing and complicated.",
+      "zh": "可能令人困惑、複雜。"
+    },
+    {
+      "start": 1281.29,
+      "end": 1287.65,
+      "en": "But after having gone through this course and keeping enough sanity checks in your code to make sure",
+      "zh": "但上完這門課，並在程式碼中保留足夠合理性檢查，"
+    },
+    {
+      "start": 1287.65,
+      "end": 1294.02,
+      "en": "that it works correctly, I don't think you're ever going to have real problems with coding up experiments.",
+      "zh": "確保正確運作後，我不認為你在撰寫實驗程式上，會真正遇到問題。"
+    },
+    {
+      "start": 1294.46,
+      "end": 1302.86,
+      "en": "The much more difficult part is having a good conceptual understanding of what you are manipulating and why.",
+      "zh": "困難得多的，是從概念上清楚理解，自己操作什麼、為什麼。"
+    },
+    {
+      "start": 1303.9,
+      "end": 1310.26,
+      "en": "So in this case, we found a really striking difference between the impact of manipulating an entire",
+      "zh": "這次發現，操作整個"
+    },
+    {
+      "start": 1310.26,
+      "end": 1316.06,
+      "en": "transformer block versus just the entire attention adjustment.",
+      "zh": "Transformer 區塊，與只操作整個注意力調整"
+    },
+    {
+      "start": 1316.06,
+      "end": 1316.82,
+      "en": "Subblock.",
+      "zh": "子區塊，影響有非常明顯的差異。"
+    },
+    {
+      "start": 1317.34,
+      "end": 1323.74,
+      "en": "Again, I will have a longer and deeper discussion about why that might be the case in the next video,",
+      "zh": "下一支影片，會更長、更深入地討論可能原因，"
+    },
+    {
+      "start": 1324.18,
+      "end": 1335.78,
+      "en": "but the short version is that the attention Subblock is not calculating the embeddings vectors, but just these minor tweaks like little adjustments to those embeddings vectors.",
+      "zh": "但簡短來說，注意力子區塊不是在計算嵌入向量，只是對那些向量做微小調整。"
+    },
+    {
+      "start": 1336.26,
+      "end": 1340.82,
+      "en": "And what we have done here in this video is modify the tweaks.",
+      "zh": "這支影片做的，就是修改那些調整。"
+    },
+    {
+      "start": 1341.02,
+      "end": 1344.06,
+      "en": "We haven't modified the full embeddings vectors.",
+      "zh": "沒有修改完整嵌入向量。"
+    },
+    {
+      "start": 1344.94,
+      "end": 1349.98,
+      "en": "Anyway, I am looking forward to guiding you through the code challenge in the next video.",
+      "zh": "總之，很期待帶你完成下一支影片的程式挑戰。"
+    },
+    {
+      "start": 1350.3,
+      "end": 1351.38,
+      "en": "I will see you then.",
+      "zh": "下支影片見。"
+    }
+  ]
+}

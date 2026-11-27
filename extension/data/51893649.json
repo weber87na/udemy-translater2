@@ -1,0 +1,1837 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893649",
+  "title": "CodeChallenge: GED for category isolation across layers (part 1)",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "7503e1c1d757d155624fbe2b1b67fe18f1a97a59e72ab5e271cd2e190885e0fb",
+  "cues": [
+    {
+      "start": 2.24,
+      "end": 9.28,
+      "en": "Now that you are familiar with the theory and some of the practical aspects of applying generalized",
+      "zh": "你現在已經熟悉廣義"
+    },
+    {
+      "start": 9.28,
+      "end": 16.88,
+      "en": "eigendecomposition to LM data, I thought you would enjoy an opportunity to continue practicing how",
+      "zh": "特徵分解應用於 LLM 資料的理論，以及部分實務面向，我想你會喜歡繼續練習"
+    },
+    {
+      "start": 16.88,
+      "end": 24.28,
+      "en": "this technique works, and also including some more analyses, including testing for overfitting by",
+      "zh": "這項技術的機會，也加入更多分析，例如透過"
+    },
+    {
+      "start": 24.32,
+      "end": 31.88,
+      "en": "evaluating the data in a test set that is separate from the training set, and you're also going to",
+      "zh": "評估與訓練集分開的測試集資料，檢查過度擬合。你也會"
+    },
+    {
+      "start": 31.92,
+      "end": 37.64,
+      "en": "run the analyses in multiple LMS to check for general reproducibility.",
+      "zh": "在多個 LLM 上執行分析，檢查一般性的可重現性。"
+    },
+    {
+      "start": 38.08,
+      "end": 41.56,
+      "en": "There's lots of great stuff going on here in this code challenge.",
+      "zh": "這次程式挑戰有很多很棒的內容。"
+    },
+    {
+      "start": 41.76,
+      "end": 44.84,
+      "en": "So let's begin with exercise one.",
+      "zh": "先從練習一開始。"
+    },
+    {
+      "start": 45.44,
+      "end": 51.84,
+      "en": "Here you will use the same him.her data set that we've been using several times so far.",
+      "zh": "這裡使用之前已經用過幾次的相同 him/her 資料集。"
+    },
+    {
+      "start": 52.52,
+      "end": 59.16,
+      "en": "But the idea of this code challenge is that we are going to train the eigenvectors using that data set.",
+      "zh": "但這次程式挑戰的概念，是使用那份資料集訓練特徵向量。"
+    },
+    {
+      "start": 59.54,
+      "end": 66.5,
+      "en": "And then we will test for generalization performance using a completely separate data set.",
+      "zh": "接著，使用完全獨立的資料集，測試泛化表現。"
+    },
+    {
+      "start": 66.74,
+      "end": 69.1,
+      "en": "And also one that comes from real data.",
+      "zh": "而且，那份資料來自真實資料。"
+    },
+    {
+      "start": 69.46000000000001,
+      "end": 75.78,
+      "en": "So in particular import the first 2000 documents from the fine web dataset.",
+      "zh": "具體來說，匯入 FineWeb 資料集的前 2,000 份文件。"
+    },
+    {
+      "start": 76.06,
+      "end": 79.22,
+      "en": "We've used this data set several times already.",
+      "zh": "我們已經用過這個資料集幾次。"
+    },
+    {
+      "start": 79.26,
+      "end": 81.53999999999999,
+      "en": "Although it was earlier in the course.",
+      "zh": "不過，是課程比較前面的地方。"
+    },
+    {
+      "start": 81.9,
+      "end": 90.62,
+      "en": "For example in the pre-training and fine tuning sections if you like you can find that code file and copy paste.",
+      "zh": "例如，預訓練與微調章節。如果願意，可以找到那份程式碼檔，複製貼上。"
+    },
+    {
+      "start": 90.62,
+      "end": 94.82,
+      "en": "But I've also included most of this code into the helper file.",
+      "zh": "不過，helper 檔中也已經包含大部分程式碼。"
+    },
+    {
+      "start": 95.53999999999999,
+      "end": 105.82,
+      "en": "Anyway, what you want to do is find 50 him and 50 her target words in the fine web dataset and extract",
+      "zh": "總之，要在 FineWeb 資料集中找出 50 個 him 和 50 個 her 目標詞，擷取"
+    },
+    {
+      "start": 105.82,
+      "end": 114.86,
+      "en": "those words plus their surrounding context to put into a PyTorch tensor as a batch that you can input into the model.",
+      "zh": "這些詞和周圍上下文，放進 PyTorch 張量，形成可以輸入模型的批次。"
+    },
+    {
+      "start": 115.74000000000001,
+      "end": 123.85,
+      "en": "So that data set is going to be of size 100 by ten, corresponding to 50 samples of each pronoun.",
+      "zh": "這份資料集的大小會是 100×10，對應每個代名詞各 50 個樣本。"
+    },
+    {
+      "start": 123.85,
+      "end": 133.09,
+      "en": "So 50 hymns and 50 hers and ten tokens in each sentence sequence where the sixths token is the target",
+      "zh": "也就是 50 個 him、50 個 her，每個句子序列有十個 token，第六個 token 是目標"
+    },
+    {
+      "start": 133.09,
+      "end": 133.57,
+      "en": "word.",
+      "zh": "詞。"
+    },
+    {
+      "start": 134.13,
+      "end": 138.73,
+      "en": "And then you can print out a few of the examples, like what I showed here.",
+      "zh": "接著，可以像這裡展示的，印出幾個範例。"
+    },
+    {
+      "start": 138.73,
+      "end": 141.69,
+      "en": "So I just picked these four at random.",
+      "zh": "我隨機挑了這四個。"
+    },
+    {
+      "start": 141.69,
+      "end": 145.89,
+      "en": "So here you see him him and her and her.",
+      "zh": "這裡可以看到 him、him，以及 her、her。"
+    },
+    {
+      "start": 146.65,
+      "end": 155.21,
+      "en": "Again, the idea is that we are going to run the GED on the Him.her data set to create the eigenvectors,",
+      "zh": "再說一次，概念是對 him/her 資料集執行 GED，建立特徵向量，"
+    },
+    {
+      "start": 155.69,
+      "end": 166.17000000000002,
+      "en": "and then we see if those vectors can also separate him from her in this fine web data set that the eigendecomposition is not exposed to.",
+      "zh": "再看看這些向量能否在特徵分解沒有接觸過的 FineWeb 資料集中，同樣分離 him 與 her。"
+    },
+    {
+      "start": 167.37,
+      "end": 171.32999999999998,
+      "en": "Now, you don't need to worry about any analyses yet.",
+      "zh": "現在還不用擔心分析。"
+    },
+    {
+      "start": 171.77,
+      "end": 179.63,
+      "en": "For now, exercise one just focus on creating the two data sets, and I forgot to mention this explicitly,",
+      "zh": "練習一先專注於建立兩份資料集。我忘了明確提到，"
+    },
+    {
+      "start": 179.63,
+      "end": 186.35,
+      "en": "but I hope it's obvious that you want to give these two data sets different names, like you can call them train and test.",
+      "zh": "但希望很明顯，兩份資料集應該取不同名稱，例如 train 和 test。"
+    },
+    {
+      "start": 186.99,
+      "end": 190.19,
+      "en": "Anyway, now you should pause the video and get to work.",
+      "zh": "總之，現在請暫停影片，開始動手。"
+    },
+    {
+      "start": 190.31,
+      "end": 193.75,
+      "en": "And now I will switch to code and show my solution.",
+      "zh": "現在我切換到程式碼，展示解答。"
+    },
+    {
+      "start": 194.55,
+      "end": 206.47,
+      "en": "Here are the libraries that we will need for exercise one, and also some other libraries that we do not need now, but we will end up using later on for later exercises.",
+      "zh": "這裡是練習一需要的函式庫，還有一些現在不需要、但後續練習會用到的函式庫。"
+    },
+    {
+      "start": 206.99,
+      "end": 208.55,
+      "en": "Okay, so import those here.",
+      "zh": "好，在這裡匯入。"
+    },
+    {
+      "start": 208.55,
+      "end": 209.99,
+      "en": "I'm importing the model.",
+      "zh": "我正在匯入模型。"
+    },
+    {
+      "start": 210.31,
+      "end": 211.82999999999998,
+      "en": "Here are the sentences.",
+      "zh": "這裡是句子。"
+    },
+    {
+      "start": 211.82999999999998,
+      "end": 213.15,
+      "en": "The him.her sentences.",
+      "zh": "him/her 的句子。"
+    },
+    {
+      "start": 213.19,
+      "end": 213.47,
+      "en": "You.",
+      "zh": "你……"
+    },
+    {
+      "start": 213.47,
+      "end": 216.27,
+      "en": "Now I'm sure you're completely bored of these sentences.",
+      "zh": "我相信，你現在已經完全看膩這些句子了。"
+    },
+    {
+      "start": 216.27,
+      "end": 219.82999999999998,
+      "en": "I'll try not to use them too much in the next section of the course.",
+      "zh": "接下來的課程章節，我會盡量不要用太多次。"
+    },
+    {
+      "start": 220.15,
+      "end": 221.35,
+      "en": "Okay, so there's those.",
+      "zh": "好，這些就是。"
+    },
+    {
+      "start": 221.39,
+      "end": 223.07,
+      "en": "And there's the target words here.",
+      "zh": "這裡是目標詞。"
+    },
+    {
+      "start": 223.07,
+      "end": 225.95,
+      "en": "I'm importing the fine web data set.",
+      "zh": "我正在匯入 FineWeb 資料集。"
+    },
+    {
+      "start": 225.99,
+      "end": 226.43,
+      "en": "Again.",
+      "zh": "再說一次，"
+    },
+    {
+      "start": 226.47,
+      "end": 228.95,
+      "en": "You have seen this code before.",
+      "zh": "這段程式碼你以前看過。"
+    },
+    {
+      "start": 229.39,
+      "end": 233.39,
+      "en": "I'm just arbitrarily importing the first 2000 documents.",
+      "zh": "我只是任意匯入前 2,000 份文件。"
+    },
+    {
+      "start": 233.39,
+      "end": 234.89,
+      "en": "That's more than enough.",
+      "zh": "已經綽綽有餘。"
+    },
+    {
+      "start": 234.89,
+      "end": 236.81,
+      "en": "That's going to be a lot, actually.",
+      "zh": "其實會是很多資料。"
+    },
+    {
+      "start": 237.29,
+      "end": 238.49,
+      "en": "Uh, and, uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 238.53,
+      "end": 242.61,
+      "en": "So then, uh, because we only need 50, uh, target words there.",
+      "zh": "因為我們只需要 50 個目標詞。"
+    },
+    {
+      "start": 243.09,
+      "end": 243.41,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 243.45,
+      "end": 244.09,
+      "en": "So let's see.",
+      "zh": "讓我看看。"
+    },
+    {
+      "start": 244.09,
+      "end": 251.53,
+      "en": "So then what I'm doing here is finding all of the tokens in the fine web data set, or at least the",
+      "zh": "接著，我在 FineWeb 資料集，或者至少是"
+    },
+    {
+      "start": 251.53,
+      "end": 256.49,
+      "en": "first part of it, uh, where the token equals him and the token equals her.",
+      "zh": "它的前面部分，找出所有等於 him，以及等於 her 的 token。"
+    },
+    {
+      "start": 256.53,
+      "end": 259.81,
+      "en": "And I call those the him tokens and the tokens.",
+      "zh": "我把它們稱為 him tokens 和另一組 tokens。"
+    },
+    {
+      "start": 259.93,
+      "end": 263.53,
+      "en": "And then here I'm printing out a couple of them just to show some examples.",
+      "zh": "這裡印出其中幾個，展示一些範例。"
+    },
+    {
+      "start": 263.57,
+      "end": 266.09,
+      "en": "Now, this is not is not yet the batch.",
+      "zh": "這還不是批次。"
+    },
+    {
+      "start": 266.09,
+      "end": 270.69,
+      "en": "We haven't yet created the data that we will use to input into the model.",
+      "zh": "還沒有建立實際輸入模型的資料。"
+    },
+    {
+      "start": 270.69,
+      "end": 276.61,
+      "en": "This is just to give you some sense of what some of these tokens look like in context.",
+      "zh": "只是讓你了解，部分 token 在上下文中長什麼樣子。"
+    },
+    {
+      "start": 277.73,
+      "end": 279.09000000000003,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是看到的。"
+    },
+    {
+      "start": 279.09000000000003,
+      "end": 282.33,
+      "en": "So here we have a him him him uh, him.",
+      "zh": "這裡有 him、him、him、him。"
+    },
+    {
+      "start": 282.37,
+      "end": 282.57,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 282.57,
+      "end": 283.97,
+      "en": "I'm only actually showing the hymns.",
+      "zh": "其實只展示了 him。"
+    },
+    {
+      "start": 283.97,
+      "end": 285.97,
+      "en": "You could also show some of the hers as well.",
+      "zh": "也可以展示一些 her。"
+    },
+    {
+      "start": 285.97,
+      "end": 286.61,
+      "en": "That's fine.",
+      "zh": "都可以。"
+    },
+    {
+      "start": 286.97,
+      "end": 287.21,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 287.25,
+      "end": 289.81,
+      "en": "So now here I'm creating the batches.",
+      "zh": "現在，這裡建立批次。"
+    },
+    {
+      "start": 290.01,
+      "end": 300.67,
+      "en": "Now, what I have decided to do here Year is, uh, take the her tokens from much later in the, uh, in the sequence in the data set.",
+      "zh": "我決定從資料集序列中較後面的位置，取出 her token。"
+    },
+    {
+      "start": 300.67,
+      "end": 305.59,
+      "en": "So I'm adding, uh, an offset here of half of the tokens.",
+      "zh": "所以，在這裡加入一個 token 數量一半的偏移量。"
+    },
+    {
+      "start": 305.59,
+      "end": 309.07,
+      "en": "That's really just to push them into later in the data set.",
+      "zh": "只是為了移到資料集較後面。"
+    },
+    {
+      "start": 309.55,
+      "end": 311.03,
+      "en": "Uh, that's not critical.",
+      "zh": "這不是關鍵。"
+    },
+    {
+      "start": 311.03,
+      "end": 315.23,
+      "en": "I didn't mention it when I gave the instructions for this exercise.",
+      "zh": "介紹練習指示時，我沒有提到。"
+    },
+    {
+      "start": 315.35,
+      "end": 324.71,
+      "en": "The reason why I'm doing it here is to just avoid the risk of using the same sentence so that the model is processing mostly the same tokens.",
+      "zh": "這樣做的原因，只是避免使用相同句子的風險，導致模型處理的 token 大多相同。"
+    },
+    {
+      "start": 324.71,
+      "end": 329.11,
+      "en": "For example, we can look at this one here, nominate him or her.",
+      "zh": "例如，可以看這個：nominate him or her。"
+    },
+    {
+      "start": 329.35,
+      "end": 337.90999999999997,
+      "en": "So if I would take this sentence or this token plus its surrounding context for both him and her, then",
+      "zh": "如果對 him 和 her 都取這個句子，或這個 token 與周圍上下文，"
+    },
+    {
+      "start": 337.90999999999997,
+      "end": 345.31,
+      "en": "that means that there's a lot of overlap in exactly identical tokens that the model will be processing,",
+      "zh": "就代表模型處理的完全相同 token 會有很多重疊。"
+    },
+    {
+      "start": 345.31,
+      "end": 350.63,
+      "en": "and it's not really necessary to avoid that, but I thought it would be nice to avoid that.",
+      "zh": "其實不一定要避免，但我覺得避免也不錯。"
+    },
+    {
+      "start": 350.63,
+      "end": 354.34000000000003,
+      "en": "So that's why I added this offset here.",
+      "zh": "所以才加入這個偏移量。"
+    },
+    {
+      "start": 354.7,
+      "end": 359.65999999999997,
+      "en": "Otherwise you can see I'm looping over 50 and I say batch I.",
+      "zh": "除此之外，可以看到，我迴圈處理 50 次，設定 batch[i]。"
+    },
+    {
+      "start": 359.7,
+      "end": 366.18,
+      "en": "So this looping index variable I that comes from the hymn tokens with some surrounding context.",
+      "zh": "迴圈索引變數 i 對應 him token，以及一些周圍上下文。"
+    },
+    {
+      "start": 366.22,
+      "end": 369.98,
+      "en": "And then 50 plus I for the her tokens.",
+      "zh": "her token 則用 50+i。"
+    },
+    {
+      "start": 369.98,
+      "end": 381.82,
+      "en": "So that means that in this batch let me show you that in this batch the first 50 are for him and the second 50 block of 50 are for her.",
+      "zh": "所以，這個批次……讓我展示一下，這個批次前 50 個是 him，後面另一組 50 個是 her。"
+    },
+    {
+      "start": 382.98,
+      "end": 383.22,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 383.26,
+      "end": 388.86,
+      "en": "And then yeah, here I'm just printing out a couple of examples as I showed in the slides him him her",
+      "zh": "這裡只是印出幾個範例，就像投影片展示的 him、him、her、"
+    },
+    {
+      "start": 388.9,
+      "end": 396.46,
+      "en": "her exercise two is not so difficult and shouldn't take you too long to implement.",
+      "zh": "her。練習二並不難，實作應該不會花太久。"
+    },
+    {
+      "start": 396.86,
+      "end": 397.1,
+      "en": "Here.",
+      "zh": "這裡，"
+    },
+    {
+      "start": 397.1,
+      "end": 406.65999999999997,
+      "en": "You want to import GPT two small and implant hooks to get all the activations of the MLP expansion neurons",
+      "zh": "要匯入 GPT2 small，植入 hook，取得所有 MLP 擴張神經元在"
+    },
+    {
+      "start": 406.65999999999997,
+      "end": 408.65999999999997,
+      "en": "before the non-linearity.",
+      "zh": "非線性函數之前的活化。"
+    },
+    {
+      "start": 409.38,
+      "end": 417.72,
+      "en": "Then you can forward pass both data sets to get the activations, and you can print out the sizes of the data matrices.",
+      "zh": "接著，讓兩份資料集做前向傳播，取得活化，並印出資料矩陣的大小。"
+    },
+    {
+      "start": 418.04,
+      "end": 425.04,
+      "en": "Now for the train and test sets, the sizes will be slightly different because the number of sequences",
+      "zh": "訓練集與測試集的大小會稍微不同，因為序列數量"
+    },
+    {
+      "start": 425.04,
+      "end": 433,
+      "en": "and the sequence lengths are different, although of course they are exactly the same neurons with exactly the same indices.",
+      "zh": "和序列長度不同；但當然，神經元完全相同，索引也完全相同。"
+    },
+    {
+      "start": 433.52,
+      "end": 443.8,
+      "en": "That is important because, as you already know, we are going to train the eigenvectors from the train set and then apply them to this test set.",
+      "zh": "這很重要，因為你已經知道，我們會用訓練集訓練特徵向量，再套用到這個測試集。"
+    },
+    {
+      "start": 444.72,
+      "end": 445.92,
+      "en": "So that is your mission.",
+      "zh": "這就是你的任務。"
+    },
+    {
+      "start": 445.92,
+      "end": 446.88,
+      "en": "You know what to do.",
+      "zh": "你知道該做什麼。"
+    },
+    {
+      "start": 447.04,
+      "end": 448.8,
+      "en": "And I also know what to do.",
+      "zh": "我也知道該做什麼。"
+    },
+    {
+      "start": 450.04,
+      "end": 452.32,
+      "en": "So here is the code for exercise two.",
+      "zh": "所以，這是練習二的程式碼。"
+    },
+    {
+      "start": 452.32,
+      "end": 458.84000000000003,
+      "en": "I already imported the model earlier before I even got to the code for exercise one, but that's fine.",
+      "zh": "我在進入練習一的程式碼之前，就已經先匯入模型了，沒關係。"
+    },
+    {
+      "start": 459.36,
+      "end": 462.56,
+      "en": "Okay so here typical code that you've seen before.",
+      "zh": "好，這是以前看過的典型程式碼。"
+    },
+    {
+      "start": 462.6,
+      "end": 465.08,
+      "en": "I'm looping over all of the layers.",
+      "zh": "我遍歷所有層。"
+    },
+    {
+      "start": 465.28,
+      "end": 473.18,
+      "en": "And as you've seen multiple times before, I'm not only getting the output, I'm also detaching it from",
+      "zh": "你也已經看過很多次，我不只取得輸出，還會把它從"
+    },
+    {
+      "start": 473.18,
+      "end": 479.74,
+      "en": "the PyTorch from the model computational graph and transforming it into numpy format.",
+      "zh": "PyTorch 模型的計算圖分離，並轉換成 NumPy 格式。"
+    },
+    {
+      "start": 479.78,
+      "end": 487.06,
+      "en": "Now this part here is sometimes necessary, sometimes not, depending on what subsequent analyses you are going to do.",
+      "zh": "這部分有時需要、有時不需要，取決於後續要做什麼分析。"
+    },
+    {
+      "start": 487.54,
+      "end": 493.1,
+      "en": "For us, in this case, it's just more convenient to have all of the data in numpy format.",
+      "zh": "這個案例中，把所有資料都放在 NumPy 格式比較方便。"
+    },
+    {
+      "start": 493.1,
+      "end": 495.78,
+      "en": "So uh, so that's why I have this here.",
+      "zh": "所以，這裡才這樣做。"
+    },
+    {
+      "start": 496.14,
+      "end": 496.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 496.5,
+      "end": 498.82,
+      "en": "So let me run that code here.",
+      "zh": "讓我執行這裡的程式碼。"
+    },
+    {
+      "start": 499.1,
+      "end": 504.38,
+      "en": "And now I'm pushing the train tokens and the test tokens through the model.",
+      "zh": "現在，讓訓練 token 與測試 token 通過模型。"
+    },
+    {
+      "start": 504.38,
+      "end": 509.54,
+      "en": "And here I am assigning them to different variables with different variable names.",
+      "zh": "這裡把它們指派給名稱不同的變數。"
+    },
+    {
+      "start": 509.54,
+      "end": 513.78,
+      "en": "So we have the train activations and the test activations.",
+      "zh": "所以，有訓練活化與測試活化。"
+    },
+    {
+      "start": 513.98,
+      "end": 516.1,
+      "en": "So here is a question for you.",
+      "zh": "這裡有個問題要問你。"
+    },
+    {
+      "start": 516.42,
+      "end": 521.1,
+      "en": "Notice that these two lines of code are not identical.",
+      "zh": "注意，這兩行程式碼不完全相同。"
+    },
+    {
+      "start": 521.14,
+      "end": 525.82,
+      "en": "Obviously the variable names differ, but on the right hand side they are not identical.",
+      "zh": "變數名稱當然不同，但右側也不相同。"
+    },
+    {
+      "start": 525.94,
+      "end": 531.21,
+      "en": "Here I have a copy method on this dictionary and here I don't.",
+      "zh": "這裡對字典呼叫 copy 方法，這裡沒有。"
+    },
+    {
+      "start": 531.41,
+      "end": 540.69,
+      "en": "So my question for you is whether this is necessary for this line and why I do not have dot copy also",
+      "zh": "所以，我的問題是，這一行是否需要這樣做，以及為何這一行也沒有"
+    },
+    {
+      "start": 540.69,
+      "end": 541.61,
+      "en": "for this line.",
+      "zh": ".copy。"
+    },
+    {
+      "start": 541.89,
+      "end": 543.49,
+      "en": "So that's something for you to ponder.",
+      "zh": "這留給你思考。"
+    },
+    {
+      "start": 543.53,
+      "end": 554.05,
+      "en": "Basically just has to do with how Python deals with these kinds of assassinations with, you know, assigning one variable to another without changing it at all.",
+      "zh": "基本上，這與 Python 如何處理這類指派有關：把一個變數指派給另一個，而完全沒有修改它。"
+    },
+    {
+      "start": 554.53,
+      "end": 554.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 554.93,
+      "end": 556.53,
+      "en": "So let's see run through this.",
+      "zh": "執行一下。"
+    },
+    {
+      "start": 556.77,
+      "end": 560.57,
+      "en": "If you wanted to put this on the GPU, that's fine.",
+      "zh": "如果想把它放到 GPU，也沒問題。"
+    },
+    {
+      "start": 561.01,
+      "end": 564.85,
+      "en": "That will save you some tens of seconds I guess, but it's not that much.",
+      "zh": "我猜會節省幾十秒，不過其實沒有很多。"
+    },
+    {
+      "start": 564.85,
+      "end": 572.39,
+      "en": "Data took seven seconds overall, so if you put it on the GPU, it probably would have saved you six",
+      "zh": "整體資料處理花了七秒，如果放到 GPU，大概會省下六"
+    },
+    {
+      "start": 572.39,
+      "end": 580.09,
+      "en": "seconds of analysis time here, although it was probably more than six seconds to write all the code and select a GPU and so on.",
+      "zh": "秒分析時間，雖然寫程式碼、選 GPU 等等，可能就超過六秒了。"
+    },
+    {
+      "start": 580.41,
+      "end": 580.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 580.69,
+      "end": 584.25,
+      "en": "And here I'm just printing out the sizes of those matrices.",
+      "zh": "這裡只是印出那些矩陣的大小。"
+    },
+    {
+      "start": 584.77,
+      "end": 591.19,
+      "en": "So the train data, there's 54 sentences per pronoun and the test there's 50.",
+      "zh": "訓練資料每個代名詞有 54 個句子，測試資料則有 50 個。"
+    },
+    {
+      "start": 591.39,
+      "end": 596.83,
+      "en": "And then here we have eight tokens in the sequence and ten tokens in the sequence.",
+      "zh": "這裡的序列有八個 token，這裡有十個。"
+    },
+    {
+      "start": 596.99,
+      "end": 599.51,
+      "en": "And why did I not choose to balance them.",
+      "zh": "為什麼不讓兩者相同？"
+    },
+    {
+      "start": 599.79,
+      "end": 601.75,
+      "en": "Because it doesn't really matter.",
+      "zh": "因為其實不重要。"
+    },
+    {
+      "start": 601.79,
+      "end": 603.19,
+      "en": "And also, uh, okay.",
+      "zh": "而且，好，"
+    },
+    {
+      "start": 603.23,
+      "end": 611.67,
+      "en": "Actually, there was a reason, uh, it is uh, sometimes tricky to remember which data set you're working with.",
+      "zh": "其實有個原因：有時很難記住自己正在處理哪份資料集。"
+    },
+    {
+      "start": 611.87,
+      "end": 619.11,
+      "en": "So for confirmation, for sanity checking as you're developing code and going through, uh, analyses",
+      "zh": "所以，開發程式、進行分析和"
+    },
+    {
+      "start": 619.11,
+      "end": 626.51,
+      "en": "and working with code, it's often handy to have different data matrices with slightly different sizes",
+      "zh": "處理程式碼時，讓不同資料矩陣的大小稍微不同，往往方便確認、檢查是否合理。"
+    },
+    {
+      "start": 626.71,
+      "end": 636.07,
+      "en": "so that the chance of you accidentally using this one when you went to use this one is lower, because you can check the sizes and you will see.",
+      "zh": "這樣，想用這個卻誤用另一個的機會就比較低，因為檢查大小就能看出來。"
+    },
+    {
+      "start": 636.39,
+      "end": 639.71,
+      "en": "You can confirm which analysis this corresponds to.",
+      "zh": "可以確認它對應哪個分析。"
+    },
+    {
+      "start": 641.43,
+      "end": 643.97,
+      "en": "Now for exercise Size three.",
+      "zh": "現在是練習三。"
+    },
+    {
+      "start": 644.57,
+      "end": 654.17,
+      "en": "The goal of exercise three is simply to create a function that uses PCA to dimension reduce the activations data.",
+      "zh": "練習三的目標，只是建立一個函數，使用 PCA 對活化資料降維。"
+    },
+    {
+      "start": 654.77,
+      "end": 662.89,
+      "en": "The idea of this function is that for each layer in the model, you will call this function, and that",
+      "zh": "這個函數的概念是，模型每一層都會呼叫它，"
+    },
+    {
+      "start": 662.89,
+      "end": 668.73,
+      "en": "will extract all of the target activations on the training set.",
+      "zh": "擷取訓練集的所有目標活化。"
+    },
+    {
+      "start": 669.09,
+      "end": 677.49,
+      "en": "Run a PCA calculate how many components it takes to account for 99% of the total variability in the",
+      "zh": "執行 PCA，計算需要多少成分，才能解釋資料總變化的 99%，"
+    },
+    {
+      "start": 677.49,
+      "end": 684.33,
+      "en": "data, and then output the activations, the eigenvectors, and the number of components to keep.",
+      "zh": "然後輸出活化、特徵向量，以及要保留的成分數量。"
+    },
+    {
+      "start": 684.81,
+      "end": 688.49,
+      "en": "Now all of this is based purely on the training data.",
+      "zh": "這完全只根據訓練資料。"
+    },
+    {
+      "start": 688.53,
+      "end": 692.81,
+      "en": "You're not using any of the test data anywhere in this function.",
+      "zh": "函數裡任何地方都不使用測試資料。"
+    },
+    {
+      "start": 693.33,
+      "end": 704.08,
+      "en": "And that means that you need this loop over sentences, because in the training data, the target tokens can appear in any number of different positions.",
+      "zh": "因此，需要這個遍歷句子的迴圈，因為訓練資料的目標 token 可能出現在各種不同位置。"
+    },
+    {
+      "start": 704.68,
+      "end": 711.32,
+      "en": "Now here in this case, I want you to use scikit learn's PCA function, because it turns out that that's",
+      "zh": "這裡我要你使用 scikit-learn 的 PCA 函數，因為它"
+    },
+    {
+      "start": 711.32,
+      "end": 718.52,
+      "en": "a lot faster than writing out the code yourself, which is the code that I used in the previous video.",
+      "zh": "比自己寫程式碼快很多，也就是上一支影片使用的程式碼。"
+    },
+    {
+      "start": 719.36,
+      "end": 730.56,
+      "en": "So you might need to do a little bit of extra work to figure out how to extract the eigenvalues, and then convert that into cumulative variance explained.",
+      "zh": "所以，也許需要多做一點工作，弄清楚如何擷取特徵值，再轉成累積解釋變異數。"
+    },
+    {
+      "start": 731.28,
+      "end": 740.04,
+      "en": "On the other hand, this line here I have left intact from the solutions file because I find it like pointlessly confusing.",
+      "zh": "另一方面，這一行我保留了解答檔中的原樣，因為我覺得它很令人困惑，而且毫無必要。"
+    },
+    {
+      "start": 740.04,
+      "end": 747.64,
+      "en": "So basically scikit learn names the eigenvectors component matrix components underscore.",
+      "zh": "基本上，scikit-learn 把特徵向量成分矩陣命名為 components_。"
+    },
+    {
+      "start": 747.68,
+      "end": 755.36,
+      "en": "That part is fine, but it puts the eigenvectors in the rows instead of in the columns.",
+      "zh": "這部分沒問題，但它把特徵向量放在列，而不是欄。"
+    },
+    {
+      "start": 755.64,
+      "end": 765.1,
+      "en": "Now I find that extremely annoying and confusing because it's different from how, like the rest of the world stores eigenvectors in columns.",
+      "zh": "我覺得這非常惱人、令人困惑，因為與其他人把特徵向量存在欄中的方式不同。"
+    },
+    {
+      "start": 765.54,
+      "end": 768.9,
+      "en": "This is the sort of thing that causes confusion and errors.",
+      "zh": "這類事情會造成困惑與錯誤。"
+    },
+    {
+      "start": 768.9,
+      "end": 776.18,
+      "en": "But anyway, the solution is simply to transpose the components matrix, and that gives you the eigenvectors",
+      "zh": "總之，解法只要轉置成分矩陣，就能得到"
+    },
+    {
+      "start": 776.18,
+      "end": 783.54,
+      "en": "matrix with the eigenvectors in the columns, as we have done in the previous video.",
+      "zh": "特徵向量放在欄中的矩陣，與上一支影片一樣。"
+    },
+    {
+      "start": 783.74,
+      "end": 786.7,
+      "en": "Here you do want to export from this function.",
+      "zh": "這裡確實需要從函數輸出，"
+    },
+    {
+      "start": 786.7,
+      "end": 794.5,
+      "en": "You do want to return the principal components eigenvectors, because later on in a later exercise you",
+      "zh": "需要傳回主成分特徵向量，因為之後的練習中，"
+    },
+    {
+      "start": 794.5,
+      "end": 799.82,
+      "en": "will apply those eigenvectors to dimension reduce the test set.",
+      "zh": "會用這些特徵向量，對測試集降維。"
+    },
+    {
+      "start": 800.46,
+      "end": 806.18,
+      "en": "Anyway, fleshing out this function is the entirety of exercise three.",
+      "zh": "總之，補完這個函數，就是練習三的全部。"
+    },
+    {
+      "start": 807.02,
+      "end": 813.7,
+      "en": "If you are struggling with this exercise, then of course you can copy and paste a lot of code from the previous video.",
+      "zh": "如果覺得練習很困難，當然可以從上一支影片複製貼上很多程式碼。"
+    },
+    {
+      "start": 814.1,
+      "end": 816.74,
+      "en": "So pause the video and get to work.",
+      "zh": "暫停影片，開始動手。"
+    },
+    {
+      "start": 816.74,
+      "end": 818.62,
+      "en": "And now I will switch to code.",
+      "zh": "現在我切換到程式碼。"
+    },
+    {
+      "start": 819.64,
+      "end": 821.64,
+      "en": "So here I'm defining the function.",
+      "zh": "這裡定義函數。"
+    },
+    {
+      "start": 821.64,
+      "end": 827.4,
+      "en": "I call it dim red for dimension reduction via principal components analysis.",
+      "zh": "我稱為 dim_red，代表透過主成分分析降維。"
+    },
+    {
+      "start": 827.84,
+      "end": 835.68,
+      "en": "Input the layer number because I'm going to call this function inside a for loop over all the different layers of the model.",
+      "zh": "輸入層編號，因為會在遍歷模型不同層的 for 迴圈中，呼叫這個函數。"
+    },
+    {
+      "start": 836.16,
+      "end": 838.76,
+      "en": "Here is where I'm getting the target activations.",
+      "zh": "這裡取得目標活化。"
+    },
+    {
+      "start": 838.76,
+      "end": 840.88,
+      "en": "You've seen all code like this before.",
+      "zh": "這類程式碼你以前都看過。"
+    },
+    {
+      "start": 840.88,
+      "end": 847.8,
+      "en": "So here I'm getting the index of the target, either him or her.",
+      "zh": "這裡取得目標，也就是 him 或 her 的索引。"
+    },
+    {
+      "start": 848.28,
+      "end": 852.88,
+      "en": "And then I'm just grabbing that activation and storing that in this matrix here.",
+      "zh": "然後，擷取那個活化，儲存在這個矩陣裡。"
+    },
+    {
+      "start": 852.88,
+      "end": 862.24,
+      "en": "So this is going to be a 108 by 3072 matrix corresponding to 108 sentences or sequences.",
+      "zh": "這會是 108×3072 的矩陣，對應 108 個句子或序列。"
+    },
+    {
+      "start": 862.24,
+      "end": 870.48,
+      "en": "So targets and 3072 activations from each of the MLP expansion neurons.",
+      "zh": "也就是目標，以及各個 MLP 擴張神經元產生的 3072 個活化。"
+    },
+    {
+      "start": 871.08,
+      "end": 872.44,
+      "en": "So that's the activation.",
+      "zh": "這就是活化。"
+    },
+    {
+      "start": 872.6,
+      "end": 877.74,
+      "en": "Here we do the principal components analysis to dimension compress the data.",
+      "zh": "這裡做主成分分析，壓縮資料維度。"
+    },
+    {
+      "start": 877.98,
+      "end": 880.54,
+      "en": "Now this code is commented out.",
+      "zh": "這段程式碼已註解掉。"
+    },
+    {
+      "start": 880.58,
+      "end": 891.54,
+      "en": "This code is all correct, but this does the I, the Eigendecomposition and the principal components analysis manually using code that I showed in the previous video.",
+      "zh": "程式碼全都正確，但它使用上一支影片展示的程式碼，手動做特徵分解和主成分分析。"
+    },
+    {
+      "start": 892.46,
+      "end": 897.86,
+      "en": "I included this here because it is equivalent to this code here.",
+      "zh": "我把它放在這裡，因為它與這段程式碼等價。"
+    },
+    {
+      "start": 898.18,
+      "end": 903.3,
+      "en": "The thing is that this is pretty slow and this is pretty fast.",
+      "zh": "問題是，這個很慢，這個很快。"
+    },
+    {
+      "start": 903.3,
+      "end": 908.26,
+      "en": "So when you're only doing this once for one layer, then this is fine.",
+      "zh": "如果只對一層做一次，這樣可以。"
+    },
+    {
+      "start": 908.26,
+      "end": 912.94,
+      "en": "You can do this method, but you will see when we run this over 12 layers.",
+      "zh": "可以用這個方法，但你會看到，對 12 層執行時，"
+    },
+    {
+      "start": 912.94,
+      "end": 921.66,
+      "en": "And then later on we're going to reproduce this in uh, in GPT two XL which has several dozen layers.",
+      "zh": "之後還要在有數十層的 GPT2 XL 中重現，"
+    },
+    {
+      "start": 921.7,
+      "end": 924.46,
+      "en": "This is going to end up just being ludicrously slow.",
+      "zh": "這最後會慢得離譜。"
+    },
+    {
+      "start": 924.46,
+      "end": 926.14,
+      "en": "And this is quite fast.",
+      "zh": "而這個很快。"
+    },
+    {
+      "start": 926.38,
+      "end": 927.58,
+      "en": "So, uh, yeah.",
+      "zh": "所以，"
+    },
+    {
+      "start": 927.58,
+      "end": 934.78,
+      "en": "So therefore I'm using scikit learn's PCA to get the same results as what I have written up here.",
+      "zh": "我使用 scikit-learn 的 PCA，取得與上面手寫程式碼相同的結果。"
+    },
+    {
+      "start": 935.26,
+      "end": 935.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 935.69,
+      "end": 945.69,
+      "en": "so all of this I already explained here I'm taking PCA, dot explained variance ratio and then I just multiply it by 100.",
+      "zh": "這些都已經解釋過。這裡取 PCA 的 explained_variance_ratio_，再乘以 100。"
+    },
+    {
+      "start": 945.69,
+      "end": 948.73,
+      "en": "So basically this here is proportion.",
+      "zh": "這裡基本上是比例。"
+    },
+    {
+      "start": 948.89,
+      "end": 950.61,
+      "en": "And then I want percent.",
+      "zh": "我想要的是百分比。"
+    },
+    {
+      "start": 950.61,
+      "end": 952.21,
+      "en": "And why do I want it in percent.",
+      "zh": "為什麼要百分比？"
+    },
+    {
+      "start": 952.49,
+      "end": 954.49,
+      "en": "Literally no compelling reason.",
+      "zh": "真的沒有什麼非如此不可的理由。"
+    },
+    {
+      "start": 954.49,
+      "end": 958.13,
+      "en": "You could leave this out and then make that 0.99.",
+      "zh": "也可以省略這個，把那裡改成 0.99。"
+    },
+    {
+      "start": 958.41,
+      "end": 960.77,
+      "en": "As you like this is just personal preference.",
+      "zh": "隨你喜歡，只是個人偏好。"
+    },
+    {
+      "start": 961.17,
+      "end": 968.97,
+      "en": "And then of course I'm taking the cumulative sum so that I can calculate the component index at which",
+      "zh": "當然，接著取累積和，才能計算出成分索引，"
+    },
+    {
+      "start": 968.97,
+      "end": 973.85,
+      "en": "the cumulative variance explained exceeds 99%.",
+      "zh": "也就是累積解釋變異數超過 99% 的位置。"
+    },
+    {
+      "start": 974.25,
+      "end": 977.13,
+      "en": "So that gives me the number of components to keep.",
+      "zh": "這就得到要保留的成分數量。"
+    },
+    {
+      "start": 977.13,
+      "end": 982.37,
+      "en": "And then I export the training activations which is still in the original dimensional space.",
+      "zh": "接著，輸出仍在原始維度空間中的訓練活化。"
+    },
+    {
+      "start": 982.37,
+      "end": 987.41,
+      "en": "So the MLP expansion space, I haven't yet done the compression.",
+      "zh": "也就是 MLP 擴張空間，還沒有壓縮。"
+    },
+    {
+      "start": 987.61,
+      "end": 996.15,
+      "en": "And then the eigenvectors and the number of components that we want to keep Exercise four is kind of",
+      "zh": "然後，是特徵向量，以及要保留的成分數量。練習四有點"
+    },
+    {
+      "start": 996.19,
+      "end": 1003.03,
+      "en": "similar to exercise three, in the sense that the entire goal of this exercise is to write a function",
+      "zh": "類似練習三，因為這份練習的全部目標，是撰寫一個函數，"
+    },
+    {
+      "start": 1003.23,
+      "end": 1010.43,
+      "en": "that will perform the GED on the training set, and you can call that function for each layer of the model.",
+      "zh": "對訓練集執行 GED，並且可以對模型的每一層呼叫。"
+    },
+    {
+      "start": 1010.83,
+      "end": 1022.35,
+      "en": "And also, as with exercise three, most of this code you can copy paste from the previous video where I demoed GED in LM data for one layer.",
+      "zh": "和練習三一樣，大部分程式碼都可以從上一支影片複製貼上；當時示範了對 LLM 資料的一層做 GED。"
+    },
+    {
+      "start": 1022.95,
+      "end": 1029.27,
+      "en": "So up here you compress the training data down to a smaller dimensionality.",
+      "zh": "這裡先把訓練資料壓縮到較低維度。"
+    },
+    {
+      "start": 1029.67,
+      "end": 1034.95,
+      "en": "Calculate the covariance matrices of the reduced dimensional data set.",
+      "zh": "計算降維後資料集的共變異數矩陣。"
+    },
+    {
+      "start": 1035.35,
+      "end": 1043.71,
+      "en": "Calculate shrinkage regularization storing those regularized covariance matrices as separate variable names.",
+      "zh": "計算收縮正規化，將正規化後的共變異數矩陣存在不同名稱的變數中。"
+    },
+    {
+      "start": 1044.23,
+      "end": 1048.23,
+      "en": "And then here you implement the generalized eigendecomposition.",
+      "zh": "接著，在這裡實作廣義特徵分解。"
+    },
+    {
+      "start": 1048.71,
+      "end": 1054.13,
+      "en": "Now here when you do the GED you can just use the Is the regularized covariance for r.",
+      "zh": "做 GED 時，R 可以直接使用正規化後的共變異數。"
+    },
+    {
+      "start": 1054.25,
+      "end": 1062.33,
+      "en": "So the second input into the I th function which is the denominator matrix, or like the reference matrix.",
+      "zh": "也就是 eigh 函數的第二個輸入，它是分母矩陣，或稱參考矩陣。"
+    },
+    {
+      "start": 1062.81,
+      "end": 1064.89,
+      "en": "And you can use the unadulterated.",
+      "zh": "S 則可以使用沒有改動的，"
+    },
+    {
+      "start": 1064.89,
+      "end": 1069.13,
+      "en": "So the non regularized covariance matrix for s.",
+      "zh": "也就是沒有正規化的共變異數矩陣。"
+    },
+    {
+      "start": 1069.57,
+      "end": 1073.97,
+      "en": "I've already discussed why you would want to do this in the previous video.",
+      "zh": "上一支影片已經討論過，為什麼會想這樣做。"
+    },
+    {
+      "start": 1073.97,
+      "end": 1077.21,
+      "en": "And I'll mention it again briefly when I switch to code.",
+      "zh": "切換到程式碼時，我會再簡短提一下。"
+    },
+    {
+      "start": 1077.53,
+      "end": 1079.05,
+      "en": "But that is commonly done.",
+      "zh": "這是常見的做法。"
+    },
+    {
+      "start": 1079.09,
+      "end": 1085.93,
+      "en": "Again the idea is just to preserve as much of the information in S as possible in the numerator matrix",
+      "zh": "概念仍然是，盡可能保留分子矩陣 S 中的資訊，"
+    },
+    {
+      "start": 1085.93,
+      "end": 1091.85,
+      "en": "that you want to isolate the patterns for, and then just regularize the R matrix.",
+      "zh": "因為想要分離的是它的模式，再只對 R 矩陣做正規化。"
+    },
+    {
+      "start": 1092.29,
+      "end": 1098.37,
+      "en": "And yeah, as you also know from the previous video, you want to repeat this procedure.",
+      "zh": "從上一支影片，你也已經知道，要重複這個程序。"
+    },
+    {
+      "start": 1098.37,
+      "end": 1106.05,
+      "en": "So you do the generalized eigendecomposition twice once for him versus her and once for her versus him.",
+      "zh": "所以，廣義特徵分解做兩次，一次 him 相對於 her，一次 her 相對於 him。"
+    },
+    {
+      "start": 1106.37,
+      "end": 1117.48,
+      "en": "And then there's one more thing that you should implement in this function, which I mentioned and showed briefly in the previous demo, although I didn't actually write out the math for you, I just showed",
+      "zh": "這個函數還應該實作另一件事，上一個示範曾經簡短提過並展示；雖然沒有把數學寫出來，只是展示"
+    },
+    {
+      "start": 1117.48,
+      "end": 1118.48,
+      "en": "you the code.",
+      "zh": "程式碼。"
+    },
+    {
+      "start": 1118.76,
+      "end": 1121.16,
+      "en": "So that is that code is here.",
+      "zh": "那段程式碼就在這裡。"
+    },
+    {
+      "start": 1121.16,
+      "end": 1122.04,
+      "en": "The math is here.",
+      "zh": "數學在這裡。"
+    },
+    {
+      "start": 1122.32,
+      "end": 1127.4,
+      "en": "So the idea is that we want to see what these patterns actually look like.",
+      "zh": "概念是，想看看這些模式實際長什麼樣子。"
+    },
+    {
+      "start": 1127.6,
+      "end": 1131.24,
+      "en": "Now the pattern is not the same thing as the eigenvector.",
+      "zh": "模式與特徵向量不同。"
+    },
+    {
+      "start": 1131.4,
+      "end": 1137.08,
+      "en": "The eigenvector is the filter weights like the spatial kernel that we apply to the data.",
+      "zh": "特徵向量是濾波權重，像是套用到資料上的空間核心。"
+    },
+    {
+      "start": 1137.52,
+      "end": 1143.04,
+      "en": "The pattern you get by multiplying the weights matrix so w.",
+      "zh": "要取得模式，就讓權重矩陣，也就是 w，"
+    },
+    {
+      "start": 1143.08,
+      "end": 1148.8,
+      "en": "This is the top eigenvector that you would get here by the covariance matrix.",
+      "zh": "這是這裡取得的最前面的特徵向量，乘上共變異數矩陣。"
+    },
+    {
+      "start": 1148.8,
+      "end": 1152.76,
+      "en": "And that would be one of these covariance matrices here.",
+      "zh": "也就是這裡其中一個共變異數矩陣。"
+    },
+    {
+      "start": 1153.24,
+      "end": 1158.52,
+      "en": "Now there's a deeper mathematical discussion about why this is the right thing to do.",
+      "zh": "為什麼這樣做正確，有更深入的數學討論。"
+    },
+    {
+      "start": 1158.52,
+      "end": 1161.32,
+      "en": "And I'm not going to get into the nuances of that here.",
+      "zh": "這裡不會深入那些細節。"
+    },
+    {
+      "start": 1161.32,
+      "end": 1167.48,
+      "en": "But suffice it to say, this reveals the pattern in the data that we can interpret.",
+      "zh": "只要知道，這會揭露資料中可以解讀的模式。"
+    },
+    {
+      "start": 1167.88,
+      "end": 1172.3,
+      "en": "Now the covariance matrix is in the reduced dimensional space.",
+      "zh": "共變異數矩陣是在降維空間中。"
+    },
+    {
+      "start": 1172.3,
+      "end": 1183.7,
+      "en": "So you also want to expand the covariance matrix by pre-multiplying by the same principal components eigenvectors that you used for the compression.",
+      "zh": "所以，也要在前面乘上壓縮時使用的相同主成分特徵向量，擴展共變異數矩陣。"
+    },
+    {
+      "start": 1184.06,
+      "end": 1193.94,
+      "en": "So this is kind of like undoing the compression to expand the dimensionality back out to the original MLP expansion layer space.",
+      "zh": "這有點像撤銷壓縮，將維度擴展回原始的 MLP 擴張層空間。"
+    },
+    {
+      "start": 1194.7,
+      "end": 1199.54,
+      "en": "And then you can correlate the pattern for him with the pattern for her.",
+      "zh": "接著，就能計算 him 模式與 her 模式的相關性。"
+    },
+    {
+      "start": 1199.58,
+      "end": 1201.5,
+      "en": "That's what you see over here.",
+      "zh": "這裡就是。"
+    },
+    {
+      "start": 1201.5,
+      "end": 1203.14,
+      "en": "Here I'm using Pearson R.",
+      "zh": "我使用 Pearson r。"
+    },
+    {
+      "start": 1203.46,
+      "end": 1209.74,
+      "en": "That will give me a statistic a correlation coefficient value and also the p value.",
+      "zh": "它會給出統計量，也就是相關係數，以及 p 值。"
+    },
+    {
+      "start": 1210.14,
+      "end": 1216.18,
+      "en": "So when you return this that's going to be interesting to look at over the different layers.",
+      "zh": "傳回這個結果後，觀察它在不同層的變化，會很有意思。"
+    },
+    {
+      "start": 1216.82,
+      "end": 1224.14,
+      "en": "Anyway so you want to output from this function the projected data for him the projected data for her.",
+      "zh": "總之，要從函數輸出 him 的投影資料，以及 her 的投影資料。"
+    },
+    {
+      "start": 1224.18,
+      "end": 1231.8,
+      "en": "So these are the low dimensional projections for the target's projected onto their corresponding eigenvectors.",
+      "zh": "也就是目標投影到各自對應特徵向量上的低維投影。"
+    },
+    {
+      "start": 1232.04,
+      "end": 1242.72,
+      "en": "And you also want to export the eigenvectors themselves, because in the next exercise, we are going to apply these eigenvectors to the test set data.",
+      "zh": "也要輸出特徵向量本身，因為下一個練習，要把這些特徵向量套用到測試集資料。"
+    },
+    {
+      "start": 1243.16,
+      "end": 1247.56,
+      "en": "And of course this correlation object over here from this analysis.",
+      "zh": "當然，還有這項分析得到的相關性物件。"
+    },
+    {
+      "start": 1247.88,
+      "end": 1255,
+      "en": "And then over here we have the top eigenvalue for him and the top eigenvalue for her.",
+      "zh": "這裡還有 him 的最高特徵值，以及 her 的最高特徵值。"
+    },
+    {
+      "start": 1255.44,
+      "end": 1263.12,
+      "en": "We are going to visualize these data to see if the largest eigenvalue, which is related to the separability",
+      "zh": "我們要把資料視覺化，看看與模型可分離性有關的最大特徵值，"
+    },
+    {
+      "start": 1263.12,
+      "end": 1267.8,
+      "en": "in the model, changes as a function of depth into the model.",
+      "zh": "是否會隨模型深度變化。"
+    },
+    {
+      "start": 1268.64,
+      "end": 1268.88,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1268.96,
+      "end": 1276.4,
+      "en": "Now this exercise is actually a little bit tricky, but I hope you find it to be a good educational experience.",
+      "zh": "這份練習其實有點棘手，但希望你覺得它是很好的學習經驗。"
+    },
+    {
+      "start": 1276.88,
+      "end": 1288.47,
+      "en": "If you get stuck, then feel free to keep watching the video where I will discuss my solution, and I'll also expand on some of the practical Implementational details of GED.",
+      "zh": "如果卡住，可以繼續看影片，我會討論解答，也會補充 GED 實作的一些細節。"
+    },
+    {
+      "start": 1289.79,
+      "end": 1297.43,
+      "en": "So this stuff is tricky, but all of this code you have seen before in the previous couple of videos.",
+      "zh": "這些東西不容易，但這些程式碼，你在前幾支影片都看過。"
+    },
+    {
+      "start": 1297.95,
+      "end": 1298.23,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1298.27,
+      "end": 1302.47,
+      "en": "So here I'm projecting the data down to a lower dimensional space.",
+      "zh": "這裡把資料投影到較低維空間。"
+    },
+    {
+      "start": 1302.67,
+      "end": 1307.63,
+      "en": "Note here I'm post-multiplying the PCA eigenvectors.",
+      "zh": "注意，PCA 特徵向量是從後面相乘。"
+    },
+    {
+      "start": 1307.87,
+      "end": 1312.59,
+      "en": "So so the training activations times the PCA eigenvectors.",
+      "zh": "也就是訓練活化乘上 PCA 特徵向量。"
+    },
+    {
+      "start": 1312.63,
+      "end": 1316.35,
+      "en": "Again, nowhere in here am I actually using the test set.",
+      "zh": "再說一次，這裡任何地方都沒有使用測試集。"
+    },
+    {
+      "start": 1316.59,
+      "end": 1324.95,
+      "en": "All of the principal components vectors and the generalized eigendecomposition vectors are only based on the training set.",
+      "zh": "所有主成分向量和廣義特徵分解向量，都只根據訓練集。"
+    },
+    {
+      "start": 1325.43,
+      "end": 1327.35,
+      "en": "Here are their covariance matrices.",
+      "zh": "這裡是它們的共變異數矩陣。"
+    },
+    {
+      "start": 1327.35,
+      "end": 1331.47,
+      "en": "You have to be mindful of when you need to transpose and when you don't.",
+      "zh": "必須留意，什麼時候需要轉置，什麼時候不需要。"
+    },
+    {
+      "start": 1331.75,
+      "end": 1335.67,
+      "en": "Uh, it really just depends on the orientation of the data.",
+      "zh": "這真的只取決於資料的方向。"
+    },
+    {
+      "start": 1335.79,
+      "end": 1342.27,
+      "en": "But the best way to do it is just to pick one of these at random, like transpose or don't transpose.",
+      "zh": "但最好的方法，就是隨意先選一個，例如轉置或不轉置。"
+    },
+    {
+      "start": 1342.31,
+      "end": 1352.85,
+      "en": "And then you check the sizes and you want to make sure that the size of this covariance matrix is features by features and not observations by observations.",
+      "zh": "接著檢查大小，確認共變異數矩陣是特徵乘上特徵，而非觀測值乘上觀測值。"
+    },
+    {
+      "start": 1353.33,
+      "end": 1353.69,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1353.73,
+      "end": 1356.05,
+      "en": "So that is the covariance matrices.",
+      "zh": "這就是共變異數矩陣。"
+    },
+    {
+      "start": 1356.21,
+      "end": 1359.21,
+      "en": "Here I'm doing the shrinkage regularization.",
+      "zh": "這裡做收縮正規化。"
+    },
+    {
+      "start": 1359.37,
+      "end": 1362.61,
+      "en": "And then here is the generalized eigendecomposition.",
+      "zh": "這裡是廣義特徵分解。"
+    },
+    {
+      "start": 1362.65,
+      "end": 1364.97,
+      "en": "Again nothing new here.",
+      "zh": "同樣，沒有新東西。"
+    },
+    {
+      "start": 1365.01,
+      "end": 1368.81,
+      "en": "This is all stuff you have seen now in several videos.",
+      "zh": "這些都是你現在已在幾支影片看過的內容。"
+    },
+    {
+      "start": 1368.85,
+      "end": 1373.25,
+      "en": "So the very first one where I did the very simple demo with the X data set.",
+      "zh": "包括最早用 X 資料集做非常簡單示範的影片，"
+    },
+    {
+      "start": 1373.41,
+      "end": 1382.05,
+      "en": "And also in the video where I first the video thereafter where I first demoed GED in uh, in LM data.",
+      "zh": "以及之後，第一次展示 LLM 資料 GED 的影片。"
+    },
+    {
+      "start": 1383.17,
+      "end": 1383.53,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1383.57,
+      "end": 1392.85,
+      "en": "So then we want to project the, uh, targets down onto the top, uh, generalized Eigendecomposition",
+      "zh": "接著，要把目標投影到最前面的廣義特徵分解"
+    },
+    {
+      "start": 1392.85,
+      "end": 1393.61,
+      "en": "vector.",
+      "zh": "向量。"
+    },
+    {
+      "start": 1393.65,
+      "end": 1399.01,
+      "en": "And we have to do that twice for the Him analysis and for the her analysis.",
+      "zh": "要做兩次，分別是 him 分析與 her 分析。"
+    },
+    {
+      "start": 1399.33,
+      "end": 1409.79,
+      "en": "And then, uh, so also notice here I'm not projecting down all of the words in the entire sequence, like what we did in the previous video here.",
+      "zh": "也注意，這裡並沒有像上一支影片那樣，把整個序列的所有詞都投影。"
+    },
+    {
+      "start": 1409.79,
+      "end": 1412.27,
+      "en": "This is really just about the target words.",
+      "zh": "這裡真的只針對目標詞。"
+    },
+    {
+      "start": 1412.27,
+      "end": 1414.23,
+      "en": "We're just focusing on the target words here.",
+      "zh": "只專注於目標詞。"
+    },
+    {
+      "start": 1414.67,
+      "end": 1414.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1414.95,
+      "end": 1418.55,
+      "en": "And then here is the pattern analysis as I mentioned.",
+      "zh": "接著，是剛才提到的模式分析。"
+    },
+    {
+      "start": 1418.67,
+      "end": 1419.19,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1419.23,
+      "end": 1427.35,
+      "en": "The right thing to do to interpret the patterns in the data themselves is take the eigenvector and multiply",
+      "zh": "要解讀資料本身的模式，正確做法是取特徵向量，"
+    },
+    {
+      "start": 1427.35,
+      "end": 1431.35,
+      "en": "that by the corresponding covariance matrix.",
+      "zh": "乘上對應的共變異數矩陣。"
+    },
+    {
+      "start": 1431.35,
+      "end": 1439.15,
+      "en": "And actually I think I'd prefer not to do this on the regularized matrix but on the original covariance matrix.",
+      "zh": "其實，我想我會偏好使用原始共變異數矩陣，而非正規化後的矩陣。"
+    },
+    {
+      "start": 1439.91,
+      "end": 1440.19,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1440.23,
+      "end": 1443.83,
+      "en": "And then yeah here pre-multiplying by the PCA eigenvectors.",
+      "zh": "接著，在前面乘上 PCA 特徵向量。"
+    },
+    {
+      "start": 1443.83,
+      "end": 1447.03,
+      "en": "And then this will get us back to the MLP space.",
+      "zh": "這就能回到 MLP 空間。"
+    },
+    {
+      "start": 1447.67,
+      "end": 1459.47,
+      "en": "Now if these neurons actually had some meaningful spatial geometric organization, then this is the thing that we could visualize and interpret.",
+      "zh": "如果這些神經元真的有具意義的空間幾何組織，就可以把這個結果視覺化、解讀。"
+    },
+    {
+      "start": 1459.47,
+      "end": 1465.29,
+      "en": "For example, when, uh, you know, in my neuroscience lab, when we do these kinds of analyses on",
+      "zh": "例如，在我的神經科學實驗室，我們對"
+    },
+    {
+      "start": 1465.29,
+      "end": 1471.81,
+      "en": "neuroscience data, we can visualize this pattern over the different electrodes that we're recording",
+      "zh": "神經科學資料做這類分析時，可以將這個模式畫在所記錄的不同電極，"
+    },
+    {
+      "start": 1471.81,
+      "end": 1478.45,
+      "en": "from or the different pixels in the image of a brain map here for these models.",
+      "zh": "或腦部圖像的不同像素上。但這裡這些模型，"
+    },
+    {
+      "start": 1478.65,
+      "end": 1483.65,
+      "en": "You know, the MLP neurons have no meaningful spatial relationship.",
+      "zh": "MLP 神經元沒有具意義的空間關係。"
+    },
+    {
+      "start": 1483.65,
+      "end": 1484.85,
+      "en": "There's no reason why.",
+      "zh": "沒有什麼理由，"
+    },
+    {
+      "start": 1485.61,
+      "end": 1488.29,
+      "en": "Neuron 1000 and 1001.",
+      "zh": "讓第 1000 和第 1001 個神經元，"
+    },
+    {
+      "start": 1488.45,
+      "end": 1490.45,
+      "en": "You know, they don't have anything to do with each other.",
+      "zh": "它們彼此沒有什麼關係。"
+    },
+    {
+      "start": 1490.49,
+      "end": 1493.29,
+      "en": "They just happen to be indexed sequentially.",
+      "zh": "只是索引剛好連續。"
+    },
+    {
+      "start": 1494.37,
+      "end": 1500.73,
+      "en": "So therefore we're not going to really visualize these data in any kind of meaningful map sense.",
+      "zh": "所以，我們不會真的把這些資料畫成某種有意義的地圖。"
+    },
+    {
+      "start": 1500.73,
+      "end": 1510.05,
+      "en": "But we are going to correlate them to see how they are, how these patterns are related to each other in the original MLP data space.",
+      "zh": "但會計算它們的相關性，看看這些模式在原始 MLP 資料空間中，彼此有什麼關聯。"
+    },
+    {
+      "start": 1510.61,
+      "end": 1515.41,
+      "en": "Again, here, in theory, all of this stuff should be real valued.",
+      "zh": "同樣，理論上，這些全部都應該是實數。"
+    },
+    {
+      "start": 1515.45,
+      "end": 1518.25,
+      "en": "We shouldn't be getting complex valued results.",
+      "zh": "不應該得到複數結果。"
+    },
+    {
+      "start": 1518.61,
+      "end": 1524.64,
+      "en": "But just because of some tiny numerical inaccuracies and little numerical issues.",
+      "zh": "但因為一些微小的數值不準確與數值問題，"
+    },
+    {
+      "start": 1524.92,
+      "end": 1535.04,
+      "en": "It is possible for some of these results to be complex valued, and that is why I just extract the real part here and the real part here.",
+      "zh": "部分結果可能是複數，所以這裡和這裡，我只擷取實部。"
+    },
+    {
+      "start": 1535.44,
+      "end": 1543.4,
+      "en": "And, uh, and then I think I actually don't need this here because all of these are already guaranteed to be real valued.",
+      "zh": "接著，我想這裡其實不需要，因為這些已經保證是實數。"
+    },
+    {
+      "start": 1543.4,
+      "end": 1548.24,
+      "en": "So, uh, so I don't remember if there is a particular reason why I include that here anyway.",
+      "zh": "所以，我不記得這裡加入它，是否有特別原因。"
+    },
+    {
+      "start": 1548.32,
+      "end": 1548.76,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1548.76,
+      "end": 1552.16,
+      "en": "So I'll run this code to generate that function.",
+      "zh": "我會執行這段程式碼，產生那個函數。"
+    },
+    {
+      "start": 1552.16,
+      "end": 1556.92,
+      "en": "And now we are ready for the analyses in the next exercise.",
+      "zh": "現在，準備好做下一個練習的分析了。"
+    },
+    {
+      "start": 1558.12,
+      "end": 1562.36,
+      "en": "Congrats on getting this far through the code challenge.",
+      "zh": "恭喜你，程式挑戰已經進行到這裡。"
+    },
+    {
+      "start": 1562.48,
+      "end": 1571,
+      "en": "I'm now going to break the video to give you an opportunity to get up and stretch your legs and splash water on your face, and so on.",
+      "zh": "我現在要把影片切開，讓你有機會起身、伸展腿，或洗把臉等等。"
+    },
+    {
+      "start": 1571,
+      "end": 1577.8,
+      "en": "When you're ready, when you're feeling refreshed, come back to the next video where we will complete the code challenge.",
+      "zh": "準備好、精神恢復之後，再回來看下一支影片，完成這次程式挑戰。"
+    }
+  ]
+}

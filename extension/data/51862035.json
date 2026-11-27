@@ -1,0 +1,493 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51862035",
+  "title": "Parameter-efficient fine-tuning (PEFT)",
+  "section": 8,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "e1dc6746f855b689048cbf0fa88383e7c015b3c3ca04469c0d220a1fdc2df953",
+  "cues": [
+    {
+      "start": 1.92,
+      "end": 12.56,
+      "en": "In this video, I'm going to introduce you to a family of techniques called parameter efficient fine tuning, often abbreviated p f.",
+      "zh": "這支影片介紹一類稱為參數高效率微調的技術，通常簡稱 PEFT。"
+    },
+    {
+      "start": 13.68,
+      "end": 17.72,
+      "en": "It is closely related to freezing parameters during training.",
+      "zh": "它與訓練時凍結參數密切相關。"
+    },
+    {
+      "start": 18,
+      "end": 26.96,
+      "en": "In fact, most of the p ft methods involve freezing most or all of the trainable parameters in a model.",
+      "zh": "事實上，大多數 PEFT 方法會凍結模型中大部分或全部可訓練參數。"
+    },
+    {
+      "start": 27.72,
+      "end": 38.08,
+      "en": "I am not going to go into a lot of detail about any of the individual techniques, but as a collection, these techniques are worth knowing about.",
+      "zh": "我不會深入個別技術的細節，但整體而言，這些技術值得了解，"
+    },
+    {
+      "start": 38.12,
+      "end": 45.84,
+      "en": "If you plan on fine tuning very large models, and if you don't have access to a lot of computational resources.",
+      "zh": "尤其是你打算微調非常大的模型，又沒有大量運算資源的時候。"
+    },
+    {
+      "start": 46.72,
+      "end": 56.68,
+      "en": "Now, these are not the kinds of methods that you would need for training models with, let's say, 100 million parameters or maybe up to a billion parameters.",
+      "zh": "這些方法不是訓練一億個，或最多十億個參數的模型時需要的做法。"
+    },
+    {
+      "start": 56.88,
+      "end": 65.46,
+      "en": "These methods are really designed for when you are working with very large models on the order of 100 billion parameters.",
+      "zh": "它們主要是為了一千億個參數這種規模的超大型模型設計。"
+    },
+    {
+      "start": 66.06,
+      "end": 73.46000000000001,
+      "en": "And it is still the case that you would need at least one and ideally multiple powerful GPUs.",
+      "zh": "而且，你仍然至少需要一張，最好是多張強大的 GPU。"
+    },
+    {
+      "start": 73.82,
+      "end": 81.3,
+      "en": "So it's not like you can use some clever tricks to fine tune a GPT three on a laptop CPU.",
+      "zh": "並不是用幾個巧妙技巧，就能在筆電 CPU 上微調 GPT-3。"
+    },
+    {
+      "start": 81.86,
+      "end": 82.34,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 82.34,
+      "end": 90.74,
+      "en": "So as I mentioned, FTX is not one single method, but a family of methods that allow you to fine tune.",
+      "zh": "如前所述，PEFT 不是單一方法，而是一整類可用來微調的方法。"
+    },
+    {
+      "start": 92.1,
+      "end": 95.34,
+      "en": "This is also not something you'd use for pre-training.",
+      "zh": "這也不是預訓練時會使用的技術。"
+    },
+    {
+      "start": 95.7,
+      "end": 104.14,
+      "en": "These are techniques that you would apply to large pre-trained models that you want to fine tune on some narrow task.",
+      "zh": "它們用在大型預訓練模型上，針對某個狹窄任務微調。"
+    },
+    {
+      "start": 104.66,
+      "end": 108.86,
+      "en": "Now maybe that task is generating new text like a chat bot.",
+      "zh": "任務可能是像聊天機器人那樣生成新文字。"
+    },
+    {
+      "start": 109.14,
+      "end": 118.18,
+      "en": "Although the FTX methods tend to work better for simpler and more, uh, well characterized tasks like",
+      "zh": "不過，PEFT 方法通常在較簡單、定義較明確的任務上表現更好，例如"
+    },
+    {
+      "start": 118.32,
+      "end": 119.47999999999999,
+      "en": "categorization.",
+      "zh": "分類。"
+    },
+    {
+      "start": 120.16,
+      "end": 128.72,
+      "en": "So the idea is to freeze as many parameters in the model as possible, while training only a small number of parameters.",
+      "zh": "概念是盡可能凍結模型中的參數，只訓練少量參數。"
+    },
+    {
+      "start": 128.88,
+      "end": 136.04,
+      "en": "Some methods involve inserting new layers into a frozen model that can apply some transformation to",
+      "zh": "有些方法會在已凍結的模型中插入新層，對資料套用某種轉換，"
+    },
+    {
+      "start": 136.07999999999998,
+      "end": 142.16,
+      "en": "the data that make the frozen pretrained model work better at a specific task.",
+      "zh": "讓凍結的預訓練模型更適合特定任務。"
+    },
+    {
+      "start": 143.72,
+      "end": 151.6,
+      "en": "As I mentioned, the key advantage is that it allows you to fine tune, and if you do not have access",
+      "zh": "如前所述，主要優點是即使你沒有足夠的運算能力，"
+    },
+    {
+      "start": 151.72,
+      "end": 156.6,
+      "en": "to the compute power that you would need to train the entire network.",
+      "zh": "無法訓練整個網路，也能進行微調。"
+    },
+    {
+      "start": 157.32,
+      "end": 168.8,
+      "en": "On the other hand, even doing a forward pass with a 100 billion parameter model can still take several seconds for even just a handful of tokens.",
+      "zh": "另一方面，一千億參數的模型即使只做前向傳播，處理幾個詞元也可能要花好幾秒。"
+    },
+    {
+      "start": 168.8,
+      "end": 175.4,
+      "en": "So limited resources here is really referring to a handful of very powerful GPUs.",
+      "zh": "所以這裡所謂資源有限，其實是指只有少數幾張非常強大的 GPU。"
+    },
+    {
+      "start": 176,
+      "end": 182.14,
+      "en": "And you can contrast that with like hundreds or thousands of top of the line GPUs.",
+      "zh": "相對的是數百、數千張頂級 GPU。"
+    },
+    {
+      "start": 182.9,
+      "end": 191.7,
+      "en": "Now, as you can probably imagine, the primary disadvantages of FTX are that it's unlikely that freezing",
+      "zh": "你應該能想像，PEFT 主要的缺點是，凍結"
+    },
+    {
+      "start": 191.7,
+      "end": 203.62,
+      "en": "most of the model and adding a couple of extra parameters here and there is going to give you really better performance than what you would get from a fully trainable, fine tuned model.",
+      "zh": "大部分模型，只在各處增加少量參數，通常不太可能比完整可訓練的微調模型表現更好。"
+    },
+    {
+      "start": 204.34,
+      "end": 215.66,
+      "en": "People often use Peft to train models for specific tasks, like categorizing documents in a particular domain, and that's great for that domain.",
+      "zh": "大家常用 PEFT 訓練特定任務，例如某個領域的文件分類；這對該領域很有幫助。"
+    },
+    {
+      "start": 215.66,
+      "end": 226.34,
+      "en": "It might work really well in that domain, but that trained model with FTX might be difficult to generalize to new tasks because there's always a balance.",
+      "zh": "它在該領域可能表現很好，但使用 PEFT 訓練的模型，可能難以泛化到新任務，因為這裡總有取捨。"
+    },
+    {
+      "start": 226.34,
+      "end": 234.42000000000002,
+      "en": "There's a trade off here such that the more narrow and clearly specified the task, the easier and more",
+      "zh": "任務越狹窄、定義越明確，"
+    },
+    {
+      "start": 234.42000000000002,
+      "end": 245.72,
+      "en": "successful it will be to fine tune a mostly frozen model, but that does mean that the model is less likely to generalize to new tasks.",
+      "zh": "越容易成功微調一個大部分凍結的模型，但也代表模型較不容易泛化到新任務。"
+    },
+    {
+      "start": 246.24,
+      "end": 253.28,
+      "en": "There are perhaps a dozen specific techniques that fall under the umbrella of Peft.",
+      "zh": "PEFT 這個大類下面，可能有十幾種具體技術。"
+    },
+    {
+      "start": 253.88,
+      "end": 259.96,
+      "en": "In this slide, I'm just going to highlight four of them, just to give you a sense of how they work.",
+      "zh": "這張投影片只介紹其中四種，讓你了解它們如何運作。"
+    },
+    {
+      "start": 260.4,
+      "end": 263.68,
+      "en": "So one type of approach is called adapters.",
+      "zh": "其中一類稱為 adapter，轉接模組。"
+    },
+    {
+      "start": 264.28,
+      "end": 273.92,
+      "en": "Here the idea is that you freeze the entire model, but then you add on some additional layers like modules at key locations.",
+      "zh": "概念是凍結整個模型，然後在關鍵位置加入額外的層或模組。"
+    },
+    {
+      "start": 274.4,
+      "end": 282.15999999999997,
+      "en": "Many of these adapter modules, these little layers are in between the attention sublayer and the MLP",
+      "zh": "許多這類小型 adapter 模組，放在注意力子層與 MLP"
+    },
+    {
+      "start": 282.2,
+      "end": 287.28,
+      "en": "sublayer, but they can also be placed in between transformer blocks.",
+      "zh": "子層之間，也可以放在 Transformer 區塊之間。"
+    },
+    {
+      "start": 288.04,
+      "end": 295.7,
+      "en": "Then the idea is that these small neural network modules learn some task relevant transformation Formation",
+      "zh": "這些小型神經網路模組會學習與任務相關的轉換，"
+    },
+    {
+      "start": 295.7,
+      "end": 303.5,
+      "en": "without having to change the parameters and the world knowledge that the model has already acquired during pre-training.",
+      "zh": "不必更動模型在預訓練時已取得的參數與世界知識。"
+    },
+    {
+      "start": 304.22,
+      "end": 310.3,
+      "en": "Now, these little added modules actually look like the opposite of an MLP layer, in the sense that",
+      "zh": "這些新增的小模組，形狀其實像 MLP 層的相反版本，"
+    },
+    {
+      "start": 310.3,
+      "end": 321.22,
+      "en": "they tend to be high dimensional at the beginning and at the end, and have one hidden layer in the middle that is low dimensional, plus some non-linearity like aghaloo.",
+      "zh": "開頭與結尾維度高，中間的隱藏層維度低，再加上 GELU 之類的非線性。"
+    },
+    {
+      "start": 322.22,
+      "end": 326.06,
+      "en": "So they actually have an architecture like autoencoders.",
+      "zh": "因此，架構有點像自動編碼器。"
+    },
+    {
+      "start": 326.46,
+      "end": 337.06,
+      "en": "Now, if you are not already familiar with autoencoders, then don't worry, I will describe them later in the course in the section on mechanistic interpretability.",
+      "zh": "如果你還不熟悉自動編碼器，不用擔心，後面機制可解釋性的章節會介紹。"
+    },
+    {
+      "start": 337.58,
+      "end": 339.98,
+      "en": "So that's a little bit about adaptors.",
+      "zh": "以上是 adapter 的簡介。"
+    },
+    {
+      "start": 340.26,
+      "end": 348.62,
+      "en": "There is another set of techniques that relies on low rank decompositions of weights matrices.",
+      "zh": "另一類技術，依賴權重矩陣的低秩分解。"
+    },
+    {
+      "start": 349.14,
+      "end": 357.17,
+      "en": "If you are not super familiar with linear algebra then the idea of a low rank approximation is that",
+      "zh": "如果你不太熟悉線性代數，低秩近似的概念，"
+    },
+    {
+      "start": 357.17,
+      "end": 369.17,
+      "en": "it's a matrix that is smaller than the original matrix, so fewer parameters, and it is like a compressed or an approximated representation of the full matrix.",
+      "zh": "就是用一個比原矩陣小、參數較少的矩陣，作為完整矩陣的壓縮或近似表示。"
+    },
+    {
+      "start": 370.37,
+      "end": 376.25,
+      "en": "So for example, imagine that the attention weights are 1000 by 1000.",
+      "zh": "例如，假設注意力權重矩陣是 1000 乘 1000。"
+    },
+    {
+      "start": 376.65,
+      "end": 384.13,
+      "en": "And now imagine that we can approximate that matrix using a 100 by 100 matrix.",
+      "zh": "再假設，我們能用一個 100 乘 100 的矩陣近似它。"
+    },
+    {
+      "start": 384.73,
+      "end": 392.69,
+      "en": "So that means that instead of having 1 million trainable parameters, we have only 10,000 trainable parameters.",
+      "zh": "這表示可訓練參數從一百萬個，減少為一萬個。"
+    },
+    {
+      "start": 393.40999999999997,
+      "end": 396.81,
+      "en": "Of course, the low rank approximation is never perfect.",
+      "zh": "當然，低秩近似永遠不會完美。"
+    },
+    {
+      "start": 396.81,
+      "end": 399.73,
+      "en": "So we are going to lose information.",
+      "zh": "所以會損失資訊，"
+    },
+    {
+      "start": 399.73,
+      "end": 401.29,
+      "en": "We will lose some precision.",
+      "zh": "損失一些精確度。"
+    },
+    {
+      "start": 401.57,
+      "end": 409.05,
+      "en": "But hopefully that information and those details that are lost are not so important for the task we are training on.",
+      "zh": "但希望損失的資訊與細節，對我們訓練的任務並不重要。"
+    },
+    {
+      "start": 409.45,
+      "end": 416.95,
+      "en": "And then the idea is that it's much easier to train 10,000 parameters compared to a million parameters.",
+      "zh": "這樣一來，訓練一萬個參數，會比訓練一百萬個容易得多。"
+    },
+    {
+      "start": 417.39,
+      "end": 419.83,
+      "en": "And of course, that's just for one matrix.",
+      "zh": "而且，這還只是一個矩陣。"
+    },
+    {
+      "start": 419.83,
+      "end": 425.91,
+      "en": "If you repeat this for lots of weights matrices throughout the model, this can really add up.",
+      "zh": "如果對模型中的許多權重矩陣都這麼做，節省就會很可觀。"
+    },
+    {
+      "start": 426.43,
+      "end": 435.75,
+      "en": "So Laura and Dora are two specific methods that fall within the category of training low rank approximations",
+      "zh": "LoRA 與 DoRA，就是這一類方法中的兩種，訓練的是透過矩陣分解得到的低秩近似，"
+    },
+    {
+      "start": 435.75,
+      "end": 440.67,
+      "en": "based on matrix decompositions instead of the full weights matrices.",
+      "zh": "而不是完整的權重矩陣。"
+    },
+    {
+      "start": 442.27,
+      "end": 446.87,
+      "en": "Next, I will tell you about the idea of a prefix module.",
+      "zh": "接著介紹 prefix module，也就是前綴模組。"
+    },
+    {
+      "start": 447.07,
+      "end": 454.59000000000003,
+      "en": "Here the idea is to freeze the entire model and then add another layer before the embeddings at the",
+      "zh": "概念是凍結整個模型，再於模型開頭的嵌入之前"
+    },
+    {
+      "start": 454.59000000000003,
+      "end": 459.87,
+      "en": "beginning of the model, which you actually do train on your specific task.",
+      "zh": "加入一層，只針對你的特定任務訓練這一層。"
+    },
+    {
+      "start": 460.23,
+      "end": 471.87,
+      "en": "And then this prefix module will learn how to transform your tokens into like modified embedding vectors that are optimized for your specific task.",
+      "zh": "這個前綴模組會學習，如何把詞元轉成經過修改、針對特定任務最佳化的嵌入向量。"
+    },
+    {
+      "start": 471.87,
+      "end": 472.05,
+      "en": "Ask.",
+      "zh": "也就是針對該任務。"
+    },
+    {
+      "start": 472.81,
+      "end": 473.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 473.21,
+      "end": 482.09,
+      "en": "And then the last approach that I will mention is to freeze all of the weights in the model and train all of the bias terms.",
+      "zh": "最後一種方法，是凍結模型的所有權重，只訓練全部偏置項。"
+    },
+    {
+      "start": 482.73,
+      "end": 490.33,
+      "en": "Here, the idea is that there are relatively few bias terms compared to the weights, and so it is easier to train them.",
+      "zh": "因為偏置項比權重少得多，所以比較容易訓練。"
+    },
+    {
+      "start": 490.89,
+      "end": 498.81,
+      "en": "Now the bias terms can be quite powerful in models, although mostly their impact is to shift around distributions.",
+      "zh": "偏置項在模型中可以有很大作用，不過主要影響通常是平移分布。"
+    },
+    {
+      "start": 498.97,
+      "end": 505.41,
+      "en": "They have less impact over reshaping the spaces in which the embeddings are represented.",
+      "zh": "對於重塑嵌入所表示的空間，影響相對較小。"
+    },
+    {
+      "start": 506.53,
+      "end": 507.17,
+      "en": "All right.",
+      "zh": "好的。"
+    },
+    {
+      "start": 507.17,
+      "end": 517.89,
+      "en": "So these are certainly not all of the FFT techniques, but other techniques that you will come across are going to be somehow related to these ideas.",
+      "zh": "這當然不是所有 PEFT 技術，不過你遇到的其他技術，通常也會與這些概念有關。"
+    },
+    {
+      "start": 519.45,
+      "end": 527.29,
+      "en": "I am not going to discuss any more specific mathematical or implementational details about these methods,",
+      "zh": "我不會進一步討論這些方法的數學或實作細節，"
+    },
+    {
+      "start": 527.53,
+      "end": 534.79,
+      "en": "but there are several libraries and functions in Python that people have written to implement these techniques.",
+      "zh": "但 Python 已有一些函式庫和函數，用來實作這些技術。"
+    },
+    {
+      "start": 535.27,
+      "end": 539.67,
+      "en": "This screenshot here shows the Huggingface website about Beft.",
+      "zh": "這張截圖是 Hugging Face 的 PEFT 網站。"
+    },
+    {
+      "start": 540.35,
+      "end": 546.95,
+      "en": "It is certainly not the case that you can only use these methods through hugging face, but it is the",
+      "zh": "當然，不是只有透過 Hugging Face 才能使用這些方法，但如果"
+    },
+    {
+      "start": 546.95,
+      "end": 555.11,
+      "en": "case that if you are downloading and using a pre-trained model from hugging face, then it is convenient",
+      "zh": "你本來就從 Hugging Face 下載並使用預訓練模型，"
+    },
+    {
+      "start": 555.11,
+      "end": 559.23,
+      "en": "to use their library for methods.",
+      "zh": "使用他們的函式庫來套用這些方法，就很方便。"
+    },
+    {
+      "start": 560.47,
+      "end": 567.43,
+      "en": "Okay, so the key take home points here are basically just reiterating what I said in the beginning of the lecture.",
+      "zh": "好，重點基本上是重申這堂課一開始說的內容。"
+    },
+    {
+      "start": 567.91,
+      "end": 576.27,
+      "en": "These methods are never really going to be as good as fully fine tuning a model, but they can work",
+      "zh": "這些方法終究不會像完整微調模型那麼好，但如果任務"
+    },
+    {
+      "start": 576.27,
+      "end": 584.15,
+      "en": "quite well if you have a task that is easy to quantify in terms of a loss function, and less kind of",
+      "zh": "很容易用損失函數量化，仍然可以有不錯的效果；相較之下，"
+    },
+    {
+      "start": 584.19,
+      "end": 589.63,
+      "en": "open and difficult to evaluate, like generating text on a wide range of topics.",
+      "zh": "跨廣泛主題生成文字這種開放、難以評估的任務，就比較不容易。"
+    }
+  ]
+}

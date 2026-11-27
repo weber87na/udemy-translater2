@@ -1,0 +1,2491 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893643",
+  "title": "Generalized eigendecomposition separates \"him\" from \"her\" in MLP",
+  "section": 21,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "534a3a69e24956e19a67050dcf48fb72656aa92da66c9884929bc2c7ef7607c8",
+  "cues": [
+    {
+      "start": 2.04,
+      "end": 6.16,
+      "en": "I hope you found the demo in the previous video to be enticing.",
+      "zh": "希望你覺得上一支影片的示範很吸引人。"
+    },
+    {
+      "start": 6.8,
+      "end": 15.8,
+      "en": "In this video, I will show you how to apply a generalized Eigen decomposition analysis to real data.",
+      "zh": "這支影片，我會展示如何將廣義特徵分解分析套用到真實資料。"
+    },
+    {
+      "start": 16.4,
+      "end": 23.32,
+      "en": "You will see that although the basic concepts are the same as in the previous video, it's considerably",
+      "zh": "你會看到，雖然基本概念與上一支影片相同，但實作上要"
+    },
+    {
+      "start": 23.32,
+      "end": 31.76,
+      "en": "trickier to implement, in part because of some challenges that arise with numerical stability in large data sets.",
+      "zh": "棘手許多，部分是因為大型資料集會帶來一些數值穩定性的挑戰。"
+    },
+    {
+      "start": 32.32,
+      "end": 41.6,
+      "en": "So here in this video, I will begin by telling you about something called a two stage compression separation procedure.",
+      "zh": "這支影片，我會先介紹一種稱為兩階段壓縮與分離的程序。"
+    },
+    {
+      "start": 42.2,
+      "end": 45.2,
+      "en": "Then I will give an overview of the code demo.",
+      "zh": "接著，概述程式示範。"
+    },
+    {
+      "start": 45.2,
+      "end": 49.6,
+      "en": "And of course then we will have a deeper look in the Python code.",
+      "zh": "當然，之後會更深入查看 Python 程式碼。"
+    },
+    {
+      "start": 50.48,
+      "end": 59.12,
+      "en": "So the idea of a two stage separation procedure is to first compress the data to a smaller number of",
+      "zh": "兩階段分離程序的概念，是先將資料壓縮到較少的"
+    },
+    {
+      "start": 59.12,
+      "end": 64.82,
+      "en": "dimensions Mentions and then run the GED on the reduced dimensional space.",
+      "zh": "維度，再對降維後的空間執行 GED。"
+    },
+    {
+      "start": 65.42,
+      "end": 72.62,
+      "en": "The reason why you would do this is if the generalized eigendecomposition problem cannot be solved,",
+      "zh": "使用這個方法的原因，是廣義特徵分解問題可能無法求解。"
+    },
+    {
+      "start": 72.98,
+      "end": 82.02,
+      "en": "and that often happens with severely reduced ranked data or very large data sets, by which I mean lots and lots of variables.",
+      "zh": "資料的秩嚴重降低，或資料集非常大，也就是變數非常多時，經常會發生這種情況。"
+    },
+    {
+      "start": 82.46000000000001,
+      "end": 91.66,
+      "en": "And for LM activations, the matrix rank generally isn't a problem, although the matrix sizes actually do present an issue.",
+      "zh": "對 LLM 活化來說，矩陣的秩通常不是問題，但矩陣大小確實會造成問題。"
+    },
+    {
+      "start": 92.38,
+      "end": 96.18,
+      "en": "Overall, this two stage procedure is a pretty useful technique.",
+      "zh": "整體而言，這個兩階段程序是相當有用的技術。"
+    },
+    {
+      "start": 96.46000000000001,
+      "end": 99.14,
+      "en": "It generally improves the solution.",
+      "zh": "通常能改善解。"
+    },
+    {
+      "start": 99.5,
+      "end": 105.58,
+      "en": "The primary risk of compressing the data, which I've discussed earlier in the course when talking about",
+      "zh": "壓縮資料的主要風險，我在課程前面談有效維度時提過，"
+    },
+    {
+      "start": 105.58,
+      "end": 114.06,
+      "en": "effective dimensionality, is that by reducing the dimensionality, you are excluding low variance but",
+      "zh": "就是降低維度時，會排除變異數較低、"
+    },
+    {
+      "start": 114.06,
+      "end": 117.62,
+      "en": "possibly important variability in the data.",
+      "zh": "卻可能很重要的資料變化。"
+    },
+    {
+      "start": 117.94,
+      "end": 120.49,
+      "en": "That's just a general risk of compression.",
+      "zh": "這是壓縮的一般風險。"
+    },
+    {
+      "start": 120.49,
+      "end": 124.33,
+      "en": "It's certainly not unique to this analysis in particular.",
+      "zh": "當然不是這個分析獨有的。"
+    },
+    {
+      "start": 124.65,
+      "end": 128.81,
+      "en": "So now let me explain how this two stage procedure works.",
+      "zh": "現在，來解釋兩階段程序如何運作。"
+    },
+    {
+      "start": 129.37,
+      "end": 137.53,
+      "en": "First you do a principal components analysis of the data matrix to get the eigenvectors and the eigenvalues.",
+      "zh": "首先，對資料矩陣做主成分分析，取得特徵向量與特徵值。"
+    },
+    {
+      "start": 137.85,
+      "end": 144.65,
+      "en": "Next you pick a threshold for including principal components in the compressed data.",
+      "zh": "接著，選擇將主成分納入壓縮資料的門檻。"
+    },
+    {
+      "start": 145.09,
+      "end": 148.01,
+      "en": "There are several ways that you can pick a threshold.",
+      "zh": "選門檻有幾種方式。"
+    },
+    {
+      "start": 148.17000000000002,
+      "end": 159.69,
+      "en": "This indicates one way of choosing the threshold, which is to preserve all of the components that individually account for at least 1% of the variance in the data set.",
+      "zh": "這裡是一種方式：保留所有個別至少能解釋資料集 1% 變異數的成分。"
+    },
+    {
+      "start": 159.73,
+      "end": 162.57,
+      "en": "That's just one option in the code demo.",
+      "zh": "這只是一個選項。程式示範中，"
+    },
+    {
+      "start": 162.57,
+      "end": 169.45,
+      "en": "In a few moments, I will show you a slightly different threshold, which is to keep all of the components",
+      "zh": "稍後會展示略有不同的門檻，也就是保留合計"
+    },
+    {
+      "start": 169.45,
+      "end": 176.89,
+      "en": "that collectively account for 99% of the variance, even if some of them are individually less than 1%.",
+      "zh": "能解釋 99% 變異數的所有成分，即使其中有些個別不到 1%。"
+    },
+    {
+      "start": 177.69,
+      "end": 178.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 178.09,
+      "end": 183.75,
+      "en": "Then you project the data onto the eigenvectors, which gives you a new data set.",
+      "zh": "接著，把資料投影到特徵向量上，得到新的資料集。"
+    },
+    {
+      "start": 184.07,
+      "end": 193.71,
+      "en": "Now this data set has a smaller dimensionality, but it still contains 99% of the variance of the original data.",
+      "zh": "這個資料集的維度較低，但仍保有原始資料 99% 的變異數。"
+    },
+    {
+      "start": 194.35,
+      "end": 200.91,
+      "en": "And then finally you run the generalized eigendecomposition as I explained in the previous video.",
+      "zh": "最後，按照上一支影片的說明，執行廣義特徵分解。"
+    },
+    {
+      "start": 201.03,
+      "end": 208.11,
+      "en": "But on matrix Y the compressed data instead of on matrix X, which is the original data.",
+      "zh": "但使用的是矩陣 Y，也就是壓縮資料，而非原始資料矩陣 X。"
+    },
+    {
+      "start": 208.79,
+      "end": 212.95,
+      "en": "So now the source separation is done on the compressed data.",
+      "zh": "所以，來源分離是在壓縮資料上進行。"
+    },
+    {
+      "start": 213.19,
+      "end": 216.11,
+      "en": "And you can continue just working with the compressed data.",
+      "zh": "你可以繼續使用壓縮資料。"
+    },
+    {
+      "start": 216.63,
+      "end": 223.95,
+      "en": "It's also possible to project the eigenvectors back onto the original full dimensionality data space.",
+      "zh": "也可以把特徵向量投影回原始完整維度的資料空間，"
+    },
+    {
+      "start": 223.95,
+      "end": 226.95,
+      "en": "If you want to work with the raw activation values.",
+      "zh": "如果你想使用原始活化值的話。"
+    },
+    {
+      "start": 227.19,
+      "end": 230.79,
+      "en": "I will show you how to do that towards the end of the Python demo.",
+      "zh": "Python 示範接近結尾時，會展示做法。"
+    },
+    {
+      "start": 232.07,
+      "end": 232.31,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 232.35,
+      "end": 238.51,
+      "en": "And with that out of the way, let me now tell you what I will show you in the Python demo in a moment.",
+      "zh": "說完這些，現在來介紹稍後的 Python 示範。"
+    },
+    {
+      "start": 238.89,
+      "end": 248.17,
+      "en": "I'll start by importing GPT two and hooking all of the MLP neurons in the expansion layer before the nonlinear activation.",
+      "zh": "先匯入 GPT2，並在非線性活化之前的擴張層，掛接所有 MLP 神經元。"
+    },
+    {
+      "start": 248.73,
+      "end": 259.57,
+      "en": "I'm going to use the pronouns dataset that you've already seen a few times now, and grab all the activations to the target words from the MLP neurons.",
+      "zh": "我會用你已經看過幾次的代名詞資料集，擷取 MLP 神經元對目標詞的所有活化。"
+    },
+    {
+      "start": 260.13,
+      "end": 268.81,
+      "en": "Then I will calculate the covariance matrices for the two target words so him and her, and then subtract those two.",
+      "zh": "接著，計算兩個目標詞，也就是 him 和 her 的共變異數矩陣，再將兩者相減。"
+    },
+    {
+      "start": 268.85,
+      "end": 270.41,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是結果。"
+    },
+    {
+      "start": 270.81,
+      "end": 277.40999999999997,
+      "en": "And to reiterate what I introduced in the previous video, if we would do a PCA on, let's say, the",
+      "zh": "再次重申上一支影片介紹的概念，如果對"
+    },
+    {
+      "start": 277.40999999999997,
+      "end": 285.65,
+      "en": "average of these two matrices, that would tell us the patterns in the data that are common between these two matrices.",
+      "zh": "這兩個矩陣的平均做 PCA，它會告訴我們兩個矩陣共有的資料模式。"
+    },
+    {
+      "start": 285.65,
+      "end": 289.13,
+      "en": "And we could use that for compression for dimension reduction.",
+      "zh": "可以用來壓縮、降低維度。"
+    },
+    {
+      "start": 289.61,
+      "end": 292.85,
+      "en": "But the generalized eigendecomposition is not doing that.",
+      "zh": "但廣義特徵分解做的不是這件事。"
+    },
+    {
+      "start": 292.85,
+      "end": 300.8,
+      "en": "Instead, the generalized eigendecomposition will reveal the patterns in the data that separate these",
+      "zh": "廣義特徵分解會揭露資料中，能分離這"
+    },
+    {
+      "start": 300.8,
+      "end": 311.92,
+      "en": "two matrices, which in practice means the linear combinations of the neurons that best separates activations for him versus for her.",
+      "zh": "兩個矩陣的模式；實際上，就是最能分離 him 與 her 活化的神經元線性組合。"
+    },
+    {
+      "start": 312.64,
+      "end": 319.88,
+      "en": "Now I'm actually going to try running a generalized eigendecomposition on these full covariance matrices from all the neurons.",
+      "zh": "我會先試著直接對所有神經元的完整共變異數矩陣，執行廣義特徵分解。"
+    },
+    {
+      "start": 320.44,
+      "end": 326.56,
+      "en": "It's going to fail, but it will be interesting to see it fail and to see what the error message is.",
+      "zh": "它會失敗，但看看它如何失敗、錯誤訊息是什麼，會很有意思。"
+    },
+    {
+      "start": 327.6,
+      "end": 334.44,
+      "en": "And so that will lead me to applying the two stage procedure that I just described in the previous slide.",
+      "zh": "這就會引導我套用上一張投影片介紹的兩階段程序。"
+    },
+    {
+      "start": 334.92,
+      "end": 339.2,
+      "en": "Here you see the scree plot for the average of the two covariance matrices.",
+      "zh": "這裡是兩個共變異數矩陣平均值的陡坡圖。"
+    },
+    {
+      "start": 339.6,
+      "end": 348.92,
+      "en": "And it turns out that in this particular case, 63 components in the data account for 99% of the total variance.",
+      "zh": "在這個案例中，資料的 63 個成分，就能解釋總變異數的 99%。"
+    },
+    {
+      "start": 349.52,
+      "end": 353.68,
+      "en": "So then I will compress the MLP expansion data set.",
+      "zh": "接著，把 MLP 擴張資料集，"
+    },
+    {
+      "start": 353.68,
+      "end": 358.02,
+      "en": "So these data here down to 63 components.",
+      "zh": "也就是這些資料，壓縮到 63 個成分。"
+    },
+    {
+      "start": 358.38,
+      "end": 364.3,
+      "en": "And here you see the covariance matrices for the two data sets in the compressed space.",
+      "zh": "這裡可以看到，兩個資料集在壓縮空間中的共變異數矩陣。"
+    },
+    {
+      "start": 364.58,
+      "end": 367.94,
+      "en": "So these matrices are now 63 by 63.",
+      "zh": "現在，矩陣是 63×63。"
+    },
+    {
+      "start": 368.22,
+      "end": 374.62,
+      "en": "But 99% of the variance in these matrices is also present in these matrices.",
+      "zh": "而這些矩陣中 99% 的變異數，也存在於這些矩陣中。"
+    },
+    {
+      "start": 375.58,
+      "end": 384.58,
+      "en": "Now the most obvious feature that you see here is that the colors are much more saturated around the top and the left sides of this matrix.",
+      "zh": "最明顯的特徵，是矩陣上方和左側附近的顏色飽和得多。"
+    },
+    {
+      "start": 384.9,
+      "end": 393.98,
+      "en": "That is simply because the components are sorted by their eigenvalue, which means the components just account for a lot more variance in the data.",
+      "zh": "原因很簡單：成分按照特徵值排序，因此，這些成分能解釋資料中更多的變異數。"
+    },
+    {
+      "start": 394.02,
+      "end": 395.7,
+      "en": "Those are placed early on.",
+      "zh": "它們被放在前面。"
+    },
+    {
+      "start": 395.82,
+      "end": 401.22,
+      "en": "And these components down here are accounting for less total variance.",
+      "zh": "下方這些成分，解釋的總變異數較少。"
+    },
+    {
+      "start": 401.22,
+      "end": 404.94,
+      "en": "That is not a problem or a concern for this source separation.",
+      "zh": "對這個來源分離而言，這不是問題，也不用擔心。"
+    },
+    {
+      "start": 405.14,
+      "end": 407.1,
+      "en": "It's just how the dimensions get sorted.",
+      "zh": "這只是維度排序的方式。"
+    },
+    {
+      "start": 408.06,
+      "end": 413.14,
+      "en": "So it turns out that these covariance matrices are still reduced rank.",
+      "zh": "結果，這些共變異數矩陣仍然是降秩的。"
+    },
+    {
+      "start": 413.5,
+      "end": 419.15999999999997,
+      "en": "And therefore I will apply shrinkage regularization to get them back to full rank.",
+      "zh": "所以，我會套用收縮正規化，讓它們恢復滿秩。"
+    },
+    {
+      "start": 419.6,
+      "end": 421.32,
+      "en": "So the covariance matrices.",
+      "zh": "這些共變異數矩陣，"
+    },
+    {
+      "start": 421.36,
+      "end": 430.24,
+      "en": "Originally had a rank of 52, and after applying 1% shrinkage, they now have a rank of 63.",
+      "zh": "原本的秩是 52，套用 1% 收縮後，現在的秩是 63。"
+    },
+    {
+      "start": 430.28,
+      "end": 431.28,
+      "en": "Which is full rank.",
+      "zh": "也就是滿秩。"
+    },
+    {
+      "start": 431.72,
+      "end": 441.08,
+      "en": "That's great, because it means that we have a manageable sized matrix that the SciPy library is capable of handling.",
+      "zh": "這很好，因為代表矩陣大小已經容易處理，SciPy 函式庫能夠應付。"
+    },
+    {
+      "start": 441.32,
+      "end": 443.12,
+      "en": "And they're also full rank now.",
+      "zh": "而且，它們現在也滿秩了。"
+    },
+    {
+      "start": 443.16,
+      "end": 450.68,
+      "en": "Full rank matrices are not necessary for the generalized eigendecomposition in theory, but in practice,",
+      "zh": "理論上，廣義特徵分解不一定需要滿秩矩陣，但實務上，"
+    },
+    {
+      "start": 450.84,
+      "end": 457.28,
+      "en": "having full rank matrices does help with the numerical stability, and it helps get a good solution.",
+      "zh": "滿秩確實有助於數值穩定性，也有助於得到好的解。"
+    },
+    {
+      "start": 457.88,
+      "end": 462.28,
+      "en": "Okay, so now at this point we are ready for the GED analysis.",
+      "zh": "好，現在準備好做 GED 分析了。"
+    },
+    {
+      "start": 462.48,
+      "end": 468.44,
+      "en": "The rest of the code in this demo will involve various ways of visualizing and exploring the data.",
+      "zh": "示範其餘程式碼，會用各種方式視覺化與探索資料。"
+    },
+    {
+      "start": 469,
+      "end": 476.71,
+      "en": "Here you see the scree plots and the eigendecomposition for him versus her and also for her versus him.",
+      "zh": "這裡是 him 相對於 her，以及 her 相對於 him 的陡坡圖與特徵分解。"
+    },
+    {
+      "start": 476.71,
+      "end": 483.95,
+      "en": "So I ran the analysis twice, putting the covariance matrices in different orders to get a filter,",
+      "zh": "我把共變異數矩陣以不同順序放入，執行兩次分析，取得一個濾波器，"
+    },
+    {
+      "start": 484.19,
+      "end": 490.59,
+      "en": "a pattern that maximally separates him from her, and a different one that maximally separates her from him.",
+      "zh": "也就是最能分離 him 與 her 的模式，以及另一個最能分離 her 與 him 的模式。"
+    },
+    {
+      "start": 491.11,
+      "end": 499.51,
+      "en": "So you can see they both have some pretty nice separability, in the sense that the first component is larger than the rest of the components.",
+      "zh": "可以看到，兩者都有相當好的可分離性，因為第一個成分比其餘成分大。"
+    },
+    {
+      "start": 499.83,
+      "end": 504.43,
+      "en": "Uh, you know, like noticeably larger, not just numerically a tiny bit larger.",
+      "zh": "是明顯較大，不只是數值上稍微大一點。"
+    },
+    {
+      "start": 504.83,
+      "end": 510.63,
+      "en": "And it looks like there might even be two components here that cleanly separate him from her.",
+      "zh": "這裡看起來甚至可能有兩個成分，能清楚分離 him 與 her。"
+    },
+    {
+      "start": 510.79,
+      "end": 516.11,
+      "en": "But certainly for convenience, I'm only going to be focusing on the top component here.",
+      "zh": "但為了方便，我只會聚焦於最前面的成分。"
+    },
+    {
+      "start": 516.75,
+      "end": 517.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 517.07,
+      "end": 519.35,
+      "en": "So these are the eigenvalues.",
+      "zh": "這些是特徵值。"
+    },
+    {
+      "start": 519.35,
+      "end": 531.19,
+      "en": "And when we have the eigenvectors we can use those to filter the compressed activation values to get a component score for each target word in each sentence.",
+      "zh": "取得特徵向量後，可以用來過濾壓縮後的活化值，得到每個句子中各目標詞的成分分數。"
+    },
+    {
+      "start": 531.31,
+      "end": 533.39,
+      "en": "And that's what you see here.",
+      "zh": "這裡就是結果。"
+    },
+    {
+      "start": 533.75,
+      "end": 536.69,
+      "en": "So for the GED of him versus her.",
+      "zh": "對 him 相對於 her 的 GED，"
+    },
+    {
+      "start": 537.01,
+      "end": 540.57,
+      "en": "We can see that this component shows lots of activation.",
+      "zh": "可以看到，這個成分有很多活化。"
+    },
+    {
+      "start": 540.57,
+      "end": 543.09,
+      "en": "So strong activation for him words.",
+      "zh": "也就是對 him 有強活化。"
+    },
+    {
+      "start": 543.09,
+      "end": 553.17,
+      "en": "And also simultaneously a suppression of the activation for the her tokens and the reverse for her versus",
+      "zh": "同時抑制 her token 的活化；her 相對於"
+    },
+    {
+      "start": 553.17,
+      "end": 553.53,
+      "en": "him.",
+      "zh": "him 則相反。"
+    },
+    {
+      "start": 553.53,
+      "end": 555.17,
+      "en": "So nice balance here.",
+      "zh": "這裡有很好的平衡。"
+    },
+    {
+      "start": 555.65,
+      "end": 563.93,
+      "en": "Now the y axis values are difficult to interpret here because the numerical values depend on the eigenvectors",
+      "zh": "y 軸值比較難解讀，因為數值取決於特徵向量，"
+    },
+    {
+      "start": 564.09,
+      "end": 574.85,
+      "en": "which are not constrained to be unit norm the way that the eigenvectors are unit normed in PCA, which is an eigendecomposition on one symmetric matrix.",
+      "zh": "而它們沒有單位範數限制；PCA 則是對單一對稱矩陣做特徵分解，特徵向量的範數是 1。"
+    },
+    {
+      "start": 575.41,
+      "end": 579.33,
+      "en": "So don't worry about comparing the two axes numerically.",
+      "zh": "所以，不用在數值上比較這兩個座標軸。"
+    },
+    {
+      "start": 579.33,
+      "end": 583.17,
+      "en": "You can just focus on the relative values within each plot.",
+      "zh": "只要聚焦於每張圖內部的相對值。"
+    },
+    {
+      "start": 583.89,
+      "end": 590.17,
+      "en": "Okay, so there's a few other plots that I will show, including some randomly random permutation of",
+      "zh": "好，我還會展示其他幾張圖，包括對這些句子做隨機"
+    },
+    {
+      "start": 590.17,
+      "end": 596.8,
+      "en": "these sentences to demonstrate that these kinds of effects that you see here are not due to overfitting noise.",
+      "zh": "排列，證明這裡看到的效果，不是對雜訊過度擬合造成的。"
+    },
+    {
+      "start": 597.32,
+      "end": 603.88,
+      "en": "The final plot that I will show is this pair of plots here, where we see an example sentence with the",
+      "zh": "最後展示的，是這一對圖：一個範例句子，"
+    },
+    {
+      "start": 603.92,
+      "end": 609.6,
+      "en": "tokens on the x axis and the activations on the y axis.",
+      "zh": "x 軸是 token，y 軸是活化。"
+    },
+    {
+      "start": 610.04,
+      "end": 620.4,
+      "en": "Now the pairs of data points for each token corresponds to the data projected onto the Him component for the same sentence, but with him versus with her.",
+      "zh": "每個 token 的一對資料點，對應相同句子分別使用 him 或 her 時，投影到 him 成分上的資料。"
+    },
+    {
+      "start": 620.72,
+      "end": 624.04,
+      "en": "So remember there's pairs of sentences.",
+      "zh": "記得，句子是成對的。"
+    },
+    {
+      "start": 624.16,
+      "end": 629.08,
+      "en": "So 54 sentences with him and an equal number of sentences with her.",
+      "zh": "有 54 個含 him 的句子，以及同樣數量含 her 的句子。"
+    },
+    {
+      "start": 629.4,
+      "end": 632.08,
+      "en": "So this is the sentence with him on it.",
+      "zh": "這是含 him 的句子。"
+    },
+    {
+      "start": 632.08,
+      "end": 636.2,
+      "en": "And then this would be the activation for exactly the same sentence.",
+      "zh": "這則是完全相同句子的活化，"
+    },
+    {
+      "start": 636.2,
+      "end": 642.8,
+      "en": "But the 154 sentences later which has all of these same tokens, but this one is replaced with a her.",
+      "zh": "但往後 154 個句子，所有 token 都相同，只有這個替換成 her。"
+    },
+    {
+      "start": 643.44,
+      "end": 655.34,
+      "en": "So basically what you see here is that this latent component that I identified using generalized eigendecomposition is roughly equally active for all the tokens in the sentence.",
+      "zh": "基本上，這裡看到的是，我用廣義特徵分解辨識出的潛在成分，對句子中的所有 token，活躍程度大致相同。"
+    },
+    {
+      "start": 655.34,
+      "end": 664.66,
+      "en": "But then here, for when the sentence was him, we see large activation, and when the exact same sentence had her, we see low activation.",
+      "zh": "但這裡，句子使用 him 時，會有很大活化；完全相同的句子使用 her 時，活化就低。"
+    },
+    {
+      "start": 664.98,
+      "end": 667.38,
+      "en": "And this one over here is the complementary plot.",
+      "zh": "右邊這張則是互補的圖。"
+    },
+    {
+      "start": 667.38,
+      "end": 670.86,
+      "en": "So exactly the same analysis, exactly the same words.",
+      "zh": "完全相同的分析、完全相同的詞，"
+    },
+    {
+      "start": 670.86,
+      "end": 677.94,
+      "en": "But this is now pushing all the data through the generalized eigendecomposition defined as her greater than him.",
+      "zh": "但現在把所有資料送進定義為 her 大於 him 的廣義特徵分解。"
+    },
+    {
+      "start": 678.18,
+      "end": 679.66,
+      "en": "This was him greater than her.",
+      "zh": "這張是 him 大於 her。"
+    },
+    {
+      "start": 679.98,
+      "end": 686.14,
+      "en": "And you see, again, the activations for most of the tokens is the same or really, really similar.",
+      "zh": "可以再次看到，多數 token 的活化相同，或非常接近。"
+    },
+    {
+      "start": 686.3,
+      "end": 690.5,
+      "en": "And then we see this really strong difference for him versus her.",
+      "zh": "接著，him 與 her 出現非常強烈的差異。"
+    },
+    {
+      "start": 690.86,
+      "end": 699.42,
+      "en": "In other words, these components really differentiate between him and her, but they do not really differentiate the other tokens so much.",
+      "zh": "換句話說，這些成分確實能區別 him 與 her，但對其他 token 就沒有那麼大的區別。"
+    },
+    {
+      "start": 699.46,
+      "end": 702.94,
+      "en": "Although yeah, some exceptions you do see a little bit of differences here.",
+      "zh": "不過，也有些例外，這裡確實能看到一點差異。"
+    },
+    {
+      "start": 703.18,
+      "end": 703.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 703.5,
+      "end": 705.94,
+      "en": "Well there's a lot to look at in the code.",
+      "zh": "程式碼有很多東西值得看。"
+    },
+    {
+      "start": 705.94,
+      "end": 708.82,
+      "en": "So let's switch to Python and go through it.",
+      "zh": "切換到 Python，逐步查看。"
+    },
+    {
+      "start": 710.1,
+      "end": 717.76,
+      "en": "So import some libraries as you know from the previous video, we used scipy linalg instead of numpy",
+      "zh": "匯入一些函式庫。從上一支影片你已經知道，對廣義特徵值分解問題，我們使用 scipy.linalg，而不是"
+    },
+    {
+      "start": 717.76,
+      "end": 722.28,
+      "en": "dot linalg for the generalized eigenvalue decomposition problem.",
+      "zh": "numpy.linalg。"
+    },
+    {
+      "start": 722.44,
+      "end": 722.6,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 722.64,
+      "end": 728.16,
+      "en": "And then here I import the GPT two small model and of course its tokenizer.",
+      "zh": "接著，匯入 GPT2 small 模型，當然還有它的 tokenizer。"
+    },
+    {
+      "start": 728.64,
+      "end": 729.36,
+      "en": "Here is the hook.",
+      "zh": "這裡是 hook。"
+    },
+    {
+      "start": 729.36,
+      "end": 735.48,
+      "en": "I'm just kind of arbitrarily defining this to be the middle layer, whichever one happens to be close to the middle.",
+      "zh": "我有點任意地選了中間層，也就是剛好接近中間的那一層。"
+    },
+    {
+      "start": 735.76,
+      "end": 742.8,
+      "en": "And yeah, we can just look in this in a little bit more detail in the code challenge in the next video.",
+      "zh": "下一支影片的程式挑戰，可以更詳細研究這點。"
+    },
+    {
+      "start": 743.8,
+      "end": 745.48,
+      "en": "So here again are these sentences.",
+      "zh": "這裡又是這些句子。"
+    },
+    {
+      "start": 745.48,
+      "end": 747.12,
+      "en": "You've now seen these many times.",
+      "zh": "你已經看過很多次。"
+    },
+    {
+      "start": 747.12,
+      "end": 749.92,
+      "en": "I'm not going to discuss those anymore.",
+      "zh": "我不再討論它們。"
+    },
+    {
+      "start": 749.92,
+      "end": 751.4,
+      "en": "Certainly not in this video.",
+      "zh": "至少這支影片不會。"
+    },
+    {
+      "start": 751.64,
+      "end": 754.52,
+      "en": "Here I'm getting the target tokens.",
+      "zh": "這裡取得目標 token。"
+    },
+    {
+      "start": 754.56,
+      "end": 754.92,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 755.08,
+      "end": 756.36,
+      "en": "You've seen all this stuff before.",
+      "zh": "這些你都看過了。"
+    },
+    {
+      "start": 756.64,
+      "end": 756.96,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 757,
+      "end": 758.64,
+      "en": "Push all the data through the model.",
+      "zh": "讓所有資料通過模型。"
+    },
+    {
+      "start": 758.76,
+      "end": 764.04,
+      "en": "Here I'm getting the activations and defining a variable for Nhidden.",
+      "zh": "這裡取得活化，並定義 Nhidden 變數。"
+    },
+    {
+      "start": 764.04,
+      "end": 766.92,
+      "en": "I have previously called this n neurons.",
+      "zh": "以前我把它叫做 n_neurons。"
+    },
+    {
+      "start": 766.96,
+      "end": 768.48,
+      "en": "These are hidden units.",
+      "zh": "這些是隱藏單元。"
+    },
+    {
+      "start": 768.64,
+      "end": 769.08,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 769.48,
+      "end": 771.2,
+      "en": "Here I'm getting activations.",
+      "zh": "這裡取得活化。"
+    },
+    {
+      "start": 771.2,
+      "end": 772.72,
+      "en": "You've also seen this before.",
+      "zh": "以前也看過。"
+    },
+    {
+      "start": 772.87,
+      "end": 774.71,
+      "en": "just looping over the sentences.",
+      "zh": "只是逐句迴圈處理。"
+    },
+    {
+      "start": 774.91,
+      "end": 783.43,
+      "en": "Finding the index in which the target word appears on this sentence, and grabbing those activations that I do.",
+      "zh": "找出目標詞在句子中的索引，並擷取那些活化。"
+    },
+    {
+      "start": 783.43,
+      "end": 792.31,
+      "en": "Because here for the generalized Eigendecomposition analysis, I only want to use the target word activations.",
+      "zh": "因為，這裡的廣義特徵分解分析，只想使用目標詞的活化。"
+    },
+    {
+      "start": 792.31,
+      "end": 798.31,
+      "en": "I do not want to use any other tokens in this text until later.",
+      "zh": "直到稍後之前，我都不想使用這份文字中的其他 token。"
+    },
+    {
+      "start": 798.59,
+      "end": 799.95,
+      "en": "So that comes at the very end.",
+      "zh": "那會放在最後。"
+    },
+    {
+      "start": 800.51,
+      "end": 800.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 800.91,
+      "end": 801.15,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 801.15,
+      "end": 803.31,
+      "en": "So here is just some visualizations.",
+      "zh": "這裡只是一些視覺化。"
+    },
+    {
+      "start": 803.31,
+      "end": 805.79,
+      "en": "This you've also seen before a lot of this code.",
+      "zh": "很多程式碼，你以前也看過。"
+    },
+    {
+      "start": 805.79,
+      "end": 810.27,
+      "en": "I just kind of copy paste and keep propagating from one thing to the next.",
+      "zh": "我只是複製貼上，從一個地方繼續沿用到下一個。"
+    },
+    {
+      "start": 810.47,
+      "end": 810.83,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 810.87,
+      "end": 814.35,
+      "en": "So this is new though these are the covariance matrices.",
+      "zh": "不過，這個是新的：共變異數矩陣。"
+    },
+    {
+      "start": 814.83,
+      "end": 819.71,
+      "en": "Now the covariance matrices are actually ten times bigger than what you see here.",
+      "zh": "實際的共變異數矩陣，比這裡看到的大十倍。"
+    },
+    {
+      "start": 819.71,
+      "end": 822.75,
+      "en": "I'm skipping every 10th row and column.",
+      "zh": "我跳著取，每隔十列、十欄。"
+    },
+    {
+      "start": 822.75,
+      "end": 825.67,
+      "en": "That is purely for the visualization.",
+      "zh": "這純粹是為了視覺化。"
+    },
+    {
+      "start": 826.15,
+      "end": 834.77,
+      "en": "The neat thing about a generalized eigendecomposition is when you look at these matrices just visually, you know, they're interesting.",
+      "zh": "廣義特徵分解很有趣的一點，是光看這些矩陣，確實很有意思。"
+    },
+    {
+      "start": 834.77,
+      "end": 835.85,
+      "en": "They're neat to look at.",
+      "zh": "看起來很酷。"
+    },
+    {
+      "start": 835.89,
+      "end": 839.61,
+      "en": "You know, maybe they look like some magic eye painting or something like that.",
+      "zh": "也許像某種 Magic Eye 立體圖。"
+    },
+    {
+      "start": 839.61,
+      "end": 844.97,
+      "en": "But it's not obvious that there are really remarkable differences between these.",
+      "zh": "但並不明顯看得出，它們之間有非常顯著的差異。"
+    },
+    {
+      "start": 845.09,
+      "end": 850.53,
+      "en": "So the goal of the generalized eigendecomposition is to find some pattern.",
+      "zh": "所以，廣義特徵分解的目標，就是找出某種模式。"
+    },
+    {
+      "start": 850.77,
+      "end": 858.65,
+      "en": "It's going to be a subtle, nuanced pattern that is distributed across all of the neurons, all of the variables.",
+      "zh": "那會是分散在所有神經元、所有變數之間，細微而有層次的模式。"
+    },
+    {
+      "start": 859.41,
+      "end": 865.97,
+      "en": "And it is a pattern that maximally differentiates this covariance matrix from this covariance matrix.",
+      "zh": "這個模式，能最大程度區別這個共變異數矩陣與這個共變異數矩陣。"
+    },
+    {
+      "start": 866.13,
+      "end": 869.49,
+      "en": "And that pattern is just distributed across all of these pairs.",
+      "zh": "而那個模式，分散於所有這些配對之間。"
+    },
+    {
+      "start": 869.49,
+      "end": 875.37,
+      "en": "So it's not really obvious what that pattern would look like just from looking at these matrices.",
+      "zh": "所以，只看這些矩陣，不太容易知道那個模式長什麼樣子。"
+    },
+    {
+      "start": 876.13,
+      "end": 876.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 876.49,
+      "end": 881.21,
+      "en": "So here I'm going to do something that will not work but it will be fun.",
+      "zh": "這裡我要做一件不會成功、但很有趣的事。"
+    },
+    {
+      "start": 881.61,
+      "end": 881.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 881.93,
+      "end": 884.13,
+      "en": "So basically yeah we just get some errors.",
+      "zh": "基本上，只得到一些錯誤。"
+    },
+    {
+      "start": 884.37,
+      "end": 887.93,
+      "en": "Uh, in principle there would be ways to address this.",
+      "zh": "原則上，可以用一些方式處理。"
+    },
+    {
+      "start": 887.93,
+      "end": 895.23,
+      "en": "But the thing is, when you get to really large matrices with lots and lots of variables that generalize.",
+      "zh": "但問題是，當矩陣很大、變數很多時，廣義"
+    },
+    {
+      "start": 895.27,
+      "end": 903.95,
+      "en": "Eigendecomposition is just such a difficult mathematical problem to solve in practice, especially with",
+      "zh": "特徵分解在實務上，就是很難求解的數學問題，尤其是"
+    },
+    {
+      "start": 903.95,
+      "end": 908.43,
+      "en": "reduced rank matrices, that it's just it's just very difficult.",
+      "zh": "降秩矩陣，真的非常困難。"
+    },
+    {
+      "start": 908.47,
+      "end": 913.27,
+      "en": "So let's actually look at this linalg dot matrix rank.",
+      "zh": "實際看看 linalg.matrix_rank。"
+    },
+    {
+      "start": 913.31,
+      "end": 918.11,
+      "en": "I'm just curious what the rank of these matrices is.",
+      "zh": "我只是好奇，這些矩陣的秩是多少。"
+    },
+    {
+      "start": 918.91,
+      "end": 919.23,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 919.27,
+      "end": 922.67,
+      "en": "So that took 19 seconds to calculate the rank.",
+      "zh": "計算秩花了 19 秒。"
+    },
+    {
+      "start": 923.19,
+      "end": 930.15,
+      "en": "And that's because Timkov it is a 3000 by 3000 matrix.",
+      "zh": "因為它是 3000×3000 的矩陣。"
+    },
+    {
+      "start": 930.15,
+      "end": 932.99,
+      "en": "And yet it only has a rank of 52.",
+      "zh": "但秩卻只有 52。"
+    },
+    {
+      "start": 933.83,
+      "end": 937.47,
+      "en": "There are lots of interesting reasons why that is the case.",
+      "zh": "造成這種情況，有很多有趣原因。"
+    },
+    {
+      "start": 937.67,
+      "end": 939.23,
+      "en": "I'm not going to talk about them here.",
+      "zh": "這裡不會討論。"
+    },
+    {
+      "start": 939.23,
+      "end": 944.83,
+      "en": "I did talk about it a little bit in the, uh, effective dimensionality lectures.",
+      "zh": "在有效維度的課程中，稍微談過一些。"
+    },
+    {
+      "start": 944.83,
+      "end": 948.55,
+      "en": "But yeah, suffice it to say that these are severely reduced rank.",
+      "zh": "總之，只要知道，它們是嚴重降秩的矩陣。"
+    },
+    {
+      "start": 948.87,
+      "end": 955.02,
+      "en": "Now, generalized eigendecomposition Composition in theory can be run on reduced rank matrices even",
+      "zh": "理論上，廣義特徵分解可以對降秩矩陣執行，"
+    },
+    {
+      "start": 955.02,
+      "end": 965.38,
+      "en": "when both the matrices are reduced rank, but when the rank is just so much lower than the size, that's when you really start running into some numerical issues.",
+      "zh": "即使兩個矩陣都降秩也可以；但當秩比大小低非常多時，就真的開始遇到一些數值問題。"
+    },
+    {
+      "start": 965.9,
+      "end": 966.26,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 966.3,
+      "end": 969.46,
+      "en": "So therefore we are going to do the two stage procedure.",
+      "zh": "因此，要做兩階段程序。"
+    },
+    {
+      "start": 969.58,
+      "end": 972.22,
+      "en": "So here I'm getting the eigendecomposition.",
+      "zh": "這裡取得特徵分解。"
+    },
+    {
+      "start": 972.22,
+      "end": 974.06,
+      "en": "This is both covariance matrices.",
+      "zh": "這是兩個共變異數矩陣。"
+    },
+    {
+      "start": 974.06,
+      "end": 977.66,
+      "en": "But this is not a generalized eigen decomposition.",
+      "zh": "但不是廣義特徵分解。"
+    },
+    {
+      "start": 977.7,
+      "end": 982.3,
+      "en": "I'm actually just inputting one matrix to be eigen decomposed.",
+      "zh": "我實際上只輸入一個矩陣，進行特徵分解。"
+    },
+    {
+      "start": 982.3,
+      "end": 985.7,
+      "en": "And that is the average of these two covariance matrices.",
+      "zh": "也就是這兩個共變異數矩陣的平均。"
+    },
+    {
+      "start": 986.3,
+      "end": 986.62,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 986.66,
+      "end": 991.58,
+      "en": "So then I get the eigenvalues and the eigenvectors sorting the eigenvalues.",
+      "zh": "接著，取得特徵值與特徵向量，對特徵值排序。"
+    },
+    {
+      "start": 991.74,
+      "end": 994.66,
+      "en": "And uh and then also the eigenvectors.",
+      "zh": "也對特徵向量排序。"
+    },
+    {
+      "start": 995.18,
+      "end": 997.7,
+      "en": "And note here that we sort the columns not the rows.",
+      "zh": "注意，這裡排序的是欄，不是列。"
+    },
+    {
+      "start": 997.7,
+      "end": 1002.54,
+      "en": "So we preserve all of the rows and we sort along the columns.",
+      "zh": "保留所有列，沿著欄排序。"
+    },
+    {
+      "start": 1003.58,
+      "end": 1003.82,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1003.86,
+      "end": 1009.06,
+      "en": "This gets a little confusing because uh, in the next video we're going to actually run the principal",
+      "zh": "這會有點令人困惑，因為下一支影片，我們會使用 SciPy 函式庫，"
+    },
+    {
+      "start": 1009.06,
+      "end": 1018.64,
+      "en": "components analysis using the SciPy library using a scikit learn, and that actually swaps the eigenvalues.",
+      "zh": "也就是 scikit-learn，實際執行主成分分析，而它會把特徵值交換。"
+    },
+    {
+      "start": 1018.64,
+      "end": 1021.68,
+      "en": "It puts the eigenvalues in the rows instead of the columns.",
+      "zh": "它把特徵值放在列，而不是欄。"
+    },
+    {
+      "start": 1021.92,
+      "end": 1026,
+      "en": "And why it does that I think just to intentionally confuse people.",
+      "zh": "為什麼這樣做？我想只是故意讓大家困惑。"
+    },
+    {
+      "start": 1026.04,
+      "end": 1026.52,
+      "en": "Maybe.",
+      "zh": "也許吧。"
+    },
+    {
+      "start": 1027,
+      "end": 1035.08,
+      "en": "Anyway, uh, from these eigenvalues, I am transforming them into a percent variance explained.",
+      "zh": "總之，我把這些特徵值轉換成解釋變異數百分比。"
+    },
+    {
+      "start": 1035.48,
+      "end": 1044.84,
+      "en": "So again, the idea is that 100% of the magnitude of the variance in this data set in this 3000 by 3000",
+      "zh": "概念是，這個資料集、這個 3000×3000"
+    },
+    {
+      "start": 1044.88,
+      "end": 1052.16,
+      "en": "covariance matrix, 100% of the variance is somehow contained in all of the eigenvalues.",
+      "zh": "共變異數矩陣中，100% 的變異數量值，以某種形式包含在全部特徵值裡。"
+    },
+    {
+      "start": 1052.32,
+      "end": 1057.8,
+      "en": "So to transform this into percent variance explained, we just sum them all up.",
+      "zh": "要轉換成解釋變異數百分比，只要把它們全部加起來，"
+    },
+    {
+      "start": 1058.04,
+      "end": 1059.76,
+      "en": "Uh, all of the eigenvalues.",
+      "zh": "也就是所有特徵值，"
+    },
+    {
+      "start": 1059.76,
+      "end": 1061.2,
+      "en": "And that's in the denominator.",
+      "zh": "放在分母。"
+    },
+    {
+      "start": 1061.2,
+      "end": 1067.12,
+      "en": "And then we multiply by each element of the eigenvectors matrix.",
+      "zh": "再乘上特徵向量矩陣的每個元素。"
+    },
+    {
+      "start": 1067.48,
+      "end": 1067.76,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1067.8,
+      "end": 1078.78,
+      "en": "And then computing the cumulative sum and seeing how many components it takes to explain above 99% of the variability in the data.",
+      "zh": "接著，計算累積和，看看需要多少成分，才能解釋資料超過 99% 的變化。"
+    },
+    {
+      "start": 1079.66,
+      "end": 1082.62,
+      "en": "And this turns out to be 63, I think.",
+      "zh": "我想，結果是 63。"
+    },
+    {
+      "start": 1083.02,
+      "end": 1094.1,
+      "en": "By the way, if you are a linear algebra aficionado, you might be wondering how it is possible that this number is larger than 52, which was the rank of the data.",
+      "zh": "順帶一提，如果你很喜歡線性代數，可能會好奇，這個數字怎麼會比資料的秩 52 還大。"
+    },
+    {
+      "start": 1094.54,
+      "end": 1101.94,
+      "en": "This turns out to be other just issues of difficulties with numerical calculations of such large and",
+      "zh": "這其實又是對這麼大、又降秩的矩陣，做數值計算時"
+    },
+    {
+      "start": 1101.94,
+      "end": 1109.42,
+      "en": "reduced rank matrices, and basically calculating the rank is an extremely difficult problem.",
+      "zh": "遇到的困難。基本上，計算秩是非常困難的問題。"
+    },
+    {
+      "start": 1109.54,
+      "end": 1111.94,
+      "en": "So generally people do not calculate rank.",
+      "zh": "所以，一般人不會計算秩，"
+    },
+    {
+      "start": 1111.98,
+      "end": 1119.06,
+      "en": "They estimate rank using a threshold, and depending on the threshold that you use, you're going to get a different result.",
+      "zh": "而是使用門檻估計秩。選的門檻不同，結果就不同。"
+    },
+    {
+      "start": 1119.18,
+      "end": 1123.3,
+      "en": "If you're in my linear algebra course, I talk about that in a lot more detail.",
+      "zh": "我的線性代數課程中，會更詳細討論。"
+    },
+    {
+      "start": 1123.34,
+      "end": 1129.02,
+      "en": "Anyway, suffice it to say that here we get an answer of 63 components, which is great.",
+      "zh": "總之，這裡得到 63 個成分的答案，很好。"
+    },
+    {
+      "start": 1129.09,
+      "end": 1135.21,
+      "en": "So now we will multiply the activations matrix by the eigenvectors.",
+      "zh": "現在，讓活化矩陣乘上特徵向量。"
+    },
+    {
+      "start": 1135.21,
+      "end": 1137.53,
+      "en": "And we just want the first 63.",
+      "zh": "只要前 63 個。"
+    },
+    {
+      "start": 1137.89,
+      "end": 1145.33,
+      "en": "And that means that now we have 108 by 63 instead of 108 by 3072.",
+      "zh": "這表示，現在是 108×63，而不是 108×3072。"
+    },
+    {
+      "start": 1145.81,
+      "end": 1146.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1146.09,
+      "end": 1147.29,
+      "en": "Now from here.",
+      "zh": "接下來，"
+    },
+    {
+      "start": 1147.33,
+      "end": 1149.65,
+      "en": "So this is our new data matrix here.",
+      "zh": "這就是新的資料矩陣。"
+    },
+    {
+      "start": 1149.89,
+      "end": 1155.21,
+      "en": "So now we can calculate covariance matrices again and then visualize them again.",
+      "zh": "現在可以重新計算共變異數矩陣，再次視覺化。"
+    },
+    {
+      "start": 1155.21,
+      "end": 1157.73,
+      "en": "And then this is what I showed in the slides.",
+      "zh": "這就是投影片中展示的內容。"
+    },
+    {
+      "start": 1157.73,
+      "end": 1157.89,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1157.93,
+      "end": 1168.57,
+      "en": "These are just the covariance matrices of 99% of the data variance oriented into the top 63 principal",
+      "zh": "這些就是包含 99% 資料變異數、朝向前 63 個主"
+    },
+    {
+      "start": 1168.57,
+      "end": 1170.17,
+      "en": "components okay.",
+      "zh": "成分的共變異數矩陣。"
+    },
+    {
+      "start": 1170.21,
+      "end": 1172.57,
+      "en": "And here I'm applying the shrinkage.",
+      "zh": "這裡套用收縮。"
+    },
+    {
+      "start": 1172.89,
+      "end": 1177.09,
+      "en": "So I'm setting gamma I'm just fixing this to be 1% 0.01.",
+      "zh": "設定 gamma，直接固定為 1%，也就是 0.01。"
+    },
+    {
+      "start": 1177.41,
+      "end": 1182.37,
+      "en": "And yeah you should recognize this code from the previous video.",
+      "zh": "這段程式碼，應該在上一支影片看過。"
+    },
+    {
+      "start": 1182.37,
+      "end": 1185.65,
+      "en": "So basically we take the covariance matrix.",
+      "zh": "基本上，取共變異數矩陣。"
+    },
+    {
+      "start": 1185.65,
+      "end": 1186.69,
+      "en": "We knock it down.",
+      "zh": "把它稍微降低。"
+    },
+    {
+      "start": 1186.69,
+      "end": 1191.19,
+      "en": "So we scale it down Globally a tiny bit by 1%.",
+      "zh": "也就是整體縮小一點，縮小 1%。"
+    },
+    {
+      "start": 1192.23,
+      "end": 1194.07,
+      "en": "And then we take gamma.",
+      "zh": "接著，取 gamma，"
+    },
+    {
+      "start": 1194.07,
+      "end": 1199.39,
+      "en": "So the regularization amount times the average of all of the eigenvalues.",
+      "zh": "也就是正規化的量，乘上所有特徵值的平均。"
+    },
+    {
+      "start": 1199.75,
+      "end": 1202.51,
+      "en": "So this here ends up being a scalar.",
+      "zh": "這裡最後會是一個純量。"
+    },
+    {
+      "start": 1202.55,
+      "end": 1210.27,
+      "en": "This is just a number times the identity matrix which of course is zeros on the off diagonal and ones on the diagonal.",
+      "zh": "也就是一個數字，乘上單位矩陣；單位矩陣當然是非對角元素為零，對角元素為一。"
+    },
+    {
+      "start": 1210.79,
+      "end": 1210.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1211.03,
+      "end": 1214.75,
+      "en": "And by the way you could also use the SciPy library here.",
+      "zh": "順帶一提，這裡也可以使用 SciPy 函式庫。"
+    },
+    {
+      "start": 1214.99,
+      "end": 1219.35,
+      "en": "Uh eigendecomposition in numpy is great for one matrix.",
+      "zh": "對單一矩陣，NumPy 的特徵分解很好。"
+    },
+    {
+      "start": 1219.35,
+      "end": 1226.11,
+      "en": "It's really just for the generalized eigendecomposition that numpy is no longer suitable.",
+      "zh": "只有廣義特徵分解，NumPy 才不再適合。"
+    },
+    {
+      "start": 1226.63,
+      "end": 1226.87,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1226.91,
+      "end": 1228.75,
+      "en": "And then I'm giving these different names.",
+      "zh": "接著，我為它們取不同的名字。"
+    },
+    {
+      "start": 1228.75,
+      "end": 1232.19,
+      "en": "So I say I just add an s at the end for shrinkage.",
+      "zh": "就是在最後加一個 s，代表 shrinkage，收縮。"
+    },
+    {
+      "start": 1232.35,
+      "end": 1241.87,
+      "en": "And that's because uh later on I'm going to use the non shrinkage regularized matrix for the numerator matrix.",
+      "zh": "因為稍後，我會把沒有收縮正規化的矩陣，用作分子矩陣。"
+    },
+    {
+      "start": 1241.87,
+      "end": 1243.99,
+      "en": "And this one for the denominator matrix.",
+      "zh": "這個則用作分母矩陣。"
+    },
+    {
+      "start": 1243.99,
+      "end": 1245.27,
+      "en": "I'll get to that in a moment.",
+      "zh": "稍後會談。"
+    },
+    {
+      "start": 1245.75,
+      "end": 1245.99,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1246.03,
+      "end": 1252.61,
+      "en": "Now in theory Everything we've done is with real valued matrices and all the matrices are symmetric.",
+      "zh": "理論上，我們做的所有事，都涉及實數矩陣，而且所有矩陣都是對稱的。"
+    },
+    {
+      "start": 1253.01,
+      "end": 1257.77,
+      "en": "So the eigenvalues and the eigenvectors should all be real valued.",
+      "zh": "所以，特徵值和特徵向量應該全是實數。"
+    },
+    {
+      "start": 1257.89,
+      "end": 1265.77,
+      "en": "However, just because of some precision errors and limitations in NumPy and SciPy, it does sometimes",
+      "zh": "不過，因為 NumPy 和 SciPy 中的一些精度誤差與限制，有時"
+    },
+    {
+      "start": 1265.77,
+      "end": 1275.65,
+      "en": "happen that these matrices will have tiny, tiny, tiny imaginary values which are not actually valid.",
+      "zh": "這些矩陣會出現非常、非常小的虛數值，其實並不有效。"
+    },
+    {
+      "start": 1275.65,
+      "end": 1278.89,
+      "en": "So therefore we can just force this to be real valued.",
+      "zh": "因此，可以直接強制它變成實數。"
+    },
+    {
+      "start": 1279.41,
+      "end": 1280.33,
+      "en": "That's what I do here.",
+      "zh": "這裡就是這樣做。"
+    },
+    {
+      "start": 1280.33,
+      "end": 1282.89,
+      "en": "And that's why you get this error message here.",
+      "zh": "這也是這裡出現這個錯誤訊息的原因。"
+    },
+    {
+      "start": 1282.93,
+      "end": 1286.21,
+      "en": "Casting complex values to real discards the imaginary part.",
+      "zh": "把複數值轉成實數，會捨棄虛部。"
+    },
+    {
+      "start": 1286.25,
+      "end": 1287.09,
+      "en": "Totally fine.",
+      "zh": "完全沒問題。"
+    },
+    {
+      "start": 1287.09,
+      "end": 1288.97,
+      "en": "This is not an error message.",
+      "zh": "這不是錯誤訊息。"
+    },
+    {
+      "start": 1288.97,
+      "end": 1290.41,
+      "en": "It's just a warning message.",
+      "zh": "只是警告訊息。"
+    },
+    {
+      "start": 1290.65,
+      "end": 1295.81,
+      "en": "That's just because I'm forcing these to be real valued and not complex valued.",
+      "zh": "只是因為我強制它們成為實數，而不是複數。"
+    },
+    {
+      "start": 1296.89,
+      "end": 1301.33,
+      "en": "Okay, so here we see the impact of shrinkage regularization.",
+      "zh": "好，這裡可以看到收縮正規化的影響。"
+    },
+    {
+      "start": 1301.61,
+      "end": 1308.92,
+      "en": "They went for the covariance matrices, went from having a rank of 52 to a rank of 63, which means they are full rank.",
+      "zh": "共變異數矩陣的秩，從 52 變成 63，也就是滿秩。"
+    },
+    {
+      "start": 1309.52,
+      "end": 1313.48,
+      "en": "Okay, so now we are ready for the generalized eigen decomposition.",
+      "zh": "好，現在準備好做廣義特徵分解了。"
+    },
+    {
+      "start": 1313.8,
+      "end": 1320.96,
+      "en": "Here I am running the analysis twice, one for him versus her and once for her versus him.",
+      "zh": "這裡執行兩次分析，一次是 him 相對於 her，一次是 her 相對於 him。"
+    },
+    {
+      "start": 1320.96,
+      "end": 1326.32,
+      "en": "This is not something that I explicitly demonstrated in the previous video.",
+      "zh": "上一支影片沒有明確展示這件事。"
+    },
+    {
+      "start": 1326.32,
+      "end": 1329.68,
+      "en": "But basically what we want here is to get two filters.",
+      "zh": "基本上，我們要取得兩個濾波器。"
+    },
+    {
+      "start": 1329.68,
+      "end": 1331.64,
+      "en": "So two sets of patterns.",
+      "zh": "也就是兩組模式。"
+    },
+    {
+      "start": 1331.8,
+      "end": 1339.88,
+      "en": "One pattern that maximizes activations for him and one that activates maximizes activations for her.",
+      "zh": "一個模式最大化 him 的活化，另一個最大化 her 的活化。"
+    },
+    {
+      "start": 1340.16,
+      "end": 1341.92,
+      "en": "And the way to do that is really simple.",
+      "zh": "做法很簡單。"
+    },
+    {
+      "start": 1341.92,
+      "end": 1344.92,
+      "en": "We literally just swap the matrices around.",
+      "zh": "真的只要把矩陣交換。"
+    },
+    {
+      "start": 1344.92,
+      "end": 1349.72,
+      "en": "So here I put in him and then her, and here I put in her and then him.",
+      "zh": "這裡先放 him，再放 her；這裡先放 her，再放 him。"
+    },
+    {
+      "start": 1350.16,
+      "end": 1353.32,
+      "en": "By the way, in theory this is not necessary.",
+      "zh": "順帶一提，理論上，這不是必要的。"
+    },
+    {
+      "start": 1353.52,
+      "end": 1361.56,
+      "en": "In theory, we can do both of these in one go by looking at the top eigenvalue for him, and then the",
+      "zh": "理論上，可以一次完成這兩件事：查看 him 的最高特徵值，"
+    },
+    {
+      "start": 1361.56,
+      "end": 1367.7,
+      "en": "lowest eigenvalue, the smallest eigenvalue will actually be the one that maximizes her over him.",
+      "zh": "最低、最小的特徵值，實際上就會是最大化 her 相對於 him 的那個。"
+    },
+    {
+      "start": 1368.34,
+      "end": 1370.26,
+      "en": "That said, that's the theory.",
+      "zh": "不過，那是理論。"
+    },
+    {
+      "start": 1370.46,
+      "end": 1378.98,
+      "en": "In practice, it's not quite that simple just because of numerical issues and the way that these eigenvectors and eigenvalues are estimated.",
+      "zh": "實務上沒有那麼簡單，因為數值問題，以及特徵向量、特徵值估計方式的關係。"
+    },
+    {
+      "start": 1379.22,
+      "end": 1383.58,
+      "en": "So therefore it's better to just run a second analysis like this.",
+      "zh": "所以，最好直接再執行第二次分析。"
+    },
+    {
+      "start": 1384.02,
+      "end": 1384.46,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1384.94,
+      "end": 1391.46,
+      "en": "So notice also here I'm using for the denominator matrix the shrinkage regularized version.",
+      "zh": "也注意，這裡分母矩陣使用的是收縮正規化的版本。"
+    },
+    {
+      "start": 1391.46,
+      "end": 1396.26,
+      "en": "And here I'm using the full version without any shrinkage regularization.",
+      "zh": "這裡則使用完整、沒有任何收縮正規化的版本。"
+    },
+    {
+      "start": 1396.58,
+      "end": 1398.62,
+      "en": "In principle you can also do this.",
+      "zh": "原則上，也可以這樣做。"
+    },
+    {
+      "start": 1398.66,
+      "end": 1399.7,
+      "en": "That's totally fine.",
+      "zh": "完全沒問題。"
+    },
+    {
+      "start": 1400.54,
+      "end": 1409.98,
+      "en": "But what people often do is say you know we we want to uh adulterate the numerator matrix as little",
+      "zh": "但大家經常會說，我們希望盡可能少地改動分子"
+    },
+    {
+      "start": 1409.98,
+      "end": 1410.66,
+      "en": "as possible.",
+      "zh": "矩陣。"
+    },
+    {
+      "start": 1410.66,
+      "end": 1414.58,
+      "en": "We want these data to be, like as pure as we can leave them.",
+      "zh": "希望資料能盡可能保持純粹。"
+    },
+    {
+      "start": 1414.7,
+      "end": 1423.86,
+      "en": "And we're willing to smooth out the, uh, the reference covariance matrix because, yeah, this is just like a reference matrix to compare against.",
+      "zh": "但願意平滑化參考共變異數矩陣，因為它只是用來比較的參考矩陣。"
+    },
+    {
+      "start": 1424.14,
+      "end": 1427.08,
+      "en": "So therefore this is a fairly typical approach.",
+      "zh": "所以，這是相當典型的做法。"
+    },
+    {
+      "start": 1427.08,
+      "end": 1432.68,
+      "en": "You would just regularize the denominator matrix and not the numerator matrix.",
+      "zh": "只對分母矩陣做正規化，不對分子矩陣做。"
+    },
+    {
+      "start": 1433.16,
+      "end": 1433.4,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1433.48,
+      "end": 1438.52,
+      "en": "Otherwise this code looks very similar to the code for the principal components analysis.",
+      "zh": "其餘程式碼，看起來與主成分分析的程式碼很像。"
+    },
+    {
+      "start": 1439.2,
+      "end": 1442.08,
+      "en": "We get the eigenvalues and the eigenvectors.",
+      "zh": "取得特徵值與特徵向量。"
+    },
+    {
+      "start": 1442.24,
+      "end": 1444.6,
+      "en": "We sort the eigenvalues.",
+      "zh": "對特徵值排序。"
+    },
+    {
+      "start": 1445.28,
+      "end": 1449.52,
+      "en": "And then we also sort the columns of the eigenvectors matrix.",
+      "zh": "也對特徵向量矩陣的欄排序。"
+    },
+    {
+      "start": 1450.04,
+      "end": 1453.24,
+      "en": "Notice also the variable naming convention I'm using here.",
+      "zh": "也注意，這裡使用的變數命名慣例。"
+    },
+    {
+      "start": 1453.24,
+      "end": 1457.32,
+      "en": "So evals and him versus her.",
+      "zh": "也就是 evals，以及 him 相對於 her。"
+    },
+    {
+      "start": 1457.84,
+      "end": 1458.32,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1458.6,
+      "end": 1462.28,
+      "en": "So then yeah we can make a plot of the eigenvalues.",
+      "zh": "接著，可以繪製特徵值圖。"
+    },
+    {
+      "start": 1462.4,
+      "end": 1465.8,
+      "en": "And this is what I showed in the slides by the way.",
+      "zh": "這就是投影片展示的內容。順帶一提，"
+    },
+    {
+      "start": 1465.84,
+      "end": 1470.32,
+      "en": "They can have different numerical scaling which is not really that relevant.",
+      "zh": "它們可能有不同的數值尺度，而那其實不太重要。"
+    },
+    {
+      "start": 1470.32,
+      "end": 1479.8,
+      "en": "So therefore you can see like the raw eigenvalues are meaningful, but it just indicates something about",
+      "zh": "所以，原始特徵值有意義，但只是反映"
+    },
+    {
+      "start": 1479.8,
+      "end": 1483.2,
+      "en": "the scale of the data and the separability in the data.",
+      "zh": "資料尺度與資料可分離性的一些資訊。"
+    },
+    {
+      "start": 1483.4,
+      "end": 1492.51,
+      "en": "So therefore if you're comparing multiple spectra in the same plot, it's often easiest just to max normalize them like this.",
+      "zh": "因此，如果在同一張圖中比較多個譜，通常最簡單的方式，就是像這樣，以各自最大值正規化。"
+    },
+    {
+      "start": 1492.79,
+      "end": 1499.95,
+      "en": "Okay, so now we see for her versus him, we get this beautiful separation, really nice distance between",
+      "zh": "好，現在可以看到，her 相對於 him 有很漂亮的分離，"
+    },
+    {
+      "start": 1499.95,
+      "end": 1506.19,
+      "en": "the first and the second eigenvalue compared to the distances between all of the other eigenvalues.",
+      "zh": "第一與第二特徵值之間的距離，相較其他特徵值之間的距離，非常明顯。"
+    },
+    {
+      "start": 1506.19,
+      "end": 1512.87,
+      "en": "So they all go down trivially because yeah, we we sorted them for exactly that reason.",
+      "zh": "它們當然會逐漸下降，因為我們就是為了這個，把它們排序。"
+    },
+    {
+      "start": 1513.39,
+      "end": 1517.87,
+      "en": "But it's not trivial that this distance is much bigger than this distance.",
+      "zh": "但這個距離比這個距離大得多，並不是理所當然的。"
+    },
+    {
+      "start": 1517.87,
+      "end": 1520.07,
+      "en": "And these distances are all fairly small.",
+      "zh": "其他這些距離都相當小。"
+    },
+    {
+      "start": 1521.19,
+      "end": 1524.07,
+      "en": "The him versus her separability also looks great.",
+      "zh": "him 相對於 her 的可分離性，看起來也很好。"
+    },
+    {
+      "start": 1524.07,
+      "end": 1525.87,
+      "en": "As I mentioned in the slides.",
+      "zh": "如同投影片提過的，"
+    },
+    {
+      "start": 1525.87,
+      "end": 1532.63,
+      "en": "Maybe there's a second independent component for processing him pronouns versus her pronouns.",
+      "zh": "也許還有第二個獨立成分，處理 him 代名詞相對於 her 代名詞。"
+    },
+    {
+      "start": 1532.63,
+      "end": 1537.75,
+      "en": "But yeah, for convenience we're just going to look at the the top one okay.",
+      "zh": "但為了方便，我們只看最前面的一個。"
+    },
+    {
+      "start": 1537.79,
+      "end": 1542.55,
+      "en": "So once we get those eigenvectors we can generate the projection data.",
+      "zh": "取得這些特徵向量後，就能產生投影資料。"
+    },
+    {
+      "start": 1542.87,
+      "end": 1547.73,
+      "en": "And that is literally the activations times the eigenvector.",
+      "zh": "真的就是活化乘上特徵向量。"
+    },
+    {
+      "start": 1547.73,
+      "end": 1550.45,
+      "en": "And here we want the top eigenvector.",
+      "zh": "這裡要的是最前面的特徵向量。"
+    },
+    {
+      "start": 1550.45,
+      "end": 1555.77,
+      "en": "So it's the eigenvector associated with the largest eigenvalue and it's multiplying.",
+      "zh": "也就是最大特徵值所對應的特徵向量，並讓它乘上，"
+    },
+    {
+      "start": 1555.81,
+      "end": 1563.33,
+      "en": "Of course the data in the lower dimensional space because these were based on the lower dimensional space covariance matrices.",
+      "zh": "當然，是低維空間中的資料，因為它們是根據低維空間的共變異數矩陣計算的。"
+    },
+    {
+      "start": 1564.65,
+      "end": 1564.97,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1565.01,
+      "end": 1567.37,
+      "en": "And so that's how I get these plots.",
+      "zh": "這就是這些圖的取得方式。"
+    },
+    {
+      "start": 1567.37,
+      "end": 1568.61,
+      "en": "So it's pretty remarkable.",
+      "zh": "相當驚人。"
+    },
+    {
+      "start": 1568.61,
+      "end": 1573.89,
+      "en": "You see that the generally generalized eigen decomposition has two impacts.",
+      "zh": "可以看到，廣義特徵分解有兩個影響。"
+    },
+    {
+      "start": 1573.89,
+      "end": 1577.53,
+      "en": "One it boosts the category that you're looking for.",
+      "zh": "第一，增強你要找的類別。"
+    },
+    {
+      "start": 1577.85,
+      "end": 1582.57,
+      "en": "And two it suppresses the category that you use as the reference.",
+      "zh": "第二，抑制你當作參考的類別。"
+    },
+    {
+      "start": 1582.73,
+      "end": 1590.21,
+      "en": "So we see not only do we get increased activation for him over here and for her over here, we also",
+      "zh": "所以，不只這裡 him、這裡 her 的活化增加，也能"
+    },
+    {
+      "start": 1590.21,
+      "end": 1595.37,
+      "en": "see a suppression of the activation for her over here and him over here.",
+      "zh": "看到這裡 her、這裡 him 的活化受到抑制。"
+    },
+    {
+      "start": 1595.41,
+      "end": 1596.13,
+      "en": "Pretty neat.",
+      "zh": "很酷。"
+    },
+    {
+      "start": 1596.33,
+      "end": 1603.61,
+      "en": "So the interpretation of what a generalized eigen decomposition does, which I've already stated now",
+      "zh": "所以，廣義特徵分解的作用，我已經說過"
+    },
+    {
+      "start": 1603.65,
+      "end": 1611.04,
+      "en": "a few times is basically look at these covariance matrices and identify patterns that are distributed",
+      "zh": "幾次，基本上就是查看這些共變異數矩陣，找出分散於"
+    },
+    {
+      "start": 1611.04,
+      "end": 1618.6,
+      "en": "across the different variables that maximally distinguish this covariance matrix from this covariance matrix.",
+      "zh": "不同變數之間、最能區別這個與這個共變異數矩陣的模式。"
+    },
+    {
+      "start": 1618.8,
+      "end": 1622.08,
+      "en": "So the question is what do those patterns look like.",
+      "zh": "問題是，那些模式長什麼樣子？"
+    },
+    {
+      "start": 1622.08,
+      "end": 1624.24,
+      "en": "How can we visualize those patterns.",
+      "zh": "要怎麼把它們視覺化？"
+    },
+    {
+      "start": 1624.6,
+      "end": 1627.72,
+      "en": "And that is the next analysis that we do here.",
+      "zh": "這就是接下來的分析。"
+    },
+    {
+      "start": 1627.72,
+      "end": 1634,
+      "en": "So the answer without getting into the mathematical details that justify why this is the right approach.",
+      "zh": "不深入說明為什麼這個做法正確的數學細節，"
+    },
+    {
+      "start": 1634.24,
+      "end": 1641.4,
+      "en": "But basically the idea is you take the covariance matrix and you push that through the eigenvector.",
+      "zh": "基本上的概念，是取共變異數矩陣，讓它通過特徵向量。"
+    },
+    {
+      "start": 1641.4,
+      "end": 1646.48,
+      "en": "So it's the eigenvector times the covariance matrix of the s.",
+      "zh": "也就是特徵向量乘上 S 的共變異數矩陣。"
+    },
+    {
+      "start": 1646.6,
+      "end": 1648.84,
+      "en": "So the numerator covariance matrix.",
+      "zh": "也就是分子的共變異數矩陣。"
+    },
+    {
+      "start": 1649.24,
+      "end": 1650.68,
+      "en": "And that's what this gives us.",
+      "zh": "這就是這裡得到的結果。"
+    },
+    {
+      "start": 1650.72,
+      "end": 1656.24,
+      "en": "And then I'm again multiplying through the eigenvectors from the principal components analysis.",
+      "zh": "接著，再乘上主成分分析的特徵向量。"
+    },
+    {
+      "start": 1656.44,
+      "end": 1667.94,
+      "en": "And that's to get me from the reduced dimensional space back to the original data space which is the 3072 MLP neurons.",
+      "zh": "這是為了從降維空間回到原始資料空間，也就是 3072 個 MLP 神經元。"
+    },
+    {
+      "start": 1668.18,
+      "end": 1671.1,
+      "en": "So also just a linear algebra point here.",
+      "zh": "這裡也提一個線性代數重點。"
+    },
+    {
+      "start": 1671.1,
+      "end": 1674.66,
+      "en": "When we were compressing down we post multiplied by V.",
+      "zh": "壓縮時，我們是在後面乘上 V。"
+    },
+    {
+      "start": 1674.82,
+      "end": 1677.78,
+      "en": "And now we are expanding back out the dimensionality.",
+      "zh": "現在則要把維度擴展回去。"
+    },
+    {
+      "start": 1677.9,
+      "end": 1681.82,
+      "en": "And so now we are pre-multiplying by the eigenvectors.",
+      "zh": "所以，現在是在前面乘上特徵向量。"
+    },
+    {
+      "start": 1682.42,
+      "end": 1682.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1682.74,
+      "end": 1688.54,
+      "en": "So now you see that these two eigenvectors or patterns are somewhat correlated with each other.",
+      "zh": "現在可以看到，這兩個特徵向量或模式，彼此有些相關。"
+    },
+    {
+      "start": 1688.66,
+      "end": 1694.26,
+      "en": "So there is some overlap in how these patterns look to differentiate each other.",
+      "zh": "所以，這些用來區別彼此的模式，在樣貌上有些重疊。"
+    },
+    {
+      "start": 1694.7,
+      "end": 1698.42,
+      "en": "Now it will be interesting in the next video in the code challenge.",
+      "zh": "下一支影片的程式挑戰，會很有意思。"
+    },
+    {
+      "start": 1698.42,
+      "end": 1704.38,
+      "en": "In the next video you are going to create these data for each individual layer.",
+      "zh": "你會為每個個別層建立這些資料。"
+    },
+    {
+      "start": 1704.58,
+      "end": 1706.82,
+      "en": "And you will calculate this correlation.",
+      "zh": "並計算這個相關性。"
+    },
+    {
+      "start": 1706.82,
+      "end": 1713.06,
+      "en": "And then we will see how this correlation changes as a function of depth into the model.",
+      "zh": "接著，看看相關性如何隨著模型深度變化。"
+    },
+    {
+      "start": 1713.06,
+      "end": 1715.38,
+      "en": "That would be a pretty interesting analysis to look at.",
+      "zh": "這會是相當有趣的分析。"
+    },
+    {
+      "start": 1715.9,
+      "end": 1716.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1716.9,
+      "end": 1723.32,
+      "en": "In general there are several ways to perform statistics on these kinds of Analyses.",
+      "zh": "一般來說，對這類分析做統計，有幾種方式。"
+    },
+    {
+      "start": 1723.4,
+      "end": 1729.68,
+      "en": "One thing that I will do here is just randomize the sentence order and then rerun the analysis.",
+      "zh": "這裡我會做的一件事，是將句子順序隨機化，再重新執行分析。"
+    },
+    {
+      "start": 1729.72,
+      "end": 1734.8,
+      "en": "So basically I'm just doing the analysis over again but with random ordering.",
+      "zh": "基本上，就是用隨機順序再做一次分析。"
+    },
+    {
+      "start": 1735.08,
+      "end": 1738.08,
+      "en": "So and here you see it just doesn't work that well.",
+      "zh": "這裡可以看到，效果沒有那麼好。"
+    },
+    {
+      "start": 1738.32,
+      "end": 1748.12,
+      "en": "Uh, it does look like we get some separability, but the projection of the data onto this eigenvector is just not clearly separating him from her.",
+      "zh": "看起來確實有些可分離性，但把資料投影到這個特徵向量後，並沒有清楚分離 him 與 her。"
+    },
+    {
+      "start": 1748.28,
+      "end": 1751.68,
+      "en": "So yeah, this is only one permutation.",
+      "zh": "這只是一次排列。"
+    },
+    {
+      "start": 1752,
+      "end": 1761.28,
+      "en": "Uh, but it does certainly indicate that the results that we see, uh, here are not purely due to overfitting the data.",
+      "zh": "但它確實顯示，這裡看到的結果，不完全是對資料過度擬合造成的。"
+    },
+    {
+      "start": 1761.52,
+      "end": 1764.88,
+      "en": "Uh, there's several ways to do statistical analyses.",
+      "zh": "統計分析有幾種做法。"
+    },
+    {
+      "start": 1765.96,
+      "end": 1766.96,
+      "en": "Uh, this is one.",
+      "zh": "這是其中一種。"
+    },
+    {
+      "start": 1767,
+      "end": 1772.92,
+      "en": "Another thing we're going to do in the next video is have an independent data set.",
+      "zh": "下一支影片還會做另一件事：使用獨立的資料集。"
+    },
+    {
+      "start": 1772.92,
+      "end": 1780.12,
+      "en": "So in the next video we will fit the eigenvectors based on these data and then apply the eigenvectors",
+      "zh": "我們會根據這些資料擬合特徵向量，再把特徵向量套用到"
+    },
+    {
+      "start": 1780.12,
+      "end": 1786.59,
+      "en": "to a completely different data set that the model hasn't seen when calculating the generalized eigen decomposition.",
+      "zh": "完全不同的資料集；計算廣義特徵分解時，模型沒有看過那份資料。"
+    },
+    {
+      "start": 1787.23,
+      "end": 1787.59,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1787.63,
+      "end": 1792.83,
+      "en": "So then the final plot that I'm showing here is this one which I showed in the slides.",
+      "zh": "最後展示的圖，就是投影片中這張。"
+    },
+    {
+      "start": 1792.83,
+      "end": 1795.27,
+      "en": "So basically we have all of the tokens.",
+      "zh": "基本上，這裡有所有 token。"
+    },
+    {
+      "start": 1795.27,
+      "end": 1797.59,
+      "en": "Now remember the eigen decomposition.",
+      "zh": "記得，特徵分解，"
+    },
+    {
+      "start": 1797.59,
+      "end": 1801.55,
+      "en": "This analysis was only run on the activations to him and her.",
+      "zh": "這個分析只對 him 與 her 的活化執行。"
+    },
+    {
+      "start": 1802.11,
+      "end": 1805.39,
+      "en": "And now I also applied it to all the other tokens.",
+      "zh": "現在，我也把它套用到其他所有 token。"
+    },
+    {
+      "start": 1805.51,
+      "end": 1810.35,
+      "en": "And what you see is that all the other tokens are mainly preserved.",
+      "zh": "可以看到，其他 token 大致維持不變。"
+    },
+    {
+      "start": 1810.35,
+      "end": 1814.67,
+      "en": "There's a little bit of residual distinction here, but mostly they are preserved.",
+      "zh": "這裡有一點殘餘差異，但大部分都保留下來了。"
+    },
+    {
+      "start": 1815.03,
+      "end": 1817.19,
+      "en": "And then you see this really big difference here.",
+      "zh": "接著，可以看到這裡很大的差異。"
+    },
+    {
+      "start": 1817.31,
+      "end": 1821.83,
+      "en": "So this is for the eigen decomposition for him versus her.",
+      "zh": "這是 him 相對於 her 的特徵分解。"
+    },
+    {
+      "start": 1822.15,
+      "end": 1824.03,
+      "en": "And this is for her versus him.",
+      "zh": "這是 her 相對於 him。"
+    },
+    {
+      "start": 1824.43,
+      "end": 1828.23,
+      "en": "And again these two sentences are the same.",
+      "zh": "這兩個句子仍然相同。"
+    },
+    {
+      "start": 1828.23,
+      "end": 1833.79,
+      "en": "They only differ by this one word which is him uh, for uh for the black dots.",
+      "zh": "只差這一個詞：黑點是 him，"
+    },
+    {
+      "start": 1833.79,
+      "end": 1836.19,
+      "en": "And it's her for the red squares.",
+      "zh": "紅色方塊則是 her。"
+    },
+    {
+      "start": 1836.67,
+      "end": 1844.13,
+      "en": "So now what you can do if you want to continue exploring is basically pick any number here as long as",
+      "zh": "如果想繼續探索，基本上可以在這裡選任何數字，只要"
+    },
+    {
+      "start": 1844.13,
+      "end": 1849.89,
+      "en": "it's below 53 because or below 54 because I'm manually coding this here.",
+      "zh": "小於 53，或者小於 54，因為這裡是手動寫死的。"
+    },
+    {
+      "start": 1849.89,
+      "end": 1852.65,
+      "en": "So it just happens to work out okay.",
+      "zh": "所以，剛好可以運作。"
+    },
+    {
+      "start": 1852.69,
+      "end": 1854.73,
+      "en": "So here you see another activation.",
+      "zh": "這裡看到另一組活化。"
+    },
+    {
+      "start": 1854.85,
+      "end": 1855.17,
+      "en": "Again.",
+      "zh": "再說一次，"
+    },
+    {
+      "start": 1855.21,
+      "end": 1857.77,
+      "en": "You know there's some differences for other tokens.",
+      "zh": "其他 token 也有些差異。"
+    },
+    {
+      "start": 1857.77,
+      "end": 1866.61,
+      "en": "But the most striking difference is this flip in the activations for processing him for the him eigendecomposition",
+      "zh": "但最醒目的差異，是 him 特徵分解處理 him，"
+    },
+    {
+      "start": 1866.61,
+      "end": 1870.05,
+      "en": "and processing her for the her eigendecomposition.",
+      "zh": "以及 her 特徵分解處理 her 時，活化的這種反轉。"
+    },
+    {
+      "start": 1870.29,
+      "end": 1872.69,
+      "en": "And yeah, you can keep exploring this.",
+      "zh": "你可以繼續探索。"
+    },
+    {
+      "start": 1872.69,
+      "end": 1875.65,
+      "en": "You can see here how this analysis works.",
+      "zh": "這裡可以看到分析如何運作。"
+    },
+    {
+      "start": 1875.65,
+      "end": 1879.49,
+      "en": "But yeah basically just taking the data, the original data.",
+      "zh": "基本上，就是取原始資料，"
+    },
+    {
+      "start": 1879.93,
+      "end": 1891.29,
+      "en": "So the activations in the original MLP space, compressing them down and then multiplying them through the each of the two top eigenvectors.",
+      "zh": "也就是原始 MLP 空間的活化，先壓縮，再分別乘上兩個最前面的特徵向量。"
+    },
+    {
+      "start": 1892.65,
+      "end": 1896.25,
+      "en": "I hope you don't feel overwhelmed by this analysis.",
+      "zh": "希望你不會被這個分析嚇到。"
+    },
+    {
+      "start": 1896.49,
+      "end": 1904.51,
+      "en": "This is some fairly advanced applications of linear algebra to complicated large data sets, and it",
+      "zh": "這是將線性代數相當進階地應用於複雜大型資料集，"
+    },
+    {
+      "start": 1904.51,
+      "end": 1908.51,
+      "en": "really takes a while to wrap your head around what it means and why it works.",
+      "zh": "真的需要一些時間，才能理解它的意義與運作原因。"
+    },
+    {
+      "start": 1909.03,
+      "end": 1918.47,
+      "en": "In fact, I have an entire separate course that is really just focused on this one particular source separation method generalized Eigendecomposition.",
+      "zh": "事實上，我另有一整門課，專門聚焦於這一種來源分離方法：廣義特徵分解。"
+    },
+    {
+      "start": 1919.15,
+      "end": 1928.19,
+      "en": "This course is focused on neuroscience data, but I do try to make the course general enough that it can be used for a wide variety of topics.",
+      "zh": "那門課聚焦於神經科學資料，但我也盡量讓內容足夠通用，可以應用於各式主題。"
+    },
+    {
+      "start": 1928.67,
+      "end": 1932.19,
+      "en": "Now, to be totally clear, I'm not telling you to take this course.",
+      "zh": "說清楚，我不是叫你去上那門課。"
+    },
+    {
+      "start": 1932.19,
+      "end": 1938.15,
+      "en": "This course is certainly not part of the LLM course that you are right now watching.",
+      "zh": "那門課絕對不是你現在正在看的 LLM 課程的一部分。"
+    },
+    {
+      "start": 1938.43,
+      "end": 1945.07,
+      "en": "I just want to highlight that this method generalized Eigendecomposition I've now tried to explain in",
+      "zh": "我只是想強調，廣義特徵分解這個方法，我現在嘗試只用"
+    },
+    {
+      "start": 1945.07,
+      "end": 1953.31,
+      "en": "only two relatively short videos, is something that I spend 4.5 hours to unpack in more detail, and",
+      "zh": "兩支相對短的影片來解釋，但另花了 4.5 小時，更詳細地拆解，"
+    },
+    {
+      "start": 1953.31,
+      "end": 1959.59,
+      "en": "that's not even including all that stuff beforehand, like PCA and covariance matrices and so on.",
+      "zh": "而且還不包括前面的 PCA、共變異數矩陣等內容。"
+    },
+    {
+      "start": 1960.26,
+      "end": 1967.42,
+      "en": "Generalized eigen decomposition has been used in lots of different disciplines, and has proven to be",
+      "zh": "廣義特徵分解已經用於許多不同領域，而且證明是"
+    },
+    {
+      "start": 1967.42,
+      "end": 1974.42,
+      "en": "a really powerful method for identifying patterns in data that separate two different categories.",
+      "zh": "辨識能分離兩個不同類別之資料模式的強大方法。"
+    },
+    {
+      "start": 1974.98,
+      "end": 1980.22,
+      "en": "Now, when you're working with very small data sets, the method is easier to apply.",
+      "zh": "處理很小的資料集時，這個方法比較容易套用。"
+    },
+    {
+      "start": 1980.54,
+      "end": 1986.86,
+      "en": "And so llms pose some interesting challenges in this kind of analysis approach.",
+      "zh": "所以，LLM 為這類分析方法帶來一些有趣的挑戰。"
+    },
+    {
+      "start": 1987.5,
+      "end": 1992.42,
+      "en": "In this video, I showed a few ways to see if our results were due to overfitting.",
+      "zh": "這支影片中，我展示了幾種方式，檢查結果是否源自過度擬合。"
+    },
+    {
+      "start": 1992.54,
+      "end": 1998.98,
+      "en": "Although none of them was really that statistically rigorous, I have to admit a more rigorous approach",
+      "zh": "不過，我必須承認，沒有一種在統計上真正嚴謹。更嚴謹的方法，"
+    },
+    {
+      "start": 1998.98,
+      "end": 2006.66,
+      "en": "would be to validate the findings on a test set that the Eigendecomposition was not exposed to, and",
+      "zh": "是在特徵分解沒有接觸過的測試集上驗證結果，"
+    },
+    {
+      "start": 2006.66,
+      "end": 2011.86,
+      "en": "you're going to have an opportunity to do that in the code challenge in the next video.",
+      "zh": "下一支影片的程式挑戰，你就有機會這樣做。"
+    },
+    {
+      "start": 2012.06,
+      "end": 2019.38,
+      "en": "And I can already tell you that it's going to work out really well in the sense that the cross-validation performance will be quite good.",
+      "zh": "我可以先告訴你，結果會很好，也就是交叉驗證的表現會相當不錯。"
+    }
+  ]
+}

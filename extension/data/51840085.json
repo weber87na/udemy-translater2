@@ -1,0 +1,1441 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51840085",
+  "title": "What, why, when, and how to layernorm",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "0095cbb285a7247eafbd26089dae82e3ca725f1808ca8f6669b5a63bd709a494",
+  "cues": [
+    {
+      "start": 2.44,
+      "end": 6.16,
+      "en": "If someone were to ask you what Layernorm means.",
+      "zh": "如果有人問你 LayerNorm 是什麼意思，"
+    },
+    {
+      "start": 6.76,
+      "end": 14.88,
+      "en": "Even if you've never heard of deep learning before, you would probably guess that it has something to do with normalizing a layer.",
+      "zh": "即使你從沒聽過深度學習，大概也會猜它和正規化某一層有關。"
+    },
+    {
+      "start": 15.44,
+      "end": 17.32,
+      "en": "And that is exactly what it is.",
+      "zh": "完全正確。"
+    },
+    {
+      "start": 17.52,
+      "end": 20.08,
+      "en": "Layernorm is actually very simple.",
+      "zh": "LayerNorm 其實很簡單。"
+    },
+    {
+      "start": 20.08,
+      "end": 25.64,
+      "en": "It's very easy to understand mathematically and very easy to implement practically.",
+      "zh": "數學上很好理解，實務上也很容易實作。"
+    },
+    {
+      "start": 26.4,
+      "end": 31.44,
+      "en": "Let me start by motivating why we need something like Layernorm.",
+      "zh": "先說明為什麼需要 LayerNorm 這樣的東西。"
+    },
+    {
+      "start": 31.92,
+      "end": 39.88,
+      "en": "So this graph shows the result of an experiment where I started with a matrix of completely random numbers,",
+      "zh": "這張圖顯示一個實驗的結果：我從完全隨機的矩陣開始，"
+    },
+    {
+      "start": 40.08,
+      "end": 46.28,
+      "en": "and then just kept multiplying that matrix by more and more random matrices of the same size.",
+      "zh": "不斷把它乘上更多相同大小的隨機矩陣。"
+    },
+    {
+      "start": 46.76,
+      "end": 50.72,
+      "en": "In other words, I just multiplied 20 random matrices in a row.",
+      "zh": "換句話說，我接連乘了 20 個隨機矩陣。"
+    },
+    {
+      "start": 51.48,
+      "end": 56.72,
+      "en": "What you see on the y axis is a property called the matrix norm.",
+      "zh": "y 軸顯示的性質叫做矩陣範數。"
+    },
+    {
+      "start": 57.24,
+      "end": 60.57,
+      "en": "If you are not familiar with linear algebra.",
+      "zh": "如果你不熟線性代數，"
+    },
+    {
+      "start": 60.61,
+      "end": 63.09,
+      "en": "Then you don't have to worry about the details.",
+      "zh": "不用擔心細節。"
+    },
+    {
+      "start": 63.21,
+      "end": 71.41,
+      "en": "Basically, the norm of a matrix is one number that captures the numerical scale of all the numbers in the matrix.",
+      "zh": "基本上，矩陣範數是一個數字，用來概括矩陣內所有數字的數值尺度。"
+    },
+    {
+      "start": 72.01,
+      "end": 75.28999999999999,
+      "en": "So here on the left the matrix norm.",
+      "zh": "左邊的矩陣範數，"
+    },
+    {
+      "start": 75.28999999999999,
+      "end": 81.41,
+      "en": "So basically like all of the numbers in this matrix just plummets down to zero.",
+      "zh": "也就是矩陣中整體數值的尺度，急速降到零。"
+    },
+    {
+      "start": 82.05,
+      "end": 86.73,
+      "en": "And on the other hand here on the right the matrix norm starts blowing up.",
+      "zh": "另一方面，右邊的矩陣範數開始暴增。"
+    },
+    {
+      "start": 86.89,
+      "end": 89.09,
+      "en": "In this case to 14,000.",
+      "zh": "在這個例子中到達 14,000。"
+    },
+    {
+      "start": 89.33,
+      "end": 89.97,
+      "en": "In this graph.",
+      "zh": "就是這張圖。"
+    },
+    {
+      "start": 89.97,
+      "end": 94.89,
+      "en": "But you can do other runs where this norm will go up to like ten to the power of ten.",
+      "zh": "但重新執行時，也可能看到範數增加到 10 的 10 次方。"
+    },
+    {
+      "start": 95.09,
+      "end": 98.69,
+      "en": "So basically it's blowing up to infinity more or less quickly.",
+      "zh": "基本上，它會以不同速度朝無限大增長。"
+    },
+    {
+      "start": 99.45,
+      "end": 102.05,
+      "en": "And what did I do to get these two extremes.",
+      "zh": "我做了什麼，才得到這兩種極端？"
+    },
+    {
+      "start": 102.33,
+      "end": 107.33,
+      "en": "All I did was add a scaling factor of 1.5.",
+      "zh": "我只是加了一個 1.5 的縮放係數。"
+    },
+    {
+      "start": 107.61,
+      "end": 110.25,
+      "en": "So here I divided by 1.5.",
+      "zh": "這邊除以 1.5。"
+    },
+    {
+      "start": 110.25,
+      "end": 112.97,
+      "en": "And here I multiplied by 1.5.",
+      "zh": "這邊則乘以 1.5。"
+    },
+    {
+      "start": 113.53,
+      "end": 118.62,
+      "en": "I will show you the code that produces this figure in a bit so you can explore it yourself.",
+      "zh": "稍後會展示產生這張圖的程式碼，你可以自己探索。"
+    },
+    {
+      "start": 118.78,
+      "end": 127.66,
+      "en": "But the point is this when you multiply matrices over and over and over again, it is very easy for",
+      "zh": "重點是，不斷相乘矩陣時，很容易讓"
+    },
+    {
+      "start": 127.66,
+      "end": 133.06,
+      "en": "those matrices the numbers in those matrices to go to extreme values.",
+      "zh": "矩陣裡的數字走向極端值。"
+    },
+    {
+      "start": 134.22,
+      "end": 141.94,
+      "en": "Now, when you have extreme numerical values inside a deep learning model, then basically everything goes to hell.",
+      "zh": "深度學習模型裡一旦出現極端數值，基本上就全亂了。"
+    },
+    {
+      "start": 142.18,
+      "end": 146.1,
+      "en": "The models can't learn, they can't generate any sensible outcomes.",
+      "zh": "模型無法學習，也無法產生合理的結果。"
+    },
+    {
+      "start": 146.14,
+      "end": 148.82,
+      "en": "They basically cannot calculate anything.",
+      "zh": "幾乎什麼都算不了。"
+    },
+    {
+      "start": 149.26,
+      "end": 157.62,
+      "en": "So numerical stability is a gigantic headache and also a source of errors and failures in deep learning.",
+      "zh": "因此數值穩定性是深度學習的一大難題，也是錯誤與失敗的來源。"
+    },
+    {
+      "start": 157.94,
+      "end": 168.78,
+      "en": "So deep learning models to be successful need to have careful normalizations to keep all of these numbers in a fairly close numerical range.",
+      "zh": "深度學習模型若要成功，就需要仔細做正規化，將這些數字維持在相對接近的數值範圍。"
+    },
+    {
+      "start": 169.3,
+      "end": 178.87,
+      "en": "In general, you want the numbers inside a deep learning model to be somewhere around zero, not too close to zero, but also not too far away from zero.",
+      "zh": "一般來說，希望模型內的數字落在零附近，既不要太接近零，也不要離零太遠。"
+    },
+    {
+      "start": 179.55,
+      "end": 181.39,
+      "en": "Okay, so here's the problem.",
+      "zh": "好，問題就在這裡。"
+    },
+    {
+      "start": 181.39,
+      "end": 186.87,
+      "en": "It is very easy for a very large set of numbers to become unstable.",
+      "zh": "大量數值很容易變得不穩定。"
+    },
+    {
+      "start": 187.59,
+      "end": 193.35,
+      "en": "Enter the layer normalization technique, which was introduced in 2016.",
+      "zh": "這時就輪到 2016 年提出的層正規化技術登場。"
+    },
+    {
+      "start": 193.39,
+      "end": 201.47,
+      "en": "As far as I can tell from the group of Jeff Hinton, whose name appears almost everywhere in developments of deep learning.",
+      "zh": "據我所知，這來自 Geoffrey Hinton 的團隊；在深度學習的發展中，幾乎到處都看得到他的名字。"
+    },
+    {
+      "start": 201.71,
+      "end": 208.51,
+      "en": "By the way, he is also currently a huge proponent of taking bigger measures to ensure AI safety.",
+      "zh": "順帶一提，他目前也大力倡議採取更積極的措施，確保 AI 安全。"
+    },
+    {
+      "start": 208.55,
+      "end": 211.35,
+      "en": "We'll talk more about that later in the course.",
+      "zh": "課程後面會再談這件事。"
+    },
+    {
+      "start": 211.82999999999998,
+      "end": 215.87,
+      "en": "Anyway, if you look through this paper, you'll see a lot of pretty intense math.",
+      "zh": "總之，翻閱這篇論文時，你會看到不少很複雜的數學。"
+    },
+    {
+      "start": 216.03,
+      "end": 220.82999999999998,
+      "en": "But Layernorm is actually quite simple, and it's basically just this.",
+      "zh": "但 LayerNorm 其實很簡單，基本上就是這樣。"
+    },
+    {
+      "start": 221.51,
+      "end": 227.79,
+      "en": "In fact, even this one equation makes layernorm look more complicated than it really is.",
+      "zh": "事實上，連這條方程式都讓 LayerNorm 看起來比實際更複雜。"
+    },
+    {
+      "start": 228.15,
+      "end": 230.15,
+      "en": "So let's go through this step by step.",
+      "zh": "所以我們一步一步來。"
+    },
+    {
+      "start": 230.99,
+      "end": 238.43,
+      "en": "Let's say that X is our data that we want to normalize like a vector of activation values.",
+      "zh": "假設 X 是要正規化的資料，例如一個活化值向量。"
+    },
+    {
+      "start": 238.87,
+      "end": 247.91,
+      "en": "So this fraction here says that we subtract the mean and then divide by the standard deviation of the data.",
+      "zh": "這個分式表示：先減去資料平均數，再除以標準差。"
+    },
+    {
+      "start": 248.31,
+      "end": 249.75,
+      "en": "And what is that fraction.",
+      "zh": "這個分式是什麼？"
+    },
+    {
+      "start": 249.75,
+      "end": 250.99,
+      "en": "What is that component.",
+      "zh": "這一部分是什麼？"
+    },
+    {
+      "start": 251.11,
+      "end": 253.95,
+      "en": "Well this is just z standardization.",
+      "zh": "其實就是 z 標準化。"
+    },
+    {
+      "start": 253.95,
+      "end": 261.23,
+      "en": "This just standardizes the data so that it has a mean of zero and a standard deviation of one.",
+      "zh": "它把資料標準化成平均數為零、標準差為一。"
+    },
+    {
+      "start": 261.59,
+      "end": 264.35,
+      "en": "So we can even simplify this equation.",
+      "zh": "因此還可以把方程式簡化。"
+    },
+    {
+      "start": 264.59,
+      "end": 267.39,
+      "en": "So now we have this.",
+      "zh": "就變成這樣。"
+    },
+    {
+      "start": 267.39,
+      "end": 272.03,
+      "en": "So z is just the z transformed or z standardized data.",
+      "zh": "z 就是經過 z 轉換，也就是 z 標準化的資料。"
+    },
+    {
+      "start": 272.43,
+      "end": 274.90999999999997,
+      "en": "And then we have gamma and beta.",
+      "zh": "接著有 gamma 和 beta。"
+    },
+    {
+      "start": 274.90999999999997,
+      "end": 279.83,
+      "en": "So gamma is a parameter that multiplies the standardized data.",
+      "zh": "gamma 是乘在標準化資料上的參數。"
+    },
+    {
+      "start": 280.11,
+      "end": 282.31,
+      "en": "And beta is then added on.",
+      "zh": "beta 則是之後加上去的量。"
+    },
+    {
+      "start": 282.55,
+      "end": 283.75,
+      "en": "And what does that mean.",
+      "zh": "這代表什麼？"
+    },
+    {
+      "start": 284.23,
+      "end": 292.63,
+      "en": "That means that the transformed data will have a mean of beta and a standard deviation of gamma.",
+      "zh": "代表轉換後資料的平均數為 beta，標準差為 gamma。"
+    },
+    {
+      "start": 293.15,
+      "end": 301.48,
+      "en": "So basically layer Norm just allows us to specify the average and the standard deviation of a data set.",
+      "zh": "所以基本上，LayerNorm 讓我們指定資料的平均數與標準差。"
+    },
+    {
+      "start": 302.04,
+      "end": 306.12,
+      "en": "And the way that works is by first standardizing the data.",
+      "zh": "做法是先把資料標準化。"
+    },
+    {
+      "start": 306.24,
+      "end": 310,
+      "en": "So it has a mean of zero and a standard deviation of one.",
+      "zh": "讓平均數為零、標準差為一。"
+    },
+    {
+      "start": 310.12,
+      "end": 312.68,
+      "en": "And then you multiply these parameters.",
+      "zh": "然後再乘上這些參數。"
+    },
+    {
+      "start": 313.12,
+      "end": 321.72,
+      "en": "Now because these data that we applied normalization to are often matrices or higher dimensional tensors,",
+      "zh": "由於套用正規化的資料，通常是矩陣或更高維的張量，"
+    },
+    {
+      "start": 322.04,
+      "end": 328.28,
+      "en": "we can specify with layer norm which dimensions the normalization gets applied to.",
+      "zh": "因此可以透過 LayerNorm 指定正規化要套用在哪些維度。"
+    },
+    {
+      "start": 328.68,
+      "end": 331.4,
+      "en": "I will show you that when we get to code.",
+      "zh": "切到程式碼時會展示。"
+    },
+    {
+      "start": 332.52,
+      "end": 340.68,
+      "en": "So what we're going to do in Python in a moment is create a random matrix and a layer norm instance.",
+      "zh": "稍後在 Python 中，我們會建立隨機矩陣，以及一個 LayerNorm 實例。"
+    },
+    {
+      "start": 341.08,
+      "end": 346.68,
+      "en": "Then we will apply the layer norm to the matrix and we will see what impact it has.",
+      "zh": "然後把 LayerNorm 套用到矩陣，看看有什麼影響。"
+    },
+    {
+      "start": 347.32,
+      "end": 358.49,
+      "en": "Here is an example of a result that we will get where the original matrix values are on the x axis and the result of layernorm is on the y axis.",
+      "zh": "這是將會得到的一個結果範例：x 軸是原矩陣的數值，y 軸是 LayerNorm 的結果。"
+    },
+    {
+      "start": 359.01,
+      "end": 364.01,
+      "en": "Now in this case, the transformation changed some of the relative values.",
+      "zh": "在這個例子裡，轉換改變了一些值之間的相對關係。"
+    },
+    {
+      "start": 364.25,
+      "end": 373.93,
+      "en": "I will discuss why that happened, but basically it's because in this case I applied layernorm to the columns and not to the rows of this matrix.",
+      "zh": "稍後會解釋原因；基本上，是因為這次沿矩陣的欄方向做 LayerNorm，而不是沿列方向。"
+    },
+    {
+      "start": 374.21,
+      "end": 379.01,
+      "en": "And I'll also show you that we can apply layernorm to the entire matrix.",
+      "zh": "我也會展示如何對整個矩陣做 LayerNorm。"
+    },
+    {
+      "start": 379.01,
+      "end": 381.93,
+      "en": "And then the resulting plot will look a little bit different.",
+      "zh": "這時得到的圖會有點不同。"
+    },
+    {
+      "start": 382.73,
+      "end": 388.81,
+      "en": "We will also calculate the means and standard deviations before and after applying Layernorm.",
+      "zh": "我們也會計算套用 LayerNorm 前後的平均數與標準差。"
+    },
+    {
+      "start": 389.01,
+      "end": 397.45,
+      "en": "And I'll show you how to manually specify the means to get whatever statistical characteristics we want from the data.",
+      "zh": "也會展示如何手動指定平均數，讓資料具備我們想要的統計特性。"
+    },
+    {
+      "start": 398.09000000000003,
+      "end": 399.49,
+      "en": "Import some modules.",
+      "zh": "匯入幾個模組。"
+    },
+    {
+      "start": 399.49,
+      "end": 404.81,
+      "en": "The code here is just creating the figure that I showed in the slides.",
+      "zh": "這裡的程式碼，就是產生投影片上那張圖。"
+    },
+    {
+      "start": 404.89,
+      "end": 409.29,
+      "en": "So here we have the matrix norm plummeting down to zero.",
+      "zh": "這裡的矩陣範數急速降到零。"
+    },
+    {
+      "start": 409.29,
+      "end": 411.86,
+      "en": "And here we have it blowing up to.",
+      "zh": "這裡則持續暴增。"
+    },
+    {
+      "start": 411.9,
+      "end": 416.18,
+      "en": "Eventually this is going to grow up to plus infinity at some point.",
+      "zh": "最終某個時候會增加到正無限大。"
+    },
+    {
+      "start": 416.46,
+      "end": 416.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 416.74,
+      "end": 417.62,
+      "en": "And how does this work?",
+      "zh": "這是怎麼做的？"
+    },
+    {
+      "start": 417.62,
+      "end": 420.9,
+      "en": "So I start by defining a scale factor.",
+      "zh": "首先定義縮放係數。"
+    },
+    {
+      "start": 420.9,
+      "end": 428.38,
+      "en": "And let's actually set that to two for now and a number of iterations to perform the multiplication.",
+      "zh": "現在先設成 2，再設定進行乘法的迭代次數。"
+    },
+    {
+      "start": 428.38,
+      "end": 430.86,
+      "en": "Then I initialize these two random matrices.",
+      "zh": "然後初始化這兩個隨機矩陣。"
+    },
+    {
+      "start": 430.86,
+      "end": 436.94,
+      "en": "I call this one small and this one big because I'm going to make this one shrink and this one grow.",
+      "zh": "這個叫 small，另一個叫 big，因為我會讓前者縮小、後者增大。"
+    },
+    {
+      "start": 437.06,
+      "end": 443.18,
+      "en": "But you can see that they start off being the same scale, so they start off just being normally distributed",
+      "zh": "但可以看到，它們起初的尺度相同，都是常態分布，"
+    },
+    {
+      "start": 443.18,
+      "end": 452.9,
+      "en": "Gaussian distributed random numbers 30 by 30, which is not a very large matrix for certainly not for language modeling.",
+      "zh": "也就是高斯分布的隨機數，大小為 30 × 30。這不算很大的矩陣，對語言模型來說尤其如此。"
+    },
+    {
+      "start": 452.9,
+      "end": 458.98,
+      "en": "So you can also rerun this code using, you know, whatever larger size matrices you want.",
+      "zh": "你也可以重新執行程式，改用任何更大的矩陣。"
+    },
+    {
+      "start": 459.42,
+      "end": 459.82,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 460.26,
+      "end": 460.65999999999997,
+      "en": "Let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 460.65999999999997,
+      "end": 465.62,
+      "en": "So here is the experiment I'm looping over the number of multiplications.",
+      "zh": "這就是實驗：我用迴圈執行指定次數的乘法。"
+    },
+    {
+      "start": 465.62,
+      "end": 474.51,
+      "en": "And I set this matrix to be equal to itself Times some other random matrix, literally just exactly the same.",
+      "zh": "讓矩陣等於自身乘上另一個同樣形式的隨機矩陣。"
+    },
+    {
+      "start": 474.51,
+      "end": 477.27,
+      "en": "Just multiplying random numbers by random numbers.",
+      "zh": "就只是隨機數乘以隨機數。"
+    },
+    {
+      "start": 477.87,
+      "end": 487.59,
+      "en": "The expected mean of this matrix, these random numbers is zero, and the expected standard deviation is one.",
+      "zh": "這個隨機矩陣的預期平均數為零，預期標準差為一。"
+    },
+    {
+      "start": 488.43,
+      "end": 497.47,
+      "en": "So then what I do is multiply this by the scaling factor, and it's either one divided by the scale factor or the scale factor itself.",
+      "zh": "接著乘上縮放係數，分別使用縮放係數的倒數，以及縮放係數本身。"
+    },
+    {
+      "start": 497.63,
+      "end": 502.95,
+      "en": "So notice I'm not actually shifting these matrices right I'm not adding anything to them.",
+      "zh": "注意，我並沒有平移這些矩陣，沒有加上任何值。"
+    },
+    {
+      "start": 502.95,
+      "end": 504.59,
+      "en": "I'm just making them bigger.",
+      "zh": "只是放大數值。"
+    },
+    {
+      "start": 504.63,
+      "end": 508.31,
+      "en": "So I'm just increasing the variability of the numbers.",
+      "zh": "也就是增加數字的變異程度。"
+    },
+    {
+      "start": 508.31,
+      "end": 512.51,
+      "en": "And then here I calculate the uh the norms and then I'll plotting.",
+      "zh": "然後計算範數，再畫圖。"
+    },
+    {
+      "start": 512.55,
+      "end": 519.91,
+      "en": "So now when I set that scale factor to two, you can see, you know, the The matrix norm is going up to ten to the six.",
+      "zh": "現在把縮放係數設成 2，可以看到矩陣範數增加到 10 的 6 次方。"
+    },
+    {
+      "start": 519.91,
+      "end": 523.51,
+      "en": "So this is these numbers are just getting incredibly huge.",
+      "zh": "這些數字變得非常大。"
+    },
+    {
+      "start": 523.71,
+      "end": 529.12,
+      "en": "So the numerical values of these matrices we can see a small.",
+      "zh": "可以查看這些矩陣的數值，例如 aSmall。"
+    },
+    {
+      "start": 530.04,
+      "end": 531.72,
+      "en": "Of course, small is spelled with an O.",
+      "zh": "當然，這裡 small 的拼字用了 o。"
+    },
+    {
+      "start": 531.88,
+      "end": 536.36,
+      "en": "You can see these numbers are ten to the minus, 11, 12, and so on.",
+      "zh": "可以看到，這些數字是 10 的負 11 次方、負 12 次方等等。"
+    },
+    {
+      "start": 536.64,
+      "end": 545.6,
+      "en": "And a big these numbers are going to be bigger, not necessarily so huge, but the matrix norm is just really exploding okay.",
+      "zh": "aBig 裡的數字則更大；個別數字未必大得誇張，但整體矩陣範數確實在爆增。"
+    },
+    {
+      "start": 545.64,
+      "end": 547.96,
+      "en": "So you can play around with that if you like.",
+      "zh": "有興趣可以自己玩玩看。"
+    },
+    {
+      "start": 548.08,
+      "end": 555.24,
+      "en": "What I want to do now is show you the main part of this code demo, which is using Layernorm.",
+      "zh": "現在要展示程式示範的重點，也就是使用 LayerNorm。"
+    },
+    {
+      "start": 555.56,
+      "end": 557.76,
+      "en": "So up here I'm creating a matrix.",
+      "zh": "上面建立一個矩陣。"
+    },
+    {
+      "start": 557.76,
+      "end": 560.88,
+      "en": "It's a small matrix just three by ten.",
+      "zh": "它很小，只有 3 × 10。"
+    },
+    {
+      "start": 561.04,
+      "end": 568.48,
+      "en": "But the point of this having a small matrix is so that we can keep printing it out and literally just looking at the numbers.",
+      "zh": "用小矩陣，是為了方便反覆印出來，直接查看裡面的數字。"
+    },
+    {
+      "start": 568.96,
+      "end": 571.96,
+      "en": "So these are all random floating point numbers here.",
+      "zh": "這裡全都是隨機浮點數。"
+    },
+    {
+      "start": 571.96,
+      "end": 576.24,
+      "en": "I'm rounding it just to make it convenient to look at okay.",
+      "zh": "我把數值四捨五入，只是為了方便閱讀。"
+    },
+    {
+      "start": 576.28,
+      "end": 580.88,
+      "en": "And then here I'm calling the class KNN Layernorm.",
+      "zh": "接著呼叫 nn.LayerNorm 類別。"
+    },
+    {
+      "start": 581.2,
+      "end": 588.88,
+      "en": "And here I'm inputting N out which corresponds to the number of columns in this matrix here.",
+      "zh": "輸入 nOut，對應這個矩陣的欄數。"
+    },
+    {
+      "start": 588.88,
+      "end": 590.92,
+      "en": "I will get back to this later on.",
+      "zh": "稍後會再回來說明。"
+    },
+    {
+      "start": 591.16,
+      "end": 596.28,
+      "en": "Okay, so that means this is the only parameter that we need to input into Layernorm.",
+      "zh": "也就是說，這是我們唯一需要傳給 LayerNorm 的參數。"
+    },
+    {
+      "start": 596.28,
+      "end": 604.6,
+      "en": "We're just telling the Layernorm class to create this instance of what size we want for the parameters.",
+      "zh": "我們只是告訴 LayerNorm 類別，要建立的實例，其參數大小應是多少。"
+    },
+    {
+      "start": 604.68,
+      "end": 607.32,
+      "en": "So that will become more clear in a moment.",
+      "zh": "稍後會更清楚。"
+    },
+    {
+      "start": 608.24,
+      "end": 608.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 608.92,
+      "end": 610.72,
+      "en": "So the size of layernorm is ten.",
+      "zh": "LayerNorm 的大小是 10。"
+    },
+    {
+      "start": 610.76,
+      "end": 614.12,
+      "en": "Again that corresponds to the number of columns in this matrix.",
+      "zh": "再次強調，這對應矩陣的欄數。"
+    },
+    {
+      "start": 614.56,
+      "end": 617.12,
+      "en": "And here we have a variable EPs.",
+      "zh": "這裡還有一個變數 eps。"
+    },
+    {
+      "start": 617.64,
+      "end": 619.44,
+      "en": "EPs is just a.",
+      "zh": "eps 是一個，"
+    },
+    {
+      "start": 619.44,
+      "end": 620.72,
+      "en": "It stands for epsilon.",
+      "zh": "也就是 epsilon 的縮寫。"
+    },
+    {
+      "start": 620.72,
+      "end": 629.16,
+      "en": "It's just a small number that is added into the denominator when calculating the standard deviation to standardize the data.",
+      "zh": "它是在計算標準差、標準化資料時，加到分母裡的一個小數。"
+    },
+    {
+      "start": 629.32,
+      "end": 632.96,
+      "en": "And that just prevents numerical instability.",
+      "zh": "這能避免數值不穩定。"
+    },
+    {
+      "start": 632.96,
+      "end": 640.72,
+      "en": "So it's just a little fudge factor basically so that we're not dividing by zero or a tiny number that's very very close to zero.",
+      "zh": "基本上就是一個小小的調整量，避免除以零，或極度接近零的數字。"
+    },
+    {
+      "start": 641.24,
+      "end": 641.56,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 641.6,
+      "end": 645.12,
+      "en": "So now we just apply layernorm to the matrix.",
+      "zh": "現在直接把 LayerNorm 套用到矩陣。"
+    },
+    {
+      "start": 645.12,
+      "end": 648.97,
+      "en": "So this variable here, that is the instance of this class.",
+      "zh": "這個變數就是該類別的實例。"
+    },
+    {
+      "start": 648.97,
+      "end": 652.33,
+      "en": "And I input the matrix and I'm calling that norm A.",
+      "zh": "我傳入矩陣，把結果命名為 normA。"
+    },
+    {
+      "start": 652.81,
+      "end": 654.85,
+      "en": "So now we can see these are.",
+      "zh": "現在可以看到。"
+    },
+    {
+      "start": 655.41,
+      "end": 656.97,
+      "en": "So this is the original matrix.",
+      "zh": "這是原本的矩陣。"
+    },
+    {
+      "start": 656.97,
+      "end": 659.05,
+      "en": "And this is the layered norm matrix.",
+      "zh": "這是經過 LayerNorm 的矩陣。"
+    },
+    {
+      "start": 659.05,
+      "end": 660.77,
+      "en": "So you see the numbers are different.",
+      "zh": "數字確實不同。"
+    },
+    {
+      "start": 660.81,
+      "end": 663.73,
+      "en": "It's hard to make much sense out of this.",
+      "zh": "單看這些數字，很難看出太多意義。"
+    },
+    {
+      "start": 663.73,
+      "end": 667.49,
+      "en": "But just to show you that it actually did something okay.",
+      "zh": "只是先確認它確實做了某種處理。"
+    },
+    {
+      "start": 667.53,
+      "end": 668.53,
+      "en": "But what did it do.",
+      "zh": "但到底做了什麼？"
+    },
+    {
+      "start": 668.53,
+      "end": 670.73,
+      "en": "How did it affect the matrix?",
+      "zh": "它如何影響矩陣？"
+    },
+    {
+      "start": 670.93,
+      "end": 676.29,
+      "en": "What I do here is basically just vectorize these two matrices.",
+      "zh": "這裡基本上就是把這兩個矩陣攤平成向量。"
+    },
+    {
+      "start": 676.29,
+      "end": 681.41,
+      "en": "So they are a they start off as being tensors.",
+      "zh": "它們原本是張量，"
+    },
+    {
+      "start": 681.41,
+      "end": 682.49,
+      "en": "So matrices.",
+      "zh": "也就是矩陣。"
+    },
+    {
+      "start": 682.73,
+      "end": 692.33,
+      "en": "And yeah here I am using the detach method which decouples the numerical values in the matrix in the",
+      "zh": "這裡使用 detach 方法，把矩陣，也就是"
+    },
+    {
+      "start": 692.33,
+      "end": 697.93,
+      "en": "PyTorch tensor from the computational graph that is embedded in okay.",
+      "zh": "PyTorch 張量中的數值，從原本所屬的計算圖中分離。"
+    },
+    {
+      "start": 697.97,
+      "end": 702.05,
+      "en": "And then here I'm calculating the correlation coefficient between them.",
+      "zh": "然後計算它們之間的相關係數。"
+    },
+    {
+      "start": 702.41,
+      "end": 713.02,
+      "en": "Uh, that's just because personally I find the PyTorch correlation coefficient function to be just really obtuse and annoying and difficult to use.",
+      "zh": "這只是因為我個人覺得，PyTorch 的相關係數函數很難懂、很煩，也不好用。"
+    },
+    {
+      "start": 713.06,
+      "end": 724.1,
+      "en": "I actually find it easier to write out the entire formula for a Pearson correlation coefficient than to use the torch coef, but that is my personal preference.",
+      "zh": "我甚至覺得直接寫出整條皮爾森相關係數公式，都比使用 torch.corrcoef 容易，但這只是個人偏好。"
+    },
+    {
+      "start": 724.1,
+      "end": 724.86,
+      "en": "But anyway.",
+      "zh": "總之。"
+    },
+    {
+      "start": 724.9,
+      "end": 729.82,
+      "en": "Okay, so here we see the original data and the layernorm data.",
+      "zh": "好，這裡可以看到原始資料，以及 LayerNorm 後的資料。"
+    },
+    {
+      "start": 729.98,
+      "end": 731.94,
+      "en": "So this is a little puzzling right?",
+      "zh": "這就有點令人困惑，對吧？"
+    },
+    {
+      "start": 731.98,
+      "end": 734.66,
+      "en": "So it did do something there.",
+      "zh": "它確實做了某種處理。"
+    },
+    {
+      "start": 734.7,
+      "end": 737.14,
+      "en": "You know the correlation is not one.",
+      "zh": "相關係數不是 1。"
+    },
+    {
+      "start": 737.46,
+      "end": 741.22,
+      "en": "The values do not lie on a perfect diagonal.",
+      "zh": "這些值沒有落在一條完美的對角線上。"
+    },
+    {
+      "start": 741.5,
+      "end": 747.02,
+      "en": "So it did change some values and it didn't change or change other values in different ways.",
+      "zh": "所以有些值被改變了，而且不同值的改變方式也不同。"
+    },
+    {
+      "start": 747.26,
+      "end": 748.7,
+      "en": "And why did that happen.",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 749.02,
+      "end": 749.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 749.34,
+      "end": 751.7,
+      "en": "So that is what we are going to explore here.",
+      "zh": "接下來就來探索。"
+    },
+    {
+      "start": 751.94,
+      "end": 758.82,
+      "en": "Essentially all I'm doing here is calculating the mean of the original matrix, the mean of the normed",
+      "zh": "這裡基本上只是在計算原始矩陣的平均數，以及正規化後"
+    },
+    {
+      "start": 758.82,
+      "end": 764.91,
+      "en": "matrix, and then the yeah, with layernorm applied and then the standard deviation.",
+      "zh": "矩陣的平均數，也就是套用 LayerNorm 後的平均數，還有標準差。"
+    },
+    {
+      "start": 765.59,
+      "end": 770.15,
+      "en": "So also you can see with this parameter here axis equals one.",
+      "zh": "也可以看到，這裡的參數是 axis=1。"
+    },
+    {
+      "start": 770.15,
+      "end": 773.99,
+      "en": "So this is calculating the mean over the columns.",
+      "zh": "所以是在欄方向上計算平均數。"
+    },
+    {
+      "start": 773.99,
+      "end": 778.55,
+      "en": "And down here I'm calculating the mean and the standard deviation over the rows.",
+      "zh": "下面則是在列方向上計算平均數與標準差。"
+    },
+    {
+      "start": 779.03,
+      "end": 780.43,
+      "en": "So what do we see here.",
+      "zh": "看到了什麼？"
+    },
+    {
+      "start": 780.91,
+      "end": 786.75,
+      "en": "So the mean from the original data is around 2 or 3.",
+      "zh": "原始資料的平均數大約是 2 或 3。"
+    },
+    {
+      "start": 787.15,
+      "end": 790.31,
+      "en": "And after applying layernorm it's very very small.",
+      "zh": "套用 LayerNorm 後就非常小。"
+    },
+    {
+      "start": 790.31,
+      "end": 791.71,
+      "en": "It's essentially zero.",
+      "zh": "基本上就是零。"
+    },
+    {
+      "start": 792.15,
+      "end": 799.51,
+      "en": "These are technically non-zero values that just comes from estimation errors and fairly limited data set.",
+      "zh": "嚴格來說仍是非零值，這只是估計誤差，以及資料量相當有限所造成。"
+    },
+    {
+      "start": 799.55,
+      "end": 799.79,
+      "en": "Right.",
+      "zh": "對吧。"
+    },
+    {
+      "start": 799.91,
+      "end": 802.23,
+      "en": "We only have ten numbers in here okay.",
+      "zh": "這裡只有十個數字。"
+    },
+    {
+      "start": 802.27,
+      "end": 804.71,
+      "en": "And then here are the original standard deviations.",
+      "zh": "接著是原本的標準差。"
+    },
+    {
+      "start": 804.71,
+      "end": 808.19,
+      "en": "And you see the standard deviations here are one.",
+      "zh": "可以看到，這裡的標準差是 1。"
+    },
+    {
+      "start": 808.19,
+      "end": 810.39,
+      "en": "In theory they should be exactly one.",
+      "zh": "理論上應該恰好是 1。"
+    },
+    {
+      "start": 810.39,
+      "end": 812.51,
+      "en": "In theory these should be exactly zero.",
+      "zh": "而這些平均數，理論上應該恰好是零。"
+    },
+    {
+      "start": 812.75,
+      "end": 814.99,
+      "en": "Again these are small sample sizes.",
+      "zh": "同樣地，樣本數很小。"
+    },
+    {
+      "start": 814.99,
+      "end": 817.03,
+      "en": "But it's pretty close okay.",
+      "zh": "不過已經非常接近。"
+    },
+    {
+      "start": 817.07,
+      "end": 818.03,
+      "en": "On the other hand.",
+      "zh": "另一方面，"
+    },
+    {
+      "start": 818.03,
+      "end": 824.44,
+      "en": "So yeah so basically Layernorm standardized the matrix across the columns.",
+      "zh": "也就是說，LayerNorm 基本上是沿欄方向把矩陣標準化。"
+    },
+    {
+      "start": 824.44,
+      "end": 832.44,
+      "en": "But when we look at the the means across the rows, then we do not see any normalization.",
+      "zh": "但如果看沿列方向算出的平均數，就看不到這種正規化。"
+    },
+    {
+      "start": 832.44,
+      "end": 836.12,
+      "en": "So these are non-zero and these are not one.",
+      "zh": "所以這些不是零，這些也不是 1。"
+    },
+    {
+      "start": 836.72,
+      "end": 843.84,
+      "en": "Now we can change this by changing the parameters that we inputted when we created the layer norm instance.",
+      "zh": "我們可以改變建立 LayerNorm 實例時傳入的參數，來改變這件事。"
+    },
+    {
+      "start": 844.08,
+      "end": 850.96,
+      "en": "I will get back to that in a moment, but first I want to show you how to access these parameters.",
+      "zh": "稍後再回來，但先展示如何存取這些參數。"
+    },
+    {
+      "start": 850.96,
+      "end": 857.08,
+      "en": "So in the slides I mentioned that there is a parameter called gamma and a parameter called beta.",
+      "zh": "投影片上提過，有一個參數叫 gamma，另一個叫 beta。"
+    },
+    {
+      "start": 857.28,
+      "end": 863.4,
+      "en": "Wouldn't it be great if there was something like layernorm gamma and layernorm beta?",
+      "zh": "如果能直接用 layernorm.gamma、layernorm.beta，豈不是很好？"
+    },
+    {
+      "start": 863.6,
+      "end": 865.6,
+      "en": "So unfortunately there isn't.",
+      "zh": "可惜不是這樣。"
+    },
+    {
+      "start": 865.64,
+      "end": 870.8,
+      "en": "They are called dot weight and dot bias, but we can still access them directly.",
+      "zh": "它們叫做 .weight 和 .bias，但仍能直接存取。"
+    },
+    {
+      "start": 871.16,
+      "end": 879.32,
+      "en": "And here we see yeah that the gamma parameter which is doing the stretching that has all values of one.",
+      "zh": "這裡可以看到，負責伸縮的 gamma 參數，值全部都是 1。"
+    },
+    {
+      "start": 879.32,
+      "end": 881.73,
+      "en": "So there's ten ones here.",
+      "zh": "總共有十個 1。"
+    },
+    {
+      "start": 881.73,
+      "end": 884.05,
+      "en": "And for beta that's the shift parameter.",
+      "zh": "beta 則是平移參數。"
+    },
+    {
+      "start": 884.05,
+      "end": 888.17,
+      "en": "That's the average of the post normalized data.",
+      "zh": "也就是正規化後資料的平均數。"
+    },
+    {
+      "start": 888.17,
+      "end": 890.77,
+      "en": "And those values are all zero.",
+      "zh": "這些值全都是零。"
+    },
+    {
+      "start": 890.81,
+      "end": 891.97,
+      "en": "That's what you see here.",
+      "zh": "就是這裡看到的結果。"
+    },
+    {
+      "start": 892.09,
+      "end": 899.89,
+      "en": "I would also like to point out that these have another parameter called requiresgrad equals true.",
+      "zh": "另外想指出，這裡還有 requires_grad=True。"
+    },
+    {
+      "start": 900.89,
+      "end": 910.29,
+      "en": "And that means that these are learnable parameters these weight and bias matrices, these vectors, these tensors, they are learnable.",
+      "zh": "這代表它們是可學習的參數；這些權重與偏置矩陣、向量或張量，都是可以學習的。"
+    },
+    {
+      "start": 910.29,
+      "end": 912.09,
+      "en": "They are trainable by the model.",
+      "zh": "模型可以訓練它們。"
+    },
+    {
+      "start": 912.09,
+      "end": 921.53,
+      "en": "So if you have a layer norm instance in your deep learning model, then as you train the model you apply",
+      "zh": "所以深度學習模型內若有 LayerNorm 實例，訓練模型時就會做"
+    },
+    {
+      "start": 921.57,
+      "end": 924.25,
+      "en": "gradient descent, you do backprop and so on.",
+      "zh": "梯度下降、反向傳播等等。"
+    },
+    {
+      "start": 924.61,
+      "end": 935.05,
+      "en": "These numbers are going to receive gradient information and they will change in order to optimize performance on the task like token prediction for example.",
+      "zh": "這些數值會收到梯度資訊，並隨之改變，以最佳化任務表現，例如詞元預測。"
+    },
+    {
+      "start": 935.65,
+      "end": 936.01,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 936.05,
+      "end": 941.69,
+      "en": "So that said what I'm going to do now is just manually change these values.",
+      "zh": "接下來我會手動改變這些值。"
+    },
+    {
+      "start": 941.81,
+      "end": 942.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 942.21,
+      "end": 945.89,
+      "en": "So for example I set the weight to be three.",
+      "zh": "例如，把 weight 設成 3。"
+    },
+    {
+      "start": 946.17,
+      "end": 953.93,
+      "en": "So instead of the weights being one, remember this corresponds to the gamma parameter or the stretching the standard deviation.",
+      "zh": "原本權重是 1；記得，這對應 gamma，也就是伸縮、標準差的參數。"
+    },
+    {
+      "start": 954.13,
+      "end": 957.93,
+      "en": "Now I'm specifying that the standard deviation should be three.",
+      "zh": "現在指定標準差應為 3。"
+    },
+    {
+      "start": 958.21,
+      "end": 963.17,
+      "en": "Literally just replaced a dot weight with a dot parameter.",
+      "zh": "直接用 nn.Parameter 建立參數，替換 .weight。"
+    },
+    {
+      "start": 963.17,
+      "end": 967.09,
+      "en": "And why do I do dot parameter instead of this?",
+      "zh": "為什麼要用 nn.Parameter，而不是直接這樣寫？"
+    },
+    {
+      "start": 968.53,
+      "end": 970.85,
+      "en": "Technically you cannot do that.",
+      "zh": "嚴格來說，不能直接那樣做。"
+    },
+    {
+      "start": 970.85,
+      "end": 973.25,
+      "en": "There are ways to like hack this basically.",
+      "zh": "當然，可以用一些變通方式。"
+    },
+    {
+      "start": 973.25,
+      "end": 977.65,
+      "en": "But the problem here is that this is just a bunch of numbers.",
+      "zh": "但問題在於，這只是一些數字。"
+    },
+    {
+      "start": 977.85,
+      "end": 986.29,
+      "en": "But what PyTorch wants inside this instance is an object, a parameter object that it can associate",
+      "zh": "而 PyTorch 希望這個實例內存放的是一個物件，也就是參數物件，好讓它能關聯"
+    },
+    {
+      "start": 986.53,
+      "end": 991.05,
+      "en": "a gradient with, and it can put it into a computational graph.",
+      "zh": "梯度，並放進計算圖。"
+    },
+    {
+      "start": 991.21,
+      "end": 1001.3,
+      "en": "And you need the dot parameter in order to do that to associate this with the gradient so you can embed it inside a larger model.",
+      "zh": "所以需要用 nn.Parameter，才能和梯度建立關聯，並嵌入更大的模型。"
+    },
+    {
+      "start": 1001.78,
+      "end": 1002.26,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1002.58,
+      "end": 1006.38,
+      "en": "So now what I'm doing is applying layer norm again.",
+      "zh": "現在再次套用 LayerNorm。"
+    },
+    {
+      "start": 1006.38,
+      "end": 1009.14,
+      "en": "Now I call this variable norm a new.",
+      "zh": "這次把變數命名為 normAnew。"
+    },
+    {
+      "start": 1009.5,
+      "end": 1017.7,
+      "en": "And basically what you see here is that now the uh the means are five and the standard deviations are not exactly three.",
+      "zh": "基本上可以看到，現在平均數是 5，而標準差並不恰好等於 3。"
+    },
+    {
+      "start": 1017.7,
+      "end": 1023.78,
+      "en": "But again, you know, as close as we can reasonably expect given how small this matrix is.",
+      "zh": "但考慮到這個矩陣這麼小，已經接近我們合理預期的程度。"
+    },
+    {
+      "start": 1024.3,
+      "end": 1024.62,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1024.66,
+      "end": 1027.58,
+      "en": "And five and three are the values that I specified here.",
+      "zh": "5 和 3，就是這裡指定的值。"
+    },
+    {
+      "start": 1027.98,
+      "end": 1033.5,
+      "en": "The last thing I want to do in this code demo is get back to this issue of dimensions.",
+      "zh": "程式示範最後，要再回到維度這個問題。"
+    },
+    {
+      "start": 1033.62,
+      "end": 1034.1,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1034.3,
+      "end": 1039.38,
+      "en": "So layer norm here was applied to the columns and not to the rows.",
+      "zh": "剛才 LayerNorm 是沿欄方向套用，而不是沿列方向。"
+    },
+    {
+      "start": 1039.58,
+      "end": 1046.78,
+      "en": "And that is why we do not see a perfect alignment between the original data and the normed data.",
+      "zh": "這就是為什麼原始資料與正規化後資料，沒有形成完美的直線關係。"
+    },
+    {
+      "start": 1047.1,
+      "end": 1050.14,
+      "en": "But we can uh where is this.",
+      "zh": "但我們可以，來找一下。"
+    },
+    {
+      "start": 1050.14,
+      "end": 1053.94,
+      "en": "So we can specify the full size of the matrix.",
+      "zh": "我們可以指定整個矩陣的大小。"
+    },
+    {
+      "start": 1053.94,
+      "end": 1057.15,
+      "en": "So I can say this matrix is a dot shape.",
+      "zh": "例如直接使用這個矩陣的 a.shape。"
+    },
+    {
+      "start": 1057.87,
+      "end": 1059.55,
+      "en": "And now you see this change.",
+      "zh": "現在可以看到變化。"
+    },
+    {
+      "start": 1059.55,
+      "end": 1061.87,
+      "en": "So now this is layer norm three comma ten.",
+      "zh": "這裡變成 LayerNorm(3, 10) 對應的形狀。"
+    },
+    {
+      "start": 1062.19,
+      "end": 1064.39,
+      "en": "And that's the full size of the matrix.",
+      "zh": "也就是矩陣的完整大小。"
+    },
+    {
+      "start": 1065.63,
+      "end": 1068.27,
+      "en": "So then I do this again and I do this again.",
+      "zh": "然後再執行這裡，還有這裡。"
+    },
+    {
+      "start": 1068.27,
+      "end": 1071.11,
+      "en": "And now we see a unity correlation.",
+      "zh": "現在相關係數就是 1。"
+    },
+    {
+      "start": 1071.27,
+      "end": 1073.95,
+      "en": "So the data values have still changed right.",
+      "zh": "資料的數值仍然有改變。"
+    },
+    {
+      "start": 1073.95,
+      "end": 1077.55,
+      "en": "You can see the original data go up to eight.",
+      "zh": "原始資料可以到 8。"
+    },
+    {
+      "start": 1077.67,
+      "end": 1081.91,
+      "en": "Whereas the the layer norm only goes up to 2.5 or whatever.",
+      "zh": "LayerNorm 後大概只到 2.5 左右。"
+    },
+    {
+      "start": 1082.07,
+      "end": 1083.83,
+      "en": "But now the correlation is perfect.",
+      "zh": "但現在它們的相關是完美的。"
+    },
+    {
+      "start": 1083.83,
+      "end": 1092.27,
+      "en": "And that's because we have applied the normalization to the entire matrix and not just column wise layer.",
+      "zh": "因為我們是對整個矩陣做正規化，而不只是沿欄方向。"
+    },
+    {
+      "start": 1092.27,
+      "end": 1096.71,
+      "en": "Norm is super important for getting deep learning models to work.",
+      "zh": "LayerNorm 對於讓深度學習模型正常運作非常重要。"
+    },
+    {
+      "start": 1097.23,
+      "end": 1103.83,
+      "en": "On the other hand, there's nothing terribly interesting or insightful about layer norm parameters.",
+      "zh": "另一方面，LayerNorm 參數本身沒有太多有趣或值得深入解讀的地方。"
+    },
+    {
+      "start": 1103.99,
+      "end": 1106.79,
+      "en": "That's why I say here, set it and forget it.",
+      "zh": "所以我才說，設定好就不用一直操心。"
+    },
+    {
+      "start": 1107.07,
+      "end": 1114.31,
+      "en": "As long as it's in the model and you understand why it's in the model, it's not really something you should think a lot about.",
+      "zh": "只要模型裡有它，而且你了解為什麼需要它，就不必花太多心思在它上面。"
+    }
+  ]
+}

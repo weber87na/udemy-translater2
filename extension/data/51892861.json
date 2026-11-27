@@ -1,0 +1,1483 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892861",
+  "title": "CodeChallenge: Logit Lens in BERT (part 1)",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "b2857ef4060569c94fa31bdb4345b40cf16e33513ad433fef7fcfad7199b3dc0",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 10.72,
+      "en": "Now that you understand the basics of the logit lens, it's time to expand your knowledge of that analysis.",
+      "zh": "現在理解 logit lens 的基礎，是時候擴展對這項分析的認識，"
+    },
+    {
+      "start": 10.92,
+      "end": 13.96,
+      "en": "Learn a bit more about the Bert model.",
+      "zh": "多了解一些 BERT 模型，"
+    },
+    {
+      "start": 14.4,
+      "end": 22.8,
+      "en": "Experience the joy of getting error messages and working with GPUs and CPUs, and learn more about standardizing",
+      "zh": "體驗錯誤訊息與操作 GPU、CPU 的樂趣，並進一步學習資料標準化，"
+    },
+    {
+      "start": 22.8,
+      "end": 28.16,
+      "en": "data and visualizing internal model activations in various ways.",
+      "zh": "以及用各種方式呈現模型內部活化。"
+    },
+    {
+      "start": 28.76,
+      "end": 31,
+      "en": "So there's quite a lot to do in this code challenge.",
+      "zh": "所以這次程式挑戰，有不少事情要做。"
+    },
+    {
+      "start": 31,
+      "end": 32.48,
+      "en": "So let's begin.",
+      "zh": "開始吧。"
+    },
+    {
+      "start": 33.08,
+      "end": 43.48,
+      "en": "The goal of exercise one is to import the large Bert model and have a review about masked token prediction",
+      "zh": "練習一的目標，是匯入大型 BERT 模型，並複習 BERT 中的遮罩 token"
+    },
+    {
+      "start": 43.6,
+      "end": 44.44,
+      "en": "in Bert.",
+      "zh": "預測。"
+    },
+    {
+      "start": 44.88,
+      "end": 50.12,
+      "en": "Now for starters we're going to work with this Bert large version of the model.",
+      "zh": "首先，會使用這個 BERT-large 版本。"
+    },
+    {
+      "start": 50.12,
+      "end": 53.44,
+      "en": "We actually haven't worked with this particular model yet.",
+      "zh": "其實還沒用過這個特定模型，"
+    },
+    {
+      "start": 53.48,
+      "end": 57.08,
+      "en": "We've only been working with the smaller version of Bert.",
+      "zh": "之前只使用較小的 BERT 版本。"
+    },
+    {
+      "start": 57.6,
+      "end": 63.98,
+      "en": "So once you import it, you can have a quick look through the model, see how it differs from the smaller version.",
+      "zh": "匯入後，可以快速瀏覽模型，看看與小型版本有何不同。"
+    },
+    {
+      "start": 64.74,
+      "end": 76.38,
+      "en": "Now you don't need to do like a rigorous quantitative comparison, but just check for typical things that you look for in a model description, like the number of embeddings dimensions, the number of",
+      "zh": "不需要做嚴格的量化比較，只要檢查閱讀模型描述時通常會看的內容，例如嵌入維度、"
+    },
+    {
+      "start": 76.38,
+      "end": 81.74,
+      "en": "transformer blocks, the names of the different components of the model, and so on.",
+      "zh": "Transformer 區塊數、模型各元件的名稱等等。"
+    },
+    {
+      "start": 82.62,
+      "end": 86.62,
+      "en": "Then you want to move that model to the GPU.",
+      "zh": "接著，將模型移到 GPU。"
+    },
+    {
+      "start": 87.26,
+      "end": 96.1,
+      "en": "Now, to be honest, this entire code challenge could easily be done just on the CPU, but I want you",
+      "zh": "老實說，整個程式挑戰都能輕鬆在 CPU 上完成，但我想讓你"
+    },
+    {
+      "start": 96.1,
+      "end": 103.14,
+      "en": "to have some more practice with moving text and data back and forth between the GPU and the CPU.",
+      "zh": "多練習，在 GPU 與 CPU 之間來回搬移文字與資料。"
+    },
+    {
+      "start": 104.06,
+      "end": 107.7,
+      "en": "I hope that will cause some errors and a bit of confusion.",
+      "zh": "希望這會造成一些錯誤，以及一點困惑。"
+    },
+    {
+      "start": 108.02000000000001,
+      "end": 112.58,
+      "en": "And the reason why I hope that it does is because I think that's worth it.",
+      "zh": "之所以希望如此，是因為我覺得值得。"
+    },
+    {
+      "start": 112.58,
+      "end": 119.86,
+      "en": "Because having more experience with integrating across different processors and sorting the code out",
+      "zh": "多一點整合不同處理器的經驗，整理程式、"
+    },
+    {
+      "start": 119.86,
+      "end": 128.48,
+      "en": "and dealing with error messages and so on, That definitely pays off in the long term, even though it's a bit frustrating in the short term.",
+      "zh": "處理錯誤訊息等等，雖然短期有點挫折，長期絕對有回報。"
+    },
+    {
+      "start": 129.72,
+      "end": 138.92000000000002,
+      "en": "Anyway, the main part of this exercise is a reminder of how to do masked token prediction in a Bert",
+      "zh": "總之，這個練習主要是複習，如何在 BERT"
+    },
+    {
+      "start": 138.96,
+      "end": 139.72,
+      "en": "model.",
+      "zh": "模型中進行遮罩 token 預測。"
+    },
+    {
+      "start": 140.07999999999998,
+      "end": 145.07999999999998,
+      "en": "Here is the text that we will work with for the rest of this code challenge.",
+      "zh": "這是接下來整個程式挑戰會使用的文字。"
+    },
+    {
+      "start": 145.36,
+      "end": 149.88,
+      "en": "The way you do anything is the way you do everything.",
+      "zh": "「The way you do anything is the way you do everything」，做任何一件事的方式，就是你做所有事的方式。"
+    },
+    {
+      "start": 149.88,
+      "end": 154.32,
+      "en": "That's one of my favorite sayings, as you know from the previous video.",
+      "zh": "上一支影片已經知道，這是我最喜歡的格言之一。"
+    },
+    {
+      "start": 154.96,
+      "end": 164.04,
+      "en": "Anyway, write out this sentence, but replace the word way with the word mask and with square brackets around it.",
+      "zh": "總之，寫出這個句子，但將 way 換成 mask，並用方括號括起來。"
+    },
+    {
+      "start": 164.4,
+      "end": 173.04,
+      "en": "You will remember from earlier in the course that the Bert model has a special token for this text,",
+      "zh": "你應該記得，課程前面提過，BERT 模型對這段文字有特殊 token，"
+    },
+    {
+      "start": 173.07999999999998,
+      "end": 182.4,
+      "en": "with the word mask with square brackets around it, and the model has been trained to make predictions about what token should be in that position.",
+      "zh": "也就是方括號中的 MASK，而模型已被訓練成，預測那個位置應該是什麼 token。"
+    },
+    {
+      "start": 183.26,
+      "end": 192.78,
+      "en": "Once you have this token sequence, you can print it out like this and show all the tokens over here, and then you can do a forward pass through the model.",
+      "zh": "有了 token 序列，就能像這樣列印出來，顯示所有 token，再執行前向傳播。"
+    },
+    {
+      "start": 193.42,
+      "end": 199.18,
+      "en": "Now we are not doing logit lens just yet, not in this exercise.",
+      "zh": "現在還不是 logit lens，這個練習還沒做到那裡。"
+    },
+    {
+      "start": 199.42000000000002,
+      "end": 203.54,
+      "en": "So here for this exercise you only need the final logits.",
+      "zh": "所以這裡只需要最終 logits，"
+    },
+    {
+      "start": 203.54,
+      "end": 205.66,
+      "en": "You do not need the hidden states.",
+      "zh": "不需要隱藏狀態。"
+    },
+    {
+      "start": 206.14,
+      "end": 208.5,
+      "en": "And then you can make a plot that looks like this.",
+      "zh": "接著畫出這樣的圖。"
+    },
+    {
+      "start": 208.78,
+      "end": 214.86,
+      "en": "Find the token with the maximum logit and convert that back to text.",
+      "zh": "找出 logit 最大的 token，再轉回文字。"
+    },
+    {
+      "start": 215.34,
+      "end": 218.02,
+      "en": "Now in this particular case, it worked out well.",
+      "zh": "在這個例子，結果很不錯，"
+    },
+    {
+      "start": 218.06,
+      "end": 220.9,
+      "en": "The model predicted the correct token.",
+      "zh": "模型預測了正確的 token。"
+    },
+    {
+      "start": 221.86,
+      "end": 222.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 222.34,
+      "end": 226.02,
+      "en": "So now you can pause the video and code up this exercise.",
+      "zh": "現在可以暫停影片，寫出這個練習的程式。"
+    },
+    {
+      "start": 226.22,
+      "end": 229.78,
+      "en": "And I will now switch to code and show my solution.",
+      "zh": "接著切換到程式碼，展示我的解答。"
+    },
+    {
+      "start": 231.3,
+      "end": 236.86,
+      "en": "Here are all of the libraries that I will use for this entire code challenge.",
+      "zh": "這裡是整個程式挑戰會使用的所有函式庫。"
+    },
+    {
+      "start": 236.98,
+      "end": 239.86,
+      "en": "And here I'm importing Bert-large.",
+      "zh": "這裡匯入 BERT-large。"
+    },
+    {
+      "start": 240.02,
+      "end": 244.6,
+      "en": "So previously we have been working with Bert unnamed Named Uncased.",
+      "zh": "之前使用的是 BERT uncased，"
+    },
+    {
+      "start": 244.96,
+      "end": 246.4,
+      "en": "But without writing anything.",
+      "zh": "但如果沒有額外寫上任何內容，"
+    },
+    {
+      "start": 246.4,
+      "end": 250.88,
+      "en": "Here you are implicitly importing the small version of Bert.",
+      "zh": "就會隱含匯入小型 BERT 版本。"
+    },
+    {
+      "start": 250.88,
+      "end": 255.16,
+      "en": "So we haven't worked with this yet, so we will have a look at what this looks like.",
+      "zh": "所以這個版本還沒用過，來看看它長什麼樣子。"
+    },
+    {
+      "start": 255.56,
+      "end": 257.64,
+      "en": "So here I'm setting up the GPU.",
+      "zh": "這裡設定 GPU，"
+    },
+    {
+      "start": 257.8,
+      "end": 264.52,
+      "en": "Here I'm moving the model to the GPU and then switching the model into eval mode.",
+      "zh": "將模型移到 GPU，再切換為 eval 模式。"
+    },
+    {
+      "start": 265.4,
+      "end": 268.96,
+      "en": "So here we see the large version of Bert.",
+      "zh": "這裡看到大型版本 BERT。"
+    },
+    {
+      "start": 269,
+      "end": 272.15999999999997,
+      "en": "Now of course Bert models get much bigger than this one.",
+      "zh": "當然，BERT 模型可以比這個大得多，"
+    },
+    {
+      "start": 272.36,
+      "end": 275,
+      "en": "But this is the one that we are going to work with here.",
+      "zh": "但這裡會使用這個。"
+    },
+    {
+      "start": 275.24,
+      "end": 279.28,
+      "en": "Okay, so it has an embeddings dimension of 1024.",
+      "zh": "好，嵌入維度是 1,024，"
+    },
+    {
+      "start": 279.52,
+      "end": 283.72,
+      "en": "You can compare that to 768 for example.",
+      "zh": "例如可以與 768 比較。"
+    },
+    {
+      "start": 284,
+      "end": 289.68,
+      "en": "And yeah this one has 24 layers 24 transformer blocks.",
+      "zh": "它有 24 層、24 個 Transformer 區塊，"
+    },
+    {
+      "start": 289.8,
+      "end": 292.72,
+      "en": "Again you can compare that to 12 for example.",
+      "zh": "同樣可以與 12 比較。"
+    },
+    {
+      "start": 293.12,
+      "end": 293.36,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 293.4,
+      "end": 303.52,
+      "en": "And otherwise we have seen before that the naming convention and the matrix storage convention is different for Bert compared to GPT.",
+      "zh": "之前也看過，BERT 的命名慣例與矩陣儲存方式，和 GPT 不同。"
+    },
+    {
+      "start": 303.92,
+      "end": 305.19,
+      "en": "So it's good practice.",
+      "zh": "所以，每當使用一個模型、新模型，或有一陣子沒用的模型，"
+    },
+    {
+      "start": 305.23,
+      "end": 310.79,
+      "en": "Whenever you're working with a model or a new model or a model that you haven't worked with in a while,",
+      "zh": "都應該養成好習慣，"
+    },
+    {
+      "start": 310.99,
+      "end": 319.71,
+      "en": "to just print out the description and have a look through and remind yourself of the different names for the different matrices and so on.",
+      "zh": "直接列印描述、瀏覽一下，提醒自己各個矩陣的不同名稱等等。"
+    },
+    {
+      "start": 320.75,
+      "end": 321.03,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 321.07,
+      "end": 326.83,
+      "en": "And then I would also like to point out this final little module at the end.",
+      "zh": "另外也想指出最末端這個小模組。"
+    },
+    {
+      "start": 326.87,
+      "end": 337.03,
+      "en": "Now when we worked with the GPT models, for example, in the previous video, there was the little module at the end that was called LM underscore head.",
+      "zh": "使用 GPT 模型時，例如上一支影片，最末端有一個叫作 lm_head 的小模組，"
+    },
+    {
+      "start": 337.39,
+      "end": 339.35,
+      "en": "So language model head.",
+      "zh": "也就是 language model head。"
+    },
+    {
+      "start": 339.35,
+      "end": 342.59000000000003,
+      "en": "And that had literally just one piece at the end of it.",
+      "zh": "它在最後真的只有一個元件，"
+    },
+    {
+      "start": 342.63,
+      "end": 345.27,
+      "en": "It was basically the equivalent of this.",
+      "zh": "基本上等同於這個，"
+    },
+    {
+      "start": 345.47,
+      "end": 347.43,
+      "en": "It was a linear object.",
+      "zh": "是一個線性物件，"
+    },
+    {
+      "start": 347.43,
+      "end": 349.59000000000003,
+      "en": "So it was basically just a matrix.",
+      "zh": "所以基本上只是一個矩陣。"
+    },
+    {
+      "start": 349.79,
+      "end": 353.19,
+      "en": "But here we have this whole module called predictions.",
+      "zh": "但這裡有整個 predictions 模組，"
+    },
+    {
+      "start": 353.35,
+      "end": 362.39,
+      "en": "And that has a couple of matrix multiplications with a Gelu nonlinear activation in between there's a layer norm.",
+      "zh": "包含幾次矩陣乘法，中間有 GELU 非線性活化，還有 layer norm。"
+    },
+    {
+      "start": 362.39,
+      "end": 371.53,
+      "en": "And then we get to the final layer where we go from the embeddings dimension, which is what we're in all the way up here, still in the embeddings dimension.",
+      "zh": "接著來到最後一層，前面一直都還在嵌入維度，"
+    },
+    {
+      "start": 371.53,
+      "end": 376.49,
+      "en": "And then we go out to the vocab dimension and that is called the decoder.",
+      "zh": "這時才轉到詞彙表維度，這個叫作 decoder。"
+    },
+    {
+      "start": 376.61,
+      "end": 377.01,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 377.05,
+      "end": 380.77,
+      "en": "So that will be relevant for the next exercise.",
+      "zh": "這會與下一個練習有關。"
+    },
+    {
+      "start": 381.33,
+      "end": 381.65,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 381.69,
+      "end": 382.93,
+      "en": "So here we have the text.",
+      "zh": "這裡是文字，"
+    },
+    {
+      "start": 382.97,
+      "end": 385.17,
+      "en": "The way you do anything is the blank.",
+      "zh": "「The way you do anything is the [MASK]」，"
+    },
+    {
+      "start": 385.49,
+      "end": 386.89,
+      "en": "You do everything.",
+      "zh": "「you do everything」。"
+    },
+    {
+      "start": 386.93,
+      "end": 390.57,
+      "en": "Of course you know that this should be the word way.",
+      "zh": "當然，知道這裡應該是 way。"
+    },
+    {
+      "start": 391.05,
+      "end": 396.13,
+      "en": "And also just a quick reminder this particular model is called uncased.",
+      "zh": "也快速提醒，這個特定模型叫作 uncased，"
+    },
+    {
+      "start": 396.17,
+      "end": 399.25,
+      "en": "That means it's been trained with all lowercase.",
+      "zh": "表示它是以全部小寫文字訓練，"
+    },
+    {
+      "start": 399.25,
+      "end": 405.77,
+      "en": "So that means that there is no difference between the with a capital and the with a lowercase.",
+      "zh": "所以大寫開頭的 The，與小寫的 the，沒有差異。"
+    },
+    {
+      "start": 406.13,
+      "end": 409.45,
+      "en": "I still like it to be capital because I'm very old school.",
+      "zh": "我還是喜歡用大寫，因為我很老派，"
+    },
+    {
+      "start": 409.45,
+      "end": 411.40999999999997,
+      "en": "I like proper capitalizations.",
+      "zh": "喜歡正確的大寫方式。"
+    },
+    {
+      "start": 411.85,
+      "end": 412.45,
+      "en": "Anyway.",
+      "zh": "總之，"
+    },
+    {
+      "start": 412.61,
+      "end": 413.89,
+      "en": "Uh, tokenize.",
+      "zh": "進行 token 化，"
+    },
+    {
+      "start": 414.13,
+      "end": 420.49,
+      "en": "Uh, and then, yeah, just printing out, uh, what this tokenized version of the text looks like.",
+      "zh": "再列印 token 化後的文字，看看樣子。"
+    },
+    {
+      "start": 421.57,
+      "end": 423.41,
+      "en": "Okay, here I do the forward pass.",
+      "zh": "這裡做前向傳播。"
+    },
+    {
+      "start": 423.45,
+      "end": 432.23,
+      "en": "Uh, notice I'm not getting the hidden states here For this particular exercise, we only need the final logits from the output.",
+      "zh": "注意，這裡沒有取得隱藏狀態，這個練習只需要輸出的最終 logits。"
+    },
+    {
+      "start": 432.63,
+      "end": 436.99,
+      "en": "So here I have the mass token ID that is here.",
+      "zh": "這裡有 mask token ID，就在這裡，"
+    },
+    {
+      "start": 437.03,
+      "end": 438.75,
+      "en": "That is something I defined here.",
+      "zh": "是這裡定義的內容。"
+    },
+    {
+      "start": 438.75,
+      "end": 445.35,
+      "en": "So where does where do the tokens equal the mask token ID.",
+      "zh": "哪些 token 等於 mask token ID？"
+    },
+    {
+      "start": 445.35,
+      "end": 449.59,
+      "en": "So this gives me the location of the mask here.",
+      "zh": "這就能得到這裡遮罩的位置。"
+    },
+    {
+      "start": 450.19,
+      "end": 450.47,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 450.51,
+      "end": 453.75,
+      "en": "So then I'm getting the logits for that task location.",
+      "zh": "接著，取得該遮罩位置的 logits，"
+    },
+    {
+      "start": 454.15,
+      "end": 462.51,
+      "en": "Uh putting it back to the CPU, bringing it from the GPU back to the CPU and then finding the maximum logit.",
+      "zh": "從 GPU 移回 CPU，再找出最大的 logit。"
+    },
+    {
+      "start": 462.67,
+      "end": 467.31,
+      "en": "And then I'm plotting and finding what that maximum value corresponds to.",
+      "zh": "然後畫圖，找出最大值對應的是什麼。"
+    },
+    {
+      "start": 467.75,
+      "end": 469.99,
+      "en": "And that is the token way.",
+      "zh": "答案就是 token way。"
+    },
+    {
+      "start": 470.03,
+      "end": 470.99,
+      "en": "So that's great.",
+      "zh": "所以很好，"
+    },
+    {
+      "start": 471.19,
+      "end": 473.15,
+      "en": "That is an accurate prediction.",
+      "zh": "這是準確的預測。"
+    },
+    {
+      "start": 474.55,
+      "end": 480.79,
+      "en": "Exercise two is actually just a small addition to exercise one.",
+      "zh": "練習二，其實只是替練習一加一點內容。"
+    },
+    {
+      "start": 481.19,
+      "end": 485.59,
+      "en": "You do not need to run any new analyses or forward passes.",
+      "zh": "不需要執行任何新分析或前向傳播，"
+    },
+    {
+      "start": 485.75,
+      "end": 487.81,
+      "en": "Just take the final output.",
+      "zh": "只要取最終輸出的"
+    },
+    {
+      "start": 487.81,
+      "end": 488.61,
+      "en": "Logits.",
+      "zh": "logits，"
+    },
+    {
+      "start": 488.81,
+      "end": 497.13,
+      "en": "Make a histogram of them, including a vertical dashed line over here to indicate the maximum token.",
+      "zh": "畫出直方圖，加入這條垂直虛線，標示最大 token"
+    },
+    {
+      "start": 497.13,
+      "end": 501.77,
+      "en": "Logit that we figured out in the previous exercise was the word weigh.",
+      "zh": "logit，也就是上一個練習找出的 way。"
+    },
+    {
+      "start": 502.53,
+      "end": 508.05,
+      "en": "And then I want you to z score this entire distribution.",
+      "zh": "接著，將整個分布轉成 z 分數，"
+    },
+    {
+      "start": 508.05,
+      "end": 510.65,
+      "en": "And then you can generate this plot.",
+      "zh": "就能產生這張圖。"
+    },
+    {
+      "start": 510.81,
+      "end": 514.89,
+      "en": "This is exactly the same plot you saw in the previous exercise.",
+      "zh": "它與上一個練習看到的圖完全相同，"
+    },
+    {
+      "start": 514.89,
+      "end": 517.93,
+      "en": "So token index on the x axis.",
+      "zh": "x 軸是 token 索引，"
+    },
+    {
+      "start": 517.93,
+      "end": 521.85,
+      "en": "And previously it was the logits on the y axis.",
+      "zh": "之前 y 軸是 logits，"
+    },
+    {
+      "start": 521.85,
+      "end": 526.21,
+      "en": "Here it is the z score on the y axis.",
+      "zh": "這裡則是 z 分數。"
+    },
+    {
+      "start": 526.89,
+      "end": 534.77,
+      "en": "Remember that the formula for the z score, the z transformation, is each data point minus the mean",
+      "zh": "記住，z 分數、z 轉換公式，是每個資料點減去"
+    },
+    {
+      "start": 534.81,
+      "end": 541.17,
+      "en": "of all the data points in the distribution, divided by the standard deviation of the distribution.",
+      "zh": "分布中全部資料點的平均，再除以分布的標準差。"
+    },
+    {
+      "start": 541.65,
+      "end": 545.57,
+      "en": "So we're going to be z scoring a lot in this code challenge.",
+      "zh": "這次程式挑戰會大量使用 z 分數轉換。"
+    },
+    {
+      "start": 546.05,
+      "end": 550.79,
+      "en": "One of the big Advantages of z scoring data in general.",
+      "zh": "一般而言，對資料轉成 z 分數的一大優點，"
+    },
+    {
+      "start": 550.79,
+      "end": 561.79,
+      "en": "And also here in this code challenge, is that we can interpret these numbers as standard deviation units away from the center of the distribution.",
+      "zh": "在這次挑戰中也是如此，就是能用距離分布中心多少個標準差單位，來解讀數字。"
+    },
+    {
+      "start": 562.31,
+      "end": 573.83,
+      "en": "In other words, the model activation for the correct token was over ten standard deviations away from the center of the distribution of all the other tokens.",
+      "zh": "換句話說，正確 token 的模型活化，距離其他所有 token 的分布中心，超過十個標準差。"
+    },
+    {
+      "start": 573.91,
+      "end": 574.43,
+      "en": "That's a lot.",
+      "zh": "很多。"
+    },
+    {
+      "start": 574.47,
+      "end": 576.67,
+      "en": "Ten standard deviations is really a lot.",
+      "zh": "十個標準差，真的很多。"
+    },
+    {
+      "start": 576.87,
+      "end": 588.79,
+      "en": "It shows how well the model was able to predict the missing token, and also how good the separation is of the predicted token relative to all of the other tokens.",
+      "zh": "這顯示模型預測缺失 token 的能力很好，預測的 token 與其他所有 token 之間，也有很好的區隔。"
+    },
+    {
+      "start": 589.39,
+      "end": 597.31,
+      "en": "Now, this histogram is also important to expect, because the interpretability of the z score depends",
+      "zh": "這張直方圖也很值得檢查，因為 z 分數的可解讀性，取決於"
+    },
+    {
+      "start": 597.31,
+      "end": 601.55,
+      "en": "on the data being at least roughly Gaussian distributed.",
+      "zh": "資料至少大致呈高斯分布。"
+    },
+    {
+      "start": 601.99,
+      "end": 610.45,
+      "en": "Now it doesn't need to be a perfect normal distribution, but you do want to see one peak that decays on both sides.",
+      "zh": "不需要完美的常態分布，但希望看到一個峰值，往兩側遞減。"
+    },
+    {
+      "start": 610.45,
+      "end": 619.97,
+      "en": "And if you see that in the distribution, then the Z score is going to be interpretable as standard deviation units away from the mean.",
+      "zh": "如果分布如此，z 分數就能解讀為距離平均數多少個標準差單位。"
+    },
+    {
+      "start": 621.13,
+      "end": 623.21,
+      "en": "So that's it for this exercise.",
+      "zh": "這個練習就是這樣。"
+    },
+    {
+      "start": 623.33,
+      "end": 626.01,
+      "en": "Now you can pause the video and get to work.",
+      "zh": "現在可以暫停影片，開始動手。"
+    },
+    {
+      "start": 626.33,
+      "end": 631.29,
+      "en": "I will now switch to code, but only briefly because there isn't really that much to discuss.",
+      "zh": "接著短暫切換到程式碼，因為其實沒太多要討論的。"
+    },
+    {
+      "start": 631.45,
+      "end": 640.13,
+      "en": "For this solution, the most important line of code in this exercise solution is this line here.",
+      "zh": "這個練習解答中，最重要的一行，就是這裡，"
+    },
+    {
+      "start": 640.17,
+      "end": 640.53,
+      "en": "Oops.",
+      "zh": "哎呀，"
+    },
+    {
+      "start": 640.93,
+      "end": 643.05,
+      "en": "This this line over here.",
+      "zh": "這邊這一行。"
+    },
+    {
+      "start": 643.17,
+      "end": 650.73,
+      "en": "So we take the data minus the mean of the data and divide by the standard deviation of the data.",
+      "zh": "資料減去資料平均，再除以資料標準差。"
+    },
+    {
+      "start": 651.13,
+      "end": 662.41,
+      "en": "Now if you are familiar with statistics and Python, you might be wondering whether we need to set the denominator degrees of freedom to be one and all.",
+      "zh": "如果熟悉統計與 Python，可能會好奇，分母自由度是不是要設為 1；"
+    },
+    {
+      "start": 662.41,
+      "end": 666.05,
+      "en": "I will say, I don't want to get into a long discussion about that.",
+      "zh": "我不想為此展開長篇討論。"
+    },
+    {
+      "start": 666.05,
+      "end": 672.63,
+      "en": "Basically, it has to do with whether you consider these values to be a sample or a population.",
+      "zh": "基本上，與你將這些數值視為樣本，還是母體有關。"
+    },
+    {
+      "start": 672.83,
+      "end": 679.63,
+      "en": "But all I can say here is that it doesn't really matter because the sample size is so large.",
+      "zh": "但在這裡，我能說的是，因為樣本數非常大，其實不重要。"
+    },
+    {
+      "start": 679.63,
+      "end": 682.63,
+      "en": "So we have over 30,000 data points.",
+      "zh": "有超過 30,000 個資料點。"
+    },
+    {
+      "start": 682.63,
+      "end": 683.39,
+      "en": "In fact, it is.",
+      "zh": "其實是，"
+    },
+    {
+      "start": 683.39,
+      "end": 685.47,
+      "en": "I don't even remember the exact number.",
+      "zh": "我甚至不記得精確數字。"
+    },
+    {
+      "start": 685.51,
+      "end": 686.19,
+      "en": "Let me see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 686.67,
+      "end": 695.27,
+      "en": "So whether you use the denominator degrees of freedom it of 1 or 0 is the difference between 30,500",
+      "zh": "所以分母自由度用 1 或 0，差異就是 30,522"
+    },
+    {
+      "start": 695.27,
+      "end": 699.95,
+      "en": "and 22 versus 30,521.",
+      "zh": "與 30,521。"
+    },
+    {
+      "start": 699.95,
+      "end": 704.03,
+      "en": "So in practice it really does not matter at all.",
+      "zh": "實務上真的完全不重要。"
+    },
+    {
+      "start": 704.15,
+      "end": 704.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 704.55,
+      "end": 711.71,
+      "en": "But I just wanted to mention that for the statistics aficionados in the audience here okay.",
+      "zh": "只是想替觀眾中的統計愛好者，提一下這點。"
+    },
+    {
+      "start": 711.75,
+      "end": 717.23,
+      "en": "Anyway, so this is transforming all of the data to a z score okay.",
+      "zh": "總之，這是將所有資料轉成 z 分數。"
+    },
+    {
+      "start": 717.31,
+      "end": 719.87,
+      "en": "And then the rest of this is just plotting here.",
+      "zh": "剩下的只是繪圖。"
+    },
+    {
+      "start": 719.87,
+      "end": 721.71,
+      "en": "I'm doing some stuff with Grid Spec.",
+      "zh": "這裡用了一些 GridSpec，"
+    },
+    {
+      "start": 721.71,
+      "end": 727.31,
+      "en": "And that's just because I want the plot to have unequal sizes.",
+      "zh": "只是因為希望圖的大小不相等。"
+    },
+    {
+      "start": 727.31,
+      "end": 728.27,
+      "en": "So this one.",
+      "zh": "所以這一張，"
+    },
+    {
+      "start": 728.27,
+      "end": 732.09,
+      "en": "So basically I set up Uh, three uh, subplots.",
+      "zh": "基本上，設定三張子圖，"
+    },
+    {
+      "start": 732.09,
+      "end": 737.33,
+      "en": "And then this plot only occupies the first plot and this one occupies the other two.",
+      "zh": "這張圖只占第一張，另一張占剩下兩張。"
+    },
+    {
+      "start": 737.89,
+      "end": 744.09,
+      "en": "You know, I've mentioned this several times in the beginning of the course, but I haven't mentioned it so much recently.",
+      "zh": "課程開頭說過好幾次，但最近沒太常提，"
+    },
+    {
+      "start": 744.09,
+      "end": 749.45,
+      "en": "But if you do the visualizations differently from how I do it, totally fine.",
+      "zh": "如果你的視覺化做法與我不同，完全沒問題。"
+    },
+    {
+      "start": 749.49,
+      "end": 755.73,
+      "en": "The point of this course is for you to learn methods to investigate language models.",
+      "zh": "這門課的重點，是學習研究語言模型的方法。"
+    },
+    {
+      "start": 755.73,
+      "end": 759.45,
+      "en": "I really don't care about the details of the plotting.",
+      "zh": "我真的不在意繪圖細節，"
+    },
+    {
+      "start": 759.49,
+      "end": 760.53,
+      "en": "That's totally.",
+      "zh": "那完全，"
+    },
+    {
+      "start": 760.57,
+      "end": 761.85,
+      "en": "That's so unimportant.",
+      "zh": "非常不重要。"
+    },
+    {
+      "start": 762.85,
+      "end": 763.17,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 763.21,
+      "end": 766.45,
+      "en": "Anyway, uh, yeah, you can look through all of this code.",
+      "zh": "總之，可以查看所有這些程式。"
+    },
+    {
+      "start": 766.45,
+      "end": 768.09,
+      "en": "It's not terribly interesting.",
+      "zh": "沒有那麼有趣，"
+    },
+    {
+      "start": 768.09,
+      "end": 770.81,
+      "en": "I'm basically just transforming, uh, or.",
+      "zh": "基本上，我只是轉換，或者說，"
+    },
+    {
+      "start": 770.97,
+      "end": 776.09,
+      "en": "Yeah, beautifying these plots according to how I think looks nice.",
+      "zh": "依照自己覺得好看的方式，美化這些圖。"
+    },
+    {
+      "start": 777.61,
+      "end": 780.05,
+      "en": "Now for exercise three.",
+      "zh": "現在是練習三。"
+    },
+    {
+      "start": 780.49,
+      "end": 785.01,
+      "en": "The goal here is to repeat the masked token prediction.",
+      "zh": "目標是重複遮罩 token 預測，"
+    },
+    {
+      "start": 785.29,
+      "end": 788.37,
+      "en": "But for all of the words in a for loop.",
+      "zh": "但用 for 迴圈，對所有字進行。"
+    },
+    {
+      "start": 788.61,
+      "end": 792.67,
+      "en": "So we're still not yet doing the logit lens analysis.",
+      "zh": "所以仍然還不是 logit lens 分析。"
+    },
+    {
+      "start": 792.91,
+      "end": 799.87,
+      "en": "But this analysis here in exercise three is setting us up for that, because we're going to do the logit",
+      "zh": "但練習三是在為它做準備，因為接著要對所有層、所有隱藏狀態，"
+    },
+    {
+      "start": 799.87,
+      "end": 806.47,
+      "en": "lens analysis over all the layers, over the hidden states, and also over all of the tokens.",
+      "zh": "以及所有 token，進行 logit lens 分析。"
+    },
+    {
+      "start": 807.03,
+      "end": 812.63,
+      "en": "So to do this exercise you set up a for loop over all the tokens.",
+      "zh": "要完成這個練習，先建立遍歷所有 token 的 for 迴圈，"
+    },
+    {
+      "start": 812.87,
+      "end": 818.75,
+      "en": "Replace each token in turn with the word mask with square brackets around it.",
+      "zh": "依序將每個 token 替換為方括號中的 MASK，"
+    },
+    {
+      "start": 819.39,
+      "end": 821.07,
+      "en": "Then you do a forward pass.",
+      "zh": "接著做前向傳播，"
+    },
+    {
+      "start": 821.19,
+      "end": 822.79,
+      "en": "Grab all the activations.",
+      "zh": "取得所有活化，"
+    },
+    {
+      "start": 822.79,
+      "end": 833.55,
+      "en": "Find the maximum token prediction for each missing token, and this list I've printed out here just for confirmation of the masking.",
+      "zh": "找出每個缺失 token 的最大預測。這裡列印的清單，只是確認遮罩。"
+    },
+    {
+      "start": 834.07,
+      "end": 840.55,
+      "en": "So in this set of lists, each row corresponds to an iteration in the for loop.",
+      "zh": "這組串列中，每一列對應 for 迴圈的一次迭代。"
+    },
+    {
+      "start": 840.87,
+      "end": 845.71,
+      "en": "And you can see the number three appearing along the diagonal over here.",
+      "zh": "可以看到，數字 3 沿著對角線出現，"
+    },
+    {
+      "start": 846.11,
+      "end": 847.95,
+      "en": "And sorry 103.",
+      "zh": "抱歉，是 103。"
+    },
+    {
+      "start": 847.95,
+      "end": 852.65,
+      "en": "And the token 103 corresponds to the mask token.",
+      "zh": "token 103 對應遮罩 token，"
+    },
+    {
+      "start": 852.65,
+      "end": 858.77,
+      "en": "So this is just some confirmation that each token in turn was replaced with the mask.",
+      "zh": "這只是確認，每個 token 都依序被遮罩取代。"
+    },
+    {
+      "start": 859.97,
+      "end": 864.29,
+      "en": "The end result of this exercise will be a table that you generate.",
+      "zh": "這個練習最後，會產生一張表，"
+    },
+    {
+      "start": 864.45,
+      "end": 865.25,
+      "en": "You print out.",
+      "zh": "將它列印出來，"
+    },
+    {
+      "start": 865.25,
+      "end": 867.45,
+      "en": "The table looks something like this.",
+      "zh": "看起來大概像這樣。"
+    },
+    {
+      "start": 867.61,
+      "end": 870.65,
+      "en": "So in the left column we have the target words.",
+      "zh": "左欄是目標詞，"
+    },
+    {
+      "start": 871.17,
+      "end": 880.93,
+      "en": "The middle column shows the predicted words, and the right column shows the z value for each of the predicted words.",
+      "zh": "中欄是預測詞，右欄是每個預測詞的 z 值。"
+    },
+    {
+      "start": 881.53,
+      "end": 888.41,
+      "en": "So in this case what you see here, the model correctly predicted the first token in the sentence.",
+      "zh": "在這裡，可以看到模型正確預測了句子中的第一個 token。"
+    },
+    {
+      "start": 888.45,
+      "end": 895.85,
+      "en": "It's also pretty interesting that the model predicted that the CLS token should be a period, and that's",
+      "zh": "另外很有意思的是，模型預測 CLS token 應該是句點，"
+    },
+    {
+      "start": 895.85,
+      "end": 902.73,
+      "en": "pretty interesting, because it means that the model understood from context that this is a full sentence,",
+      "zh": "表示模型根據上下文，理解這是一個完整句子，"
+    },
+    {
+      "start": 903.01,
+      "end": 908.33,
+      "en": "and so the token preceding a full sentence is likely to be a period.",
+      "zh": "因此完整句子前面的 token，很可能是句點。"
+    },
+    {
+      "start": 909.01,
+      "end": 909.57,
+      "en": "Anyway.",
+      "zh": "總之，"
+    },
+    {
+      "start": 909.93,
+      "end": 918.68,
+      "en": "You will discover what the rest of the predicted tokens look like when you pause the video and switch to Python, which is what you should do now.",
+      "zh": "暫停影片、切換到 Python，就能發現其他預測 token 長什麼樣子，現在就請這麼做。"
+    },
+    {
+      "start": 918.96,
+      "end": 920.8,
+      "en": "And now I will switch to code.",
+      "zh": "接著切換到程式碼。"
+    },
+    {
+      "start": 922.08,
+      "end": 924.4,
+      "en": "Here I am printing out the text again.",
+      "zh": "這裡再次列印文字。"
+    },
+    {
+      "start": 924.44,
+      "end": 929.4,
+      "en": "It's actually very slightly different from the text I wrote in exercise one.",
+      "zh": "與練習一寫的文字，其實有一點點不同。"
+    },
+    {
+      "start": 929.8,
+      "end": 937.44,
+      "en": "Apparently I'm not using a period here, and I guess I did settle down to, uh, not capitalizing everything.",
+      "zh": "顯然這裡沒有用句點，而且我似乎終於接受，不再將該大寫的地方都大寫。"
+    },
+    {
+      "start": 937.44,
+      "end": 938.04,
+      "en": "But anyway.",
+      "zh": "不過，總之，"
+    },
+    {
+      "start": 938.4,
+      "end": 941.08,
+      "en": "Uh, okay, so then tokenize the full text.",
+      "zh": "好，接著將完整文字 token 化。"
+    },
+    {
+      "start": 941.08,
+      "end": 944.28,
+      "en": "So there's no masks in here and here.",
+      "zh": "這裡沒有遮罩，而這裡，"
+    },
+    {
+      "start": 944.52,
+      "end": 954.84,
+      "en": "I loop over all of the tokens in the text, and then here I make a copy of the tokens and so dot clone",
+      "zh": "逐一迭代文字中的所有 token，再複製 token，使用 .clone"
+    },
+    {
+      "start": 954.84,
+      "end": 958.6,
+      "en": "to make a copy, and then we have to send it to the GPU.",
+      "zh": "建立副本，接著必須送到 GPU。"
+    },
+    {
+      "start": 958.84,
+      "end": 966.36,
+      "en": "And then I am replacing each index in this for loop with the mask from this tokenizer.",
+      "zh": "然後在這個 for 迴圈中，將每個索引，用 tokenizer 的遮罩取代。"
+    },
+    {
+      "start": 966.6,
+      "end": 974.18,
+      "en": "It's also fine if you would write something like tokenizer dot encode and then uh like this.",
+      "zh": "也可以寫成 tokenizer.encode，再像這樣，"
+    },
+    {
+      "start": 974.18,
+      "end": 975.58,
+      "en": "That would also work.",
+      "zh": "那也能運作。"
+    },
+    {
+      "start": 975.58,
+      "end": 982.06,
+      "en": "But it's nice to know about this specific feature so I can actually just show you this here.",
+      "zh": "不過，認識這個特定功能很好，實際上可以展示給你看。"
+    },
+    {
+      "start": 982.5,
+      "end": 986.9,
+      "en": "So tokenizer mask token ID and it is 103.",
+      "zh": "就是 tokenizer.mask_token_id，數值是 103。"
+    },
+    {
+      "start": 987.38,
+      "end": 987.86,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 987.9,
+      "end": 989.98,
+      "en": "So uh, so that's the mask.",
+      "zh": "這就是遮罩。"
+    },
+    {
+      "start": 989.98,
+      "end": 999.06,
+      "en": "And then yeah here I'm just printing out this little, uh, row just to show that each token in turn is replaced with the mask token.",
+      "zh": "接著，這裡只是列印這一小列，顯示每個 token 都依序被 mask token 取代。"
+    },
+    {
+      "start": 999.62,
+      "end": 1003.3,
+      "en": "Then I push all those mask tokens through the model.",
+      "zh": "再將所有這些遮罩後的 token 送進模型。"
+    },
+    {
+      "start": 1003.34,
+      "end": 1005.42,
+      "en": "Now, of course, you could also let me see.",
+      "zh": "當然，也可以，我看看，"
+    },
+    {
+      "start": 1005.42,
+      "end": 1010.58,
+      "en": "You could move the mask tokens to the device, uh, to the GPU over here.",
+      "zh": "在這裡才將 mask tokens 移到 device，也就是 GPU。"
+    },
+    {
+      "start": 1010.58,
+      "end": 1011.3,
+      "en": "Like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 1011.5,
+      "end": 1012.82,
+      "en": "That's also fine.",
+      "zh": "也沒問題。"
+    },
+    {
+      "start": 1013.06,
+      "end": 1014.82,
+      "en": "And then here I get the output.",
+      "zh": "接著取得輸出，"
+    },
+    {
+      "start": 1014.82,
+      "end": 1015.54,
+      "en": "Logits.",
+      "zh": "logits。"
+    },
+    {
+      "start": 1015.58,
+      "end": 1021.14,
+      "en": "Of course, we only have one sequence in this batch, so that's why I'm indexing zero over here.",
+      "zh": "當然，批次中只有一個序列，所以這裡索引為 0。"
+    },
+    {
+      "start": 1021.5,
+      "end": 1026.02,
+      "en": "And then we want the logits for the missing token.",
+      "zh": "再取得缺失 token 的 logits，"
+    },
+    {
+      "start": 1026.02,
+      "end": 1027.74,
+      "en": "For the masked token.",
+      "zh": "也就是被遮罩的 token。"
+    },
+    {
+      "start": 1027.82,
+      "end": 1029.94,
+      "en": "Bring that one back to the CPU.",
+      "zh": "將它移回 CPU。"
+    },
+    {
+      "start": 1030.34,
+      "end": 1039.44,
+      "en": "And then here I find the token associated with the largest logit and then decode that to get text,",
+      "zh": "這裡找出與最大 logit 關聯的 token，解碼成文字，"
+    },
+    {
+      "start": 1039.44,
+      "end": 1044.4,
+      "en": "and then I get the z score for that specific token.",
+      "zh": "再取得那個特定 token 的 z 分數。"
+    },
+    {
+      "start": 1044.4,
+      "end": 1053.76,
+      "en": "So this is that particular predicted token minus the mean of the distribution divided by the standard deviation of the distribution.",
+      "zh": "就是該預測 token 的值，減去分布平均，再除以分布標準差。"
+    },
+    {
+      "start": 1054.16,
+      "end": 1056.48,
+      "en": "So I can run that that runs quite fast.",
+      "zh": "可以執行，速度相當快。"
+    },
+    {
+      "start": 1056.48,
+      "end": 1066.04,
+      "en": "If you're doing all of this on the CPU then maybe it takes, I don't know, ten 15 seconds for uh, let me see for this line to run.",
+      "zh": "如果全部都在 CPU 執行，這一行大概需要十到十五秒，"
+    },
+    {
+      "start": 1066.04,
+      "end": 1068.84,
+      "en": "But otherwise yeah, it's less than one second.",
+      "zh": "否則不到一秒。"
+    },
+    {
+      "start": 1069.12,
+      "end": 1069.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1069.52,
+      "end": 1071.52,
+      "en": "So yeah, that's just the confirmation.",
+      "zh": "這只是確認。"
+    },
+    {
+      "start": 1071.68,
+      "end": 1077.12,
+      "en": "And now we can print out the entire, uh, text that Bert predicted.",
+      "zh": "現在可以列印 BERT 預測的完整文字。"
+    },
+    {
+      "start": 1077.28,
+      "end": 1081.56,
+      "en": "So the sequence, the predicted sequence is the way you do it.",
+      "zh": "預測序列是「the way you do it」，"
+    },
+    {
+      "start": 1081.6,
+      "end": 1082.48,
+      "en": "The way you do.",
+      "zh": "「the way you do」。"
+    },
+    {
+      "start": 1083.08,
+      "end": 1088.2,
+      "en": "Not quite as profound as the original version, but it does make a lot of sense.",
+      "zh": "不像原版那麼深刻，但確實很合理。"
+    },
+    {
+      "start": 1088.2,
+      "end": 1094.12,
+      "en": "And each of these individual words, even when they are technically incorrect.",
+      "zh": "每個個別字，即使嚴格來說不正確，"
+    },
+    {
+      "start": 1094.12,
+      "end": 1100.26,
+      "en": "So in terms of categorical accuracy, this word is wrong because it's not anything.",
+      "zh": "也就是類別準確率上，這個字是錯的，因為不是 anything，"
+    },
+    {
+      "start": 1100.62,
+      "end": 1109.22,
+      "en": "But in terms of the contextual accuracy and the semantic accuracy, grammatical accuracy, it actually is correct the way you do it.",
+      "zh": "但就上下文、語意與語法的準確性而言，其實是對的：「the way you do it」，"
+    },
+    {
+      "start": 1109.22,
+      "end": 1109.9,
+      "en": "Period.",
+      "zh": "句點。"
+    },
+    {
+      "start": 1109.94,
+      "end": 1111.66,
+      "en": "That is a complete sentence.",
+      "zh": "這是一個完整句子。"
+    },
+    {
+      "start": 1112.02,
+      "end": 1117.86,
+      "en": "And then it's also interesting to just qualitatively have a look at these z scores.",
+      "zh": "接著從質性上查看這些 z 分數，也很有意思。"
+    },
+    {
+      "start": 1117.9,
+      "end": 1121.38,
+      "en": "And sometimes these z scores are higher.",
+      "zh": "有些時候 z 分數較高，"
+    },
+    {
+      "start": 1121.5,
+      "end": 1124.54,
+      "en": "And that tends to be when the model was correct.",
+      "zh": "往往就是模型答對的時候。"
+    },
+    {
+      "start": 1124.66,
+      "end": 1130.42,
+      "en": "And like these cases here where the model was incorrect the z scores are a little bit lower.",
+      "zh": "而像這些模型答錯的情況，z 分數就稍低。"
+    },
+    {
+      "start": 1130.46,
+      "end": 1133.86,
+      "en": "Of course here it's also just around eight and a half.",
+      "zh": "當然，這裡也只有大約 8.5。"
+    },
+    {
+      "start": 1134.94,
+      "end": 1139.74,
+      "en": "There are six exercises in total in this code challenge.",
+      "zh": "這次程式挑戰，總共有六個練習，"
+    },
+    {
+      "start": 1139.9,
+      "end": 1142.54,
+      "en": "And you have now completed the first three.",
+      "zh": "現在已完成前面三個。"
+    },
+    {
+      "start": 1142.98,
+      "end": 1145.46,
+      "en": "So I'm going to break the video here.",
+      "zh": "所以影片先在這裡告一段落，"
+    },
+    {
+      "start": 1145.62,
+      "end": 1147.7,
+      "en": "Encourage you to take a short break.",
+      "zh": "鼓勵你短暫休息。"
+    },
+    {
+      "start": 1147.74,
+      "end": 1154.42,
+      "en": "And when you feel refreshed and relaxed and ready to continue, then come back to the next video.",
+      "zh": "等精神恢復、放鬆、準備繼續時，再回來看下一支影片。"
+    }
+  ]
+}

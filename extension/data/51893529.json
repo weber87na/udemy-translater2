@@ -1,0 +1,2155 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51893529",
+  "title": "State-space trajectories through embedding space",
+  "section": 20,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "50d8a5349aeff65354f2a8240d9c7521f397852b7138a79f3c1b43c686a1c618",
+  "cues": [
+    {
+      "start": 2.24,
+      "end": 9.56,
+      "en": "The next analysis procedure that I will introduce you to is called a state space analysis.",
+      "zh": "接下來要介紹的分析程序，叫作狀態空間分析。"
+    },
+    {
+      "start": 9.92,
+      "end": 20.36,
+      "en": "And I think it's a nice integration of path length token embeddings, vectors, and also principal components analysis and dimension reduction.",
+      "zh": "我覺得，它很好地整合路徑長度、token 嵌入向量，以及主成分分析與降維。"
+    },
+    {
+      "start": 21,
+      "end": 29.04,
+      "en": "If you are already comfortable with PCA, then state space trajectories are actually really straightforward.",
+      "zh": "如果已經熟悉 PCA，狀態空間軌跡其實非常直接。"
+    },
+    {
+      "start": 29.44,
+      "end": 37.52,
+      "en": "It's literally just projecting the vectors down onto two or maybe three principal components, and then",
+      "zh": "真的就只是將向量投影到兩個，或三個主成分，"
+    },
+    {
+      "start": 37.52,
+      "end": 42.64,
+      "en": "quantifying the progression of the data through the PCA space.",
+      "zh": "再量化資料在 PCA 空間中的進展。"
+    },
+    {
+      "start": 43.44,
+      "end": 49.8,
+      "en": "So this is a screenshot from the video where I introduced principal components analysis.",
+      "zh": "這是介紹主成分分析那支影片的截圖。"
+    },
+    {
+      "start": 50.24,
+      "end": 60.16,
+      "en": "And remember that the idea of a PCA is to find an orthogonal set of basis vectors such that each vector",
+      "zh": "記住，PCA 的概念，是找出一組正交基底向量，讓每個向量"
+    },
+    {
+      "start": 60.29,
+      "end": 68.89,
+      "en": "explains as much variability in the data as possible, while being orthogonal to all of the previous vectors.",
+      "zh": "在與之前所有向量正交的前提下，盡可能解釋資料中最多的變異。"
+    },
+    {
+      "start": 69.57,
+      "end": 81.53,
+      "en": "Now, we have previously used this analysis to look at the effective dimensionality of the embeddings, vectors, and spaces, and that was all based on the singular values.",
+      "zh": "之前使用這項分析，研究嵌入、向量與空間的有效維度，全部是基於奇異值。"
+    },
+    {
+      "start": 81.77,
+      "end": 88.09,
+      "en": "What we are going to do here, and also in the code challenge coming up after the next video, is to",
+      "zh": "這裡，以及下一支影片之後的程式挑戰，則要"
+    },
+    {
+      "start": 88.13,
+      "end": 97.17,
+      "en": "use these basis vectors to compress the data down from the 1000 dimensional embedding space down to",
+      "zh": "使用這些基底向量，將資料從上千維的嵌入空間，壓縮成"
+    },
+    {
+      "start": 97.21000000000001,
+      "end": 101.77000000000001,
+      "en": "two dimensions, corresponding to the first two principal components.",
+      "zh": "對應前兩個主成分的二維。"
+    },
+    {
+      "start": 102.41,
+      "end": 106.45,
+      "en": "So here's what I will show you in the Python demo in a moment.",
+      "zh": "以下是稍後 Python 示範的內容。"
+    },
+    {
+      "start": 107.05,
+      "end": 115.45,
+      "en": "I'll start by importing the GPT two medium model and then tokenizing a bunch of texts, a bunch of sentences.",
+      "zh": "先匯入 GPT2-medium，再將一批文字、一批句子 token 化。"
+    },
+    {
+      "start": 116.00999999999999,
+      "end": 124.87,
+      "en": "Now, you have seen this data set of 54 sentences that contain all the words her once in each sentence.",
+      "zh": "這份資料集以前看過，54 個句子，每句都出現一次 her。"
+    },
+    {
+      "start": 125.07,
+      "end": 132.67,
+      "en": "And what you're looking at here is a variant of that data set where I replaced the word her with the word him.",
+      "zh": "這裡看到的是那份資料集的變體，將 her 換成 him。"
+    },
+    {
+      "start": 133.23,
+      "end": 142.23,
+      "en": "So now I have 54 sentences with him, 54 of the exact same sentences with the target word her.",
+      "zh": "所以現在，有 54 個包含 him 的句子，以及 54 個完全相同、但目標詞是 her 的句子。"
+    },
+    {
+      "start": 142.82999999999998,
+      "end": 149.71,
+      "en": "And then for an interesting comparison, I've also replaced the word him with the word round.",
+      "zh": "另外，為了做有意思的比較，也把 him 換成 round。"
+    },
+    {
+      "start": 150.07,
+      "end": 161.19,
+      "en": "Now, this is an interesting comparison case because her and him are pronouns, they are grammatically correct in those sentences that I just showed.",
+      "zh": "這是很有意思的對照，因為 her 與 him 是代名詞，在剛才的句子裡，文法上正確，"
+    },
+    {
+      "start": 161.35,
+      "end": 164.27,
+      "en": "They are also sensible in these sentences.",
+      "zh": "語意也合理。"
+    },
+    {
+      "start": 164.82999999999998,
+      "end": 167.55,
+      "en": "However, round is not a pronoun.",
+      "zh": "但 round 不是代名詞，"
+    },
+    {
+      "start": 167.55,
+      "end": 169.59,
+      "en": "It's not even a noun, it's an adjective.",
+      "zh": "甚至不是名詞，而是形容詞，"
+    },
+    {
+      "start": 169.82999999999998,
+      "end": 174.51,
+      "en": "And so it's grammatically incorrect in all of these sentences.",
+      "zh": "所以在這些句子中，文法都不正確。"
+    },
+    {
+      "start": 174.95,
+      "end": 177.82999999999998,
+      "en": "For example, we invited round to dinner.",
+      "zh": "例如「we invited round to dinner」，我們邀請 round 來吃晚餐。"
+    },
+    {
+      "start": 177.87,
+      "end": 179.52,
+      "en": "That just doesn't make any sense.",
+      "zh": "這完全沒有道理。"
+    },
+    {
+      "start": 179.88,
+      "end": 186.04,
+      "en": "So now we have three groups of sentences, all of which are identical.",
+      "zh": "現在有三組句子，全部相同，"
+    },
+    {
+      "start": 186.04,
+      "end": 191.56,
+      "en": "So the three data sets are identical except for this one target word.",
+      "zh": "也就是除了這個目標詞，三份資料集完全一致。"
+    },
+    {
+      "start": 191.84,
+      "end": 194.08,
+      "en": "And two of those data sets.",
+      "zh": "其中兩份資料集，"
+    },
+    {
+      "start": 194.08,
+      "end": 197.2,
+      "en": "Two of those groups have the same part of speech.",
+      "zh": "兩組的詞性相同，"
+    },
+    {
+      "start": 197.2,
+      "end": 198.2,
+      "en": "So a pronoun.",
+      "zh": "都是代名詞。"
+    },
+    {
+      "start": 198.2,
+      "end": 201.8,
+      "en": "And then here we have something that just doesn't make any sense grammatically.",
+      "zh": "另外這組，則在文法上完全不合理。"
+    },
+    {
+      "start": 202.32,
+      "end": 210.84,
+      "en": "Anyway, I am going to push all of these sentences through the GPT model and then get the hidden states.",
+      "zh": "總之，會把所有句子送進 GPT 模型，取得隱藏狀態。"
+    },
+    {
+      "start": 211.24,
+      "end": 213,
+      "en": "Here you see the sizes.",
+      "zh": "這裡可以看到大小，"
+    },
+    {
+      "start": 213,
+      "end": 215,
+      "en": "It's 162.",
+      "zh": "是 162，"
+    },
+    {
+      "start": 215.28,
+      "end": 223.32,
+      "en": "That corresponds to 54 sentences times three groups, eight tokens per sentence, including padding tokens.",
+      "zh": "對應 54 個句子乘以三組，每句 8 個 token，包含填補 token。"
+    },
+    {
+      "start": 223.48,
+      "end": 231.36,
+      "en": "And the medium version of GPT two has 1024 embeddings dimensions.",
+      "zh": "GPT2-medium 的嵌入維度是 1,024，"
+    },
+    {
+      "start": 231.8,
+      "end": 234.76,
+      "en": "So that's the raw embeddings dimensionality.",
+      "zh": "這是原始嵌入維度。"
+    },
+    {
+      "start": 234.96,
+      "end": 244.21,
+      "en": "And what we are going to do next is create a data set of just the target tokens and then apply a PCA to those data.",
+      "zh": "接著建立只包含目標 token 的資料集，再對資料做 PCA。"
+    },
+    {
+      "start": 245.09,
+      "end": 255.29,
+      "en": "Now I'm going to do the state space trajectories in one common projected space for all of the vectors that all of the layers in this model.",
+      "zh": "我會讓這個模型中，所有層的所有向量，其狀態空間軌跡，都位於同一個共同投影空間。"
+    },
+    {
+      "start": 255.85,
+      "end": 267.21,
+      "en": "And that means that I'm going to need to run a PCA on all of the data from all of the layers to define one common principal components space.",
+      "zh": "因此，必須對所有層的全部資料做 PCA，定義一個共同主成分空間。"
+    },
+    {
+      "start": 267.65,
+      "end": 276.21,
+      "en": "And so to do that, I need to extract the token embeddings vectors for all of the target tokens and",
+      "zh": "要這麼做，就要擷取所有目標 token 的 token 嵌入向量，"
+    },
+    {
+      "start": 276.21,
+      "end": 280.81,
+      "en": "all of the sentences and across all of the layers.",
+      "zh": "涵蓋全部句子，以及所有層。"
+    },
+    {
+      "start": 280.81,
+      "end": 283.25,
+      "en": "So this is just for one of the layers.",
+      "zh": "這裡只是一層，"
+    },
+    {
+      "start": 284.29,
+      "end": 287.53,
+      "en": "And that's what you see happening in this piece of code.",
+      "zh": "這段程式就是在做這件事。"
+    },
+    {
+      "start": 287.97,
+      "end": 292.61,
+      "en": "This screenshot here is actually inside of a double for loop.",
+      "zh": "這張截圖，其實位於雙重 for 迴圈內。"
+    },
+    {
+      "start": 292.65,
+      "end": 299.02,
+      "en": "Of course you will see the full code in a moment when I switch to Python, but basically I'm looping",
+      "zh": "切換到 Python 後，會看到完整程式。基本上，是逐一迭代"
+    },
+    {
+      "start": 299.02,
+      "end": 310.38,
+      "en": "over the sentences, identifying the index of the target word in each sentence, and then looping over all of the transformer block or the hidden layer block layers.",
+      "zh": "句子，找出每句目標詞的索引，再逐一迭代所有 Transformer 區塊、所有隱藏層。"
+    },
+    {
+      "start": 310.54,
+      "end": 314.38,
+      "en": "So here I'm creating two matrices of data.",
+      "zh": "這裡建立兩個資料矩陣。"
+    },
+    {
+      "start": 314.78,
+      "end": 318.82,
+      "en": "This matrix here called all x all activations.",
+      "zh": "這個矩陣叫作 all x，也就是所有活化。"
+    },
+    {
+      "start": 319.34,
+      "end": 324.94,
+      "en": "And you can see the size of this is 4050 by 1024.",
+      "zh": "可以看到，大小是 4,050×1,024。"
+    },
+    {
+      "start": 325.38,
+      "end": 332.34000000000003,
+      "en": "Now the 4050 corresponds to all of the sentences over all of the layers.",
+      "zh": "4,050 對應所有層中的全部句子。"
+    },
+    {
+      "start": 332.86,
+      "end": 341.82,
+      "en": "But for the subsequent analyses, we need to know which rows come from, which sentences with which targets.",
+      "zh": "但後續分析，需要知道哪些列來自哪些句子、哪些目標，"
+    },
+    {
+      "start": 341.94,
+      "end": 344.38,
+      "en": "And so, uh, and also which layers.",
+      "zh": "以及哪些層。"
+    },
+    {
+      "start": 344.54,
+      "end": 354.14,
+      "en": "So that's why I also created this lookup table over here, which tells me for each of these rows, what is the sentence number.",
+      "zh": "因此，也建立這裡的查找表，告訴我們每一列的句子編號，"
+    },
+    {
+      "start": 354.14,
+      "end": 365.92,
+      "en": "So the sentence index which layer this row comes from, and the target, which is either zero or 1 or 2 corresponding to him or her or round.",
+      "zh": "也就是句子索引、這列來自哪一層，以及目標，0、1、2 分別對應 him、her、round。"
+    },
+    {
+      "start": 366.4,
+      "end": 371.36,
+      "en": "And actually, truth be told, I don't actually need this first piece of information.",
+      "zh": "其實老實說，不需要第一項資訊。"
+    },
+    {
+      "start": 371.64,
+      "end": 374.72,
+      "en": "I didn't end up using these sentence index.",
+      "zh": "最後沒有使用句子索引，"
+    },
+    {
+      "start": 374.72,
+      "end": 376.8,
+      "en": "I left it in here anyway.",
+      "zh": "但還是留著。"
+    },
+    {
+      "start": 377.32,
+      "end": 383.12,
+      "en": "Initially I thought I would use it, but then I just decided to leave it in the code anyway, the point",
+      "zh": "一開始以為會用，後來決定就留在程式裡。總之，重點"
+    },
+    {
+      "start": 383.12,
+      "end": 391.92,
+      "en": "is that we can use this lookup table to find which rows in this all acts matrix correspond to, for",
+      "zh": "是可以利用這個查找表，找出 all x 矩陣中的哪些列，對應例如"
+    },
+    {
+      "start": 391.92,
+      "end": 395.92,
+      "en": "example, layer six and the target token for her.",
+      "zh": "第 6 層，以及目標 token her。"
+    },
+    {
+      "start": 397.12,
+      "end": 401.52,
+      "en": "Okay, so then I will perform a PCA on these data.",
+      "zh": "好，接著對資料做 PCA，"
+    },
+    {
+      "start": 401.52,
+      "end": 403.48,
+      "en": "So the all x matrix.",
+      "zh": "也就是 all x 矩陣。"
+    },
+    {
+      "start": 403.84000000000003,
+      "end": 412.2,
+      "en": "And that will give me a common set of reduced dimensional basis vectors that are based on all the data",
+      "zh": "這會得到一組共同的降維基底向量，根據全部"
+    },
+    {
+      "start": 412.2,
+      "end": 417.69,
+      "en": "from all of the texts, all the target tokens and all of the layers and so on.",
+      "zh": "文字、所有目標 token，以及所有層的全部資料建立。"
+    },
+    {
+      "start": 418.21,
+      "end": 427.29,
+      "en": "And here you see a screenshot of the PCA explained variance, uh, converted into percent of the total variance.",
+      "zh": "這裡是 PCA 解釋變異的截圖，轉換為總變異的百分比。"
+    },
+    {
+      "start": 427.81,
+      "end": 433.57,
+      "en": "Now the first component explains almost two thirds of the variance of the data set.",
+      "zh": "第一個成分，解釋資料集將近三分之二的變異。"
+    },
+    {
+      "start": 433.85,
+      "end": 438.73,
+      "en": "And then the next couple of components accounts for looks like around 10%.",
+      "zh": "接著幾個成分，大概解釋 10%，"
+    },
+    {
+      "start": 438.73,
+      "end": 440.77,
+      "en": "And I don't know, maybe 8 or 9%.",
+      "zh": "還有，也許 8% 或 9%。"
+    },
+    {
+      "start": 441.37,
+      "end": 452.61,
+      "en": "And actually when I look at these data, when I look at this screenshot, I think that it would be appropriate to consider the state space trajectories in three dimensions.",
+      "zh": "其實看這些資料、這張截圖，我覺得以三維研究狀態空間軌跡，會很適當，"
+    },
+    {
+      "start": 452.77,
+      "end": 456.89,
+      "en": "So projecting the data down to these top three components.",
+      "zh": "也就是將資料投影到前三個成分。"
+    },
+    {
+      "start": 457.89,
+      "end": 464.49,
+      "en": "However, for simplicity and visualize ability I'm actually just going to take the top two components.",
+      "zh": "不過，為了簡單、容易視覺化，只會取前兩個成分，"
+    },
+    {
+      "start": 464.73,
+      "end": 467.61,
+      "en": "Uh, just for make things a little bit easier.",
+      "zh": "讓事情稍微容易一點。"
+    },
+    {
+      "start": 467.81,
+      "end": 478.14,
+      "en": "But you know, if you were doing this kind of analysis for a real research project, then you would want to consider taking the first three dimensions anyway.",
+      "zh": "但如果是真的研究專題，應該考慮取前三個維度。"
+    },
+    {
+      "start": 478.18,
+      "end": 489.46,
+      "en": "So the last thing that I will show you in this code demo is plotting the state space trajectories and calculating distances between the different trajectories.",
+      "zh": "這份示範最後，會畫出狀態空間軌跡，並計算不同軌跡之間的距離。"
+    },
+    {
+      "start": 489.98,
+      "end": 492.06,
+      "en": "So let me first describe this plot.",
+      "zh": "先解釋這張圖。"
+    },
+    {
+      "start": 492.06,
+      "end": 496.38,
+      "en": "Here on the left we have the three target types.",
+      "zh": "左邊有三種目標，"
+    },
+    {
+      "start": 496.5,
+      "end": 500.98,
+      "en": "And so there are three lines with three colors here in this plot.",
+      "zh": "所以圖中有三條線、三種顏色。"
+    },
+    {
+      "start": 501.54,
+      "end": 508.74,
+      "en": "Each marker corresponds to a different layer of the hidden states starting from all the way over here.",
+      "zh": "每個標記，對應不同的隱藏狀態層，從最靠這邊開始，"
+    },
+    {
+      "start": 508.74,
+      "end": 510.54,
+      "en": "Weather basically all the same.",
+      "zh": "那裡基本上全部相同。"
+    },
+    {
+      "start": 510.86,
+      "end": 520.3,
+      "en": "And you can see as we go deeper into the model, the trajectories get further out, so the spacing between layers gets longer.",
+      "zh": "可以看到，模型越深，軌跡往外走得越遠，所以層與層之間的間距變大。"
+    },
+    {
+      "start": 520.58,
+      "end": 527.5,
+      "en": "And there are also some differences between within the pronouns and between the pronouns and the word round.",
+      "zh": "代名詞彼此之間，以及代名詞與 round 之間，也有一些差異。"
+    },
+    {
+      "start": 527.86,
+      "end": 531.38,
+      "en": "I don't know how well you can see this initial plot over here.",
+      "zh": "不確定你能否看清這裡最初這部分，"
+    },
+    {
+      "start": 531.38,
+      "end": 534.38,
+      "en": "It's right here where my mouse is pointing.",
+      "zh": "就在滑鼠指的這裡。"
+    },
+    {
+      "start": 534.86,
+      "end": 539.39,
+      "en": "But this dot here corresponds to the initial embeddings layer.",
+      "zh": "這個點，對應最初嵌入層，"
+    },
+    {
+      "start": 539.67,
+      "end": 543.67,
+      "en": "And the rest of these points are for the transformer blocks.",
+      "zh": "其他點，則是 Transformer 區塊。"
+    },
+    {
+      "start": 543.67,
+      "end": 550.27,
+      "en": "And then this wild, crazy set of points all the way down here is for the final transformer block.",
+      "zh": "下面這組狂野的點，是最後一個 Transformer 區塊。"
+    },
+    {
+      "start": 551.07,
+      "end": 553.27,
+      "en": "But what are we even looking at here.",
+      "zh": "但我們到底在看什麼？"
+    },
+    {
+      "start": 553.27,
+      "end": 554.51,
+      "en": "What is this graph.",
+      "zh": "這張圖是什麼？"
+    },
+    {
+      "start": 554.75,
+      "end": 562.55,
+      "en": "Well, the x axis is the first principal component and the y axis is the second principal component.",
+      "zh": "x 軸是第一主成分，y 軸是第二主成分。"
+    },
+    {
+      "start": 562.99,
+      "end": 574.35,
+      "en": "So what I'm plotting here is the projection of the average vector from each layer and each of these target types onto the first principal components.",
+      "zh": "所以這裡畫的，是每層、每種目標的平均向量，在最前面的主成分上的投影。"
+    },
+    {
+      "start": 574.59,
+      "end": 575.67,
+      "en": "It's really that simple.",
+      "zh": "真的就這麼簡單，"
+    },
+    {
+      "start": 575.67,
+      "end": 586.07,
+      "en": "It's just the projection onto the two axes with each transformer block or depth in the model plotted as a line, or this set of points here.",
+      "zh": "只是投影到兩個軸，再將各個 Transformer 區塊、模型深度，畫成線或這組點。"
+    },
+    {
+      "start": 587.15,
+      "end": 594.47,
+      "en": "And by the way, each of these individual points is actually the average of 54 sentences.",
+      "zh": "順帶一提，每個個別點，其實是 54 個句子的平均。"
+    },
+    {
+      "start": 594.97,
+      "end": 602.29,
+      "en": "So in theory it would be possible to draw like some error sphere or confidence interval bubble around",
+      "zh": "理論上，可以在每個點周圍，畫出某種誤差球或信賴區間泡泡，"
+    },
+    {
+      "start": 602.29,
+      "end": 613.45,
+      "en": "each of these points, corresponding to the variability of these projections across the 54 sentences within each layer and each target token type.",
+      "zh": "對應每一層、每種目標 token 中，54 個句子之間投影的變異。"
+    },
+    {
+      "start": 613.93,
+      "end": 616.13,
+      "en": "But that's just a general comment.",
+      "zh": "但這只是一般性評論，"
+    },
+    {
+      "start": 616.13,
+      "end": 618.13,
+      "en": "I'm not actually going to do that in this video.",
+      "zh": "這支影片不會做。"
+    },
+    {
+      "start": 618.65,
+      "end": 618.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 618.97,
+      "end": 630.53,
+      "en": "So you can see that the three sets of dots for the three target tokens generally carve out a similar trajectory in this space, but certainly not exactly the same.",
+      "zh": "可以看到，三個目標 token 的三組點，在這個空間畫出大致相似、但肯定不完全相同的軌跡。"
+    },
+    {
+      "start": 631.05,
+      "end": 638.29,
+      "en": "So then we can quantify that by calculating the distance between two different points from the same",
+      "zh": "接著可以量化，計算同一層中，兩種不同目標 token，或一對目標 token 的兩個"
+    },
+    {
+      "start": 638.29,
+      "end": 643.53,
+      "en": "layer for the two different or for a pair of target tokens.",
+      "zh": "點之間的距離。"
+    },
+    {
+      "start": 644.13,
+      "end": 645.77,
+      "en": "And that you can see here.",
+      "zh": "這裡就能看到。"
+    },
+    {
+      "start": 646.13,
+      "end": 653.09,
+      "en": "So what you see here is literally just the Euclidean distance for example between these two target tokens.",
+      "zh": "真的只是歐幾里得距離，例如這兩個目標 token，"
+    },
+    {
+      "start": 653.09,
+      "end": 659.78,
+      "en": "So these two coordinates for this particular layer that would correspond to this data point over here.",
+      "zh": "也就是這兩個座標，在這個特定層的距離，對應這邊這個資料點。"
+    },
+    {
+      "start": 660.46,
+      "end": 667.22,
+      "en": "So this like red purple line this is the distance between him and her in each layer.",
+      "zh": "所以這條紅紫色線，是每層 him 與 her 之間的距離。"
+    },
+    {
+      "start": 667.34,
+      "end": 674.86,
+      "en": "And the green line is the distance between the vector for round and the average of the two vectors for him and her.",
+      "zh": "綠線，則是 round 向量，與 him、her 兩個向量平均之間的距離。"
+    },
+    {
+      "start": 675.14,
+      "end": 679.1,
+      "en": "That's why I call it him her in the figure legend here.",
+      "zh": "所以圖例才稱為 him her。"
+    },
+    {
+      "start": 679.22,
+      "end": 684.26,
+      "en": "So this is literally just the average of the blue and the red lines over here.",
+      "zh": "這真的只是將這裡藍線與紅線取平均，"
+    },
+    {
+      "start": 684.54,
+      "end": 687.82,
+      "en": "And their collective distance from the green line.",
+      "zh": "再計算它們整體與綠線的距離。"
+    },
+    {
+      "start": 688.62,
+      "end": 695.34,
+      "en": "So it's interesting to see that the target distances generally increase as we go deeper into the model.",
+      "zh": "有意思的是，模型越深，目標之間的距離通常越大，"
+    },
+    {
+      "start": 695.54,
+      "end": 699.7,
+      "en": "But there are also some non-monotonic dynamics in here.",
+      "zh": "但也存在一些非單調的動態。"
+    },
+    {
+      "start": 700.26,
+      "end": 707.66,
+      "en": "It would be interesting to explore how much of this difference here for the green line, for round versus",
+      "zh": "值得進一步研究的是，這裡綠線、round 相對於"
+    },
+    {
+      "start": 707.66,
+      "end": 712.7,
+      "en": "the pronouns is actually due to the fact that this is a grammatical error.",
+      "zh": "代名詞的差異，有多少其實來自文法錯誤。"
+    },
+    {
+      "start": 712.94,
+      "end": 719.31,
+      "en": "And maybe that grammatical error is causing the model some confusion, and maybe that requires some",
+      "zh": "也許文法錯誤讓模型困惑，需要"
+    },
+    {
+      "start": 719.51,
+      "end": 724.95,
+      "en": "extra processing, some additional rotations in the token embeddings vector, and so on.",
+      "zh": "額外處理，對 token 嵌入向量進行更多旋轉等等。"
+    },
+    {
+      "start": 725.91,
+      "end": 731.23,
+      "en": "Anyway, let's now switch to code and see how this analysis is implemented.",
+      "zh": "總之，現在切換到程式碼，看看分析如何實作。"
+    },
+    {
+      "start": 732.51,
+      "end": 738.87,
+      "en": "These are all libraries you've seen before, including this PCA function from scikit learn.",
+      "zh": "這些函式庫以前都看過，包括 scikit-learn 的 PCA 函式。"
+    },
+    {
+      "start": 739.19,
+      "end": 745.27,
+      "en": "Here I'm importing GPT two medium and switching the model to eval mode.",
+      "zh": "這裡匯入 GPT2-medium，切換到 eval 模式。"
+    },
+    {
+      "start": 745.43,
+      "end": 755.67,
+      "en": "So we have same vocab as for all the GPT two variants, and an embeddings dimension of 1024 and 24 layers",
+      "zh": "詞彙表與所有 GPT2 版本相同，嵌入維度為 1,024，並有 24 層，"
+    },
+    {
+      "start": 755.67,
+      "end": 758.43,
+      "en": "in the 24 transformer blocks.",
+      "zh": "也就是 24 個 Transformer 區塊。"
+    },
+    {
+      "start": 758.95,
+      "end": 761.11,
+      "en": "Okay, so here is the data.",
+      "zh": "好，這裡是資料。"
+    },
+    {
+      "start": 761.35,
+      "end": 764.27,
+      "en": "Uh, you can see these sentences all contain him.",
+      "zh": "可以看到，這些句子全部包含 him，"
+    },
+    {
+      "start": 764.55,
+      "end": 766.35,
+      "en": "These ones all contain her.",
+      "zh": "這些全部包含 her，"
+    },
+    {
+      "start": 766.63,
+      "end": 771.51,
+      "en": "And these ones all contain the word round, because why not?",
+      "zh": "這些全部包含 round，為什麼不試試？"
+    },
+    {
+      "start": 771.99,
+      "end": 773.44,
+      "en": "Uh, and also, by the way.",
+      "zh": "另外，順帶一提，"
+    },
+    {
+      "start": 773.44,
+      "end": 778,
+      "en": "So I have some spaces in between these lines here, but it's actually just one list.",
+      "zh": "這些行之間雖然有些空行，其實只是一個串列。"
+    },
+    {
+      "start": 778,
+      "end": 784.32,
+      "en": "So, uh, after going through a couple of different variants, I decided that it would be easiest to",
+      "zh": "試過幾種不同做法後，我決定"
+    },
+    {
+      "start": 784.36,
+      "end": 793.08,
+      "en": "organize all of the data into one list, rather than having three separate lists for the three variable",
+      "zh": "將所有資料放在同一個串列最簡單，而不是為三種變數"
+    },
+    {
+      "start": 793.44,
+      "end": 795.24,
+      "en": "types or the three target types.",
+      "zh": "類型、三種目標類型，各建立獨立串列。"
+    },
+    {
+      "start": 795.68,
+      "end": 803.44,
+      "en": "And then over here I create this vector called sentence IDs, and I can show you what that looks like.",
+      "zh": "接著在這裡建立 sentence IDs 向量，可以展示它的樣子。"
+    },
+    {
+      "start": 803.44,
+      "end": 807.52,
+      "en": "It's literally just a bunch of zeros, a bunch of ones and a bunch of twos.",
+      "zh": "真的就只是一串 0、一串 1，以及一串 2，"
+    },
+    {
+      "start": 807.68,
+      "end": 813.28,
+      "en": "And this just tells me which sentences contain which target tokens.",
+      "zh": "告訴我，每個句子包含哪種目標 token。"
+    },
+    {
+      "start": 813.76,
+      "end": 814.32,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 814.8,
+      "end": 816.08,
+      "en": "So and now here.",
+      "zh": "現在這裡，"
+    },
+    {
+      "start": 816.12,
+      "end": 819.68,
+      "en": "Yeah tokenizing each of the target words.",
+      "zh": "將每個目標詞 token 化，"
+    },
+    {
+      "start": 819.68,
+      "end": 823.36,
+      "en": "So I will be able to identify them later on.",
+      "zh": "方便後面辨識。"
+    },
+    {
+      "start": 823.8,
+      "end": 827.2,
+      "en": "And then I'm just tokenizing the rest of this text.",
+      "zh": "接著將其他文字 token 化。"
+    },
+    {
+      "start": 827.24,
+      "end": 828.4,
+      "en": "You've seen this before.",
+      "zh": "這以前看過，"
+    },
+    {
+      "start": 828.4,
+      "end": 830.36,
+      "en": "We need padding equals true.",
+      "zh": "需要 padding=True，"
+    },
+    {
+      "start": 830.56,
+      "end": 833.34,
+      "en": "We need to define a Pad token.",
+      "zh": "也需要定義 pad token，"
+    },
+    {
+      "start": 833.34,
+      "end": 843.98,
+      "en": "And then that's how we make sure that we have an equal number of tokens in every row in the batch that we feed into the model.",
+      "zh": "這樣才能確保，送進模型的批次中，每一列有相同數量的 token。"
+    },
+    {
+      "start": 843.98,
+      "end": 850.62,
+      "en": "And that's what I do here also because we need to pad, then we also need this attention mask here.",
+      "zh": "這裡就是這麼做。另外因為需要填補，也需要這個注意力遮罩。"
+    },
+    {
+      "start": 850.62,
+      "end": 857.66,
+      "en": "So therefore I'm using just the tokenizer and not what I often do is write tokenizer dot encode.",
+      "zh": "因此，我直接呼叫 tokenizer，而不是經常使用的 tokenizer.encode。"
+    },
+    {
+      "start": 857.94,
+      "end": 861.98,
+      "en": "If you do this it's only going to return the input ids.",
+      "zh": "如果使用 encode，只會傳回 input IDs。"
+    },
+    {
+      "start": 862.22,
+      "end": 869.98,
+      "en": "But if you leave out that particular method and you just call the entire object, then you will get a lot more information.",
+      "zh": "但省略這個特定方法，直接呼叫整個物件，就會得到更多資訊。"
+    },
+    {
+      "start": 869.98,
+      "end": 871.54,
+      "en": "This is all review by the way.",
+      "zh": "這些都是複習，"
+    },
+    {
+      "start": 871.58,
+      "end": 873.7,
+      "en": "So just a bit of a repeat.",
+      "zh": "只是稍微重複一下。"
+    },
+    {
+      "start": 873.7,
+      "end": 876.74,
+      "en": "So you get the input IDs and the attention mask.",
+      "zh": "所以會取得 input IDs 與注意力遮罩。"
+    },
+    {
+      "start": 876.78,
+      "end": 879.14,
+      "en": "You can see this goes to zeros here.",
+      "zh": "可以看到，這裡變成 0，"
+    },
+    {
+      "start": 879.34,
+      "end": 886.58,
+      "en": "And that yeah the model internally will know to just ignore those uh those tokens okay.",
+      "zh": "模型內部就知道，要忽略那些 token。"
+    },
+    {
+      "start": 886.62,
+      "end": 890.3,
+      "en": "So here I push the model uh push the data through the model.",
+      "zh": "這裡將模型，不，是資料，送進模型。"
+    },
+    {
+      "start": 890.58,
+      "end": 898.31,
+      "en": "Uh, defining some variable here for the number of layers, and then just confirming the size of the outputs.",
+      "zh": "定義一個表示層數的變數，再確認輸出大小。"
+    },
+    {
+      "start": 898.35,
+      "end": 902.99,
+      "en": "So the hidden states for just one randomly selected layer here.",
+      "zh": "這裡只是隨意挑一層的隱藏狀態。"
+    },
+    {
+      "start": 903.39,
+      "end": 913.03,
+      "en": "The next part of this code cell is to create the data set that we will use to define the principal components axes.",
+      "zh": "這個程式區塊下一部分，是建立資料集，用來定義主成分座標軸。"
+    },
+    {
+      "start": 913.55,
+      "end": 920.07,
+      "en": "Now, the reason why we need all of the data together from all of the layers is that if you would run",
+      "zh": "之所以需要將全部層的資料放在一起，是因為如果"
+    },
+    {
+      "start": 920.07,
+      "end": 929.71,
+      "en": "the PCA separately on each layer, then the coordinates, the basis vectors would actually be different for every layer.",
+      "zh": "對各層分別執行 PCA，每層的座標、基底向量就會不同。"
+    },
+    {
+      "start": 929.87,
+      "end": 932.39,
+      "en": "Now sometimes that might be appropriate.",
+      "zh": "有時那也許適當，"
+    },
+    {
+      "start": 932.39,
+      "end": 933.83,
+      "en": "Maybe that's what you want to do.",
+      "zh": "也許你就是想那麼做。"
+    },
+    {
+      "start": 934.23,
+      "end": 941.15,
+      "en": "But in this case, to get this state space trajectory, we need to project all of the data from all",
+      "zh": "但這裡為了取得狀態空間軌跡，需要把全部"
+    },
+    {
+      "start": 941.19,
+      "end": 946.47,
+      "en": "of the layers and all the target types onto a common set of axes.",
+      "zh": "層、全部目標類型的資料，投影到共同的一組軸上。"
+    },
+    {
+      "start": 946.51,
+      "end": 951.24,
+      "en": "If every layer has its own axis, then we cannot compare them.",
+      "zh": "如果每層都有自己的軸，就無法比較，"
+    },
+    {
+      "start": 951.24,
+      "end": 955.92,
+      "en": "We can't project them all onto the same lower dimensional space.",
+      "zh": "無法全部投影到同一個低維空間。"
+    },
+    {
+      "start": 956.32,
+      "end": 967.44,
+      "en": "So that's why I need to create this new matrix where I'm basically just concatenating all of the target token vectors from all of the hidden states layers.",
+      "zh": "所以才需要建立新矩陣，基本上就是串接所有隱藏狀態層的全部目標 token 向量。"
+    },
+    {
+      "start": 967.92,
+      "end": 971.16,
+      "en": "So what is the size of that matrix?",
+      "zh": "矩陣大小是多少？"
+    },
+    {
+      "start": 971.24,
+      "end": 974.56,
+      "en": "Well, it's going to be layers by sentences.",
+      "zh": "會是層數乘以句子數，"
+    },
+    {
+      "start": 974.68,
+      "end": 979.52,
+      "en": "And of course the second dimension is going to be the embeddings dimensionality.",
+      "zh": "第二個維度當然是嵌入維度。"
+    },
+    {
+      "start": 979.72,
+      "end": 985.72,
+      "en": "And then the idea is that we want to run the PCA over this dimension over here.",
+      "zh": "概念是，要沿這個維度執行 PCA。"
+    },
+    {
+      "start": 985.72,
+      "end": 989.2,
+      "en": "So we are not going to reduce these data.",
+      "zh": "所以不會縮減這些資料，"
+    },
+    {
+      "start": 989.2,
+      "end": 994.44,
+      "en": "We are going to reduce the data along this axis along this dimension.",
+      "zh": "而是沿這個軸、這個維度降維。"
+    },
+    {
+      "start": 994.96,
+      "end": 995.24,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 995.28,
+      "end": 998,
+      "en": "And then yeah here is the lookup table.",
+      "zh": "接著這裡是查找表。"
+    },
+    {
+      "start": 998.24,
+      "end": 998.48,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 998.52,
+      "end": 1006.44,
+      "en": "So now I'm looping over all of the sentences here I'm finding which index in the sentence contains a target.",
+      "zh": "現在逐一迭代所有句子，找出句子中包含目標的索引。"
+    },
+    {
+      "start": 1006.64,
+      "end": 1008.8,
+      "en": "There are three possible targets here.",
+      "zh": "這裡有三種可能目標，"
+    },
+    {
+      "start": 1008.8,
+      "end": 1016.25,
+      "en": "So it can be either the token for him or the token for her, or the token for round.",
+      "zh": "可能是 him、her，或 round 的 token。"
+    },
+    {
+      "start": 1016.57,
+      "end": 1016.93,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1016.97,
+      "end": 1024.29,
+      "en": "And yeah, these are constructed so that only one of these conditionals will be true for any sentence.",
+      "zh": "這些句子經過安排，所以每句只會有其中一個條件成立。"
+    },
+    {
+      "start": 1024.45,
+      "end": 1035.37,
+      "en": "So if you do not have a data set that's so cleanly curated and crafted for this purpose, then yeah, this might require some additional modifications.",
+      "zh": "如果資料集沒有為這個目的，整理得這麼乾淨、設計得這麼仔細，那可能需要額外修改。"
+    },
+    {
+      "start": 1035.77,
+      "end": 1043.01,
+      "en": "Furthermore, if you've constructed the data set in such a way that you know exactly where the target",
+      "zh": "另外，如果資料集的設計，讓你精確知道目標"
+    },
+    {
+      "start": 1043.01,
+      "end": 1052.73,
+      "en": "is, maybe the target token is in exactly the same position in every sequence, then you probably don't need this loop at all.",
+      "zh": "在哪裡，例如每個序列的目標 token 都在完全相同位置，那可能根本不需要這個迴圈。"
+    },
+    {
+      "start": 1052.73,
+      "end": 1058.17,
+      "en": "If you know that it's you know, the target always appears in position six, for example.",
+      "zh": "如果知道目標，例如永遠出現在第 6 個位置。"
+    },
+    {
+      "start": 1059.29,
+      "end": 1061.33,
+      "en": "Okay, but you've seen this before.",
+      "zh": "好，但這些以前看過。"
+    },
+    {
+      "start": 1061.49,
+      "end": 1061.69,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1061.73,
+      "end": 1064.05,
+      "en": "And now here I'm looping over all of the layers.",
+      "zh": "現在逐一迭代所有層。"
+    },
+    {
+      "start": 1064.05,
+      "end": 1069.17,
+      "en": "Here I am grabbing the hidden states, uh, activations from this layer.",
+      "zh": "取得這一層的隱藏狀態活化，"
+    },
+    {
+      "start": 1069.29,
+      "end": 1079.47,
+      "en": "From this sentence, from this target index, and then I'm converting it into numpy and then squishing out these singleton dimensions.",
+      "zh": "這個句子、這個目標索引，再轉成 NumPy，擠掉單一元素的維度。"
+    },
+    {
+      "start": 1079.95,
+      "end": 1081.79,
+      "en": "And you've seen this before.",
+      "zh": "這以前看過。"
+    },
+    {
+      "start": 1082.07,
+      "end": 1084.71,
+      "en": "Sometimes it's a matter of personal preference.",
+      "zh": "有時是個人偏好，"
+    },
+    {
+      "start": 1084.71,
+      "end": 1092.71,
+      "en": "If you want to do these analyses in numpy format or PyTorch tensor format, it will often save you a",
+      "zh": "分析要用 NumPy 格式，或 PyTorch 張量格式；當不再需要 PyTorch 時，"
+    },
+    {
+      "start": 1092.75,
+      "end": 1100.07,
+      "en": "few headaches if you convert the data into numpy when you no longer need to work with PyTorch.",
+      "zh": "轉成 NumPy，經常能省去一些麻煩。"
+    },
+    {
+      "start": 1100.91,
+      "end": 1103.67,
+      "en": "Okay, so that is for the activations.",
+      "zh": "好，以上是活化。"
+    },
+    {
+      "start": 1103.67,
+      "end": 1105.55,
+      "en": "And then for the lookup table.",
+      "zh": "接著是查找表。"
+    },
+    {
+      "start": 1105.59,
+      "end": 1105.75,
+      "en": "Yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 1105.79,
+      "end": 1113.55,
+      "en": "As I've mentioned, this is really just allowing us to identify the label, the informant like meta",
+      "zh": "就像提過的，這真的只是讓我們辨識標籤、"
+    },
+    {
+      "start": 1113.55,
+      "end": 1118.51,
+      "en": "information about each row in this data matrix.",
+      "zh": "這個資料矩陣每一列的後設資訊。"
+    },
+    {
+      "start": 1118.71,
+      "end": 1123.79,
+      "en": "And also as I mentioned, this is really yeah, I don't actually use this in the analysis.",
+      "zh": "也提過，這項資訊其實沒有在分析中使用。"
+    },
+    {
+      "start": 1124.27,
+      "end": 1124.59,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1124.63,
+      "end": 1127.55,
+      "en": "So all of that is very fast to run.",
+      "zh": "這些程式執行非常快。"
+    },
+    {
+      "start": 1128.11,
+      "end": 1130.64,
+      "en": "And here I'm just confirming the sizes.",
+      "zh": "這裡只是確認大小，"
+    },
+    {
+      "start": 1130.64,
+      "end": 1137.76,
+      "en": "So 4050 rows and the data corresponds to the embeddings dimensionality.",
+      "zh": "4,050 列，而資料的另一個維度，對應嵌入維度。"
+    },
+    {
+      "start": 1137.92,
+      "end": 1138.2,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1138.24,
+      "end": 1141.28,
+      "en": "And by the way if you're curious, you know we can just have a look at this.",
+      "zh": "順帶一提，如果好奇，可以直接查看。"
+    },
+    {
+      "start": 1141.44,
+      "end": 1144,
+      "en": "You can see this is just a bunch of indices.",
+      "zh": "可以看到，只是一串索引。"
+    },
+    {
+      "start": 1144.36,
+      "end": 1152.28,
+      "en": "Again this first column we're not going to use this middle column here tells us which layer each of these rows corresponds to.",
+      "zh": "同樣，第一欄不會用到；中間這欄，告訴我們每一列對應哪一層。"
+    },
+    {
+      "start": 1152.48,
+      "end": 1156.08,
+      "en": "And this third column here indicates the target type.",
+      "zh": "第三欄則表示目標類型，"
+    },
+    {
+      "start": 1156.08,
+      "end": 1160.36,
+      "en": "Whether it's him or her corresponds to number one or round.",
+      "zh": "是 him，或對應數字 1 的 her，還是 round。"
+    },
+    {
+      "start": 1160.84,
+      "end": 1161.32,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1161.44,
+      "end": 1161.92,
+      "en": "Very good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 1161.92,
+      "end": 1164.16,
+      "en": "So now we are ready for a PCA.",
+      "zh": "現在準備好做 PCA。"
+    },
+    {
+      "start": 1164.56,
+      "end": 1172.64,
+      "en": "Now the thing is, for the analysis, I already know a priori I have decided that I only want two components.",
+      "zh": "分析上，我已事先決定，只要兩個成分，"
+    },
+    {
+      "start": 1172.64,
+      "end": 1176.44,
+      "en": "I just want to fit the data down to two components.",
+      "zh": "只想將資料擬合到兩個成分。"
+    },
+    {
+      "start": 1176.44,
+      "end": 1180.64,
+      "en": "But I also want to examine the scree plot.",
+      "zh": "但也想查看陡坡圖，"
+    },
+    {
+      "start": 1180.68,
+      "end": 1185.36,
+      "en": "And so a scree plot with only two data points is not so interesting.",
+      "zh": "而只有兩個資料點的陡坡圖，不太有意思。"
+    },
+    {
+      "start": 1185.6,
+      "end": 1193.49,
+      "en": "So here I'm actually running the PCA, and I'm not going to use these data for any of the subsequent analyses.",
+      "zh": "因此這裡先執行 PCA，但這些資料不會用於後續分析，"
+    },
+    {
+      "start": 1193.49,
+      "end": 1200.65,
+      "en": "I'm just running this here to get the scree plot so I can get the explained variance ratio.",
+      "zh": "只是為了取得陡坡圖，以及 explained variance ratio。"
+    },
+    {
+      "start": 1200.85,
+      "end": 1204.13,
+      "en": "That is the, uh, that's actually the proportion of variance.",
+      "zh": "它其實是解釋變異比例，"
+    },
+    {
+      "start": 1204.13,
+      "end": 1207.09,
+      "en": "I multiply it by 100 to get percent.",
+      "zh": "乘以 100 就得到百分比。"
+    },
+    {
+      "start": 1207.57,
+      "end": 1207.85,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1207.89,
+      "end": 1212.89,
+      "en": "And then actually I'm curious what these actual numbers are.",
+      "zh": "其實我很好奇，這些實際數字是多少。"
+    },
+    {
+      "start": 1212.93,
+      "end": 1213.69,
+      "en": "So let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 1214.85,
+      "end": 1216.13,
+      "en": "Just going to print this out here.",
+      "zh": "直接在這裡列印。"
+    },
+    {
+      "start": 1216.13,
+      "end": 1220.17,
+      "en": "So this top component accounts for 62% of the variance.",
+      "zh": "最高的成分，解釋 62% 的變異。"
+    },
+    {
+      "start": 1220.33,
+      "end": 1226.29,
+      "en": "And then we have a little over 10% of the variance and 7.5% of the variance.",
+      "zh": "接著是略高於 10%，以及 7.5%。"
+    },
+    {
+      "start": 1226.29,
+      "end": 1232.77,
+      "en": "So that means that these three components together account for around 80% of the variance.",
+      "zh": "表示這三個成分合計，大約解釋 80% 的變異。"
+    },
+    {
+      "start": 1233.13,
+      "end": 1237.17,
+      "en": "And that is, you know, I mean, it's more than half of the variance.",
+      "zh": "也就是超過一半，"
+    },
+    {
+      "start": 1237.33,
+      "end": 1243.29,
+      "en": "But that also means that 20% of the variance is in these later components.",
+      "zh": "但也表示，20% 的變異位於後面的成分。"
+    },
+    {
+      "start": 1243.45,
+      "end": 1252.34,
+      "en": "Each one of these components individually is relatively Small, they account for 1% or a fraction of a percent of variance.",
+      "zh": "每個個別成分相對小，只解釋 1%，或不到百分之一的變異。"
+    },
+    {
+      "start": 1253.34,
+      "end": 1256.86,
+      "en": "But there are so many of these, there's 1024 of these.",
+      "zh": "但成分非常多，有 1,024 個，"
+    },
+    {
+      "start": 1256.98,
+      "end": 1261.58,
+      "en": "And so altogether they account for a lot of variability.",
+      "zh": "因此合計仍解釋很多變異。"
+    },
+    {
+      "start": 1261.74,
+      "end": 1272.54,
+      "en": "And this is an important consideration and an important potential limitation of these kinds of analyses, where you project down to a small number of dimensions.",
+      "zh": "這是將資料投影到少數維度的這類分析，一項重要考量與潛在限制。"
+    },
+    {
+      "start": 1272.94,
+      "end": 1280.7,
+      "en": "So on the one hand, it is true that we are going to capture around 73% of the variance.",
+      "zh": "一方面，確實會捕捉大約 73% 的變異，"
+    },
+    {
+      "start": 1280.86,
+      "end": 1287.54,
+      "en": "But on the other hand, that means that there is 27% of the variance that we are completely ignoring.",
+      "zh": "另一方面，表示完全忽略 27% 的變異。"
+    },
+    {
+      "start": 1287.66,
+      "end": 1294.38,
+      "en": "And maybe there's really important stuff happening in the other third of the variance in the data anyway.",
+      "zh": "也許資料另外三分之一的變異中，發生了真正重要的事情。"
+    },
+    {
+      "start": 1294.42,
+      "end": 1295.54,
+      "en": "Okay, enough of that.",
+      "zh": "好，這點就說到這裡。"
+    },
+    {
+      "start": 1295.9,
+      "end": 1296.14,
+      "en": "Uh.",
+      "zh": "嗯。"
+    },
+    {
+      "start": 1296.14,
+      "end": 1296.66,
+      "en": "Let's see.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 1296.7,
+      "end": 1297.1,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 1297.14,
+      "end": 1302.62,
+      "en": "So the next thing is to rerun the PCA with just two components.",
+      "zh": "下一步，重新執行 PCA，只用兩個成分。"
+    },
+    {
+      "start": 1302.62,
+      "end": 1304.78,
+      "en": "And now here I'm just projecting down.",
+      "zh": "現在這裡進行降維投影，"
+    },
+    {
+      "start": 1304.78,
+      "end": 1307.1,
+      "en": "So I'm using PCA dot transform.",
+      "zh": "使用 PCA.transform。"
+    },
+    {
+      "start": 1307.24,
+      "end": 1312.64,
+      "en": "This projects the data down to however many components I have identified here.",
+      "zh": "它會將資料投影到這裡指定的成分數量。"
+    },
+    {
+      "start": 1313.64,
+      "end": 1320.12,
+      "en": "By the way, you can actually still, you know, get this projection from this analysis here.",
+      "zh": "順帶一提，其實仍能從這裡的分析取得該投影。"
+    },
+    {
+      "start": 1320.32,
+      "end": 1322.6,
+      "en": "PCA is a linear decomposition.",
+      "zh": "PCA 是線性分解，"
+    },
+    {
+      "start": 1322.6,
+      "end": 1332.36,
+      "en": "So you could actually project down to all 20 components from this analysis here, and then just disregard the other 18 and only store the top two.",
+      "zh": "因此可以先從這項分析投影到全部 20 個成分，再忽略其他 18 個，只儲存前兩個。"
+    },
+    {
+      "start": 1332.4,
+      "end": 1334.64,
+      "en": "But I was just a bit lazy.",
+      "zh": "但我有點懶，"
+    },
+    {
+      "start": 1334.64,
+      "end": 1338.52,
+      "en": "So I reran the analysis here because it's quite fast to do anyway.",
+      "zh": "就重新執行這個分析，反正速度很快。"
+    },
+    {
+      "start": 1339.08,
+      "end": 1342.44,
+      "en": "Okay, so uh, yeah, let's see here I'm showing the sizes.",
+      "zh": "好，這裡顯示大小。"
+    },
+    {
+      "start": 1342.44,
+      "end": 1352.96,
+      "en": "This is the all axis you've seen before, and now I'm just confirming that the projection down to 2D is 4050 by two.",
+      "zh": "all x 以前看過，現在只是確認，投影到二維後，是 4,050×2。"
+    },
+    {
+      "start": 1353.4,
+      "end": 1363.04,
+      "en": "That is an important confirmation to check because for example, let's say uh, you have the data organize the other way.",
+      "zh": "這是重要的確認，因為例如，假設資料的組織方向相反，"
+    },
+    {
+      "start": 1363.84,
+      "end": 1368.17,
+      "en": "So now it's kind of arbitrary, you know, you can have the data.",
+      "zh": "現在有點任意，可以把資料，"
+    },
+    {
+      "start": 1368.25,
+      "end": 1369.65,
+      "en": "Let me do it like this.",
+      "zh": "讓我改成這樣。"
+    },
+    {
+      "start": 1371.53,
+      "end": 1374.33,
+      "en": "So in theory, it's sort of arbitrary.",
+      "zh": "理論上，有點任意，"
+    },
+    {
+      "start": 1374.33,
+      "end": 1384.21,
+      "en": "It doesn't matter which way you organize the data, but it does matter for the PCA that the data are flipped in the correct orientation.",
+      "zh": "資料怎麼整理本身不重要，但對 PCA 而言，必須翻到正確方向。"
+    },
+    {
+      "start": 1384.37,
+      "end": 1385.53,
+      "en": "So this would be wrong.",
+      "zh": "這樣就會錯誤，"
+    },
+    {
+      "start": 1385.53,
+      "end": 1396.29,
+      "en": "What we are doing here is projecting down all of the sentences and layers to two dimensions, and preserving all of the embeddings dimensions.",
+      "zh": "因為現在將所有句子與層投影成二維，卻保留全部嵌入維度。"
+    },
+    {
+      "start": 1396.45,
+      "end": 1397.17,
+      "en": "That's wrong.",
+      "zh": "那是錯的，"
+    },
+    {
+      "start": 1397.21,
+      "end": 1399.33,
+      "en": "That's the opposite of what we want.",
+      "zh": "與我們要的相反。"
+    },
+    {
+      "start": 1399.37,
+      "end": 1405.73,
+      "en": "We want to project down the features, the activations along the dimensions.",
+      "zh": "我們要降低的是特徵，也就是沿嵌入維度的活化。"
+    },
+    {
+      "start": 1405.73,
+      "end": 1411.61,
+      "en": "So that should be sentences or data observations by features over here.",
+      "zh": "所以這裡應該是句子、資料觀察數，乘以特徵。"
+    },
+    {
+      "start": 1412.17,
+      "end": 1412.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1412.53,
+      "end": 1416.49,
+      "en": "So here is where I do the trajectories analysis.",
+      "zh": "這裡進行軌跡分析。"
+    },
+    {
+      "start": 1416.61,
+      "end": 1417.85,
+      "en": "So let's go through this.",
+      "zh": "逐步來看。"
+    },
+    {
+      "start": 1418.13,
+      "end": 1419.41,
+      "en": "So proj 2D.",
+      "zh": "proj 2D。"
+    },
+    {
+      "start": 1419.41,
+      "end": 1422.29,
+      "en": "So I'll leave this here so you can see the shape.",
+      "zh": "先留在這裡，讓你看到形狀。"
+    },
+    {
+      "start": 1422.29,
+      "end": 1427.3,
+      "en": "And also the actually let me include in here the lookup table.",
+      "zh": "也加入查找表，"
+    },
+    {
+      "start": 1427.5,
+      "end": 1428.58,
+      "en": "Dot shape.",
+      "zh": "查看 .shape。"
+    },
+    {
+      "start": 1429.02,
+      "end": 1429.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1429.34,
+      "end": 1434.62,
+      "en": "So you can also see the shapes of all of these matrices that I'm working with here.",
+      "zh": "這樣也能看到，這裡操作的所有矩陣之形狀。"
+    },
+    {
+      "start": 1435.66,
+      "end": 1446.34,
+      "en": "So from this proj 2d what I want to get here is all of the rows that are from layer zero and target",
+      "zh": "要從 proj 2D 取得所有來自第 0 層，以及目標"
+    },
+    {
+      "start": 1446.38,
+      "end": 1447.46,
+      "en": "token zero.",
+      "zh": "token 0 的列，"
+    },
+    {
+      "start": 1447.46,
+      "end": 1450.18,
+      "en": "So the sentences that contain the word him.",
+      "zh": "也就是包含 him 的句子。"
+    },
+    {
+      "start": 1450.54,
+      "end": 1458.58,
+      "en": "So how do I find all of the rows in here that are from layer zero and that were from the sentence with him.",
+      "zh": "如何找出這裡所有來自第 0 層，而且來自包含 him 句子的列？"
+    },
+    {
+      "start": 1459.06,
+      "end": 1464.14,
+      "en": "And then this is the projection onto the first and second principal component.",
+      "zh": "這裡則是第一與第二主成分上的投影。"
+    },
+    {
+      "start": 1464.42,
+      "end": 1466.82,
+      "en": "So that is what all of this code does here.",
+      "zh": "這就是這些程式所做的事情。"
+    },
+    {
+      "start": 1466.9,
+      "end": 1470.62,
+      "en": "So I have this for loop over all of the layers.",
+      "zh": "有一個遍歷所有層的 for 迴圈，"
+    },
+    {
+      "start": 1470.78,
+      "end": 1475.7,
+      "en": "So the model layers plus one of course plus one is for the initial embeddings.",
+      "zh": "模型層數加 1，當然，加 1 是為了最初嵌入。"
+    },
+    {
+      "start": 1475.9,
+      "end": 1479.3,
+      "en": "So where does a lookup table one.",
+      "zh": "查找表的 1，"
+    },
+    {
+      "start": 1479.54,
+      "end": 1482.82,
+      "en": "So the second column where does that correspond to zero.",
+      "zh": "也就是第二欄，哪些位置等於 0？"
+    },
+    {
+      "start": 1483.14,
+      "end": 1486.31,
+      "en": "And the third column where does that correspond to?",
+      "zh": "第三欄又有哪些位置，"
+    },
+    {
+      "start": 1486.35,
+      "end": 1487.31,
+      "en": "Also zero.",
+      "zh": "同樣等於 0？"
+    },
+    {
+      "start": 1487.35,
+      "end": 1488.43,
+      "en": "That's for him.",
+      "zh": "這是 him。"
+    },
+    {
+      "start": 1488.79,
+      "end": 1489.07,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1489.11,
+      "end": 1491.71,
+      "en": "And once I've identified all of these.",
+      "zh": "找出全部這些之後，"
+    },
+    {
+      "start": 1491.75,
+      "end": 1494.95,
+      "en": "Now let me extract that.",
+      "zh": "現在擷取出來。"
+    },
+    {
+      "start": 1494.95,
+      "end": 1498.87,
+      "en": "And I need I'll just code that to be zero.",
+      "zh": "需要先把這裡固定寫為 0。"
+    },
+    {
+      "start": 1499.15,
+      "end": 1505.35,
+      "en": "So that is 54 by 254 sentences from layer zero.",
+      "zh": "這是 54×2，也就是第 0 層的 54 個句子，"
+    },
+    {
+      "start": 1505.59,
+      "end": 1510.59,
+      "en": "And the projection onto the first and the second principal components.",
+      "zh": "以及第一與第二主成分的投影。"
+    },
+    {
+      "start": 1511.11,
+      "end": 1511.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1511.47,
+      "end": 1513.99,
+      "en": "So then I have mean x is zero.",
+      "zh": "接著用 mean，axis=0，"
+    },
+    {
+      "start": 1513.99,
+      "end": 1519.11,
+      "en": "And that is to average over all of the 54 sentences.",
+      "zh": "對全部 54 個句子取平均。"
+    },
+    {
+      "start": 1520.27,
+      "end": 1520.99,
+      "en": "Okay great.",
+      "zh": "好，很好。"
+    },
+    {
+      "start": 1520.99,
+      "end": 1522.15,
+      "en": "So I hope that makes sense.",
+      "zh": "希望這樣很清楚。"
+    },
+    {
+      "start": 1522.15,
+      "end": 1528.79,
+      "en": "It's a little bit intimidating when you see this code the first time, but I hope I've explained it sufficiently well.",
+      "zh": "第一次看這些程式，有點嚇人，但希望我解釋得夠清楚。"
+    },
+    {
+      "start": 1529.11,
+      "end": 1530.71,
+      "en": "So three lines of code here.",
+      "zh": "這裡有三行程式，"
+    },
+    {
+      "start": 1530.71,
+      "end": 1535.79,
+      "en": "They're all nearly identical except for this identifier over here.",
+      "zh": "除了這裡的識別值，幾乎完全相同，"
+    },
+    {
+      "start": 1535.79,
+      "end": 1539.39,
+      "en": "And that allows us to find the three different tokens.",
+      "zh": "讓我們能找出三種不同 token。"
+    },
+    {
+      "start": 1539.79,
+      "end": 1540.67,
+      "en": "If you prefer.",
+      "zh": "如果比較喜歡，"
+    },
+    {
+      "start": 1540.67,
+      "end": 1544.59,
+      "en": "You could also put this in a for loop as well.",
+      "zh": "也能放進 for 迴圈。"
+    },
+    {
+      "start": 1544.73,
+      "end": 1554.09,
+      "en": "So you could say for, you know, target uh, target I in in range three or something like this, but, uh, it doesn't matter.",
+      "zh": "可以寫 for target i in range(3) 之類的，但沒關係。"
+    },
+    {
+      "start": 1554.45,
+      "end": 1554.89,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1554.93,
+      "end": 1561.17,
+      "en": "So uh, that is for, uh, the average trajectories that's going to give us those curvy plots.",
+      "zh": "以上是平均軌跡，會得到那些彎曲的圖。"
+    },
+    {
+      "start": 1561.49,
+      "end": 1565.57,
+      "en": "And now here I am averaging together the pronouns.",
+      "zh": "這裡則將代名詞取平均，"
+    },
+    {
+      "start": 1565.57,
+      "end": 1571.05,
+      "en": "So, uh, yes, averaging together him and her, extracting the data for round.",
+      "zh": "也就是平均 him 與 her，並擷取 round 的資料。"
+    },
+    {
+      "start": 1571.05,
+      "end": 1574.65,
+      "en": "And here I'm calculating the Euclidean distance.",
+      "zh": "這裡計算歐幾里得距離，"
+    },
+    {
+      "start": 1574.65,
+      "end": 1579.25,
+      "en": "So it's the difference between the vectors and then squared.",
+      "zh": "向量相減，再取平方，"
+    },
+    {
+      "start": 1579.49,
+      "end": 1581.77,
+      "en": "And then I sum over all of those.",
+      "zh": "將它們全部相加，"
+    },
+    {
+      "start": 1581.89,
+      "end": 1584.41,
+      "en": "And then I take the square root of that.",
+      "zh": "再取平方根。"
+    },
+    {
+      "start": 1584.41,
+      "end": 1586.85,
+      "en": "So this is the Euclidean distance.",
+      "zh": "這就是歐幾里得距離。"
+    },
+    {
+      "start": 1586.97,
+      "end": 1589.61,
+      "en": "This is for uh him versus her.",
+      "zh": "這是 him 與 her，"
+    },
+    {
+      "start": 1589.85,
+      "end": 1593.57,
+      "en": "And this is for the pronouns versus the uh sorry.",
+      "zh": "這是代名詞與，抱歉，"
+    },
+    {
+      "start": 1593.61,
+      "end": 1594.81,
+      "en": "No, I said that backwards.",
+      "zh": "不，我說反了。"
+    },
+    {
+      "start": 1594.85,
+      "end": 1598.57,
+      "en": "This is for the pronouns versus the adjective.",
+      "zh": "這是代名詞與形容詞，"
+    },
+    {
+      "start": 1598.73,
+      "end": 1601.45,
+      "en": "And this is the difference between the two pronouns here.",
+      "zh": "這裡才是兩個代名詞之間的差。"
+    },
+    {
+      "start": 1601.45,
+      "end": 1611.78,
+      "en": "So I'm just taking numpy dot diff for the first two elements of the last dimension, and that corresponds to him versus her over here.",
+      "zh": "只對最後一個維度的前兩個元素，用 numpy.diff，這裡就對應 him 與 her。"
+    },
+    {
+      "start": 1612.1,
+      "end": 1615.42,
+      "en": "Okay, so quite a bit going on in this code cell.",
+      "zh": "好，這個程式區塊有不少內容，"
+    },
+    {
+      "start": 1615.46,
+      "end": 1617.34,
+      "en": "But I hope it all makes sense.",
+      "zh": "但希望全部都清楚。"
+    },
+    {
+      "start": 1617.38,
+      "end": 1623.66,
+      "en": "You're going to use code that looks a lot like this in the code challenge in a couple of videos from now.",
+      "zh": "再過幾支影片的程式挑戰，會使用非常像這裡的程式。"
+    },
+    {
+      "start": 1624.82,
+      "end": 1625.1,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1625.14,
+      "end": 1628.58,
+      "en": "So now we are ready for some visualization.",
+      "zh": "現在準備做視覺化。"
+    },
+    {
+      "start": 1628.66,
+      "end": 1631.62,
+      "en": "So for the first plot, actually let me show you this plot here.",
+      "zh": "第一張圖，其實先展示一下。"
+    },
+    {
+      "start": 1631.94,
+      "end": 1635.86,
+      "en": "So this is the plot that you have seen in the slides a moment ago.",
+      "zh": "這是剛才投影片看到的圖。"
+    },
+    {
+      "start": 1636.1,
+      "end": 1638.66,
+      "en": "So to create this first plot, it's very straightforward.",
+      "zh": "要建立第一張，非常直接，"
+    },
+    {
+      "start": 1638.66,
+      "end": 1645.62,
+      "en": "We just want to plot over all of the layers, the projection onto the first principal component for",
+      "zh": "只要對所有層，將第一主成分的投影，畫成"
+    },
+    {
+      "start": 1645.62,
+      "end": 1653.62,
+      "en": "the x coordinates, and the projection onto the second principal components for the y axis coordinates.",
+      "zh": "x 座標；第二主成分的投影，則畫成 y 座標。"
+    },
+    {
+      "start": 1653.74,
+      "end": 1655.3,
+      "en": "And that's what you see here.",
+      "zh": "這就是這裡看到的。"
+    },
+    {
+      "start": 1655.54,
+      "end": 1657.94,
+      "en": "So this is for round.",
+      "zh": "這是 round，"
+    },
+    {
+      "start": 1658.06,
+      "end": 1660.22,
+      "en": "And we have the average trajectories.",
+      "zh": "有平均軌跡。"
+    },
+    {
+      "start": 1660.46,
+      "end": 1664.19,
+      "en": "The the first dimension here is for the layers.",
+      "zh": "第一個維度是層，"
+    },
+    {
+      "start": 1664.47,
+      "end": 1667.51,
+      "en": "This is for the first principal component.",
+      "zh": "這個是第一主成分，"
+    },
+    {
+      "start": 1667.51,
+      "end": 1669.59,
+      "en": "This is for the second principal component.",
+      "zh": "這個是第二主成分，"
+    },
+    {
+      "start": 1669.75,
+      "end": 1672.95,
+      "en": "And the two corresponds to the target round.",
+      "zh": "2 則對應目標 round，"
+    },
+    {
+      "start": 1672.95,
+      "end": 1674.51,
+      "en": "So the third condition.",
+      "zh": "也就是第三個條件。"
+    },
+    {
+      "start": 1674.91,
+      "end": 1678.11,
+      "en": "Okay so I have two lines of code here for the plotting.",
+      "zh": "好，這裡有兩行繪圖程式，"
+    },
+    {
+      "start": 1678.27,
+      "end": 1682.99,
+      "en": "And that's basically just because I want it to have a line and a scatter plot.",
+      "zh": "基本上因為想同時有線條與散佈圖。"
+    },
+    {
+      "start": 1682.99,
+      "end": 1686.11,
+      "en": "So here you see only a scatter plot with no line.",
+      "zh": "這裡只顯示散佈圖，沒有線條。"
+    },
+    {
+      "start": 1686.31,
+      "end": 1691.51,
+      "en": "And yeah, I thought it would look nicer to have both a line and a scatter plot.",
+      "zh": "對，我覺得，同時有線條與散佈圖比較好看。"
+    },
+    {
+      "start": 1693.35,
+      "end": 1701.39,
+      "en": "One of the biggest challenges in explaining and understanding how deep learning models work is that",
+      "zh": "解釋與理解深度學習模型運作的一大挑戰，是"
+    },
+    {
+      "start": 1701.39,
+      "end": 1709.15,
+      "en": "the high dimensionality prevents us from being able to easily visualize the internal calculations and",
+      "zh": "高維度讓我們難以輕易將內部計算與"
+    },
+    {
+      "start": 1709.15,
+      "end": 1715.87,
+      "en": "representations, and that is one of the reasons why simple regression models with only a handful of",
+      "zh": "表徵視覺化。這也是為什麼只有少量"
+    },
+    {
+      "start": 1715.87,
+      "end": 1724.4,
+      "en": "parameters are much easier to understand and to explain, and so projecting these thousand dimensional",
+      "zh": "參數的簡單迴歸模型，更容易理解與解釋。所以將這些上千維"
+    },
+    {
+      "start": 1724.4,
+      "end": 1731.2,
+      "en": "vectors down to 2 or 3 dimensions can be pretty useful for visualization and intuition.",
+      "zh": "向量投影到二或三維，對視覺化與建立直覺很有用。"
+    },
+    {
+      "start": 1731.88,
+      "end": 1739.04,
+      "en": "On the other hand, as I explained, we are also ignoring a ton of information, and even though all",
+      "zh": "另一方面，就像解釋過的，也忽略了大量資訊，即使"
+    },
+    {
+      "start": 1739.08,
+      "end": 1749.52,
+      "en": "of those other dimensions explain individually very little total variability, they might still contain a lot of important and relevant information.",
+      "zh": "其他維度各自只解釋很少的總變異，它們仍可能包含許多重要、相關的資訊。"
+    },
+    {
+      "start": 1750.16,
+      "end": 1756.28,
+      "en": "So there is also a big risk of overinterpreting dimension reduced dynamics.",
+      "zh": "因此，過度解讀降維後動態的風險也很大。"
+    },
+    {
+      "start": 1756.8,
+      "end": 1767.68,
+      "en": "In particular, with regards to PCA, the components are defined by variance, which means that PCA assumes that variance equals relevance.",
+      "zh": "尤其是 PCA，成分以變異數定義，表示 PCA 假設變異數等於相關重要性。"
+    },
+    {
+      "start": 1768.2,
+      "end": 1770.96,
+      "en": "Now that is not necessarily the case.",
+      "zh": "但這不一定成立。"
+    },
+    {
+      "start": 1770.96,
+      "end": 1781.52,
+      "en": "It's not necessarily true that dimensions that contain a lot of variability are the most important for the model to process a given token.",
+      "zh": "含有大量變異的維度，不一定是模型處理某個 token 時最重要的。"
+    },
+    {
+      "start": 1782.18,
+      "end": 1788.7,
+      "en": "So it could also be interesting to explore trajectories with other dimension reduction techniques,",
+      "zh": "因此，也可以用其他降維技巧探索軌跡，"
+    },
+    {
+      "start": 1788.7,
+      "end": 1796.54,
+      "en": "although really any compression method will suffer from similar limitations as PCA does in terms of",
+      "zh": "但其實，任何壓縮方法，都有類似 PCA 的限制，"
+    },
+    {
+      "start": 1796.66,
+      "end": 1801.42,
+      "en": "highlighting only a few dimensions out of a very large number.",
+      "zh": "只凸顯大量維度中的少數維度。"
+    },
+    {
+      "start": 1801.9,
+      "end": 1804.9,
+      "en": "Nonetheless, these kinds of analyses are great.",
+      "zh": "儘管如此，這類分析很好，"
+    },
+    {
+      "start": 1804.9,
+      "end": 1811.58,
+      "en": "They can be insightful starting points to continue with more in-depth investigations.",
+      "zh": "可以是有啟發性的起點，接著再深入研究。"
+    },
+    {
+      "start": 1811.94,
+      "end": 1820.74,
+      "en": "For example, like what is causing those little bumps in the distances between the pronouns and the adjective in the dataset that I just showed you.",
+      "zh": "例如，剛才那份資料中，代名詞與形容詞之間的距離，為什麼會有那些小凸起？"
+    },
+    {
+      "start": 1821.46,
+      "end": 1829.74,
+      "en": "So in the next video, I will show you how to use a Python library to identify parts of speech of tokens.",
+      "zh": "下一支影片，會展示如何用 Python 函式庫，辨識 token 的詞性。"
+    },
+    {
+      "start": 1830.1,
+      "end": 1833.82,
+      "en": "And then in the video after that, that's going to be a code challenge.",
+      "zh": "再下一支影片，是程式挑戰，"
+    },
+    {
+      "start": 1833.94,
+      "end": 1841.02,
+      "en": "We will come back to creating and quantifying state space trajectories in real text data.",
+      "zh": "會回到真實文字資料中，建立並量化狀態空間軌跡。"
+    }
+  ]
+}

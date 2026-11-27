@@ -1,0 +1,1273 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51877089",
+  "title": "CodeChallenge: HellaSwag evals in two models (part 1)",
+  "section": 11,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "aad1363915f8c9acc192801b90fcfdf7142ddc952484be20106dfe9bed44a282",
+  "cues": [
+    {
+      "start": 2.24,
+      "end": 4.64,
+      "en": "Welcome to this code challenge.",
+      "zh": "歡迎來到程式挑戰。"
+    },
+    {
+      "start": 5,
+      "end": 13,
+      "en": "The goal here will be to integrate the Hella Swag benchmark evaluations that you learned about two videos",
+      "zh": "目標是把兩支影片前學到的 HellaSwag 基準評估，"
+    },
+    {
+      "start": 13,
+      "end": 20.52,
+      "en": "ago, with the method of importing low precision, high parameter count models that you learned about",
+      "zh": "結合上一支的低精度、"
+    },
+    {
+      "start": 20.52,
+      "end": 28.28,
+      "en": "in the previous video, and along the way, you're going to encounter something very confusing, which",
+      "zh": "高參數量模型匯入方法。過程中，會遇到很令人困惑的事，"
+    },
+    {
+      "start": 28.28,
+      "end": 36.04,
+      "en": "will lead me to introduce you to a slightly alternative formulation of the attention matrices, as well",
+      "zh": "藉此介紹稍有不同的注意力矩陣形式，"
+    },
+    {
+      "start": 36.04,
+      "end": 40.68,
+      "en": "as a clever trick that is used in the Bits and Bytes library.",
+      "zh": "以及 bitsandbytes 裡的一個巧妙技巧。"
+    },
+    {
+      "start": 41.28,
+      "end": 42.28,
+      "en": "Let's begin.",
+      "zh": "開始吧。"
+    },
+    {
+      "start": 42.76,
+      "end": 52.88,
+      "en": "The goal of exercise one is to import the Zephyr seven B parameter model using the Bits and bytes library,",
+      "zh": "練習一，使用 bitsandbytes 匯入 Zephyr-7B 模型，"
+    },
+    {
+      "start": 52.88,
+      "end": 55.44,
+      "en": "as I showed you in the previous video.",
+      "zh": "就像上一支示範。"
+    },
+    {
+      "start": 56.12,
+      "end": 65.42,
+      "en": "Then I want you to print out the model description and look at all the components of the model to make sure you recognize the names.",
+      "zh": "接著印出模型說明，檢視所有元件，確認名稱都認得。"
+    },
+    {
+      "start": 65.62,
+      "end": 70.06,
+      "en": "And then also think about the sizes that you see reported here.",
+      "zh": "也思考這裡列出的尺寸。"
+    },
+    {
+      "start": 70.74,
+      "end": 79.94,
+      "en": "Next, count the total number of parameters in the entire model using list, comprehension and model parameters.",
+      "zh": "再用串列生成式與 model.parameters，計算模型全部參數量。"
+    },
+    {
+      "start": 80.38,
+      "end": 88.9,
+      "en": "Here I'm just using M as a shorthand, but this would be looping over all of the parameters in the model to count them all.",
+      "zh": "這裡 M 只是簡寫，實際會走訪模型全部參數並計數。"
+    },
+    {
+      "start": 89.5,
+      "end": 91.42,
+      "en": "You can show your results like this.",
+      "zh": "結果可以這樣顯示。"
+    },
+    {
+      "start": 91.46000000000001,
+      "end": 101.18,
+      "en": "Counting the total number of parameters and the total number of trainable parameters, and also the total number of non-trainable parameters.",
+      "zh": "總參數量、可訓練參數量，以及不可訓練參數量。"
+    },
+    {
+      "start": 101.74000000000001,
+      "end": 110.06,
+      "en": "Remember that parameters are trainable if they have the PyTorch property, Requiresgrad equals true.",
+      "zh": "記得，PyTorch 的 requires_grad=True，就表示參數可訓練。"
+    },
+    {
+      "start": 110.74000000000001,
+      "end": 117.82,
+      "en": "Now behind this box, I'm listing the total number of parameters using commas after each three digits.",
+      "zh": "這個框後面列總參數，每三位數加逗號。"
+    },
+    {
+      "start": 118.02000000000001,
+      "end": 126.63,
+      "en": "And then over here I have scaled these two numbers to the nearest billion with two numbers after the decimal point.",
+      "zh": "這邊把兩個數字換算成十億，保留小數點後兩位。"
+    },
+    {
+      "start": 127.55,
+      "end": 133.63,
+      "en": "And spoiler alert, you're going to get a number here that you might not expect to see.",
+      "zh": "先透露，你會得到意料之外的數字。"
+    },
+    {
+      "start": 134.31,
+      "end": 142.67000000000002,
+      "en": "Remember that the 7 in 7 B in this model name means that there are 7 billion parameters.",
+      "zh": "模型名稱裡 7B 的 7，表示七十億參數。"
+    },
+    {
+      "start": 142.91,
+      "end": 149.39,
+      "en": "So in theory, the total number of parameters here should be somewhere around 7 billion.",
+      "zh": "所以理論上，總數應在七十億附近。"
+    },
+    {
+      "start": 150.11,
+      "end": 155.07,
+      "en": "And then yeah, as I mentioned you're going to get a number that you might not expect.",
+      "zh": "如剛才所說，會得到意外數字。"
+    },
+    {
+      "start": 155.67000000000002,
+      "end": 167.15,
+      "en": "So then to confirm what I want you to do is manually count what the number of parameters should be based on the numbers in this description up here.",
+      "zh": "為了確認，請依上面說明中的尺寸，手動算應有多少參數。"
+    },
+    {
+      "start": 167.79,
+      "end": 174.11,
+      "en": "Now don't worry, I don't mean that you have to print out all 7 billion of these and count them one by one.",
+      "zh": "別擔心，不是要印出七十億個，再一個個數。"
+    },
+    {
+      "start": 174.79,
+      "end": 185.49,
+      "en": "What I mean is that according to this description, the embeddings matrix is 32,000 by Than 96, so",
+      "zh": "意思是，嵌入矩陣依說明是 32,000 乘 4096，"
+    },
+    {
+      "start": 185.49,
+      "end": 191.09,
+      "en": "the total number of parameters in this layer is just the product of these two numbers.",
+      "zh": "這一層總參數就是兩數相乘。"
+    },
+    {
+      "start": 191.49,
+      "end": 196.57,
+      "en": "And then we have the Q matrix that is 4096 by 4096.",
+      "zh": "Q 矩陣是 4096 乘 4096，"
+    },
+    {
+      "start": 196.73,
+      "end": 198.93,
+      "en": "And there are 32 of those.",
+      "zh": "共有 32 個。"
+    },
+    {
+      "start": 199.21,
+      "end": 207.29,
+      "en": "So you can just look at this list, multiply all of these numbers for the matrix sizes and add them all up.",
+      "zh": "所以看這份清單，把每個矩陣的尺寸相乘，再全部加總。"
+    },
+    {
+      "start": 207.65,
+      "end": 214.61,
+      "en": "And if you do that, if you multiply out the sizes and sum them up for all of the components listed",
+      "zh": "將模型裡所有列出的元件"
+    },
+    {
+      "start": 214.61,
+      "end": 222.61,
+      "en": "in this model here, that gives you a different way of counting the total number of parameters in the model.",
+      "zh": "這樣計算，就有另一種計算總參數量的方法。"
+    },
+    {
+      "start": 222.61,
+      "end": 226.73,
+      "en": "And that is what this final line here corresponds to.",
+      "zh": "最後這一行就是它。"
+    },
+    {
+      "start": 227.65,
+      "end": 232.89,
+      "en": "I hope you find this exercise interesting and probably also confusing.",
+      "zh": "希望你覺得有趣，也可能很困惑。"
+    },
+    {
+      "start": 233.13,
+      "end": 242.73,
+      "en": "I'm going to switch to Python to show my solution, and then I will explain some of the confusing points in more detail when I switch back to the slides.",
+      "zh": "我會切到 Python 展示解法，再回投影片，詳細解釋令人困惑的部分。"
+    },
+    {
+      "start": 243.57,
+      "end": 248.51,
+      "en": "I have already run these two lines of code and restarted my session.",
+      "zh": "這兩行已執行，也已重啟。"
+    },
+    {
+      "start": 248.63,
+      "end": 258.07,
+      "en": "So now I can just import all of these libraries, including data sets, for example, this library I don't believe I've used before Tqdm.",
+      "zh": "現在匯入函式庫，包含 datasets，還有我想之前沒用過的 tqdm。"
+    },
+    {
+      "start": 258.11,
+      "end": 260.91,
+      "en": "It is a progress bar for for loops.",
+      "zh": "它替 for 迴圈提供進度條。"
+    },
+    {
+      "start": 261.11,
+      "end": 264.55,
+      "en": "It's fairly often used when you are having a for loop.",
+      "zh": "當 for 迴圈要"
+    },
+    {
+      "start": 264.55,
+      "end": 267.47,
+      "en": "Go over lots of items that might take a long time.",
+      "zh": "走訪很多項目、花很長時間時，經常使用。"
+    },
+    {
+      "start": 267.63,
+      "end": 269.51,
+      "en": "So this updates a progress bar.",
+      "zh": "它會更新進度條。"
+    },
+    {
+      "start": 269.55,
+      "end": 273.51,
+      "en": "I will show you what this looks like and how it works in a moment.",
+      "zh": "等一下會展示樣子與用法。"
+    },
+    {
+      "start": 274.15,
+      "end": 282.51,
+      "en": "Okay, so here I will import the Zephyr model using exactly the same code that I showed in the previous video.",
+      "zh": "好，用上一支完全相同的程式匯入 Zephyr。"
+    },
+    {
+      "start": 284.03,
+      "end": 287.67,
+      "en": "So we successfully imported this model.",
+      "zh": "成功匯入。"
+    },
+    {
+      "start": 287.83,
+      "end": 289.31,
+      "en": "You can see it's quite big.",
+      "zh": "可以看到，非常大。"
+    },
+    {
+      "start": 289.31,
+      "end": 296.27,
+      "en": "Each one of these pieces of the model, all the individual parts are around two gigabytes.",
+      "zh": "模型的每個分片、各個部分，大約兩 GB。"
+    },
+    {
+      "start": 296.27,
+      "end": 298.31,
+      "en": "And there's multiple of those pieces.",
+      "zh": "而且有多個分片。"
+    },
+    {
+      "start": 298.79,
+      "end": 299.11,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 299.15,
+      "end": 302.67,
+      "en": "So switch it to eval mode push it to the GPU.",
+      "zh": "切到 eval，移到 GPU。"
+    },
+    {
+      "start": 303.19,
+      "end": 308.32,
+      "en": "And now we can also actually let me just switch to the view resources.",
+      "zh": "現在也可以切到資源檢視。"
+    },
+    {
+      "start": 308.32,
+      "end": 318.68,
+      "en": "Here you can see that I'm using the a100 GPU on Colab, and I'm already using seven out of 40GB just",
+      "zh": "使用的是 Colab A100，40 GB 中，已用了七 GB，"
+    },
+    {
+      "start": 318.68,
+      "end": 320.48,
+      "en": "to store the model.",
+      "zh": "只是儲存模型。"
+    },
+    {
+      "start": 320.48,
+      "end": 324.76,
+      "en": "And this is the reduced four bit quantized version of the model.",
+      "zh": "這還是降低精度、四位元量化版本。"
+    },
+    {
+      "start": 324.76,
+      "end": 328.32,
+      "en": "So even the downsampled version is fairly big.",
+      "zh": "所以縮小後仍相當大。"
+    },
+    {
+      "start": 328.88,
+      "end": 330.2,
+      "en": "Okay, so what do we see here?",
+      "zh": "好，看到什麼？"
+    },
+    {
+      "start": 330.24,
+      "end": 332.64,
+      "en": "Let me make this a little bit bigger.",
+      "zh": "放大一點。"
+    },
+    {
+      "start": 332.88,
+      "end": 333.2,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 333.24,
+      "end": 336.68,
+      "en": "So embeddings you've seen this before 32,000.",
+      "zh": "嵌入看過，32,000。"
+    },
+    {
+      "start": 336.72,
+      "end": 340.36,
+      "en": "We can infer that there are 32,000 tokens.",
+      "zh": "可推知有 32,000 個詞元。"
+    },
+    {
+      "start": 340.8,
+      "end": 345.4,
+      "en": "And the embeddings dimensionality is 4096.",
+      "zh": "嵌入維度 4096。"
+    },
+    {
+      "start": 345.44,
+      "end": 350.88,
+      "en": "That is like five times bigger than the smaller version of GPT two.",
+      "zh": "比 GPT-2 small 大約五倍。"
+    },
+    {
+      "start": 351.08,
+      "end": 355.28,
+      "en": "And it's four times bigger than the large version of GPT two.",
+      "zh": "比 GPT-2 large 大四倍。"
+    },
+    {
+      "start": 355.8,
+      "end": 359.96,
+      "en": "So you can see that these bigger models get bigger really fast.",
+      "zh": "所以這些大模型，真的一下就變得很大。"
+    },
+    {
+      "start": 359.96,
+      "end": 369.66,
+      "en": "And because this embeddings matrix is 4000, then that means that the attention matrices are also going to be 4000.",
+      "zh": "嵌入維度約四千，所以注意力矩陣也會是四千。"
+    },
+    {
+      "start": 370.02,
+      "end": 373.42,
+      "en": "Now here is where things start getting a little bit confusing.",
+      "zh": "現在開始有點困惑。"
+    },
+    {
+      "start": 373.9,
+      "end": 377.9,
+      "en": "You learned that and you saw that in the GPT two model.",
+      "zh": "課程中學過，也在 GPT-2 看過，"
+    },
+    {
+      "start": 378.14,
+      "end": 384.66,
+      "en": "All of these W matrices for the attention uh algorithm are square.",
+      "zh": "注意力演算法的所有 W 矩陣都是方陣。"
+    },
+    {
+      "start": 384.86,
+      "end": 391.3,
+      "en": "So they are all uh, 768 by 768 or 1024 by 1024.",
+      "zh": "例如 768 乘 768，或 1024 乘 1024。"
+    },
+    {
+      "start": 391.7,
+      "end": 399.38,
+      "en": "So you probably expect that all four of these matrices are 4096 by 4096.",
+      "zh": "所以可能預期，這四個矩陣全是 4096 乘 4096。"
+    },
+    {
+      "start": 399.65999999999997,
+      "end": 406.02,
+      "en": "But here it turns out that the K and V weights matrices are not square.",
+      "zh": "但 K 與 V 權重矩陣竟然不是方陣，"
+    },
+    {
+      "start": 406.02,
+      "end": 407.46,
+      "en": "They are rectangular.",
+      "zh": "而是矩形，"
+    },
+    {
+      "start": 407.65999999999997,
+      "end": 409.22,
+      "en": "They are tall matrices.",
+      "zh": "是高矩陣。"
+    },
+    {
+      "start": 409.42,
+      "end": 413.42,
+      "en": "They are 4096 by 1024.",
+      "zh": "4096 乘 1024。"
+    },
+    {
+      "start": 413.62,
+      "end": 417.7,
+      "en": "So one quarter as wide as they are tall.",
+      "zh": "寬只有高的四分之一。"
+    },
+    {
+      "start": 418.38,
+      "end": 425.26,
+      "en": "And then here in the MLP layer we also have an architecture that looks a little bit different.",
+      "zh": "MLP 架構看起來也有點不同。"
+    },
+    {
+      "start": 425.54,
+      "end": 431.6,
+      "en": "So in the GPT models you are used to seeing just two matrices here.",
+      "zh": "GPT 模型裡，你習慣只看到兩個矩陣。"
+    },
+    {
+      "start": 431.6,
+      "end": 437.96,
+      "en": "So one that expands the dimensionality and one matrix that contracts the dimensionality.",
+      "zh": "一個擴張維度，一個收縮。"
+    },
+    {
+      "start": 438.24,
+      "end": 441.04,
+      "en": "And that is essentially what these two matrices do.",
+      "zh": "這兩個基本上也是這個用途。"
+    },
+    {
+      "start": 441.04,
+      "end": 445.52,
+      "en": "So we have 4096 going up to 14,000.",
+      "zh": "從 4096 上升到約 14,000。"
+    },
+    {
+      "start": 445.72,
+      "end": 450.28,
+      "en": "And if I remember correctly I believe this is 3.5 times this.",
+      "zh": "如果記得沒錯，我相信是 3.5 倍。"
+    },
+    {
+      "start": 450.28,
+      "end": 452.76,
+      "en": "So it's not quite A4X expansion.",
+      "zh": "所以不到四倍擴張，"
+    },
+    {
+      "start": 452.76,
+      "end": 455.12,
+      "en": "It's a 3.5 x expansion.",
+      "zh": "是 3.5 倍。"
+    },
+    {
+      "start": 455.36,
+      "end": 457.2,
+      "en": "You can check my arithmetic on that.",
+      "zh": "可以檢查我的算術。"
+    },
+    {
+      "start": 457.2,
+      "end": 458.08,
+      "en": "I might be wrong.",
+      "zh": "可能記錯。"
+    },
+    {
+      "start": 458.4,
+      "end": 465.15999999999997,
+      "en": "Uh, and then we have going uh, the contraction layer going from 14,000 back to 4000.",
+      "zh": "再從約 14,000 收縮回約四千。"
+    },
+    {
+      "start": 465.44,
+      "end": 467.32,
+      "en": "And what is the deal with this gate?",
+      "zh": "那這個 gate"
+    },
+    {
+      "start": 467.76,
+      "end": 469.48,
+      "en": "Uh, weights matrix.",
+      "zh": "權重矩陣是怎麼回事？"
+    },
+    {
+      "start": 469.48,
+      "end": 472.24,
+      "en": "Why do we have up and down and then gate?",
+      "zh": "為什麼有 up、down，還有 gate？"
+    },
+    {
+      "start": 472.88,
+      "end": 481.32,
+      "en": "Well, it turns out that this architecture from Mistral, uh, it's a slightly alternative way of setting up the MLP layer.",
+      "zh": "Mistral 這個架構，使用稍有不同的 MLP 組織方式。"
+    },
+    {
+      "start": 481.44,
+      "end": 491.49,
+      "en": "So they do have this up, down and in between there is a non-linearity that's the Q function comparable to Caillou, but slightly different.",
+      "zh": "有 up、down，中間有非線性，使用 SiLU 函數，類似 GELU，但稍有不同。"
+    },
+    {
+      "start": 491.49,
+      "end": 494.89,
+      "en": "It's just a different nonlinear activation function.",
+      "zh": "就是不同的非線性啟用函數。"
+    },
+    {
+      "start": 495.33,
+      "end": 502.13,
+      "en": "And then the idea is that this gate projection actually scales the non-linearity after this one.",
+      "zh": "這個 gate 投影，會縮放非線性之後的結果。"
+    },
+    {
+      "start": 502.13,
+      "end": 509.41,
+      "en": "So we go up and then there is a non-linearity that recombines with the output of the attention.",
+      "zh": "先往上投影，再非線性處理，與注意力輸出重新組合。"
+    },
+    {
+      "start": 509.41,
+      "end": 519.29,
+      "en": "So the output of this linear mixing matrix here, which they call O for output, I have previously called it w zero or the linear mixing matrix.",
+      "zh": "也就是這個線性混合矩陣的輸出；這裡叫 O，代表 output，我之前叫 W_O。"
+    },
+    {
+      "start": 519.81,
+      "end": 524.73,
+      "en": "And then so that gets up projected and non-linearly transformed.",
+      "zh": "接著往上投影，做非線性轉換。"
+    },
+    {
+      "start": 524.73,
+      "end": 532.93,
+      "en": "And then that gets combined with another version of this which is linearly scaled up to the same expanded",
+      "zh": "再與另一個線性擴張到相同"
+    },
+    {
+      "start": 532.93,
+      "end": 537.77,
+      "en": "dimensionality, but not nonlinearly transformed.",
+      "zh": "維度、但沒有非線性轉換的版本結合。"
+    },
+    {
+      "start": 538.05,
+      "end": 539.45,
+      "en": "Okay, I hope that makes sense.",
+      "zh": "希望說清楚了。"
+    },
+    {
+      "start": 539.77,
+      "end": 548.45,
+      "en": "I don't go into this kind of architecture in earlier in the course, because it's just a variant of something you have already seen before.",
+      "zh": "前面沒討論這種架構，因為只是先前看過的變體。"
+    },
+    {
+      "start": 549.41,
+      "end": 549.69,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 549.77,
+      "end": 552.67,
+      "en": "And then of course we have layer norm and so on.",
+      "zh": "當然，也有 LayerNorm 等等。"
+    },
+    {
+      "start": 552.79,
+      "end": 557.83,
+      "en": "So now let us uh count all of the parameters.",
+      "zh": "現在算全部參數。"
+    },
+    {
+      "start": 557.99,
+      "end": 565.55,
+      "en": "So here I have the sum over num l for p in the Zephyr model dot parameters.",
+      "zh": "這裡對 Zephyr 模型的 parameters，計算 p.numel() 總和。"
+    },
+    {
+      "start": 565.55,
+      "end": 574.59,
+      "en": "So looping over all of the parameters in the model and then counting all of the elements in the uh,",
+      "zh": "走訪全部參數，計算每個"
+    },
+    {
+      "start": 574.59,
+      "end": 578.55,
+      "en": "each of these uh, matrices, each of the parameters matrices.",
+      "zh": "矩陣、每個參數矩陣的元素數。"
+    },
+    {
+      "start": 579.03,
+      "end": 581.35,
+      "en": "So that is for the total parameter count.",
+      "zh": "這就是總參數量。"
+    },
+    {
+      "start": 581.43,
+      "end": 589.55,
+      "en": "And then here I have the trainable parameter count that is exactly the same uh, list comprehension",
+      "zh": "可訓練參數量，用相同的串列生成式，"
+    },
+    {
+      "start": 589.55,
+      "end": 596.83,
+      "en": "as I have here, except I add an additional requirement that says if requiresgrad equals true.",
+      "zh": "只多加 requires_grad=True 的條件。"
+    },
+    {
+      "start": 597.31,
+      "end": 602.19,
+      "en": "So that means that this count here will be a subset of this count here.",
+      "zh": "所以這個計數，是總計數的子集。"
+    },
+    {
+      "start": 602.31,
+      "end": 613.33,
+      "en": "So that gives us the total trainable the total parameters, the total trainable parameters and the non-trainable parameters are just the difference between those two.",
+      "zh": "得到總參數、可訓練參數，不可訓練則是兩者相減。"
+    },
+    {
+      "start": 613.97,
+      "end": 614.33,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 614.37,
+      "end": 619.81,
+      "en": "And then to convert to billion we just divide by ten to the power of nine.",
+      "zh": "換成十億，除以 10 的 9 次方。"
+    },
+    {
+      "start": 619.93,
+      "end": 622.17,
+      "en": "So that gives me the billion parameter.",
+      "zh": "就得到以十億為單位的參數量。"
+    },
+    {
+      "start": 622.65,
+      "end": 623.01,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 623.05,
+      "end": 626.01,
+      "en": "So now we get this kind of surprising result.",
+      "zh": "現在得到有點意外的結果。"
+    },
+    {
+      "start": 626.05,
+      "end": 635.29,
+      "en": "Not kind of very surprising result that it seems like there are only 3.7 billion parameters in this model.",
+      "zh": "不只是有點，是非常意外：模型似乎只有 37 億個參數。"
+    },
+    {
+      "start": 636.01,
+      "end": 643.97,
+      "en": "Now on the one hand, 3.75 billion is still a lot of parameters to train.",
+      "zh": "37.5 億當然仍是很多參數。"
+    },
+    {
+      "start": 644.45,
+      "end": 650.49,
+      "en": "On the other hand, the model is advertised as being 7 billion parameters.",
+      "zh": "但模型宣稱有七十億。"
+    },
+    {
+      "start": 650.49,
+      "end": 651.89,
+      "en": "So what's the deal here?",
+      "zh": "怎麼回事？"
+    },
+    {
+      "start": 651.93,
+      "end": 656.77,
+      "en": "Why does it seem like there's only half as many parameters as there should be?",
+      "zh": "為什麼看起來只有應有數量的一半？"
+    },
+    {
+      "start": 657.33,
+      "end": 664.49,
+      "en": "Furthermore, when we count the trainable parameters here, we find that only like less than 10% of",
+      "zh": "另外，可訓練參數竟然少於"
+    },
+    {
+      "start": 664.49,
+      "end": 673.98,
+      "en": "the parameters are actually trainable, and almost all of the parameters, over 90% of the parameters in this model are not trainable.",
+      "zh": "10%，超過 90% 都不可訓練。"
+    },
+    {
+      "start": 674.18,
+      "end": 676.3,
+      "en": "Again, that just seems really bizarre.",
+      "zh": "這也很奇怪。"
+    },
+    {
+      "start": 676.34,
+      "end": 679.74,
+      "en": "So something is really weird here, right?",
+      "zh": "有些地方很不對勁，是吧？"
+    },
+    {
+      "start": 679.78,
+      "end": 683.94,
+      "en": "So I hope you had a sense of confusion and concern.",
+      "zh": "所以希望你有困惑、有疑慮。"
+    },
+    {
+      "start": 683.94,
+      "end": 685.94,
+      "en": "If you did, then that's great.",
+      "zh": "如果有，那很好。"
+    },
+    {
+      "start": 685.98,
+      "end": 691.34,
+      "en": "It means you are learning about these LLM architectures okay.",
+      "zh": "代表正在了解這些 LLM 架構。"
+    },
+    {
+      "start": 691.38,
+      "end": 697.9,
+      "en": "But then on the other hand, a weird thing happens when we try to manually count all of these parameters,",
+      "zh": "但另一方面，手動計數時，"
+    },
+    {
+      "start": 697.9,
+      "end": 705.22,
+      "en": "which is that we get a number of parameters, we get a count that is in fact very consistent with what",
+      "zh": "得到的參數量，卻與"
+    },
+    {
+      "start": 705.22,
+      "end": 713.98,
+      "en": "the company reports that their model actually has, which is 7.24 billion, which is slightly less than half of this number.",
+      "zh": "公司宣稱的 72.4 億非常一致，而且稍微不到這個數字的一半。"
+    },
+    {
+      "start": 714.1,
+      "end": 717.1,
+      "en": "And how did I get this number 7.2 billion.",
+      "zh": "這個 72 億怎麼算？"
+    },
+    {
+      "start": 717.62,
+      "end": 724.14,
+      "en": "That comes from, as I said in the slides, literally just looking through the model and writing this stuff down.",
+      "zh": "如投影片所說，就是真的查看模型，把數字寫下來。"
+    },
+    {
+      "start": 724.14,
+      "end": 729.26,
+      "en": "So the embeddings dimension is 32,000 by 4096.",
+      "zh": "嵌入矩陣是 32,000 乘 4096。"
+    },
+    {
+      "start": 729.42,
+      "end": 737.6,
+      "en": "And then we have the attention layer that is 4000 squared plus 4000 times 1000.",
+      "zh": "注意力層有約四千的平方，加上約四千乘一千。"
+    },
+    {
+      "start": 737.64,
+      "end": 743.44,
+      "en": "And that comes from the K matrix over here and so on for all of those.",
+      "zh": "後者來自這裡的 K，其他也逐一算。"
+    },
+    {
+      "start": 743.48,
+      "end": 747.44,
+      "en": "And then this is for the MLP layer and the embeddings matrix.",
+      "zh": "這是 MLP 與嵌入矩陣。"
+    },
+    {
+      "start": 747.48,
+      "end": 756.04,
+      "en": "And then I literally just sum them up here I add the attention and MLP and multiply that by 32 because",
+      "zh": "把注意力與 MLP 加起來，乘以 32，因為"
+    },
+    {
+      "start": 756.04,
+      "end": 760.52,
+      "en": "there are 32 transformer blocks in this model.",
+      "zh": "模型有 32 個 Transformer 區塊。"
+    },
+    {
+      "start": 760.88,
+      "end": 762.6,
+      "en": "So something weird is going on.",
+      "zh": "所以有奇怪的事。"
+    },
+    {
+      "start": 762.76,
+      "end": 765.52,
+      "en": "Let's investigate this a little bit further.",
+      "zh": "再深入研究。"
+    },
+    {
+      "start": 765.88,
+      "end": 772.92,
+      "en": "So if we start peeking into this model here, I'm just looking at one of the attention blocks.",
+      "zh": "看看模型內部，這裡只看一個注意力區塊。"
+    },
+    {
+      "start": 773.12,
+      "end": 780.64,
+      "en": "And let's see, we can zoom in a little bit more, have a look at one of the attention blocks and zoom in a little bit more.",
+      "zh": "再放大一點，看看注意力區塊，再放大。"
+    },
+    {
+      "start": 780.68,
+      "end": 784.36,
+      "en": "Let's just focus on this Q proj matrix.",
+      "zh": "只聚焦 q_proj 矩陣。"
+    },
+    {
+      "start": 784.36,
+      "end": 789.96,
+      "en": "So here we see it should be 4000 by 4000 which is a big number.",
+      "zh": "應該約四千乘四千，非常大。"
+    },
+    {
+      "start": 790,
+      "end": 793.44,
+      "en": "Let's see what 4096 squared is.",
+      "zh": "算 4096 平方，"
+    },
+    {
+      "start": 793.72,
+      "end": 796.94,
+      "en": "It's yeah it's like 16 million.",
+      "zh": "對，約一千六百萬。"
+    },
+    {
+      "start": 796.94,
+      "end": 800.26,
+      "en": "So there should be 16 million parameters in here.",
+      "zh": "所以應有一千六百萬個參數。"
+    },
+    {
+      "start": 800.26,
+      "end": 808.46,
+      "en": "And but let's, uh, let's let me before I do this, let me say torch num and count the number of parameters in here.",
+      "zh": "但先讓我用 torch.numel，計算實際參數數量。"
+    },
+    {
+      "start": 808.74,
+      "end": 813.58,
+      "en": "Now, already you can tell this is obviously not the same number as that.",
+      "zh": "已看得出，這與那個數字明顯不同。"
+    },
+    {
+      "start": 813.62,
+      "end": 816.38,
+      "en": "Let's see what happens when I write this.",
+      "zh": "再這樣寫，"
+    },
+    {
+      "start": 816.42,
+      "end": 819.18,
+      "en": "Divided by that number, huh?",
+      "zh": "除以那個數字。"
+    },
+    {
+      "start": 819.22,
+      "end": 822.46,
+      "en": "Here we get an exact number of two.",
+      "zh": "得到剛好 2。"
+    },
+    {
+      "start": 823.02,
+      "end": 824.46,
+      "en": "So what's the deal here?",
+      "zh": "怎麼回事？"
+    },
+    {
+      "start": 824.46,
+      "end": 827.1,
+      "en": "Where are all these extra parameters?",
+      "zh": "多出來的參數在哪？"
+    },
+    {
+      "start": 827.3,
+      "end": 831.26,
+      "en": "Okay, let's go to, uh.",
+      "zh": "好，接著，"
+    },
+    {
+      "start": 831.26,
+      "end": 833.82,
+      "en": "Now I will look at the shape of this.",
+      "zh": "看看形狀。"
+    },
+    {
+      "start": 833.98,
+      "end": 834.78,
+      "en": "Uh, so okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 834.82,
+      "end": 836.7,
+      "en": "Remember this weights matrix.",
+      "zh": "記得，這個權重矩陣，"
+    },
+    {
+      "start": 836.74,
+      "end": 836.94,
+      "en": "Oops.",
+      "zh": "哎，"
+    },
+    {
+      "start": 836.98,
+      "end": 839.86,
+      "en": "Actually, what I wanted to show you was this first.",
+      "zh": "其實想先展示這個。"
+    },
+    {
+      "start": 839.9,
+      "end": 840.18,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 840.22,
+      "end": 842.9,
+      "en": "So this should be 4000 by 4000.",
+      "zh": "應該是四千乘四千。"
+    },
+    {
+      "start": 842.98,
+      "end": 848.26,
+      "en": "But now when we actually look at it, we see that it is a parameter containing.",
+      "zh": "但實際查看，顯示 Parameter containing，"
+    },
+    {
+      "start": 848.26,
+      "end": 850.78,
+      "en": "And this just looks like a list.",
+      "zh": "看起來像串列。"
+    },
+    {
+      "start": 850.78,
+      "end": 854.66,
+      "en": "So let's look at the shape or a one dimensional array.",
+      "zh": "再看形狀，或者說一維陣列。"
+    },
+    {
+      "start": 855.1,
+      "end": 859.99,
+      "en": "So here we see that this is 88 million by one.",
+      "zh": "這裡字幕數值辨識為「88 million 乘 1」（數值待核）。"
+    },
+    {
+      "start": 859.99,
+      "end": 863.87,
+      "en": "So this is just one really long column vector.",
+      "zh": "所以只是很長的一個欄向量。"
+    },
+    {
+      "start": 864.27,
+      "end": 865.95,
+      "en": "And what is the deal here.",
+      "zh": "這又怎麼回事？"
+    },
+    {
+      "start": 865.99,
+      "end": 867.39,
+      "en": "Let's have a look at this again.",
+      "zh": "再看看。"
+    },
+    {
+      "start": 867.79,
+      "end": 869.71,
+      "en": "And also that these are integers.",
+      "zh": "而且，這些是整數，"
+    },
+    {
+      "start": 869.71,
+      "end": 872.27,
+      "en": "These are not floating point numbers.",
+      "zh": "不是浮點數。"
+    },
+    {
+      "start": 872.59,
+      "end": 876.43,
+      "en": "So this has to do with how the data are quantized.",
+      "zh": "這與資料量化方式有關。"
+    },
+    {
+      "start": 876.43,
+      "end": 884.95,
+      "en": "How these weights matrices are quantized in order to get the weights to be represented as four bit numbers",
+      "zh": "為了把權重表示成四位元數字，"
+    },
+    {
+      "start": 885.31,
+      "end": 890.35,
+      "en": "and be compact enough that the size ends up being quite small.",
+      "zh": "並且夠緊湊、占用空間夠小，矩陣會量化。"
+    },
+    {
+      "start": 890.59,
+      "end": 893.47,
+      "en": "So I'm going to talk about this a little bit more in the slides.",
+      "zh": "回投影片再多談。"
+    },
+    {
+      "start": 893.47,
+      "end": 900.03,
+      "en": "I also want to show you a requiresgrad equals weight.",
+      "zh": "也想展示 requires_grad，weight，"
+    },
+    {
+      "start": 900.03,
+      "end": 900.47,
+      "en": "Sorry.",
+      "zh": "抱歉。"
+    },
+    {
+      "start": 900.51,
+      "end": 901.39,
+      "en": "It is.",
+      "zh": "它是，"
+    },
+    {
+      "start": 902.15,
+      "end": 903.87,
+      "en": "It's on weight.",
+      "zh": "在 weight 上。"
+    },
+    {
+      "start": 904.59,
+      "end": 910.59,
+      "en": "So proj dot weight dot dot requires grad.",
+      "zh": "所以是 proj.weight.requires_grad。"
+    },
+    {
+      "start": 910.67,
+      "end": 913.11,
+      "en": "And that actually equals false.",
+      "zh": "它是 False。"
+    },
+    {
+      "start": 913.39,
+      "end": 922.57,
+      "en": "So this layer this set of weights is actually technically classified as a non trainable layer.",
+      "zh": "所以這層、這組權重，技術上被分類成不可訓練。"
+    },
+    {
+      "start": 922.61,
+      "end": 925.41,
+      "en": "That doesn't mean that these parameters were never trained.",
+      "zh": "不代表從沒訓練過。"
+    },
+    {
+      "start": 925.45,
+      "end": 934.41,
+      "en": "Of course they were trained, but they are currently listed as non-trainable because of the quantization.",
+      "zh": "當然訓練過，但因為量化，目前列成不可訓練。"
+    },
+    {
+      "start": 934.97,
+      "end": 943.33,
+      "en": "The last thing that I was initially planning on saying was just about dividing this, which is the same thing that I showed, uh, here.",
+      "zh": "原本最後想說的是這個除法，和這裡示範的一樣。"
+    },
+    {
+      "start": 944.05,
+      "end": 944.77,
+      "en": "Uh, let me see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 944.81,
+      "end": 946.09,
+      "en": "Not requiresgrad.",
+      "zh": "不是 requires_grad。"
+    },
+    {
+      "start": 946.53,
+      "end": 947.25,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 947.25,
+      "end": 949.69,
+      "en": "So that is just the inverse of this.",
+      "zh": "這只是剛才的倒數。"
+    },
+    {
+      "start": 949.69,
+      "end": 957.97,
+      "en": "So I was going to explain that this turns out to be a ratio of one half for the number of numbers in",
+      "zh": "想說的是，這個矩陣的數值數量，"
+    },
+    {
+      "start": 958.09,
+      "end": 962.77,
+      "en": "this matrix versus the, uh, the expected size.",
+      "zh": "相對於預期大小，比例剛好是二分之一。"
+    },
+    {
+      "start": 963.41,
+      "end": 963.77,
+      "en": "Okay.",
+      "zh": "好的。"
+    },
+    {
+      "start": 963.85,
+      "end": 972.17,
+      "en": "So now a little bit more details about some of these confusing things that we have discovered in the model architecture.",
+      "zh": "現在進一步解釋，模型架構中令人困惑的發現。"
+    },
+    {
+      "start": 972.97,
+      "end": 984.59,
+      "en": "Earlier in the course, you learned about the attention algorithm and how the three weights matrices are all square, so wq w k and w v.",
+      "zh": "前面學注意力時，三個權重 W_Q、W_K、W_V 都是方陣。"
+    },
+    {
+      "start": 985.27,
+      "end": 994.79,
+      "en": "Now it turns out that they are square, not by mathematical necessity, but by convention they do not have to be square.",
+      "zh": "其實方陣是慣例，不是數學必要條件。"
+    },
+    {
+      "start": 995.43,
+      "end": 1004.75,
+      "en": "The group that created the Zephyr model, Mistral, uses a slightly alternative way of organizing the",
+      "zh": "建立 Zephyr 模型的 Mistral 團隊，使用稍有不同的"
+    },
+    {
+      "start": 1004.75,
+      "end": 1010.79,
+      "en": "attention matrices, which was based on an idea that was developed at Google Research.",
+      "zh": "注意力矩陣組織方式，依據 Google Research 提出的想法。"
+    },
+    {
+      "start": 1011.27,
+      "end": 1013.67,
+      "en": "So here you can see the reference for that paper.",
+      "zh": "這裡是論文參考。"
+    },
+    {
+      "start": 1013.71,
+      "end": 1018.47,
+      "en": "The technique is called grouped query attention or GQ.",
+      "zh": "稱為 grouped-query attention，分組查詢注意力，GQA。"
+    },
+    {
+      "start": 1019.59,
+      "end": 1028.47,
+      "en": "So the idea is that in a typical multi-head attention mechanism, there are multiple slices of the queries,",
+      "zh": "一般多頭注意力，有多個 query、"
+    },
+    {
+      "start": 1028.63,
+      "end": 1036.91,
+      "en": "keys, and values that all process the tokens independently of each other, and then their information",
+      "zh": "key、value 切片，各自處理詞元，再把資訊"
+    },
+    {
+      "start": 1036.91,
+      "end": 1041.08,
+      "en": "is combined by the linear mixing matrix w0.",
+      "zh": "透過 W_O 線性混合矩陣結合。"
+    },
+    {
+      "start": 1041.72,
+      "end": 1050.44,
+      "en": "However, it's also possible for the keys and values matrices to share multiple queries vectors.",
+      "zh": "但也可以讓 key 與 value 矩陣，共用多個 query 向量。"
+    },
+    {
+      "start": 1050.44,
+      "end": 1052.32,
+      "en": "So that looks something like this.",
+      "zh": "看起來像這樣。"
+    },
+    {
+      "start": 1052.96,
+      "end": 1056.92,
+      "en": "So now you have four groups instead of eight heads.",
+      "zh": "現在有四組，而不是八個頭。"
+    },
+    {
+      "start": 1057.4,
+      "end": 1064,
+      "en": "And this is a technique to have fewer parameters and it gets pretty comparable performance.",
+      "zh": "這能減少參數，表現也相當接近。"
+    },
+    {
+      "start": 1064.52,
+      "end": 1068.8,
+      "en": "Now I'm not going to discuss this method in any more detail than this.",
+      "zh": "就不深入這個方法了。"
+    },
+    {
+      "start": 1069,
+      "end": 1076.4,
+      "en": "You can read more about the details here, in this paper or in other papers, if you're interested in the technical details.",
+      "zh": "有興趣，可以讀這篇或其他論文的技術細節。"
+    },
+    {
+      "start": 1077.24,
+      "end": 1083,
+      "en": "Well, that is a lot of information to digest for one exercise.",
+      "zh": "一個練習就有這麼多資訊，需要消化。"
+    },
+    {
+      "start": 1083.44,
+      "end": 1090.12,
+      "en": "There are two more exercises in this code challenge, but I recommend that you pause here, take a short",
+      "zh": "還有兩個練習，但建議先暫停、短暫"
+    },
+    {
+      "start": 1090.12,
+      "end": 1099.84,
+      "en": "break, stretch, drink some water, digest all of that information, and when you're feeling refreshed, come back for the completion of this code challenge.",
+      "zh": "休息、伸展、喝水，消化資訊；恢復精神後，再回來完成挑戰。"
+    }
+  ]
+}

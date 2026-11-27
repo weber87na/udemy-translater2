@@ -1,0 +1,739 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51861875",
+  "title": "The AdamW optimizer",
+  "section": 7,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "da187e84d07bd0e4b8dd63b0803a12fc6e7a43fa0b4293faa52cd114d387249b",
+  "cues": [
+    {
+      "start": 2.12,
+      "end": 9.72,
+      "en": "The optimizer in deep learning refers to the mechanism of calculating the updates of the weights.",
+      "zh": "深度學習的最佳化器，是指計算權重更新的機制。"
+    },
+    {
+      "start": 10.2,
+      "end": 16.8,
+      "en": "Now, on the one hand, everything is based on gradient descent, but there are some different add ons",
+      "zh": "一方面，一切都以梯度下降為基礎，但也有不同附加機制"
+    },
+    {
+      "start": 16.8,
+      "end": 27.88,
+      "en": "and modifications of gradient descent that have made the vanilla old school traditional gradient descent equation more effective and faster.",
+      "zh": "與修改，讓原本傳統、基本的梯度下降方程式，更有效、更快。"
+    },
+    {
+      "start": 28.56,
+      "end": 35.52,
+      "en": "If you have studied deep learning before, then I'm sure you are familiar with the Adam Optimizer.",
+      "zh": "之前學過深度學習，應該很熟悉 Adam 最佳化器。"
+    },
+    {
+      "start": 35.92,
+      "end": 43.16,
+      "en": "And if you haven't studied training LMS, then you might not be familiar with the Adam optimizer.",
+      "zh": "如果還沒學過 LLM 訓練，可能不熟悉 Adam。"
+    },
+    {
+      "start": 43.48,
+      "end": 46.48,
+      "en": "In which case this video will be insightful.",
+      "zh": "這樣的話，這支影片會有幫助。"
+    },
+    {
+      "start": 46.84,
+      "end": 55.4,
+      "en": "It's actually just a really tiny adjustment of the Adam formula, which turns out to be a bit of an improvement for large models.",
+      "zh": "其實只對 Adam 公式做非常小的調整，卻能稍微改善大型模型。"
+    },
+    {
+      "start": 56.04,
+      "end": 66.36,
+      "en": "So in this video, I'm going to work through the math of the Adam optimizer Wiser L2 regularization and the adjustment for atom W.",
+      "zh": "這支影片會說明 Adam 的數學、L2 正則化，以及 AdamW 的調整。"
+    },
+    {
+      "start": 67.04,
+      "end": 77.32,
+      "en": "And I will be honest with you, if you are unfamiliar with gradient descent and the atom optimizer, then some of the math in this video might seem to come out of nowhere.",
+      "zh": "老實說，如果不熟梯度下降與 Adam，這裡一些數學可能顯得很突然。"
+    },
+    {
+      "start": 77.96000000000001,
+      "end": 86.08,
+      "en": "If you are in my deep learning course, then you'll know that I take several videos just to build up to the atom equations.",
+      "zh": "如果上過我的深度學習課，就知道我用了好幾支影片，才逐步建立 Adam 方程式。"
+    },
+    {
+      "start": 86.64,
+      "end": 91.84,
+      "en": "But anyway, I will also explain the concepts and important take home points.",
+      "zh": "不過也會解釋概念，以及重要重點。"
+    },
+    {
+      "start": 91.84,
+      "end": 98.44,
+      "en": "So even if you feel like you don't fully understand the math, I think you will get the gist.",
+      "zh": "所以即使覺得沒完全理解數學，應該仍能掌握大意。"
+    },
+    {
+      "start": 99.56,
+      "end": 104.16,
+      "en": "Let me begin with the main goal of training a deep learning model.",
+      "zh": "先從訓練深度學習模型的主要目標開始。"
+    },
+    {
+      "start": 104.56,
+      "end": 106.64,
+      "en": "Imagine this capital W.",
+      "zh": "想像這個大寫 W，"
+    },
+    {
+      "start": 106.68,
+      "end": 109.96000000000001,
+      "en": "Here is all of the weights in the model.",
+      "zh": "代表模型所有權重。"
+    },
+    {
+      "start": 110,
+      "end": 114.52000000000001,
+      "en": "Literally every single trainable parameter in the entire model.",
+      "zh": "真的就是整個模型裡，每一個可訓練參數。"
+    },
+    {
+      "start": 115.08,
+      "end": 122.61,
+      "en": "Then we can say that the goal of training is to find the set of weights that minimizes the cost function",
+      "zh": "因此可以說，訓練的目標，是找出讓這裡成本函數最小的"
+    },
+    {
+      "start": 122.61,
+      "end": 131.17,
+      "en": "here, where the cost function is the sum of all the losses for all the items in a batch or a training set.",
+      "zh": "一組權重，而成本函數，就是批次或訓練集中所有項目的損失總和。"
+    },
+    {
+      "start": 131.89,
+      "end": 140.21,
+      "en": "This is a very high level description I'm not even going to write out, for example, the formula for cross entropy or negative log likelihood.",
+      "zh": "這是高層次描述，甚至不寫出交叉熵、負對數概似等公式。"
+    },
+    {
+      "start": 140.65,
+      "end": 152.17000000000002,
+      "en": "The general idea is that we have some loss function, and the model wants to find the weights that gives the smallest output of the loss function.",
+      "zh": "大致概念是，有個損失函數，模型想找出讓其輸出最小的權重。"
+    },
+    {
+      "start": 153.37,
+      "end": 164.97,
+      "en": "Now it turns out that for that relatively small or simple models, working with relatively straightforward data sets can actually just learn to optimize this function.",
+      "zh": "相對小、簡單的模型，處理比較單純的資料集時，直接學著最佳化這個函數就可以。"
+    },
+    {
+      "start": 164.97,
+      "end": 165.81,
+      "en": "And that's fine.",
+      "zh": "沒問題。"
+    },
+    {
+      "start": 165.81,
+      "end": 166.77,
+      "en": "That's good enough.",
+      "zh": "已經夠好。"
+    },
+    {
+      "start": 167.25,
+      "end": 175.21,
+      "en": "But when the models get really big, really complex, and the data are also really complex and diverse,",
+      "zh": "但模型變得非常大、非常複雜，資料也複雜、多樣時，"
+    },
+    {
+      "start": 175.69,
+      "end": 179.65,
+      "en": "then it's just not good enough to get a good working model.",
+      "zh": "這就不足以得到運作良好的模型。"
+    },
+    {
+      "start": 179.97,
+      "end": 184.29,
+      "en": "Instead, we need to add some forms of regularization.",
+      "zh": "需要加入某些正則化。"
+    },
+    {
+      "start": 184.77,
+      "end": 191.17,
+      "en": "And so the general idea of regularization is to add something to this loss function.",
+      "zh": "正則化的大致概念，是在損失函數裡多加一項。"
+    },
+    {
+      "start": 191.41,
+      "end": 201.09,
+      "en": "So now the model is trying to select the weights not only based on minimizing the loss, but also based on minimizing something else.",
+      "zh": "模型選擇權重時，就不只盡量減少損失，也要盡量減少另一件事。"
+    },
+    {
+      "start": 201.37,
+      "end": 203.17000000000002,
+      "en": "And what is that something else?",
+      "zh": "那是什麼？"
+    },
+    {
+      "start": 203.65,
+      "end": 209.05,
+      "en": "Well, there are many kinds of regularization that we can add to a model.",
+      "zh": "可以加入很多種正則化。"
+    },
+    {
+      "start": 209.25,
+      "end": 214.09,
+      "en": "What I'm showing here is called L2 loss or weight decay.",
+      "zh": "這裡顯示的是 L2 損失，或權重衰減。"
+    },
+    {
+      "start": 214.32999999999998,
+      "end": 217.65,
+      "en": "And that's just the square of the norm of the weights.",
+      "zh": "也就是權重範數的平方。"
+    },
+    {
+      "start": 218.09,
+      "end": 222.21,
+      "en": "So basically you square all of the weights and you add them up.",
+      "zh": "基本上，把所有權重平方，再加總。"
+    },
+    {
+      "start": 222.85,
+      "end": 228.09,
+      "en": "Uh, this lambda character over here is called the regularization amount.",
+      "zh": "這個 lambda，叫做正則化強度。"
+    },
+    {
+      "start": 228.09,
+      "end": 232.45,
+      "en": "And it's generally a very small number like 0.01 or 0.01.",
+      "zh": "通常是很小的數字，例如 0.01 或 0.01。"
+    },
+    {
+      "start": 233.09,
+      "end": 240.49,
+      "en": "So the idea of this L2 regularization is that we don't want the model weights to get too big.",
+      "zh": "L2 正則化的概念，是不希望模型權重太大。"
+    },
+    {
+      "start": 240.81,
+      "end": 244.82,
+      "en": "And we also don't want individual model weights to get too big.",
+      "zh": "也不希望個別權重太大。"
+    },
+    {
+      "start": 245.3,
+      "end": 256.06,
+      "en": "So adding this regularization term prevents the model from having really large weights, and it also prevents individual weights from becoming too powerful.",
+      "zh": "加入正則化項，能避免模型具有過大權重，也避免個別權重變得過度強勢。"
+    },
+    {
+      "start": 257.26,
+      "end": 257.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 257.58,
+      "end": 265.58,
+      "en": "So this slide is a general overview of minimizing the cost function and adding L2 regularization.",
+      "zh": "這張投影片概覽成本函數最小化，以及加入 L2 正則化。"
+    },
+    {
+      "start": 266.1,
+      "end": 271.1,
+      "en": "Now L2 regularization seems to work pretty well with the Adam optimizer.",
+      "zh": "L2 正則化搭配 Adam，看起來效果很好。"
+    },
+    {
+      "start": 271.26,
+      "end": 274.34000000000003,
+      "en": "So now I'm going to review some of that math.",
+      "zh": "現在回顧一些數學。"
+    },
+    {
+      "start": 275.1,
+      "end": 275.54,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 275.74,
+      "end": 279.46,
+      "en": "This is the slide that is intuitive and sensible.",
+      "zh": "這張投影片會很直觀、合理，"
+    },
+    {
+      "start": 279.46,
+      "end": 286.5,
+      "en": "If you've already spent several hours studying gradient descent momentum and rmsprop.",
+      "zh": "如果你已經花幾個小時學過梯度下降、動量與 RMSprop。"
+    },
+    {
+      "start": 286.98,
+      "end": 291.65999999999997,
+      "en": "But if you're not familiar with those optimizers, then this can look pretty heavy.",
+      "zh": "但如果不熟這些最佳化器，看起來可能很沉重。"
+    },
+    {
+      "start": 292.1,
+      "end": 292.42,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 292.46,
+      "end": 295.3,
+      "en": "So let me start with this equation down here.",
+      "zh": "先從下面這條方程式開始。"
+    },
+    {
+      "start": 295.78,
+      "end": 305.34,
+      "en": "This equation says that the weights are adjusted according to themselves minus the learning rate times",
+      "zh": "它表示，權重更新為原本的值，減去學習率乘以"
+    },
+    {
+      "start": 305.34,
+      "end": 307.42,
+      "en": "the derivative of the loss.",
+      "zh": "損失的導數。"
+    },
+    {
+      "start": 307.98,
+      "end": 316.02,
+      "en": "Now, the way to understand this is to just ignore this denominator here and just focus on the numerator, which is eta.",
+      "zh": "理解時，先忽略分母，只看分子 eta。"
+    },
+    {
+      "start": 316.06,
+      "end": 317.38,
+      "en": "That is the learning rate.",
+      "zh": "也就是學習率。"
+    },
+    {
+      "start": 318.34,
+      "end": 325.54,
+      "en": "And then if we focus on V then we see that it's basically just the derivative of the cost function.",
+      "zh": "再看 V，基本上就是成本函數的導數。"
+    },
+    {
+      "start": 325.54,
+      "end": 326.46,
+      "en": "So the loss.",
+      "zh": "也就是損失。"
+    },
+    {
+      "start": 327.06,
+      "end": 333.46,
+      "en": "And when you see that then you see that the weight adjustment is really just gradient descent.",
+      "zh": "這樣就會看到，權重調整基本上只是梯度下降。"
+    },
+    {
+      "start": 333.46,
+      "end": 335.65999999999997,
+      "en": "So Adam is really just gradient descent.",
+      "zh": "所以 Adam 本質上就是梯度下降。"
+    },
+    {
+      "start": 335.82,
+      "end": 342.02,
+      "en": "So the weights are adjusted according to themselves minus a small fraction of the loss.",
+      "zh": "權重變成原本值，減去一小部分損失。"
+    },
+    {
+      "start": 342.5,
+      "end": 352.82,
+      "en": "All of this other stuff is basically just incorporating some modulations according to the recent history of the changes in the loss.",
+      "zh": "其他部分，基本上只是依照最近損失變化的歷史，加入一些調節。"
+    },
+    {
+      "start": 353.34000000000003,
+      "end": 360.78,
+      "en": "For example, the V term here is basically just the weighted average of recent losses.",
+      "zh": "例如這裡的 V 項，基本上是近期損失的加權平均。"
+    },
+    {
+      "start": 361.06,
+      "end": 363.26,
+      "en": "This is called a momentum term.",
+      "zh": "叫做動量項。"
+    },
+    {
+      "start": 363.58,
+      "end": 365.67,
+      "en": "And essentially it It's smooth.",
+      "zh": "它基本上會平滑"
+    },
+    {
+      "start": 365.71,
+      "end": 371.47,
+      "en": "The learning, according to how much the model has learned in the past few training runs.",
+      "zh": "學習，依據模型前幾次訓練學到多少而調整。"
+    },
+    {
+      "start": 372.59,
+      "end": 375.07,
+      "en": "Then we have this denominator term here.",
+      "zh": "接著有分母這項。"
+    },
+    {
+      "start": 375.27,
+      "end": 379.83,
+      "en": "And this is a weighted history of the variance of the gradients.",
+      "zh": "這是梯度變異數的加權歷史。"
+    },
+    {
+      "start": 380.31,
+      "end": 387.63,
+      "en": "And the idea there is that the weights that are highly variable and changing a lot are unstable and",
+      "zh": "概念是，變動很大、不斷改變的權重不穩定，"
+    },
+    {
+      "start": 387.63,
+      "end": 398.11,
+      "en": "should be dampened down, whereas the weights that aren't budging at all, maybe those are stuck on a plateau and they should be adjusted or tweaked a little bit more.",
+      "zh": "應該壓低變動；完全不動的權重，也許卡在平台上，就應多調整一點。"
+    },
+    {
+      "start": 399.19,
+      "end": 399.51,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 399.55,
+      "end": 401.99,
+      "en": "I hope that high level summary makes sense.",
+      "zh": "希望這個高層次整理說得通。"
+    },
+    {
+      "start": 401.99,
+      "end": 407.55,
+      "en": "There's a lot going on on this slide, but I don't want to get into the details of all that here.",
+      "zh": "投影片內容很多，但不想在這裡深入所有細節。"
+    },
+    {
+      "start": 408.11,
+      "end": 413.51,
+      "en": "What I do want to discuss is the distinction between atom and atom w.",
+      "zh": "要討論的重點，是 Adam 與 AdamW 的差別。"
+    },
+    {
+      "start": 414.07,
+      "end": 419.90999999999997,
+      "en": "So let's say we are combining atom with L2 regularization.",
+      "zh": "假設 Adam 搭配 L2 正則化。"
+    },
+    {
+      "start": 420.35,
+      "end": 422.43,
+      "en": "That equation would look like this.",
+      "zh": "方程式就像這樣。"
+    },
+    {
+      "start": 422.51,
+      "end": 431.15,
+      "en": "So the weights are adjusted according to themselves, minus the learning rate times the gradient of",
+      "zh": "權重更新為自身，減去學習率乘以"
+    },
+    {
+      "start": 431.19,
+      "end": 440.47,
+      "en": "the loss minus the gradient of the L2 term, and because the L2 term is squared, its gradient is basically just the weights.",
+      "zh": "損失梯度，再減去 L2 項的梯度；因為 L2 是平方，其梯度基本上就是權重。"
+    },
+    {
+      "start": 441.59,
+      "end": 441.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 441.95,
+      "end": 449.07,
+      "en": "So basically we are just subtracting a fraction of the weights each time we update the weights.",
+      "zh": "基本上，每次更新都減去權重的一小部分。"
+    },
+    {
+      "start": 449.47,
+      "end": 456.39,
+      "en": "That's why L2 regularization is also called shrinkage because we are shrinking down the weights.",
+      "zh": "所以 L2 正則化也叫收縮，因為會縮小權重。"
+    },
+    {
+      "start": 457.15,
+      "end": 457.43,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 457.47,
+      "end": 463.87,
+      "en": "Now it turns out that although this equation looks pretty simple, it is a bit tricky because this means",
+      "zh": "這條方程式看似簡單，但有點棘手，因為表示"
+    },
+    {
+      "start": 463.87,
+      "end": 471.51,
+      "en": "that the L2 regularization is calculated before the weights are actually updated, which means that",
+      "zh": "L2 正則化在權重實際更新之前計算，也就是"
+    },
+    {
+      "start": 471.51,
+      "end": 481.39,
+      "en": "the weights actually appear in this update twice the weights appear once in v and s, and then again in this L2 term.",
+      "zh": "權重在更新裡出現兩次：一次在 V、S 裡，另一次在 L2 項。"
+    },
+    {
+      "start": 481.99,
+      "end": 489.31,
+      "en": "Now that's not really a problem per se, but it does mean that these two terms are actually correlated with each other.",
+      "zh": "本身不一定有問題，但代表這兩項其實彼此相關。"
+    },
+    {
+      "start": 490.35,
+      "end": 499.19,
+      "en": "So the reason for that is that each parameter has its own unique learning rate because of this denominator term here.",
+      "zh": "原因是，分母這一項，讓每個參數有自己的學習率。"
+    },
+    {
+      "start": 499.83,
+      "end": 507.35,
+      "en": "So the alternative is to split up this update into two separate equations or two lines of code.",
+      "zh": "另一種做法，是把更新拆成兩條方程式，或兩行程式。"
+    },
+    {
+      "start": 507.95,
+      "end": 515.19,
+      "en": "So Adam W first implements like the pure Adam weight update without any regularization.",
+      "zh": "AdamW 先做完全沒有正則化的純 Adam 更新。"
+    },
+    {
+      "start": 515.39,
+      "end": 522.19,
+      "en": "And then after this update has occurred it then applies the L2 regularization.",
+      "zh": "更新完成後，再套用 L2 正則化。"
+    },
+    {
+      "start": 522.23,
+      "end": 524.79,
+      "en": "Another term for this is weight decay.",
+      "zh": "另一個名稱是權重衰減。"
+    },
+    {
+      "start": 525.79,
+      "end": 530.99,
+      "en": "And this is based based on the adjusted weights from this step here.",
+      "zh": "而且根據這一步調整後的權重來做。"
+    },
+    {
+      "start": 531.59,
+      "end": 537.75,
+      "en": "Now it's a pretty subtle difference because both of these algorithms have a term for the gradient update.",
+      "zh": "差異很微妙，因為兩種演算法都有梯度更新項。"
+    },
+    {
+      "start": 537.91,
+      "end": 542.23,
+      "en": "And both of these algorithms have a term for the L2 regularizer.",
+      "zh": "也都有 L2 正則化項。"
+    },
+    {
+      "start": 543.43,
+      "end": 549.36,
+      "en": "One way to think about this difference is by grouping these two terms together in atom.",
+      "zh": "可以這樣想：Adam 把這兩項合在一起。"
+    },
+    {
+      "start": 549.68,
+      "end": 558.76,
+      "en": "In other words, up here you are regularizing the update to the weights instead of regularizing the weights themselves.",
+      "zh": "換句話說，上面正則化的是權重的更新，而不是權重本身。"
+    },
+    {
+      "start": 559.16,
+      "end": 567,
+      "en": "Whereas with atom you are regularizing the weights and not regularizing the update to the weights.",
+      "zh": "而 AdamW 正則化的是權重，不是權重更新。"
+    },
+    {
+      "start": 568.04,
+      "end": 570.68,
+      "en": "So here is some screenshots.",
+      "zh": "這裡有些截圖。"
+    },
+    {
+      "start": 570.68,
+      "end": 580.48,
+      "en": "This is the original paper that pointed out this feature of the atom implementation with L2, and proposed the atom W extension.",
+      "zh": "這是最初指出 Adam 搭配 L2 的這個特性，並提出 AdamW 延伸的論文。"
+    },
+    {
+      "start": 580.96,
+      "end": 590.12,
+      "en": "Here you see two of the figures that I took screenshots of from their paper showing that atom W has",
+      "zh": "這是從論文截下的兩張圖，顯示 AdamW"
+    },
+    {
+      "start": 590.12,
+      "end": 593.28,
+      "en": "lower loss and improved accuracy.",
+      "zh": "損失較低、準確率較好。"
+    },
+    {
+      "start": 593.56,
+      "end": 597.44,
+      "en": "So in these panels the color corresponds to the loss.",
+      "zh": "這些面板中，顏色代表損失。"
+    },
+    {
+      "start": 597.44,
+      "end": 600.96,
+      "en": "So lower numbers, cooler numbers, more towards blue.",
+      "zh": "數值越低，顏色越冷、越接近藍色。"
+    },
+    {
+      "start": 601.24,
+      "end": 602.2,
+      "en": "That's better.",
+      "zh": "那就越好。"
+    },
+    {
+      "start": 602.32,
+      "end": 604.76,
+      "en": "And the bottom panel shows atom W.",
+      "zh": "下面顯示 AdamW。"
+    },
+    {
+      "start": 604.8,
+      "end": 608.6,
+      "en": "The top panel shows just atom with L2.",
+      "zh": "上面則是 Adam 加上 L2。"
+    },
+    {
+      "start": 608.96,
+      "end": 616.64,
+      "en": "So you see that the model has lower loss, better generalization performance when using Adam W compared to Adam.",
+      "zh": "所以可以看到，用 AdamW 比 Adam，模型損失較低、泛化表現較好。"
+    },
+    {
+      "start": 617.2,
+      "end": 623.88,
+      "en": "And over here these line plots and scatter plots show the loss and the error.",
+      "zh": "右邊的線圖與散佈圖，顯示損失與錯誤。"
+    },
+    {
+      "start": 624.32,
+      "end": 627.12,
+      "en": "And again basically you want these numbers to be low.",
+      "zh": "同樣希望這些數字較低。"
+    },
+    {
+      "start": 627.4,
+      "end": 631.16,
+      "en": "And you see that blue is lower than red in these examples.",
+      "zh": "這些例子裡，藍色低於紅色。"
+    },
+    {
+      "start": 632,
+      "end": 632.36,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 632.4,
+      "end": 634.28,
+      "en": "So that all seems pretty compelling.",
+      "zh": "看起來很有說服力。"
+    },
+    {
+      "start": 634.44,
+      "end": 642.28,
+      "en": "Why hasn't Planet Earth completely adopted Adam W and completely abandoned the vanilla atom?",
+      "zh": "那為什麼全世界還沒全面採用 AdamW，完全放棄原本的 Adam？"
+    },
+    {
+      "start": 643.12,
+      "end": 653.4,
+      "en": "I suspect this is for a number of reasons, and I would also like to remind you of a similar discussion when I introduced the Galileo nonlinearity.",
+      "zh": "我猜有幾個原因，也提醒你回想介紹 GELU 非線性函數時的類似討論。"
+    },
+    {
+      "start": 654.48,
+      "end": 662.08,
+      "en": "One thing to keep in mind about deep learning is that some improvements are specific to certain architectures,",
+      "zh": "要記得，深度學習有些改進，只適用於某些架構、"
+    },
+    {
+      "start": 662.28,
+      "end": 669.97,
+      "en": "certain data set characteristics, certain loss functions, or certain kinds of problems that you need the model to solve.",
+      "zh": "資料特性、損失函數，或希望模型解決的問題類型。"
+    },
+    {
+      "start": 670.73,
+      "end": 680.13,
+      "en": "Also, the atom w approach is only different from atom when there is an L2 regularization also being",
+      "zh": "而且只有同時使用 L2 正則化時，AdamW 才和 Adam"
+    },
+    {
+      "start": 680.13,
+      "end": 681.01,
+      "en": "implemented.",
+      "zh": "不同。"
+    },
+    {
+      "start": 681.41,
+      "end": 687.25,
+      "en": "If there is no L2 regularization, then atom and atom W are exactly identical.",
+      "zh": "沒有 L2 正則化，Adam 與 AdamW 完全相同。"
+    },
+    {
+      "start": 688.29,
+      "end": 696.61,
+      "en": "So it does kind of seem like the benefit of atom W is mainly seen in large and very complicated models.",
+      "zh": "所以 AdamW 的好處，似乎主要出現在非常大、非常複雜的模型。"
+    },
+    {
+      "start": 697.29,
+      "end": 704.89,
+      "en": "And as with a lot of things in deep learning, the community started using atom W, not because it's",
+      "zh": "和深度學習很多東西一樣，社群開始使用 AdamW，並不是因為它"
+    },
+    {
+      "start": 704.93,
+      "end": 711.65,
+      "en": "like mathematically proven to be superior, but because people do a lot of experiments and explorations",
+      "zh": "在數學上已證明比較優秀，而是大家做了很多實驗與探索，"
+    },
+    {
+      "start": 711.85,
+      "end": 719.09,
+      "en": "and empirically, it just seems like atom W works better in many cases with really big models.",
+      "zh": "從經驗看，它在很多大型模型中效果比較好。"
+    },
+    {
+      "start": 719.29,
+      "end": 720.89,
+      "en": "So that's what people keep using.",
+      "zh": "因此大家繼續使用。"
+    },
+    {
+      "start": 721.45,
+      "end": 729.01,
+      "en": "The good news is that atom W is really easy to implement in Python, as you will see in the next video.",
+      "zh": "好消息是，AdamW 在 Python 很容易實作，下一支影片就會看到。"
+    }
+  ]
+}

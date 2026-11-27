@@ -1,0 +1,1201 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892823",
+  "title": "Token-related similarities within and across Q, K, V matrices (part 1)",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "d0d1d1bbbad5da42da00d768db950d9cd5d8d712cfafaba9fd8dfba70a026bf2",
+  "cues": [
+    {
+      "start": 2.44,
+      "end": 5.48,
+      "en": "Welcome to this section of the course.",
+      "zh": "歡迎來到本章。"
+    },
+    {
+      "start": 6.08,
+      "end": 14.64,
+      "en": "The goal here is to learn methods of analyzing and thinking about llms at the level of layers.",
+      "zh": "這裡的目標，是學習從層的層級，分析與思考 LLM 的方法。"
+    },
+    {
+      "start": 15.12,
+      "end": 25.64,
+      "en": "That is a level of granularity and organization that is higher than individual neurons and dimensions, which you studied in the previous section.",
+      "zh": "相較於上一章研究的個別神經元與維度，這是更高一級的粒度與組織層次。"
+    },
+    {
+      "start": 26.4,
+      "end": 32.44,
+      "en": "Of course, layers are made up of dimensions and neurons, but you will see throughout this section",
+      "zh": "當然，層是由維度與神經元構成的，但在這一章中，"
+    },
+    {
+      "start": 32.44,
+      "end": 40.12,
+      "en": "that we will adopt a slightly different way of thinking and approaching the activations in networks.",
+      "zh": "你會看到我們用稍微不同的思考與研究方式，來探討網路中的活化。"
+    },
+    {
+      "start": 40.92,
+      "end": 49.4,
+      "en": "In this video, we will look at how activations in the Q, K and v vectors are related to each other",
+      "zh": "這支影片會研究，Q、K、V 向量中的活化，彼此有什麼關係，"
+    },
+    {
+      "start": 49.64,
+      "end": 56.48,
+      "en": "in terms of cosine similarity and Pearson correlation coefficient for different tokens.",
+      "zh": "並針對不同 token，使用餘弦相似度與皮爾森相關係數來衡量。"
+    },
+    {
+      "start": 57.28,
+      "end": 68.18,
+      "en": "In particular, we will use either identical tokens that are found in different sentences and thus have different contexts or other random tokens.",
+      "zh": "具體而言，我們會使用出現在不同句子、因此具有不同上下文的相同 token，或其他隨機 token。"
+    },
+    {
+      "start": 69.26,
+      "end": 73.66,
+      "en": "And we will actually discover a few curious and strange looking patterns.",
+      "zh": "而且確實會發現幾個很有意思、看起來有點奇怪的模式。"
+    },
+    {
+      "start": 73.86,
+      "end": 80.78,
+      "en": "Some of these I will dig into a little bit more, and others I will just leave as a curious observation.",
+      "zh": "其中一些我會再深入研究，其他則只留下作為有趣的觀察。"
+    },
+    {
+      "start": 81.38,
+      "end": 88.14,
+      "en": "The code that I will show you in this video you will also use for the code challenge in the next video,",
+      "zh": "這支影片示範的程式，也會用在下一支影片的程式挑戰，"
+    },
+    {
+      "start": 88.14,
+      "end": 93.42,
+      "en": "where you will use a much bigger model and do more involved analyses.",
+      "zh": "屆時會使用大得多的模型，進行更深入的分析。"
+    },
+    {
+      "start": 93.78,
+      "end": 98.66,
+      "en": "Anyway, let me now explain what I will do in the Python demo.",
+      "zh": "總之，現在先說明 Python 示範要做什麼。"
+    },
+    {
+      "start": 99.22,
+      "end": 108.22,
+      "en": "For this demo, I'll use GPT two and implant hooks to get activations from the Q, K, and V vectors.",
+      "zh": "這次示範使用 GPT2，安裝 hook，取得 Q、K、V 向量的活化。"
+    },
+    {
+      "start": 108.62,
+      "end": 110.1,
+      "en": "Now this is nothing new.",
+      "zh": "這沒有什麼新東西，"
+    },
+    {
+      "start": 110.14,
+      "end": 114.58,
+      "en": "You've seen this kind of code at the end of the previous section.",
+      "zh": "上一章結尾已經看過這類程式。"
+    },
+    {
+      "start": 115.34,
+      "end": 124.32,
+      "en": "Then I will have 54 sentences that we will tokenize, batch and input into the model to get attention.",
+      "zh": "接著會準備 54 個句子，將它們 token 化、組成批次，再輸入模型，取得注意力"
+    },
+    {
+      "start": 124.32,
+      "end": 125.4,
+      "en": "Activations.",
+      "zh": "活化。"
+    },
+    {
+      "start": 125.92,
+      "end": 130.64,
+      "en": "Now when you look at these sentences, you can see that they all contain the word her.",
+      "zh": "查看這些句子，可以看到全部都包含 her 這個字。"
+    },
+    {
+      "start": 131.28,
+      "end": 139.92000000000002,
+      "en": "That word is going to be our target word, meaning that I'm going to extract the activations from everywhere.",
+      "zh": "這個字就是目標詞，也就是說，我會擷取所有出現"
+    },
+    {
+      "start": 139.92000000000002,
+      "end": 141.88,
+      "en": "The word her appears.",
+      "zh": "her 之位置的活化。"
+    },
+    {
+      "start": 142.4,
+      "end": 152.36,
+      "en": "Now, that's quite an interesting experimental approach, because the token itself is literally exactly identical in every one of these sentences.",
+      "zh": "這是相當有意思的實驗方式，因為每個句子中的 token 本身，確實完全一模一樣。"
+    },
+    {
+      "start": 152.92000000000002,
+      "end": 156.32,
+      "en": "But of course, the contexts vary somewhat.",
+      "zh": "但上下文當然會有些不同。"
+    },
+    {
+      "start": 156.8,
+      "end": 160.16,
+      "en": "So you can also see that these sentences are different lengths.",
+      "zh": "也可以看到，句子的長度不同，"
+    },
+    {
+      "start": 160.32,
+      "end": 163.88,
+      "en": "And so they are going to have a different number of tokens.",
+      "zh": "所以會有不同數量的 token。"
+    },
+    {
+      "start": 164.28,
+      "end": 170.28,
+      "en": "And that will be a good reminder for how to tokenize into batches with padding.",
+      "zh": "這也能順便複習，如何用填補將文字 token 化為批次。"
+    },
+    {
+      "start": 171.32,
+      "end": 178.96,
+      "en": "After pushing the data through the model, you can see that the activations tensor is 54 by eight by",
+      "zh": "將資料送進模型後，可以看到活化張量是 54×8×"
+    },
+    {
+      "start": 179,
+      "end": 190.21,
+      "en": "2304, that corresponds to 54 sentences Eight tokens per sentence, which includes the padding tokens",
+      "zh": "2,304，對應 54 個句子、每句 8 個 token，其中包含"
+    },
+    {
+      "start": 190.21,
+      "end": 199.85,
+      "en": "for sentences with fewer than eight tokens and 2304, corresponds to three times the embedding dimensionality",
+      "zh": "不足 8 個 token 的句子所加入的填補 token。而 2,304，對應 GPT2-small"
+    },
+    {
+      "start": 199.85,
+      "end": 209.05,
+      "en": "of GPT two small, which means that this wide matrix includes the Q, the V, and the k vectors all",
+      "zh": "嵌入維度的三倍，表示這個寬矩陣包含 Q、V、K 向量，全部"
+    },
+    {
+      "start": 209.05,
+      "end": 210.09,
+      "en": "concatenated.",
+      "zh": "串接在一起。"
+    },
+    {
+      "start": 210.73,
+      "end": 214.21,
+      "en": "Here you see a couple of plots of activations.",
+      "zh": "這裡有幾張活化圖。"
+    },
+    {
+      "start": 214.37,
+      "end": 220.77,
+      "en": "This left plot here with the green dots shows the Q vectors for two different sentences.",
+      "zh": "左邊綠色圓點的圖，顯示兩個不同句子的 Q 向量。"
+    },
+    {
+      "start": 221.32999999999998,
+      "end": 229.01,
+      "en": "So each dot in this scatter plot corresponds to one of the dimensions in the Q matrix.",
+      "zh": "所以散佈圖中的每個點，對應 Q 矩陣中的一個維度。"
+    },
+    {
+      "start": 229.57,
+      "end": 238.13,
+      "en": "Now these are activations to exactly the same token in both cases, but they're coming from different sentences.",
+      "zh": "兩者都是完全相同 token 的活化，但來自不同句子。"
+    },
+    {
+      "start": 238.65,
+      "end": 244.89,
+      "en": "The middle plot here shows the same thing, but for k vectors instead of q vectors.",
+      "zh": "中間這張圖顯示同樣的東西，但用的是 K 向量，而不是 Q 向量。"
+    },
+    {
+      "start": 245.41,
+      "end": 248.15,
+      "en": "And this plot on the right is slightly different.",
+      "zh": "右邊這張圖則稍微不同。"
+    },
+    {
+      "start": 248.15,
+      "end": 257.51,
+      "en": "So here each dot corresponds to the token for her in the 54 different sentences, and the axes correspond",
+      "zh": "這裡每個點，對應 54 個不同句子中 her 這個 token，座標軸則對應"
+    },
+    {
+      "start": 257.51,
+      "end": 262.15,
+      "en": "to two dimensions of the q matrix, the q neurons.",
+      "zh": "Q 矩陣的兩個維度，也就是 Q 神經元。"
+    },
+    {
+      "start": 262.27,
+      "end": 269.99,
+      "en": "So of course there are 768 of these dimensions in Q and the same number in k.",
+      "zh": "當然，Q 有 768 個這樣的維度，K 也有同樣數量。"
+    },
+    {
+      "start": 270.79,
+      "end": 278.19,
+      "en": "So it's a little arbitrary to show q dimension 123 here and dimension seven on the y axis.",
+      "zh": "所以這裡用 Q 的第 123 維，以及 y 軸的第 7 維，其實有點隨意。"
+    },
+    {
+      "start": 278.51,
+      "end": 284.15,
+      "en": "I just picked these two dimensions at random to show this relationship.",
+      "zh": "我只是隨意挑這兩個維度，來展示這個關係。"
+    },
+    {
+      "start": 284.55,
+      "end": 292.15,
+      "en": "So therefore I next calculated cosine similarity between all pairs of attention vectors.",
+      "zh": "因此接著會計算所有注意力向量配對之間的餘弦相似度。"
+    },
+    {
+      "start": 292.63,
+      "end": 304.15,
+      "en": "And that will allow me to examine the distribution of cosine similarities within each of the three attention matrices and across all of the pairs.",
+      "zh": "這讓我能檢查三個注意力矩陣各自內部，以及所有矩陣配對之間的餘弦相似度分布。"
+    },
+    {
+      "start": 304.71,
+      "end": 308.01,
+      "en": "And that is what you see in these results here.",
+      "zh": "這就是這裡的結果。"
+    },
+    {
+      "start": 308.45,
+      "end": 316.81,
+      "en": "So these graphs show histograms of cosine similarity within and between attention matrices.",
+      "zh": "這些圖顯示，注意力矩陣內部與矩陣之間的餘弦相似度直方圖。"
+    },
+    {
+      "start": 317.45,
+      "end": 322.41,
+      "en": "And by the way this is all just for one layer of the GPT model.",
+      "zh": "順帶一提，這全部都只是 GPT 模型的單一層。"
+    },
+    {
+      "start": 322.65,
+      "end": 328.65,
+      "en": "You will get to continue exploring different layers in the code challenge in the next video.",
+      "zh": "下一支影片的程式挑戰，可以繼續探索不同層。"
+    },
+    {
+      "start": 329.81,
+      "end": 336.33,
+      "en": "Anyway, let me draw your attention just to this graph over here so I can explain what the lines mean.",
+      "zh": "總之，先將注意力放在這張圖，讓我解釋各條線的意思。"
+    },
+    {
+      "start": 337.01,
+      "end": 340.40999999999997,
+      "en": "So let's just focus on this blue line for starters.",
+      "zh": "先只看這條藍線。"
+    },
+    {
+      "start": 340.77,
+      "end": 347.45,
+      "en": "That blue line is labeled QQ and the x axis corresponds to cosine similarity.",
+      "zh": "藍線標記為 QQ，x 軸對應餘弦相似度，"
+    },
+    {
+      "start": 347.65,
+      "end": 350.77,
+      "en": "And the y axis is density or count.",
+      "zh": "y 軸則是密度或計數。"
+    },
+    {
+      "start": 351.37,
+      "end": 361.01,
+      "en": "So basically this line shows that the cosine similarity between pairs of qq dimensions tends to be very",
+      "zh": "基本上，這條線表示，Q 與 Q 維度配對之間的餘弦相似度，往往是很強的"
+    },
+    {
+      "start": 361.01,
+      "end": 364.49,
+      "en": "strong negative or very strongly positive.",
+      "zh": "負值，或很強的正值。"
+    },
+    {
+      "start": 364.97,
+      "end": 370.43,
+      "en": "So the magnitudes of the similarities is fairly strong and the signs can differ.",
+      "zh": "也就是相似度的大小相當強，但正負號可能不同。"
+    },
+    {
+      "start": 371.03,
+      "end": 373.71,
+      "en": "And this one scatter plot over here.",
+      "zh": "至於這裡這張散佈圖，"
+    },
+    {
+      "start": 373.95,
+      "end": 377.27,
+      "en": "This is a modest positive correlation.",
+      "zh": "它是中等程度的正相關，"
+    },
+    {
+      "start": 377.27,
+      "end": 380.95,
+      "en": "Maybe this is somewhere around 0.3 or something.",
+      "zh": "大概在 0.3 左右。"
+    },
+    {
+      "start": 380.95,
+      "end": 385.51,
+      "en": "So this would be going into the bin at somewhere around here.",
+      "zh": "所以它會落入大約這個位置的區間。"
+    },
+    {
+      "start": 386.15,
+      "end": 394.39,
+      "en": "I will have more to say about creating and interpreting these plots when I switch to code, but this is just to give you a heads up.",
+      "zh": "切換到程式碼後，我會再說明這些圖的建立與解讀，這裡只是先讓你有個概念。"
+    },
+    {
+      "start": 394.83,
+      "end": 405.31,
+      "en": "There's a few other curious observations that we will find here, including what these plots look like when we use correlation instead of cosine similarity.",
+      "zh": "還會發現其他幾個有趣的現象，例如改用相關，而不是餘弦相似度時，這些圖會變成什麼樣子。"
+    },
+    {
+      "start": 405.87,
+      "end": 411.39,
+      "en": "So I will explore a little bit to spark your interest and tickle your curiosity nerve.",
+      "zh": "所以我會稍微探索，激起你的興趣與好奇心。"
+    },
+    {
+      "start": 411.67,
+      "end": 419.55,
+      "en": "Although a really deep analysis would require a lot more time than what I'm going to spend in this video.",
+      "zh": "不過，若要真正深入分析，需要花比這支影片多得多的時間。"
+    },
+    {
+      "start": 420.11,
+      "end": 422.91,
+      "en": "Anyway, let's switch to Python and have a look.",
+      "zh": "總之，切換到 Python 看看。"
+    },
+    {
+      "start": 424.03,
+      "end": 425.79,
+      "en": "Here are some libraries here.",
+      "zh": "這裡有一些函式庫。"
+    },
+    {
+      "start": 425.79,
+      "end": 431.72,
+      "en": "I'm importing the GPT two small version and switching it to eval mode.",
+      "zh": "匯入 GPT2-small 版本，並切換為 eval 模式。"
+    },
+    {
+      "start": 431.72,
+      "end": 433.56,
+      "en": "Importing the tokenizer of course.",
+      "zh": "當然也要匯入 tokenizer。"
+    },
+    {
+      "start": 433.6,
+      "end": 440.2,
+      "en": "And here I'm creating a variable that I will use quite a lot later in the code file called n embed.",
+      "zh": "這裡建立一個稍後經常使用的變數，叫作 n_embed。"
+    },
+    {
+      "start": 440.24,
+      "end": 444.32,
+      "en": "This is just shorthand for modelconfig n embed.",
+      "zh": "它只是 model.config.n_embd 的簡寫。"
+    },
+    {
+      "start": 444.56,
+      "end": 451,
+      "en": "As you are well aware, that number is 768 for GPT two small.",
+      "zh": "你已經很熟悉，對 GPT2-small 而言，這個數字就是 768。"
+    },
+    {
+      "start": 451.24,
+      "end": 455.72,
+      "en": "And I'm just creating a variable so I don't need to write all of this out.",
+      "zh": "我只是建立一個變數，就不用每次寫出整串內容。"
+    },
+    {
+      "start": 455.76,
+      "end": 464.56,
+      "en": "And so I don't need to hard code it to 768 so that we can modify this code for larger versions of this model.",
+      "zh": "也不需要將它固定寫成 768，之後才能把程式改用於這個模型的較大版本。"
+    },
+    {
+      "start": 465.12,
+      "end": 465.64,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 465.68,
+      "end": 466.56,
+      "en": "Here is the hook.",
+      "zh": "這裡是 hook。"
+    },
+    {
+      "start": 466.6,
+      "end": 469.84000000000003,
+      "en": "This is copied from the previous section.",
+      "zh": "這是從上一章複製的，"
+    },
+    {
+      "start": 469.84000000000003,
+      "end": 471.44,
+      "en": "So you've seen this code before.",
+      "zh": "所以以前看過這段程式。"
+    },
+    {
+      "start": 471.48,
+      "end": 475.72,
+      "en": "Basically it's the attention sublayer of the transformer block.",
+      "zh": "基本上，它位於 Transformer 區塊的注意力子層。"
+    },
+    {
+      "start": 475.88,
+      "end": 479.68,
+      "en": "And then I'm looking at C attention and grabbing the output.",
+      "zh": "接著查看 c_attn，取得它的輸出。"
+    },
+    {
+      "start": 479.8,
+      "end": 489.68,
+      "en": "So this is the q v and k vectors before the attention equation gets applied.",
+      "zh": "也就是套用注意力方程式之前的 Q、V、K 向量。"
+    },
+    {
+      "start": 490.3,
+      "end": 498.54,
+      "en": "So I take the output of this linear transformation, detach it from all of the gradients and other computational",
+      "zh": "我取得這項線性轉換的輸出，將它與所有梯度及其他計算"
+    },
+    {
+      "start": 498.54,
+      "end": 505.18,
+      "en": "graph information, and then I transform it from a PyTorch tensor into a numpy array.",
+      "zh": "圖資訊分離，再將 PyTorch 張量轉成 NumPy 陣列。"
+    },
+    {
+      "start": 505.42,
+      "end": 514.54,
+      "en": "That is not strictly necessary, but it's going to make the subsequent analyses a little bit easier because I prefer working with numpy than with PyTorch.",
+      "zh": "這並非絕對必要，但會讓後續分析比較簡單，因為我比較喜歡使用 NumPy，而不是 PyTorch。"
+    },
+    {
+      "start": 514.86,
+      "end": 516.54,
+      "en": "A bit of a personal preference there.",
+      "zh": "這是個人的偏好。"
+    },
+    {
+      "start": 517.62,
+      "end": 519.78,
+      "en": "Okay, here are all the sentences.",
+      "zh": "好，這裡是所有句子。"
+    },
+    {
+      "start": 520.22,
+      "end": 527.18,
+      "en": "I came up with a couple of sentences, and then I gave them to Claude and said, give me 50 more of this type.",
+      "zh": "我先想了幾個句子，再交給 Claude，請它再給我 50 個同類型的句子。"
+    },
+    {
+      "start": 527.46,
+      "end": 533.02,
+      "en": "So they all have her the word her somewhere in the short sentences.",
+      "zh": "所以這些短句中的某個位置，都有 her 這個字。"
+    },
+    {
+      "start": 533.46,
+      "end": 535.7,
+      "en": "So pretty interesting experimental approach.",
+      "zh": "這是相當有意思的實驗方式。"
+    },
+    {
+      "start": 535.7,
+      "end": 544.7,
+      "en": "We have exactly identical tokens, but the context will differ from one sentence or one sequence to",
+      "zh": "token 完全相同，但上下文在不同句子、不同序列之間"
+    },
+    {
+      "start": 544.74,
+      "end": 545.42,
+      "en": "the next.",
+      "zh": "會有所不同。"
+    },
+    {
+      "start": 545.98,
+      "end": 552.56,
+      "en": "Okay, now for this case, because these sentences will have different numbers of Of tokens, and we",
+      "zh": "現在，因為句子會有不同數量的 token，"
+    },
+    {
+      "start": 552.56,
+      "end": 558.12,
+      "en": "want to create one batch for all of the token, all of the sentences.",
+      "zh": "而我們又想把所有句子放在同一個批次中，"
+    },
+    {
+      "start": 558.32,
+      "end": 561.88,
+      "en": "Then we need to specify padding equals true.",
+      "zh": "所以必須設定 padding=True。"
+    },
+    {
+      "start": 562.32,
+      "end": 565.2,
+      "en": "And that gives us this as an output.",
+      "zh": "輸出就會是這個。"
+    },
+    {
+      "start": 565.2,
+      "end": 568.08,
+      "en": "So you can see these are all the tokens.",
+      "zh": "可以看到，這些是所有 token。"
+    },
+    {
+      "start": 568.36,
+      "end": 578.24,
+      "en": "And here at the end we have some padding tokens for all of the sentences that don't get up to eight tokens in total.",
+      "zh": "對於總共不到 8 個 token 的句子，尾端會有一些填補 token。"
+    },
+    {
+      "start": 578.68,
+      "end": 587.48,
+      "en": "And you can also see that the tokens 607 appears in various places in every one of these sequences.",
+      "zh": "也可以看到，每個序列中的不同位置，都會出現 token 607。"
+    },
+    {
+      "start": 587.92,
+      "end": 590.2,
+      "en": "This is the token for her.",
+      "zh": "這就是 her 的 token。"
+    },
+    {
+      "start": 590.48,
+      "end": 596.44,
+      "en": "It's technically space her because all of these sentences have space her in there.",
+      "zh": "嚴格來說，是「空格加 her」，因為每個句子裡都是「空格加 her」。"
+    },
+    {
+      "start": 596.96,
+      "end": 608.96,
+      "en": "And yeah, so that makes an interesting challenge for the analysis because it means that we cannot simply grab, for example, like the fifth, uh, activation value in every sentence.",
+      "zh": "這對分析形成一個有意思的挑戰，因為不能直接取每個句子的第五個活化值之類的。"
+    },
+    {
+      "start": 608.96,
+      "end": 615.22,
+      "en": "We're actually going to need to loop through every sentence in the activation every row in the batch",
+      "zh": "實際上，必須逐一迭代每個句子的活化，也就是批次中的每一列，"
+    },
+    {
+      "start": 615.46,
+      "end": 623.3,
+      "en": "and find where we have the token corresponding to space here to get that specific activation.",
+      "zh": "找出對應「空格加 her」的 token 位置，取得特定的活化。"
+    },
+    {
+      "start": 623.7,
+      "end": 625.38,
+      "en": "And here you see the attention mask.",
+      "zh": "這裡可以看到注意力遮罩。"
+    },
+    {
+      "start": 625.38,
+      "end": 631.42,
+      "en": "So it's all ones where there are valid tokens and zeros where we have pad tokens.",
+      "zh": "有效 token 的位置全是 1，填補 token 的位置則是 0。"
+    },
+    {
+      "start": 631.98,
+      "end": 632.3,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 632.34,
+      "end": 638.62,
+      "en": "And then here I am running all of those tokens all that that batch through the model.",
+      "zh": "接著，讓所有 token，也就是整個批次，通過模型。"
+    },
+    {
+      "start": 638.66,
+      "end": 640.38,
+      "en": "This takes not so long.",
+      "zh": "這不會花太久。"
+    },
+    {
+      "start": 640.86,
+      "end": 642.7,
+      "en": "And here I get an error message.",
+      "zh": "這裡出現錯誤訊息，"
+    },
+    {
+      "start": 642.7,
+      "end": 646.94,
+      "en": "I suspect that I forgot to run this code here.",
+      "zh": "我猜是忘了執行這段程式。"
+    },
+    {
+      "start": 646.98,
+      "end": 647.26,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 647.3,
+      "end": 649.94,
+      "en": "So I didn't actually run that code cell.",
+      "zh": "我確實沒有執行那個程式區塊。"
+    },
+    {
+      "start": 650.38,
+      "end": 652.74,
+      "en": "So let's go back and do this again.",
+      "zh": "所以回去再做一次。"
+    },
+    {
+      "start": 652.94,
+      "end": 654.66,
+      "en": "And we have the tokens.",
+      "zh": "有了 tokens，"
+    },
+    {
+      "start": 654.66,
+      "end": 657.86,
+      "en": "And now we can actually do this okay.",
+      "zh": "現在就真的能執行了。"
+    },
+    {
+      "start": 657.9,
+      "end": 662.46,
+      "en": "And then yeah here I'm just printing out all of the keys and the shape.",
+      "zh": "接著這裡只是列印所有鍵與形狀。"
+    },
+    {
+      "start": 662.46,
+      "end": 667.74,
+      "en": "So we see that there are 12 of the keys in this dictionary.",
+      "zh": "可以看到，字典中有 12 個鍵。"
+    },
+    {
+      "start": 667.94,
+      "end": 669.66,
+      "en": "And of course that makes sense.",
+      "zh": "當然，這很合理。"
+    },
+    {
+      "start": 669.66,
+      "end": 674.08,
+      "en": "We start off with zero with the first transformer and GPT two.",
+      "zh": "從 0，也就是第一個 Transformer 區塊開始，而 GPT2-"
+    },
+    {
+      "start": 674.16,
+      "end": 676.52,
+      "en": "Small has 12 transformers.",
+      "zh": "small 有 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 676.8,
+      "end": 690,
+      "en": "This size also makes sense 54 sentences, eight tokens including all of the Pad tokens, and 2304 activations,",
+      "zh": "這個大小也合理：54 個句子、包含所有填補 token 在內的 8 個 token，以及 2,304 個活化，"
+    },
+    {
+      "start": 690.36,
+      "end": 695.2,
+      "en": "or neurons, which corresponds to three times 768.",
+      "zh": "也就是神經元，對應 768 的三倍。"
+    },
+    {
+      "start": 695.76,
+      "end": 699.6,
+      "en": "Okay, so for the rest of this script, we will just work with layer six.",
+      "zh": "好，接下來這份程式，只會研究第 6 層。"
+    },
+    {
+      "start": 699.88,
+      "end": 701,
+      "en": "Why layer six?",
+      "zh": "為什麼是第 6 層？"
+    },
+    {
+      "start": 701.16,
+      "end": 701.72,
+      "en": "I don't know.",
+      "zh": "我也不知道。"
+    },
+    {
+      "start": 701.76,
+      "end": 704.44,
+      "en": "You can pick any other layer totally fine.",
+      "zh": "你可以挑其他任何層，都沒有問題。"
+    },
+    {
+      "start": 704.44,
+      "end": 706.28,
+      "en": "In the next video.",
+      "zh": "下一支影片，"
+    },
+    {
+      "start": 706.28,
+      "end": 710.56,
+      "en": "In the code challenge we will actually loop through all of the layers.",
+      "zh": "也就是程式挑戰，實際上會逐一迭代所有層。"
+    },
+    {
+      "start": 711.2,
+      "end": 711.52,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 711.56,
+      "end": 720.2,
+      "en": "As I mentioned, the target token space her appears in a different location in every sentence.",
+      "zh": "剛才說過，目標 token「空格加 her」，出現在每個句子的不同位置。"
+    },
+    {
+      "start": 720.36,
+      "end": 731.12,
+      "en": "So therefore we need to loop through all of these sentences and find which index in that particular sentence has the target.",
+      "zh": "因此必須逐一迭代所有句子，找出該句中哪個索引是目標。"
+    },
+    {
+      "start": 731.12,
+      "end": 732.4,
+      "en": "And that's what I do here.",
+      "zh": "這裡就是這麼做。"
+    },
+    {
+      "start": 732.64,
+      "end": 739.21,
+      "en": "So I'm taking all of the tokens for this sentence and I want to use this method.",
+      "zh": "取得這個句子的所有 token，再使用這個方法，"
+    },
+    {
+      "start": 739.37,
+      "end": 740.09,
+      "en": "Index.",
+      "zh": "index，"
+    },
+    {
+      "start": 740.41,
+      "end": 740.85,
+      "en": "Token.",
+      "zh": "輸入 token"
+    },
+    {
+      "start": 740.85,
+      "end": 741.17,
+      "en": "Target.",
+      "zh": "目標。"
+    },
+    {
+      "start": 741.21,
+      "end": 744.37,
+      "en": "Now this index method is really great.",
+      "zh": "這個 index 方法非常好用，"
+    },
+    {
+      "start": 744.41,
+      "end": 747.93,
+      "en": "It's very convenient, but it only works on Python lists.",
+      "zh": "相當方便，但它只適用於 Python 串列。"
+    },
+    {
+      "start": 747.93,
+      "end": 752.21,
+      "en": "It is not defined for Python PyTorch tensors.",
+      "zh": "它並沒有定義在 PyTorch 張量上。"
+    },
+    {
+      "start": 752.57,
+      "end": 757.13,
+      "en": "So therefore I have to convert the PyTorch tensor to a list.",
+      "zh": "因此必須先將 PyTorch 張量轉成串列。"
+    },
+    {
+      "start": 757.61,
+      "end": 764.53,
+      "en": "This is very similar to what I mentioned at the end of the previous section, where I asked you to use",
+      "zh": "這與上一章結尾提過的情況很相似，那時請你使用"
+    },
+    {
+      "start": 764.53,
+      "end": 775.37,
+      "en": "the method split to split up a wide matrix into the separate q, v and k vectors.",
+      "zh": "split 方法，將寬矩陣拆成獨立的 Q、V、K 向量。"
+    },
+    {
+      "start": 775.53,
+      "end": 784.61,
+      "en": "So same concept here where I want to use a particular method, but I need to convert to the data type just to be able to use that method.",
+      "zh": "這裡是相同概念：想用某個特定方法，就需要先轉成對應的資料型態，才能使用該方法。"
+    },
+    {
+      "start": 784.73,
+      "end": 792.97,
+      "en": "Anyway, the upshot of all that is that this variable here, target id will be the index of the target",
+      "zh": "總之，這些操作的結果，是讓這個 target id 變數，代表每個"
+    },
+    {
+      "start": 793.01,
+      "end": 801.59,
+      "en": "token for space in each of the individual sentences, and from that I can grab the activations from",
+      "zh": "句子中，目標 token 的索引，接著就能擷取"
+    },
+    {
+      "start": 801.59,
+      "end": 806.35,
+      "en": "this layer, from this sentence and this target index.",
+      "zh": "這一層、這個句子、這個目標索引的活化。"
+    },
+    {
+      "start": 806.35,
+      "end": 811.87,
+      "en": "Now this right here is always going to be the activation for the word her.",
+      "zh": "這裡取得的，永遠都是 her 這個字的活化。"
+    },
+    {
+      "start": 812.35,
+      "end": 820.03,
+      "en": "But to have a reference set of activations, a non-target activations, I'm going to use the token immediately",
+      "zh": "但為了有一組參考活化，也就是非目標活化，我會使用這個字"
+    },
+    {
+      "start": 820.03,
+      "end": 825.95,
+      "en": "preceding that word, which is not any consistent word across sentences.",
+      "zh": "正前方的 token，而它在不同句子中並不是固定的字。"
+    },
+    {
+      "start": 826.75,
+      "end": 835.75,
+      "en": "So here it's going to be the word on here it's the here it's informed or whatever is the token before her married and so on.",
+      "zh": "例如這裡是 on，這裡是 the，這裡是 informed，或者 her 前面的其他 token，例如 married 等等。"
+    },
+    {
+      "start": 835.75,
+      "end": 840.35,
+      "en": "So every single non-target token will be random.",
+      "zh": "所以每個非目標 token 都是隨機的，"
+    },
+    {
+      "start": 840.35,
+      "end": 845.35,
+      "en": "And it's going to be different compared to the target token which will always be her.",
+      "zh": "與永遠固定是 her 的目標 token 不同。"
+    },
+    {
+      "start": 845.67,
+      "end": 847.27,
+      "en": "So that is the idea.",
+      "zh": "這就是概念。"
+    },
+    {
+      "start": 847.31,
+      "end": 853.63,
+      "en": "So I'm getting all the activations for the target and for the non-target okay.",
+      "zh": "因此取得所有目標與非目標的活化。"
+    },
+    {
+      "start": 853.67,
+      "end": 854.15,
+      "en": "There we go.",
+      "zh": "完成了。"
+    },
+    {
+      "start": 854.15,
+      "end": 862.77,
+      "en": "Runs quite fast and we see that it's again 54 by 20 304 because we have 54 sentences.",
+      "zh": "執行很快，可以看到同樣是 54×2,304，因為有 54 個句子。"
+    },
+    {
+      "start": 862.77,
+      "end": 869.33,
+      "en": "So now 54 words and activations across all of the attention matrices.",
+      "zh": "也就是現在有 54 個字，以及所有注意力矩陣的活化。"
+    },
+    {
+      "start": 869.73,
+      "end": 872.33,
+      "en": "And then this is the target matrix.",
+      "zh": "這個是目標矩陣。"
+    },
+    {
+      "start": 872.33,
+      "end": 877.05,
+      "en": "So then we have exactly the same size for the non-target matrix.",
+      "zh": "非目標矩陣的大小則完全相同。"
+    },
+    {
+      "start": 877.69,
+      "end": 878.05,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 878.09,
+      "end": 883.61,
+      "en": "This code is just generating the figure that I showed in the slides.",
+      "zh": "這段程式只是產生投影片上展示的圖。"
+    },
+    {
+      "start": 883.81,
+      "end": 886.49,
+      "en": "Pretty interesting to see that.",
+      "zh": "很有意思的是，"
+    },
+    {
+      "start": 886.77,
+      "end": 891.13,
+      "en": "Uh, in this case the word is exactly the same.",
+      "zh": "這裡的字完全相同，"
+    },
+    {
+      "start": 891.13,
+      "end": 895.45,
+      "en": "It's the word her space her that token that doesn't change.",
+      "zh": "就是 her、「空格加 her」，這個 token 並沒有改變。"
+    },
+    {
+      "start": 895.57,
+      "end": 899.77,
+      "en": "What does change is the context in which that word appears.",
+      "zh": "改變的是這個字出現的上下文，"
+    },
+    {
+      "start": 899.89,
+      "end": 902.81,
+      "en": "So the preceding tokens are different.",
+      "zh": "也就是前面的 token 不同。"
+    },
+    {
+      "start": 902.97,
+      "end": 908.93,
+      "en": "And then we see that the, uh, the activations are slightly different.",
+      "zh": "接著可以看到，活化也略有不同。"
+    },
+    {
+      "start": 908.97,
+      "end": 915.61,
+      "en": "You know, I didn't actually calculate the correlation coefficient, but I would guess it would be above 0.9.",
+      "zh": "其實我沒有計算相關係數，但猜測應該會高於 0.9。"
+    },
+    {
+      "start": 916.29,
+      "end": 919.91,
+      "en": "So yeah, in this plot, and these two plots.",
+      "zh": "所以，這張圖與這兩張圖，"
+    },
+    {
+      "start": 919.95,
+      "end": 923.63,
+      "en": "The two axes correspond to two different sentences.",
+      "zh": "兩個座標軸對應的是兩個不同句子。"
+    },
+    {
+      "start": 923.95,
+      "end": 932.07,
+      "en": "And every dot that you see here corresponds to a different dimension in the Q matrix or the V matrix.",
+      "zh": "每個點，對應 Q 矩陣或 V 矩陣中的不同維度。"
+    },
+    {
+      "start": 932.47,
+      "end": 941.15,
+      "en": "And that is plotting the other way from what I show here in this plot, where here I'm isolating two specific dimensions.",
+      "zh": "它的畫法與這張圖相反，這裡固定選出兩個特定維度。"
+    },
+    {
+      "start": 941.39,
+      "end": 945.39,
+      "en": "So I just pick these two at random of the Q matrix.",
+      "zh": "所以只是從 Q 矩陣中，隨便選兩個維度。"
+    },
+    {
+      "start": 945.39,
+      "end": 951.71,
+      "en": "And now every square in this scatter plot corresponds to a different word.",
+      "zh": "現在散佈圖中每個方塊，對應不同的字，"
+    },
+    {
+      "start": 951.71,
+      "end": 956.03,
+      "en": "So a different sentence of the word activation for the word her.",
+      "zh": "也就是不同句子中 her 這個字的活化。"
+    },
+    {
+      "start": 956.59,
+      "end": 956.91,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 956.95,
+      "end": 964.47,
+      "en": "So now we are going to shift our focus to this plot and run this correlation or cosine similarity for",
+      "zh": "現在將焦點轉向這張圖，對所有注意力矩陣內部與矩陣之間，"
+    },
+    {
+      "start": 964.47,
+      "end": 970.75,
+      "en": "all possible pairs within and across all of the attention matrices.",
+      "zh": "所有可能的配對，計算相關或餘弦相似度。"
+    },
+    {
+      "start": 971.31,
+      "end": 981.44,
+      "en": "So to calculate the cosine similarities across all pairs of neurons across all three matrices I implement",
+      "zh": "為了計算三個矩陣中，所有神經元配對之間的餘弦相似度，"
+    },
+    {
+      "start": 981.44,
+      "end": 988.72,
+      "en": "cosine similarity using code that you've seen in multiple videos earlier in this course.",
+      "zh": "我使用課程先前多支影片看過的程式。"
+    },
+    {
+      "start": 988.92,
+      "end": 993.6,
+      "en": "I'm doing this in two lines of code using matrix multiplication.",
+      "zh": "透過矩陣乘法，只需要兩行就能做到。"
+    },
+    {
+      "start": 993.8,
+      "end": 1001.52,
+      "en": "So essentially cosine similarity can be calculated as just the dot products of all of the pairs of vectors,",
+      "zh": "基本上，餘弦相似度可以由所有向量配對的內積計算，"
+    },
+    {
+      "start": 1001.64,
+      "end": 1008.96,
+      "en": "which we can implement as the matrix multiplication of the data matrix transpose by itself.",
+      "zh": "而內積可透過資料矩陣的轉置，乘以自身來實作。"
+    },
+    {
+      "start": 1009.28,
+      "end": 1012.96,
+      "en": "Now this alone is not cosine similarity.",
+      "zh": "但單靠這個還不是餘弦相似度。"
+    },
+    {
+      "start": 1013.2,
+      "end": 1018.08,
+      "en": "It becomes cosine similarity when the vectors are normalized.",
+      "zh": "向量經過正規化後，才會成為餘弦相似度。"
+    },
+    {
+      "start": 1018.2,
+      "end": 1019.6,
+      "en": "And so that's what I do here.",
+      "zh": "所以這裡就是這麼做。"
+    },
+    {
+      "start": 1019.6,
+      "end": 1022.88,
+      "en": "So I divide by the matrix norm.",
+      "zh": "除以矩陣範數，"
+    },
+    {
+      "start": 1023.12,
+      "end": 1025.96,
+      "en": "And then that gives me normalized vectors.",
+      "zh": "得到正規化向量，"
+    },
+    {
+      "start": 1025.96,
+      "end": 1028.76,
+      "en": "And then we get the cosine similarity.",
+      "zh": "再取得餘弦相似度。"
+    },
+    {
+      "start": 1028.8,
+      "end": 1032.84,
+      "en": "So this is for the target words and for the non-target words.",
+      "zh": "這裡分別對目標詞與非目標詞進行。"
+    },
+    {
+      "start": 1033.04,
+      "end": 1037.56,
+      "en": "And here you can see uh what those uh all those vectors look like.",
+      "zh": "這裡可以看到所有向量的樣子。"
+    },
+    {
+      "start": 1037.88,
+      "end": 1041.42,
+      "en": "So again this is vectors by vectors.",
+      "zh": "同樣，這是向量對向量。"
+    },
+    {
+      "start": 1041.42,
+      "end": 1050.58,
+      "en": "So the q vectors are in the beginning and then the so the query vectors, then the keys vectors and then the values vectors here.",
+      "zh": "前面是 Q 向量，也就是 query 向量，接著是 key 向量，然後是這裡的 value 向量。"
+    },
+    {
+      "start": 1050.98,
+      "end": 1057.26,
+      "en": "And what you see here is the distribution the histogram over all of the pairs.",
+      "zh": "這裡看到的是所有配對的分布，也就是直方圖。"
+    },
+    {
+      "start": 1057.26,
+      "end": 1064.86,
+      "en": "So every cosine similarity in this matrix you can see that they range from minus one to plus one.",
+      "zh": "這個矩陣中的每個餘弦相似度，可以看到範圍介於 −1 到 +1。"
+    },
+    {
+      "start": 1064.86,
+      "end": 1071.26,
+      "en": "Those are the two absolute extremes of what we can possibly get with cosine similarity.",
+      "zh": "這是餘弦相似度可能得到的兩個絕對極端值。"
+    },
+    {
+      "start": 1071.7,
+      "end": 1077.62,
+      "en": "Of course, the numbers are trivially equal to one for the the diagonal.",
+      "zh": "當然，對角線上的數值必然等於 1，"
+    },
+    {
+      "start": 1077.62,
+      "end": 1079.54,
+      "en": "So when the vectors equal themselves.",
+      "zh": "因為那是向量與自身的比較。"
+    },
+    {
+      "start": 1080.58,
+      "end": 1085.9,
+      "en": "But you do see a lot of really, really strong cosine similarity values.",
+      "zh": "但確實可以看到許多非常強的餘弦相似度。"
+    },
+    {
+      "start": 1085.94,
+      "end": 1096.38,
+      "en": "Now that's not really that surprising when we think about the fact that we are looking at the same token and dimensions within the same matrix.",
+      "zh": "考慮到我們看的是相同 token，以及同一矩陣中的維度，這其實不太令人驚訝。"
+    }
+  ]
+}

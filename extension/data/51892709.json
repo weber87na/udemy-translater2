@@ -1,0 +1,1465 @@
+{
+  "courseId": "6757979",
+  "lectureId": "51892709",
+  "title": "CodeChallenge: Activation histograms by token length (part 1)",
+  "section": 18,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "cb9576cf64971dcc4d143117bae83ad6214a16338ecbfdfe7470d17f9f226693",
+  "cues": [
+    {
+      "start": 2.08,
+      "end": 9.52,
+      "en": "There are several goals to this code challenge, including quantifying the relationship between MLP",
+      "zh": "這個程式挑戰有幾個目標，包括量化 MLP"
+    },
+    {
+      "start": 9.56,
+      "end": 19.16,
+      "en": "neuron activations and token length, and also looking at how processing characteristics change over different layers in the network.",
+      "zh": "神經元活化與 token 長度的關係，以及觀察網路不同層之間，處理特徵如何改變。"
+    },
+    {
+      "start": 19.76,
+      "end": 28.32,
+      "en": "You will also learn a few ways of visualizing activity over the different layers, and a reminder about",
+      "zh": "也會學到幾種跨層活化的視覺化方式，並複習"
+    },
+    {
+      "start": 28.32,
+      "end": 33.2,
+      "en": "the correlation coefficient and its relationship to covariance.",
+      "zh": "相關係數，以及它與共變異數的關係。"
+    },
+    {
+      "start": 33.72,
+      "end": 40.48,
+      "en": "This will be a kind of longish code challenge, so I will break it up into two videos somewhere in the middle.",
+      "zh": "這個挑戰會有點長，所以大約中間會拆成兩部影片。"
+    },
+    {
+      "start": 41.64,
+      "end": 44.92,
+      "en": "Exercise one is fairly straightforward.",
+      "zh": "練習一相當直接。"
+    },
+    {
+      "start": 45.24,
+      "end": 56.36,
+      "en": "In fact, you will see that importing models, connecting to the GPU, and defining and implanting hooks is code that you will be using repeatedly.",
+      "zh": "你會發現，匯入模型、連接 GPU、定義與植入 hook，都是反覆會用的程式。"
+    },
+    {
+      "start": 57,
+      "end": 65.44,
+      "en": "Anyway, we are going to work with the Eleuther GPT neo 125 million parameter model.",
+      "zh": "總之，使用 Eleuther GPT-Neo 的 1.25 億參數模型。"
+    },
+    {
+      "start": 65.44,
+      "end": 68.32,
+      "en": "We have used this model several times before.",
+      "zh": "先前已經用過好幾次。"
+    },
+    {
+      "start": 69.08,
+      "end": 76.76,
+      "en": "In later exercises at the end of this code challenge, we will also be using a much bigger version of",
+      "zh": "這個挑戰最後幾個練習，也會使用大很多的版本，"
+    },
+    {
+      "start": 76.76,
+      "end": 81.64,
+      "en": "this model with 1.3 billion parameters, but we can worry about that later.",
+      "zh": "有 13 億參數，但稍後再考慮。"
+    },
+    {
+      "start": 82.08,
+      "end": 88.68,
+      "en": "Anyway, uh, implant uh, a hook into the MLP expansion layers.",
+      "zh": "植入 hook，到 MLP 擴張層。"
+    },
+    {
+      "start": 88.96000000000001,
+      "end": 91.64,
+      "en": "And this is also code that you've seen before.",
+      "zh": "這也是看過的程式。"
+    },
+    {
+      "start": 91.76,
+      "end": 96.88,
+      "en": "So we want to be extracting the activations of these neurons here.",
+      "zh": "要擷取的是這些神經元的活化。"
+    },
+    {
+      "start": 97.32,
+      "end": 103.68,
+      "en": "Now what's new here in this code challenge is doing this for all of the layers.",
+      "zh": "這個挑戰的新內容，是對所有層都這樣做。"
+    },
+    {
+      "start": 104.2,
+      "end": 107.56,
+      "en": "Now this model has 12 transformer blocks.",
+      "zh": "模型有 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 107.72,
+      "end": 114.56,
+      "en": "And so you will need 12 sets of MLP expansion neuron activations.",
+      "zh": "所以，需要 12 組 MLP 擴張神經元活化。"
+    },
+    {
+      "start": 114.72,
+      "end": 120.43,
+      "en": "So that means you need a unique hook function in each MLP layer.",
+      "zh": "每個 MLP 層，都需要獨立的 hook 函式。"
+    },
+    {
+      "start": 121.71,
+      "end": 130.99,
+      "en": "So yeah, remember there are 3072 neurons that corresponds to an embedding dimensionality of 768 with",
+      "zh": "記得，有 3,072 個神經元，對應 768 的嵌入維度，"
+    },
+    {
+      "start": 130.99,
+      "end": 133.07,
+      "en": "A4X expansion.",
+      "zh": "再擴張四倍。"
+    },
+    {
+      "start": 133.71,
+      "end": 140.79,
+      "en": "So this is for the 125 million parameter version of this GPT neo model.",
+      "zh": "這是 GPT-Neo 的 1.25 億參數版本。"
+    },
+    {
+      "start": 141.15,
+      "end": 145.82999999999998,
+      "en": "In later exercises, it will be actually bigger than this.",
+      "zh": "稍後練習，實際會比這更大。"
+    },
+    {
+      "start": 145.99,
+      "end": 149.67000000000002,
+      "en": "So therefore it will be convenient for the rest of this code challenge.",
+      "zh": "所以，為了這個挑戰後面方便，"
+    },
+    {
+      "start": 149.79,
+      "end": 160.03,
+      "en": "If you define a variable that codes for the number of neurons in the MLP expansion layer within one transformer block.",
+      "zh": "最好定義一個變數，編碼單一 Transformer 區塊中，MLP 擴張層的神經元數。"
+    },
+    {
+      "start": 160.59,
+      "end": 165.82999999999998,
+      "en": "By the way, you do not actually need the GPU here for this code challenge.",
+      "zh": "順帶一提，這個挑戰不一定需要 GPU。"
+    },
+    {
+      "start": 165.99,
+      "end": 173.51,
+      "en": "In fact, there's only going to be one forward pass through this model in a later exercise, and that",
+      "zh": "事實上，稍後練習只會對模型做一次前向傳播，"
+    },
+    {
+      "start": 173.51,
+      "end": 180.15,
+      "en": "only takes around a minute or so to do on the CPU, at least for the small version of this model.",
+      "zh": "CPU 上大約一分鐘，至少小版本如此。"
+    },
+    {
+      "start": 180.59,
+      "end": 186.39,
+      "en": "So if you feel like dealing with the extra code to connect to a GPU, then go for it.",
+      "zh": "想處理連接 GPU 的額外程式，可以使用。"
+    },
+    {
+      "start": 186.63,
+      "end": 190.67,
+      "en": "I actually started off this code challenge without using the GPU.",
+      "zh": "其實，這個挑戰一開始沒用 GPU。"
+    },
+    {
+      "start": 190.71,
+      "end": 200.79,
+      "en": "I did everything on the CPU, but at the very end, when I switched to the larger version of this model, I did decide to go for the GPU over the CPU.",
+      "zh": "全都在 CPU 做，但最後切換到大型版本時，決定改用 GPU。"
+    },
+    {
+      "start": 201.23,
+      "end": 205.03,
+      "en": "Anyway, it's just a difference between minutes versus seconds.",
+      "zh": "只是幾分鐘與幾秒鐘的差別。"
+    },
+    {
+      "start": 205.07,
+      "end": 206.79,
+      "en": "Not a big deal either way.",
+      "zh": "不管哪個，都沒太大關係。"
+    },
+    {
+      "start": 207.82999999999998,
+      "end": 213.55,
+      "en": "Okay, so now you can pause the video, switch to code and import the model and implant the hooks.",
+      "zh": "現在可以暫停影片，切換到程式，匯入模型，植入 hook。"
+    },
+    {
+      "start": 213.87,
+      "end": 217.03,
+      "en": "And now I will switch to code and show my solution.",
+      "zh": "我也切換到程式，展示解法。"
+    },
+    {
+      "start": 217.75,
+      "end": 225.75,
+      "en": "This code here is to update the latest version of the data sets, uh, library from hugging face.",
+      "zh": "這段程式，是更新 Hugging Face datasets 函式庫到最新版本。"
+    },
+    {
+      "start": 225.75,
+      "end": 232.11,
+      "en": "You will remember from earlier in this course that at least at the time that I'm recording this video,",
+      "zh": "你會記得，課程先前提過，至少錄影當下，"
+    },
+    {
+      "start": 232.51,
+      "end": 238.86,
+      "en": "uh, this still crashes if you try to import it and load data without first updating it.",
+      "zh": "如果不先更新，就直接匯入與載入資料，仍會出錯。"
+    },
+    {
+      "start": 238.86,
+      "end": 241.22,
+      "en": "Now you don't need that for exercise one.",
+      "zh": "練習一不需要這個。"
+    },
+    {
+      "start": 241.22,
+      "end": 244.58,
+      "en": "This is something we will do in exercise two.",
+      "zh": "這是練習二要做的。"
+    },
+    {
+      "start": 244.74,
+      "end": 247.1,
+      "en": "Anyway, that's just a little reminder.",
+      "zh": "只是提醒。"
+    },
+    {
+      "start": 247.26,
+      "end": 257.26,
+      "en": "It is possible that by the time you are watching this colab and hugging face have fixed this conflict and therefore you don't actually need to worry about this thing.",
+      "zh": "等你觀看時，Colab 與 Hugging Face 可能已解決衝突，不必再擔心。"
+    },
+    {
+      "start": 258.26,
+      "end": 261.5,
+      "en": "Anyway, here I'm importing a bunch of modules.",
+      "zh": "這裡匯入一堆模組。"
+    },
+    {
+      "start": 261.5,
+      "end": 265.78,
+      "en": "Some of these are libraries that we use in basically every video.",
+      "zh": "有些幾乎每部影片都使用。"
+    },
+    {
+      "start": 266.06,
+      "end": 270.74,
+      "en": "Some of these are for later exercises like this one and this one.",
+      "zh": "有些是之後練習才用，例如這個、這個。"
+    },
+    {
+      "start": 271.02,
+      "end": 272.46,
+      "en": "So we'll get back to those later.",
+      "zh": "稍後再回來看。"
+    },
+    {
+      "start": 272.9,
+      "end": 273.22,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 273.26,
+      "end": 277.5,
+      "en": "So here I'm importing the model and I'm going to implant the hooks here.",
+      "zh": "這裡匯入模型，再植入 hook。"
+    },
+    {
+      "start": 277.5,
+      "end": 284.26,
+      "en": "You can see I'm importing the 125 million parameter version of this model.",
+      "zh": "可以看到，是 1.25 億參數版本。"
+    },
+    {
+      "start": 284.74,
+      "end": 286.86,
+      "en": "This code here you don't need to worry about.",
+      "zh": "這段程式不用擔心。"
+    },
+    {
+      "start": 286.86,
+      "end": 288.46,
+      "en": "You can leave it commented.",
+      "zh": "可以保持註解。"
+    },
+    {
+      "start": 288.65999999999997,
+      "end": 299.22,
+      "en": "This is for exercise seven when we're going to work with the larger model, but I just want to point out that the naming convention is basically the same here.",
+      "zh": "這是練習七要用的大型模型，只是想指出，命名慣例基本相同。"
+    },
+    {
+      "start": 299.7,
+      "end": 305.42,
+      "en": "It's just, you know, we have some extra number at the end to specify how many parameters we have.",
+      "zh": "只是最後多一個數字，指定參數數量。"
+    },
+    {
+      "start": 306.02,
+      "end": 306.5,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 306.54,
+      "end": 309.74,
+      "en": "Here I'm importing the GPU again, totally optional.",
+      "zh": "這裡匯入 GPU，同樣完全可選。"
+    },
+    {
+      "start": 309.74,
+      "end": 316.02,
+      "en": "You really don't need the GPU for this exercise, but you do want to switch the model into eval mode.",
+      "zh": "這個練習真的不需要 GPU，但要把模型切到 eval 模式。"
+    },
+    {
+      "start": 316.02,
+      "end": 320.78,
+      "en": "That's generally a good idea when you are not training the model.",
+      "zh": "不訓練模型時，一般這樣做很好。"
+    },
+    {
+      "start": 321.38,
+      "end": 323.42,
+      "en": "Okay, here I have the hook function.",
+      "zh": "這裡有 hook 函式。"
+    },
+    {
+      "start": 323.42,
+      "end": 327.58,
+      "en": "Now all of this is identical to what you've seen before.",
+      "zh": "這些和先前看過的完全相同。"
+    },
+    {
+      "start": 328.1,
+      "end": 332.02,
+      "en": "This is new, but it's not really Earth Shatteringly new.",
+      "zh": "這個是新的，但不是驚天動地的新東西。"
+    },
+    {
+      "start": 332.06,
+      "end": 336.94,
+      "en": "All I'm doing is taking this code to implant the hook.",
+      "zh": "只是把植入 hook 的程式拿過來。"
+    },
+    {
+      "start": 337.46,
+      "end": 341.3,
+      "en": "Uh, and then, yeah, calling these functions with this layer number.",
+      "zh": "呼叫函式，帶入這個層編號。"
+    },
+    {
+      "start": 341.62,
+      "end": 346.1,
+      "en": "And then all I do is take this line and put it inside a for loop.",
+      "zh": "再把這一行放進 for 迴圈。"
+    },
+    {
+      "start": 346.1,
+      "end": 354.81,
+      "en": "So it's going to implant a hook into each Individual layer, and you can see that the name of the key",
+      "zh": "每個層都植入 hook，而字典中使用的鍵名，"
+    },
+    {
+      "start": 354.85,
+      "end": 358.73,
+      "en": "that I use in the dictionary is unique to each layer.",
+      "zh": "對每層都獨特。"
+    },
+    {
+      "start": 359.53,
+      "end": 365.37,
+      "en": "So that means that every time I run a forward pass, all of these data will get replaced.",
+      "zh": "表示每次前向傳播，所有這些資料都會取代。"
+    },
+    {
+      "start": 365.37,
+      "end": 367.05,
+      "en": "They will get overwritten.",
+      "zh": "會被覆寫。"
+    },
+    {
+      "start": 367.05,
+      "end": 375.49,
+      "en": "But that's fine because we're only actually doing one forward pass in this code challenge, but it's not going to overwrite over layers.",
+      "zh": "但沒關係，這個挑戰只做一次前向傳播；而且不會在不同層之間互相覆寫。"
+    },
+    {
+      "start": 375.49,
+      "end": 384.13,
+      "en": "So for example, if I did this, if I just wrote MLP neurons or something activations uh, then uh with",
+      "zh": "例如，如果直接寫 MLP neurons，或 activations 之類，"
+    },
+    {
+      "start": 384.13,
+      "end": 392.33,
+      "en": "the code looking like this, then this actually would keep overwriting every layer and we would only end up with the final layer here.",
+      "zh": "像這樣，真的會每層不斷覆寫，最後只剩最終層。"
+    },
+    {
+      "start": 392.57,
+      "end": 395.01,
+      "en": "Okay, just a little bit of a coding reminder.",
+      "zh": "只是小小的程式提醒。"
+    },
+    {
+      "start": 395.57,
+      "end": 396.69,
+      "en": "Uh, that looked like that.",
+      "zh": "剛才應該長這樣。"
+    },
+    {
+      "start": 397.01,
+      "end": 397.53,
+      "en": "Uh, yeah.",
+      "zh": "對。"
+    },
+    {
+      "start": 397.53,
+      "end": 407.81,
+      "en": "And also, uh, because I'm not specifying any outputs here, it will be impossible when I run this code to remove the hooks.",
+      "zh": "另外，因為沒有指定任何輸出，執行後就無法移除 hook。"
+    },
+    {
+      "start": 408.01,
+      "end": 411.01,
+      "en": "Now, that's something that sometimes you want to think about.",
+      "zh": "有時，這是需要思考的事。"
+    },
+    {
+      "start": 411.01,
+      "end": 412.77,
+      "en": "Sometimes you don't have to worry about.",
+      "zh": "有時不必擔心。"
+    },
+    {
+      "start": 413.13,
+      "end": 415.40999999999997,
+      "en": "Uh, in this code challenge, we.",
+      "zh": "這個挑戰裡，"
+    },
+    {
+      "start": 415.45,
+      "end": 416.37,
+      "en": "It doesn't really matter.",
+      "zh": "沒什麼關係。"
+    },
+    {
+      "start": 416.40999999999997,
+      "end": 418.81,
+      "en": "We can just leave the hooks in the model.",
+      "zh": "可以直接把 hook 留在模型中。"
+    },
+    {
+      "start": 418.81,
+      "end": 423.01,
+      "en": "I'm not going to save these models or use them for inference.",
+      "zh": "不會儲存這些模型，也不會拿去推論。"
+    },
+    {
+      "start": 423.05,
+      "end": 425.21,
+      "en": "Okay, so all of that is great.",
+      "zh": "這些都很好。"
+    },
+    {
+      "start": 425.21,
+      "end": 428.57,
+      "en": "Here I have a variable called n neurons.",
+      "zh": "這裡有個叫 n neurons 的變數。"
+    },
+    {
+      "start": 428.89,
+      "end": 435.25,
+      "en": "That is the number of neurons in here I'm picking uh transformer block for.",
+      "zh": "是這裡的神經元數，我選 Transformer 第 4 區塊。"
+    },
+    {
+      "start": 435.57,
+      "end": 436.93,
+      "en": "But it doesn't actually matter.",
+      "zh": "但其實不重要。"
+    },
+    {
+      "start": 436.93,
+      "end": 440.37,
+      "en": "They all have the same number of neurons for the forward.",
+      "zh": "所有區塊都有相同神經元數，前向的部分。"
+    },
+    {
+      "start": 440.37,
+      "end": 444.33,
+      "en": "Uh, let me actually just run this code here.",
+      "zh": "直接執行這段程式。"
+    },
+    {
+      "start": 444.33,
+      "end": 448.93,
+      "en": "Uh, maybe I'll do it like this just so you can see what I'm doing here.",
+      "zh": "也許這樣做，讓你看到我在做什麼。"
+    },
+    {
+      "start": 449.25,
+      "end": 453.73,
+      "en": "Okay, so here I'm accessing the MLP layer of this transformer block.",
+      "zh": "這裡存取該 Transformer 區塊的 MLP 層。"
+    },
+    {
+      "start": 453.77,
+      "end": 457.69,
+      "en": "This is the expansion part of the MLP block.",
+      "zh": "這是 MLP 的擴張部分。"
+    },
+    {
+      "start": 457.85,
+      "end": 462.29,
+      "en": "And then I'm getting the weight that is all the actual parameters.",
+      "zh": "取得 weight，也就是真正的所有參數。"
+    },
+    {
+      "start": 462.29,
+      "end": 463.93,
+      "en": "And then the shape of that.",
+      "zh": "再取得形狀。"
+    },
+    {
+      "start": 463.97,
+      "end": 467.57,
+      "en": "And here we see the number of neurons over here okay.",
+      "zh": "這裡看到神經元數。"
+    },
+    {
+      "start": 467.85,
+      "end": 476.53,
+      "en": "So this is soft coded, which is good because it means that this can easily adapt to other types of models.",
+      "zh": "這是參數化的寫法，很好，表示容易適應其他模型。"
+    },
+    {
+      "start": 476.53,
+      "end": 482.05,
+      "en": "In particular, the larger version of this model, which has more than 3000 neurons.",
+      "zh": "尤其，這個模型的大型版本，有超過 3,000 個神經元。"
+    },
+    {
+      "start": 482.73,
+      "end": 488.57,
+      "en": "The goal of this exercise is to import the fine web dataset.",
+      "zh": "這個練習的目標，是匯入 FineWeb 資料集。"
+    },
+    {
+      "start": 489.01,
+      "end": 497.97,
+      "en": "We have worked with this dataset several times earlier in this course, for example in the section on evals on quantitative evaluations.",
+      "zh": "課程先前已使用好幾次，例如 evals、定量評估那一節。"
+    },
+    {
+      "start": 498.41,
+      "end": 500.97,
+      "en": "Now you do not need the full data set.",
+      "zh": "不需要完整資料集。"
+    },
+    {
+      "start": 501.25,
+      "end": 502.13,
+      "en": "That's actually good.",
+      "zh": "這其實很好。"
+    },
+    {
+      "start": 502.13,
+      "end": 504.69,
+      "en": "The full data set is like trillions of tokens.",
+      "zh": "完整資料集大約有數兆個 token。"
+    },
+    {
+      "start": 504.93,
+      "end": 514.93,
+      "en": "But basically you just keep importing more and more text until you get up to exactly 8192 tokens and",
+      "zh": "基本上，不斷匯入更多文字，直到取得恰好 8,192 個 token，"
+    },
+    {
+      "start": 514.97,
+      "end": 516.97,
+      "en": "which you can store in one vector.",
+      "zh": "存進一個向量。"
+    },
+    {
+      "start": 517.21,
+      "end": 524.17,
+      "en": "Now, that might seem like a strange number of tokens, but you will see what this number corresponds to later on.",
+      "zh": "這個數量看起來可能奇怪，但稍後就會看到它對應什麼。"
+    },
+    {
+      "start": 524.89,
+      "end": 529.68,
+      "en": "This is a screenshot where you can see importing some of the data up here.",
+      "zh": "這張截圖可以看到，上面匯入一些資料。"
+    },
+    {
+      "start": 529.92,
+      "end": 536.2,
+      "en": "And then I'm just printing out a couple of tokens from the first couple of sequences of the data.",
+      "zh": "接著，從資料前幾段序列中，印出幾個 token。"
+    },
+    {
+      "start": 537,
+      "end": 542.64,
+      "en": "The next part of exercise two is to create a bar plot of token lengths.",
+      "zh": "練習二下一部分，是建立 token 長度的長條圖。"
+    },
+    {
+      "start": 542.96,
+      "end": 544.52,
+      "en": "And that looks like this.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 544.8,
+      "end": 548.72,
+      "en": "So the shortest tokens had one character.",
+      "zh": "最短 token 有一個字元。"
+    },
+    {
+      "start": 548.92,
+      "end": 551.12,
+      "en": "And in the data set that I imported.",
+      "zh": "在我匯入的資料集中，"
+    },
+    {
+      "start": 551.12,
+      "end": 555.12,
+      "en": "So just the beginning of this data set up to 8000 tokens.",
+      "zh": "也就是從開頭取到 8,000 個 token 的資料，"
+    },
+    {
+      "start": 555.28,
+      "end": 559.12,
+      "en": "The longest token was 16 characters long.",
+      "zh": "最長 token 有 16 個字元。"
+    },
+    {
+      "start": 559.8,
+      "end": 565.28,
+      "en": "The vertical line here shows the median of this data set.",
+      "zh": "這裡的垂直線，顯示資料集的中位數。"
+    },
+    {
+      "start": 565.92,
+      "end": 573.72,
+      "en": "And as a reminder, the median of a data set is the number that splits the data into two equal parts.",
+      "zh": "複習一下，中位數是將資料分成相等兩半的數字。"
+    },
+    {
+      "start": 574.32,
+      "end": 581.56,
+      "en": "That means that half of the data are smaller, so half of the tokens have a number of characters a token",
+      "zh": "表示半數資料較小，也就是半數 token 的字元數、token"
+    },
+    {
+      "start": 581.56,
+      "end": 587.12,
+      "en": "length smaller than the median, and half the data are larger than the median.",
+      "zh": "長度小於中位數，另半數資料大於中位數。"
+    },
+    {
+      "start": 587.72,
+      "end": 596,
+      "en": "Now, that explanation of splitting the data into two equal sized halves, that is true for floating point numbers.",
+      "zh": "這種分成相等兩半的說明，對浮點數成立。"
+    },
+    {
+      "start": 596.16,
+      "end": 601.12,
+      "en": "But token lengths are integers and the median is also an integer.",
+      "zh": "但 token 長度是整數，中位數也是整數。"
+    },
+    {
+      "start": 601.68,
+      "end": 612.2,
+      "en": "So it turns out that if you would count the number of tokens less than the median, plus the number of tokens that are greater than the median.",
+      "zh": "所以，如果數小於中位數的 token，再加上大於中位數的 token，"
+    },
+    {
+      "start": 612.24,
+      "end": 622.28,
+      "en": "So longer tokens than the median, then you actually don't get all of the tokens, because lots of tokens are exactly equal to the median token length.",
+      "zh": "也就是更長的 token，實際不會得到全部數量，因為很多 token 長度恰好等於中位數。"
+    },
+    {
+      "start": 622.72,
+      "end": 624.84,
+      "en": "You can see it's around 1400.",
+      "zh": "這裡可以看到，大約是 1,400 個。"
+    },
+    {
+      "start": 624.88,
+      "end": 631.24,
+      "en": "Somewhere around 1400 tokens have exactly four characters, which is the exact median.",
+      "zh": "大約 1,400 個 token 恰好四個字元，而四就是中位數。"
+    },
+    {
+      "start": 632.28,
+      "end": 633.76,
+      "en": "Now that is not a problem.",
+      "zh": "這不是問題。"
+    },
+    {
+      "start": 633.76,
+      "end": 635.96,
+      "en": "That's not like an issue with statistics.",
+      "zh": "不是統計出了問題。"
+    },
+    {
+      "start": 635.96,
+      "end": 638.24,
+      "en": "It's just something to keep in mind.",
+      "zh": "只是要記得。"
+    },
+    {
+      "start": 638.28,
+      "end": 645.07,
+      "en": "It's just the way that things can shake out when you're working with the median, with Integer valued numbers.",
+      "zh": "處理整數值與中位數時，情況有時就是如此。"
+    },
+    {
+      "start": 645.63,
+      "end": 653.31,
+      "en": "And that leads me to the final part of this exercise, which is to count and report the number of tokens",
+      "zh": "這帶到練習最後一部分：計算並報告 token 數量，"
+    },
+    {
+      "start": 653.31,
+      "end": 659.47,
+      "en": "that are shorter than the median, longer than the median, and exactly equal to the median.",
+      "zh": "分別短於中位數、長於中位數，以及恰好等於中位數。"
+    },
+    {
+      "start": 660.15,
+      "end": 666.71,
+      "en": "So you can see that the number of tokens shorter and longer than the median is almost perfectly split.",
+      "zh": "可以看到，短於與長於中位數的數量，幾乎完全平分。"
+    },
+    {
+      "start": 666.99,
+      "end": 670.59,
+      "en": "And yeah, well this group ends up being a little bit smaller.",
+      "zh": "而這一組最後稍微小一點。"
+    },
+    {
+      "start": 670.59,
+      "end": 671.27,
+      "en": "But that's fine.",
+      "zh": "但沒關係。"
+    },
+    {
+      "start": 671.27,
+      "end": 672.11,
+      "en": "It doesn't matter.",
+      "zh": "不重要。"
+    },
+    {
+      "start": 672.51,
+      "end": 677.63,
+      "en": "So we can still form three groups of tokens according to their lengths.",
+      "zh": "所以，仍然可以根據長度，將 token 分成三組。"
+    },
+    {
+      "start": 678.03,
+      "end": 687.55,
+      "en": "In the next exercise, you are going to examine the activation magnitudes of MLP neurons for these different token lengths.",
+      "zh": "下一個練習，會查看 MLP 神經元對這些不同 token 長度的活化大小。"
+    },
+    {
+      "start": 687.67,
+      "end": 695.87,
+      "en": "But you don't need to worry about the model part for this exercise, just import the data and look at the token lengths distributions.",
+      "zh": "這個練習不必考慮模型，只要匯入資料，查看 token 長度分布。"
+    },
+    {
+      "start": 696.59,
+      "end": 700.07,
+      "en": "So now you should pause the video and code up this exercise.",
+      "zh": "現在暫停影片，寫出這個練習。"
+    },
+    {
+      "start": 700.19,
+      "end": 703.79,
+      "en": "And now I will switch to code and discuss my solution.",
+      "zh": "我切換到程式，討論解法。"
+    },
+    {
+      "start": 704.75,
+      "end": 709.47,
+      "en": "Here I am importing the fine web dataset, or at least part of it.",
+      "zh": "這裡匯入 FineWeb 資料集，或至少一部分。"
+    },
+    {
+      "start": 709.71,
+      "end": 718.79,
+      "en": "Here I'm getting an iterator and that I'm using over here just to loop through and show a couple of examples so that you can see here.",
+      "zh": "取得一個迭代器，在這裡用來走過、展示幾個範例。"
+    },
+    {
+      "start": 720.27,
+      "end": 725.03,
+      "en": "So just going through the first five examples and printing out some of the text.",
+      "zh": "只看前五個例子，印出部分文字。"
+    },
+    {
+      "start": 725.07,
+      "end": 727.67,
+      "en": "I'm not printing out all of the samples.",
+      "zh": "沒有印出全部樣本。"
+    },
+    {
+      "start": 727.67,
+      "end": 733.31,
+      "en": "I'm also not printing out the first hundred tokens because these are not yet tokenized.",
+      "zh": "也不是印前 100 個 token，因為還沒 token 化。"
+    },
+    {
+      "start": 733.31,
+      "end": 735.67,
+      "en": "So these are just examples in text.",
+      "zh": "這些只是文字範例。"
+    },
+    {
+      "start": 735.67,
+      "end": 739.95,
+      "en": "And I'm only printing out the first hundred characters from the first five.",
+      "zh": "只印前五個例子，各自前 100 個字元。"
+    },
+    {
+      "start": 739.99,
+      "end": 743.99,
+      "en": "Just to give you a bit of a reminder of what this dataset looks like.",
+      "zh": "簡單複習資料集的樣子。"
+    },
+    {
+      "start": 744.55,
+      "end": 745.03,
+      "en": "All right.",
+      "zh": "好。"
+    },
+    {
+      "start": 745.03,
+      "end": 750.27,
+      "en": "So here is where I'm going to extract tokens from this data set.",
+      "zh": "這裡從資料集擷取 token。"
+    },
+    {
+      "start": 750.39,
+      "end": 754.43,
+      "en": "And in particular 8192 tokens.",
+      "zh": "特別是 8,192 個。"
+    },
+    {
+      "start": 754.67,
+      "end": 762.62,
+      "en": "I'm going to store all of those tokens into a vector one dimensional tensor, but we can think of this as a vector.",
+      "zh": "全部存進一個向量、一維張量，但可以想成向量。"
+    },
+    {
+      "start": 762.82,
+      "end": 764.54,
+      "en": "I initialize it to be empty.",
+      "zh": "初始化為空。"
+    },
+    {
+      "start": 764.58,
+      "end": 770.1,
+      "en": "We want these to be torched long because these are, uh, token indices.",
+      "zh": "希望型別是 torch.long，因為這些是 token 索引。"
+    },
+    {
+      "start": 770.1,
+      "end": 771.9,
+      "en": "We're going to push these into the model.",
+      "zh": "要送進模型。"
+    },
+    {
+      "start": 771.9,
+      "end": 774.1,
+      "en": "So we want these to be integers.",
+      "zh": "所以，需要整數。"
+    },
+    {
+      "start": 774.5,
+      "end": 774.7,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 774.74,
+      "end": 784.34,
+      "en": "And then this is a variable that I will use to store all of the lengths of the tokens in terms of the number of characters of each token.",
+      "zh": "這個變數，用來儲存所有 token 的長度，也就是各 token 的字元數。"
+    },
+    {
+      "start": 784.86,
+      "end": 786.62,
+      "en": "Okay here I have a while loop.",
+      "zh": "這裡有 while 迴圈。"
+    },
+    {
+      "start": 786.62,
+      "end": 793.82,
+      "en": "And essentially the idea is that I'm going to stay in this while loop and continue importing more text",
+      "zh": "基本上，留在迴圈中，持續匯入更多文字，"
+    },
+    {
+      "start": 793.82,
+      "end": 801.86,
+      "en": "and tokenizing and counting the lengths of the tokens up until I have more tokens than I need.",
+      "zh": "切成 token、計算長度，直到 token 數超過需求。"
+    },
+    {
+      "start": 802.42,
+      "end": 803.9,
+      "en": "Okay, so here's how that works.",
+      "zh": "運作方式如下。"
+    },
+    {
+      "start": 803.9,
+      "end": 808.94,
+      "en": "So I get some new data out of the iterator and then I tokenize.",
+      "zh": "從迭代器取得新資料，再 token 化。"
+    },
+    {
+      "start": 809.06,
+      "end": 810.58,
+      "en": "Here I'm getting the length.",
+      "zh": "這裡取得長度。"
+    },
+    {
+      "start": 810.74,
+      "end": 818.94,
+      "en": "So uh, looping over all of the tokens from here and then decoding the token to transform the token",
+      "zh": "走過這裡所有 token，再解碼，把 token"
+    },
+    {
+      "start": 818.94,
+      "end": 824.66,
+      "en": "into a string into text, and then just counting the number of characters in there.",
+      "zh": "轉成字串、文字，計算字元數。"
+    },
+    {
+      "start": 825.06,
+      "end": 830.98,
+      "en": "This will give me a list, and here I'm transforming it into a numpy array.",
+      "zh": "會得到串列，這裡轉成 NumPy 陣列。"
+    },
+    {
+      "start": 831.34,
+      "end": 835.98,
+      "en": "So that is the token lengths for this particular data sample.",
+      "zh": "這就是這筆資料樣本的 token 長度。"
+    },
+    {
+      "start": 836.5,
+      "end": 836.82,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 836.86,
+      "end": 844.58,
+      "en": "And then what I'm doing in these two lines is concatenating these tokens that I've just imported.",
+      "zh": "這兩行，將剛匯入的 token，"
+    },
+    {
+      "start": 844.58,
+      "end": 852.26,
+      "en": "And these token lengths that I've just calculated onto these variables all tokens and all token lengths.",
+      "zh": "以及剛計算的長度，串接到 all tokens 與 all token lengths 變數。"
+    },
+    {
+      "start": 852.58,
+      "end": 860.98,
+      "en": "So the idea is that these will get bigger and bigger, longer and longer until this condition is satisfied,",
+      "zh": "所以，它們會越來越大、越來越長，直到滿足條件，"
+    },
+    {
+      "start": 860.98,
+      "end": 867.74,
+      "en": "which is that the number of tokens is greater than how many tokens I want.",
+      "zh": "也就是 token 數大於需要的數量。"
+    },
+    {
+      "start": 868.26,
+      "end": 877.34,
+      "en": "Now, it's unlikely that this is going to be exactly equal to 8192, because yeah, we just we cannot",
+      "zh": "不太可能剛好等於 8,192，因為無法"
+    },
+    {
+      "start": 877.34,
+      "end": 880.38,
+      "en": "guarantee how many tokens are in each sample here.",
+      "zh": "保證每個樣本有多少 token。"
+    },
+    {
+      "start": 880.82,
+      "end": 888.26,
+      "en": "Uh, so therefore I assume that this, that these two variables will be longer than the number of tokens that I want.",
+      "zh": "所以，假設這兩個變數，最後會比需求更長。"
+    },
+    {
+      "start": 889.34,
+      "end": 894.62,
+      "en": "And so the final step of this code cell is to trim the vectors down.",
+      "zh": "這個程式區塊最後，就把向量裁短。"
+    },
+    {
+      "start": 894.62,
+      "end": 897.78,
+      "en": "So I replace the vector with itself.",
+      "zh": "用它自己替換，"
+    },
+    {
+      "start": 897.9,
+      "end": 901.94,
+      "en": "And just the first 8192.",
+      "zh": "只保留前 8,192 個。"
+    },
+    {
+      "start": 902.5,
+      "end": 902.74,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 902.78,
+      "end": 905.74,
+      "en": "And then you see uh here's what they look like.",
+      "zh": "這裡看到樣子。"
+    },
+    {
+      "start": 905.74,
+      "end": 906.58,
+      "en": "There's the size.",
+      "zh": "這是大小。"
+    },
+    {
+      "start": 906.86,
+      "end": 912.1,
+      "en": "And let me just very quickly show you these, uh, variables here.",
+      "zh": "很快展示這些變數。"
+    },
+    {
+      "start": 912.38,
+      "end": 915.34,
+      "en": "So all tokens, this is a list of integers.",
+      "zh": "all tokens，是整數清單。"
+    },
+    {
+      "start": 915.5,
+      "end": 917.94,
+      "en": "And let's look at the lengths.",
+      "zh": "再看看長度。"
+    },
+    {
+      "start": 918.66,
+      "end": 923.34,
+      "en": "And here we see this is a numpy array of token lengths.",
+      "zh": "這是 token 長度的 NumPy 陣列。"
+    },
+    {
+      "start": 923.34,
+      "end": 925.62,
+      "en": "So the first token has three characters.",
+      "zh": "第一個 token 有三個字元。"
+    },
+    {
+      "start": 925.9,
+      "end": 929.98,
+      "en": "The third token has nine characters and so on okay.",
+      "zh": "第三個有九個字元，依此類推。"
+    },
+    {
+      "start": 930.02,
+      "end": 934.3,
+      "en": "So with those data I can now create the bar plot.",
+      "zh": "有了資料，就能建立長條圖。"
+    },
+    {
+      "start": 934.5,
+      "end": 941.41,
+      "en": "So here I find all of the unique values in the token lengths and return their counts.",
+      "zh": "找出 token 長度所有獨特值，傳回出現次數。"
+    },
+    {
+      "start": 941.61,
+      "end": 948.01,
+      "en": "Now if these were floating point numbers then we would take a histogram.",
+      "zh": "如果是浮點數，會用直方圖。"
+    },
+    {
+      "start": 948.13,
+      "end": 954.17,
+      "en": "We would use numpy dot histogram to get the distribution.",
+      "zh": "使用 numpy.histogram 取得分布。"
+    },
+    {
+      "start": 954.17,
+      "end": 956.69,
+      "en": "But that's not what we do for integer data.",
+      "zh": "但整數資料不這樣做。"
+    },
+    {
+      "start": 956.85,
+      "end": 961.81,
+      "en": "You can use numpy dot unique that gives you all the unique values and the counts.",
+      "zh": "可以用 numpy.unique，取得所有獨特值，以及次數。"
+    },
+    {
+      "start": 961.81,
+      "end": 965.13,
+      "en": "So how often each unique value is observed.",
+      "zh": "也就是每個獨特值觀察到幾次。"
+    },
+    {
+      "start": 965.53,
+      "end": 969.61,
+      "en": "And then here I'm getting the median using numpy dot median.",
+      "zh": "這裡用 numpy.median 取得中位數。"
+    },
+    {
+      "start": 970.09,
+      "end": 972.77,
+      "en": "Okay so I think that is pretty straightforward.",
+      "zh": "我想這相當直接。"
+    },
+    {
+      "start": 973.13,
+      "end": 978.53,
+      "en": "Here I am calculating all of the token lengths that are less than the median.",
+      "zh": "這裡計算所有小於中位數的 token 長度，"
+    },
+    {
+      "start": 978.57,
+      "end": 982.53,
+      "en": "Greater than the median and exactly equal to the median.",
+      "zh": "大於中位數，以及恰好等於中位數。"
+    },
+    {
+      "start": 984.17,
+      "end": 984.45,
+      "en": "Okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 984.49,
+      "end": 987.53,
+      "en": "And then summing and yeah just printing that out.",
+      "zh": "再加總、印出。"
+    },
+    {
+      "start": 987.57,
+      "end": 991.49,
+      "en": "Now here again, so this is just, you know, a little reminder of statistics.",
+      "zh": "同樣地，只是簡單複習統計。"
+    },
+    {
+      "start": 991.65,
+      "end": 998.25,
+      "en": "If these were floating point numbers, then the median is, you know, you would find that the number",
+      "zh": "如果是浮點數，中位數這裡，會發現"
+    },
+    {
+      "start": 998.25,
+      "end": 1004.21,
+      "en": "of elements here is going to be zero, maybe one, but it would be 1 or 0.",
+      "zh": "元素數量是零，也許一個，但會是 1 或 0。"
+    },
+    {
+      "start": 1004.65,
+      "end": 1013.49,
+      "en": "You certainly wouldn't get like a seventh or an eighth of the entire data set is equal to the median unless your data have integer values.",
+      "zh": "除非資料是整數，不然肯定不會有整個資料集的七分之一、八分之一，都等於中位數。"
+    },
+    {
+      "start": 1013.81,
+      "end": 1016.09,
+      "en": "Again, that's not at all a problem.",
+      "zh": "同樣地，完全不是問題。"
+    },
+    {
+      "start": 1016.09,
+      "end": 1019.49,
+      "en": "It's not a statistical problem, it's not a numerical problem.",
+      "zh": "不是統計問題，也不是數值問題。"
+    },
+    {
+      "start": 1019.57,
+      "end": 1021.49,
+      "en": "It's just something to keep in mind.",
+      "zh": "只是要記得。"
+    },
+    {
+      "start": 1022.21,
+      "end": 1031.17,
+      "en": "Now to get back to the model, you have 8000 tokens in a vector, and you should reshape those into",
+      "zh": "回到模型，向量中有 8,000 個 token，要將它們重塑成"
+    },
+    {
+      "start": 1031.21,
+      "end": 1035.85,
+      "en": "a batch of 16 by 512.",
+      "zh": "16 乘以 512 的批次。"
+    },
+    {
+      "start": 1035.97,
+      "end": 1040.13,
+      "en": "And that is where we get 8192 from.",
+      "zh": "這就是 8,192 的由來。"
+    },
+    {
+      "start": 1040.13,
+      "end": 1047.01,
+      "en": "That fits exactly into one batch of 16 sequences by 512 tokens.",
+      "zh": "恰好是一個批次，16 段序列，每段 512 個 token。"
+    },
+    {
+      "start": 1047.65,
+      "end": 1058.52,
+      "en": "Then you can run that batch through the model and you don't have to worry about calculating a loss or next token predictions or output logits or anything like that.",
+      "zh": "再讓批次通過模型，不必考慮損失、下一個 token 預測、輸出 logits 等等。"
+    },
+    {
+      "start": 1058.56,
+      "end": 1061.32,
+      "en": "We just want the hooked activations.",
+      "zh": "只需要 hook 取出的活化。"
+    },
+    {
+      "start": 1061.72,
+      "end": 1069.32,
+      "en": "Now this is the step here that takes around a minute on the CPU or a couple of seconds on the GPU.",
+      "zh": "這步在 CPU 約一分鐘，GPU 上幾秒。"
+    },
+    {
+      "start": 1070.08,
+      "end": 1078.76,
+      "en": "Then you can confirm that you get 12 sets of activations corresponding to the 12 transformer blocks,",
+      "zh": "接著，確認取得 12 組活化，對應 12 個 Transformer 區塊。"
+    },
+    {
+      "start": 1079.24,
+      "end": 1087.08,
+      "en": "and then you can confirm that for just one of them, you should get a size of the activations of 16",
+      "zh": "再確認其中一個的活化大小，應該是 16"
+    },
+    {
+      "start": 1087.12,
+      "end": 1093.32,
+      "en": "by five, 12 by 3072, corresponding to 16 batches.",
+      "zh": "乘以 512，乘以 3,072，對應 16 個批次，"
+    },
+    {
+      "start": 1093.32,
+      "end": 1103.2,
+      "en": "So 16 sequences, 512 tokens, and 3072 neurons in the MLP expansion layer.",
+      "zh": "也就是 16 段序列、512 個 token，以及 MLP 擴張層 3,072 個神經元。"
+    },
+    {
+      "start": 1103.6,
+      "end": 1108.24,
+      "en": "You don't have to do any other analyses that comes up in the next exercise.",
+      "zh": "不需要其他分析，那是下一個練習。"
+    },
+    {
+      "start": 1108.36,
+      "end": 1112.8,
+      "en": "So here you can just focus on extracting these activations.",
+      "zh": "這裡只需專注擷取活化。"
+    },
+    {
+      "start": 1113.28,
+      "end": 1116.16,
+      "en": "I hope you enjoy working through this exercise.",
+      "zh": "希望你喜歡這個練習。"
+    },
+    {
+      "start": 1116.16,
+      "end": 1118.24,
+      "en": "I hope it doesn't give you too much trouble.",
+      "zh": "希望不會讓你遇到太多麻煩。"
+    },
+    {
+      "start": 1118.4,
+      "end": 1120.24,
+      "en": "And now I will switch to code.",
+      "zh": "現在切換到程式。"
+    },
+    {
+      "start": 1121.16,
+      "end": 1122.96,
+      "en": "Here I'm creating my batch.",
+      "zh": "這裡建立批次。"
+    },
+    {
+      "start": 1123.12,
+      "end": 1127,
+      "en": "And yeah, just confirming the shape and the type of the batch.",
+      "zh": "確認批次形狀與型別。"
+    },
+    {
+      "start": 1127.28,
+      "end": 1137.68,
+      "en": "It is 16 by 512, so that is one of the reasons why I said to import exactly 8192.",
+      "zh": "是 16 乘以 512，這是要求匯入恰好 8,192 個 token 的原因之一。"
+    },
+    {
+      "start": 1138,
+      "end": 1144.08,
+      "en": "There is another reason why I picked this number to be the number of tokens.",
+      "zh": "還有另一個原因，選擇這個 token 數量。"
+    },
+    {
+      "start": 1144.28,
+      "end": 1149.36,
+      "en": "But I'm going to keep that secret until we get to exercise seven.",
+      "zh": "但先保密，直到練習七。"
+    },
+    {
+      "start": 1149.92,
+      "end": 1151.16,
+      "en": "Anyway, uh, yeah.",
+      "zh": "總之，對。"
+    },
+    {
+      "start": 1151.16,
+      "end": 1152.04,
+      "en": "So that's that.",
+      "zh": "就是這樣。"
+    },
+    {
+      "start": 1152.08,
+      "end": 1154.32,
+      "en": "Here I run the data through the model.",
+      "zh": "這裡讓資料通過模型。"
+    },
+    {
+      "start": 1154.32,
+      "end": 1156.32,
+      "en": "You can see it is quite fast.",
+      "zh": "可以看到，非常快。"
+    },
+    {
+      "start": 1156.56,
+      "end": 1158.04,
+      "en": "Uh, less than one second.",
+      "zh": "不到一秒。"
+    },
+    {
+      "start": 1158.32,
+      "end": 1161.48,
+      "en": "If you run this on the CPU, it takes around a minute.",
+      "zh": "CPU 上大約一分鐘。"
+    },
+    {
+      "start": 1162,
+      "end": 1164.92,
+      "en": "Uh, on the GPU, it was, uh, sorry.",
+      "zh": "GPU 上，抱歉，"
+    },
+    {
+      "start": 1165.2,
+      "end": 1176.99,
+      "en": "With the big model in exercise seven that was taking around five minutes on the CPU, and then I just gave up and switched to the GPU where it takes a whopping two seconds.",
+      "zh": "練習七的大型模型，在 CPU 上跑了約五分鐘，我就放棄，改 GPU，只要足足兩秒。"
+    },
+    {
+      "start": 1177.15,
+      "end": 1177.95,
+      "en": "Crazy.",
+      "zh": "太瘋狂。"
+    },
+    {
+      "start": 1178.27,
+      "end": 1178.83,
+      "en": "Uh, okay.",
+      "zh": "好。"
+    },
+    {
+      "start": 1178.87,
+      "end": 1179.67,
+      "en": "So let's see here.",
+      "zh": "來看看。"
+    },
+    {
+      "start": 1179.67,
+      "end": 1186.91,
+      "en": "I'm looking at the, uh, activations, uh, variable that, uh, that is created from the hook.",
+      "zh": "查看 hook 建立的 activations 變數。"
+    },
+    {
+      "start": 1187.07,
+      "end": 1191.63,
+      "en": "So we have, uh, the keys are MLP zero up to 11.",
+      "zh": "鍵是 MLP 0 到 11。"
+    },
+    {
+      "start": 1191.83,
+      "end": 1199.39,
+      "en": "Of course, those correspond to the 12 MLP subblocks in the 12 transformer layers.",
+      "zh": "當然，對應 12 個 Transformer 層中的 12 個 MLP 子區塊。"
+    },
+    {
+      "start": 1199.87,
+      "end": 1203.91,
+      "en": "And here I'm just checking the size of one activations matrix.",
+      "zh": "這裡只檢查一個活化矩陣的大小。"
+    },
+    {
+      "start": 1203.91,
+      "end": 1206.03,
+      "en": "So I just picked this one at random.",
+      "zh": "隨機挑這個。"
+    },
+    {
+      "start": 1206.03,
+      "end": 1207.15,
+      "en": "They're all the same size.",
+      "zh": "它們大小相同。"
+    },
+    {
+      "start": 1207.15,
+      "end": 1216.19,
+      "en": "You can pick any one of those to show 16 sequences in our batch 512 tokens per batch or per sequence,",
+      "zh": "可以挑任何一個，顯示批次有 16 段序列、每批或每段 512 個 token，"
+    },
+    {
+      "start": 1216.35,
+      "end": 1221.15,
+      "en": "and 3072 neurons in the MLP expansion layer.",
+      "zh": "以及 MLP 擴張層 3,072 個神經元。"
+    }
+  ]
+}
