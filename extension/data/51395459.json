@@ -1,0 +1,481 @@
+{
+  "courseId": "6542487",
+  "lectureId": "51395459",
+  "title": "Transaction Analyzer Part 1",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "0d02b01ec27ff2284b2c8ca586c3e9f358c3e89046c8329a664b48b073fe1858",
+  "cues": [
+    {
+      "start": 0.24,
+      "end": 6.4,
+      "en": "Next we shall create the core part of our AI transaction analysis, which is the transaction analyzer.",
+      "zh": "接著建立 AI 交易分析的核心，也就是 TransactionAnalyzer。"
+    },
+    {
+      "start": 6.48,
+      "end": 18.28,
+      "en": "The analyzer will work by one collecting transaction history, then analyzing multiple risk factors such as the amount, time, frequency and patterns, then combining these factors using configurable",
+      "zh": "分析器先收集交易紀錄，再分析金額、時間、頻率與模式等風險因子，使用可設定的。"
+    },
+    {
+      "start": 18.28,
+      "end": 23.44,
+      "en": "weights, and then lastly producing a final risk score and detailed analysis.",
+      "zh": "權重組合，最後產生總風險分數與詳細分析。"
+    },
+    {
+      "start": 23.76,
+      "end": 26.08,
+      "en": "So you're going to go back to a Project Explorer.",
+      "zh": "回到專案檔案總管。"
+    },
+    {
+      "start": 26.12,
+      "end": 28.92,
+      "en": "Then you're going to go to backend app core AI.",
+      "zh": "進入 backend/app/core/ai。"
+    },
+    {
+      "start": 29.16,
+      "end": 36.12,
+      "en": "Then within this folder we create a new file that's going to be transaction underscore analyzer dot pi.",
+      "zh": "建立 transaction_analyzer.py。"
+    },
+    {
+      "start": 36.52,
+      "end": 39.2,
+      "en": "Then as usual we start with our input.",
+      "zh": "一樣先寫匯入。"
+    },
+    {
+      "start": 39.2,
+      "end": 42.84,
+      "en": "So we can import numpy as np.",
+      "zh": "import numpy as np。"
+    },
+    {
+      "start": 43,
+      "end": 44.08,
+      "en": "That's the alias.",
+      "zh": "這是別名。"
+    },
+    {
+      "start": 44.08,
+      "end": 47.24,
+      "en": "Then from typing we're going to import tuple.",
+      "zh": "從 typing 匯入 Tuple。"
+    },
+    {
+      "start": 47.68,
+      "end": 53.44,
+      "en": "Then from datetime we're going to import datetime timedelta and time zone.",
+      "zh": "從 datetime 匯入 datetime、timedelta 與 timezone。"
+    },
+    {
+      "start": 53.72,
+      "end": 57.56,
+      "en": "Then from SQL model we're going to import select.",
+      "zh": "從 sqlmodel 匯入 select。"
+    },
+    {
+      "start": 58,
+      "end": 61.56,
+      "en": "Then from uuid we're going to import Uuid.",
+      "zh": "從 uuid 匯入 UUID。"
+    },
+    {
+      "start": 61.72,
+      "end": 67.26,
+      "en": "Then from SQL model, dot extension dot Asyncio dot session.",
+      "zh": "從 sqlmodel.ext.asyncio.session。"
+    },
+    {
+      "start": 67.3,
+      "end": 69.66,
+      "en": "We're going to import async a session.",
+      "zh": "匯入 AsyncSession。"
+    },
+    {
+      "start": 69.86,
+      "end": 74.18,
+      "en": "Then from backend dot app dot transaction dot models.",
+      "zh": "從 backend.app.transaction.models。"
+    },
+    {
+      "start": 74.22,
+      "end": 76.14,
+      "en": "We're going to import transaction.",
+      "zh": "匯入 Transaction。"
+    },
+    {
+      "start": 76.46000000000001,
+      "end": 80.38,
+      "en": "Then from backend.app.co dot login.",
+      "zh": "從 backend.app.core.logging。"
+    },
+    {
+      "start": 80.53999999999999,
+      "end": 82.66,
+      "en": "We're going to import get logger.",
+      "zh": "匯入 get_logger。"
+    },
+    {
+      "start": 82.9,
+      "end": 87.46000000000001,
+      "en": "Then from backend.app.co dot I dot config.",
+      "zh": "從 backend.app.core.ai.config。"
+    },
+    {
+      "start": 87.62,
+      "end": 89.7,
+      "en": "We're going to import I settings.",
+      "zh": "匯入 ai_settings。"
+    },
+    {
+      "start": 90.06,
+      "end": 95.1,
+      "en": "Then from backend.app.co dot utils dot number format.",
+      "zh": "從 backend.app.core.utils.number_format。"
+    },
+    {
+      "start": 95.25999999999999,
+      "end": 97.86,
+      "en": "We're going to import a format currency.",
+      "zh": "匯入 format_currency。"
+    },
+    {
+      "start": 98.22,
+      "end": 101.02000000000001,
+      "en": "Then logger is going to be get logger.",
+      "zh": "logger = get_logger()。"
+    },
+    {
+      "start": 101.5,
+      "end": 107.78,
+      "en": "Then we can now create our transaction analyzer by saying class transaction analyzer.",
+      "zh": "接著定義 class TransactionAnalyzer。"
+    },
+    {
+      "start": 108.3,
+      "end": 113.1,
+      "en": "This class is going to help us to analyze transactions and determine the risk scores.",
+      "zh": "協助分析交易並判定風險分數。"
+    },
+    {
+      "start": 113.46000000000001,
+      "end": 119.66,
+      "en": "So first we're going to create an init method which is going to be called when a new instance of this class is created.",
+      "zh": "先定義 __init__，建立類別實例時會呼叫。"
+    },
+    {
+      "start": 119.7,
+      "end": 120.14,
+      "en": "As you can see.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 120.18,
+      "end": 124.34,
+      "en": "Define double underscore init double underscore passing in self.",
+      "zh": "def __init__(self)。"
+    },
+    {
+      "start": 124.58,
+      "end": 130.63,
+      "en": "Then we can define the features that are going to contribute towards the risk score by saying self dot features.",
+      "zh": "再用 self.features 定義影響風險分數的特徵。"
+    },
+    {
+      "start": 131.07,
+      "end": 136.47,
+      "en": "This is going to be a list where first we're going to pass in the transaction amount, then the time",
+      "zh": "這是清單，先加入 amount，再加入 time。"
+    },
+    {
+      "start": 136.51,
+      "end": 147.99,
+      "en": "of day, then day of week, then the frequency, which is how often the transaction occurs, then the pattern match, then the previous transaction amounts.",
+      "zh": "_of_day、day_of_week、frequency，也就是交易發生頻率，接著 pattern_match 與先前交易金額。"
+    },
+    {
+      "start": 148.03,
+      "end": 150.07,
+      "en": "So you can call this historical amounts.",
+      "zh": "可以叫 historical_amounts。"
+    },
+    {
+      "start": 150.59,
+      "end": 156.43,
+      "en": "Then the rate of money movement which can be called velocity amount like that.",
+      "zh": "再來資金移動速率，命名為 velocity_amount。"
+    },
+    {
+      "start": 156.43,
+      "end": 162.95,
+      "en": "Then we're going to define a function that is going to help us to retrieve the transaction history for a user for this analysis.",
+      "zh": "再定義取得使用者交易紀錄的函式，供分析使用。"
+    },
+    {
+      "start": 163.07,
+      "end": 173.91,
+      "en": "So you can see right there at the same level as this other function async define get user transaction history that's going to take in a self.",
+      "zh": "與前一個函式同一層，定義 async def get_user_transaction_history，接收 self。"
+    },
+    {
+      "start": 174.19,
+      "end": 177.27,
+      "en": "Then the user id of type Uuid.",
+      "zh": "user_id 的型別為 UUID。"
+    },
+    {
+      "start": 177.51,
+      "end": 180.35,
+      "en": "Then session that's going to be async a session.",
+      "zh": "session 的型別為 AsyncSession。"
+    },
+    {
+      "start": 180.63,
+      "end": 182.83,
+      "en": "Then days that's going to be of type integer.",
+      "zh": "days 的型別為 int。"
+    },
+    {
+      "start": 182.99,
+      "end": 187.23,
+      "en": "And we're going to set this to the analysis windows which is in our settings.",
+      "zh": "預設使用 settings 中的分析時間窗。"
+    },
+    {
+      "start": 187.27,
+      "end": 194.45,
+      "en": "As you can see from our AI settings, which we have defined before, we're going to pass in the analysis windows days.",
+      "zh": "從先前定義的 ai_settings 取得 ANALYSIS_WINDOW_DAYS。"
+    },
+    {
+      "start": 194.77,
+      "end": 198.93,
+      "en": "Then this function is going to return a list of transaction.",
+      "zh": "函式回傳 Transaction 清單。"
+    },
+    {
+      "start": 199.45,
+      "end": 206.85,
+      "en": "Then first we're going to calculate the cutoff date for the transaction history, which is going to be calculated from the current date and time.",
+      "zh": "先計算交易紀錄截止起點，根據目前日期時間計算。"
+    },
+    {
+      "start": 206.89,
+      "end": 210.77,
+      "en": "As you can see cutoff date that's going to be date time dot.",
+      "zh": "cutoff_date 使用 datetime。"
+    },
+    {
+      "start": 210.81,
+      "end": 213.77,
+      "en": "Now passing in time zone UTC.",
+      "zh": "now(timezone.utc)。"
+    },
+    {
+      "start": 214.05,
+      "end": 215.97,
+      "en": "We're going to subtract that from the number of days.",
+      "zh": "再減去指定天數。"
+    },
+    {
+      "start": 216.01,
+      "end": 225.09,
+      "en": "As you can see time delta passing days and days is going to be equivalent to the days passed to this function as an argument, which is right here.",
+      "zh": "使用 timedelta(days=days)，days 就是函式傳入的引數。"
+    },
+    {
+      "start": 225.29,
+      "end": 229.93,
+      "en": "Then we're going to query the database for the transactions for this user since the cutoff date.",
+      "zh": "接著查詢這位使用者從截止起點以來的交易。"
+    },
+    {
+      "start": 229.97,
+      "end": 238.53,
+      "en": "So you can see query that's going to be select transaction where the transaction dot sender ID is equals to the user ID.",
+      "zh": "query 使用 select(Transaction)，條件為 Transaction.sender_id == user_id。"
+    },
+    {
+      "start": 238.89,
+      "end": 244.09,
+      "en": "Then the transaction dot createdat is greater than or equals to the cutoff date.",
+      "zh": "以及 Transaction.created_at >= cutoff_date。"
+    },
+    {
+      "start": 244.45,
+      "end": 248.49,
+      "en": "Then we can execute the query and return the results by saying result.",
+      "zh": "接著執行查詢，設定 result。"
+    },
+    {
+      "start": 248.49,
+      "end": 253.55,
+      "en": "That's going to be await Position did execute passing in the query.",
+      "zh": "等於 await session.execute(query)。"
+    },
+    {
+      "start": 253.71,
+      "end": 257.99,
+      "en": "Then we can return the list of the result like that.",
+      "zh": "再將結果以清單回傳。"
+    },
+    {
+      "start": 258.11,
+      "end": 266.83,
+      "en": "Then after that function, we're going to define another function that is going to help us to normalize the hour of the transaction to a value between 0 and 1.",
+      "zh": "接著定義函式，將交易小時轉成介於 0 與 1 的值。"
+    },
+    {
+      "start": 266.83,
+      "end": 270.91,
+      "en": "And we're going to do this so that we can account for the typical banking hours.",
+      "zh": "用來納入一般銀行營業時間的考量。"
+    },
+    {
+      "start": 270.95,
+      "end": 273.99,
+      "en": "As you can see defined and as it's going to be a private method.",
+      "zh": "這是非公開方法。"
+    },
+    {
+      "start": 274.19,
+      "end": 277.83,
+      "en": "So normalize underscore hour we're going to take in self.",
+      "zh": "定義 _normalize_hour，接收 self。"
+    },
+    {
+      "start": 278.07,
+      "end": 279.87,
+      "en": "Then the are of type integer.",
+      "zh": "hour 的型別為 int。"
+    },
+    {
+      "start": 280.23,
+      "end": 282.63,
+      "en": "Then this function is going to return a float.",
+      "zh": "函式回傳 float。"
+    },
+    {
+      "start": 282.83,
+      "end": 286.63,
+      "en": "Then first we're going to get the start and the end of the banking hours.",
+      "zh": "先取得營業開始與結束時間。"
+    },
+    {
+      "start": 286.63,
+      "end": 288.15,
+      "en": "By saying banking hours.",
+      "zh": "設定 banking_hours。"
+    },
+    {
+      "start": 288.90999999999997,
+      "end": 291.87,
+      "en": "That's going to be from our I settings.",
+      "zh": "從 ai_settings。"
+    },
+    {
+      "start": 291.87,
+      "end": 300.59,
+      "en": "We had the banking hours start, then also pass in from our I settings, the banking hours, and then",
+      "zh": "取得 BANKING_HOURS_START 與 BANKING_HOURS_END。"
+    },
+    {
+      "start": 300.63,
+      "end": 305.71,
+      "en": "if the transaction was made during the banking hours, we're going to return the banking hours risk",
+      "zh": "若交易在營業時間，就回傳營業時間風險分數。"
+    },
+    {
+      "start": 305.91,
+      "end": 314.32,
+      "en": "by saying if banking hours then get the start of the banking hours since it's the key with the index of zero.",
+      "zh": "若 banking_hours 索引 0 的值，也就是起始時間。"
+    },
+    {
+      "start": 314.36,
+      "end": 316,
+      "en": "Within the banking hours tuple.",
+      "zh": "它位於 banking_hours tuple 中。"
+    },
+    {
+      "start": 316.24,
+      "end": 322.64,
+      "en": "So if banking hours is less than or equal to the hour, which is less than or equals to banking hours,",
+      "zh": "條件為 banking_hours[0] <= hour <= banking_hours。"
+    },
+    {
+      "start": 323,
+      "end": 331.32,
+      "en": "then pass in one which basically represents the end of the banking hours since it's the key with the index one inch banking hours tuple.",
+      "zh": "索引 1，也就是 tuple 中的營業結束時間。"
+    },
+    {
+      "start": 331.64,
+      "end": 337.88,
+      "en": "Then what you're going to do we're going to return the I settings banking hours risk like that.",
+      "zh": "回傳 ai_settings.BANKING_HOURS_RISK。"
+    },
+    {
+      "start": 338.04,
+      "end": 345.52,
+      "en": "Else if the transaction is made before 6 a.m. or after 10 p.m., we're going to return the late hours risk, which is the highest risk.",
+      "zh": "若交易在上午 6 點前或晚上 10 點後，就回傳最高的深夜風險。"
+    },
+    {
+      "start": 345.56,
+      "end": 351.15999999999997,
+      "en": "As you can see, Elif hour is less than six or hour is greater than 22.",
+      "zh": "elif hour < 6 or hour > 22。"
+    },
+    {
+      "start": 351.44,
+      "end": 356.44,
+      "en": "Then we're going to return from our I settings the late hours risk.",
+      "zh": "回傳 ai_settings.LATE_HOURS_RISK。"
+    },
+    {
+      "start": 356.72,
+      "end": 361.6,
+      "en": "Then outside banking hours, but not extreme, we're going to return the medium risk.",
+      "zh": "其餘非營業但不極端的時間，回傳中等風險。"
+    },
+    {
+      "start": 361.64,
+      "end": 367.2,
+      "en": "As you can see else return I settings off hours risk like that.",
+      "zh": "else 回傳 ai_settings.OFF_HOURS_RISK。"
+    },
+    {
+      "start": 367.4,
+      "end": 369.4,
+      "en": "Then you can save that file.",
+      "zh": "儲存檔案。"
+    },
+    {
+      "start": 369.68,
+      "end": 370.16,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 370.16,
+      "end": 373.76,
+      "en": "There's still more functions to be added to the transaction analyzer.",
+      "zh": "TransactionAnalyzer 還有其他函式要加入。"
+    },
+    {
+      "start": 373.76,
+      "end": 375.88,
+      "en": "Will continue in the next lecture.",
+      "zh": "下一堂繼續。"
+    }
+  ]
+}

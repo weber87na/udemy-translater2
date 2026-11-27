@@ -1,0 +1,775 @@
+{
+  "courseId": "6542487",
+  "lectureId": "50661947",
+  "title": "Idempotency Model & Enum",
+  "section": 14,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "c922cb9e635a19f8f7ee356115ec83a0d4ee26d31a1ac0946dc418487fd5705c",
+  "cues": [
+    {
+      "start": 0.12,
+      "end": 5.68,
+      "en": "Before implementing our bank transfer functionality, we need to introduce an Idempotency key model.",
+      "zh": "實作銀行轉帳功能前，先加入冪等鍵模型。"
+    },
+    {
+      "start": 5.68,
+      "end": 6.68,
+      "en": "What is idempotent?",
+      "zh": "什麼是冪等性？"
+    },
+    {
+      "start": 6.96,
+      "end": 13.8,
+      "en": "An API call or operation is idempotent if it produces the same result, regardless of how many times it's executed.",
+      "zh": "API 呼叫或操作若不論執行幾次，都產生相同結果，就具有冪等性。"
+    },
+    {
+      "start": 13.84,
+      "end": 16.72,
+      "en": "Why is Idempotency important for our banking API?",
+      "zh": "為什麼冪等性對銀行 API 很重要？"
+    },
+    {
+      "start": 16.92,
+      "end": 19.72,
+      "en": "One, it's going to help us prevent duplicate transactions.",
+      "zh": "第一，它協助避免重複交易。"
+    },
+    {
+      "start": 19.76,
+      "end": 30.16,
+      "en": "For example, if a customer retries a transfer request multiple times due to issues like network failures, Idempotency is going to ensure that the transfer is processed only once.",
+      "zh": "例如客戶因網路失敗等問題多次重試轉帳請求，冪等性會確保只處理一次轉帳。"
+    },
+    {
+      "start": 30.32,
+      "end": 33.16,
+      "en": "Two it's going to ensure consistent user experience.",
+      "zh": "第二，確保一致的使用體驗。"
+    },
+    {
+      "start": 33.28,
+      "end": 42.96,
+      "en": "For example, even if a customer's connection drops before receiving a success confirmation, they can retry the request without risking a double transfer by implementing a dependency.",
+      "zh": "例如連線在客戶收到成功確認前中斷，也能重試請求，不必冒重複轉帳風險；透過實作冪等性。"
+    },
+    {
+      "start": 43,
+      "end": 50.24,
+      "en": "We're going to ensure that our system handles retries gracefully, maintaining data integrity and providing a reliable service to our users.",
+      "zh": "確保系統妥善處理重試，維持資料完整性，提供可靠服務。"
+    },
+    {
+      "start": 50.4,
+      "end": 54.28,
+      "en": "So back in our IDE we're going to go to our transactions model.",
+      "zh": "回到 IDE，開啟交易模型。"
+    },
+    {
+      "start": 54.28,
+      "end": 57.36,
+      "en": "Then we're going to add the Idempotency key model.",
+      "zh": "加入 IdempotencyKey 模型。"
+    },
+    {
+      "start": 57.4,
+      "end": 62.26,
+      "en": "We're going to open the Models.py file within backend up transaction.",
+      "zh": "開啟 backend/app/transaction 裡的 models.py。"
+    },
+    {
+      "start": 62.26,
+      "end": 67.34,
+      "en": "Then after the transaction model, we're going to create another class for the Idempotency.",
+      "zh": "在 Transaction 模型後面，建立另一個冪等鍵類別。"
+    },
+    {
+      "start": 67.78,
+      "end": 70.26,
+      "en": "So Idempotency like that.",
+      "zh": "就是 Idempotency。"
+    },
+    {
+      "start": 70.26,
+      "end": 72.62,
+      "en": "The spelling is a bit challenging, but it's okay.",
+      "zh": "拼字有點難，不過沒關係。"
+    },
+    {
+      "start": 72.78,
+      "end": 78.18,
+      "en": "So Idempotency key that's going to subclass SQL model, which I haven't imported.",
+      "zh": "IdempotencyKey 繼承 SQLModel，但還沒匯入。"
+    },
+    {
+      "start": 78.22,
+      "end": 79.7,
+      "en": "So I'm going to scroll to the top.",
+      "zh": "捲動到上面。"
+    },
+    {
+      "start": 79.74,
+      "end": 82.78,
+      "en": "We're going to import it from SQL model.",
+      "zh": "從 sqlmodel 匯入。"
+    },
+    {
+      "start": 82.78,
+      "end": 87.78,
+      "en": "We import in column a failed relationship and SQL model.",
+      "zh": "目前匯入 Column、Field、Relationship，再加入 SQLModel。"
+    },
+    {
+      "start": 87.78,
+      "end": 88.94,
+      "en": "Then let's continue.",
+      "zh": "繼續。"
+    },
+    {
+      "start": 89.34,
+      "end": 91.74,
+      "en": "We're going to say subclass SQL model.",
+      "zh": "繼承 SQLModel。"
+    },
+    {
+      "start": 92.02000000000001,
+      "end": 96.42,
+      "en": "Then create this table in the database by setting table to true.",
+      "zh": "設定 table=True，建立資料庫資料表。"
+    },
+    {
+      "start": 96.46000000000001,
+      "end": 98.9,
+      "en": "Then we're going to specify the ID.",
+      "zh": "接著指定 id。"
+    },
+    {
+      "start": 99.06,
+      "end": 103.58,
+      "en": "So what I can do is I can copy ID from up above in the transaction model.",
+      "zh": "可從上面的 Transaction 模型複製 id。"
+    },
+    {
+      "start": 103.62,
+      "end": 107.94,
+      "en": "We're just going to copy that ID and scroll back to the class.",
+      "zh": "複製 id，再回到這個類別。"
+    },
+    {
+      "start": 107.94,
+      "end": 110.86,
+      "en": "Then you're going to paste the ID that isn't going to change.",
+      "zh": "貼上，id 不需要修改。"
+    },
+    {
+      "start": 110.86,
+      "end": 115.82,
+      "en": "Then we are going to define the actual idempotency key, which is going to be a string field.",
+      "zh": "接著定義實際冪等鍵，這是字串欄位。"
+    },
+    {
+      "start": 115.82,
+      "end": 120.79,
+      "en": "This key is going to be used to identify and match incoming requests to previously process requests.",
+      "zh": "用來識別傳入請求，並對照先前已處理的請求。"
+    },
+    {
+      "start": 121.07,
+      "end": 123.79,
+      "en": "So the field of the Idempotency key is going to be key.",
+      "zh": "冪等鍵的欄位名稱為 key。"
+    },
+    {
+      "start": 123.95,
+      "end": 125.15,
+      "en": "It's going to be of type string.",
+      "zh": "型別為 str。"
+    },
+    {
+      "start": 125.31,
+      "end": 129.15,
+      "en": "And we're going to customize it by saying index and set that to true.",
+      "zh": "自訂欄位，index 設為 True。"
+    },
+    {
+      "start": 129.47,
+      "end": 131.87,
+      "en": "Then uniq set that to true like that.",
+      "zh": "unique 也設為 True。"
+    },
+    {
+      "start": 132.07,
+      "end": 137.51,
+      "en": "So remember this key is the string field that is going to serve as the actual idempotency key.",
+      "zh": "記得 key 是作為實際冪等鍵的字串欄位。"
+    },
+    {
+      "start": 137.75,
+      "end": 140.75,
+      "en": "Then we're going to set the user ID as a foreign key.",
+      "zh": "接著將 user_id 設為外部索引鍵。"
+    },
+    {
+      "start": 140.87,
+      "end": 146.23,
+      "en": "So going to say user ID user underscore id that's going to be of type uuid dot uuid.",
+      "zh": "user_id 的型別為 uuid.UUID。"
+    },
+    {
+      "start": 146.55,
+      "end": 147.99,
+      "en": "Then we can say field.",
+      "zh": "使用 Field。"
+    },
+    {
+      "start": 148.03,
+      "end": 149.27,
+      "en": "We're going to say foreign key.",
+      "zh": "設定 foreign_key。"
+    },
+    {
+      "start": 149.63,
+      "end": 151.55,
+      "en": "That's going to be user.id.",
+      "zh": "值為 user.id。"
+    },
+    {
+      "start": 151.82999999999998,
+      "end": 157.91,
+      "en": "So this user ID field is a foreign key that is going to link the idempotency key to a specific user.",
+      "zh": "這個 user_id 外部索引鍵，將冪等鍵連到特定使用者。"
+    },
+    {
+      "start": 158.07,
+      "end": 166.11,
+      "en": "Then we're going to define an endpoint, which is going to be a string field that is going to record the API endpoint associated with the key.",
+      "zh": "接著定義 endpoint 字串欄位，記錄與此鍵關聯的 API 端點。"
+    },
+    {
+      "start": 166.15,
+      "end": 169.03,
+      "en": "So you can say endpoint that's going to be of type string.",
+      "zh": "endpoint 的型別為 str。"
+    },
+    {
+      "start": 169.27,
+      "end": 174.31,
+      "en": "So this endpoint is going to help us to identify which API call the key is related to.",
+      "zh": "協助識別這個鍵對應哪個 API 呼叫。"
+    },
+    {
+      "start": 174.55,
+      "end": 178.31,
+      "en": "Then we're going to define a response code of type integer.",
+      "zh": "再定義 response_code，型別為 int。"
+    },
+    {
+      "start": 178.43,
+      "end": 184.89,
+      "en": "And this response code is an integer field that is going to store the HTTP response code of the original request.",
+      "zh": "這個整數欄位儲存原始請求的 HTTP 回應碼。"
+    },
+    {
+      "start": 184.89,
+      "end": 190.49,
+      "en": "This is going to be useful in our case, so that we're able to return the same response code for duplicate requests.",
+      "zh": "如此便能對重複請求回傳相同的回應碼。"
+    },
+    {
+      "start": 190.49,
+      "end": 194.05,
+      "en": "Then the response body that's going to be of type dictionary.",
+      "zh": "response_body 的型別為 dict。"
+    },
+    {
+      "start": 194.05,
+      "end": 195.25,
+      "en": "And you can say field.",
+      "zh": "使用 Field。"
+    },
+    {
+      "start": 195.25,
+      "end": 197.37,
+      "en": "That's going to be a SQL alchemy column.",
+      "zh": "指定 sa_column。"
+    },
+    {
+      "start": 197.37,
+      "end": 198.45,
+      "en": "That's going to be a column.",
+      "zh": "設為 Column。"
+    },
+    {
+      "start": 198.65,
+      "end": 202.17000000000002,
+      "en": "And it's just going to be a JSON blob like that.",
+      "zh": "它會是 JSON 資料欄位。"
+    },
+    {
+      "start": 202.41,
+      "end": 209.57,
+      "en": "So this response body as you've seen is going to be a JSON blob field that is going to store the response body of the original request.",
+      "zh": "response_body 會儲存原始請求的回應本文。"
+    },
+    {
+      "start": 209.61,
+      "end": 216.09,
+      "en": "This is going to allow us to return the same response data for duplicate requests without reprocessing the request.",
+      "zh": "讓重複請求取得相同回應資料，不必重新處理。"
+    },
+    {
+      "start": 216.09,
+      "end": 219.85,
+      "en": "Then the timestamp when the Idempotency key was created.",
+      "zh": "接著是冪等鍵建立時間戳記。"
+    },
+    {
+      "start": 219.85,
+      "end": 221.93,
+      "en": "So you can go to the transaction model.",
+      "zh": "到 Transaction 模型。"
+    },
+    {
+      "start": 221.97,
+      "end": 224.41,
+      "en": "We're just going to copy the Createdat field.",
+      "zh": "複製 created_at 欄位。"
+    },
+    {
+      "start": 224.65,
+      "end": 225.37,
+      "en": "Copy that.",
+      "zh": "複製。"
+    },
+    {
+      "start": 225.69,
+      "end": 227.61,
+      "en": "Come back to the Idempotency model.",
+      "zh": "回到冪等鍵模型。"
+    },
+    {
+      "start": 227.65,
+      "end": 230.85,
+      "en": "Paste it in so it's Createdat date time field.",
+      "zh": "貼上 created_at 這個 datetime 欄位。"
+    },
+    {
+      "start": 230.89,
+      "end": 232.85,
+      "en": "Nothing changes in this.",
+      "zh": "不需要修改。"
+    },
+    {
+      "start": 232.89,
+      "end": 241.5,
+      "en": "Then we're also going to create another timestamp that is going to let us know when the Idempotency key expands so you can just copy it paste it below.",
+      "zh": "再建立另一個時間戳記，表示冪等鍵何時到期，複製貼到下面。"
+    },
+    {
+      "start": 241.54,
+      "end": 244.94,
+      "en": "We can change this to expired or expire that.",
+      "zh": "改為 expires_at。"
+    },
+    {
+      "start": 245.22,
+      "end": 252.3,
+      "en": "So this field is going to ensure that our Idempotency keys are not stored indefinitely and can be patched after certain period.",
+      "zh": "這個欄位讓冪等鍵不會無限期儲存，可在一段時間後清除。"
+    },
+    {
+      "start": 252.38,
+      "end": 254.18,
+      "en": "So this is going to be a DateTime field.",
+      "zh": "它是 datetime 欄位。"
+    },
+    {
+      "start": 254.18,
+      "end": 256.06,
+      "en": "We're going to get rid of default factory.",
+      "zh": "移除 default_factory。"
+    },
+    {
+      "start": 256.3,
+      "end": 260.06,
+      "en": "Then for this column we're going to have the timestamp with the timezone.",
+      "zh": "Column 使用包含時區的 TIMESTAMP。"
+    },
+    {
+      "start": 260.1,
+      "end": 261.46,
+      "en": "Then nullable is false.",
+      "zh": "nullable=False。"
+    },
+    {
+      "start": 261.62,
+      "end": 264.34,
+      "en": "Then we're going to get rid of this server default.",
+      "zh": "移除 server_default。"
+    },
+    {
+      "start": 264.7,
+      "end": 266.34,
+      "en": "Then you can save the file.",
+      "zh": "儲存檔案。"
+    },
+    {
+      "start": 266.54,
+      "end": 267.06,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 267.1,
+      "end": 270.9,
+      "en": "So as a recap we created the Idempotency key model.",
+      "zh": "回顧一下，建立了 IdempotencyKey 模型。"
+    },
+    {
+      "start": 270.9,
+      "end": 278.54,
+      "en": "This high dependency key model has the key field which is going to be a string field that is going to serve as the actual idempotency key.",
+      "zh": "key 是字串欄位，作為實際冪等鍵。"
+    },
+    {
+      "start": 278.7,
+      "end": 284.5,
+      "en": "And remember this key is going to be used to identify and match incoming requests to the ones that are previously processed.",
+      "zh": "用來識別傳入請求，並對照先前處理過的請求。"
+    },
+    {
+      "start": 284.54,
+      "end": 286.02,
+      "en": "Then we're going to have the user ID.",
+      "zh": "接著有 user_id。"
+    },
+    {
+      "start": 286.06,
+      "end": 290.42,
+      "en": "This is going to be a foreign key linking the key to the specific user.",
+      "zh": "它是外部索引鍵，將鍵連到特定使用者。"
+    },
+    {
+      "start": 290.46,
+      "end": 291.86,
+      "en": "Then you're going to have the endpoint.",
+      "zh": "再來 endpoint。"
+    },
+    {
+      "start": 291.86,
+      "end": 297.46,
+      "en": "And this is going to be a string field that records the API endpoint associated with the Idempotency key.",
+      "zh": "字串欄位，記錄與冪等鍵關聯的 API 端點。"
+    },
+    {
+      "start": 297.5,
+      "end": 301.6,
+      "en": "This is going to help us to identify which API call the key is related to.",
+      "zh": "協助識別這個鍵對應哪個 API 呼叫。"
+    },
+    {
+      "start": 301.64,
+      "end": 303.04,
+      "en": "Then we have the response code.",
+      "zh": "接著 response_code。"
+    },
+    {
+      "start": 303.04,
+      "end": 304.12,
+      "en": "So the response code.",
+      "zh": "這個回應碼。"
+    },
+    {
+      "start": 304.16,
+      "end": 305.72,
+      "en": "As you can see it's an integer field.",
+      "zh": "可以看到是整數欄位。"
+    },
+    {
+      "start": 305.72,
+      "end": 310.16,
+      "en": "And it's going to be used to store the HTTP response code of the original request.",
+      "zh": "用來儲存原始請求的 HTTP 回應碼。"
+    },
+    {
+      "start": 310.16,
+      "end": 316.08,
+      "en": "And this is going to be useful for us so that we're able to return the same response code for duplicate requests.",
+      "zh": "如此就能對重複請求回傳相同回應碼。"
+    },
+    {
+      "start": 316.08,
+      "end": 317.88,
+      "en": "Then we're going to have the response body.",
+      "zh": "接著 response_body。"
+    },
+    {
+      "start": 317.88,
+      "end": 320.36,
+      "en": "As you can see it's a JSON B field.",
+      "zh": "它是 JSONB 欄位。"
+    },
+    {
+      "start": 320.36,
+      "end": 323.76,
+      "en": "And it's going to store the response body of our requests.",
+      "zh": "儲存請求的回應本文。"
+    },
+    {
+      "start": 323.76,
+      "end": 330.8,
+      "en": "It's going to allow our API to return the same response data for any duplicate requests without reprocessing the request.",
+      "zh": "讓 API 對重複請求回傳相同資料，不再重新處理。"
+    },
+    {
+      "start": 331.08,
+      "end": 334.6,
+      "en": "Then we have the Createdat field, which is basically the timestamp.",
+      "zh": "接著 created_at，是時間戳記。"
+    },
+    {
+      "start": 334.6,
+      "end": 337.44,
+      "en": "When the Idempotency key was created.",
+      "zh": "記錄冪等鍵的建立時間。"
+    },
+    {
+      "start": 337.44,
+      "end": 342.96,
+      "en": "Then we have the expanse field, which is the timestamp when the Idempotency key expires.",
+      "zh": "最後 expires_at，記錄冪等鍵到期時間。"
+    },
+    {
+      "start": 343,
+      "end": 345.56,
+      "en": "I hope with that recap that now makes sense.",
+      "zh": "希望這樣回顧後能理解。"
+    },
+    {
+      "start": 345.56,
+      "end": 352.15999999999997,
+      "en": "Then we're going to go to the transaction enum file, and we're going to add another enum that will be related to transfer failures.",
+      "zh": "接著到交易 enum 檔案，新增與轉帳失敗有關的 enum。"
+    },
+    {
+      "start": 352.24,
+      "end": 357.5,
+      "en": "So we're going to open enums dot pi within backend app Up transaction.",
+      "zh": "開啟 backend/app/transaction 裡的 enums.py。"
+    },
+    {
+      "start": 357.82,
+      "end": 359.46,
+      "en": "Then let's scroll to the bottom.",
+      "zh": "捲到最下面。"
+    },
+    {
+      "start": 359.46,
+      "end": 366.98,
+      "en": "After the category, we're going to create another one that's going to be class transaction A failure reason person string and enum.",
+      "zh": "在 category 後定義 TransactionFailureReason 類別，繼承 str 與 Enum。"
+    },
+    {
+      "start": 367.34,
+      "end": 370.22,
+      "en": "Then we can say insufficient balance.",
+      "zh": "加入 INSUFFICIENT_BALANCE。"
+    },
+    {
+      "start": 370.46,
+      "end": 373.42,
+      "en": "That's going to be insufficient balance.",
+      "zh": "值為 insufficient_balance。"
+    },
+    {
+      "start": 373.9,
+      "end": 375.94,
+      "en": "Then you're going to have invalid OTP.",
+      "zh": "再加入 INVALID_OTP。"
+    },
+    {
+      "start": 376.3,
+      "end": 379.06,
+      "en": "That's going to be invalid underscore OTP.",
+      "zh": "值為 invalid_otp。"
+    },
+    {
+      "start": 379.14,
+      "end": 386.1,
+      "en": "So you're basically saying in this enum here that our transactions can either fail because of insufficient balances, invalid ATPase.",
+      "zh": "這個 enum 表示交易可能因餘額不足或 OTP 無效而失敗。"
+    },
+    {
+      "start": 386.34,
+      "end": 390.62,
+      "en": "Then if OTP expands so you're going to have OTP expand.",
+      "zh": "OTP 到期時，使用 OTP_EXPIRED。"
+    },
+    {
+      "start": 390.66,
+      "end": 393.26,
+      "en": "That's going to be OTP underscore expand.",
+      "zh": "值為 otp_expired。"
+    },
+    {
+      "start": 393.54,
+      "end": 402.74,
+      "en": "Then if the currency conversion failed is going to have currency conversion failed, that's going to be currency conversion failed.",
+      "zh": "若貨幣換算失敗，使用 CURRENCY_CONVERSION_FAILED，值為 currency_conversion_failed。"
+    },
+    {
+      "start": 403.22,
+      "end": 407.7,
+      "en": "Then if the account is inactive that's going to be account inactive.",
+      "zh": "若帳戶未啟用，使用 ACCOUNT_INACTIVE，值為 account_inactive。"
+    },
+    {
+      "start": 408.22,
+      "end": 412.3,
+      "en": "Then if there's any system error that's going to be a system error.",
+      "zh": "若系統錯誤，使用 SYSTEM_ERROR，值為 system_error。"
+    },
+    {
+      "start": 412.74,
+      "end": 417.51,
+      "en": "Then if there's an invalid amount that's going to be invalid amount.",
+      "zh": "若金額無效，使用 INVALID_AMOUNT，值為 invalid_amount。"
+    },
+    {
+      "start": 418.15,
+      "end": 424.07,
+      "en": "Then another scenario if is an invalid account that's going to be invalid account.",
+      "zh": "若帳戶無效，使用 INVALID_ACCOUNT，值為 invalid_account。"
+    },
+    {
+      "start": 424.59,
+      "end": 432.35,
+      "en": "Then if it's a self transfer that's going to be a self underscore transfer, then if there's any suspicious",
+      "zh": "若轉給自己，使用 SELF_TRANSFER，值為 self_transfer；再來任何可疑。"
+    },
+    {
+      "start": 433.03,
+      "end": 437.43,
+      "en": "activity that's going to be a suspicious activity.",
+      "zh": "活動，使用 SUSPICIOUS_ACTIVITY，值為 suspicious_activity。"
+    },
+    {
+      "start": 437.99,
+      "end": 438.63,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 438.67,
+      "end": 442.47,
+      "en": "Since we added a new model that's the Idempotency key model.",
+      "zh": "由於新增了 IdempotencyKey 模型。"
+    },
+    {
+      "start": 442.51,
+      "end": 445.27,
+      "en": "Let's make our migrations also going to go back to our terminal.",
+      "zh": "要建立遷移，回到終端機。"
+    },
+    {
+      "start": 445.31,
+      "end": 447.51,
+      "en": "Please make sure that your containers are still running.",
+      "zh": "請確認容器仍在執行。"
+    },
+    {
+      "start": 447.55,
+      "end": 449.51,
+      "en": "As you can see, mine are still running.",
+      "zh": "我的仍在執行。"
+    },
+    {
+      "start": 449.99,
+      "end": 452.83,
+      "en": "Then we can now see make make migrations.",
+      "zh": "執行 make makemigrations。"
+    },
+    {
+      "start": 453.43,
+      "end": 453.99,
+      "en": "The name.",
+      "zh": "指定名稱。"
+    },
+    {
+      "start": 454.19,
+      "end": 454.55,
+      "en": "Let me see.",
+      "zh": "看一下。"
+    },
+    {
+      "start": 454.55,
+      "end": 457.67,
+      "en": "That can be add Idempotency table.",
+      "zh": "可以叫 add_idempotency_table。"
+    },
+    {
+      "start": 457.71,
+      "end": 458.03,
+      "en": "No.",
+      "zh": "不。"
+    },
+    {
+      "start": 458.07,
+      "end": 459.79,
+      "en": "Add Idempotency key.",
+      "zh": "改為 add_idempotency_key。"
+    },
+    {
+      "start": 459.99,
+      "end": 460.59000000000003,
+      "en": "Table.",
+      "zh": "_table。"
+    },
+    {
+      "start": 460.63,
+      "end": 461.19,
+      "en": "Like that.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 461.75,
+      "end": 462.19,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 462.19,
+      "end": 464.15,
+      "en": "The migrations ran correctly.",
+      "zh": "遷移檔正確產生。"
+    },
+    {
+      "start": 464.15,
+      "end": 467.15,
+      "en": "Then we can now migrate by saying make, migrate.",
+      "zh": "接著執行 make migrate。"
+    },
+    {
+      "start": 467.90999999999997,
+      "end": 468.67,
+      "en": "Perfect.",
+      "zh": "太好了。"
+    },
+    {
+      "start": 468.67,
+      "end": 471.99,
+      "en": "Everything is working as expected and that's it for this lecture.",
+      "zh": "一切如預期運作，這堂課就到這裡。"
+    },
+    {
+      "start": 471.99,
+      "end": 476.15,
+      "en": "In the next lecture we shall work on the transaction schema and the utilities.",
+      "zh": "下一堂實作交易 schema 與工具函式。"
+    }
+  ]
+}

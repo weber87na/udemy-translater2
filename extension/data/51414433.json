@@ -1,0 +1,763 @@
+{
+  "courseId": "6542487",
+  "lectureId": "51414433",
+  "title": "Transaction AI Service Part 1",
+  "section": 19,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "6786a063e7176f1c59ce9a09dd0024dc7ba9cf7ed66fe104cc511f45c7b6b3ed",
+  "cues": [
+    {
+      "start": 0.2,
+      "end": 7.36,
+      "en": "Now let's create a service that is going to help us to analyze the transactions for potential fraud and then store the results.",
+      "zh": "現在建立服務，分析交易是否可能詐欺，並儲存結果。"
+    },
+    {
+      "start": 7.56,
+      "end": 10.2,
+      "en": "So you're going to go back to back end up.",
+      "zh": "回到 backend/app。"
+    },
+    {
+      "start": 10.36,
+      "end": 19.92,
+      "en": "Then within app we're going to go to core, then core I then within the I folder we're going to create a new file that's going to be service dot pi.",
+      "zh": "進入 core/ai，在 ai 資料夾建立 service.py。"
+    },
+    {
+      "start": 20.48,
+      "end": 29.8,
+      "en": "So within this service.py file we're going to define a service class that is going to serve as a high level service for transaction analysis and management.",
+      "zh": "這裡定義高階服務類別，負責交易分析與管理。"
+    },
+    {
+      "start": 29.8,
+      "end": 36.52,
+      "en": "It's going to wrap this transaction analyzer class that performs the actual risk scoring calculations.",
+      "zh": "包裝實際計算風險分數的 TransactionAnalyzer。"
+    },
+    {
+      "start": 36.68,
+      "end": 40,
+      "en": "So let's close all this then go to service py.",
+      "zh": "先關閉這些，再到 service.py。"
+    },
+    {
+      "start": 40.32,
+      "end": 42.36,
+      "en": "And first we're going to start with our imports.",
+      "zh": "先寫匯入。"
+    },
+    {
+      "start": 42.4,
+      "end": 46.24,
+      "en": "As you can see from Uuid we're going to import Uuid.",
+      "zh": "從 uuid 匯入 UUID。"
+    },
+    {
+      "start": 46.6,
+      "end": 51.32,
+      "en": "Then from DateTime we're going to import date time and time zone.",
+      "zh": "從 datetime 匯入 datetime 與 timezone。"
+    },
+    {
+      "start": 51.64,
+      "end": 55.28,
+      "en": "Then from SQL model we're going to import and select.",
+      "zh": "從 sqlmodel 匯入 select。"
+    },
+    {
+      "start": 55.76,
+      "end": 64.77,
+      "en": "Then from SQL model dot extension dot async IO dot session again to import async session.",
+      "zh": "從 sqlmodel.ext.asyncio.session 匯入 AsyncSession。"
+    },
+    {
+      "start": 64.77,
+      "end": 72.65,
+      "en": "Then from backend.app.co dot I dot models, we're going to import the transaction risk score.",
+      "zh": "從 backend.app.core.ai.models 匯入 TransactionRiskScore。"
+    },
+    {
+      "start": 72.85,
+      "end": 77.28999999999999,
+      "en": "Then from backend that app.co dot I dot enums.",
+      "zh": "從 backend.app.core.ai.enums。"
+    },
+    {
+      "start": 77.53,
+      "end": 80.73,
+      "en": "We're going to import the I review status enum.",
+      "zh": "匯入 AIReviewStatusEnum。"
+    },
+    {
+      "start": 80.97,
+      "end": 87.85,
+      "en": "Then from backend.app.co dot I dot config we're going to import our I settings.",
+      "zh": "從 backend.app.core.ai.config 匯入 ai_settings。"
+    },
+    {
+      "start": 88.17,
+      "end": 94.28999999999999,
+      "en": "Then from backend.app.co dot I dot transaction analyzer.",
+      "zh": "從 backend.app.core.ai.transaction_analyzer。"
+    },
+    {
+      "start": 94.33,
+      "end": 97.21000000000001,
+      "en": "We're going to import the transaction analyzer.",
+      "zh": "匯入 TransactionAnalyzer。"
+    },
+    {
+      "start": 97.49000000000001,
+      "end": 104.49000000000001,
+      "en": "Then from backend dot app dot transaction dot models we're going to import the transaction.",
+      "zh": "從 backend.app.transaction.models 匯入 Transaction。"
+    },
+    {
+      "start": 104.69,
+      "end": 110.49000000000001,
+      "en": "Then from backend.app.co dot logging we shall import get logger.",
+      "zh": "從 backend.app.core.logging 匯入 get_logger。"
+    },
+    {
+      "start": 110.77000000000001,
+      "end": 115.81,
+      "en": "Then from backend dot app dot transaction dot utils.",
+      "zh": "從 backend.app.transaction.utils。"
+    },
+    {
+      "start": 116.00999999999999,
+      "end": 119.17,
+      "en": "We're going to import transaction field.",
+      "zh": "匯入 mark_transaction_failed。"
+    },
+    {
+      "start": 119.45,
+      "end": 126.85,
+      "en": "Then from backend dot app dot transaction dot enums we're going to import the transaction failure reason.",
+      "zh": "從 backend.app.transaction.enums 匯入 TransactionFailureReason。"
+    },
+    {
+      "start": 127.15,
+      "end": 132.83,
+      "en": "Then let's create an instance of a logger by saying logger that's going to be get logger.",
+      "zh": "接著 logger = get_logger()，建立實例。"
+    },
+    {
+      "start": 133.19,
+      "end": 136.99,
+      "en": "Then let's define our AI service class by saying class.",
+      "zh": "再定義 AI 服務類別。"
+    },
+    {
+      "start": 137.03,
+      "end": 139.67000000000002,
+      "en": "That's going to be transaction AI service.",
+      "zh": "名稱是 TransactionAIService。"
+    },
+    {
+      "start": 140.23,
+      "end": 144.23,
+      "en": "Then within the service, let's now define our init method.",
+      "zh": "在服務中定義 __init__。"
+    },
+    {
+      "start": 144.27,
+      "end": 148.27,
+      "en": "As you can see define double underscore init double underscore.",
+      "zh": "使用 def __init__。"
+    },
+    {
+      "start": 148.39,
+      "end": 149.63,
+      "en": "That's going to take in self.",
+      "zh": "接收 self。"
+    },
+    {
+      "start": 150.03,
+      "end": 152.87,
+      "en": "Then session of type async session.",
+      "zh": "session 的型別為 AsyncSession。"
+    },
+    {
+      "start": 153.23,
+      "end": 156.63,
+      "en": "Then we're going to initialize our service with the database session.",
+      "zh": "使用資料庫工作階段初始化服務。"
+    },
+    {
+      "start": 156.67000000000002,
+      "end": 160.27,
+      "en": "And so that we can allow the service to query and update the database.",
+      "zh": "讓服務能查詢與更新資料庫。"
+    },
+    {
+      "start": 160.51,
+      "end": 161.99,
+      "en": "So you can say self dot session.",
+      "zh": "設定 self.session。"
+    },
+    {
+      "start": 162.35,
+      "end": 163.47,
+      "en": "That's going to be session.",
+      "zh": "等於 session。"
+    },
+    {
+      "start": 163.75,
+      "end": 170.15,
+      "en": "Then we're going to create an instance of the transaction analyzer class that we had worked on in the previous lectures.",
+      "zh": "再建立前幾堂完成的 TransactionAnalyzer 實例。"
+    },
+    {
+      "start": 170.19,
+      "end": 176.51,
+      "en": "As you can see self dot analyzer that's going to be transaction analyzer like that.",
+      "zh": "建立 TransactionAnalyzer()，並指定給 self.analyzer。"
+    },
+    {
+      "start": 176.75,
+      "end": 183.63,
+      "en": "Then we can define a function that is going to help us to analyze the transaction for potential fraud and then store the results.",
+      "zh": "接著定義函式，分析交易是否可能詐欺，並儲存結果。"
+    },
+    {
+      "start": 183.67,
+      "end": 192.4,
+      "en": "As you can see in sync define analyze transaction that's going to take in self then transaction of type transaction.",
+      "zh": "async def analyze_transaction，接收 self 與 Transaction 型別的 transaction。"
+    },
+    {
+      "start": 192.8,
+      "end": 195.48,
+      "en": "Then the user id of type uuid.",
+      "zh": "user_id 的型別為 UUID。"
+    },
+    {
+      "start": 195.76,
+      "end": 198.32,
+      "en": "Then the function returns a dictionary.",
+      "zh": "函式回傳 dict。"
+    },
+    {
+      "start": 198.72,
+      "end": 200.88,
+      "en": "Then we're going to start with the try block.",
+      "zh": "先建立 try 區塊。"
+    },
+    {
+      "start": 201.16,
+      "end": 207.76,
+      "en": "And for the try block first we're going to call the analyzer to calculate the risk score and get the risk factors.",
+      "zh": "先呼叫分析器，計算風險分數與因子。"
+    },
+    {
+      "start": 207.76,
+      "end": 212,
+      "en": "And this is going to return a tuple of the risk score and the risk factors.",
+      "zh": "它回傳包含 risk_score 與 risk_factors 的 tuple。"
+    },
+    {
+      "start": 212.24,
+      "end": 216.2,
+      "en": "As you can see risk score and risk factors.",
+      "zh": "設定 risk_score 與 risk_factors。"
+    },
+    {
+      "start": 217.07999999999998,
+      "end": 219.28,
+      "en": "That's going to be a weight yourself.",
+      "zh": "等於 await self。"
+    },
+    {
+      "start": 219.64,
+      "end": 228.48,
+      "en": "That analyzer that analyze transaction to that we're going to pass in the transaction and then the user ID and then the session.",
+      "zh": "analyzer.analyze_transaction，傳入 transaction、user_id 與 self.session。"
+    },
+    {
+      "start": 228.84,
+      "end": 235.04,
+      "en": "And remember from the previous transaction analyzer class, these risk score is the float between 0 and 1.",
+      "zh": "記得分析器的 risk_score 是介於 0 與 1 的 float。"
+    },
+    {
+      "start": 235.32,
+      "end": 236.72,
+      "en": "And then the risk factors.",
+      "zh": "接著 risk_factors。"
+    },
+    {
+      "start": 236.96,
+      "end": 239.84,
+      "en": "This is the dictionary of the risk factors for the transaction.",
+      "zh": "是這筆交易的風險因子字典。"
+    },
+    {
+      "start": 240.16,
+      "end": 243.96,
+      "en": "Then we're going to create and store the risk score record in the database.",
+      "zh": "再建立並儲存風險分數紀錄。"
+    },
+    {
+      "start": 244.04,
+      "end": 246.8,
+      "en": "As you can see risk score record.",
+      "zh": "設定 risk_score_record。"
+    },
+    {
+      "start": 247.08,
+      "end": 250.6,
+      "en": "That's going to be transaction risk score to that.",
+      "zh": "使用 TransactionRiskScore。"
+    },
+    {
+      "start": 250.6,
+      "end": 252.92,
+      "en": "We're going to pass in the transaction ID.",
+      "zh": "傳入 transaction_id。"
+    },
+    {
+      "start": 253.14,
+      "end": 260.18,
+      "en": "that's going to be the transaction ID then we're going to store the calculated risk score by saying risk score.",
+      "zh": "值為 transaction.id，再以 risk_score 儲存計算分數。"
+    },
+    {
+      "start": 260.22,
+      "end": 261.78,
+      "en": "That's going to be the risk score.",
+      "zh": "值為 risk_score。"
+    },
+    {
+      "start": 262.3,
+      "end": 266.34,
+      "en": "Then we're going to store all the detailed risk factors as JSON.",
+      "zh": "再把詳細風險因子以 JSON 儲存。"
+    },
+    {
+      "start": 266.66,
+      "end": 268.14,
+      "en": "So you can say risk factors.",
+      "zh": "設定 risk_factors。"
+    },
+    {
+      "start": 268.14,
+      "end": 269.94,
+      "en": "That's going to be the risk factors.",
+      "zh": "值為 risk_factors。"
+    },
+    {
+      "start": 270.26,
+      "end": 278.22,
+      "en": "Then we're going to record which version of the AI model was used to analyze the transaction by saying AI model version.",
+      "zh": "再記錄使用哪個 AI 模型版本分析交易，設定 ai_model_version。"
+    },
+    {
+      "start": 278.58,
+      "end": 280.58,
+      "en": "That's going to be from our AI settings.",
+      "zh": "從 ai_settings。"
+    },
+    {
+      "start": 280.82,
+      "end": 284.82,
+      "en": "We're going to pass in the model model version okay.",
+      "zh": "取得 MODEL_VERSION，好。"
+    },
+    {
+      "start": 285.14,
+      "end": 288.18,
+      "en": "We're told here no parameter named AI model version.",
+      "zh": "提示沒有 ai_model_version 這個參數。"
+    },
+    {
+      "start": 288.18,
+      "end": 290.62,
+      "en": "It's supposed to be version like that.",
+      "zh": "這裡要修正 version 的拼字。"
+    },
+    {
+      "start": 290.9,
+      "end": 292.1,
+      "en": "That was a spelling mistake.",
+      "zh": "剛才拼錯了。"
+    },
+    {
+      "start": 292.5,
+      "end": 296.82,
+      "en": "Then after that we're going to add the risk score record to the database session.",
+      "zh": "接著把風險分數紀錄加入資料庫工作階段。"
+    },
+    {
+      "start": 296.94,
+      "end": 299.38,
+      "en": "So you can say self dot session dot add.",
+      "zh": "呼叫 self.session.add。"
+    },
+    {
+      "start": 299.5,
+      "end": 302.5,
+      "en": "We're going to pass in the risk score record.",
+      "zh": "傳入 risk_score_record。"
+    },
+    {
+      "start": 302.78,
+      "end": 308.42,
+      "en": "Then we're going to determine if the transaction needs a human review based on the risk threshold.",
+      "zh": "再依風險門檻，決定交易是否需要人工審核。"
+    },
+    {
+      "start": 308.42,
+      "end": 318.39,
+      "en": "Remember for our fast and simple rule based AI system, we're also going to have the human in the loop to review the thresholds as you can see needs review.",
+      "zh": "記得這個簡單規則式 AI 也會有人工覆核，設定 needs_review。"
+    },
+    {
+      "start": 318.59,
+      "end": 320.07,
+      "en": "That's going to be the risk score.",
+      "zh": "使用 risk_score。"
+    },
+    {
+      "start": 320.75,
+      "end": 322.27,
+      "en": "So it's going to be needing a review.",
+      "zh": "需要審核的條件。"
+    },
+    {
+      "start": 322.27,
+      "end": 327.51,
+      "en": "If the risk score is greater than or equal to the risk score threshold within our AI settings.",
+      "zh": "是 risk_score 大於或等於 ai_settings 中的風險門檻。"
+    },
+    {
+      "start": 327.75,
+      "end": 331.11,
+      "en": "So we have AI settings dot risk score threshold.",
+      "zh": "也就是 ai_settings.RISK_SCORE_THRESHOLD。"
+    },
+    {
+      "start": 331.63,
+      "end": 336.55,
+      "en": "Then we can now update the transaction AI review status based on the risk assessment.",
+      "zh": "再根據風險評估更新交易的 AI 審核狀態。"
+    },
+    {
+      "start": 336.59000000000003,
+      "end": 339.99,
+      "en": "So you can see transaction that AI review status.",
+      "zh": "設定 transaction.ai_review_status。"
+    },
+    {
+      "start": 340.27,
+      "end": 344.31,
+      "en": "And to that if the transaction is flagged it's going to need a human review.",
+      "zh": "若交易被標記，就需要人工審核。"
+    },
+    {
+      "start": 344.35,
+      "end": 346.87,
+      "en": "If it's cleared then no issues are detected.",
+      "zh": "若是 CLEARED，表示沒有偵測到問題。"
+    },
+    {
+      "start": 346.87,
+      "end": 350.03,
+      "en": "And so the transaction is automatically approved as low risk.",
+      "zh": "因此自動視為低風險並核准。"
+    },
+    {
+      "start": 350.23,
+      "end": 353.63,
+      "en": "So what you can do here we can say I review status enum.",
+      "zh": "使用 AIReviewStatusEnum。"
+    },
+    {
+      "start": 353.87,
+      "end": 356.51,
+      "en": "It's going to be flagged if it needs a human review.",
+      "zh": "若 needs_review，設為 FLAGGED。"
+    },
+    {
+      "start": 356.79,
+      "end": 361.35,
+      "en": "So if needs review else it's just going to be cleared.",
+      "zh": "否則設為 CLEARED。"
+    },
+    {
+      "start": 361.39,
+      "end": 368.79,
+      "en": "So you can just say I review status cleared meaning this transaction is approved as a low risk.",
+      "zh": "使用 AIReviewStatusEnum.CLEARED，表示低風險且已核准。"
+    },
+    {
+      "start": 369.15,
+      "end": 375.39,
+      "en": "Then let's commit the changes to the database by saying wait a self dot assertion dot commit.",
+      "zh": "接著 await self.session.commit()，提交至資料庫。"
+    },
+    {
+      "start": 375.87,
+      "end": 386.77,
+      "en": "Then refresh the risk score record to get any database generated values by saying await self dot session dot refresh passing in the risk score record.",
+      "zh": "再 await self.session.refresh(risk_score_record)，取得資料庫產生的值。"
+    },
+    {
+      "start": 387.37,
+      "end": 391.81,
+      "en": "Then let's prepare a response with the analysis results and recommendations.",
+      "zh": "接著準備包含分析結果與建議的回應。"
+    },
+    {
+      "start": 391.85,
+      "end": 401.09000000000003,
+      "en": "So you can have a response dictionary that's going to have the key of the risk score, which is the calculated risk score between 0 and 1.",
+      "zh": "response 字典第一個鍵是 risk_score，值介於 0 與 1。"
+    },
+    {
+      "start": 401.09000000000003,
+      "end": 403.61,
+      "en": "That's going to have a value of the risk score.",
+      "zh": "值設為 risk_score。"
+    },
+    {
+      "start": 404.09000000000003,
+      "end": 411.57,
+      "en": "Then the risk factors the risk factors are all the detailed risk factors that have been used in the calculation.",
+      "zh": "risk_factors 包含計算使用的所有詳細風險因子。"
+    },
+    {
+      "start": 411.57,
+      "end": 413.49,
+      "en": "And that's going to be the risk factors.",
+      "zh": "值設為 risk_factors。"
+    },
+    {
+      "start": 414.05,
+      "end": 419.61,
+      "en": "Then we're going to have a boolean field that is going to indicate whether the transaction needs a human review.",
+      "zh": "再加入布林欄位，表示是否需要人工審核。"
+    },
+    {
+      "start": 419.69,
+      "end": 421.97,
+      "en": "So you can see needs review.",
+      "zh": "設定 needs_review。"
+    },
+    {
+      "start": 422.21,
+      "end": 423.69,
+      "en": "That's going to be needs review.",
+      "zh": "值為 needs_review。"
+    },
+    {
+      "start": 424.05,
+      "end": 429.09,
+      "en": "Then we're going to have the recommendation as to whether to block or allow the transaction.",
+      "zh": "接著 recommendation，建議阻擋或允許交易。"
+    },
+    {
+      "start": 429.45,
+      "end": 435.33,
+      "en": "So you can see recommendation that's going to be block if needs review.",
+      "zh": "若 needs_review，值為 block。"
+    },
+    {
+      "start": 435.61,
+      "end": 442.62,
+      "en": "Else we're just going to allow then the model version of the AI used to analyze the transaction.",
+      "zh": "否則 allow；接著分析使用的模型版本。"
+    },
+    {
+      "start": 442.66,
+      "end": 446.62,
+      "en": "As you can see, model version that's going to be from our AI settings.",
+      "zh": "model_version 從 ai_settings。"
+    },
+    {
+      "start": 446.62,
+      "end": 448.58,
+      "en": "We're going to pass in the model version.",
+      "zh": "取得 MODEL_VERSION。"
+    },
+    {
+      "start": 449.26,
+      "end": 454.38,
+      "en": "Then we can have the unique identifier for the risk score record for reference purposes.",
+      "zh": "再加入風險分數紀錄的唯一 ID，方便參照。"
+    },
+    {
+      "start": 454.58,
+      "end": 460.22,
+      "en": "As you can see, the score ID that's going to be risk score record.id.",
+      "zh": "score_id 為 risk_score_record.id。"
+    },
+    {
+      "start": 460.46,
+      "end": 466.62,
+      "en": "Then we're going to log the high risk transactions so that we can have some monitoring and auditing purposes.",
+      "zh": "接著記錄高風險交易，供監控與稽核。"
+    },
+    {
+      "start": 466.82,
+      "end": 472.14,
+      "en": "As you can see if needs review then we can log by saying logger dot warning.",
+      "zh": "若 needs_review，使用 logger.warning。"
+    },
+    {
+      "start": 472.5,
+      "end": 478.1,
+      "en": "Then in F strings we're going to say high risk transaction detected.",
+      "zh": "用 f-string 寫「偵測到高風險交易」。"
+    },
+    {
+      "start": 479.38,
+      "end": 485.7,
+      "en": "Then passing the transaction ID then we can say for the score that's going to be the risk score.",
+      "zh": "帶入 transaction.id，再寫分數，帶入 risk_score。"
+    },
+    {
+      "start": 486.02,
+      "end": 490.14,
+      "en": "And then for the factors that's going to be the risk factors.",
+      "zh": "再帶入 risk_factors。"
+    },
+    {
+      "start": 490.42,
+      "end": 493.66,
+      "en": "Then we can return a response like that.",
+      "zh": "接著回傳 response。"
+    },
+    {
+      "start": 494.02,
+      "end": 499.86,
+      "en": "Then at the same level as the try block which should be right there, we're going to have an accept block.",
+      "zh": "最後 except 與 try 同一層，就在這裡。"
+    },
+    {
+      "start": 500.14,
+      "end": 503.14,
+      "en": "As you can see except exception as E.",
+      "zh": "寫 except Exception as e。"
+    },
+    {
+      "start": 503.5,
+      "end": 507.52,
+      "en": "Then we're going to log any errors that occurred during the analysis.",
+      "zh": "記錄分析過程發生的錯誤。"
+    },
+    {
+      "start": 507.56,
+      "end": 515.24,
+      "en": "Missing logger error and in F strings we can say error analyzing transaction, then parsing the error.",
+      "zh": "使用 logger.error，用 f-string 寫「分析交易時發生錯誤」，帶入錯誤。"
+    },
+    {
+      "start": 515.56,
+      "end": 519.36,
+      "en": "Then we're going to return a default response in case of any errors.",
+      "zh": "發生錯誤時回傳預設回應。"
+    },
+    {
+      "start": 519.36,
+      "end": 524.04,
+      "en": "And in our case we're going to default to a high risk score of 0.8 just to be safe.",
+      "zh": "本例為了保守處理，預設高風險分數 0.8。"
+    },
+    {
+      "start": 524.16,
+      "end": 526.64,
+      "en": "And then we flag the transaction for review.",
+      "zh": "再標記交易需要審核。"
+    },
+    {
+      "start": 526.76,
+      "end": 531.76,
+      "en": "So you can say return a dictionary with the risk score of point eight.",
+      "zh": "回傳字典，risk_score 為 0.8。"
+    },
+    {
+      "start": 531.96,
+      "end": 535.52,
+      "en": "Then the risk factors that's going to be error.",
+      "zh": "risk_factors 中包含 error。"
+    },
+    {
+      "start": 536.28,
+      "end": 538.68,
+      "en": "Then cast as a string the error.",
+      "zh": "值為 str(e)。"
+    },
+    {
+      "start": 538.96,
+      "end": 541.08,
+      "en": "Then we can say needs review.",
+      "zh": "接著 needs_review。"
+    },
+    {
+      "start": 541.28,
+      "end": 542.24,
+      "en": "That's going to be true.",
+      "zh": "值為 True。"
+    },
+    {
+      "start": 542.64,
+      "end": 546.2,
+      "en": "Then the recommendation that's going to be block.",
+      "zh": "recommendation 為 block。"
+    },
+    {
+      "start": 546.6,
+      "end": 550.32,
+      "en": "Then the model version that's going to be from our AI settings.",
+      "zh": "model_version 從 ai_settings。"
+    },
+    {
+      "start": 550.48,
+      "end": 552.6,
+      "en": "We're going to pass in the model version.",
+      "zh": "取得 MODEL_VERSION。"
+    },
+    {
+      "start": 552.8,
+      "end": 556.56,
+      "en": "Then the error that's going to be the error cast as a string.",
+      "zh": "error 為 str(e)。"
+    },
+    {
+      "start": 556.96,
+      "end": 558.72,
+      "en": "Then you can save that file.",
+      "zh": "儲存檔案。"
+    },
+    {
+      "start": 558.92,
+      "end": 559.44,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 559.44,
+      "end": 561.88,
+      "en": "And this is a good point to end the lecture.",
+      "zh": "這裡適合結束這堂。"
+    },
+    {
+      "start": 561.88,
+      "end": 567.8,
+      "en": "In the next lecture we shall still continue working on the transaction AI service by adding more functions.",
+      "zh": "下一堂繼續為 TransactionAIService 加入更多函式。"
+    },
+    {
+      "start": 567.92,
+      "end": 568.52,
+      "en": "See you then.",
+      "zh": "下一堂見。"
+    }
+  ]
+}

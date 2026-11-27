@@ -1,0 +1,739 @@
+{
+  "courseId": "6542487",
+  "lectureId": "50278241",
+  "title": "Profile Image upload service",
+  "section": 10,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "fe9f1ef8b5a70a7c45da2e832de186537b75e43775997343fa86b770eb872412",
+  "cues": [
+    {
+      "start": 0.16,
+      "end": 5.84,
+      "en": "Now that you're done with our image utility file, we're going to be working on the profile image upload service.",
+      "zh": "完成影像工具檔案後，接著撰寫個人資料影像上傳服務。"
+    },
+    {
+      "start": 5.88,
+      "end": 8.6,
+      "en": "Our image upload process is going to happen in two steps.",
+      "zh": "影像上傳流程分為兩個步驟。"
+    },
+    {
+      "start": 8.6,
+      "end": 12.56,
+      "en": "One, we shall initiate an asynchronous upload process using celery.",
+      "zh": "第一，使用 Celery 啟動非同步上傳流程。"
+    },
+    {
+      "start": 12.56,
+      "end": 19.48,
+      "en": "And then second, once the image has been uploaded, we're going to update the user's profile with the URL of the uploaded image.",
+      "zh": "第二，影像上傳完成後，以其 URL 更新使用者的個人資料。"
+    },
+    {
+      "start": 19.52,
+      "end": 23.08,
+      "en": "We're going to do this in our profile.py file within services.",
+      "zh": "我們會在 services 裡的 profile.py 實作。"
+    },
+    {
+      "start": 23.12,
+      "end": 25.48,
+      "en": "So you're going to open profile.py.",
+      "zh": "開啟 profile.py。"
+    },
+    {
+      "start": 25.6,
+      "end": 29,
+      "en": "That's within backend app API services.",
+      "zh": "它在 backend/app/api/services。"
+    },
+    {
+      "start": 29.04,
+      "end": 30.72,
+      "en": "Then profile.py.",
+      "zh": "然後是 profile.py。"
+    },
+    {
+      "start": 30.88,
+      "end": 33.6,
+      "en": "Then as usual we're going to start with some imports.",
+      "zh": "一樣先加入一些匯入。"
+    },
+    {
+      "start": 33.84,
+      "end": 41.24,
+      "en": "So at this point where we're importing our profile create schema and the profile update schema, we're also going to bring in the image type schema.",
+      "zh": "在匯入 ProfileCreateSchema 與 ProfileUpdateSchema 的地方，也加入 ImageTypeSchema。"
+    },
+    {
+      "start": 41.28,
+      "end": 47.52,
+      "en": "Then we're going to say from backend to app.co dot utils dot image.",
+      "zh": "接著從 backend.app.core.utils.image。"
+    },
+    {
+      "start": 47.72,
+      "end": 50.64,
+      "en": "We're going to import our validate image method.",
+      "zh": "匯入 validate_image 方法。"
+    },
+    {
+      "start": 50.8,
+      "end": 60.28,
+      "en": "Then from backend dot app dot core dot tasks dot image upload again to import the upload profile image",
+      "zh": "再從 backend.app.core.tasks.image_upload 匯入 upload_profile_image。"
+    },
+    {
+      "start": 60.28,
+      "end": 60.76,
+      "en": "task.",
+      "zh": "這個工作。"
+    },
+    {
+      "start": 60.92,
+      "end": 66.61,
+      "en": "And then lastly from typing we're going to import the binary I o like that.",
+      "zh": "最後從 typing 匯入 BinaryIO。"
+    },
+    {
+      "start": 66.65,
+      "end": 71.89,
+      "en": "Then let's proceed down after our update user profile method right there.",
+      "zh": "接著往下，到 update_user_profile 方法之後。"
+    },
+    {
+      "start": 71.93,
+      "end": 78.25,
+      "en": "We're now going to first create a function that is going to help us to initiate an asynchronous upload process using celery.",
+      "zh": "先建立一個函式，協助使用 Celery 啟動非同步上傳流程。"
+    },
+    {
+      "start": 78.28999999999999,
+      "end": 83.69,
+      "en": "As you can see define initiate underscore image underscore upload.",
+      "zh": "定義 initiate_image_upload。"
+    },
+    {
+      "start": 83.73,
+      "end": 87.77,
+      "en": "This is going to take in a first the raw image data as file content.",
+      "zh": "第一個引數是原始影像資料 file_content。"
+    },
+    {
+      "start": 87.81,
+      "end": 89.97,
+      "en": "So you can say file underscore content.",
+      "zh": "寫 file_content。"
+    },
+    {
+      "start": 90.01,
+      "end": 91.85,
+      "en": "This is going to be the raw image data.",
+      "zh": "它就是原始影像資料。"
+    },
+    {
+      "start": 91.85,
+      "end": 93.37,
+      "en": "And it's of type bytes.",
+      "zh": "型別為 bytes。"
+    },
+    {
+      "start": 93.72999999999999,
+      "end": 99.33,
+      "en": "Then the type of the image whether it's going to be the profile photo, the ID photo or the signature photo.",
+      "zh": "接著是影像類型，可能是個人照片、證件照片或簽名照片。"
+    },
+    {
+      "start": 99.37,
+      "end": 103.81,
+      "en": "As you can see, image underscore type that's going to be from the image type schema.",
+      "zh": "設定 image_type，型別為 ImageTypeSchema。"
+    },
+    {
+      "start": 103.85,
+      "end": 110.21000000000001,
+      "en": "And remember in our schema we had said that we are going to have the profile photo ID photo and the signature photo.",
+      "zh": "記得 schema 裡定義了個人照片、證件照片與簽名照片。"
+    },
+    {
+      "start": 110.65,
+      "end": 112.85,
+      "en": "Then back to the profile file.",
+      "zh": "回到 profile 檔案。"
+    },
+    {
+      "start": 112.97,
+      "end": 113.77000000000001,
+      "en": "After the image type.",
+      "zh": "在 image_type 後面。"
+    },
+    {
+      "start": 113.81,
+      "end": 116.85,
+      "en": "We're also going to add the content type as an argument.",
+      "zh": "也加入 content_type 引數。"
+    },
+    {
+      "start": 116.89,
+      "end": 121.17,
+      "en": "As you can see, content type that's going to be of type string like that.",
+      "zh": "content_type 的型別為 str。"
+    },
+    {
+      "start": 121.17,
+      "end": 123.89,
+      "en": "And this content type is the Mime type of the image.",
+      "zh": "它是影像的 MIME 類型。"
+    },
+    {
+      "start": 123.89,
+      "end": 127.41,
+      "en": "Then lastly the user id of the user who is uploading the image.",
+      "zh": "最後是上傳影像之使用者的 user_id。"
+    },
+    {
+      "start": 127.57,
+      "end": 133.41,
+      "en": "So you can say user underscore id that's going to be of type uuid dot uuid just like that.",
+      "zh": "設定 user_id，型別為 uuid.UUID。"
+    },
+    {
+      "start": 133.45,
+      "end": 135.97,
+      "en": "Then this function is going to return a string.",
+      "zh": "這個函式會回傳字串。"
+    },
+    {
+      "start": 136.25,
+      "end": 138.17000000000002,
+      "en": "Then we can have our try block.",
+      "zh": "接著建立 try 區塊。"
+    },
+    {
+      "start": 138.17000000000002,
+      "end": 142.85,
+      "en": "Within our try block, we're first going to create a celery task to upload the image.",
+      "zh": "在裡面先建立用來上傳影像的 Celery 工作。"
+    },
+    {
+      "start": 142.89,
+      "end": 147.49,
+      "en": "As you can see task that's going to be we're going to call the upload profile image task.",
+      "zh": "設定 task，呼叫 upload_profile_image 工作。"
+    },
+    {
+      "start": 147.69,
+      "end": 149.05,
+      "en": "Then chain delay.",
+      "zh": "接著串接 delay。"
+    },
+    {
+      "start": 149.41,
+      "end": 152.37,
+      "en": "Then we're going to pass in the file content the image type.",
+      "zh": "傳入 file_content 與 image_type。"
+    },
+    {
+      "start": 152.73,
+      "end": 154.32999999999998,
+      "en": "So you say image type dot value.",
+      "zh": "使用 image_type.value。"
+    },
+    {
+      "start": 154.57,
+      "end": 157.01,
+      "en": "And then we're going to pass in the user ID as a string.",
+      "zh": "再把 user_id 以字串形式傳入。"
+    },
+    {
+      "start": 157.01,
+      "end": 160.77,
+      "en": "Because remember uuids are not JSON serializable.",
+      "zh": "因為 UUID 無法直接進行 JSON 序列化。"
+    },
+    {
+      "start": 160.85,
+      "end": 163.41,
+      "en": "So you can say string passing the user ID.",
+      "zh": "所以呼叫 str，傳入 user_id。"
+    },
+    {
+      "start": 163.45,
+      "end": 169.69,
+      "en": "So you're casting the user id which is Uuid as a string so that it's JSON serializable.",
+      "zh": "將 UUID 型別的 user_id 轉成字串，才能進行 JSON 序列化。"
+    },
+    {
+      "start": 169.73,
+      "end": 171.53,
+      "en": "Then you're going to pass in the content type.",
+      "zh": "再傳入 content_type。"
+    },
+    {
+      "start": 171.89,
+      "end": 176.81,
+      "en": "Then after that we're going to return the task ID which can be used to track the upload progress.",
+      "zh": "接著回傳工作 ID，讓我們追蹤上傳進度。"
+    },
+    {
+      "start": 176.85,
+      "end": 180.85,
+      "en": "So we're just going to say return task.id like that.",
+      "zh": "直接 return task.id。"
+    },
+    {
+      "start": 181.17,
+      "end": 182.93,
+      "en": "Then we're going to have an accept block.",
+      "zh": "接著建立 except 區塊。"
+    },
+    {
+      "start": 183.21,
+      "end": 186.1,
+      "en": "So you can say accept except exception as E.",
+      "zh": "寫 except Exception as e。"
+    },
+    {
+      "start": 186.38,
+      "end": 189.98,
+      "en": "Then we're going to log our error by saying logger dot error.",
+      "zh": "使用 logger.error 記錄錯誤。"
+    },
+    {
+      "start": 190.34,
+      "end": 198.02,
+      "en": "Then in F strings we can say error initiating image upload, then cast error as a string.",
+      "zh": "用 f-string 寫「啟動影像上傳時發生錯誤」，再帶入轉成字串的錯誤。"
+    },
+    {
+      "start": 198.02,
+      "end": 203.38,
+      "en": "Then we can also say exec underscore info and set that to true like that.",
+      "zh": "也設定 exc_info=True。"
+    },
+    {
+      "start": 203.42000000000002,
+      "end": 207.54,
+      "en": "Then we're going to raise an HTTP exception by seeing the status code.",
+      "zh": "接著拋出 HTTPException，指定狀態碼。"
+    },
+    {
+      "start": 207.54,
+      "end": 211.86,
+      "en": "That's going to be status dot HTTP 500 internal server error.",
+      "zh": "使用 status.HTTP_500_INTERNAL_SERVER_ERROR。"
+    },
+    {
+      "start": 212.26,
+      "end": 216.7,
+      "en": "Then the detail for the detail we're going to have status with the value of error.",
+      "zh": "detail 裡的 status 設為 error。"
+    },
+    {
+      "start": 217.02,
+      "end": 224.34,
+      "en": "Then the message with the value of failed to initiate image upload like that.",
+      "zh": "message 設為「無法啟動影像上傳」。"
+    },
+    {
+      "start": 224.38,
+      "end": 224.86,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 224.9,
+      "end": 228.78,
+      "en": "As I mentioned before, our image upload process is going to be in two steps.",
+      "zh": "如同前面說的，影像上傳流程分為兩步。"
+    },
+    {
+      "start": 228.78,
+      "end": 234.1,
+      "en": "So we're done with step one, which is to initiate an asynchronous upload process using celery.",
+      "zh": "第一步已完成，就是使用 Celery 啟動非同步上傳流程。"
+    },
+    {
+      "start": 234.1,
+      "end": 235.9,
+      "en": "That's what we've just done right here.",
+      "zh": "這正是剛才完成的部分。"
+    },
+    {
+      "start": 236.18,
+      "end": 246.02,
+      "en": "Then we're going to go to step two, which is going to be once this image has been uploaded using this method, we're now going to update the user's profile with the URL of the uploaded image.",
+      "zh": "第二步是當影像透過這個方法上傳後，用上傳影像的 URL 更新使用者個人資料。"
+    },
+    {
+      "start": 246.1,
+      "end": 247.18,
+      "en": "So how do you do that?",
+      "zh": "要怎麼做呢？"
+    },
+    {
+      "start": 247.22,
+      "end": 250.18,
+      "en": "We're going to have another function and it's going to be asynchronous.",
+      "zh": "再建立一個非同步函式。"
+    },
+    {
+      "start": 250.18,
+      "end": 256.34,
+      "en": "So you can say async define update underscore profile underscore image underscore URL.",
+      "zh": "寫 async def update_profile_image_url。"
+    },
+    {
+      "start": 256.58,
+      "end": 261.18,
+      "en": "That's going to take in the user id which is the ID of the user uploading the image.",
+      "zh": "它接收 user_id，也就是上傳影像之使用者的 ID。"
+    },
+    {
+      "start": 261.18,
+      "end": 264.46,
+      "en": "And this id is of type uuid dot uuid.",
+      "zh": "ID 型別為 uuid.UUID。"
+    },
+    {
+      "start": 264.78,
+      "end": 266.78,
+      "en": "Then we're going to take the image type.",
+      "zh": "接著接收 image_type。"
+    },
+    {
+      "start": 267.26,
+      "end": 270.34,
+      "en": "So the image type is going to abide by the image type schema.",
+      "zh": "image_type 依循 ImageTypeSchema。"
+    },
+    {
+      "start": 270.38,
+      "end": 275.1,
+      "en": "Because our image type can either be the profile photo ID photo or the signature photo.",
+      "zh": "因為影像類型可能是個人照片、證件照片或簽名照片。"
+    },
+    {
+      "start": 275.14,
+      "end": 278.22,
+      "en": "Then the URL of the uploaded image from cloudinary.",
+      "zh": "接著是 Cloudinary 上已上傳影像的 URL。"
+    },
+    {
+      "start": 278.3,
+      "end": 281.7,
+      "en": "So you can say image underscore URL that's going to be of type string.",
+      "zh": "設定 image_url，型別為 str。"
+    },
+    {
+      "start": 281.94,
+      "end": 283.54,
+      "en": "Then the database session.",
+      "zh": "接著是資料庫工作階段。"
+    },
+    {
+      "start": 283.7,
+      "end": 286.94,
+      "en": "So you can say session that's going to be async session.",
+      "zh": "設定 session，型別為 AsyncSession。"
+    },
+    {
+      "start": 287.3,
+      "end": 290.54,
+      "en": "Then this function is going to return a profile.",
+      "zh": "這個函式會回傳 Profile。"
+    },
+    {
+      "start": 290.94,
+      "end": 292.54,
+      "en": "So first you're going to have a try block.",
+      "zh": "先建立 try 區塊。"
+    },
+    {
+      "start": 292.9,
+      "end": 296.38,
+      "en": "So within the try block we're first going to check if the profile exists.",
+      "zh": "在裡面先檢查個人資料是否存在。"
+    },
+    {
+      "start": 296.42,
+      "end": 298.9,
+      "en": "So you can say profile that's going to be await.",
+      "zh": "設定 profile，使用 await。"
+    },
+    {
+      "start": 298.94,
+      "end": 303.34,
+      "en": "Get user profile which takes in the user ID and the session.",
+      "zh": "呼叫 get_user_profile，傳入 user_id 與 session。"
+    },
+    {
+      "start": 303.74,
+      "end": 307.15,
+      "en": "Then if the profile doesn't exist we're going to raise an error.",
+      "zh": "如果個人資料不存在，就拋出錯誤。"
+    },
+    {
+      "start": 307.19,
+      "end": 317.51,
+      "en": "So you can say if not profile, then we're going to raise HTTP exception with the status code being status dot HTTP 404 not found.",
+      "zh": "若 not profile，拋出 HTTPException，狀態碼為 status.HTTP_404_NOT_FOUND。"
+    },
+    {
+      "start": 317.95,
+      "end": 321.71,
+      "en": "Then the detail that's going to be status with the value of error.",
+      "zh": "detail 中的 status 設為 error。"
+    },
+    {
+      "start": 322.07,
+      "end": 325.83,
+      "en": "Then you're going to have a message with the value of profile not found.",
+      "zh": "message 設為「找不到個人資料」。"
+    },
+    {
+      "start": 326.15,
+      "end": 331.87,
+      "en": "Then action that's going to be please create a profile first like that.",
+      "zh": "action 設為「請先建立個人資料」。"
+    },
+    {
+      "start": 332.07,
+      "end": 337.19,
+      "en": "Then we're going to use a mapping dictionary to determine which fields to update based on the image type.",
+      "zh": "接著使用對應字典，根據影像類型決定要更新哪個欄位。"
+    },
+    {
+      "start": 337.19,
+      "end": 340.11,
+      "en": "So you can create a dictionary called field mapping.",
+      "zh": "建立 field_mapping 字典。"
+    },
+    {
+      "start": 340.55,
+      "end": 343.87,
+      "en": "Then our fields are going to be three from our image type schema.",
+      "zh": "ImageTypeSchema 中有三個欄位。"
+    },
+    {
+      "start": 344.03,
+      "end": 346.51,
+      "en": "So you can just say image type schema dot.",
+      "zh": "寫 ImageTypeSchema。"
+    },
+    {
+      "start": 346.55,
+      "end": 347.75,
+      "en": "We have the profile photo.",
+      "zh": "其中有 PROFILE_PHOTO。"
+    },
+    {
+      "start": 348.11,
+      "end": 350.43,
+      "en": "That's going to be the profile photo URL.",
+      "zh": "對應 profile_photo_url。"
+    },
+    {
+      "start": 351.03,
+      "end": 353.71,
+      "en": "Then we're going to say image type schema dot.",
+      "zh": "再寫 ImageTypeSchema。"
+    },
+    {
+      "start": 353.87,
+      "end": 355.15,
+      "en": "We have the ID photo.",
+      "zh": "其中有 ID_PHOTO。"
+    },
+    {
+      "start": 355.51,
+      "end": 358.99,
+      "en": "And that's going to be ID underscore photo underscore URL.",
+      "zh": "對應 id_photo_url。"
+    },
+    {
+      "start": 359.39,
+      "end": 362.79,
+      "en": "Then from the image type schema we're going to have the signature photo.",
+      "zh": "再從 ImageTypeSchema 取得 SIGNATURE_PHOTO。"
+    },
+    {
+      "start": 362.99,
+      "end": 368.48,
+      "en": "And that's going to be a signature underscore photo underscore URL like that.",
+      "zh": "對應 signature_photo_url。"
+    },
+    {
+      "start": 368.52,
+      "end": 372.64,
+      "en": "Then from this field mapping we're first going to get the field name by saying field name.",
+      "zh": "接著從 field_mapping 取得欄位名稱，設定 field_name。"
+    },
+    {
+      "start": 372.96,
+      "end": 375.64,
+      "en": "That's going to be from the Field mapping dictionary.",
+      "zh": "從 field_mapping 字典。"
+    },
+    {
+      "start": 375.64,
+      "end": 377.64,
+      "en": "We can get the image type.",
+      "zh": "以 get 取得 image_type 對應的值。"
+    },
+    {
+      "start": 378,
+      "end": 380.52,
+      "en": "Then if you don't have a field name we're going to raise an error.",
+      "zh": "如果沒有欄位名稱，就拋出錯誤。"
+    },
+    {
+      "start": 380.56,
+      "end": 385.36,
+      "en": "So you can say if not a field name then we're going to raise a value error.",
+      "zh": "若 not field_name，就拋出 ValueError。"
+    },
+    {
+      "start": 385.6,
+      "end": 391.4,
+      "en": "And then if strings we can say invalid image type then pass in the image type.",
+      "zh": "用 f-string 寫「無效的影像類型」，並帶入 image_type。"
+    },
+    {
+      "start": 391.84,
+      "end": 395.64,
+      "en": "Then after that we're going to update the appropriate field in the profile.",
+      "zh": "接著更新 Profile 中對應的欄位。"
+    },
+    {
+      "start": 395.76,
+      "end": 399.4,
+      "en": "So you can do that by using the set attribute method from Python.",
+      "zh": "使用 Python 的 setattr 方法。"
+    },
+    {
+      "start": 399.64,
+      "end": 405.84000000000003,
+      "en": "Then you're going to pass in the profile, then the field name and then the image URL like that.",
+      "zh": "傳入 profile、field_name 與 image_url。"
+    },
+    {
+      "start": 406.08,
+      "end": 412,
+      "en": "Then after that, we can commit our changes to the database by saying await session dot commit.",
+      "zh": "再呼叫 await session.commit()，將變更提交至資料庫。"
+    },
+    {
+      "start": 412.32,
+      "end": 420.6,
+      "en": "Then refresh the profile object to get the updated values by saying await session dot refresh passing in the profile.",
+      "zh": "接著 await session.refresh(profile)，取得更新後的值。"
+    },
+    {
+      "start": 421,
+      "end": 424.48,
+      "en": "Then we can return the updated profile like that.",
+      "zh": "然後回傳更新後的 profile。"
+    },
+    {
+      "start": 424.76,
+      "end": 429.6,
+      "en": "Then in case of any exceptions, it's at the same level as the try block, which is right there.",
+      "zh": "若發生例外，處理區塊與 try 同一層，就在這裡。"
+    },
+    {
+      "start": 429.84,
+      "end": 434.6,
+      "en": "We can say accept HTTP exception as HTTP exception.",
+      "zh": "寫 except HTTPException as http_exc。"
+    },
+    {
+      "start": 434.64,
+      "end": 439.44,
+      "en": "We're just going to erase the error by saying raise HTTP exception.",
+      "zh": "重新拋出這個 HTTPException。"
+    },
+    {
+      "start": 439.68,
+      "end": 446.68,
+      "en": "Then in case of any exceptions except exception as E, we're going to log the error by saying logger dot error.",
+      "zh": "若有其他例外，寫 except Exception as e，用 logger.error 記錄。"
+    },
+    {
+      "start": 447.08,
+      "end": 453.24,
+      "en": "Then in F strings we're going to say error updating profile image URL.",
+      "zh": "用 f-string 寫「更新個人資料影像 URL 時發生錯誤」。"
+    },
+    {
+      "start": 453.52,
+      "end": 455.48,
+      "en": "Then cast the error as a string.",
+      "zh": "再帶入轉成字串的錯誤。"
+    },
+    {
+      "start": 455.76,
+      "end": 464.64,
+      "en": "Then we can raise HTTP exception with the status code being status dot HTTP 500 internal server error,",
+      "zh": "接著拋出 HTTPException，狀態碼為 status.HTTP_500_INTERNAL_SERVER_ERROR。"
+    },
+    {
+      "start": 464.8,
+      "end": 468.6,
+      "en": "and then the detail that's going to be status with the value of error.",
+      "zh": "detail 中的 status 設為 error。"
+    },
+    {
+      "start": 469.08,
+      "end": 476.6,
+      "en": "And then the message that's going to be failed to update profile image URL like that.",
+      "zh": "message 設為「無法更新個人資料影像 URL」。"
+    },
+    {
+      "start": 476.6,
+      "end": 478.04,
+      "en": "Then you can save the file.",
+      "zh": "儲存檔案。"
+    },
+    {
+      "start": 478.04,
+      "end": 481.48,
+      "en": "And as you can see the file is highlighted in red meaning I have some errors.",
+      "zh": "檔案標成紅色，表示有錯誤。"
+    },
+    {
+      "start": 481.48,
+      "end": 483,
+      "en": "So let me scroll to the top.",
+      "zh": "往上捲動。"
+    },
+    {
+      "start": 483.32,
+      "end": 486.76,
+      "en": "Here I have some inputs I didn't use as I can get rid of that.",
+      "zh": "有些匯入沒用到，可以移除。"
+    },
+    {
+      "start": 487.16,
+      "end": 488,
+      "en": "Then let me see.",
+      "zh": "再看看。"
+    },
+    {
+      "start": 488.04,
+      "end": 489.6,
+      "en": "Yeah, we also didn't use this.",
+      "zh": "對，這個也沒用到。"
+    },
+    {
+      "start": 490.12,
+      "end": 490.6,
+      "en": "Good.",
+      "zh": "很好。"
+    }
+  ]
+}

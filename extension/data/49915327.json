@@ -1,0 +1,631 @@
+{
+  "courseId": "6542487",
+  "lectureId": "49915327",
+  "title": "User Auth Service Part 1",
+  "section": 9,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "2977d520ad68cedee5b98a096f15c8cf0bfb2da703b3dde09495da0bf01d1089",
+  "cues": [
+    {
+      "start": 0.12,
+      "end": 9.28,
+      "en": "Now we're going to centralize all the user auth related logic so that we can consistently handle all the business logic regarding users in one place.",
+      "zh": "現在將使用者驗證邏輯集中起來，在同一個地方一致地處理使用者相關商業邏輯。"
+    },
+    {
+      "start": 9.28,
+      "end": 16.72,
+      "en": "We shall call these services, and we shall separate our services from our routes so that we can follow the single Responsibility principle.",
+      "zh": "我們把它稱為服務，並將服務與路由分離，遵守單一職責原則。"
+    },
+    {
+      "start": 16.76,
+      "end": 24.4,
+      "en": "By abiding to this principle, we are going to be able to one separate concerns, meaning that our services can be modified without affecting routes.",
+      "zh": "遵循這個原則，首先能分離關注點，也就是修改服務不會影響路由。"
+    },
+    {
+      "start": 24.44,
+      "end": 28.88,
+      "en": "Two we shall not repeat ourselves since the business logic will be centralized.",
+      "zh": "第二，商業邏輯集中，不必重複撰寫。"
+    },
+    {
+      "start": 28.88,
+      "end": 32.12,
+      "en": "Three we shall have reusable user related queries.",
+      "zh": "第三，使用者相關查詢可以重用。"
+    },
+    {
+      "start": 32.12,
+      "end": 34.72,
+      "en": "Then four we can have consistent error handling.",
+      "zh": "第四，錯誤處理能保持一致。"
+    },
+    {
+      "start": 34.72,
+      "end": 37.48,
+      "en": "And then lastly our code will be more maintainable.",
+      "zh": "最後，程式碼更容易維護。"
+    },
+    {
+      "start": 37.48,
+      "end": 39.44,
+      "en": "So we're going to go to our Project Explorer.",
+      "zh": "到專案檔案總管。"
+    },
+    {
+      "start": 39.48,
+      "end": 43.8,
+      "en": "Then we're going to go to backend, then app, then API.",
+      "zh": "前往 backend/app/api。"
+    },
+    {
+      "start": 44.08,
+      "end": 47.2,
+      "en": "Then within API we're going to create a new folder.",
+      "zh": "在 api 裡新增資料夾，"
+    },
+    {
+      "start": 47.2,
+      "end": 49.36,
+      "en": "We're going to call this folder as services.",
+      "zh": "命名為 services。"
+    },
+    {
+      "start": 49.92,
+      "end": 57.48,
+      "en": "Then within services we're going to create our first service which is going to be user underscore auth dot pi like that.",
+      "zh": "在 services 裡建立第一個服務，叫 user_auth.py。"
+    },
+    {
+      "start": 58.28,
+      "end": 60.2,
+      "en": "Then let's start with our input.",
+      "zh": "先匯入。"
+    },
+    {
+      "start": 60.36,
+      "end": 62.32,
+      "en": "So you're going to import async IO.",
+      "zh": "匯入 asyncio。"
+    },
+    {
+      "start": 62.48,
+      "end": 66.72,
+      "en": "Then we're going to import jwt then import Uuid.",
+      "zh": "再匯入 jwt 與 uuid。"
+    },
+    {
+      "start": 67,
+      "end": 73.08,
+      "en": "Then from fast API we're going to import the HTTP exception and status.",
+      "zh": "從 fastapi 匯入 HTTPException 與 status。"
+    },
+    {
+      "start": 73.36,
+      "end": 77.16,
+      "en": "Then from SQL model we're going to import select.",
+      "zh": "從 sqlmodel 匯入 select。"
+    },
+    {
+      "start": 77.52,
+      "end": 83.36,
+      "en": "Then from SQL model dot extension dot async IO dot session.",
+      "zh": "從 sqlmodel.ext.asyncio.session，"
+    },
+    {
+      "start": 83.4,
+      "end": 85.8,
+      "en": "We're going to import the async session.",
+      "zh": "匯入 AsyncSession。"
+    },
+    {
+      "start": 86,
+      "end": 92.4,
+      "en": "Then from backend dot app dot auth dot models we're going to import the user model.",
+      "zh": "從 backend.app.auth.models 匯入 User。"
+    },
+    {
+      "start": 92.6,
+      "end": 101.75999999999999,
+      "en": "Then from backend dot app dot auth dot schema we're going to import the account status schema and the user schema.",
+      "zh": "從 backend.app.auth.schema 匯入 AccountStatusSchema 與使用者 schema。"
+    },
+    {
+      "start": 102.08,
+      "end": 111.4,
+      "en": "Then from backend app dot auth dot utils we're going to import the generate password hash and generate username.",
+      "zh": "從 backend.app.auth.utils 匯入 generate_password_hash 與 generate_username。"
+    },
+    {
+      "start": 111.72,
+      "end": 117.96000000000001,
+      "en": "Then aside from those two we're also going to import the verify password and create activation token.",
+      "zh": "除此之外，也匯入 verify_password 與 create_activation_token。"
+    },
+    {
+      "start": 118.16,
+      "end": 121.08,
+      "en": "And then lastly generate OTP like that.",
+      "zh": "最後再匯入 generate_otp。"
+    },
+    {
+      "start": 121.08,
+      "end": 123.52,
+      "en": "So you can just ignore these errors.",
+      "zh": "可以先忽略這些錯誤，"
+    },
+    {
+      "start": 123.52,
+      "end": 127.32,
+      "en": "It's because we have done the imports but we haven't used these imports.",
+      "zh": "因為目前只匯入，還沒使用。"
+    },
+    {
+      "start": 127.32,
+      "end": 129.4,
+      "en": "Then let's proceed with our imports.",
+      "zh": "繼續加入其他匯入。"
+    },
+    {
+      "start": 129.4,
+      "end": 133.23,
+      "en": "We can say from this time we're going to import date time.",
+      "zh": "從 datetime 匯入 datetime，"
+    },
+    {
+      "start": 133.59,
+      "end": 136.11,
+      "en": "Then time Delta and then the time zone.",
+      "zh": "以及 timedelta 與 timezone。"
+    },
+    {
+      "start": 136.67000000000002,
+      "end": 142.27,
+      "en": "Then from backend to app, dot core, dot services, dot activation email.",
+      "zh": "從 backend.app.core.services.activation_email，"
+    },
+    {
+      "start": 142.31,
+      "end": 145.11,
+      "en": "We're going to import send activation email.",
+      "zh": "匯入 send_activation_email。"
+    },
+    {
+      "start": 145.35,
+      "end": 151.35,
+      "en": "Then from backend app.co dot config we're going to import our settings.",
+      "zh": "從 backend.app.core.config 匯入 settings。"
+    },
+    {
+      "start": 151.71,
+      "end": 157.87,
+      "en": "Then from backend dot app dot core dot logging we're going to import get logger.",
+      "zh": "從 backend.app.core.logging 匯入 get_logger。"
+    },
+    {
+      "start": 157.95,
+      "end": 160.95,
+      "en": "Then we can instantiate our logger by saying logger.",
+      "zh": "接著建立 logger，"
+    },
+    {
+      "start": 161.07,
+      "end": 163.99,
+      "en": "That's going to be get logger like that.",
+      "zh": "設為 get_logger()。"
+    },
+    {
+      "start": 163.99,
+      "end": 169.31,
+      "en": "Then we can create the auth service class which is going to be used to perform operations on the user model.",
+      "zh": "再建立驗證服務類別，對 User 模型執行操作。"
+    },
+    {
+      "start": 169.35,
+      "end": 173.03,
+      "en": "As you can see class user auth service like that.",
+      "zh": "建立 UserAuthService。"
+    },
+    {
+      "start": 173.03,
+      "end": 177.15,
+      "en": "Then we're going to have an asynchronous function as you can say async define.",
+      "zh": "裡面先定義非同步函式，寫 async def。"
+    },
+    {
+      "start": 177.15,
+      "end": 181.51,
+      "en": "The function is going to be get underscore user underscore by then underscore email.",
+      "zh": "函式名稱是 get_user_by_email。"
+    },
+    {
+      "start": 181.51,
+      "end": 184.59,
+      "en": "It's going to take in self then email of type string.",
+      "zh": "接受 self，以及 str 型別的 email，"
+    },
+    {
+      "start": 184.59,
+      "end": 185.59,
+      "en": "And then session.",
+      "zh": "接著 session，"
+    },
+    {
+      "start": 185.59,
+      "end": 187.83,
+      "en": "That's going to be of type async session.",
+      "zh": "型別是 AsyncSession。"
+    },
+    {
+      "start": 188.23,
+      "end": 190.87,
+      "en": "Then include underscore inactive.",
+      "zh": "再來 include_inactive，"
+    },
+    {
+      "start": 191.11,
+      "end": 194.99,
+      "en": "That's going to be of type boolean with a default value of false.",
+      "zh": "型別是 bool，預設 False。"
+    },
+    {
+      "start": 195.47,
+      "end": 199.79,
+      "en": "then this function is going to return a user or none like that.",
+      "zh": "函式傳回 User 或 None。"
+    },
+    {
+      "start": 199.82999999999998,
+      "end": 203.43,
+      "en": "Then first we're going to try to get the user by the email address.",
+      "zh": "首先嘗試依郵件地址取得使用者。"
+    },
+    {
+      "start": 203.47,
+      "end": 204.87,
+      "en": "As you can see statement.",
+      "zh": "建立 statement。"
+    },
+    {
+      "start": 205.19,
+      "end": 214.23,
+      "en": "So when you're using SQL model to generate queries, you're going to see from the documentation that we have our queries in a variable called statement.",
+      "zh": "SQLModel 文件中的查詢通常放在叫 statement 的變數，"
+    },
+    {
+      "start": 214.27,
+      "end": 215.87,
+      "en": "And so that's why I'm using statement.",
+      "zh": "所以我也用 statement。"
+    },
+    {
+      "start": 215.87,
+      "end": 217.07,
+      "en": "Then you can say select.",
+      "zh": "呼叫 select，"
+    },
+    {
+      "start": 217.11,
+      "end": 224.95,
+      "en": "We're going to select from the user where the user dot email is going to be equals to the email that is passed.",
+      "zh": "選取 User，條件是 User.email 等於傳入的 email。"
+    },
+    {
+      "start": 225.03,
+      "end": 232.27,
+      "en": "So in this statement here we're trying to get the user by the email address and using the SQL select statement to run the query.",
+      "zh": "這個敘述透過 SQL SELECT，依郵件地址查詢使用者。"
+    },
+    {
+      "start": 232.27,
+      "end": 240.47,
+      "en": "Then what I forgot to mention is in our get user by email method, the arguments here, this email is going to be the user's email address.",
+      "zh": "剛才忘了介紹 get_user_by_email 的引數，email 是使用者的郵件地址。"
+    },
+    {
+      "start": 240.47,
+      "end": 243.15,
+      "en": "Then this session is going to be the database session.",
+      "zh": "session 是資料庫工作階段。"
+    },
+    {
+      "start": 243.15,
+      "end": 244.67,
+      "en": "Then include inactive.",
+      "zh": "include_inactive，"
+    },
+    {
+      "start": 244.71,
+      "end": 248.55,
+      "en": "If this is true, we're going to include inactive users in our search.",
+      "zh": "若為 True，搜尋會包含未啟用的使用者。"
+    },
+    {
+      "start": 248.59,
+      "end": 250.03,
+      "en": "So here include inactive.",
+      "zh": "所以 include_inactive，"
+    },
+    {
+      "start": 250.07,
+      "end": 254.31,
+      "en": "Basically if this is set to true we're going to include inactive users.",
+      "zh": "設為 True 時，就包含未啟用的使用者。"
+    },
+    {
+      "start": 254.31,
+      "end": 259.79,
+      "en": "But in our case we're setting it to false because we don't want to include any inactive users in our search.",
+      "zh": "但這裡預設 False，因為預設不想包含未啟用者。"
+    },
+    {
+      "start": 259.91,
+      "end": 267.35,
+      "en": "Then let's proceed so we can see if not include inactive meaning if include active is true.",
+      "zh": "接著寫 if not include_inactive；講者這裡又口述為 include_active 為 True。"
+    },
+    {
+      "start": 267.39,
+      "end": 270.75,
+      "en": "So remember by default include inactive is false.",
+      "zh": "記得，include_inactive 預設 False。"
+    },
+    {
+      "start": 270.83,
+      "end": 275.75,
+      "en": "So here if include active is true we want to include the inactive users in the search.",
+      "zh": "講者接著說，若 include_inactive 為 True，就要把未啟用使用者納入搜尋。"
+    },
+    {
+      "start": 275.75,
+      "end": 283.47,
+      "en": "Because by default we set include inactive to false because we don't want the default behavior to be to include inactive users.",
+      "zh": "因為預設為 False，不希望預設搜尋包含未啟用者。"
+    },
+    {
+      "start": 283.63,
+      "end": 290.03,
+      "en": "So if not include an active users we're going to see statement that's going to be statement from up above.",
+      "zh": "所以在 if not include_inactive 裡，更新 statement，"
+    },
+    {
+      "start": 290.07,
+      "end": 296.99,
+      "en": "Then we can chain where the user dot is underscore active is equals to true like that.",
+      "zh": "接上 where，條件是 User.is_active == True。"
+    },
+    {
+      "start": 297.15,
+      "end": 301.91,
+      "en": "Then we're going to execute the statement meaning run the query and get the result.",
+      "zh": "再執行 statement，也就是執行查詢並取得結果。"
+    },
+    {
+      "start": 301.95,
+      "end": 307.63,
+      "en": "As you can see here result that's going to be await session dot execute.",
+      "zh": "設定 result = await session.execute。"
+    },
+    {
+      "start": 307.87,
+      "end": 310.47,
+      "en": "And we're going to execute the statement like that.",
+      "zh": "傳入 statement。"
+    },
+    {
+      "start": 310.47,
+      "end": 313.23,
+      "en": "Then we're going to get the first result which is the user.",
+      "zh": "接著取第一個結果，也就是使用者。"
+    },
+    {
+      "start": 313.27,
+      "end": 317.63,
+      "en": "As you can see user is going to be result dot first like that.",
+      "zh": "設定 user = result.first()。"
+    },
+    {
+      "start": 317.63,
+      "end": 319.99,
+      "en": "Then basically return the user.",
+      "zh": "再傳回 user。"
+    },
+    {
+      "start": 320.03,
+      "end": 325.63,
+      "en": "Then after that we're going to declare another function which is going to be used to get a user by their the ID number.",
+      "zh": "之後建立另一個函式，依身分證明號碼取得使用者。"
+    },
+    {
+      "start": 325.79,
+      "end": 331.91,
+      "en": "So you're going to say async define get underscore user underscore underscore id number.",
+      "zh": "定義 async def get_user_by_id_number。"
+    },
+    {
+      "start": 331.95,
+      "end": 333.59000000000003,
+      "en": "This is going to take in a self.",
+      "zh": "傳入 self，"
+    },
+    {
+      "start": 333.63,
+      "end": 336.43,
+      "en": "Then the id underscore number of type integer.",
+      "zh": "以及 int 型別的 id_number。"
+    },
+    {
+      "start": 336.63,
+      "end": 339.11,
+      "en": "Then session is going to be the async session.",
+      "zh": "session 的型別是 AsyncSession。"
+    },
+    {
+      "start": 339.43,
+      "end": 342.15,
+      "en": "Then include underscore inactive.",
+      "zh": "再來 include_inactive，"
+    },
+    {
+      "start": 342.19,
+      "end": 343.75,
+      "en": "That's going to be of type boolean.",
+      "zh": "型別是 bool，"
+    },
+    {
+      "start": 344.03,
+      "end": 347.19,
+      "en": "And we're going to default this to false like that.",
+      "zh": "預設 False。"
+    },
+    {
+      "start": 347.47,
+      "end": 351.59000000000003,
+      "en": "Then this function is going to return a user or none like that.",
+      "zh": "函式傳回 User 或 None。"
+    },
+    {
+      "start": 351.63,
+      "end": 356.79,
+      "en": "Then what you're going to do we're going to use the SQL modal statement to get the user by their ID as you can see.",
+      "zh": "接著透過 SQLModel 敘述，依身分證明號碼取得使用者。"
+    },
+    {
+      "start": 356.83,
+      "end": 359.79,
+      "en": "Statement that's going to be select user.",
+      "zh": "設定 statement = select(User)。"
+    },
+    {
+      "start": 360.03,
+      "end": 365.67,
+      "en": "Then where the user.id number is equals to the ID number like that.",
+      "zh": "接上 where，條件是 User.id_number == id_number。"
+    },
+    {
+      "start": 365.71,
+      "end": 369.27,
+      "en": "Then again we're going to say if include inactive is going to be true.",
+      "zh": "同樣，如果 include_inactive 是 True，"
+    },
+    {
+      "start": 369.31,
+      "end": 374.91,
+      "en": "We want to include inactive users in our search because by default include inactive is false.",
+      "zh": "就包含未啟用者；預設是 False。"
+    },
+    {
+      "start": 374.99,
+      "end": 379.07,
+      "en": "So you can say if not include inactive then we can say statement.",
+      "zh": "所以寫 if not include_inactive，再設定 statement，"
+    },
+    {
+      "start": 379.35,
+      "end": 386.79,
+      "en": "That's going to be statement dot where user dot is active is set to true like that.",
+      "zh": "接上 where，條件是 User.is_active == True。"
+    },
+    {
+      "start": 386.91,
+      "end": 391.02,
+      "en": "Then we're going to execute the statement meaning run the query and get the result.",
+      "zh": "接著執行查詢並取得結果。"
+    },
+    {
+      "start": 391.06,
+      "end": 398.3,
+      "en": "As you can see, result that's going to be await session dot execute and you're going to execute the statement like that.",
+      "zh": "設定 result = await session.execute(statement)。"
+    },
+    {
+      "start": 398.34000000000003,
+      "end": 401.3,
+      "en": "Then we're going to get the first result which is going to be our user.",
+      "zh": "取出第一個結果，也就是使用者，"
+    },
+    {
+      "start": 401.3,
+      "end": 404.34000000000003,
+      "en": "By saying user that's going to be result dot first.",
+      "zh": "設定 user = result.first()。"
+    },
+    {
+      "start": 404.7,
+      "end": 407.1,
+      "en": "Then we return the user like that.",
+      "zh": "再傳回 user。"
+    },
+    {
+      "start": 407.14,
+      "end": 407.46,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 407.46,
+      "end": 408.02,
+      "en": "With that done.",
+      "zh": "完成後，"
+    },
+    {
+      "start": 408.02,
+      "end": 414.22,
+      "en": "As you can see right here I'm getting a flake warning comparison to true should be if condition is true or if condition.",
+      "zh": "這裡有 Flake 警告，指出和 True 比較時，應該直接使用條件判斷。"
+    },
+    {
+      "start": 414.62,
+      "end": 417.38,
+      "en": "So I just need to fix my syntax to be more pythonic.",
+      "zh": "所以要把語法改得更符合 Python 慣例。"
+    },
+    {
+      "start": 417.54,
+      "end": 427.34,
+      "en": "So what I can do here is we can just say if not include inactive because remember include inactive is a boolean and it's false, then not include inactive meaning it's not true.",
+      "zh": "這裡直接寫 if not include_inactive。include_inactive 是布林值，預設 False，加上 not 後條件就成立。"
+    },
+    {
+      "start": 427.38,
+      "end": 430.78,
+      "en": "We don't need to explicitly set the condition to is equals to true.",
+      "zh": "不需要明確加上 == True。"
+    },
+    {
+      "start": 430.82,
+      "end": 433.22,
+      "en": "We can just get rid of that, then save.",
+      "zh": "直接移除，再儲存。"
+    },
+    {
+      "start": 433.34,
+      "end": 443.58,
+      "en": "Then do the same for get user by id, so if not include inactive we can just say user dot active because this is already the opposite of false by saying not so meaning true.",
+      "zh": "get_user_by_id_number 也一樣，在 if not include_inactive 裡，where 直接使用 User.is_active。"
+    },
+    {
+      "start": 443.62,
+      "end": 446.46,
+      "en": "So we just say user is active like that.",
+      "zh": "就是 User.is_active。"
+    },
+    {
+      "start": 446.7,
+      "end": 451.7,
+      "en": "And after making the change right here, I think this is a good point to stop the lecture.",
+      "zh": "修改後，這裡適合結束這堂課。"
+    },
+    {
+      "start": 451.7,
+      "end": 455.22,
+      "en": "In the next lecture we shall still continue with the auth user service.",
+      "zh": "下一堂課繼續編寫使用者驗證服務。"
+    }
+  ]
+}

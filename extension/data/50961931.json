@@ -1,0 +1,403 @@
+{
+  "courseId": "6542487",
+  "lectureId": "50961931",
+  "title": "Transaction History PDF Generation",
+  "section": 16,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "46fae90f2f4d6e47890a400d0056e3953ee8637f392acc94d7a138199476ec8c",
+  "cues": [
+    {
+      "start": 0.16,
+      "end": 6.96,
+      "en": "Let's implement the functionality to allow a customer to download a PDF copy of the transactions using a celery task.",
+      "zh": "使用 Celery 工作，實作讓客戶下載交易 PDF 副本的功能。"
+    },
+    {
+      "start": 7,
+      "end": 12.56,
+      "en": "This approach will handle the PDF generation asynchronously, improving the responsiveness of our API.",
+      "zh": "以非同步方式產生 PDF，提升 API 的回應速度。"
+    },
+    {
+      "start": 12.68,
+      "end": 17.16,
+      "en": "And so back in the terminal, let's first install the package which I'll use to generate PDFs.",
+      "zh": "回到終端機，先安裝用來產生 PDF 的套件。"
+    },
+    {
+      "start": 17.16,
+      "end": 18.8,
+      "en": "And it's called Reportlab.",
+      "zh": "它叫 ReportLab。"
+    },
+    {
+      "start": 18.84,
+      "end": 22.4,
+      "en": "Reportlab is an open source Python library for generating PDFs.",
+      "zh": "ReportLab 是產生 PDF 的開源 Python 函式庫。"
+    },
+    {
+      "start": 22.88,
+      "end": 26.04,
+      "en": "So first make sure that your virtual environment is activated.",
+      "zh": "先確認虛擬環境已啟用。"
+    },
+    {
+      "start": 26.2,
+      "end": 28.08,
+      "en": "As you can see mine is activated.",
+      "zh": "我的已啟用。"
+    },
+    {
+      "start": 28.64,
+      "end": 34.04,
+      "en": "Then we're going to say pip install Reportlab version 4.2.2.",
+      "zh": "執行 pip install，安裝 ReportLab 4.2.2。"
+    },
+    {
+      "start": 44.2,
+      "end": 44.64,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 44.64,
+      "end": 48.36,
+      "en": "Once the package has been installed, let's confirm from our Project Explorer.",
+      "zh": "安裝完成後，從專案檔案總管確認。"
+    },
+    {
+      "start": 48.48,
+      "end": 49.8,
+      "en": "So going to go to the Pip file.",
+      "zh": "到 Pipfile。"
+    },
+    {
+      "start": 50.04,
+      "end": 53.48,
+      "en": "Then we're going to see somewhere down here we have Reportlab right there.",
+      "zh": "下面這裡可以看到 reportlab。"
+    },
+    {
+      "start": 53.52,
+      "end": 54.16,
+      "en": "Perfect.",
+      "zh": "太好了。"
+    },
+    {
+      "start": 54.36,
+      "end": 57.6,
+      "en": "Then let's add this package to our requirements.txt file.",
+      "zh": "再把套件加入 requirements.txt。"
+    },
+    {
+      "start": 57.68,
+      "end": 59.32,
+      "en": "So you're going to go back to the terminal.",
+      "zh": "回到終端機。"
+    },
+    {
+      "start": 59.48,
+      "end": 64.94,
+      "en": "Then you're going to say pip freeze, then backend requirements.txt like that.",
+      "zh": "執行 pip freeze，輸出至 backend/requirements.txt。"
+    },
+    {
+      "start": 64.98,
+      "end": 65.62,
+      "en": "Perfect.",
+      "zh": "太好了。"
+    },
+    {
+      "start": 65.98,
+      "end": 69.62,
+      "en": "Then go back to the requirements.txt file within backend.",
+      "zh": "回到 backend 裡的 requirements.txt。"
+    },
+    {
+      "start": 69.82,
+      "end": 74.18,
+      "en": "Then confirm that you now have reportlab which is going to be somewhere here.",
+      "zh": "確認裡面有 reportlab，應該在這附近。"
+    },
+    {
+      "start": 74.22,
+      "end": 75.06,
+      "en": "Let me see.",
+      "zh": "看看。"
+    },
+    {
+      "start": 75.1,
+      "end": 76.66,
+      "en": "Somewhere there we have reportlab.",
+      "zh": "這裡有 reportlab。"
+    },
+    {
+      "start": 76.7,
+      "end": 77.38,
+      "en": "Perfect.",
+      "zh": "太好了。"
+    },
+    {
+      "start": 77.42,
+      "end": 81.02,
+      "en": "And now that we have added a new package, we have to rebuild our containers.",
+      "zh": "新增套件後，必須重新建置容器。"
+    },
+    {
+      "start": 81.22,
+      "end": 86.42,
+      "en": "Always remember that packages are installed in containers at build time and not runtime.",
+      "zh": "記得套件是在容器建置時安裝，而非執行時。"
+    },
+    {
+      "start": 86.46000000000001,
+      "end": 87.74,
+      "en": "So let's go back to the terminal.",
+      "zh": "回到終端機。"
+    },
+    {
+      "start": 87.78,
+      "end": 90.1,
+      "en": "Then we can now say make build.",
+      "zh": "執行 make build。"
+    },
+    {
+      "start": 97.82,
+      "end": 98.38,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 98.38,
+      "end": 101.53999999999999,
+      "en": "Once we've rebuilt our containers, let's go to the Project Explorer.",
+      "zh": "容器重新建置後，回到專案檔案總管。"
+    },
+    {
+      "start": 101.58,
+      "end": 105.25999999999999,
+      "en": "Then we're going to add the schema for the statement generation requests.",
+      "zh": "加入對帳單產生請求的 schema。"
+    },
+    {
+      "start": 105.38,
+      "end": 111.25999999999999,
+      "en": "So what you can do is we're going to open the schema.py file within backend app transaction.",
+      "zh": "開啟 backend/app/transaction 裡的 schema.py。"
+    },
+    {
+      "start": 111.5,
+      "end": 117.25999999999999,
+      "en": "Then after the transaction filter params schema at the bottom, we're going to add the statement request",
+      "zh": "在最下面的 TransactionFilterParamsSchema 後面，加入 StatementRequest。"
+    },
+    {
+      "start": 117.25999999999999,
+      "end": 123.96,
+      "en": "schema by saying class statement, request and schema that's going to subclass the SQL model.",
+      "zh": "Schema，繼承 SQLModel。"
+    },
+    {
+      "start": 124.2,
+      "end": 128.52,
+      "en": "Then we can say for the start date that's going to be of type date time.",
+      "zh": "start_date 的型別為 datetime。"
+    },
+    {
+      "start": 128.52,
+      "end": 131.48,
+      "en": "Then the end date that's going to be of type date time.",
+      "zh": "end_date 的型別為 datetime。"
+    },
+    {
+      "start": 131.68,
+      "end": 135.36,
+      "en": "Then the account number that's going to be of type string or none.",
+      "zh": "account_number 的型別為 str 或 None。"
+    },
+    {
+      "start": 135.6,
+      "end": 140.56,
+      "en": "And then for this particular field we're going to set the default to none because it's optional.",
+      "zh": "這是選填欄位，所以 default 設為 None。"
+    },
+    {
+      "start": 140.72,
+      "end": 146.6,
+      "en": "Then the minimum length that's going to be 16, then the maximum length that's going to be 16.",
+      "zh": "min_length 與 max_length 都設為 16。"
+    },
+    {
+      "start": 146.76,
+      "end": 155.52,
+      "en": "And then for the description we can just say a 16 digit account number for specific account statements",
+      "zh": "description 寫「指定帳戶對帳單使用的 16 位數帳號」。"
+    },
+    {
+      "start": 155.84,
+      "end": 156.48,
+      "en": "like that.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 156.72,
+      "end": 162.28,
+      "en": "Then after creating the schema for the statement generation request, we can now create the schema for",
+      "zh": "建立完產生對帳單的請求 schema，再建立。"
+    },
+    {
+      "start": 162.28,
+      "end": 170.84,
+      "en": "the statement generation responses by saying class A statement response schema that's going to subclass SQL model.",
+      "zh": "StatementResponseSchema，繼承 SQLModel，處理對帳單產生回應。"
+    },
+    {
+      "start": 171.2,
+      "end": 174.28,
+      "en": "Then we're going to have a status that's going to be of type string.",
+      "zh": "status 的型別為 str。"
+    },
+    {
+      "start": 174.56,
+      "end": 177.04,
+      "en": "Then the message that's going to be of type string.",
+      "zh": "message 的型別為 str。"
+    },
+    {
+      "start": 177.32,
+      "end": 182.58,
+      "en": "Then the task ID that's going to be of type string or none, and you're going to default this to none.",
+      "zh": "task_id 的型別為 str 或 None，預設 None。"
+    },
+    {
+      "start": 182.82,
+      "end": 188.46,
+      "en": "Then the statement ID that's going to be of type string or none with a default value of none.",
+      "zh": "statement_id 的型別為 str 或 None，預設 None。"
+    },
+    {
+      "start": 188.7,
+      "end": 191.1,
+      "en": "Then we're going to have generated that.",
+      "zh": "接著 generated_at。"
+    },
+    {
+      "start": 191.66,
+      "end": 194.1,
+      "en": "That's going to be of date time or none.",
+      "zh": "型別為 datetime 或 None。"
+    },
+    {
+      "start": 194.46,
+      "end": 195.82,
+      "en": "And we're going to set that to none.",
+      "zh": "預設 None。"
+    },
+    {
+      "start": 196.14,
+      "end": 197.18,
+      "en": "Then expand that.",
+      "zh": "再來 expires_at。"
+    },
+    {
+      "start": 197.78,
+      "end": 200.02,
+      "en": "That's going to be datetime or none.",
+      "zh": "型別為 datetime 或 None。"
+    },
+    {
+      "start": 200.3,
+      "end": 201.66,
+      "en": "Then set that to none.",
+      "zh": "預設 None。"
+    },
+    {
+      "start": 202.06,
+      "end": 205.54,
+      "en": "Then we're going to define the schema for the transaction review request.",
+      "zh": "接著定義交易審核請求的 schema。"
+    },
+    {
+      "start": 205.57999999999998,
+      "end": 209.78,
+      "en": "As you can see class transaction review schema.",
+      "zh": "定義 class TransactionReviewSchema。"
+    },
+    {
+      "start": 209.94,
+      "end": 211.78,
+      "en": "That's going to subclass SQL model.",
+      "zh": "繼承 SQLModel。"
+    },
+    {
+      "start": 211.98,
+      "end": 215.06,
+      "en": "Then we're going to have the field of is fraud.",
+      "zh": "加入 is_fraud 欄位。"
+    },
+    {
+      "start": 215.38,
+      "end": 216.98,
+      "en": "That's going to be of type boolean.",
+      "zh": "型別為 bool。"
+    },
+    {
+      "start": 217.34,
+      "end": 218.06,
+      "en": "Then notes.",
+      "zh": "接著 notes。"
+    },
+    {
+      "start": 218.26,
+      "end": 220.3,
+      "en": "That's going to be a string type or none.",
+      "zh": "型別為 str 或 None。"
+    },
+    {
+      "start": 220.62,
+      "end": 224.3,
+      "en": "Then set it to none then approve underscore transaction.",
+      "zh": "預設 None；再加入 approve_transaction。"
+    },
+    {
+      "start": 224.86,
+      "end": 226.3,
+      "en": "That's going to be a boolean type.",
+      "zh": "型別為 bool。"
+    },
+    {
+      "start": 226.42000000000002,
+      "end": 228.34,
+      "en": "Then we can set it to false.",
+      "zh": "預設為 False。"
+    },
+    {
+      "start": 228.54,
+      "end": 230.34,
+      "en": "Then we can save that file.",
+      "zh": "儲存檔案。"
+    },
+    {
+      "start": 230.54,
+      "end": 230.94,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 230.94,
+      "end": 233.14,
+      "en": "That's it for this schema file.",
+      "zh": "schema 檔案就完成了。"
+    },
+    {
+      "start": 233.3,
+      "end": 237.38,
+      "en": "In the next lecture we shall now work on the account statement auxiliary task.",
+      "zh": "下一堂實作帳戶對帳單的 Celery 工作。"
+    }
+  ]
+}

@@ -1,0 +1,997 @@
+{
+  "courseId": "6542487",
+  "lectureId": "50048409",
+  "title": "Token Refresh",
+  "section": 9,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "eebc5a9e597c5e8db624a66a0e5697156d036061ea886053271a54efb22b52e9",
+  "cues": [
+    {
+      "start": 0.08,
+      "end": 9.04,
+      "en": "Now that we're done with the password reset functionality, we're going to create functionality that is going to allow users to get new access tokens as long as they're refresh tokens have not expired.",
+      "zh": "密碼重設完成後，加入功能：只要更新權杖尚未到期，就讓使用者取得新的存取權杖。"
+    },
+    {
+      "start": 9.08,
+      "end": 12.72,
+      "en": "Remember, the refresh tokens expire a day after the access tokens.",
+      "zh": "記得，更新權杖比存取權杖晚一天到期。"
+    },
+    {
+      "start": 12.72,
+      "end": 15.76,
+      "en": "So what you need to do now we need to create the refresh route.",
+      "zh": "現在建立更新路由。"
+    },
+    {
+      "start": 15.88,
+      "end": 20.76,
+      "en": "Since this is related to authentication, we're going to create a new file called refresh.py file.",
+      "zh": "這與身分驗證有關，所以新增 refresh.py。"
+    },
+    {
+      "start": 20.8,
+      "end": 22.04,
+      "en": "So where are we going to do that.",
+      "zh": "在哪裡建立？"
+    },
+    {
+      "start": 22.04,
+      "end": 25.12,
+      "en": "We're going to go to backend then app, then API.",
+      "zh": "前往 backend/app/api，"
+    },
+    {
+      "start": 25.16,
+      "end": 26.48,
+      "en": "Then we're going to go to our routes.",
+      "zh": "再到 routes，"
+    },
+    {
+      "start": 26.48,
+      "end": 28.44,
+      "en": "Then within routes we're going to go to auth.",
+      "zh": "裡面的 auth。"
+    },
+    {
+      "start": 28.64,
+      "end": 34.56,
+      "en": "Then within auth we're going to create a new file that is refresh.py like that.",
+      "zh": "在 auth 裡新增 refresh.py。"
+    },
+    {
+      "start": 34.6,
+      "end": 36.44,
+      "en": "Then as usual we start with our inputs.",
+      "zh": "和往常一樣，先匯入。"
+    },
+    {
+      "start": 36.72,
+      "end": 38.52,
+      "en": "So you're going to import JWT.",
+      "zh": "匯入 jwt。"
+    },
+    {
+      "start": 38.76,
+      "end": 48.28,
+      "en": "Then from fast API we're going to import API router depends response status cookie and HTTP exception.",
+      "zh": "從 fastapi 匯入 APIRouter、Depends、Response、status、Cookie 與 HTTPException。"
+    },
+    {
+      "start": 48.56,
+      "end": 56.2,
+      "en": "Then from SQL model dot extension dot async IO dot session again to import async session.",
+      "zh": "從 sqlmodel.ext.asyncio.session 匯入 AsyncSession。"
+    },
+    {
+      "start": 56.48,
+      "end": 60.2,
+      "en": "Then from backend.app.com com dot db.",
+      "zh": "從 backend.app.core.db，"
+    },
+    {
+      "start": 60.52,
+      "end": 66.52,
+      "en": "We're going to import get session then from backend.app.co dot login.",
+      "zh": "匯入 get_session；再從 backend.app.core.logging，"
+    },
+    {
+      "start": 66.88,
+      "end": 72.56,
+      "en": "We're going to import get logger then from backend dot app dot auth dot utils.",
+      "zh": "匯入 get_logger。從 backend.app.auth.utils，"
+    },
+    {
+      "start": 72.92,
+      "end": 75.52,
+      "en": "We're going to import create JWT token.",
+      "zh": "匯入 create_jwt_token，"
+    },
+    {
+      "start": 75.8,
+      "end": 77.36,
+      "en": "Then set auth cookies.",
+      "zh": "以及 set_auth_cookies。"
+    },
+    {
+      "start": 77.56,
+      "end": 83.08,
+      "en": "Then from backend dot app dot api dot services dot user auth.",
+      "zh": "從 backend.app.api.services.user_auth，"
+    },
+    {
+      "start": 83.12,
+      "end": 85.72,
+      "en": "We're going to import the user auth service.",
+      "zh": "匯入 user_auth_service。"
+    },
+    {
+      "start": 85.72,
+      "end": 92.2,
+      "en": "And then from backend.app.co dot config we're going to import a settings like that.",
+      "zh": "再從 backend.app.core.config 匯入 settings。"
+    },
+    {
+      "start": 92.24000000000001,
+      "end": 96.03999999999999,
+      "en": "Then create an instance of the logger by saying logger is get logger.",
+      "zh": "設定 logger = get_logger()。"
+    },
+    {
+      "start": 96.36,
+      "end": 102.92,
+      "en": "Then the router that's going to be our API router and the prefix that's going to be auth like that.",
+      "zh": "router 使用 APIRouter，prefix 是 /auth。"
+    },
+    {
+      "start": 103.2,
+      "end": 105.2,
+      "en": "Then let's create this route.",
+      "zh": "接著建立路由。"
+    },
+    {
+      "start": 105.24000000000001,
+      "end": 107.28,
+      "en": "So you're going to use the add router decorator.",
+      "zh": "使用 @router 裝飾器。"
+    },
+    {
+      "start": 107.47999999999999,
+      "end": 110.92,
+      "en": "Then this is going to be a Post request to slash refresh.",
+      "zh": "這是 POST，路徑為 /refresh。"
+    },
+    {
+      "start": 111.24000000000001,
+      "end": 116.03999999999999,
+      "en": "Then the status code that's going to be a status dot HTTP 200 okay.",
+      "zh": "status_code 是 status.HTTP_200_OK。"
+    },
+    {
+      "start": 116.32,
+      "end": 119.4,
+      "en": "Then the function to be called is async define.",
+      "zh": "函式使用 async def，"
+    },
+    {
+      "start": 119.44,
+      "end": 123.24,
+      "en": "This can be refresh underscore access token.",
+      "zh": "叫作 refresh_access_token。"
+    },
+    {
+      "start": 123.68,
+      "end": 126.44,
+      "en": "Then it's going to take in a response of type response.",
+      "zh": "接受 Response 型別的 response，"
+    },
+    {
+      "start": 126.92,
+      "end": 130.24,
+      "en": "Then a session that's going to be async session.",
+      "zh": "AsyncSession 型別的 session，"
+    },
+    {
+      "start": 130.24,
+      "end": 132.92,
+      "en": "And you can say depends on get session.",
+      "zh": "使用 Depends(get_session)。"
+    },
+    {
+      "start": 133.28,
+      "end": 136.8,
+      "en": "Then the refresh token that's going to be of type string or none.",
+      "zh": "refresh_token 的型別是 str 或 None。"
+    },
+    {
+      "start": 137.07999999999998,
+      "end": 140.88,
+      "en": "And we're going to default this to the cookie passing in none.",
+      "zh": "預設使用 Cookie，傳入 None。"
+    },
+    {
+      "start": 141.07999999999998,
+      "end": 142.68,
+      "en": "And we're also going to have an alias.",
+      "zh": "也設定 alias，"
+    },
+    {
+      "start": 142.72,
+      "end": 147.2,
+      "en": "As you can see alias that's going to be settings dot cookie refresh name.",
+      "zh": "值是 settings.COOKIE_REFRESH_NAME。"
+    },
+    {
+      "start": 147.24,
+      "end": 149.44,
+      "en": "We had added that in our settings previously.",
+      "zh": "之前已加入這個設定。"
+    },
+    {
+      "start": 149.44,
+      "end": 152.88,
+      "en": "Then this function is going to return a dictionary like that.",
+      "zh": "函式傳回 dict。"
+    },
+    {
+      "start": 153.04,
+      "end": 159.96,
+      "en": "Remember the whole idea behind this endpoint is to help us generate new access tokens using a valid refresh token.",
+      "zh": "這個端點的目的，就是用有效的更新權杖，產生新存取權杖。"
+    },
+    {
+      "start": 159.96,
+      "end": 165.92000000000002,
+      "en": "Because as you can see from postman, our refresh token has a longer expiry time than the access tokens.",
+      "zh": "在 Postman 可以看到，更新權杖的有效期比存取權杖長。"
+    },
+    {
+      "start": 165.92000000000002,
+      "end": 171.52,
+      "en": "Remember, the access tokens expire after 30 minutes in development and it will be 15 minutes in production.",
+      "zh": "記得，存取權杖在開發環境三十分鐘到期，正式環境十五分鐘。"
+    },
+    {
+      "start": 171.52,
+      "end": 176.69,
+      "en": "So once the access token expands because you don't want to interrupt the user experience of application.",
+      "zh": "存取權杖到期後，不希望中斷使用體驗。"
+    },
+    {
+      "start": 176.69,
+      "end": 184.13,
+      "en": "What you're going to do is when the access token expands, we don't automatically log out the user, but we're going to hit this refresh endpoint.",
+      "zh": "所以不會立刻讓使用者登出，而是呼叫 refresh 端點。"
+    },
+    {
+      "start": 184.13,
+      "end": 194.21,
+      "en": "So long as there's an active refresh token, a new access token is going to be generated and the user will continuously be logged in up until this refresh token also expires.",
+      "zh": "只要更新權杖有效，就產生新的存取權杖，讓使用者繼續登入，直到更新權杖也到期。"
+    },
+    {
+      "start": 194.21,
+      "end": 200.61,
+      "en": "So when the refresh token finally also expires, then the user will be logged out and will be required to log in again.",
+      "zh": "更新權杖到期後，使用者才需要重新登入。"
+    },
+    {
+      "start": 200.61,
+      "end": 205.61,
+      "en": "So that's how we're implementing this refresh token route to generate new access tokens.",
+      "zh": "這就是更新路由產生新存取權杖的方式。"
+    },
+    {
+      "start": 205.61,
+      "end": 208.69,
+      "en": "It's basically to help us persist the login of the user.",
+      "zh": "主要是延續使用者登入狀態。"
+    },
+    {
+      "start": 208.69,
+      "end": 209.85,
+      "en": "I hope that makes sense.",
+      "zh": "希望這樣清楚。"
+    },
+    {
+      "start": 209.89,
+      "end": 211.49,
+      "en": "So you can go back to our code.",
+      "zh": "回到程式碼。"
+    },
+    {
+      "start": 211.49,
+      "end": 213.21,
+      "en": "So here we're going to have a try block.",
+      "zh": "先加入 try 區塊。"
+    },
+    {
+      "start": 213.32999999999998,
+      "end": 219.32999999999998,
+      "en": "Then if we don't have a refresh token then we're going to raise a HTTP exception.",
+      "zh": "如果沒有 refresh_token，就拋出 HTTPException。"
+    },
+    {
+      "start": 219.53,
+      "end": 225.25,
+      "en": "And the status code that's going to be status dot http for one unauthorized.",
+      "zh": "status_code 是 status.HTTP_401_UNAUTHORIZED。"
+    },
+    {
+      "start": 225.37,
+      "end": 227.89,
+      "en": "Then you're going to have a detail, the detail object.",
+      "zh": "再加入 detail 字典，"
+    },
+    {
+      "start": 227.93,
+      "end": 230.29,
+      "en": "We're going to have status with a value of error.",
+      "zh": "status 是 error。"
+    },
+    {
+      "start": 230.65,
+      "end": 236.77,
+      "en": "Then the message that's going to be no refresh token provided, then the action that's going to be.",
+      "zh": "message 是「未提供更新權杖」，action 是，"
+    },
+    {
+      "start": 236.77,
+      "end": 238.85,
+      "en": "Please login again.",
+      "zh": "「請重新登入」。"
+    },
+    {
+      "start": 239.21,
+      "end": 242.01,
+      "en": "Then we're going to have another nested try except block.",
+      "zh": "接著加入巢狀 try／except。"
+    },
+    {
+      "start": 242.05,
+      "end": 247.49,
+      "en": "So what I can do is for this first try block that you already have we're going to have the accept block.",
+      "zh": "先替外層 try 加上 except。"
+    },
+    {
+      "start": 247.65,
+      "end": 250.21,
+      "en": "So you can say accept HTTP exception.",
+      "zh": "寫 except HTTPException。"
+    },
+    {
+      "start": 250.33,
+      "end": 251.61,
+      "en": "For now we're just going to pass.",
+      "zh": "目前先用 pass。"
+    },
+    {
+      "start": 251.89,
+      "end": 254.33,
+      "en": "Then we're going to go back to our if block.",
+      "zh": "再回到 if，"
+    },
+    {
+      "start": 254.61,
+      "end": 256.53,
+      "en": "So go back to where we were before.",
+      "zh": "回到剛才的位置。"
+    },
+    {
+      "start": 256.65,
+      "end": 258.05,
+      "en": "So if not refresh token.",
+      "zh": "就是 if not refresh_token。"
+    },
+    {
+      "start": 258.09,
+      "end": 261.57,
+      "en": "So after that if block we're going to have another try block.",
+      "zh": "if 之後再加入 try。"
+    },
+    {
+      "start": 261.69,
+      "end": 265.61,
+      "en": "So within this try block we're going to decode and verify the refresh token.",
+      "zh": "在這裡解碼並驗證更新權杖。"
+    },
+    {
+      "start": 265.65,
+      "end": 269.53,
+      "en": "As you can see payload that's going to be JWT dot decode.",
+      "zh": "設定 payload = jwt.decode。"
+    },
+    {
+      "start": 269.81,
+      "end": 272.09000000000003,
+      "en": "And we're going to pass in the refresh token.",
+      "zh": "傳入 refresh_token，"
+    },
+    {
+      "start": 272.45,
+      "end": 274.73,
+      "en": "Then our signing key from our settings.",
+      "zh": "再傳入 settings 的 SIGNING_KEY。"
+    },
+    {
+      "start": 275.13,
+      "end": 280.81,
+      "en": "Then the algorithms that's just going to be settings dot JWT algorithm.",
+      "zh": "algorithms 使用 settings.JWT_ALGORITHM。"
+    },
+    {
+      "start": 281.17,
+      "end": 286.17,
+      "en": "Then if the JWT has an expired signature error we're going to raise that exception.",
+      "zh": "若 JWT 簽章到期，就處理這個例外。"
+    },
+    {
+      "start": 286.21,
+      "end": 294.61,
+      "en": "So going to say accept JWT dot expand a signature error as E we're going to raise our HTTP exception.",
+      "zh": "寫 except jwt.ExpiredSignatureError as e，拋出 HTTPException。"
+    },
+    {
+      "start": 294.61,
+      "end": 296.25,
+      "en": "So I can just copy this from up above.",
+      "zh": "可以複製上面的例外，"
+    },
+    {
+      "start": 296.65,
+      "end": 297.81,
+      "en": "Then come right there.",
+      "zh": "回到這裡，"
+    },
+    {
+      "start": 297.97,
+      "end": 298.69,
+      "en": "Paste it in.",
+      "zh": "貼上。"
+    },
+    {
+      "start": 299.01,
+      "end": 301.85,
+      "en": "So the status code is still going to be 401 unauthorized.",
+      "zh": "status_code 仍是 401 Unauthorized。"
+    },
+    {
+      "start": 301.89,
+      "end": 304.33,
+      "en": "Then the status is error message.",
+      "zh": "status 是 error，"
+    },
+    {
+      "start": 304.33,
+      "end": 308.49,
+      "en": "We can change the message to be refresh token as expand.",
+      "zh": "message 改成「更新權杖已到期」。"
+    },
+    {
+      "start": 308.89,
+      "end": 311.21,
+      "en": "Then the action is please login again.",
+      "zh": "action 是「請重新登入」。"
+    },
+    {
+      "start": 311.45,
+      "end": 313.01,
+      "en": "Then we're going to have another exception.",
+      "zh": "再加入另一個例外處理。"
+    },
+    {
+      "start": 313.01,
+      "end": 315.33,
+      "en": "So I can copy this whole except block.",
+      "zh": "複製整個 except，"
+    },
+    {
+      "start": 315.81,
+      "end": 323.77,
+      "en": "Then at the same level as the previous except block you can paste it in, but this time it's going to be a JWT invalid token error.",
+      "zh": "貼到相同層，這次處理 jwt.InvalidTokenError。"
+    },
+    {
+      "start": 324.05,
+      "end": 327.13,
+      "en": "Then the status code remains four one unauthorized.",
+      "zh": "status_code 仍是 401 Unauthorized。"
+    },
+    {
+      "start": 327.17,
+      "end": 330.25,
+      "en": "Then for the detail status is error message.",
+      "zh": "detail 的 status 是 error，"
+    },
+    {
+      "start": 330.25,
+      "end": 333.49,
+      "en": "This changes to invalid refresh token.",
+      "zh": "message 改成「無效的更新權杖」。"
+    },
+    {
+      "start": 333.85,
+      "end": 335.09000000000003,
+      "en": "Then the action is going to be.",
+      "zh": "action 是，"
+    },
+    {
+      "start": 335.09000000000003,
+      "end": 336.33,
+      "en": "Please login again.",
+      "zh": "「請重新登入」。"
+    },
+    {
+      "start": 336.77,
+      "end": 339.40999999999997,
+      "en": "Then after that we're going to verify the token type.",
+      "zh": "接著驗證權杖類型。"
+    },
+    {
+      "start": 339.49,
+      "end": 342.77,
+      "en": "So you can see if payload dot get the type.",
+      "zh": "呼叫 payload.get('type')。"
+    },
+    {
+      "start": 342.77,
+      "end": 349.13,
+      "en": "If the type is not equals to the refresh token type, which we can get that by saying settings dot cookie",
+      "zh": "如果不等於更新權杖類型，也就是 settings.COOKIE，"
+    },
+    {
+      "start": 349.17,
+      "end": 355.29,
+      "en": "refresh name if it's not a refresh token, then we're going to log that by saying logger dot warning.",
+      "zh": "接上 _REFRESH_NAME，就用 logger.warning 記錄。"
+    },
+    {
+      "start": 355.49,
+      "end": 358.69,
+      "en": "And in F strings we can say invalid token type.",
+      "zh": "f-string 寫「無效的權杖類型，預期是」，"
+    },
+    {
+      "start": 359.21,
+      "end": 364.09,
+      "en": "We expected then pass in a settings dot cookie refresh name.",
+      "zh": "傳入 settings.COOKIE_REFRESH_NAME。"
+    },
+    {
+      "start": 364.53,
+      "end": 366.93,
+      "en": "Then we can add a comma, then a space.",
+      "zh": "再加逗號與空格。"
+    },
+    {
+      "start": 367.05,
+      "end": 370.41,
+      "en": "Then in a new line add another f strings and you can see got.",
+      "zh": "下一行再用 f-string 寫「實際取得」，"
+    },
+    {
+      "start": 370.69,
+      "end": 377.97,
+      "en": "Then pass in what was gotten from the payload by saying payload dot, get in single quotation marks, passing the type like that.",
+      "zh": "傳入 payload.get('type')。"
+    },
+    {
+      "start": 377.97,
+      "end": 382.13,
+      "en": "Then we're also going to raise a HTTP exception so I can copy it from up above.",
+      "zh": "接著也拋出 HTTPException，可以複製上面那段。"
+    },
+    {
+      "start": 382.81,
+      "end": 384.97,
+      "en": "Then come right now we're going to paste it.",
+      "zh": "回到這裡貼上。"
+    },
+    {
+      "start": 384.97,
+      "end": 388.65,
+      "en": "Then the status code that's going to be 401 unauthorized detail.",
+      "zh": "status_code 是 401 Unauthorized。"
+    },
+    {
+      "start": 388.65,
+      "end": 389.77,
+      "en": "The status is error.",
+      "zh": "status 是 error。"
+    },
+    {
+      "start": 389.81,
+      "end": 392.45,
+      "en": "Then the message is going to be invalid token type.",
+      "zh": "message 是「無效的權杖類型」。"
+    },
+    {
+      "start": 392.81,
+      "end": 395.45,
+      "en": "Then the action is going to be please login again.",
+      "zh": "action 是「請重新登入」。"
+    },
+    {
+      "start": 395.69,
+      "end": 403.33,
+      "en": "Then at the same level as this if block meaning somewhere right there, we're now going to get and validate the user.",
+      "zh": "再退回和 if 同一層，取得並驗證使用者。"
+    },
+    {
+      "start": 403.37,
+      "end": 406.01,
+      "en": "As you can see the user that's going to be await.",
+      "zh": "設定 user = await。"
+    },
+    {
+      "start": 406.01,
+      "end": 407.65,
+      "en": "Then from our user auth service.",
+      "zh": "從 user_auth_service，"
+    },
+    {
+      "start": 407.69,
+      "end": 410.33,
+      "en": "Remember we have the method of get Ghent user by id.",
+      "zh": "呼叫 get_user_by_id。"
+    },
+    {
+      "start": 410.65,
+      "end": 413.69,
+      "en": "These methods have been very useful throughout our codebase.",
+      "zh": "這些方法在整個程式碼裡都很有用。"
+    },
+    {
+      "start": 413.85,
+      "end": 415.37,
+      "en": "It's good we created them.",
+      "zh": "先建立它們很值得。"
+    },
+    {
+      "start": 415.37,
+      "end": 420.05,
+      "en": "Then we're going to pass in the user's ID from the payload, passing the ID like that.",
+      "zh": "從 payload 傳入使用者 id，"
+    },
+    {
+      "start": 420.29,
+      "end": 421.13,
+      "en": "Then the session.",
+      "zh": "再傳入 session。"
+    },
+    {
+      "start": 421.45,
+      "end": 426.17,
+      "en": "Then if we don't have a user then we're going to log by using logger dot warning.",
+      "zh": "如果沒有使用者，就用 logger.warning 記錄。"
+    },
+    {
+      "start": 426.37,
+      "end": 430.93,
+      "en": "And in F strings we're going to say user not found before the ID.",
+      "zh": "f-string 寫「找不到此 ID 的使用者」，"
+    },
+    {
+      "start": 431.05,
+      "end": 434.49,
+      "en": "Then we're going to pass in the ID from the payload by saying payload.",
+      "zh": "再從 payload，"
+    },
+    {
+      "start": 434.81,
+      "end": 439.61,
+      "en": "Then in single quotation marks ID then we're going to raise HTTP exception.",
+      "zh": "取得 'id'，然後拋出 HTTPException。"
+    },
+    {
+      "start": 439.69,
+      "end": 442.41,
+      "en": "So I can paste my HTTP exception block again.",
+      "zh": "可以再貼上例外區塊。"
+    },
+    {
+      "start": 442.45,
+      "end": 444.45,
+      "en": "Then the status code that's going to be 401.",
+      "zh": "status_code 是 401，"
+    },
+    {
+      "start": 444.49,
+      "end": 446.93,
+      "en": "Unauthorized detail status is error.",
+      "zh": "Unauthorized；detail 的 status 是 error。"
+    },
+    {
+      "start": 446.97,
+      "end": 451.17,
+      "en": "Then the message this time it changes to user not found.",
+      "zh": "message 改成「找不到使用者」。"
+    },
+    {
+      "start": 451.21,
+      "end": 453.21,
+      "en": "Then the action is please login again.",
+      "zh": "action 是「請重新登入」。"
+    },
+    {
+      "start": 453.45,
+      "end": 457.37,
+      "en": "Then after that right there at the same indentation level as this.",
+      "zh": "接著在和這個"
+    },
+    {
+      "start": 457.40999999999997,
+      "end": 462.77,
+      "en": "If block, we are going to validate the user status by saying await then user auth service.",
+      "zh": "if 同一層，使用 await user_auth_service 驗證狀態，"
+    },
+    {
+      "start": 463.09000000000003,
+      "end": 467.05,
+      "en": "We can say dot validate user status passing in the user.",
+      "zh": "呼叫 validate_user_status(user)。"
+    },
+    {
+      "start": 467.53,
+      "end": 473.21,
+      "en": "So if all these checks pass, we can now generate a new access token because the refresh token is still valid.",
+      "zh": "所有檢查通過後，因為更新權杖仍有效，就能產生新存取權杖。"
+    },
+    {
+      "start": 473.25,
+      "end": 479.65,
+      "en": "As you can see, new access token that's going to be create JWT token passing in the user's ID.",
+      "zh": "設定 new_access_token = create_jwt_token，傳入 user.id。"
+    },
+    {
+      "start": 479.97,
+      "end": 483.09,
+      "en": "Then we can set this new access token as a cookie.",
+      "zh": "再將新的存取權杖設成 Cookie。"
+    },
+    {
+      "start": 483.13,
+      "end": 494.33,
+      "en": "We can use the auth cookies method that we had also created, and this method takes in a response as an argument and the new access token so that it can set it as a cookie.",
+      "zh": "呼叫之前建立的 set_auth_cookies，傳入 response 與 new_access_token。"
+    },
+    {
+      "start": 494.33,
+      "end": 497.85,
+      "en": "And then we can log this by saying logger.info.",
+      "zh": "接著用 logger.info 記錄。"
+    },
+    {
+      "start": 498.21,
+      "end": 504.13,
+      "en": "And in everything we can say successfully refreshed access token for the user.",
+      "zh": "f-string 寫「已成功更新使用者的存取權杖」，"
+    },
+    {
+      "start": 504.29,
+      "end": 505.97,
+      "en": "Then passing the user's email.",
+      "zh": "傳入 user.email。"
+    },
+    {
+      "start": 506.29,
+      "end": 509.33,
+      "en": "Then we're going to return a generic response.",
+      "zh": "再傳回通用回應。"
+    },
+    {
+      "start": 509.37,
+      "end": 510.61,
+      "en": "And so we can say return.",
+      "zh": "寫 return。"
+    },
+    {
+      "start": 510.65,
+      "end": 516.81,
+      "en": "Then again to have a key of message with the value of access token refreshed successfully.",
+      "zh": "message 是「存取權杖更新成功」。"
+    },
+    {
+      "start": 517.29,
+      "end": 519.53,
+      "en": "Then we're going to pass in some user details.",
+      "zh": "再傳入一些使用者資訊。"
+    },
+    {
+      "start": 519.69,
+      "end": 521.57,
+      "en": "So the user that's going to be a dictionary.",
+      "zh": "user 的值是字典。"
+    },
+    {
+      "start": 521.61,
+      "end": 524.57,
+      "en": "And for the email we're going to pass in the user's email.",
+      "zh": "email 使用 user.email。"
+    },
+    {
+      "start": 525.01,
+      "end": 528.34,
+      "en": "Then the username going to pass in the user's username.",
+      "zh": "username 使用 user.username。"
+    },
+    {
+      "start": 528.78,
+      "end": 536.06,
+      "en": "Then the first name the user is first name, then the last name that is the user last name, then the",
+      "zh": "first_name 使用 user.first_name，last_name 使用 user.last_name，接著"
+    },
+    {
+      "start": 536.06,
+      "end": 542.38,
+      "en": "full name passing the user's full name, and then the ID number, the user's ID number.",
+      "zh": "full_name 使用 user.full_name，id_number 使用 user.id_number。"
+    },
+    {
+      "start": 542.7,
+      "end": 546.86,
+      "en": "And lastly, the role we can pass in the user's role like that.",
+      "zh": "最後 role 使用 user.role。"
+    },
+    {
+      "start": 546.86,
+      "end": 549.38,
+      "en": "Then we can now work on our last accept blocks.",
+      "zh": "接著處理最後的 except。"
+    },
+    {
+      "start": 549.38,
+      "end": 554.22,
+      "en": "So in case of any HTTP exception, we're just going to erase the error by saying res.",
+      "zh": "若是 HTTPException，直接用 raise，重新拋出。"
+    },
+    {
+      "start": 554.5,
+      "end": 562.54,
+      "en": "Then in case of any exception you can say except exception as E, we're going to log that by saying logger dot error.",
+      "zh": "其他例外使用 except Exception as e，再呼叫 logger.error。"
+    },
+    {
+      "start": 562.82,
+      "end": 567.26,
+      "en": "And enough things we can say token refresh failed, then passing the error.",
+      "zh": "f-string 寫「權杖更新失敗」，傳入錯誤。"
+    },
+    {
+      "start": 567.3,
+      "end": 569.9,
+      "en": "Then we're going to raise HTTP exception.",
+      "zh": "接著拋出 HTTPException。"
+    },
+    {
+      "start": 569.9,
+      "end": 571.86,
+      "en": "So let me just copy my exception block.",
+      "zh": "複製例外區塊。"
+    },
+    {
+      "start": 571.9,
+      "end": 576.54,
+      "en": "Then this time my status is going to change to HTTP 500 internal server error.",
+      "zh": "status_code 改成 HTTP_500_INTERNAL_SERVER_ERROR。"
+    },
+    {
+      "start": 576.7,
+      "end": 578.7,
+      "en": "Then the status is still error.",
+      "zh": "status 仍是 error。"
+    },
+    {
+      "start": 578.74,
+      "end": 579.54,
+      "en": "Then message.",
+      "zh": "message，"
+    },
+    {
+      "start": 579.7,
+      "end": 582.62,
+      "en": "This changes to failed to refresh the token.",
+      "zh": "改成「無法更新權杖」。"
+    },
+    {
+      "start": 582.94,
+      "end": 586.22,
+      "en": "Then action is Please try again later.",
+      "zh": "action 是「請稍後重試」。"
+    },
+    {
+      "start": 586.22,
+      "end": 586.78,
+      "en": "Like that.",
+      "zh": "像這樣。"
+    },
+    {
+      "start": 587.18,
+      "end": 587.62,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 587.62,
+      "end": 588.62,
+      "en": "That's it for this method.",
+      "zh": "這個方法就完成了。"
+    },
+    {
+      "start": 588.62,
+      "end": 592.9,
+      "en": "But as you can see here we have this file in red meaning we have some errors.",
+      "zh": "但檔案顯示紅色，代表還有錯誤。"
+    },
+    {
+      "start": 593.02,
+      "end": 596.58,
+      "en": "So let's scroll to the top and see where we have these issues okay.",
+      "zh": "往上捲找找。"
+    },
+    {
+      "start": 596.62,
+      "end": 601.7,
+      "en": "As you can see right here we're told the local variable e is assigned but never used.",
+      "zh": "這裡說區域變數 e 已指派但未使用。"
+    },
+    {
+      "start": 601.7,
+      "end": 612.06,
+      "en": "So what you can do is since we don't need to log this error, what you can just do is you can get rid of that and just accept JWT error, then that, like that, then you save it.",
+      "zh": "因為不需要記錄這個例外，可以移除 as e，只保留 except jwt 的例外類型，再儲存。"
+    },
+    {
+      "start": 612.06,
+      "end": 616.02,
+      "en": "So in case of these exceptions we're just going to raise these HTTP exceptions.",
+      "zh": "這些例外直接轉成 HTTPException。"
+    },
+    {
+      "start": 616.02,
+      "end": 620.1,
+      "en": "But whenever we have these are the exceptions down here especially this one.",
+      "zh": "但下面其他例外，尤其這一個，"
+    },
+    {
+      "start": 620.1,
+      "end": 623.06,
+      "en": "We're going to log and raise the HTTP exception.",
+      "zh": "會先記錄，再拋出 HTTPException。"
+    },
+    {
+      "start": 623.06,
+      "end": 628.66,
+      "en": "We could as well have decided up here where we have these exceptions to also log these errors.",
+      "zh": "上面的例外也可以選擇記錄，"
+    },
+    {
+      "start": 628.66,
+      "end": 632.86,
+      "en": "But personally I think the way we have it as it now will work for our application.",
+      "zh": "不過我認為目前這種方式適合這個應用程式。"
+    },
+    {
+      "start": 632.9,
+      "end": 633.42,
+      "en": "Good.",
+      "zh": "很好。"
+    },
+    {
+      "start": 633.46,
+      "end": 634.86,
+      "en": "That's it for this lecture.",
+      "zh": "這堂課就到這裡。"
+    },
+    {
+      "start": 634.86,
+      "end": 641.5,
+      "en": "In the next lecture, we're going to be adding the refresh route to our main.py file and testing the refresh route.",
+      "zh": "下一堂課把更新路由加入 main.py，並測試。"
+    }
+  ]
+}

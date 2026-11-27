@@ -1,0 +1,601 @@
+{
+  "courseId": "6542487",
+  "lectureId": "50827731",
+  "title": "Initiate Transfer Route Part 1",
+  "section": 14,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "3c0a7bc96b05ba24736ad4a9baff8fe4ffb9846e05b6b0d2e3706c76e3d435ff",
+  "cues": [
+    {
+      "start": 0.08,
+      "end": 3.12,
+      "en": "In the last lecture we worked on the complete transfer function.",
+      "zh": "上一堂完成 complete_transfer 函式。"
+    },
+    {
+      "start": 3.24,
+      "end": 7.68,
+      "en": "In this lecture we shall start working on the initiate transfer route for the transfer route.",
+      "zh": "這堂開始實作發起轉帳路由。"
+    },
+    {
+      "start": 7.72,
+      "end": 15.6,
+      "en": "We shall define two main endpoints of initiating and completing a money transfer with Idempotency support and OTP verification.",
+      "zh": "我們會定義發起與完成轉帳的兩個主要端點，支援冪等性與 OTP 驗證。"
+    },
+    {
+      "start": 15.64,
+      "end": 23.8,
+      "en": "Remember that an API call or operation is idempotent if it produces the same result, regardless of how many times it is executed.",
+      "zh": "記得 API 呼叫或操作若不論執行幾次，都產生相同結果，就具有冪等性。"
+    },
+    {
+      "start": 23.92,
+      "end": 30.84,
+      "en": "In our case, we are making the money transfer process idempotent so that one we can prevent duplicate transactions.",
+      "zh": "本例讓轉帳流程具有冪等性，第一個目的是避免重複交易。"
+    },
+    {
+      "start": 30.96,
+      "end": 41,
+      "en": "So if a customer retrieves a transfer request multiple times due to issues like network failures, idempotency is going to ensure that the transfer is processed only once.",
+      "zh": "如果客戶因網路失敗等問題多次重試轉帳請求，冪等性會確保只處理一次。"
+    },
+    {
+      "start": 41.12,
+      "end": 48,
+      "en": "This means that our customers can safely retry failed requests without worrying about double charging or processing.",
+      "zh": "如此客戶便能安全重試失敗請求，不必擔心重複扣款或處理。"
+    },
+    {
+      "start": 48,
+      "end": 53.04,
+      "en": "Then second, by using Idempotency so that we can ensure consistent user experience.",
+      "zh": "第二，藉由冪等性確保一致的使用體驗。"
+    },
+    {
+      "start": 53.24,
+      "end": 61.16,
+      "en": "So even if a customer's connection drops before receiving a success confirmation, they can retry the request without risking a double transfer.",
+      "zh": "即使連線在收到成功確認前中斷，客戶也能重試，不會冒重複轉帳風險。"
+    },
+    {
+      "start": 61.36,
+      "end": 67.29,
+      "en": "So with that being said, we're going to go back to our Project Explorer, then again to go to Backend app API.",
+      "zh": "接著回到專案檔案總管，進入 backend/app/api。"
+    },
+    {
+      "start": 67.57,
+      "end": 68.89,
+      "en": "Then we're going to go to routes.",
+      "zh": "再進入 routes。"
+    },
+    {
+      "start": 68.93,
+      "end": 71.33,
+      "en": "Then within routes we're going to go to bank account.",
+      "zh": "在 routes 裡進入 bank_account。"
+    },
+    {
+      "start": 71.37,
+      "end": 75.28999999999999,
+      "en": "Then create a new file that's going to be transfer dot pi.",
+      "zh": "建立 transfer.py。"
+    },
+    {
+      "start": 75.73,
+      "end": 78.09,
+      "en": "Then as usual we start with our inputs.",
+      "zh": "一樣先寫匯入。"
+    },
+    {
+      "start": 78.13,
+      "end": 81.57,
+      "en": "As you can see from Uuid we're going to import Uuid.",
+      "zh": "從 uuid 匯入 UUID。"
+    },
+    {
+      "start": 81.73,
+      "end": 89.73,
+      "en": "Then from fast API we're going to import the API router depends HTTP exception and status.",
+      "zh": "從 fastapi 匯入 APIRouter、Depends、HTTPException 與 status。"
+    },
+    {
+      "start": 90.05,
+      "end": 97.53,
+      "en": "Then from SQL model dot extension dot async dot session, we're going to import the async session.",
+      "zh": "從 sqlmodel.ext.asyncio.session 匯入 AsyncSession。"
+    },
+    {
+      "start": 97.53,
+      "end": 100.85,
+      "en": "Then from backend dot app dot core dot db.",
+      "zh": "從 backend.app.core.db。"
+    },
+    {
+      "start": 101.25,
+      "end": 103.21000000000001,
+      "en": "We're going to import get session.",
+      "zh": "匯入 get_session。"
+    },
+    {
+      "start": 103.57,
+      "end": 107.28999999999999,
+      "en": "Then from backend.app.co dot login.",
+      "zh": "從 backend.app.core.logging。"
+    },
+    {
+      "start": 107.65,
+      "end": 109.72999999999999,
+      "en": "We're going to import get logger.",
+      "zh": "匯入 get_logger。"
+    },
+    {
+      "start": 109.97,
+      "end": 115.93,
+      "en": "Then from backend dot app dot API route dot dot dot dependencies.",
+      "zh": "從 backend.app.api.routes.auth.dependencies。"
+    },
+    {
+      "start": 115.97,
+      "end": 117.81,
+      "en": "We're going to import current user.",
+      "zh": "匯入 CurrentUser。"
+    },
+    {
+      "start": 118.09,
+      "end": 125.18,
+      "en": "Then from backend dot app the transaction dot schema we're going to import put the transfer request",
+      "zh": "從 backend.app.transaction.schema 匯入 TransferRequest。"
+    },
+    {
+      "start": 125.18,
+      "end": 132.34,
+      "en": "schema and transfer OTP verification schema and the transfer response schema.",
+      "zh": "Schema、TransferOTPVerificationSchema 與 TransferResponseSchema。"
+    },
+    {
+      "start": 132.74,
+      "end": 139.34,
+      "en": "Then a from backend.app.co dot services dot transfer OTP.",
+      "zh": "從 backend.app.core.services.transfer_otp。"
+    },
+    {
+      "start": 139.38,
+      "end": 142.54,
+      "en": "We're going to import ascend transfer OTP email.",
+      "zh": "匯入 send_transfer_otp_email。"
+    },
+    {
+      "start": 142.66,
+      "end": 147.66,
+      "en": "Then from backend dot app dot core dot services transfer alert.",
+      "zh": "從 backend.app.core.services.transfer_alert。"
+    },
+    {
+      "start": 148.06,
+      "end": 155.06,
+      "en": "We're going to import send transfer alert then from backend dot app dot API dot services.",
+      "zh": "匯入 send_transfer_alert，再從 backend.app.api.services。"
+    },
+    {
+      "start": 155.3,
+      "end": 160.3,
+      "en": "The transaction we're going to import initiate transfer and complete transfer.",
+      "zh": "transaction 匯入 initiate_transfer 與 complete_transfer。"
+    },
+    {
+      "start": 160.78,
+      "end": 162.3,
+      "en": "Then let's scroll to the top.",
+      "zh": "捲動到上面。"
+    },
+    {
+      "start": 162.54,
+      "end": 165.1,
+      "en": "Then on this line where we're importing from fast API.",
+      "zh": "在從 fastapi 匯入的這一行。"
+    },
+    {
+      "start": 165.14,
+      "end": 166.98,
+      "en": "We're also going to import a header.",
+      "zh": "也加入 Header。"
+    },
+    {
+      "start": 167.42000000000002,
+      "end": 174.18,
+      "en": "Then we can see from date time we're going to import date time time zone and time delta.",
+      "zh": "從 datetime 匯入 datetime、timezone 與 timedelta。"
+    },
+    {
+      "start": 174.46,
+      "end": 177.94,
+      "en": "Then from decimal we're going to import decimal.",
+      "zh": "從 decimal 匯入 Decimal。"
+    },
+    {
+      "start": 178.46,
+      "end": 181.94,
+      "en": "Then from SQL model we shall import select.",
+      "zh": "從 sqlmodel 匯入 select。"
+    },
+    {
+      "start": 182.3,
+      "end": 189.39,
+      "en": "Then let's go to the bottom we can say from backend dot up dot transaction dot models, we're going",
+      "zh": "再到下面，從 backend.app.transaction.models。"
+    },
+    {
+      "start": 189.39,
+      "end": 199.31,
+      "en": "to import Idempotency key and then from backend.app.co dot utils dot number format, we shall import a format currency.",
+      "zh": "匯入 IdempotencyKey，再從 backend.app.core.utils.number_format 匯入 format_currency。"
+    },
+    {
+      "start": 199.71,
+      "end": 202.15,
+      "en": "Then let's create an instance of a logger.",
+      "zh": "接著建立 logger 實例。"
+    },
+    {
+      "start": 202.31,
+      "end": 204.43,
+      "en": "So you can say logger is get logger.",
+      "zh": "設定 logger = get_logger()。"
+    },
+    {
+      "start": 204.95,
+      "end": 208.23,
+      "en": "Then our router that's going to be API router.",
+      "zh": "router 使用 APIRouter。"
+    },
+    {
+      "start": 208.75,
+      "end": 212.71,
+      "en": "The prefix for the route that's going to be slash bank account.",
+      "zh": "prefix 為 /bank-account。"
+    },
+    {
+      "start": 213.39,
+      "end": 222.51,
+      "en": "Then first we're going to create a function to validate the Idempotency key to ensure that the key is in the correct format, which in our case is going to be a valid Uuid.",
+      "zh": "先建立驗證冪等鍵的函式，確保格式正確，本例要求有效的 UUID。"
+    },
+    {
+      "start": 222.55,
+      "end": 223.43,
+      "en": "Version four.",
+      "zh": "第 4 版。"
+    },
+    {
+      "start": 223.43,
+      "end": 224.39,
+      "en": "So how do you do that.",
+      "zh": "要怎麼做？"
+    },
+    {
+      "start": 224.43,
+      "end": 228.67000000000002,
+      "en": "We're going to say define validate underscore Uuid version four.",
+      "zh": "定義 validate_uuid4。"
+    },
+    {
+      "start": 228.82999999999998,
+      "end": 231.91,
+      "en": "That's going to have a value as an argument of type string.",
+      "zh": "接收 value，型別為 str。"
+    },
+    {
+      "start": 232.11,
+      "end": 233.51,
+      "en": "Then we shall return a string.",
+      "zh": "回傳 str。"
+    },
+    {
+      "start": 234.11,
+      "end": 236.19,
+      "en": "Then we're going to have a try block.",
+      "zh": "建立 try 區塊。"
+    },
+    {
+      "start": 236.19,
+      "end": 239.99,
+      "en": "Within the try block we're going to validate that a string is a valid Uuid.",
+      "zh": "在裡面驗證字串是有效 UUID。"
+    },
+    {
+      "start": 240.03,
+      "end": 240.79,
+      "en": "Version four.",
+      "zh": "第 4 版。"
+    },
+    {
+      "start": 240.99,
+      "end": 247.47,
+      "en": "So first we shall attempt to create a Uuid object with version four by saying Uuid underscore object.",
+      "zh": "先嘗試建立版本 4 的 UUID 物件，設定 uuid_obj。"
+    },
+    {
+      "start": 247.47,
+      "end": 248.87,
+      "en": "That's going to be Uuid.",
+      "zh": "使用 UUID。"
+    },
+    {
+      "start": 249.15,
+      "end": 250.31,
+      "en": "We're going to pass in value.",
+      "zh": "傳入 value。"
+    },
+    {
+      "start": 250.59,
+      "end": 252.47,
+      "en": "Then the version that's going to be four.",
+      "zh": "version 設為 4。"
+    },
+    {
+      "start": 252.83,
+      "end": 257.67,
+      "en": "Then if the Uuid object is not equal to the value then we're going to raise a value error.",
+      "zh": "若 UUID 物件與 value 不同，就拋出 ValueError。"
+    },
+    {
+      "start": 257.71,
+      "end": 269.31,
+      "en": "As you can see, if a string pass in the Uuid object is not equal to value dot lower, then we're going to raise a value error and we can say not a valid Uuid.",
+      "zh": "若 str(uuid_obj) != value.lower()，拋出 ValueError，寫「不是有效的 UUID」。"
+    },
+    {
+      "start": 269.67,
+      "end": 270.47,
+      "en": "Version four.",
+      "zh": "「第 4 版」。"
+    },
+    {
+      "start": 270.87,
+      "end": 277.43,
+      "en": "But if the Uuid object is equal to the value, then we return the value which is going to be the Idempotency key.",
+      "zh": "如果 UUID 物件與 value 相同，就回傳 value，也就是冪等鍵。"
+    },
+    {
+      "start": 277.47,
+      "end": 287.27,
+      "en": "As you can just return the value like that, then as usual, we shall have the accept block and so accept a value error, attribute error or a type error.",
+      "zh": "直接 return value，再加入 except，捕捉 ValueError、AttributeError 或 TypeError。"
+    },
+    {
+      "start": 287.51,
+      "end": 295.63,
+      "en": "Then we're going to raise an exception with the status code being status dot http 400 badrequest.",
+      "zh": "接著拋出例外，狀態碼為 status.HTTP_400_BAD_REQUEST。"
+    },
+    {
+      "start": 295.83,
+      "end": 298.79,
+      "en": "Then we're going to have detail within our detail.",
+      "zh": "再加入 detail。"
+    },
+    {
+      "start": 298.83,
+      "end": 301.15,
+      "en": "We shall have our status with the value of error.",
+      "zh": "其中 status 為 error。"
+    },
+    {
+      "start": 301.59,
+      "end": 309.16,
+      "en": "Then the message that's going to be Idempotency hyphen key must be a valid Uuid.",
+      "zh": "message 為「Idempotency-Key 必須是有效的 UUID」。"
+    },
+    {
+      "start": 309.56,
+      "end": 310.28,
+      "en": "Version four.",
+      "zh": "「第 4 版」。"
+    },
+    {
+      "start": 310.88,
+      "end": 312.48,
+      "en": "Then let's now define the route.",
+      "zh": "現在定義路由。"
+    },
+    {
+      "start": 312.72,
+      "end": 314.32,
+      "en": "It's going to be a router.",
+      "zh": "使用 router。"
+    },
+    {
+      "start": 314.56,
+      "end": 320.24,
+      "en": "This is going to be a Post request to a slash transfer slash initiate.",
+      "zh": "這是 POST 請求，路徑為 /transfer/initiate。"
+    },
+    {
+      "start": 320.72,
+      "end": 325.24,
+      "en": "Then for the response model that's going to be the transfer response schema.",
+      "zh": "response_model 為 TransferResponseSchema。"
+    },
+    {
+      "start": 325.56,
+      "end": 330.84,
+      "en": "Then the status code that's going to be status dot HTTP 202 accepted.",
+      "zh": "status_code 為 status.HTTP_202_ACCEPTED。"
+    },
+    {
+      "start": 331.12,
+      "end": 338.15999999999997,
+      "en": "Then the function that is going to be called is going to be async define initiate underscore money transfer.",
+      "zh": "執行的函式是 async def initiate_money_transfer。"
+    },
+    {
+      "start": 338.92,
+      "end": 345.32,
+      "en": "That's going to take in the transfer data that's going to be validated against the transfer request schema.",
+      "zh": "接收 transfer_data，使用 TransferRequestSchema 驗證。"
+    },
+    {
+      "start": 345.56,
+      "end": 349.28,
+      "en": "Then the current user that's going to be of type current user.",
+      "zh": "current_user 的型別為 CurrentUser。"
+    },
+    {
+      "start": 349.56,
+      "end": 352.52,
+      "en": "Then the session that's going to be async session.",
+      "zh": "session 的型別為 AsyncSession。"
+    },
+    {
+      "start": 352.72,
+      "end": 355.44,
+      "en": "Then we can say depends on get session.",
+      "zh": "使用 Depends(get_session)。"
+    },
+    {
+      "start": 355.8,
+      "end": 364.24,
+      "en": "Then we're going to define the Idempotency key, which is going to be set as the header so that we can ensure that the transfer request is idempotent.",
+      "zh": "接著將 idempotency_key 定義為標頭，確保轉帳請求的冪等性。"
+    },
+    {
+      "start": 364.28,
+      "end": 370.65,
+      "en": "As you can see Idempotency key that's going to be of type string, then you're going to set this key as a header.",
+      "zh": "idempotency_key 的型別為 str，使用 Header 設定。"
+    },
+    {
+      "start": 370.97,
+      "end": 378.85,
+      "en": "And then you can add a description and we can say idempotency key for the transfer request like that.",
+      "zh": "加入 description，寫「轉帳請求的冪等鍵」。"
+    },
+    {
+      "start": 379.17,
+      "end": 383.13,
+      "en": "Then I made a mistake up here after the current user that's supposed to be a comma.",
+      "zh": "上面有個錯誤，current_user 後面應加逗號。"
+    },
+    {
+      "start": 383.17,
+      "end": 386.89,
+      "en": "Then after the session we have another comma, then the idempotency key.",
+      "zh": "session 後面也加逗號，再來 idempotency_key。"
+    },
+    {
+      "start": 387.05,
+      "end": 393.21,
+      "en": "Then this function is going to return a response which is going to be validated against the transfer response schema.",
+      "zh": "函式回傳的回應以 TransferResponseSchema 驗證。"
+    },
+    {
+      "start": 393.69,
+      "end": 395.69,
+      "en": "Then as always we start with a try block.",
+      "zh": "一樣先建立 try 區塊。"
+    },
+    {
+      "start": 395.81,
+      "end": 401.77,
+      "en": "So within the try block first we're going to validate the Idempotency key from the validate Uuid function.",
+      "zh": "先用 UUID 驗證函式驗證冪等鍵。"
+    },
+    {
+      "start": 401.81,
+      "end": 409.37,
+      "en": "As you can see Idempotency key that's going to be we're going to call validate Uuid version four method that we created up above.",
+      "zh": "idempotency_key 呼叫上面建立的 validate_uuid4。"
+    },
+    {
+      "start": 409.53,
+      "end": 411.40999999999997,
+      "en": "Passing in the dependency key.",
+      "zh": "傳入 idempotency_key。"
+    },
+    {
+      "start": 411.73,
+      "end": 415.61,
+      "en": "Then if the dependency key is not valid we're going to raise an exception.",
+      "zh": "若冪等鍵無效，就拋出例外。"
+    },
+    {
+      "start": 415.65,
+      "end": 426.25,
+      "en": "As you can see, if not Idempotency key then we're going to raise HTTP exception with the status code being status dot http 400 badrequest.",
+      "zh": "若 not idempotency_key，拋出 HTTPException，狀態碼為 status.HTTP_400_BAD_REQUEST。"
+    },
+    {
+      "start": 426.29,
+      "end": 430.82,
+      "en": "Then for the detail, we're going to have the key of statins with the value of error.",
+      "zh": "detail 中 status 的值為 error。"
+    },
+    {
+      "start": 431.18,
+      "end": 437.5,
+      "en": "Then the message that's going to be Idempotency key header is required.",
+      "zh": "message 為「必須提供 Idempotency-Key 標頭」。"
+    },
+    {
+      "start": 437.98,
+      "end": 440.66,
+      "en": "Then we're going to execute a query and fetch the result.",
+      "zh": "接著執行查詢並取得結果。"
+    },
+    {
+      "start": 440.7,
+      "end": 446.86,
+      "en": "As you can see here existing key result we can say await session dot execute.",
+      "zh": "設定 existing_key_result，等待 session.execute 執行接下來的冪等鍵查詢。"
+    },
+    {
+      "start": 447.06,
+      "end": 456.06,
+      "en": "Then we're going to select from the ID key model where the idempotency key dot key is the Idempotency key.",
+      "zh": "select(IdempotencyKey)，條件為 IdempotencyKey.key 等於 idempotency_key。"
+    },
+    {
+      "start": 456.54,
+      "end": 465.1,
+      "en": "Then the Idempotency key dot user id that's going to be the current user's ID, then Idempotency key endpoint.",
+      "zh": "IdempotencyKey.user_id 等於 current_user.id，IdempotencyKey.endpoint。"
+    },
+    {
+      "start": 465.38,
+      "end": 469.26,
+      "en": "That's going to be the slash transfer slash initiate.",
+      "zh": "等於 /transfer/initiate。"
+    },
+    {
+      "start": 469.7,
+      "end": 472.46,
+      "en": "Then the Idempotency key expands that.",
+      "zh": "接著 IdempotencyKey.expires_at。"
+    },
+    {
+      "start": 472.65999999999997,
+      "end": 475.94,
+      "en": "We're going to set that to greater than date time dot.",
+      "zh": "必須大於 datetime。"
+    },
+    {
+      "start": 475.98,
+      "end": 486.98,
+      "en": "Now the current time with the time zone set to UTC, then I think we need to stop this lecture at this point because this function initiate money transfer requires quite a lot.",
+      "zh": "now，使用目前 UTC 時間。這裡先結束這堂，因為 initiate_money_transfer 包含很多內容。"
+    },
+    {
+      "start": 487.02,
+      "end": 490.22,
+      "en": "And we shall continue with this function in the next lecture.",
+      "zh": "下一堂繼續這個函式。"
+    }
+  ]
+}

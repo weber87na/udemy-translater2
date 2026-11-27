@@ -1,0 +1,175 @@
+{
+  "courseId": "6542487",
+  "lectureId": "49579621",
+  "title": "Container Race Conditions",
+  "section": 6,
+  "language": "zh-Hant",
+  "sourceLanguage": "en",
+  "translator": "Codex",
+  "status": "complete",
+  "sourceHash": "be31477bbee8cd398d0dd3e7f2f56dbc11a6be384790a17dead5339c0e007005",
+  "cues": [
+    {
+      "start": 0.2,
+      "end": 2.44,
+      "en": "The way we have currently set up our services.",
+      "zh": "目前的服務設定方式，"
+    },
+    {
+      "start": 2.44,
+      "end": 8.28,
+      "en": "That is traffic API, Postgres, RabbitMQ, millipede and Redis is not proper.",
+      "zh": "包括 Traefik、API、Postgres、RabbitMQ、Mailpit 與 Redis，並不妥當。"
+    },
+    {
+      "start": 8.32,
+      "end": 11.32,
+      "en": "Our service orchestration and design is not ideal.",
+      "zh": "服務協調與設計還不理想。"
+    },
+    {
+      "start": 11.52,
+      "end": 11.92,
+      "en": "Why?",
+      "zh": "為什麼？"
+    },
+    {
+      "start": 12.12,
+      "end": 15.68,
+      "en": "The way our services are orchestrated leads to a race condition.",
+      "zh": "目前的服務啟動協調方式，會導致競爭條件。"
+    },
+    {
+      "start": 15.72,
+      "end": 16.92,
+      "en": "What's a race condition?",
+      "zh": "什麼是競爭條件？"
+    },
+    {
+      "start": 16.96,
+      "end": 26.48,
+      "en": "A race condition occurs when multiple Docker services are starting up simultaneously, and one service tries to interact with another before it's ready to accept connections.",
+      "zh": "多個 Docker 服務同時啟動時，其中一個服務在另一個服務尚未準備好接受連線前，就嘗試與它互動，便會發生競爭條件。"
+    },
+    {
+      "start": 26.52,
+      "end": 29.6,
+      "en": "Let me break down specific examples from our application.",
+      "zh": "以應用程式裡的幾個例子說明。"
+    },
+    {
+      "start": 29.6,
+      "end": 32.72,
+      "en": "So we have traffic and fast API race condition.",
+      "zh": "首先是 Traefik 與 FastAPI 之間的競爭條件。"
+    },
+    {
+      "start": 32.8,
+      "end": 36.48,
+      "en": "Here traffic starts routing requests to a fast API service.",
+      "zh": "Traefik 開始將請求導向 FastAPI 服務。"
+    },
+    {
+      "start": 36.52,
+      "end": 43.64,
+      "en": "If fast API isn't fully initialized, meaning it's still setting up routes, connecting to the database, etc. the request fails.",
+      "zh": "但如果 FastAPI 尚未完全初始化，例如仍在設定路由、連接資料庫等，請求就會失敗。"
+    },
+    {
+      "start": 43.64,
+      "end": 48.32,
+      "en": "This will result in the 502 bad gateway errors that we have been getting.",
+      "zh": "因此出現我們剛才看到的 502 Bad Gateway。"
+    },
+    {
+      "start": 48.44,
+      "end": 53.12,
+      "en": "Then we also have a race condition between our fast API server and the Postgres database.",
+      "zh": "FastAPI 與 Postgres 資料庫之間，也有競爭條件。"
+    },
+    {
+      "start": 53.32,
+      "end": 58.2,
+      "en": "So when our fast API application starts, it immediately tries to establish a database connection.",
+      "zh": "FastAPI 啟動時，立即嘗試建立資料庫連線。"
+    },
+    {
+      "start": 58.2,
+      "end": 66.12,
+      "en": "If Postgres is still initializing, meaning still creating tables, loading extensions, etc., it's not ready to accept connections.",
+      "zh": "但如果 Postgres 還在初始化，例如建立資料表、載入擴充等，就還沒準備好接受連線。"
+    },
+    {
+      "start": 66.12,
+      "end": 69.44,
+      "en": "This leads to the database connection errors in our first API app.",
+      "zh": "這會導致 FastAPI 應用程式的資料庫連線錯誤。"
+    },
+    {
+      "start": 69.64,
+      "end": 75.2,
+      "en": "Then we also have some risk conditions between the celery workers and the RabbitMQ service.",
+      "zh": "Celery worker 與 RabbitMQ 之間，也有競爭條件。"
+    },
+    {
+      "start": 75.36,
+      "end": 85.68,
+      "en": "So the celery workers try to connect to RabbitMQ on startup if RabbitMQ isn't initialized, meaning setting up users, virtual hosts, etc., the connection fails.",
+      "zh": "Celery worker 啟動時會連到 RabbitMQ。如果 RabbitMQ 尚未初始化，例如仍在設定使用者、虛擬主機等，連線就會失敗。"
+    },
+    {
+      "start": 85.68,
+      "end": 89.48,
+      "en": "This causes celery workers to crash or enter a failed state.",
+      "zh": "導致 Celery worker 當掉或進入失敗狀態。"
+    },
+    {
+      "start": 89.64,
+      "end": 97.52000000000001,
+      "en": "To solve the risk conditions, there is a simple way which is not recommended for production and that is to add sleep timers in our scripts.",
+      "zh": "簡單的解法是在指令稿加入 sleep 等待時間，但不建議在正式環境這麼做。"
+    },
+    {
+      "start": 97.52000000000001,
+      "end": 105.16,
+      "en": "The sleep solution will work, but it's not ideal because it's a fixed delay which might be too short or unnecessarily too long.",
+      "zh": "sleep 能暫時解決，但並不理想，因為固定延遲可能太短，也可能不必要地太長。"
+    },
+    {
+      "start": 105.47999999999999,
+      "end": 108.68,
+      "en": "Then it doesn't actually verify the service readiness.",
+      "zh": "而且無法真的確認服務是否準備好。"
+    },
+    {
+      "start": 108.84,
+      "end": 112.8,
+      "en": "Then lastly, it could mask real connectivity issues in production.",
+      "zh": "最後，還可能掩蓋正式環境中真正的連線問題。"
+    },
+    {
+      "start": 112.8,
+      "end": 116.88,
+      "en": "We should set up health checks, dependency ordering, and retry logic.",
+      "zh": "應該設定健康檢查、相依啟動順序與重試邏輯。"
+    },
+    {
+      "start": 116.88,
+      "end": 124.36,
+      "en": "We shall follow the fail fast principle and ensure that our application only starts accepting requests when it's fully ready to handle them.",
+      "zh": "我們會遵循快速失敗原則，確保應用程式完全準備好處理請求後，才開始接受請求。"
+    },
+    {
+      "start": 124.36,
+      "end": 127.08,
+      "en": "That's the strategy we shall use for our API.",
+      "zh": "這就是 API 要採取的策略。"
+    },
+    {
+      "start": 127.28,
+      "end": 130.88,
+      "en": "It's a lot of work, but it's better we solve this once and for all.",
+      "zh": "工作量不少，但最好一次徹底解決。"
+    }
+  ]
+}

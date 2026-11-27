@@ -1,0 +1,485 @@
+WEBVTT
+
+1
+00:00:00.160 --> 00:00:05.080
+有了交易紀錄服務，接著加入路由。
+
+2
+00:00:05.200 --> 00:00:07.240
+回到專案檔案總管。
+
+3
+00:00:07.280 --> 00:00:10.600
+進入 backend/app/api/routes。
+
+4
+00:00:10.600 --> 00:00:12.840
+再進入 bank_account。
+
+5
+00:00:12.880 --> 00:00:19.560
+建立 transaction_history.py。
+
+6
+00:00:20.280 --> 00:00:22.000
+一樣先寫匯入。
+
+7
+00:00:22.040 --> 00:00:31.040
+從 fastapi 匯入 APIRouter、Depends、Query、HTTPException 與 status。
+
+8
+00:00:31.440 --> 00:00:36.800
+從 sqlmodel.ext.asyncio.session。
+
+9
+00:00:36.840 --> 00:00:39.080
+匯入 AsyncSession。
+
+10
+00:00:39.320 --> 00:00:45.440
+從 backend.app.api.routes.auth.dependencies。
+
+11
+00:00:45.560 --> 00:00:47.640
+匯入 CurrentUser。
+
+12
+00:00:47.920 --> 00:00:51.760
+從 backend.app.transaction.schema。
+
+13
+00:00:51.920 --> 00:00:55.600
+匯入 PaginatedTransactionResponseSchema。
+
+14
+00:00:55.800 --> 00:00:58.280
+接著 TransactionHistoryResponseSchema。
+
+15
+00:00:58.880 --> 00:01:02.880
+以及 TransactionFilterParamsSchema。
+
+16
+00:01:03.040 --> 00:01:09.440
+從 backend.app.core.logging 匯入 get_logger。
+
+17
+00:01:09.480 --> 00:01:20.160
+從 backend.app.core.db 匯入 get_session，再從 backend.app.api.services.transaction。
+
+18
+00:01:20.200 --> 00:01:23.000
+匯入 get_user_transactions。
+
+19
+00:01:23.240 --> 00:01:24.520
+設定 logger。
+
+20
+00:01:24.640 --> 00:01:26.360
+等於 get_logger()。
+
+21
+00:01:26.840 --> 00:01:30.160
+router 設為 APIRouter。
+
+22
+00:01:30.200 --> 00:01:34.400
+prefix 為 /transactions。
+
+23
+00:01:34.920 --> 00:01:36.720
+接著定義路由。
+
+24
+00:01:36.960 --> 00:01:42.080
+這是 GET 請求，路徑為 /history。
+
+25
+00:01:42.600 --> 00:01:47.680
+response_model 為 PaginatedTransactionResponseSchema。
+
+26
+00:01:47.720 --> 00:01:52.400
+status_code 為 status.HTTP_200_OK。
+
+27
+00:01:52.640 --> 00:02:02.030
+description 寫「取得已驗證使用者的分頁交易紀錄」。
+
+28
+00:02:02.390 --> 00:02:05.790
+函式使用 async def。
+
+29
+00:02:05.830 --> 00:02:09.750
+命名為 get_transaction_history。
+
+30
+00:02:10.230 --> 00:02:15.190
+接收 current_user，型別為 CurrentUser。
+
+31
+00:02:15.230 --> 00:02:18.270
+session 的型別為 AsyncSession。
+
+32
+00:02:18.270 --> 00:02:19.470
+使用 Depends。
+
+33
+00:02:19.790 --> 00:02:21.710
+傳入 get_session。
+
+34
+00:02:21.910 --> 00:02:24.910
+skip 的型別為 int。
+
+35
+00:02:25.270 --> 00:02:26.630
+加入 Query。
+
+36
+00:02:26.630 --> 00:02:30.550
+skip 的 default 為 0。
+
+37
+00:02:30.870 --> 00:02:34.830
+值必須大於或等於 0。
+
+38
+00:02:35.070 --> 00:02:37.110
+不允許負的 skip。
+
+39
+00:02:37.430 --> 00:02:39.230
+再複製 skip。
+
+40
+00:02:39.350 --> 00:02:41.670
+limit 也同樣處理。
+
+41
+00:02:41.670 --> 00:02:44.110
+型別為 int，使用 Query。
+
+42
+00:02:44.110 --> 00:02:46.110
+預設為 20。
+
+43
+00:02:46.150 --> 00:02:51.870
+必須大於或等於 1，且小於或等於 100。
+
+44
+00:02:52.270 --> 00:02:55.350
+再加入選填的 filters。
+
+45
+00:02:55.350 --> 00:02:58.390
+filters 用來篩選交易。
+
+46
+00:02:58.550 --> 00:03:03.950
+使用 TransactionFilterParamsSchema 驗證。
+
+47
+00:03:04.310 --> 00:03:10.830
+再使用 Depends，處理相依性注入。
+
+48
+00:03:11.030 --> 00:03:15.950
+它會驗證篩選條件，回傳 TransactionFilterParamsSchema 物件。
+
+49
+00:03:16.110 --> 00:03:20.950
+函式回傳 PaginatedTransactionResponseSchema。
+
+50
+00:03:21.230 --> 00:03:22.870
+接著建立 try 區塊。
+
+51
+00:03:22.870 --> 00:03:27.270
+若有提供日期範圍，先驗證。
+
+52
+00:03:27.310 --> 00:03:34.110
+如果 filters.start_date 與 filters.end_date 都有值。
+
+53
+00:03:34.430 --> 00:03:40.030
+而且 filters.start_date 大於結束日期。
+
+54
+00:03:40.070 --> 00:03:42.510
+也就是 filters.end_date。
+
+55
+00:03:42.990 --> 00:03:51.670
+就拋出 HTTPException，狀態碼為 status.HTTP_400_BAD_REQUEST。
+
+56
+00:03:51.790 --> 00:03:56.670
+detail 中的 status 為 error。
+
+57
+00:03:57.110 --> 00:04:03.990
+message 為「開始日期必須早於結束日期」。
+
+58
+00:04:04.350 --> 00:04:10.830
+接著使用服務函式取得交易，設定 transactions 與 total_count。
+
+59
+00:04:11.310 --> 00:04:12.510
+等於 await。
+
+60
+00:04:12.550 --> 00:04:16.670
+呼叫先前定義的 get_user_transactions。
+
+61
+00:04:16.870 --> 00:04:23.190
+user_id 傳入 current_user.id。
+
+62
+00:04:23.350 --> 00:04:25.590
+session 傳入 session。
+
+63
+00:04:25.870 --> 00:04:27.670
+skip 傳入 skip。
+
+64
+00:04:27.950 --> 00:04:29.750
+limit 傳入 limit。
+
+65
+00:04:30.230 --> 00:04:31.350
+接著 start_date。
+
+66
+00:04:31.630 --> 00:04:34.590
+值為 filters.start_date。
+
+67
+00:04:34.950 --> 00:04:38.670
+end_date 為 filters.end_date。
+
+68
+00:04:38.990 --> 00:04:43.510
+transaction_type 為 filters.transaction_type。
+
+69
+00:04:43.790 --> 00:04:48.710
+transaction_category 為 filters.transaction_category。
+
+70
+00:04:48.950 --> 00:04:53.270
+transaction_status 為 filters.status。
+
+71
+00:04:53.670 --> 00:04:58.310
+min_amount 為 filters.min_amount。
+
+72
+00:04:58.630 --> 00:05:03.220
+max_amount 為 filters.max_amount。
+
+73
+00:05:03.780 --> 00:05:07.580
+接著把交易轉成回應 schema。
+
+74
+00:05:07.580 --> 00:05:12.500
+不過先把 transaction_responses 初始化為空清單。
+
+75
+00:05:12.660 --> 00:05:16.420
+設定 transaction_responses。
+
+76
+00:05:16.660 --> 00:05:18.300
+值為空清單。
+
+77
+00:05:18.500 --> 00:05:20.220
+接著對每筆交易。
+
+78
+00:05:20.340 --> 00:05:24.100
+寫 for txn，也就是 for transaction in transactions。
+
+79
+00:05:24.340 --> 00:05:30.140
+先擷取中繼資料欄位，再轉成回應 schema。
+
+80
+00:05:30.140 --> 00:05:37.380
+metadata 設為 transaction.transaction_metadata 或空字典。
+
+81
+00:05:37.620 --> 00:05:42.820
+response 使用 TransactionHistoryResponseSchema。
+
+82
+00:05:43.020 --> 00:05:52.780
+id 傳入 transaction.id，reference 傳入 transaction.reference，再來 amount。
+
+83
+00:05:53.020 --> 00:06:01.060
+amount 為 transaction.amount，description 為 transaction.description，再來 transaction_type。
+
+84
+00:06:01.300 --> 00:06:04.700
+值為 transaction.transaction_type。
+
+85
+00:06:05.260 --> 00:06:06.940
+接著 transaction_category。
+
+86
+00:06:06.940 --> 00:06:10.460
+值為 transaction.transaction_category。
+
+87
+00:06:10.780 --> 00:06:12.220
+再來 transaction_status。
+
+88
+00:06:12.540 --> 00:06:15.420
+值為 transaction.status。
+
+89
+00:06:15.900 --> 00:06:17.340
+接著 created_at。
+
+90
+00:06:17.380 --> 00:06:24.860
+值為 transaction.created_at；completed_at 為 transaction.completed_at。
+
+91
+00:06:25.180 --> 00:06:30.660
+balance_after 為 transaction.balance_after。
+
+92
+00:06:30.860 --> 00:06:38.140
+選填中繼資料欄位中，currency 使用 metadata.get('currency')。
+
+93
+00:06:38.620 --> 00:06:44.540
+converted_amount 使用 metadata.get('converted_amount')。
+
+94
+00:06:45.260 --> 00:06:53.980
+from_currency 使用 metadata.get('from_currency')，接著 to_currency。
+
+95
+00:06:54.060 --> 00:07:05.780
+使用 metadata.get('to_currency')；counterparty_name 使用 metadata.get('counterparty_name')。
+
+96
+00:07:06.100 --> 00:07:13.620
+counterparty_account 使用 metadata.get('counterparty_account')。
+
+97
+00:07:14.060 --> 00:07:24.340
+接著把剛建立的 response 加入 transaction_responses，呼叫 transaction_responses.append。
+
+98
+00:07:24.380 --> 00:07:26.980
+傳入 response。
+
+99
+00:07:27.420 --> 00:07:29.900
+接著 return。
+
+100
+00:07:29.940 --> 00:07:34.740
+return 應該與 for 迴圈同一層，就在這裡。
+
+101
+00:07:34.740 --> 00:07:40.140
+回傳 PaginatedTransactionResponseSchema，傳入 total。
+
+102
+00:07:40.180 --> 00:07:44.180
+total 是總筆數，也就是 total_count。
+
+103
+00:07:44.380 --> 00:07:47.020
+skip 為 skip，接著 limit。
+
+104
+00:07:47.220 --> 00:07:48.220
+值為 limit。
+
+105
+00:07:48.620 --> 00:07:50.140
+transactions。
+
+106
+00:07:50.140 --> 00:07:52.780
+值為 transaction_responses。
+
+107
+00:07:53.140 --> 00:07:59.010
+最後 except 區塊與 try 同一層，就在這裡。
+
+108
+00:07:59.370 --> 00:08:02.090
+寫 except HTTP。
+
+109
+00:08:02.130 --> 00:08:07.690
+Exception as http_exc，重新拋出 HTTPException。
+
+110
+00:08:07.890 --> 00:08:13.570
+其他例外使用 except Exception as e，一樣處理。
+
+111
+00:08:13.730 --> 00:08:16.650
+使用 logger.error 記錄。
+
+112
+00:08:16.970 --> 00:08:23.330
+用 f-string 寫「取得交易紀錄時發生錯誤」，再帶入錯誤。
+
+113
+00:08:23.370 --> 00:08:32.210
+接著拋出 HTTPException，狀態碼為 status.HTTP_500_INTERNAL_SERVER_ERROR。
+
+114
+00:08:32.250 --> 00:08:37.290
+detail 中的 status 為 error。
+
+115
+00:08:37.650 --> 00:08:43.450
+message 為「無法取得交易紀錄」。
+
+116
+00:08:43.850 --> 00:08:48.970
+action 為「請稍後再試」。
+
+117
+00:08:49.490 --> 00:08:51.290
+儲存檔案。
+
+118
+00:08:51.450 --> 00:08:51.810
+很好。
+
+119
+00:08:51.810 --> 00:08:52.890
+這堂課就到這裡。
+
+120
+00:08:52.890 --> 00:08:56.970
+下一堂把交易紀錄加入主路由。
+
+121
+00:08:57.010 --> 00:08:58.730
+再到 Postman 測試。
