@@ -9,8 +9,17 @@
         new RegExp(`^/course/(?:${courses.join('|')})/learn/lecture/([1-9]\\d*)/?$`).exec(u.pathname)?.[1] || null;
     } catch { return null; }
   }
-  function validate(data, id) {
-    if (data?.lectureId !== id || data.language !== 'zh-Hant' || !Array.isArray(data.cues) || !data.cues.length) {
+  function dataPath(index, id, url) {
+    if (lectureId(url) !== id) return null;
+    const entry = index?.lectures?.find(item => item.lectureId === id);
+    const course = index?.courses?.find(item => item.courseId === entry?.courseId);
+    if (entry?.status !== 'complete' || !course || !courses.includes(course.slug) ||
+        !/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/.test(course.slug) ||
+        new URL(url).pathname.split('/')[2] !== course.slug) return null;
+    return index.layout === 'by-course-slug' ? `data/${course.slug}/${id}.json` : `data/${id}.json`;
+  }
+  function validate(data, id, courseId) {
+    if (data?.lectureId !== id || (courseId && data.courseId !== courseId) || data.language !== 'zh-Hant' || !Array.isArray(data.cues) || !data.cues.length) {
       throw new Error('字幕檔與本堂課不相符。');
     }
     let previous = -1;
@@ -48,5 +57,5 @@
       lift: Math.min(200, Math.max(40, Number(value.lift) || 80)),
     };
   }
-  globalThis.UdemyZhCore = Object.freeze({lectureId, validate, cueAt, settings});
+  globalThis.UdemyZhCore = Object.freeze({lectureId, dataPath, validate, cueAt, settings});
 })();

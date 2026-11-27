@@ -2,24 +2,24 @@
 
 Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 
-| 課程 | 影片 | 字幕段數 |
-| --- | ---: | ---: |
-| [AI in C# using the Microsoft Agent Framework](https://www.udemy.com/course/ai-in-c-sharp-using-the-microsoft-agent-framework/) | 127 | 13,669 |
-| [Mastering Microsoft Agent Framework in C#](https://www.udemy.com/course/mastering-microsoft-agent-framework-in-c/) | 46 | 4,359 |
-| [Fraud Detection in Python](https://www.udemy.com/course/fraud-detection-using-python/) | 20 | 1,194 |
-| [Detect Fake News with Machine Learning & Feature Engineering](https://www.udemy.com/course/detect-fake-news-with-machine-learning-feature-engineering/) | 24 | 3,308 |
-| [Building a RAG application in Python](https://www.udemy.com/course/building-a-rag-application-in-python/) | 75 | 6,970 |
-| [Machine Learning A-Z [2026]: ML, DL, AI with AWS, Python & R](https://www.udemy.com/course/machinelearning/) | 429 | 34,781 |
-| [Python for Data Science and Machine Learning Bootcamp](https://www.udemy.com/course/python-for-data-science-and-machine-learning-bootcamp/) | 152 | 16,037 |
-| [Building Recommender Systems with Machine Learning and AI](https://www.udemy.com/course/building-recommender-systems-with-machine-learning-and-ai/) | 126 | 8,173 |
-| [FastAPI & Machine Learning: Build a Banking Fraud Detection](https://www.udemy.com/course/fastapi-banking-with-ai-ml-fraud-detection/) | 295 | 30,184 |
-| [Master Math by Coding in Python](https://www.udemy.com/course/math-with-python/) | 162 | 25,838 |
-| [Master calculus 1 using Python: derivatives and applications](https://www.udemy.com/course/pycalc1_x/) | 176 | 29,478 |
-| [Master statistics & machine learning: intuition, math, code](https://www.udemy.com/course/statsml_x/) | 221 | 24,174 |
-| [Complete A.I. & Machine Learning, Data Science Bootcamp](https://www.udemy.com/course/complete-machine-learning-and-data-science-zero-to-mastery/) | 323 | 38,069 |
-| [A deep understanding of AI large language model mechanisms](https://www.udemy.com/course/dullms_x/) | 320 | 63,429 |
-| [PyTorch for Deep Learning Bootcamp](https://www.udemy.com/course/pytorch-for-deep-learning/) | 351 | 45,423 |
-| 合計 | **2847** | **345,086** |
+| 課程 | 影片 | 字幕段數 | 字幕 |
+| --- | ---: | ---: | --- |
+| [AI in C# using the Microsoft Agent Framework](https://www.udemy.com/course/ai-in-c-sharp-using-the-microsoft-agent-framework/) | 127 | 13,669 | [字幕資料夾](subtitles/ai-in-c-sharp-using-the-microsoft-agent-framework/) |
+| [Mastering Microsoft Agent Framework in C#](https://www.udemy.com/course/mastering-microsoft-agent-framework-in-c/) | 46 | 4,359 | [字幕資料夾](subtitles/mastering-microsoft-agent-framework-in-c/) |
+| [Fraud Detection in Python](https://www.udemy.com/course/fraud-detection-using-python/) | 20 | 1,194 | [字幕資料夾](subtitles/fraud-detection-using-python/) |
+| [Detect Fake News with Machine Learning & Feature Engineering](https://www.udemy.com/course/detect-fake-news-with-machine-learning-feature-engineering/) | 24 | 3,308 | [字幕資料夾](subtitles/detect-fake-news-with-machine-learning-feature-engineering/) |
+| [Building a RAG application in Python](https://www.udemy.com/course/building-a-rag-application-in-python/) | 75 | 6,970 | [字幕資料夾](subtitles/building-a-rag-application-in-python/) |
+| [Machine Learning A-Z [2026]: ML, DL, AI with AWS, Python & R](https://www.udemy.com/course/machinelearning/) | 429 | 34,781 | [字幕資料夾](subtitles/machinelearning/) |
+| [Python for Data Science and Machine Learning Bootcamp](https://www.udemy.com/course/python-for-data-science-and-machine-learning-bootcamp/) | 152 | 16,037 | [字幕資料夾](subtitles/python-for-data-science-and-machine-learning-bootcamp/) |
+| [Building Recommender Systems with Machine Learning and AI](https://www.udemy.com/course/building-recommender-systems-with-machine-learning-and-ai/) | 126 | 8,173 | [字幕資料夾](subtitles/building-recommender-systems-with-machine-learning-and-ai/) |
+| [FastAPI & Machine Learning: Build a Banking Fraud Detection](https://www.udemy.com/course/fastapi-banking-with-ai-ml-fraud-detection/) | 295 | 30,184 | [字幕資料夾](subtitles/fastapi-banking-with-ai-ml-fraud-detection/) |
+| [Master Math by Coding in Python](https://www.udemy.com/course/math-with-python/) | 162 | 25,838 | [字幕資料夾](subtitles/math-with-python/) |
+| [Master calculus 1 using Python: derivatives and applications](https://www.udemy.com/course/pycalc1_x/) | 176 | 29,478 | [字幕資料夾](subtitles/pycalc1_x/) |
+| [Master statistics & machine learning: intuition, math, code](https://www.udemy.com/course/statsml_x/) | 221 | 24,174 | [字幕資料夾](subtitles/statsml_x/) |
+| [Complete A.I. & Machine Learning, Data Science Bootcamp](https://www.udemy.com/course/complete-machine-learning-and-data-science-zero-to-mastery/) | 323 | 38,069 | [字幕資料夾](subtitles/complete-machine-learning-and-data-science-zero-to-mastery/) |
+| [A deep understanding of AI large language model mechanisms](https://www.udemy.com/course/dullms_x/) | 320 | 63,429 | [字幕資料夾](subtitles/dullms_x/) |
+| [PyTorch for Deep Learning Bootcamp](https://www.udemy.com/course/pytorch-for-deep-learning/) | 351 | 45,423 | [字幕資料夾](subtitles/pytorch-for-deep-learning/) |
+| 合計 | **2847** | **345,086** | |
 
 譯文由 Codex 直接依英文字幕製作，不使用 Google、iAI 或其他翻譯 API。程式識別字與影片敘述的版本、日期保留原文語意。
 
@@ -36,10 +36,10 @@ Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 
 ## 字幕與完整性
 
-請由 [字幕目錄](字幕目錄.md) 查找各講座。
+請由上表的「字幕資料夾」或 [字幕目錄](字幕目錄.md) 查找各講座。資料夾名稱對應課程網址，每個資料夾內的 README 都有按課程順序排列的講座名稱與下載連結。
 
-- subtitles/<lectureId>.zh-Hant.vtt：繁中 VTT。
-- extension/data/<lectureId>.json：中英字幕與時間軸。
+- `subtitles/<course-slug>/<lectureId>.zh-Hant.vtt`：繁中 VTT。
+- `extension/data/<course-slug>/<lectureId>.json`：中英字幕與時間軸。
 - extension/data/index.json：課程與講座對照。
 - coverage.json：全課覆蓋率與段數。
 
@@ -52,7 +52,7 @@ Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 ## 驗證
 
 ```shell
-node --test tests/subtitles.test.mjs
+node --test tests/*.test.mjs
 ```
 
 測試依 index 與 coverage 動態核對每門課、所有影片字幕、時間軸、課程作用範圍及字幕查找。結構檢查不能代替翻譯語意校對。

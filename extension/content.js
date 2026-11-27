@@ -43,7 +43,7 @@
     </div>
     <div id="subs" hidden><div id="zh" lang="zh-Hant"></div><div id="en" lang="en"></div></div>`;
   const ui = Object.fromEntries(['tools','toggle','panel','status','name','enabled','bilingual','fontSize','sizeValue','offset','lift','subs','zh','en'].map(id => [id, root.getElementById(id)]));
-  let prefs = core.settings(), currentId = null, data = null, video = null, generation = 0;
+  let prefs = core.settings(), currentId = null, currentRoute = null, data = null, video = null, generation = 0;
   let lastText = '', knownVideo = null, index = null, indexError = '';
   const nativeStyle = document.createElement('style');
   nativeStyle.textContent = `html[data-agent-zh-active] [data-purpose="captions-cue-text"],html[data-agent-zh-active] [data-purpose="captions-display"],html[data-agent-zh-active] [class*="captions-display--captions-container"] { opacity:0!important; } video[data-agent-zh-active]::cue { color:transparent!important;background:transparent!important;text-shadow:none!important; }`;
@@ -63,6 +63,7 @@
   function resetDisplay() { ui.subs.hidden = true; ui.zh.textContent = ''; ui.en.textContent = ''; lastText = ''; clearNative(); }
   async function load(id) {
     const token = ++generation;
+    currentRoute = new URL(location.href).pathname;
     currentId = id; data = null; resetDisplay();
     ui.name.textContent = '';
     if (!id) return;
@@ -79,7 +80,9 @@
         ui.name.textContent = entry?.title || '';
         return;
       }
-      const next = core.validate(await jsonResource(`data/${id}.json`), id);
+      const resource = core.dataPath(index, id, location.href);
+      if (!resource) throw new Error('字幕課程與目前頁面不相符。');
+      const next = core.validate(await jsonResource(resource), id, entry.courseId);
       if (token !== generation) return;
       data = next;
       ui.name.textContent = next.title;
@@ -127,7 +130,7 @@
   }
   function tick() {
     const id = core.lectureId(location.href);
-    if (id !== currentId) void load(id);
+    if (id !== currentId || new URL(location.href).pathname !== currentRoute) void load(id);
     const videos = [...document.querySelectorAll('video')];
     const nextVideo = videos.find(v => v.getBoundingClientRect().width > 20) || null;
     if (nextVideo !== video) { resetDisplay(); video = nextVideo; }

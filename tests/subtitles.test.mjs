@@ -40,6 +40,7 @@ test('only indexed course URLs activate and manifest scope matches', () => {
   assert.deepEqual(manifest.content_scripts[0].matches, matches);
   assert.deepEqual(manifest.content_scripts[0].js, ['courses.js', 'core.js', 'content.js']);
   assert.deepEqual(manifest.web_accessible_resources[0].matches, matches);
+  assert.deepEqual(manifest.web_accessible_resources[0].resources, ['data/index.json', 'data/*/*.json']);
   for (const c of index.courses) {
     assert.equal(core.lectureId(`https://www.udemy.com/course/${c.slug}/learn/lecture/123?start=2`), '123');
     assert.equal(core.lectureId(`https://example.com/course/${c.slug}/learn/lecture/123`), null);
@@ -57,10 +58,14 @@ test('every indexed video has matching bilingual data, VTT and complete course c
   const entries = index.lectures.filter(e => e.status === 'complete');
   let total = 0;
   for (const entry of entries) {
-    const data = core.validate(await json(`extension/data/${entry.lectureId}.json`), entry.lectureId);
+    const course = index.courses.find(c => c.courseId === entry.courseId);
+    const url = `https://www.udemy.com/course/${course.slug}/learn/lecture/${entry.lectureId}`;
+    const resource = core.dataPath(index, entry.lectureId, url);
+    assert.equal(resource, `data/${course.slug}/${entry.lectureId}.json`);
+    const data = core.validate(await json(`extension/${resource}`), entry.lectureId, entry.courseId);
     assert.equal(data.courseId, entry.courseId);
     assert.equal(data.cues.length, entry.cueCount);
-    const vtt = parseExport(await readFile(new URL(`subtitles/${entry.lectureId}.zh-Hant.vtt`, root), 'utf8'));
+    const vtt = parseExport(await readFile(new URL(`subtitles/${course.slug}/${entry.lectureId}.zh-Hant.vtt`, root), 'utf8'));
     assert.equal(vtt.length, data.cues.length);
     vtt.forEach((cue, i) => {
       assert.ok(Math.abs(cue.start - data.cues[i].start) <= .001 && Math.abs(cue.end - data.cues[i].end) <= .001);
@@ -76,9 +81,35 @@ test('every indexed video has matching bilingual data, VTT and complete course c
     assert.equal(report.articles, index.lectures.filter(e => e.courseId === course.courseId && e.status === 'article').length);
     assert.equal(report.cues, items.reduce((sum, e) => sum + e.cueCount, 0));
     assert.deepEqual(report.pending, []);
+    assert.deepEqual((await readdir(new URL(`subtitles/${course.slug}/`, root))).sort(),
+      ['README.md', ...items.map(e => `${e.lectureId}.zh-Hant.vtt`)].sort());
+    assert.deepEqual((await readdir(new URL(`extension/data/${course.slug}/`, root))).sort(),
+      items.map(e => `${e.lectureId}.json`).sort());
+    const courseReadme = await readFile(new URL(`subtitles/${course.slug}/README.md`, root), 'utf8');
+    const directory = await readFile(new URL('字幕目錄.md', root), 'utf8');
+    for (const e of items) {
+      assert.ok(courseReadme.includes(`](${e.lectureId}.zh-Hant.vtt)`));
+      assert.ok(directory.includes(`](subtitles/${course.slug}/${e.lectureId}.zh-Hant.vtt)`));
+    }
   }
   assert.equal(coverage.videos, entries.length);
   assert.equal(coverage.cues, total);
-  assert.equal((await readdir(new URL('subtitles/', root))).length, entries.length);
-  assert.equal((await readdir(new URL('extension/data/', root))).length, entries.length + 1);
+  assert.equal(index.layout, 'by-course-slug');
+  assert.deepEqual((await readdir(new URL('subtitles/', root))).sort(), index.courses.map(c => c.slug).sort());
+  assert.deepEqual((await readdir(new URL('extension/data/', root))).sort(), ['index.json', ...index.courses.map(c => c.slug)].sort());
+});
+
+test('course-aware resource paths reject a lecture under the wrong course', () => {
+  const entry = index.lectures.find(e => e.status === 'complete');
+  const course = index.courses.find(c => c.courseId === entry.courseId);
+  const other = index.courses.find(c => c.courseId !== course.courseId);
+  const url = `https://www.udemy.com/course/${course.slug}/learn/lecture/${entry.lectureId}`;
+  assert.equal(core.dataPath(index, entry.lectureId, url), `data/${course.slug}/${entry.lectureId}.json`);
+  if (other) assert.equal(core.dataPath(index, entry.lectureId, url.replace(course.slug, other.slug)), null);
+  assert.equal(core.dataPath(index, '../escape', url), null);
+  assert.equal(core.dataPath(index, entry.lectureId, url.replace('www.udemy.com', 'example.com')), null);
+  const article = index.lectures.find(e => e.status === 'article');
+  if (article) assert.equal(core.dataPath(index, article.lectureId, url), null);
+  const legacy = {...index, layout: undefined};
+  assert.equal(core.dataPath(legacy, entry.lectureId, url), `data/${entry.lectureId}.json`);
 });
