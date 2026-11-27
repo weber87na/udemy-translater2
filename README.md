@@ -30,6 +30,8 @@ Udemy 課程的繁體中文字幕，搭配 Chrome 中英雙語字幕外掛。
 3. 選「載入未封裝項目」，選擇本專案的 extension 資料夾。
 4. 回到已登入、可正常播放的 Udemy 課程，重新整理頁面。
 
+若載入時出現 `Invalid value for 'web_accessible_resources[0]'. Invalid match pattern.`，請更新至 **1.0.16 或以上**，再選擇 `extension` 資料夾載入。此錯誤已修正：依 [Chrome 規範](https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources)，資源存取規則使用 `https://www.udemy.com/*`；字幕程式仍只在清單內的課程啟用。
+
 影片右上角「繁中 CC」可設定雙語、字級、位置與正負 30 秒的時間差。字幕跟隨影片時間同步，支援暫停、快轉、重播、變速及切換講座。
 
 一般播放器容器全螢幕可用；子母畫面、投放電視及 VIDEO 元素單獨進入的原生全螢幕不支援網頁字幕覆蓋層。

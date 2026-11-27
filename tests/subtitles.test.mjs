@@ -39,13 +39,22 @@ test('only indexed course URLs activate and manifest scope matches', () => {
   assert.deepEqual(manifest.permissions, ['storage']);
   assert.deepEqual(manifest.content_scripts[0].matches, matches);
   assert.deepEqual(manifest.content_scripts[0].js, ['courses.js', 'core.js', 'content.js']);
-  assert.deepEqual(manifest.web_accessible_resources[0].matches, matches);
   assert.deepEqual(manifest.web_accessible_resources[0].resources, ['data/index.json', 'data/*/*.json']);
   for (const c of index.courses) {
     assert.equal(core.lectureId(`https://www.udemy.com/course/${c.slug}/learn/lecture/123?start=2`), '123');
     assert.equal(core.lectureId(`https://example.com/course/${c.slug}/learn/lecture/123`), null);
   }
   assert.equal(core.lectureId('https://www.udemy.com/course/unindexed-course/learn/lecture/123'), null);
+});
+
+test('web accessible resources use origin patterns accepted by Chrome MV3', () => {
+  // Chrome rejects WAR match patterns with any path other than /*.
+  for (const rule of manifest.web_accessible_resources) {
+    for (const pattern of rule.matches) {
+      assert.match(pattern, /^https:\/\/[^/]+\/\*$/, `Invalid Chrome WAR match pattern: ${pattern}`);
+    }
+    assert.deepEqual(rule.matches, ['https://www.udemy.com/*']);
+  }
 });
 
 test('every indexed video has matching bilingual data, VTT and complete course coverage', async () => {
